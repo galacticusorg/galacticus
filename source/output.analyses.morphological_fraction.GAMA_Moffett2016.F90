@@ -31,9 +31,15 @@
      A morphological fraction output analysis class.
      !!}
      private
-     double precision, allocatable, dimension(:) :: countAllTarget          , countEarlyTarget        , &
-          &                                         functionErrorLowerTarget, functionErrorUpperTarget
+     double precision                         , allocatable, dimension(:) :: countAllTarget                                , countEarlyTarget                , &
+          &                                                                  functionErrorLowerTarget                      , functionErrorUpperTarget        , &
+          &                                                                  systematicErrorPolynomialCoefficient          , randomErrorPolynomialCoefficient
+     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_                  => null()
+     class           (galacticStructureClass ), pointer                   :: galacticStructure_                   => null()
+     double precision                                                     :: ratioEarlyType                                , ratioEarlyTypeError             , &
+          &                                                                  randomErrorMinimum                            , randomErrorMaximum
    contains
+     final     ::                  morphologicalFractionGAMAMoffett2016Destructor
      procedure :: finalize      => morphologicalFractionGAMAMoffett2016Finalize
      procedure :: logLikelihood => morphologicalFractionGAMAMoffett2016LogLikelihood
   end type outputAnalysisMorphologicalFractionGAMAMoffett2016
@@ -182,7 +188,10 @@ contains
     integer         (c_size_t                                             )                                :: iBin                                                                   , binCount
     type            (hdf5Object                                           )                                :: dataFile
     double precision                                                                                       :: probit,sqrtArg
-
+    !![
+    <constructorAssign variables="ratioEarlyType, ratioEarlyTypeError, systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, *cosmologyFunctions_, *galacticStructure_"/>
+    !!]
+    
     ! Read masses at which fraction was measured.
     !$ call hdf5Access%set()
     call dataFile%openFile   (char(inputPath(pathTypeDataStatic))//"observations/morphology/earlyTypeFractionGAMA.hdf5",readOnly=.true.               )
@@ -412,6 +421,20 @@ contains
     return
   end function morphologicalFractionGAMAMoffett2016ConstructorInternal
 
+  subroutine morphologicalFractionGAMAMoffett2016Destructor(self)
+    !!{
+    Destructor for the {\normalfont \ttfamily morphologicalFractionGAMAMoffett2016} output analysis class.
+    !!}
+    implicit none
+    type(outputAnalysisMorphologicalFractionGAMAMoffett2016), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"/>
+    <objectDestructor name="self%outputTimes_"       />
+    <objectDestructor name="self%galacticStructure_" />
+    !!]
+    return
+  end subroutine morphologicalFractionGAMAMoffett2016Destructor
 
   double precision function morphologicalFractionGAMAMoffett2016LogLikelihood(self)
     !!{

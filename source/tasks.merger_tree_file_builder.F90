@@ -187,6 +187,7 @@
      \item [{\normalfont \ttfamily provenance}] Add to the {\normalfont \ttfamily provenance} group.
     \end{description}
    </description>
+    <descriptorSpecial>descriptorSpecial</descriptorSpecial>
   </task>
   !!]
   type, extends(taskClass) :: taskMergerTreeFileBuilder
@@ -217,9 +218,15 @@
      logical                                                                      :: traceParticles                      , columnHeaders
      character       (len=1                          )                            :: columnSeparator
    contains
+     !![
+     <methods>
+       <method method="descriptorSpecial" description="Handle adding special parameters to the descriptor."/>
+     </methods>
+     !!]
      final     ::                       mergerTreeFileBuilderDestructor
      procedure :: perform            => mergerTreeFileBuilderPerform
      procedure :: requiresOutputFile => mergerTreeFileBuilderRequiresOutputFile
+     procedure :: descriptorSpecial  => mergerTreeFileBuilderDescriptorSpecial
   end type taskMergerTreeFileBuilder
 
   interface taskMergerTreeFileBuilder
@@ -347,6 +354,7 @@ contains
        </inputParameter>
        !!]
     end if
+    includesHubbleFlow%isSet=parameters%isPresent('includesHubbleFlow')
     if (includesHubbleFlow%isSet) then
        !![
        <inputParameter>
@@ -357,6 +365,7 @@ contains
        </inputParameter>
        !!]
     end if
+    positionsArePeriodic%isSet=parameters%isPresent('positionsArePeriodic')
     if (positionsArePeriodic%isSet) then
        !![
        <inputParameter>
@@ -740,3 +749,52 @@ contains
     mergerTreeFileBuilderRequiresOutputFile=.false.
     return
   end function mergerTreeFileBuilderRequiresOutputFile
+
+  subroutine mergerTreeFileBuilderDescriptorSpecial(self,descriptor)
+    !!{
+    Add special parameters to the descriptor.
+    !!}
+    use :: Input_Parameters          , only : inputParameters
+    use :: ISO_Varying_String        , only : char
+    use :: String_Handling           , only : String_Join
+    use :: Merger_Tree_Data_Structure, only : enumerationMetaDataTypeDecode, enumerationPropertyTypeDecode
+    implicit none
+    class    (taskMergerTreeFileBuilder), intent(inout) :: self
+    type     (inputParameters          ), intent(inout) :: descriptor
+    type     (inputParameters          )                :: subParameters
+    integer                                             :: i
+    character(len=12                   )                :: column       , conversionFactor
+    
+    if (allocated(self%properties)) then
+       do i=1,size(self%properties)
+          call descriptor%addParameter('property','')
+          subParameters=descriptor%subParameters('property',copyInstance=i)
+          write (column,'(i12)') self%properties(i)%column
+          call    subParameters%addParameter('name'            ,char(enumerationPropertyTypeDecode(self%properties(i)%property,includePrefix=.false.)))
+          call    subParameters%addParameter('column'          ,trim(column                                                                          ))
+          if (self%properties(i)%conversionFactor%isSet) then
+             write (conversionFactor,'(e12.6)') self%properties(i)%conversionFactor%value
+             call subParameters%addParameter('conversionFactor',trim(conversionFactor                                                                ))
+          end if
+       end do
+    end if
+    if (allocated(self%particleProperties)) then
+       do i=1,size(self%particleProperties)
+          call descriptor%addParameter('particleProperty','')
+          subParameters=descriptor%subParameters('particleProperty',copyInstance=i)
+           write (column,'(i12)') self%particleProperties(i)%column
+           call subParameters%addParameter('name'  ,char(enumerationPropertyTypeDecode(self%particleProperties(i)%property,includePrefix=.false.)))
+           call subParameters%addParameter('column',trim(column                                                                                  ))
+        end do
+    end if
+    if (allocated(self%metaData)) then
+       do i=1,size(self%metaData)
+          call descriptor%addParameter('metaData','')
+          subParameters=descriptor%subParameters('metaData',copyInstance=i)
+          call subParameters%addParameter('name'   ,char(                              self%metaData(i)%name                          ))
+          call subParameters%addParameter('content',char(                              self%metaData(i)%content                       ))
+          call subParameters%addParameter('type'   ,char(enumerationMetaDataTypeDecode(self%metaData(i)%type   ,includePrefix=.false.)))
+        end do
+    end if
+    return
+  end subroutine mergerTreeFileBuilderDescriptorSpecial

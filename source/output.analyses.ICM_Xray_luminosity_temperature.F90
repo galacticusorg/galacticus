@@ -31,6 +31,15 @@
      An ICM X-ray luminosity-temperature relation output analysis class.
      !!}
      private
+     double precision                                , allocatable  , dimension(:) :: systematicErrorPolynomialCoefficient          , randomErrorPolynomialCoefficient
+     class           (darkMatterHaloScaleClass      ), pointer                     :: darkMatterHaloScale_                 => null()
+     class           (hotHaloMassDistributionClass  ), pointer                     :: hotHaloMassDistribution_             => null()
+     class           (hotHaloTemperatureProfileClass), pointer                     :: hotHaloTemperatureProfile_           => null()
+     class           (coolingFunctionClass          ), pointer                     :: coolingFunction_                     => null()
+     class           (cosmologyFunctionsClass       ), pointer                     :: cosmologyFunctions_                  => null()
+     double precision                                                              :: randomErrorMinimum                            , randomErrorMaximum
+   contains
+     final :: icmXrayLuminosityTemperatureDestructor
   end type outputAnalysisICMXrayLuminosityTemperature
 
   interface outputAnalysisICMXrayLuminosityTemperature
@@ -168,7 +177,10 @@ contains
     double precision                                                     , parameter                     :: temperatureMinimum                              =0.1d0  , temperatureMaximum                   =1.0d01, &
          &                                                                                                  countTemperaturesPerDecade                      =5.0d0
     integer         (c_size_t                                           )                                :: iOutput                                                 , countTemperatures
- 
+    !![
+    <constructorAssign variables="systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, *cosmologyFunctions_, *darkMatterHaloScale_, *hotHaloMassDistribution_, *hotHaloTemperatureProfile_, *coolingFunction_"/>
+    !!]
+    
     ! Construct bins in temperature.
     countTemperatures=int(log10(temperatureMaximum/temperatureMinimum)*countTemperaturesPerDecade+1.0d0,kind=c_size_t)
     allocate(temperatures(countTemperatures))
@@ -307,3 +319,21 @@ contains
     return
   end function icmXrayLuminosityTemperatureConstructorInternal
 
+
+  subroutine icmXrayLuminosityTemperatureDestructor(self)
+    !!{
+    Destructor for the ``icmXrayLuminosityTemperature'' output analysis class.
+    !!}
+    implicit none
+    type(outputAnalysisICMXrayLuminosityTemperature), intent(inout) :: self
+    
+    !![
+    <objectDestructor name="self%outputTimes_"              />
+    <objectDestructor name="self%cosmologyFunctions_"       />
+    <objectDestructor name="self%darkMatterHaloScale_"      />
+    <objectDestructor name="self%hotHaloMassDistribution_"  />
+    <objectDestructor name="self%hotHaloTemperatureProfile_"/>
+    <objectDestructor name="self%coolingFunction_"          />
+    !!]
+    return
+  end subroutine icmXrayLuminosityTemperatureDestructor

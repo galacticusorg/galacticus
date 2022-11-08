@@ -24,7 +24,7 @@
   use :: Posterior_Sampling_State, only : posteriorSampleStateSimple
 
   type, public :: posteriorSampleLikelihoodList
-     class  (posteriorSampleLikelihoodClass), pointer                   :: modelLikelihood_
+     class  (posteriorSampleLikelihoodClass), pointer                   :: modelLikelihood_        => null()
      integer                                , dimension(:), allocatable :: parameterMap                     , parameterMapInactive
      type   (modelParameterList            ), dimension(:), allocatable :: modelParametersActive_           , modelParametersInactive_
      type   (varying_string                ), dimension(:), allocatable :: parameterMapNames                , parameterMapNamesInactive
@@ -36,6 +36,7 @@
   !![
   <posteriorSampleLikelihood name="posteriorSampleLikelihoodIndependentLikelihoods">
    <description>A posterior sampling likelihood class which combines other likelihoods assumed to be independent.</description>
+   <linkedList type="posteriorSampleLikelihoodList" variable="modelLikelihoods" next="next" object="modelLikelihood_" objectType="posteriorSampleLikelihoodClass"/>
   </posteriorSampleLikelihood>
   !!]
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodIndependentLikelihoods

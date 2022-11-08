@@ -33,7 +33,12 @@
      A black hole-bulge mass relation output analysis class.
      !!}
      private
-     class(galacticStructureClass), pointer :: galacticStructure_ => null()
+     class           (galacticStructureClass ), pointer                     :: galacticStructure_                   => null()
+     class           (cosmologyFunctionsClass), pointer                     :: cosmologyFunctions_                  => null()
+     double precision                         , allocatable  , dimension(:) :: systematicErrorPolynomialCoefficient          , randomErrorPolynomialCoefficient
+     double precision                                                       :: randomErrorMinimum                            , randomErrorMaximum
+   contains
+     final :: blackHoleBulgeRelationDestructor
   end type outputAnalysisBlackHoleBulgeRelation
 
   interface outputAnalysisBlackHoleBulgeRelation
@@ -161,7 +166,10 @@ contains
     integer         (c_size_t                                           )                                :: iOutput                                                 , i
     type            (hdf5Object                                         )                                :: dataFile
     type            (varying_string                                     )                                :: targetLabel
-
+    !![
+    <constructorAssign variables="systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, *cosmologyFunctions_, *outputTimes_, *galacticStructure_"/>
+    !!]
+    
     !$ call hdf5Access%set()
     call dataFile%openFile     (char(inputPath(pathTypeDataStatic)//'/observations/blackHoles/blackHoleMassVsBulgeMass_KormendyHo2013.hdf5'),readOnly=.true.             )
     call dataFile%readDataset  ('massBulgeBinned'                                                                                           ,         masses             )
@@ -344,3 +352,16 @@ contains
     return
   end function blackHoleBulgeRelationConstructorInternal
 
+  subroutine blackHoleBulgeRelationDestructor(self)
+    !!{
+    Destructor for the {\normalfont \ttfamily blackHoleBulgeRelation} output analysis class.
+    !!}
+    implicit none
+    type(outputAnalysisBlackHoleBulgeRelation), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%galacticStructure_" />
+    <objectDestructor name="self%cosmologyFunctions_"/>
+    !!]
+    return
+  end subroutine blackHoleBulgeRelationDestructor

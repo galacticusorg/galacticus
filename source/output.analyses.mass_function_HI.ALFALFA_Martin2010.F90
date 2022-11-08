@@ -38,6 +38,13 @@ Contains a module which implements an ALFALFA HI mass function output analysis c
      An ALFALFA HI mass function output analysis class.
      !!}
      private
+     class           (cosmologyParametersClass               ), pointer                     :: cosmologyParameters_                           => null()
+     class           (gravitationalLensingClass              ), pointer                     :: gravitationalLensing_                          => null()
+     class           (outputAnalysisDistributionOperatorClass), pointer                     :: outputAnalysisDistributionOperatorRandomError_ => null()
+     double precision                                         , allocatable  , dimension(:) :: systematicErrorPolynomialCoefficient
+     double precision                                                                       :: sizeSourceLensing
+   contains
+     final :: massFunctionHIALFALFAMartin2010Destructor
   end type outputAnalysisMassFunctionHIALFALFAMartin2010
 
   interface outputAnalysisMassFunctionHIALFALFAMartin2010
@@ -173,7 +180,10 @@ contains
     type            (cosmologyFunctionsMatterLambda                 )               , pointer      :: cosmologyFunctionsData
     type            (distributionOperatorList                       )               , pointer      :: distributionOperatorSequence
     double precision                                                 , parameter                   :: errorPolynomialZeroPoint                            =11.3d+0
-
+    !![
+    <constructorAssign variables="sizeSourceLensing, systematicErrorPolynomialCoefficient, *cosmologyParameters_, *gravitationalLensing_, *outputAnalysisDistributionOperatorRandomError_"/>
+    !!]
+    
     ! Build a filter which select galaxies with ISM mass 10⁴M☉ or greater.
     allocate(galacticFilter_)
     !![
@@ -273,3 +283,19 @@ contains
     nullify(distributionOperatorSequence)
     return
   end function massFunctionHIALFALFAMartin2010ConstructorInternal
+
+  subroutine massFunctionHIALFALFAMartin2010Destructor(self)
+    !!{
+    Destructor for the ``massFunctionHIALFALFAMartin2010'' output analysis class.
+    !!}
+    implicit none
+    type(outputAnalysisMassFunctionHIALFALFAMartin2010), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%cosmologyParameters_"                          />
+    <objectDestructor name="self%gravitationalLensing_"                         />
+    <objectDestructor name="self%outputAnalysisDistributionOperatorRandomError_"/>
+    !!]
+    return
+  end subroutine massFunctionHIALFALFAMartin2010Destructor
+  

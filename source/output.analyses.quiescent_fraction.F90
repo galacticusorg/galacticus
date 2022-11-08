@@ -36,8 +36,15 @@
      A quiescent fraction output analysis class.
      !!}
      private
-     class(surveyGeometryClass    ), pointer :: surveyGeometry_     => null()
-     class(cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null(), cosmologyFunctionsData => null()
+     class           (surveyGeometryClass            ), pointer :: surveyGeometry_                               => null()
+     class           (cosmologyFunctionsClass        ), pointer :: cosmologyFunctions_                           => null(), cosmologyFunctionsData                    => null()
+     class           (starFormationRateDisksClass    ), pointer :: starFormationRateDisks_                       => null()
+     class           (starFormationRateSpheroidsClass), pointer :: starFormationRateSpheroids_                   => null()
+     class           (galacticStructureClass         ), pointer :: galacticStructure_                            => null()
+     type            (varying_string                 )          :: fileName
+     double precision                                           :: massMinimum                                            , massMaximum                                        , &
+          &                                                        starFormationRateSpecificQuiescentLogarithmic          , starFormationRateSpecificLogarithmicError          , &
+          &                                                        countMassesPerDecade     
   end type outputAnalysisQuiescentFraction
 
   interface outputAnalysisQuiescentFraction
@@ -71,9 +78,9 @@ contains
     class           (outputAnalysisPropertyOperatorClass    ), pointer                     :: outputAnalysisPropertyOperator_          , outputAnalysisWeightPropertyOperator_
     class           (outputAnalysisDistributionOperatorClass), pointer                     :: outputAnalysisDistributionOperator_
     class           (galacticStructureClass                 ), pointer                     :: galacticStructure_
-    double precision                                         , dimension(:  ), allocatable :: functionValueTarget                      , functionCovarianceTarget1D                   , &
+    double precision                                         , dimension(:  ), allocatable :: meanValueTarget                          , meanCovarianceTarget1D                       , &
          &                                                                                    massesStellar
-    double precision                                         , dimension(:,:), allocatable :: functionCovarianceTarget
+    double precision                                         , dimension(:,:), allocatable :: meanCovarianceTarget
     double precision                                                                       :: massMinimum                              , massMaximum                                  , &
          &                                                                                    countMassesPerDecade                     , starFormationRateSpecificQuiescentLogarithmic, &
          &                                                                                    starFormationRateSpecificLogarithmicError
@@ -164,24 +171,24 @@ contains
           </inputParameter>
 	  !!]
        end if
-       if (parameters%isPresent('functionValueTarget')) then
-          if (parameters%isPresent('functionCovarianceTarget')) then
+       if (parameters%isPresent('meanValueTarget')) then
+          if (parameters%isPresent('meanCovarianceTarget')) then
              !![
 	     <inputParameter>
-               <name>functionValueTarget</name>
+               <name>meanValueTarget</name>
 	       <source>parameters</source>
 	       <description>The target function for likelihood calculations.</description>
              </inputParameter>
              <inputParameter>
-               <name>functionCovarianceTarget</name>
+               <name>meanCovarianceTarget</name>
 	       <source>parameters</source>
-	       <variable>functionCovarianceTarget1D</variable>
+	       <variable>meanCovarianceTarget1D</variable>
 	       <description>The target function covariance for likelihood calculations.</description>
              </inputParameter>
              !!]
-             if (size(functionCovarianceTarget1D) == size(functionValueTarget)**2) then
-                allocate(functionCovarianceTarget(size(functionValueTarget),size(functionValueTarget)))
-                functionCovarianceTarget=reshape(functionCovarianceTarget1D,shape(functionCovarianceTarget))
+             if (size(meanCovarianceTarget1D) == size(meanValueTarget)**2) then
+                allocate(meanCovarianceTarget(size(meanValueTarget),size(meanValueTarget)))
+                meanCovarianceTarget=reshape(meanCovarianceTarget1D,shape(meanCovarianceTarget))
              else
                 call Error_Report('functionCovariance has wrong size'//{introspection:location})
              end if
@@ -218,9 +225,9 @@ contains
           &amp;                                {conditions}                                   &amp;
           &amp;                               )
         </call>
-        <argument name="targetLabel"              value="targetLabel"              parameterPresent="parameters"/>
-        <argument name="functionValueTarget"      value="functionValueTarget"      parameterPresent="parameters"/>
-        <argument name="functionCovarianceTarget" value="functionCovarianceTarget" parameterPresent="parameters"/>
+        <argument name="targetLabel"          value="targetLabel"          parameterPresent="parameters"/>
+        <argument name="meanValueTarget"      value="meanValueTarget"      parameterPresent="parameters"/>
+        <argument name="meanCovarianceTarget" value="meanCovarianceTarget" parameterPresent="parameters"/>
        </conditionalCall>
        !!]
     end if
@@ -263,25 +270,28 @@ contains
     class           (outputAnalysisDistributionOperatorClass), intent(inout), target         :: outputAnalysisDistributionOperator_
     class           (galacticStructureClass                 ), intent(in   ), target         :: galacticStructure_
     double precision                                         , intent(in   )                 :: starFormationRateSpecificQuiescentLogarithmic, starFormationRateSpecificLogarithmicError
-    double precision                                         , allocatable  , dimension(:  ) :: functionValueTarget                          , massesStellar
-    double precision                                         , allocatable  , dimension(:,:) :: functionCovarianceTarget
+    double precision                                         , allocatable  , dimension(:  ) :: meanValueTarget                              , massesStellar
+    double precision                                         , allocatable  , dimension(:,:) :: meanCovarianceTarget
     type            (varying_string                         )                                :: targetLabel
     type            (hdf5Object                             )                                :: dataFile
 
     !$ call hdf5Access%set  ()
-    call dataFile%openFile     (char(File_Name_Expand(fileName))     ,readOnly=.true.                  )
-    call dataFile%readDataset  ('massStellar'                        ,         massesStellar           )
-    call dataFile%readDataset  ('quiescentFractionFunction'          ,         functionValueTarget     )
-    call dataFile%readDataset  ('quiescentFractionFunctionCovariance',         functionCovarianceTarget)
-    call dataFile%readAttribute('labelTarget'                        ,         targetLabel             )
-    call dataFile%close        (                                                                       )
+    call dataFile%openFile     (char(File_Name_Expand(fileName))     ,readOnly=.true.              )
+    call dataFile%readDataset  ('massStellar'                        ,         massesStellar       )
+    call dataFile%readDataset  ('quiescentFractionFunction'          ,         meanValueTarget     )
+    call dataFile%readDataset  ('quiescentFractionFunctionCovariance',         meanCovarianceTarget)
+    call dataFile%readAttribute('labelTarget'                        ,         targetLabel         )
+    call dataFile%close        (                                                                   )
     !$ call hdf5Access%unset()
     ! Build the object.
-    self=quiescentFractionConstructorInternal(label,comment,massesStellar,starFormationRateSpecificQuiescentLogarithmic,starFormationRateSpecificLogarithmicError,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputTimes_,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisWeightPropertyOperator_,starFormationRateDisks_,starFormationRateSpheroids_,galacticStructure_,targetLabel,functionValueTarget,functionCovarianceTarget)
+    self=quiescentFractionConstructorInternal(label,comment,massesStellar,starFormationRateSpecificQuiescentLogarithmic,starFormationRateSpecificLogarithmicError,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputTimes_,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisWeightPropertyOperator_,starFormationRateDisks_,starFormationRateSpheroids_,galacticStructure_,targetLabel,meanValueTarget,meanCovarianceTarget)
+    !![
+    <constructorAssign variables="fileName"/>
+    !!]
     return
   end function quiescentFractionConstructorFile
 
-  function quiescentFractionConstructorInternal(label,comment,massesStellar,starFormationRateSpecificQuiescentLogarithmic,starFormationRateSpecificLogarithmicError,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputTimes_,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisWeightPropertyOperator_,starFormationRateDisks_,starFormationRateSpheroids_,galacticStructure_,targetLabel,functionValueTarget,functionCovarianceTarget) result(self)
+  function quiescentFractionConstructorInternal(label,comment,massesStellar,starFormationRateSpecificQuiescentLogarithmic,starFormationRateSpecificLogarithmicError,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputTimes_,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisWeightPropertyOperator_,starFormationRateDisks_,starFormationRateSpheroids_,galacticStructure_,targetLabel,meanValueTarget,meanCovarianceTarget) result(self)
     !!{
     Internal constructor for the ``quiescentFraction'' output analysis class.
     !!}
@@ -310,8 +320,8 @@ contains
     class           (starFormationRateSpheroidsClass                ), intent(in   ), target                        :: starFormationRateSpheroids_
     class           (galacticStructureClass                         ), intent(in   ), target                        :: galacticStructure_
     type            (varying_string                                 ), optional                     , intent(in   ) :: targetLabel
-    double precision                                                 , optional     , dimension(:  ), intent(in   ) :: functionValueTarget                                         , massesStellar
-    double precision                                                 , optional     , dimension(:,:), intent(in   ) :: functionCovarianceTarget
+    double precision                                                 , optional     , dimension(:  ), intent(in   ) :: meanValueTarget                                             , massesStellar
+    double precision                                                 , optional     , dimension(:,:), intent(in   ) :: meanCovarianceTarget
     double precision                                                 , intent(in   )                                :: starFormationRateSpecificQuiescentLogarithmic               , starFormationRateSpecificLogarithmicError
     type            (nodePropertyExtractorMassStellar               )               , pointer                       :: nodePropertyExtractor_
     type            (nodePropertyExtractorStarFormationRate         )               , pointer                       :: nodePropertyExtractorStarFormationRate_
@@ -331,11 +341,15 @@ contains
     integer         (c_size_t                                       )                                               :: iBin                                                        , bufferCount                                         , &
          &                                                                                                             countMasses
     !![
-    <constructorAssign variables="*surveyGeometry_, *cosmologyFunctions_, *cosmologyFunctionsData"/>
+    <constructorAssign variables="starFormationRateSpecificQuiescentLogarithmic, starFormationRateSpecificLogarithmicError, *surveyGeometry_, *cosmologyFunctions_, *cosmologyFunctionsData, *starFormationRateDisks_, *starFormationRateSpheroids_, *galacticStructure_"/>
     !!]
 
+    ! Set properties needed for descriptor.
+    countMasses              =size(massesStellar             )
+    self%massMinimum         =     massesStellar(          1)
+    self%massMaximum         =     massesStellar(countMasses)
+    self%countMassesPerDecade=dble(countMasses-1_c_size_t)*log10(self%massMaximum/self%massMinimum)
     ! Compute weights that apply to each output redshift.
-    countMasses=size(massesStellar)
     allocate(outputWeight(countMasses,outputTimes_%count()))
     outputWeight=0.0d0
     do iBin=1,countMasses
@@ -487,8 +501,8 @@ contains
          &                              .true.                                                          , &
          &                              .true.                                                          , &
          &                              targetLabel                                                     , &
-         &                              functionValueTarget                                             , &
-         &                              functionCovarianceTarget                                          &
+         &                              meanValueTarget                                                 , &
+         &                              meanCovarianceTarget                                              &
          &                             )
     !![
     <objectDestructor name="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_"/>

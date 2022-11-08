@@ -54,6 +54,13 @@ Contains a module which implements a stellar mass function output analysis class
      A UKIDSS UDS stellar mass function output analysis class.
      !!}
      private
+     class           (gravitationalLensingClass), pointer                   :: gravitationalLensing_            => null()
+     double precision                           , allocatable, dimension(:) :: randomErrorPolynomialCoefficient          , systematicErrorPolynomialCoefficient
+     double precision                                                       :: randomErrorMinimum                        , randomErrorMaximum                  , &
+          &                                                                    sizeSourceLensing
+     integer                                                                :: redshiftInterval
+   contains
+     final :: massFunctionStellarUKIDSSUDSDestructor
   end type outputAnalysisMassFunctionStellarUKIDSSUDS
 
   interface outputAnalysisMassFunctionStellarUKIDSSUDS
@@ -215,6 +222,9 @@ contains
     double precision                                                     , parameter                   :: errorPolynomialZeroPoint                            =11.3d+0
     type            (varying_string                                     )                              :: fileName
     double precision                                                                                   :: massThreshold
+    !![
+    <constructorAssign variables="redshiftInterval, randomErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, sizeSourceLensing, *gravitationalLensing_"/>
+    !!]
 
     ! Create cosmological model in which data were analyzed.
     allocate(cosmologyParametersData)
@@ -342,3 +352,16 @@ contains
     nullify(distributionOperatorSequence)
     return
   end function massFunctionStellarUKIDSSUDSConstructorInternal
+
+  subroutine massFunctionStellarUKIDSSUDSDestructor(self)
+    !!{
+    Destructor for the {\normalfont \ttfamily massFunctionStellarUKIDSSUDS} output analysis class.
+    !!}
+    implicit none
+    type(outputAnalysisMassFunctionStellarUKIDSSUDS), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%galacticStructure_"/>
+    !!]
+    return
+  end subroutine massFunctionStellarUKIDSSUDSDestructor

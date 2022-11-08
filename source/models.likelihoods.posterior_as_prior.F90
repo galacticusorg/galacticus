@@ -60,6 +60,7 @@
      double precision                                , allocatable, dimension(:  ) :: neighborDistances                   , rootVariance
      double precision                                , allocatable, dimension(:,:) :: states
      class           (nearestNeighbors              ), allocatable                 :: searcher
+     type            (varying_string                )                              :: chainBaseName
      integer                                                                       :: dimCount                            , convergedStateCount  , &
           &                                                                           neighborCount
      double precision                                                              :: tolerance                           , logPriorNormalization
@@ -157,7 +158,7 @@ contains
     logical                                                                                            :: converged
     double precision                                                                                   :: time                      , likelihood
     !![
-    <constructorAssign variables="tolerance, neighborCount, *posteriorSampleLikelihood_"/>
+    <constructorAssign variables="chainBaseName, tolerance, neighborCount, *posteriorSampleLikelihood_"/>
     !!]
 
     self%initialized=.false.

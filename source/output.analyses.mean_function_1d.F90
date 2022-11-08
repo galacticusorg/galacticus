@@ -40,20 +40,33 @@
      A generic 1D mean function (i.e. mean value of some property weighted by number density of objects binned by some property) output analysis class.
      !!}
      private
-     type            (varying_string                 )                              :: label                             , comment                         , &
-          &                                                                            propertyLabel                     , propertyComment                 , &
-          &                                                                            meanLabel                         , meanComment                     , &
-          &                                                                            propertyUnits                     , meanUnits                       , &
-          &                                                                            xAxisLabel                        , yAxisLabel                      , &
-          &                                                                            targetLabel
-     double precision                                                               :: propertyUnitsInSI                 , meanUnitsInSI
-     type            (outputAnalysisVolumeFunction1D ), pointer                     :: volumeFunctionUnweighted => null(), volumeFunctionWeighted => null()
-     type            (outputAnalysisCrossCorrelator1D), pointer                     :: crossCovariance          => null()
-     double precision                                 , allocatable, dimension(:  ) :: binCenter                         , meanValue                       , &
-          &                                                                            meanValueTarget
-     double precision                                 , allocatable, dimension(:,:) :: meanCovariance                    , meanCovarianceTarget
-     logical                                                                        :: finalized                         , likelihoodNormalize             , &
-          &                                                                            xAxisIsLog                        , yAxisIsLog
+     type            (varying_string                              )                              :: label                                          , comment                                         , &
+          &                                                                                         propertyLabel                                  , propertyComment                                 , &
+          &                                                                                         meanLabel                                      , meanComment                                     , &
+          &                                                                                         propertyUnits                                  , meanUnits                                       , &
+          &                                                                                         xAxisLabel                                     , yAxisLabel                                      , &
+          &                                                                                         targetLabel
+     type            (enumerationOutputAnalysisCovarianceModelType)                              :: covarianceModel
+     double precision                                                                            :: propertyUnitsInSI                              , meanUnitsInSI
+     class           (outputTimesClass                            ), pointer                     :: outputTimes_                          => null()
+     class           (nodePropertyExtractorClass                  ), pointer                     :: nodePropertyExtractor_                => null(), outputAnalysisWeightPropertyExtractor_ => null()
+     class           (outputAnalysisPropertyOperatorClass         ), pointer                     :: outputAnalysisPropertyOperator_       => null(), outputAnalysisPropertyUnoperator_      => null(), &
+          &                                                                                         outputAnalysisWeightPropertyOperator_ => null()
+     class           (outputAnalysisWeightOperatorClass           ), pointer                     :: outputAnalysisWeightOperator_         => null()
+     class           (outputAnalysisDistributionOperatorClass     ), pointer                     :: outputAnalysisDistributionOperator_   => null()
+     class           (galacticFilterClass                         ), pointer                     :: galacticFilter_                       => null()
+     type            (outputAnalysisVolumeFunction1D              ), pointer                     :: volumeFunctionUnweighted              => null(), volumeFunctionWeighted                  => null()
+     type            (outputAnalysisCrossCorrelator1D             ), pointer                     :: crossCovariance                       => null()
+     double precision                                              , allocatable, dimension(:  ) :: binCenter                                      , meanValue                                        , &
+          &                                                                                         meanValueTarget                                , meanCovarianceTarget1D                           , &
+          &                                                                                         outputWeight
+     double precision                                              , allocatable, dimension(:,:) :: meanCovariance                                 , meanCovarianceTarget
+     double precision                                                                            :: covarianceBinomialMassHaloMinimum              , covarianceBinomialMassHaloMaximum                , &
+          &                                                                                         binWidth
+     logical                                                                                     :: finalized                                      , likelihoodNormalize                              , &
+          &                                                                                         xAxisIsLog                                     , yAxisIsLog
+     integer                                                                                     :: covarianceBinomialBinsPerDecade
+     integer         (c_size_t                                    )                              :: bufferCount
    contains
      !![
      <methods>
@@ -374,7 +387,7 @@ contains
     return
   end function meanFunction1DConstructorParameters
 
-  function meanFunction1DConstructorInternal(label,comment,propertyLabel,propertyComment,propertyUnits,propertyUnitsInSI,meanLabel,meanComment,meanUnits,meanUnitsInSI,binCenter,bufferCount,outputWeight,nodePropertyExtractor_,outputAnalysisWeightPropertyExtractor_,outputAnalysisPropertyOperator_,outputAnalysisWeightPropertyOperator_,outputAnalysisPropertyUnoperator_,outputAnalysisWeightOperatorIn_,outputAnalysisDistributionOperator_,galacticFilter_,outputTimes_,covarianceModel,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,likelihoodNormalize,xAxisLabel,yAxisLabel,xAxisIsLog,yAxisIsLog,targetLabel,meanValueTarget,meanCovarianceTarget,binWidth) result (self)
+  function meanFunction1DConstructorInternal(label,comment,propertyLabel,propertyComment,propertyUnits,propertyUnitsInSI,meanLabel,meanComment,meanUnits,meanUnitsInSI,binCenter,bufferCount,outputWeight,nodePropertyExtractor_,outputAnalysisWeightPropertyExtractor_,outputAnalysisPropertyOperator_,outputAnalysisWeightPropertyOperator_,outputAnalysisPropertyUnoperator_,outputAnalysisWeightOperator_,outputAnalysisDistributionOperator_,galacticFilter_,outputTimes_,covarianceModel,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,likelihoodNormalize,xAxisLabel,yAxisLabel,xAxisIsLog,yAxisIsLog,targetLabel,meanValueTarget,meanCovarianceTarget,binWidth) result (self)
     !!{
     Constructor for the ``meanFunction1D'' output analysis class for internal use.
     !!}
@@ -399,7 +412,7 @@ contains
     class           (nodePropertyExtractorClass                  ), intent(inout), target                   :: nodePropertyExtractor_                   , outputAnalysisWeightPropertyExtractor_
     class           (outputAnalysisPropertyOperatorClass         ), intent(inout), target                   :: outputAnalysisPropertyOperator_          , outputAnalysisPropertyUnoperator_      , &
          &                                                                                                     outputAnalysisWeightPropertyOperator_
-    class           (outputAnalysisWeightOperatorClass           ), intent(inout), target                   :: outputAnalysisWeightOperatorIn_
+    class           (outputAnalysisWeightOperatorClass           ), intent(inout), target                   :: outputAnalysisWeightOperator_
     class           (outputAnalysisDistributionOperatorClass     ), intent(inout), target                   :: outputAnalysisDistributionOperator_
     class           (galacticFilterClass                         ), intent(inout), target                   :: galacticFilter_
     class           (outputTimesClass                            ), intent(inout), target                   :: outputTimes_
@@ -416,9 +429,13 @@ contains
     type            (outputAnalysisWeightOperatorProperty        ), pointer                                 :: weightOperatorUnweightedProperty_        , weightOperatorWeightProperty_
     type            (outputAnalysisPropertyOperatorBoolean       ), pointer                                 :: propertyOperatorUnweightedBoolean_
     !![
-    <constructorAssign variables="label, comment, propertyLabel, propertyComment, propertyUnits, propertyUnitsInSI, meanLabel, meanComment, meanUnits, meanUnitsInSI, xAxisLabel, yAxisLabel, xAxisIsLog, yAxisIsLog, targetLabel, meanValueTarget, meanCovarianceTarget"/>
+    <constructorAssign variables="binWidth, bufferCount, covarianceModel, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum, label, comment, propertyLabel, propertyComment, propertyUnits, propertyUnitsInSI, meanLabel, meanComment, meanUnits, meanUnitsInSI, xAxisLabel, yAxisLabel, xAxisIsLog, yAxisIsLog, targetLabel, meanValueTarget, meanCovarianceTarget, *nodePropertyExtractor_, *outputAnalysisWeightPropertyExtractor_, *outputAnalysisPropertyOperator_, *outputAnalysisWeightPropertyOperator_, *outputAnalysisPropertyUnoperator_, *outputAnalysisWeightOperator_, *outputAnalysisDistributionOperator_, *galacticFilter_, *outputTimes_"/>
     !!]
 
+    ! Set 1D covariance for descriptor.
+    if (present(meanCovarianceTarget)) &
+         & self%meanCovarianceTarget1D=reshape(meanCovarianceTarget,[size(meanCovarianceTarget)])
+    self       %outputWeight          =reshape(outputWeight        ,[size(outputWeight        )])
     ! Mark as unfinalized.
     self%finalized=.false.
     ! Set normalization state for likelihood.
@@ -437,7 +454,7 @@ contains
     !![
     <referenceConstruct object="weightOperatorWeightProperty_" constructor="outputAnalysisWeightOperatorProperty(outputAnalysisWeightPropertyExtractor_,outputAnalysisWeightPropertyOperator_)"/>
     !!]
-    weightOperatorWeight_     %operator_ => outputAnalysisWeightOperatorIn_
+    weightOperatorWeight_     %operator_ => outputAnalysisWeightOperator_
     weightOperatorWeight_%next%operator_ => weightOperatorWeightProperty_
     !![
     <referenceConstruct object="outputAnalysisWeightOperatorWeighted_" constructor="outputAnalysisWeightOperatorSequence(weightOperatorWeight_)"/>
@@ -468,7 +485,7 @@ contains
     !![
     <referenceConstruct object="weightOperatorUnweightedProperty_" constructor="outputAnalysisWeightOperatorProperty(outputAnalysisWeightPropertyExtractor_,weightOperatorUnweightedPropertyOperator_)"/>
     !!]
-    weightOperatorUnweighted_     %operator_ => outputAnalysisWeightOperatorIn_
+    weightOperatorUnweighted_     %operator_ => outputAnalysisWeightOperator_
     weightOperatorUnweighted_%next%operator_ => weightOperatorUnweightedProperty_
     !![
     <referenceConstruct object="outputAnalysisWeightOperatorUnweighted_" constructor="outputAnalysisWeightOperatorSequence(weightOperatorUnweighted_)"/>
@@ -588,9 +605,18 @@ contains
     type(outputAnalysisMeanFunction1D), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%volumeFunctionUnweighted"/>
-    <objectDestructor name="self%volumeFunctionWeighted"  />
-    <objectDestructor name="self%crossCovariance"         />
+    <objectDestructor name="self%volumeFunctionUnweighted"              />
+    <objectDestructor name="self%volumeFunctionWeighted"                />
+    <objectDestructor name="self%crossCovariance"                       />
+    <objectDestructor name="self%nodePropertyExtractor_"                />
+    <objectDestructor name="self%outputAnalysisWeightPropertyExtractor_"/>
+    <objectDestructor name="self%outputAnalysisPropertyOperator_"       />
+    <objectDestructor name="self%outputAnalysisWeightPropertyOperator_" />
+    <objectDestructor name="self%outputAnalysisPropertyUnoperator_"     />
+    <objectDestructor name="self%outputAnalysisWeightOperator_"         />
+    <objectDestructor name="self%outputAnalysisDistributionOperator_"   />
+    <objectDestructor name="self%galacticFilter_"                       />
+    <objectDestructor name="self%outputTimes_"                          />
     !!]
     return
   end subroutine meanFunction1DDestructor

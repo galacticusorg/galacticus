@@ -235,6 +235,14 @@ sub Process_FunctionClass {
 				     &&
 				     grep {$_ eq "pointer"} @{$declaration->{'attributes'}}
 				    );
+				# Identify stateful types.
+				push(@{$potentialNames->{'statefulTypes'}},$declaration)
+				    if
+				    (
+				     $declaration->{'intrinsic'} eq "type"
+				     &&
+				     $declaration->{'type'     } =~ m/^stateful(Integer|Double|Logical)\s*$/i
+				    );
 				# Identify enumerations.
 				push(@{$potentialNames->{'enumerations'}},$declaration)
 				    if
@@ -292,6 +300,14 @@ sub Process_FunctionClass {
 			 &&
 			 grep {$_ eq "pointer"} @{$declaration->{'attributes'}}
 			);
+		    # Identify stateful types.
+		    push(@{$potentialNames->{'statefulTypes'}},$declaration)
+			if
+			(
+			 $declaration->{'intrinsic'} eq "type"
+			 &&
+			 $declaration->{'type'     } =~ m/^stateful(Integer|Double|Logical)\s*$/i
+			);
 		    # Identify enumerations.
 		    push(@{$potentialNames->{'enumerations'}},$declaration)
 			if
@@ -333,6 +349,14 @@ sub Process_FunctionClass {
 				      )
 				     &&
 				     grep {$_ eq "pointer"} @{$declaration->{'attributes'}}
+				    );
+				# Identify stateful types.
+				push(@{$potentialNames->{'statefulTypes'}},$declaration)
+				    if
+				    (
+				     $declaration->{'intrinsic'} eq "type"
+				     &&
+				     $declaration->{'type'     } =~ m/^stateful(Integer|Double|Logical)\s*$/i
 				    );
 				# Identify enumerations.
 				push(@{$potentialNames->{'enumerations'}},$declaration)
@@ -429,7 +453,20 @@ sub Process_FunctionClass {
 					# A regular parameter, defined by its name.
 					my $name;
 					if ( exists($constructorNode->{'directive'}->{'variable'}) ) {
-					    ($name = $constructorNode->{'directive'}->{'variable'}) =~ s/.*\%(.*)/$1/;
+					    if ( $constructorNode->{'directive'}->{'variable'} =~ m/(.*)\%(.*)/ ) {
+						my $object  = $1;
+						my $element = $2;
+						if ( lc($object) eq lc($result) ) {
+						    # Direct read into an element of the object being constructed.
+						    $name = $element;
+						} else {
+						    # Read of some other derived-type component. Use the name of the derioved type
+						    # variable in case it is of a type that we can handle.
+						    $name = $object;
+						}
+					    } else {
+						$name = $constructorNode->{'directive'}->{'variable'};
+					    }
 					} else {
 					    $name = $constructorNode->{'directive'}->{'name'};
 					}
@@ -454,6 +491,14 @@ sub Process_FunctionClass {
 					    # Find the matched variable.
 					    my $descriptor;
 					    foreach my $potentialDescriptor ( @{$potentialNames->{'enumerations'}} ) {
+						$descriptor = $potentialDescriptor
+						    if ( grep {$_ eq lc($name)} @{$potentialDescriptor->{'variables'}} );
+					    }
+					} elsif ( grep {$_ eq lc($name)} (map {@{$_->{'variables'}}} @{$potentialNames->{'statefulTypes'}}) ) {
+					    push(@{$descriptorParameters->{'statefulTypes'}},{name => $name, inputName => $constructorNode->{'directive'}->{'name'}, source => $constructorNode->{'directive'}->{'source'}});
+					    # Find the matched variable.
+					    my $descriptor;
+					    foreach my $potentialDescriptor ( @{$potentialNames->{'statefulTypes'}} ) {
 						$descriptor = $potentialDescriptor
 						    if ( grep {$_ eq lc($name)} @{$potentialDescriptor->{'variables'}} );
 					    }
@@ -506,7 +551,7 @@ sub Process_FunctionClass {
 		    $descriptorModules{'Error'} = 1;
 		} else{
 		    # Build an auto-descriptor function.
-		    if ( $declarationMatches && $supported == 1 ) {
+		    if ( $declarationMatches && ( $supported == 1 || exists($nonAbstractClass->{'descriptorSpecial'}) ) ) {
 			$descriptorUsed = 1;
 			$descriptorCode .= " if (present(includeClass)) then\n";
 			$descriptorCode .= "  includeClass_=includeClass\n";
@@ -638,6 +683,77 @@ sub Process_FunctionClass {
 				    }
 				}
 			    }
+			    # Stateful types.
+			    if ( defined($descriptorParameters->{'statefulTypes'}) ) {
+				foreach my $parameter ( @{$descriptorParameters->{'statefulTypes'}} ) {
+				    foreach my $declaration ( @{$potentialNames->{'statefulTypes'}} ) {
+					if ( grep {$_ eq lc($parameter->{'name'})} @{$declaration->{'variables'}} ) {
+					    my $format;
+					    my $isLogical = 0;
+					    if      ( $declaration->{'type'} eq "statefulInteger" ) {
+						$format     = "i17";
+					    } elsif ( $declaration->{'type'} eq "statefulDouble"  ) {
+						$format     = "e17.10";
+					    } elsif ( $declaration->{'type'} eq "statefulLogical" ) {
+						$isLogical = 1;
+					    } else {
+						die("unknown stateful-type");
+					    }
+					    $addLabel  = 1;
+					    if ( grep {$_ =~ m/^dimension\s*\([a-z0-9_:,\s]+\)/} @{$declaration->{'attributes'}} ) {
+						# Non-scalar parameter - values must be concatenated.
+						my $dimensionDeclarator = join(",",map {/^dimension\s*\(([a-zA-Z0-9_,:\s]+)\)/} @{$declaration->{'attributes'}});
+						my $rank                = ($dimensionDeclarator =~ tr/,//)+1;
+						$rankMaximum            = $rank
+						    if ( $rank > $rankMaximum );
+						$descriptorCode .= "parameterValues=''\n";
+						for(my $i=1;$i<=$rank;++$i) {
+						    $descriptorCode .= " parameterValues=parameterValues//'['\n";
+						    $descriptorCode .= "do i".$i."=lbound(self%".$parameter->{'name'}.",dim=".$i."),ubound(self%".$parameter->{'name'}.",dim=".$i.")\n";
+						}
+						$descriptorCode .= "if (self%".$parameter->{'name'}."(".join(",",map {"i".$_} 1..$rank).")%isSet) then\n";
+						if ( $isLogical ) {
+						    $descriptorCode .= "if (self%".$parameter->{'name'}."(".join(",",map {"i".$_} 1..$rank)."%value) then\n";
+						    $descriptorCode .= "  parameterLabel='true'\n";
+						    $descriptorCode .= "else\n";
+						    $descriptorCode .= "  parameterLabel='false'\n";
+						    $descriptorCode .= "end if\n";
+						} else {
+						    $descriptorCode .= &performIO("write (parameterLabel,'(".$format.")') self%".$parameter->{'name'}."(".join(",",map {"i".$_} 1..$rank).")%value\n");
+						}
+						$descriptorCode .= " else\n";
+						$descriptorCode .= "  parameterLabel='?'\n";
+						$descriptorCode .= " end if\n";
+						$descriptorCode .= " parameterValues=parameterValues//trim(adjustl(parameterLabel))\n";
+						$descriptorCode .= " if (i".$rank." /= size(self%".$parameter->{'name'}.",dim=".$rank.")) parameterValues=parameterValues//','\n";
+						for(my $i=1;$i<=$rank;++$i) {
+						    $descriptorCode .= "end do\n";
+						    $descriptorCode .= " parameterValues=parameterValues//']'\n";
+						    $descriptorCode .= " if (i".($i-1)." /= size(self%".$parameter->{'name'}.",dim=".($i-1).")) parameterValues=parameterValues//','\n"
+							unless ( $i == 1 );
+						}
+						$descriptorCode .= "call ".$parameter->{'source'}."%addParameter('".$parameter->{'inputName'}."',char(parameterValues))\n";
+					    } else {
+						# Scalar parameter.
+						$descriptorCode .= "if (self%".$parameter->{'name'}."%isSet) then\n";
+						if ( $isLogical ) {
+						    $descriptorCode .= "if (self%".$parameter->{'name'}."%value) then\n";
+						    $descriptorCode .= "  parameterLabel='true'\n";
+						    $descriptorCode .= "else\n";
+						    $descriptorCode .= "  parameterLabel='false'\n";
+						    $descriptorCode .= "end if\n";
+						} else {
+						    $descriptorCode .= &performIO("write (parameterLabel,'(".$format.")') self%".$parameter->{'name'}."%value\n");
+						}
+						$descriptorCode .= " else\n";
+						$descriptorCode .= "  parameterLabel='?'\n";
+						$descriptorCode .= " end if\n";
+						$descriptorCode .= "call ".$parameter->{'source'}."%addParameter('".$parameter->{'inputName'}."',trim(adjustl(parameterLabel)))\n";
+					    }
+					 }
+				    }
+				}
+			    }
 			    # Handle objects built via objectBuilder directives.
 			    if ( defined($descriptorParameters->{'objects'}) ) {
 				foreach ( @{$descriptorParameters->{'objects'}} ) {
@@ -655,14 +771,16 @@ sub Process_FunctionClass {
 			if ( $parentConstructorUsed ) {
 			    $descriptorCode .= "call self%".$extensionOf."%descriptor(descriptor,includeClass=.false.)\n";
 			}
-		    } elsif ( ! $declarationMatches     ) {
+		    } elsif ( ! $declarationMatches     && ! exists($nonAbstractClass->{'descriptorSpecial'}) ) {
 			$descriptorCode .= " call Error_Report('auto-descriptor not supported for this class: parameter-based constructor not found'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
 			$descriptorModules{'Error'} = 1;
-		    } elsif (   $supported         != 1 ) {
+		    } elsif (   $supported         != 1 && ! exists($nonAbstractClass->{'descriptorSpecial'}) ) {
 			$descriptorCode .= " call Error_Report('auto-descriptor not supported for this class because:'//char(10)//".join("//char(10)// &\n & ",map {"'  --> ".$_."'"} @failureMessage)."//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
 			$descriptorModules{'Error'} = 1;
 		    }
 		}
+		$descriptorCode .= " call self%".$nonAbstractClass->{'descriptorSpecial'}."(parameters)\n"
+		    if ( exists($nonAbstractClass->{'descriptorSpecial'}) );
 	    }
 	    $descriptorCode .= "end select\n";
 	    if ( scalar(@{$descriptorLinkedListVariables}) > 0 ) {

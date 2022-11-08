@@ -34,8 +34,10 @@ Contains a module which implements a stellar mass function output analysis class
      A massFunctionStellar output analysis class.
      !!}
      private
-     class(surveyGeometryClass    ), pointer :: surveyGeometry_     => null()
-     class(cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null(), cosmologyFunctionsData => null()
+     class           (surveyGeometryClass    ), pointer                   :: surveyGeometry_     => null()
+     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_ => null(), cosmologyFunctionsData => null()
+     class           (galacticStructureClass ), pointer                   :: galacticStructure_  => null()
+     double precision                         , allocatable, dimension(:) :: masses
    contains
      final :: massFunctionStellarDestructor
   end type outputAnalysisMassFunctionStellar
@@ -277,7 +279,7 @@ contains
     integer         (c_size_t                                       ), parameter                               :: bufferCountMinimum                              =5
     integer         (c_size_t                                       )                                          :: iBin                                                  , bufferCount
     !![
-    <constructorAssign variables="*surveyGeometry_, *cosmologyFunctions_, *cosmologyFunctionsData"/>
+    <constructorAssign variables="masses, *surveyGeometry_, *cosmologyFunctions_, *cosmologyFunctionsData, *galacticStructure_"/>
     !!]
 
     ! Compute weights that apply to each output redshift.
@@ -412,6 +414,7 @@ contains
     <objectDestructor name="self%surveyGeometry_"       />
     <objectDestructor name="self%cosmologyFunctions_"   />
     <objectDestructor name="self%cosmologyFunctionsData"/>
+    <objectDestructor name="self%galacticStructure_"    />
     !!]
     return
   end subroutine massFunctionStellarDestructor
