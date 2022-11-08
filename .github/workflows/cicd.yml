@@ -9268,6 +9268,12 @@ jobs:
           git push --set-upstream origin gh-pages
           git checkout -
         if: github.event_name != 'pull_request'
+      - name: Revert benchmark result
+        run: |
+          git checkout gh-pages
+          git reset --hard HEAD~1
+          git checkout -
+        if: github.event_name == 'pull_request'
       - name: Store benchmark result
         uses: benchmark-action/github-action-benchmark@v1
         with:
@@ -9288,6 +9294,12 @@ jobs:
           git push --set-upstream origin gh-pages
           git checkout -
         if: github.event_name != 'pull_request'
+      - name: Revert benchmark result
+        run: |
+          git checkout gh-pages
+          git reset --hard HEAD~1
+          git checkout -
+        if: github.event_name == 'pull_request'
       - name: Store validation result
         uses: benchmark-action/github-action-benchmark@v1
         with:
@@ -9308,6 +9320,12 @@ jobs:
           git push --set-upstream origin gh-pages
           git checkout -
         if: github.event_name != 'pull_request'
+      - name: Revert benchmark result
+        run: |
+          git checkout gh-pages
+          git reset --hard HEAD~1
+          git checkout -
+        if: github.event_name == 'pull_request'
       - name: Store validation result
         uses: benchmark-action/github-action-benchmark@v1
         with:
@@ -9328,6 +9346,12 @@ jobs:
           git push --set-upstream origin gh-pages
           git checkout -
         if: github.event_name != 'pull_request'
+      - name: Revert benchmark result
+        run: |
+          git checkout gh-pages
+          git reset --hard HEAD~1
+          git checkout -
+        if: github.event_name == 'pull_request'
       - name: Push validation result
         run: |
           git checkout gh-pages
