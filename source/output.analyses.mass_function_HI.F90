@@ -34,8 +34,11 @@ Contains a module which implements an HI mass function output analysis class.
      An HI mass function output analysis class.
      !!}
      private
-     class(surveyGeometryClass    ), pointer :: surveyGeometry_     => null()
-     class(cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null(), cosmologyFunctionsData => null()
+     class           (surveyGeometryClass              ), pointer                   :: surveyGeometry_               => null()
+     class           (cosmologyFunctionsClass          ), pointer                   :: cosmologyFunctions_           => null(), cosmologyFunctionsData => null()
+     class           (galacticStructureClass           ), pointer                   :: galacticStructure_            => null()
+     class           (outputAnalysisMolecularRatioClass), pointer                   :: outputAnalysisMolecularRatio_ => null()
+     double precision                                   , allocatable, dimension(:) :: masses
    contains
      final :: massFunctionHIDestructor
   end type outputAnalysisMassFunctionHI
@@ -290,7 +293,7 @@ contains
     integer         (c_size_t                                       ), parameter                               :: bufferCountMinimum                              =5
     integer         (c_size_t                                       )                                          :: iBin                                                  , bufferCount
     !![
-    <constructorAssign variables="*surveyGeometry_, *cosmologyFunctions_, *cosmologyFunctionsData"/>
+    <constructorAssign variables="masses, *galacticStructure_, *outputAnalysisMolecularRatio_, *surveyGeometry_, *cosmologyFunctions_, *cosmologyFunctionsData"/>
     !!]
 
     ! Compute weights that apply to each output redshift.
@@ -430,9 +433,11 @@ contains
     type(outputAnalysisMassFunctionHI), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%surveyGeometry_"       />
-    <objectDestructor name="self%cosmologyFunctions_"   />
-    <objectDestructor name="self%cosmologyFunctionsData"/>
+    <objectDestructor name="self%surveyGeometry_"              />
+    <objectDestructor name="self%galacticStructure_"           />
+    <objectDestructor name="self%outputAnalysisMolecularRatio_"/>
+    <objectDestructor name="self%cosmologyFunctions_"          />
+    <objectDestructor name="self%cosmologyFunctionsData"       />
     !!]
     return
   end subroutine massFunctionHIDestructor

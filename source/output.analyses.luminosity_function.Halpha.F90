@@ -35,9 +35,14 @@ Contains a module which implements a luminosity function output analysis class.
      A luminosity function output analysis class.
      !!}
      private
-     class(surveyGeometryClass               ), pointer :: surveyGeometry_                => null()
-     class(cosmologyFunctionsClass           ), pointer :: cosmologyFunctions_            => null(), cosmologyFunctionsData => null()
-     class(stellarSpectraDustAttenuationClass), pointer :: stellarSpectraDustAttenuation_ => null()
+     class           (surveyGeometryClass               ), pointer                   :: surveyGeometry_                => null()
+     class           (cosmologyFunctionsClass           ), pointer                   :: cosmologyFunctions_            => null(), cosmologyFunctionsData => null()
+     class           (stellarSpectraDustAttenuationClass), pointer                   :: stellarSpectraDustAttenuation_ => null()
+     class           (starFormationRateDisksClass       ), pointer                   :: starFormationRateDisks_        => null()
+     class           (starFormationRateSpheroidsClass   ), pointer                   :: starFormationRateSpheroids_    => null()
+     double precision                                    , allocatable, dimension(:) :: luminosities
+     double precision                                                                :: depthOpticalISMCoefficient
+     logical                                                                         :: includeNitrogenII
    contains
      final :: luminosityFunctionHalphaDestructor
   end type outputAnalysisLuminosityFunctionHalpha
@@ -324,7 +329,7 @@ contains
     integer         (c_size_t                                       ), parameter                               :: bufferCountMinimum                              =5
     integer         (c_size_t                                       )                                          :: iBin                                                  , bufferCount
     !![
-    <constructorAssign variables="*surveyGeometry_, *cosmologyFunctions_, *cosmologyFunctionsData"/>
+    <constructorAssign variables="luminosities, depthOpticalISMCoefficient, includeNitrogenII, *surveyGeometry_, *cosmologyFunctions_, *cosmologyFunctionsData, *starFormationRateDisks_, *starFormationRateSpheroids_"/>
     !!]
 
     ! Compute weights that apply to each output redshift.
@@ -471,6 +476,8 @@ contains
     <objectDestructor name="self%stellarSpectraDustAttenuation_"/>
     <objectDestructor name="self%cosmologyFunctions_"           />
     <objectDestructor name="self%cosmologyFunctionsData"        />
+    <objectDestructor name="self%starFormationRateDisks_"       />
+    <objectDestructor name="self%starFormationRateSpheroids_"   />
     !!]
     return
   end subroutine luminosityFunctionHalphaDestructor

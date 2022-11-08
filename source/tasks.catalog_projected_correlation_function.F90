@@ -47,11 +47,12 @@
      class           (surveyGeometryClass                 ), pointer      :: surveyGeometry_           => null()
      class           (randomNumberGeneratorClass          ), pointer      :: randomNumberGenerator_    => null()
      type            (varying_string                      )               :: galaxyCatalogFileName
-     integer                                                              :: separationCount                     , randomSampleCount
+     integer                                                              :: separationCount                     , randomSampleCountNumber
      type            (enumerationRandomSampleCountTypeType)               :: randomSampleCountType
-     double precision                                                     :: massMinimum                         , massMaximum      , &
-          &                                                                  separationMinimum                   , separationMaximum, &
-          &                                                                  separationRadialMaximum,              widthBuffer      , &
+     type            (varying_string                      )               :: randomSampleCount
+     double precision                                                     :: massMinimum                         , massMaximum            , &
+          &                                                                  separationMinimum                   , separationMaximum      , &
+          &                                                                  separationRadialMaximum,              widthBuffer            , &
           &                                                                  angleRotation
      double precision                                      , dimension(3) :: origin
      double precision                                      , dimension(2) :: vectorRotation
@@ -89,16 +90,16 @@ contains
     class           (surveyGeometryClass                    ), pointer               :: surveyGeometry_
     class           (randomNumberGeneratorClass             ), pointer               :: randomNumberGenerator_
     type            (inputParameters                        ), pointer               :: parametersRoot
-    integer                                                                          :: separationCount        , randomSampleCount
+    integer                                                                          :: separationCount        , randomSampleCountNumber
     type            (enumerationRandomSampleCountTypeType   )                        :: randomSampleCountType
-    double precision                                                                 :: massMinimum            , massMaximum          , &
-         &                                                                              separationMinimum      , separationMaximum    , &
-         &                                                                              separationRadialMaximum, widthBuffer          , &
+    double precision                                                                 :: massMinimum            , massMaximum            , &
+         &                                                                              separationMinimum      , separationMaximum      , &
+         &                                                                              separationRadialMaximum, widthBuffer            , &
          &                                                                              angleRotation
     double precision                                         , dimension(3)          :: origin
     double precision                                         , dimension(2)          :: vectorRotation
     logical                                                                          :: halfIntegral
-    type            (varying_string                         )                        :: galaxyCatalogFileName  , randomSampleCountText
+    type            (varying_string                         )                        :: galaxyCatalogFileName  , randomSampleCount
     character       (len=128                                )                        :: label
 
     ! Ensure the nodes objects are initialized.
@@ -154,19 +155,18 @@ contains
     <inputParameter>
       <name>randomSampleCount</name>
       <defaultValue>var_str('*10')</defaultValue>
-      <variable>randomSampleCountText</variable>
       <description>The number of random points to use when constructing random catalogs. Can be either a fixed number or, if prefixed with ``{\normalfont \ttfamily *}'', a multiplicative factor.</description>
       <source>parameters</source>
     </inputParameter>
     !!]
-    if (extract(randomSampleCountText,1,1) == "*") then
+    if (extract(randomSampleCount,1,1) == "*") then
        randomSampleCountType=randomSampleCountTypeMultiplicative
-       label=char(extract(randomSampleCountText,2))
-       read (label,*) randomSampleCount
+       label=char(extract(randomSampleCount,2))
+       read (label,*) randomSampleCountNumber
     else
        randomSampleCountType=randomSampleCountTypeFixed
-       label=char(randomSampleCountText)
-       read (label,*) randomSampleCount
+       label=char(randomSampleCount)
+       read (label,*) randomSampleCountNumber
     end if
     !![
     <inputParameter>
@@ -213,7 +213,7 @@ contains
       <source>parameters</source>
     </inputParameter>
     !!]
-    self=taskCatalogProjectedCorrelationFunction(galaxyCatalogFileName,massMinimum,massMaximum,separationCount,separationMinimum, separationMaximum, separationRadialMaximum,widthBuffer,origin,vectorRotation,angleRotation,randomSampleCount,randomSampleCountType,halfIntegral,cosmologyParameters_,cosmologyFunctions_,surveyGeometry_,randomNumberGenerator_,parametersRoot)
+    self=taskCatalogProjectedCorrelationFunction(galaxyCatalogFileName,massMinimum,massMaximum,separationCount,separationMinimum, separationMaximum, separationRadialMaximum,widthBuffer,origin,vectorRotation,angleRotation,randomSampleCountNumber,randomSampleCountType,halfIntegral,cosmologyParameters_,cosmologyFunctions_,surveyGeometry_,randomNumberGenerator_,parametersRoot)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"  />
@@ -224,18 +224,19 @@ contains
     return
   end function catalogProjectedCorrelationFunctionConstructorParameters
 
-  function catalogProjectedCorrelationFunctionConstructorInternal(galaxyCatalogFileName,massMinimum,massMaximum,separationCount,separationMinimum, separationMaximum, separationRadialMaximum,widthBuffer,origin,vectorRotation,angleRotation,randomSampleCount,randomSampleCountType,halfIntegral,cosmologyParameters_,cosmologyFunctions_,surveyGeometry_,randomNumberGenerator_,parameters) result(self)
+  function catalogProjectedCorrelationFunctionConstructorInternal(galaxyCatalogFileName,massMinimum,massMaximum,separationCount,separationMinimum, separationMaximum, separationRadialMaximum,widthBuffer,origin,vectorRotation,angleRotation,randomSampleCountNumber,randomSampleCountType,halfIntegral,cosmologyParameters_,cosmologyFunctions_,surveyGeometry_,randomNumberGenerator_,parameters) result(self)
     !!{
     Constructor for the {\normalfont \ttfamily catalogProjectedCorrelationFunction} task class which takes a parameter set as input.
     !!}
+    use :: String_Handling, only : operator(//)
     implicit none
     type            (taskCatalogProjectedCorrelationFunction)                              :: self
     type            (varying_string                         ), intent(in   )               :: galaxyCatalogFileName
-    integer                                                  , intent(in   )               :: separationCount        , randomSampleCount
+    integer                                                  , intent(in   )               :: separationCount        , randomSampleCountNumber
     type            (enumerationRandomSampleCountTypeType   ), intent(in   )               :: randomSampleCountType
-    double precision                                         , intent(in   )               :: massMinimum            , massMaximum      , &
-         &                                                                                    separationMinimum      , separationMaximum, &
-         &                                                                                    separationRadialMaximum, widthBuffer      , &
+    double precision                                         , intent(in   )               :: massMinimum            , massMaximum            , &
+         &                                                                                    separationMinimum      , separationMaximum      , &
+         &                                                                                    separationRadialMaximum, widthBuffer            , &
          &                                                                                    angleRotation
     double precision                                         , intent(in   ), dimension(3) :: origin
     double precision                                         , intent(in   ), dimension(2) :: vectorRotation
@@ -246,9 +247,16 @@ contains
     class           (randomNumberGeneratorClass             ), intent(in   ), target       :: randomNumberGenerator_
     type            (inputParameters                        ), intent(in   ), target :: parameters
     !![
-    <constructorAssign variables="galaxyCatalogFileName,massMinimum,massMaximum,separationCount,separationMinimum, separationMaximum, separationRadialMaximum,widthBuffer,origin,vectorRotation,angleRotation,randomSampleCount, randomSampleCountType, halfIntegral, *cosmologyParameters_, *cosmologyFunctions_, *surveyGeometry_, *randomNumberGenerator_"/>
+    <constructorAssign variables="galaxyCatalogFileName,massMinimum,massMaximum,separationCount,separationMinimum, separationMaximum, separationRadialMaximum,widthBuffer,origin,vectorRotation,angleRotation,randomSampleCountNumber, randomSampleCountType, halfIntegral, *cosmologyParameters_, *cosmologyFunctions_, *surveyGeometry_, *randomNumberGenerator_"/>
     !!]
 
+    if      (randomSampleCountType == randomSampleCountTypeMultiplicative) then
+       self%randomSampleCount=var_str("*")//randomSampleCountNumber
+    else if (randomSampleCountType == randomSampleCountTypeFixed         ) then
+       self%randomSampleCount=var_str("" )//randomSampleCountNumber
+    else
+       call Error_Report('unknown randomSampleCountType'//{introspection:location})
+    end if
     self%parameters=inputParameters(parameters)
     call self%parameters%parametersGroupCopy(parameters)
     return
@@ -343,9 +351,9 @@ contains
     ! Generate random points.
     select case (self%randomSampleCountType%ID)
     case (randomSampleCountTypeFixed         %ID)
-       randomPointCount=int(self%randomSampleCount)
+       randomPointCount=int(self%randomSampleCountNumber)
     case (randomSampleCountTypeMultiplicative%ID)
-       randomPointCount=int(self%randomSampleCount*dble(size(galaxyPosition,dim=2)))
+       randomPointCount=int(self%randomSampleCountNumber*dble(size(galaxyPosition,dim=2)))
     case default
        randomPointCount=0
        call Error_Report('unknown random sample count type'//{introspection:location})
@@ -397,9 +405,9 @@ contains
     ! Generate random points.
     select case (self%randomSampleCountType%ID)
     case (randomSampleCountTypeFixed         %ID)
-       randomPointCount=int(self%randomSampleCount*dble(replicatedGalaxyCount)/dble(size(galaxyPosition,dim=2)))
+       randomPointCount=int(self%randomSampleCountNumber*dble(replicatedGalaxyCount)/dble(size(galaxyPosition,dim=2)))
     case (randomSampleCountTypeMultiplicative%ID)
-       randomPointCount=int(self%randomSampleCount*dble(replicatedGalaxyCount))
+       randomPointCount=int(self%randomSampleCountNumber*dble(replicatedGalaxyCount))
     case default
        randomPointCount=0
        call Error_Report('unknown random sample count type'//{introspection:location})

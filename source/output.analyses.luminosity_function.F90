@@ -34,8 +34,9 @@ Contains a module which implements a luminosity function output analysis class.
      A luminosity function output analysis class.
      !!}
      private
-     class(surveyGeometryClass    ), pointer :: surveyGeometry_     => null()
-     class(cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null(), cosmologyFunctionsData => null()
+     class           (surveyGeometryClass    ), pointer                   :: surveyGeometry_     => null()
+     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_ => null(), cosmologyFunctionsData => null()
+     double precision                         , allocatable, dimension(:) :: magnitudesAbsolute
    contains
      final :: luminosityFunctionDestructor
   end type outputAnalysisLuminosityFunction
@@ -284,7 +285,7 @@ contains
     integer         (c_size_t                                        ), parameter                               :: bufferCountMinimum                              =5
     integer         (c_size_t                                        )                                          :: iBin                                                  , bufferCount
     !![
-    <constructorAssign variables="*surveyGeometry_, *cosmologyFunctions_, *cosmologyFunctionsData"/>
+    <constructorAssign variables="magnitudesAbsolute, *surveyGeometry_, *cosmologyFunctions_, *cosmologyFunctionsData"/>
     !!]
 
     ! Compute weights that apply to each output redshift.

@@ -31,7 +31,13 @@ Contains a module which implements a stellar mass function output analysis class
      An SDSS luminosity function output analysis class for the \cite{montero-dorta_sdss_2009} analysis.
      !!}
      private
-     character(len=1) :: band
+     class           (gravitationalLensingClass), pointer                     :: gravitationalLensing_            => null()
+     double precision                           , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient          , systematicErrorPolynomialCoefficient
+     double precision                                                         :: randomErrorMinimum                        , randomErrorMaximum                  , &
+          &                                                                      sizeSourceLensing
+     character       (len=1                    )                              :: band
+   contains
+     final :: luminosityFunctionMonteroDorta2009SDSSDestructor
   end type outputAnalysisLuminosityFunctionMonteroDorta2009SDSS
 
   interface outputAnalysisLuminosityFunctionMonteroDorta2009SDSS
@@ -188,7 +194,10 @@ contains
     type            (cosmologyFunctionsMatterLambda                      )               , pointer      :: cosmologyFunctionsData
     type            (distributionOperatorList                            )               , pointer      :: distributionOperatorSequence
     double precision                                                                                    :: errorPolynomialZeroPoint
-
+    !![
+    <constructorAssign variables="randomErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient,randomErrorMinimum, randomErrorMaximum, sizeSourceLensing, *gravitationalLensing_"/>
+    !!]
+    
     ! Validate band, and set zero point for random error polynomial to be M* of the Schechter function fit.
     select case (band)
     case ('u')
@@ -319,3 +328,17 @@ contains
     nullify(distributionOperatorSequence)
     return
   end function luminosityFunctionMonteroDorta2009SDSSConstructorInternal
+
+  subroutine luminosityFunctionMonteroDorta2009SDSSDestructor(self)
+    !!{
+    Destructor for the ``luminosityFunctionMonteroDorta2009SDSS'' output analysis class.
+    !!}
+    implicit none
+    type(outputAnalysisLuminosityFunctionMonteroDorta2009SDSS), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%gravitationalLensing_"/>
+    !!]
+    return
+  end subroutine luminosityFunctionMonteroDorta2009SDSSDestructor
+  

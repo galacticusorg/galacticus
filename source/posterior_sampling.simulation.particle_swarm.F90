@@ -32,6 +32,7 @@
   !![
   <posteriorSampleSimulation name="posteriorSampleSimulationParticleSwarm">
    <description>A posterior sampling simulation class which implements the particle swarm algorithm.</description>
+   <descriptorSpecial>descriptorSpecial</descriptorSpecial>
   </posteriorSampleSimulation>
   !!]
   type, extends(posteriorSampleSimulationClass) :: posteriorSampleSimulationParticleSwarm
@@ -58,12 +59,14 @@
    contains
      !![
      <methods>
-       <method description="Return the log of posterior probability for the given {\normalfont \ttfamily simulationState}." method="posterior" />
+       <method method="posterior"         description="Return the log of posterior probability for the given {\normalfont \ttfamily simulationState}."/>
+       <method method="descriptorSpecial" description="Handle adding special parameters to the descriptor."                                           />
      </methods>
      !!]
-     final     ::              particleSwarmDestructor
-     procedure :: simulate  => particleSwarmSimulate
-     procedure :: posterior => particleSwarmPosterior
+     final     ::                      particleSwarmDestructor
+     procedure :: simulate          => particleSwarmSimulate
+     procedure :: posterior         => particleSwarmPosterior
+     procedure :: descriptorSpecial => particleSwarmDescriptorSpecial
   end type posteriorSampleSimulationParticleSwarm
 
   interface posteriorSampleSimulationParticleSwarm
@@ -807,3 +810,26 @@ contains
     end if
     return
   end subroutine particleSwarmPosterior
+
+  subroutine particleSwarmDescriptorSpecial(self,descriptor)
+    !!{
+    Add special parameters to the descriptor.
+    !!}
+    use :: Input_Parameters, only : inputParameters
+    implicit none
+    class  (posteriorSampleSimulationParticleSwarm), intent(inout) :: self
+    type   (inputParameters                       ), intent(inout) :: descriptor
+    integer                                                        :: i
+    
+    if (associated(self%modelParametersActive_  )) then
+       do i=1,size(self%modelParametersActive_  )
+          call self%modelParametersActive_  (i)%modelParameter_%descriptor(descriptor)
+       end do
+    end if
+    if (associated(self%modelParametersInactive_)) then
+       do i=1,size(self%modelParametersInactive_)
+          call self%modelParametersInactive_(i)%modelParameter_%descriptor(descriptor)
+       end do
+    end if
+    return
+  end subroutine particleSwarmDescriptorSpecial

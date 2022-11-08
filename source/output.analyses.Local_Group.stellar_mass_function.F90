@@ -38,12 +38,19 @@
      !!}
      private
      type            (outputAnalysisVolumeFunction1D), pointer                     :: volumeFunctionSatellites          => null(), volumeFunctionCentrals => null()
-     double precision                                , allocatable, dimension(:  ) :: masses                                     , massFunction                    , &
+     class           (outputTimesClass              ), pointer                     :: outputTimes_                      => null()
+     class           (galacticStructureClass        ), pointer                     :: galacticStructure_                => null()
+     double precision                                , allocatable, dimension(:  ) :: randomErrorPolynomialCoefficient           , systematicErrorPolynomialCoefficient
+     double precision                                , allocatable, dimension(:  ) :: masses                                     , massFunction                        , &
           &                                                                           massFunctionTarget
      double precision                                , allocatable, dimension(:,:) :: covariance
-     double precision                                                              :: negativeBinomialScatterFractional          , countFailures                   , &
-          &                                                                           logLikelihoodZero
      logical                                                                       :: finalized
+     integer                                                                       :: covarianceBinomialBinsPerDecade
+     double precision                                                              :: covarianceBinomialMassHaloMinimum          , covarianceBinomialMassHaloMaximum   , &
+          &                                                                           randomErrorMinimum                         , randomErrorMaximum                  , &
+          &                                                                           negativeBinomialScatterFractional          , logLikelihoodZero                   , &
+          &                                                                           countFailures
+     type            (enumerationPositionTypeType   )                              :: positionType
    contains
      !![
      <methods>
@@ -209,7 +216,7 @@ contains
     double precision                                                     , intent(in   )                 :: randomErrorMinimum                                        , randomErrorMaximum
     double precision                                                     , intent(in   ), dimension(:  ) :: randomErrorPolynomialCoefficient                          , systematicErrorPolynomialCoefficient
     type            (enumerationPositionTypeType                        ), intent(in   )                 :: positionType
-    class           (outputTimesClass                                   ), intent(inout)                 :: outputTimes_
+    class           (outputTimesClass                                   ), intent(inout), target         :: outputTimes_
     class           (galacticStructureClass                             ), intent(in   ), target         :: galacticStructure_
     type            (nodePropertyExtractorMassStellar                   )               , pointer        :: nodePropertyExtractor_
     type            (outputAnalysisPropertyOperatorSystmtcPolynomial    )               , pointer        :: outputAnalysisPropertyOperatorSystmtcPolynomial_
@@ -244,7 +251,7 @@ contains
          &                                                                                                  bufferCountSatellites
     type            (localGroupDB                                       )                                :: localGroupDB_
     !![
-    <constructorAssign variables="negativeBinomialScatterFractional, logLikelihoodZero"/>
+    <constructorAssign variables="*outputTimes_, *galacticStructure_, positionType, negativeBinomialScatterFractional, randomErrorMinimum, randomErrorMaximum, randomErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum, logLikelihoodZero"/>
     !!]
 
     ! Initialize.
@@ -514,6 +521,8 @@ contains
     !![
     <objectDestructor name="self%volumeFunctionSatellites"/>
     <objectDestructor name="self%volumeFunctionCentrals"  />
+    <objectDestructor name="self%outputTimes_"            />
+    <objectDestructor name="self%galacticStructure_"      />
     !!]
     return
   end subroutine localGroupStellarMassFunctionDestructor

@@ -36,8 +36,14 @@
      A star forming main sequence output analysis class.
      !!}
      private
-     class(surveyGeometryClass    ), pointer :: surveyGeometry_     => null()
-     class(cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null(), cosmologyFunctionsData => null()
+     class           (surveyGeometryClass            ), pointer :: surveyGeometry_             => null()
+     class           (cosmologyFunctionsClass        ), pointer :: cosmologyFunctions_         => null(), cosmologyFunctionsData => null()
+     class           (starFormationRateDisksClass    ), pointer :: starFormationRateDisks_     => null()
+     class           (starFormationRateSpheroidsClass), pointer :: starFormationRateSpheroids_ => null()
+     class           (galacticStructureClass         ), pointer :: galacticStructure_          => null()
+     type            (varying_string                 )          :: fileName
+     double precision                                           :: massMinimum                          , massMaximum                     , &
+          &                                                        countMassesPerDecade     
   end type outputAnalysisStarFormingMainSequence
 
   interface outputAnalysisStarFormingMainSequence
@@ -71,9 +77,9 @@ contains
     class           (outputAnalysisPropertyOperatorClass    ), pointer                     :: outputAnalysisPropertyOperator_    , outputAnalysisWeightPropertyOperator_
     class           (outputAnalysisDistributionOperatorClass), pointer                     :: outputAnalysisDistributionOperator_
     class           (galacticStructureClass                 ), pointer                     :: galacticStructure_
-    double precision                                         , dimension(:  ), allocatable :: functionValueTarget                , functionCovarianceTarget1D           , &
+    double precision                                         , dimension(:  ), allocatable :: meanValueTarget                    , meanCovarianceTarget1D               , &
          &                                                                                    massesStellar
-    double precision                                         , dimension(:,:), allocatable :: functionCovarianceTarget
+    double precision                                         , dimension(:,:), allocatable :: meanCovarianceTarget
     double precision                                                                       :: massMinimum                        , massMaximum                          , &
          &                                                                                    countMassesPerDecade
     type            (inputParameters                        )                              :: dataAnalysisParameters
@@ -153,24 +159,24 @@ contains
           </inputParameter>
 	  !!]
        end if
-       if (parameters%isPresent('functionValueTarget')) then
-          if (parameters%isPresent('functionCovarianceTarget')) then
+       if (parameters%isPresent('meanValueTarget')) then
+          if (parameters%isPresent('meanCovarianceTarget')) then
              !![
 	     <inputParameter>
-               <name>functionValueTarget</name>
+               <name>meanValueTarget</name>
 	       <source>parameters</source>
 	       <description>The target function for likelihood calculations.</description>
              </inputParameter>
              <inputParameter>
-               <name>functionCovarianceTarget</name>
+               <name>meanCovarianceTarget</name>
 	       <source>parameters</source>
-	       <variable>functionCovarianceTarget1D</variable>
+	       <variable>meanCovarianceTarget1D</variable>
 	       <description>The target function covariance for likelihood calculations.</description>
              </inputParameter>
              !!]
-             if (size(functionCovarianceTarget1D) == size(functionValueTarget)**2) then
-                allocate(functionCovarianceTarget(size(functionValueTarget),size(functionValueTarget)))
-                functionCovarianceTarget=reshape(functionCovarianceTarget1D,shape(functionCovarianceTarget))
+             if (size(meanCovarianceTarget1D) == size(meanValueTarget)**2) then
+                allocate(meanCovarianceTarget(size(meanValueTarget),size(meanValueTarget)))
+                meanCovarianceTarget=reshape(meanCovarianceTarget1D,shape(meanCovarianceTarget))
              else
                 call Error_Report('functionCovariance has wrong size'//{introspection:location})
              end if
@@ -206,9 +212,9 @@ contains
           &amp;                                     {conditions}                           &amp;
           &amp;                                    )
         </call>
-        <argument name="targetLabel"              value="targetLabel"              parameterPresent="parameters"/>
-        <argument name="functionValueTarget"      value="functionValueTarget"      parameterPresent="parameters"/>
-        <argument name="functionCovarianceTarget" value="functionCovarianceTarget" parameterPresent="parameters"/>
+        <argument name="targetLabel"          value="targetLabel"          parameterPresent="parameters"/>
+        <argument name="meanValueTarget"      value="meanValueTarget"      parameterPresent="parameters"/>
+        <argument name="meanCovarianceTarget" value="meanCovarianceTarget" parameterPresent="parameters"/>
        </conditionalCall>
        !!]
     end if
@@ -250,8 +256,8 @@ contains
     class           (outputAnalysisPropertyOperatorClass    ), intent(inout), target         :: outputAnalysisWeightPropertyOperator_
     class           (outputAnalysisDistributionOperatorClass), intent(inout), target         :: outputAnalysisDistributionOperator_
     class           (galacticStructureClass                 ), intent(in   ), target         :: galacticStructure_
-    double precision                                         , allocatable  , dimension(:  ) :: functionValueTarget                  , massesStellar
-    double precision                                         , allocatable  , dimension(:,:) :: functionCovarianceTarget
+    double precision                                         , allocatable  , dimension(:  ) :: meanValueTarget                      , massesStellar
+    double precision                                         , allocatable  , dimension(:,:) :: meanCovarianceTarget
     double precision                                                                         :: massesStellarBinWidthLogarithmic
     type            (varying_string                         )                                :: targetLabel
     type            (hdf5Object                             )                                :: dataFile
@@ -262,32 +268,33 @@ contains
     call        dataFile%readDataset  ('massStellar'                              ,         massesStellar                   )
     if (size(massesStellar) == 1)                                                                                             &
          & call dataFile%readAttribute('binWidth'                                 ,         massesStellarBinWidthLogarithmic)
-    call        dataFile%readDataset  ('starFormingMainSequenceFunction'          ,         functionValueTarget             )
-    call        dataFile%readDataset  ('starFormingMainSequenceFunctionCovariance',         functionCovarianceTarget        )
+    call        dataFile%readDataset  ('starFormingMainSequenceFunction'          ,         meanValueTarget                 )
+    call        dataFile%readDataset  ('starFormingMainSequenceFunctionCovariance',         meanCovarianceTarget            )
     call        dataFile%readAttribute('labelTarget'                              ,         targetLabel                     )
     call        dataFile%close        (                                                                                     )
     !$ call hdf5Access%unset()
     ! Convert to logarithmic specific star formation rate.
-    do i=1,size(functionCovarianceTarget,dim=1)
-       do j=1,size(functionCovarianceTarget,dim=2)
-          functionCovarianceTarget(i,j)=+functionCovarianceTarget(i,j) &
-               &                        /functionValueTarget     (i  ) &
-               &                        /functionValueTarget     (  j) &
-               &                        /log(10.0d0)**2
+    do i=1,size(meanCovarianceTarget,dim=1)
+       do j=1,size(meanCovarianceTarget,dim=2)
+          meanCovarianceTarget(i,j)=+meanCovarianceTarget(i,j) &
+               &                    /meanValueTarget     (i  ) &
+               &                    /meanValueTarget     (  j) &
+               &                    /log(10.0d0)**2
        end do
     end do
-    functionValueTarget=log10(functionValueTarget)
+    meanValueTarget=log10(meanValueTarget)
     ! Build the object.
     !![
     <conditionalCall>
-      <call>self=starFormingMainSequenceConstructorInternal(label,comment,massesStellar,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputTimes_,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisWeightPropertyOperator_,starFormationRateDisks_,starFormationRateSpheroids_,galacticStructure_,targetLabel,functionValueTarget,functionCovarianceTarget{conditions})</call>
+      <call>self=starFormingMainSequenceConstructorInternal(label,comment,massesStellar,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputTimes_,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisWeightPropertyOperator_,starFormationRateDisks_,starFormationRateSpheroids_,galacticStructure_,targetLabel,meanValueTarget,meanCovarianceTarget{conditions})</call>
       <argument name="massesStellarBinWidthLogarithmic" value="massesStellarBinWidthLogarithmic" condition="size(massesStellar) == 1"/>
     </conditionalCall>
+    <constructorAssign variables="fileName"/>
     !!]
     return
   end function starFormingMainSequenceConstructorFile
 
-  function starFormingMainSequenceConstructorInternal(label,comment,massesStellar,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputTimes_,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisWeightPropertyOperator_,starFormationRateDisks_,starFormationRateSpheroids_,galacticStructure_,targetLabel,functionValueTarget,functionCovarianceTarget,massesStellarBinWidthLogarithmic) result(self)
+  function starFormingMainSequenceConstructorInternal(label,comment,massesStellar,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputTimes_,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisWeightPropertyOperator_,starFormationRateDisks_,starFormationRateSpheroids_,galacticStructure_,targetLabel,meanValueTarget,meanCovarianceTarget,massesStellarBinWidthLogarithmic) result(self)
     !!{
     Internal constructor for the ``starFormingMainSequence'' output analysis class.
     !!}
@@ -317,8 +324,8 @@ contains
     class           (starFormationRateSpheroidsClass                ), intent(in   ), target                        :: starFormationRateSpheroids_
     class           (galacticStructureClass                         ), intent(in   ), target                        :: galacticStructure_
     type            (varying_string                                 ), optional                     , intent(in   ) :: targetLabel
-    double precision                                                 , optional     , dimension(:  ), intent(in   ) :: functionValueTarget                                         , massesStellar
-    double precision                                                 , optional     , dimension(:,:), intent(in   ) :: functionCovarianceTarget
+    double precision                                                 , optional     , dimension(:  ), intent(in   ) :: meanValueTarget                                             , massesStellar
+    double precision                                                 , optional     , dimension(:,:), intent(in   ) :: meanCovarianceTarget
     double precision                                                 , optional                     , intent(in   ) :: massesStellarBinWidthLogarithmic
     type            (nodePropertyExtractorMassStellar               )               , pointer                       :: nodePropertyExtractor_
     type            (nodePropertyExtractorStarFormationRate         )               , pointer                       :: nodePropertyExtractorStarFormationRate_
@@ -337,11 +344,15 @@ contains
     integer         (c_size_t                                       )                                               :: iBin                                                        , bufferCount                                         , &
          &                                                                                                             countMasses
     !![
-    <constructorAssign variables="*surveyGeometry_, *cosmologyFunctions_, *cosmologyFunctionsData"/>
+    <constructorAssign variables="*surveyGeometry_, *cosmologyFunctions_, *cosmologyFunctionsData, *starFormationRateDisks_, *starFormationRateSpheroids_, *galacticStructure_"/>
     !!]
 
+    ! Set properties needed for descriptor.
+    countMasses              =size(massesStellar             )
+    self%massMinimum         =     massesStellar(          1)
+    self%massMaximum         =     massesStellar(countMasses)
+    self%countMassesPerDecade=dble(countMasses-1_c_size_t)*log10(self%massMaximum/self%massMinimum)
     ! Compute weights that apply to each output redshift.
-    countMasses=size(massesStellar)
     allocate(outputWeight(countMasses,outputTimes_%count()))
     outputWeight=0.0d0
     do iBin=1,countMasses
@@ -480,8 +491,8 @@ contains
          &                              .true.                                                                            , &
          &                              .false.                                                                           , &
          &                              targetLabel                                                                       , &
-         &                              functionValueTarget                                                               , &
-         &                              functionCovarianceTarget                                                          , &
+         &                              meanValueTarget                                                                   , &
+         &                              meanCovarianceTarget                                                              , &
          &                              massesStellarBinWidthLogarithmic                                                    &
          &                             )
     !![

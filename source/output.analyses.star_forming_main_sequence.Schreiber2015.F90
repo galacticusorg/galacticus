@@ -31,7 +31,13 @@
      An output analysis class for the star forming main sequence measurements of \cite{schreiber_herschel_2015}.
      !!}
      private
+     class           (cosmologyParametersClass), pointer                     :: cosmologyParameters_                       => null()
+     double precision                          , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient                    , systematicErrorPolynomialCoefficient, &
+         &                                                                      weightSystematicErrorPolynomialCoefficient
+     double precision                                                        :: randomErrorMinimum                                  , randomErrorMaximum
+     integer                                                                 :: redshiftIndex
    contains
+    final :: starFormingMainSequenceSchreiber2015Destructor
   end type outputAnalysisStarFormingMainSequenceSchreiber2015
 
   interface outputAnalysisStarFormingMainSequenceSchreiber2015
@@ -111,6 +117,13 @@ contains
       <description>The coefficients of the systematic error polynomial for SDSS stellar masses.</description>
     </inputParameter>
     <inputParameter>
+      <name>weightSystematicErrorPolynomialCoefficient</name>
+      <source>parameters</source>
+      <variable>weightSystematicErrorPolynomialCoefficient</variable>
+      <defaultValue>[0.0d0]</defaultValue>
+      <description>The coefficients of the systematic error polynomial for specific star formation rates.</description>
+    </inputParameter>
+    <inputParameter>
       <name>redshiftIndex</name>
       <source>parameters</source>
       <description>The redshift index (1-6) for this analysis.</description>
@@ -177,7 +190,10 @@ contains
          &                                                                                                logSFR0
     type            (varying_string                                     )                              :: fileName                                         , label                                  , &
          &                                                                                                description
-
+    !![
+    <constructorAssign variables="redshiftIndex, randomErrorMinimum, randomErrorMaximum, randomErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, weightSystematicErrorPolynomialCoefficient, *cosmologyParameters_"/>
+    !!]
+    
     ! Construct file name and label for the analysis.
     fileName   =inputPath(pathTypeDataStatic)//'observations/starFormationRate/starFormingMainSequenceSchreiber2015_z'
     label      ='Schreiber2015'
@@ -333,3 +349,16 @@ contains
     nullify(filters_)    
     return
   end function starFormingMainSequenceSchreiber2015ConstructorInternal
+
+  subroutine starFormingMainSequenceSchreiber2015Destructor(self)
+    !!{
+    Destructor for the ``starFormingMainSequenceSchreiber2015'' output analysis class.
+    !!}
+    implicit none
+    type(outputAnalysisStarFormingMainSequenceSchreiber2015), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%cosmologyParameters_" />
+    !!]
+    return
+  end subroutine starFormingMainSequenceSchreiber2015Destructor

@@ -136,6 +136,7 @@ module Merger_Tree_Data_Structure
    <visibility>public</visibility>
    <validator>yes</validator>
    <encodeFunction>yes</encodeFunction>
+   <decodeFunction>yes</decodeFunction>
    <entry label="generic"     />
    <entry label="cosmology"   />
    <entry label="simulation"  />

@@ -21,27 +21,6 @@
   Contains a module which implements an output analysis class for the star forming main sequence measurements of \cite{wagner_evolution_2016}.
   !!}
 
-  !![
-  <outputAnalysis name="outputAnalysisStarFormingMainSequenceWagner2016">
-    <description>An output analysis class for the star forming main sequence measurements of \cite{wagner_evolution_2016}.</description>
-  </outputAnalysis>
-  !!]
-  type, extends(outputAnalysisStarFormingMainSequence) :: outputAnalysisStarFormingMainSequenceWagner2016
-     !!{
-     An output analysis class for the star forming main sequence measurements of \cite{wagner_evolution_2016}.
-     !!}
-     private
-   contains
-  end type outputAnalysisStarFormingMainSequenceWagner2016
-
-  interface outputAnalysisStarFormingMainSequenceWagner2016
-     !!{
-     Constructors for the ``starFormingMainSequenceWagner2016'' output analysis class.
-     !!}
-     module procedure starFormingMainSequenceWagner2016ConstructorParameters
-     module procedure starFormingMainSequenceWagner2016ConstructorInternal
-  end interface outputAnalysisStarFormingMainSequenceWagner2016
-
   ! Enumerations of analyses.
   !![
   <enumeration>
@@ -64,6 +43,35 @@
   </enumeration>
   !!]
   
+  !![
+  <outputAnalysis name="outputAnalysisStarFormingMainSequenceWagner2016">
+    <description>An output analysis class for the star forming main sequence measurements of \cite{wagner_evolution_2016}.</description>
+  </outputAnalysis>
+  !!]
+  type, extends(outputAnalysisStarFormingMainSequence) :: outputAnalysisStarFormingMainSequenceWagner2016
+     !!{
+     An output analysis class for the star forming main sequence measurements of \cite{wagner_evolution_2016}.
+     !!}
+     private
+     class           (cosmologyParametersClass                  ), pointer                     :: cosmologyParameters_             => null()
+     class           (darkMatterProfileDMOClass                 ), pointer                     :: darkMatterProfileDMO_            => null()
+     class           (virialDensityContrastClass                ), pointer                     :: virialDensityContrast_           => null()
+     double precision                                            , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient          , systematicErrorPolynomialCoefficient
+     double precision                                                                          :: randomErrorMinimum                        , randomErrorMaximum
+     type            (enumerationWagner2016SSFRRedshiftRangeType)                              :: redshiftRange
+     type            (enumerationWagner2016SSFRGalaxyTypeType   )                              :: galaxyType
+   contains
+     final :: starFormingMainSequenceWagner2016Destructor
+  end type outputAnalysisStarFormingMainSequenceWagner2016
+
+  interface outputAnalysisStarFormingMainSequenceWagner2016
+     !!{
+     Constructors for the ``starFormingMainSequenceWagner2016'' output analysis class.
+     !!}
+     module procedure starFormingMainSequenceWagner2016ConstructorParameters
+     module procedure starFormingMainSequenceWagner2016ConstructorInternal
+  end interface outputAnalysisStarFormingMainSequenceWagner2016
+
 contains
 
   function starFormingMainSequenceWagner2016ConstructorParameters(parameters) result (self)
@@ -226,6 +234,9 @@ contains
          &                                                                                                massHostThreshold
     type            (varying_string                                     )                              :: fileName                                         , label                                  , &
          &                                                                                                description
+    !![
+    <constructorAssign variables="redshiftRange, galaxyType, randomErrorMinimum, randomErrorMaximum, randomErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, *cosmologyParameters_, *darkMatterProfileDMO_, *virialDensityContrast_"/>
+    !!]
 
     ! Construct file name and label for the analysis.
     fileName   =inputPath(pathTypeDataStatic)//'observations/starFormationRate/'
@@ -422,3 +433,18 @@ contains
     nullify(filters_)    
     return
   end function starFormingMainSequenceWagner2016ConstructorInternal
+
+  subroutine starFormingMainSequenceWagner2016Destructor(self)
+    !!{
+    Destructor for the ``starFormingMainSequenceWagner2016 output analysis class.
+    !!}
+    implicit none
+    type(outputAnalysisStarFormingMainSequenceWagner2016), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%cosmologyParameters_" />
+    <objectDestructor name="self%darkMatterProfileDMO_" />
+    <objectDestructor name="self%virialDensityContrast_"/>
+    !!]
+    return
+  end subroutine starFormingMainSequenceWagner2016Destructor

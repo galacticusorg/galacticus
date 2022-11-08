@@ -40,14 +40,19 @@
      !!}
      private
      class           (cosmologyFunctionsClass       ), pointer                     :: cosmologyFunctions_               => null()
+     class           (outputTimesClass              ), pointer                     :: outputTimes_                      => null()
+     class           (virialDensityContrastClass    ), pointer                     :: virialDensityContrast_            => null(), virialDensityContrastDefinition_   => null()
+     class           (cosmologyParametersClass      ), pointer                     :: cosmologyParameters_              => null()
+     class           (darkMatterProfileDMOClass     ), pointer                     :: darkMatterProfileDMO_             => null()
      type            (outputAnalysisVolumeFunction1D), pointer                     :: volumeFunctionsSubHalos           => null(), volumeFunctionsHostHalos           => null()
      double precision                                , allocatable, dimension(:  ) :: radiiFractional                            , radialDistribution                          , &
           &                                                                           radialDistributionTarget
      double precision                                , allocatable, dimension(:,:) :: covariance                                 , radialDistributionCovarianceTarget
-     type            (varying_string                )                              :: labelTarget
+     type            (varying_string                )                              :: labelTarget                                , fileName
      double precision                                                              :: negativeBinomialScatterFractional          , countFailures                               , &
           &                                                                           radiusFractionMinimum                      , radiusFractionMaximum                       , &
-          &                                                                           time                                       , redshift
+          &                                                                           time                                       , redshift                                    , &
+          &                                                                           massRatioThreshold
      integer         (c_size_t                      )                              :: countRadiiFractional 
      logical                                                                       :: finalized
    contains
@@ -189,11 +194,11 @@ contains
     type            (outputAnalysisSubhaloRadialDistribution)                                :: self
     type            (varying_string                         ), intent(in   )                 :: fileName
     double precision                                         , intent(in   )                 :: negativeBinomialScatterFractional
-    class           (outputTimesClass                       ), intent(inout)                 :: outputTimes_
-    class           (virialDensityContrastClass             ), intent(in   )                 :: virialDensityContrast_            , virialDensityContrastDefinition_
-    class           (cosmologyParametersClass               ), intent(inout)                 :: cosmologyParameters_
+    class           (outputTimesClass                       ), intent(inout), target         :: outputTimes_
+    class           (virialDensityContrastClass             ), intent(in   ), target         :: virialDensityContrast_            , virialDensityContrastDefinition_
+    class           (cosmologyParametersClass               ), intent(inout), target         :: cosmologyParameters_
     class           (cosmologyFunctionsClass                ), intent(inout), target         :: cosmologyFunctions_
-    class           (darkMatterProfileDMOClass              ), intent(in   )                 :: darkMatterProfileDMO_
+    class           (darkMatterProfileDMOClass              ), intent(in   ), target         :: darkMatterProfileDMO_
     double precision                                         , intent(in   ), optional       :: redshift
     double precision                                         , allocatable  , dimension(:  ) :: radiiFractionalTarget             , radialDistributionTarget         , &
          &                                                                                      radialDistributionErrorTarget
@@ -204,9 +209,6 @@ contains
     integer         (c_size_t                                 )                              :: countRadiiFractional              , i
     type            (varying_string                           )                              :: labelTarget
     type            (hdf5Object                               )                              :: file                              , radialDistributionGroup
-    !![
-    <constructorAssign variables="redshift, *cosmologyFunctions_"/>
-    !!]
     
     ! Read properties from the file.
     !$ call hdf5Access%set()
@@ -234,6 +236,9 @@ contains
        radialDistributionCovarianceTarget(i,i)=radialDistributionErrorTarget(i)**2
     end do
     self=outputAnalysisSubhaloRadialDistribution(outputTimes_,virialDensityContrastDefinition_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,darkMatterProfileDMO_,time,radiusFractionMinimum,radiusFractionMaximum,countRadiiFractional,massRatioThreshold,negativeBinomialScatterFractional,radialDistributionTarget,radialDistributionCovarianceTarget,labelTarget)
+    !![
+    <constructorAssign variables="fileName, redshift"/>
+    !!]
     return
   end function subhaloRadialDistributionConstructorFile
 
@@ -260,11 +265,11 @@ contains
          &                                                                                                     radiusFractionMaximum                           , time                             , &
          &                                                                                                     massRatioThreshold
     integer         (c_size_t                                    ), intent(in   )                           :: countRadiiFractional
-    class           (outputTimesClass                            ), intent(inout)                           :: outputTimes_
-    class           (virialDensityContrastClass                  ), intent(in   )                           :: virialDensityContrast_                          , virialDensityContrastDefinition_
-    class           (cosmologyParametersClass                    ), intent(in   )                           :: cosmologyParameters_
+    class           (outputTimesClass                            ), intent(inout), target                   :: outputTimes_
+    class           (virialDensityContrastClass                  ), intent(in   ), target                   :: virialDensityContrast_                          , virialDensityContrastDefinition_
+    class           (cosmologyParametersClass                    ), intent(in   ), target                   :: cosmologyParameters_
     class           (cosmologyFunctionsClass                     ), intent(in   ), target                   :: cosmologyFunctions_
-    class           (darkMatterProfileDMOClass                   ), intent(in   )                           :: darkMatterProfileDMO_
+    class           (darkMatterProfileDMOClass                   ), intent(in   ), target                   :: darkMatterProfileDMO_
     double precision                                              , intent(in   ), dimension(:)  , optional :: radialDistributionTarget
     double precision                                              , intent(in   ), dimension(:,:), optional :: radialDistributionCovarianceTarget
     type            (varying_string                              ), intent(in   )                , optional :: labelTarget
@@ -290,12 +295,13 @@ contains
     double precision                                              , parameter                               :: massHostLogarithmicMaximum           =1.0d2
     integer         (c_size_t                                    )                                          :: i
     !![
-    <constructorAssign variables="negativeBinomialScatterFractional, countRadiiFractional, radiusFractionMinimum, radiusFractionMaximum, radialDistributionTarget, radialDistributionCovarianceTarget, labelTarget, *cosmologyFunctions_"/>
+    <constructorAssign variables="massRatioThreshold, negativeBinomialScatterFractional, countRadiiFractional, radiusFractionMinimum, radiusFractionMaximum, radialDistributionTarget, radialDistributionCovarianceTarget, labelTarget, *cosmologyFunctions_, *outputTimes_, *cosmologyParameters_, *virialDensityContrast_, *virialDensityContrastDefinition_, *darkMatterProfileDMO_"/>
     !!]
 
     ! Initialize.
     self%finalized=.false.
     self%redshift =self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(time))
+    self%fileName =''
     ! Compute failure count for the negative binomial distribution used in likelihood calculations.
     self%countFailures=1.0d0/negativeBinomialScatterFractional**2
     ! Construct mass bins.
@@ -469,9 +475,14 @@ contains
     type(outputAnalysisSubhaloRadialDistribution), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%volumeFunctionsSubHalos" />
-    <objectDestructor name="self%volumeFunctionsHostHalos"/>
-    <objectDestructor name="self%cosmologyFunctions_"     />
+    <objectDestructor name="self%volumeFunctionsSubHalos"         />
+    <objectDestructor name="self%volumeFunctionsHostHalos"        />
+    <objectDestructor name="self%cosmologyFunctions_"             />
+    <objectDestructor name="self%outputTimes_"                    />
+    <objectDestructor name="self%cosmologyParameters_"            />
+    <objectDestructor name="self%darkMatterProfileDMO_"           />
+    <objectDestructor name="self%virialDensityContrast_"          />
+    <objectDestructor name="self%virialDensityContrastDefinition_"/>
     !!]
     return
   end subroutine subhaloRadialDistributionDestructor

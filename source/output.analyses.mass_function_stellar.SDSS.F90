@@ -59,6 +59,12 @@ Contains a module which implements a stellar mass function output analysis class
      An SDSS stellar mass function output analysis class.
      !!}
      private
+     class           (gravitationalLensingClass), pointer                   :: gravitationalLensing_            => null()
+     double precision                           , allocatable, dimension(:) :: randomErrorPolynomialCoefficient          , systematicErrorPolynomialCoefficient
+     double precision                                                       :: randomErrorMinimum                        , randomErrorMaximum                  , &
+          &                                                                    sizeSourceLensing
+   contains
+     final :: massFunctionStellarSDSSDestructor
   end type outputAnalysisMassFunctionStellarSDSS
 
   interface outputAnalysisMassFunctionStellarSDSS
@@ -208,6 +214,9 @@ contains
     type            (cosmologyFunctionsMatterLambda                     )               , pointer      :: cosmologyFunctionsData
     type            (distributionOperatorList                           )               , pointer      :: distributionOperatorSequence
     double precision                                                     , parameter                   :: errorPolynomialZeroPoint                            =11.3d+0
+    !![
+    <constructorAssign variables="randomErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, sizeSourceLensing, *gravitationalLensing_"/>
+    !!]
 
     ! Build a filter which select galaxies with stellar mass 10⁶M☉ or greater.
     allocate(galacticFilter_)
@@ -321,3 +330,16 @@ contains
     nullify(distributionOperatorSequence)
     return
   end function massFunctionStellarSDSSConstructorInternal
+
+  subroutine massFunctionStellarSDSSDestructor(self)
+    !!{
+    Destructor for the {\normalfont \ttfamily massFunctionStellarSDSS} output analysis class.
+    !!}
+    implicit none
+    type(outputAnalysisMassFunctionStellarSDSS), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%galacticStructure_"/>
+    !!]
+    return
+  end subroutine massFunctionStellarSDSSDestructor

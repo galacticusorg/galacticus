@@ -68,41 +68,43 @@ Contains a module which implements a generic two-point correlation function outp
      A generic two-point correlation function output analysis class.
      !!}
      private
-     type            (varying_string                         )                                :: label                                    , comment                                     , &
+     type            (varying_string                         )                                :: label                                                , comment                                     , &
           &                                                                                      targetLabel
-     class           (galacticFilterClass                    ), pointer                       :: galacticFilter_                 => null()
-     class           (outputTimesClass                       ), pointer                       :: outputTimes_                    => null()
-     class           (surveyGeometryClass                    ), pointer                       :: surveyGeometry_                 => null()
-     class           (cosmologyFunctionsClass                ), pointer                       :: cosmologyFunctions_             => null()
-     class           (outputAnalysisDistributionOperatorClass), pointer                       :: massDistributionOperator_       => null()
-     class           (outputAnalysisPropertyOperatorClass    ), pointer                       :: massPropertyOperator_           => null(), separationPropertyOperator_        => null()
-     class           (nodePropertyExtractorClass             ), pointer                       :: massPropertyExtractor_          => null()
-     class           (darkMatterProfileDMOClass              ), pointer                       :: darkMatterProfileDMO_           => null()
-     class           (darkMatterHaloBiasClass                ), pointer                       :: darkMatterHaloBias_             => null()
-     class           (haloModelPowerSpectrumModifierClass    ), pointer                       :: haloModelPowerSpectrumModifier_ => null()
-     class           (powerSpectrumClass                     ), pointer                       :: powerSpectrum_                  => null()
-     double precision                                         , allocatable, dimension(:    ) :: separations                              , wavenumber                                  , &
-          &                                                                                      meanDensity                              , massMinima                                  , &
-          &                                                                                      massMaxima                               , massMinimaLogarithmic                       , &
-          &                                                                                      massMaximaLogarithmic
-     double precision                                         , allocatable, dimension(:,:  ) :: outputWeight                             , meanDensityMainBranch                       , &
-          &                                                                                      oneHaloTerm                              , twoHaloTerm                                 , &
-          &                                                                                      termCovariance                           , integralConstraint                          , &
-          &                                                                                      binnedProjectedCorrelation               , binnedProjectedCorrelationCovariance        , &
-          &                                                                                      binnedProjectedCorrelationTarget         , binnedProjectedCorrelationCovarianceTarget
-     double precision                                         , allocatable, dimension(:,:,:) :: oneHaloTermMainBranch                    , twoHaloTermMainBranch
+     class           (galacticFilterClass                    ), pointer                       :: galacticFilter_                             => null()
+     class           (outputTimesClass                       ), pointer                       :: outputTimes_                                => null()
+     class           (surveyGeometryClass                    ), pointer                       :: surveyGeometry_                             => null()
+     class           (cosmologyFunctionsClass                ), pointer                       :: cosmologyFunctions_                         => null()
+     class           (outputAnalysisDistributionOperatorClass), pointer                       :: massDistributionOperator_                   => null()
+     class           (outputAnalysisPropertyOperatorClass    ), pointer                       :: massPropertyOperator_                       => null(), separationPropertyOperator_        => null()
+     class           (nodePropertyExtractorClass             ), pointer                       :: massPropertyExtractor_                      => null()
+     class           (darkMatterProfileDMOClass              ), pointer                       :: darkMatterProfileDMO_                       => null()
+     class           (darkMatterHaloBiasClass                ), pointer                       :: darkMatterHaloBias_                         => null()
+     class           (haloModelPowerSpectrumModifierClass    ), pointer                       :: haloModelPowerSpectrumModifier_             => null()
+     class           (powerSpectrumClass                     ), pointer                       :: powerSpectrum_                              => null()
+     double precision                                         , allocatable, dimension(:    ) :: separations                                          , wavenumber                                  , &
+          &                                                                                      meanDensity                                          , massMinima                                  , &
+          &                                                                                      massMaxima                                           , massMinimaLogarithmic                       , &
+          &                                                                                      massMaximaLogarithmic                                , binnedProjectedCorrelationTarget1D          , &
+          &                                                                                      binnedProjectedCorrelationCovarianceTarget1D
+     double precision                                         , allocatable, dimension(:,:  ) :: outputWeight                                         , meanDensityMainBranch                       , &
+          &                                                                                      oneHaloTerm                                          , twoHaloTerm                                 , &
+          &                                                                                      termCovariance                                       , integralConstraint                          , &
+          &                                                                                      binnedProjectedCorrelation                           , binnedProjectedCorrelationCovariance        , &
+          &                                                                                      binnedProjectedCorrelationTarget                     , binnedProjectedCorrelationCovarianceTarget
+     double precision                                         , allocatable, dimension(:,:,:) :: oneHaloTermMainBranch                                , twoHaloTermMainBranch
      integer                                                  , allocatable, dimension(:    ) :: countMainBranch
-     double precision                                                                         :: massHaloLogarithmicMinimum               , massHaloIntervalLogarithmicInverse          , &
-          &                                                                                      wavenumberMinimum                        , wavenumberMaximum                           , &
-          &                                                                                      depthLineOfSight
-     integer         (c_size_t                               )                                :: binCount                                 , massCount                                   , &
-          &                                                                                      countBinsMassHalo                        , wavenumberCount
-     logical                                                                                  :: finalized                                , halfIntegral
+     double precision                                                                         :: massHaloLogarithmicMinimum                           , massHaloIntervalLogarithmicInverse          , &
+          &                                                                                      wavenumberMinimum                                    , wavenumberMaximum                           , &
+          &                                                                                      depthLineOfSight                                     , massHaloMinimum                             , &
+          &                                                                                      massHaloMaximum
+     integer         (c_size_t                               )                                :: binCount                                             , massCount                                   , &
+          &                                                                                      countBinsMassHalo                                    , wavenumberCount
+     logical                                                                                  :: finalized                                            , halfIntegral
      !$ integer      (omp_lock_kind                          )                                :: accumulateLock
      ! Workspace used while accumulating the correlation function.
      double precision                                         , allocatable, dimension(:    ) :: probabilityCentral
      double precision                                         , allocatable, dimension(:,:  ) :: probabilitySatellite
-     integer                                                                                  :: countSatellites
+     integer                                                                                  :: countSatellites                                      , massHaloBinsPerDecade
    contains
      !![
      <methods>
@@ -442,9 +444,12 @@ contains
     double precision                                         , intent(in   ), dimension(:,:), optional :: binnedProjectedCorrelationTarget  , binnedProjectedCorrelationCovarianceTarget
     integer         (c_size_t                               )                                          :: i
     !![
-    <constructorAssign variables="label, comment, separations, massMinima, massMaxima, integralConstraint, wavenumberCount, wavenumberMinimum, wavenumberMaximum, depthLineOfSight, halfIntegral, *galacticFilter_, *outputTimes_, *darkMatterProfileDMO_, *darkMatterHaloBias_, *haloModelPowerSpectrumModifier_, *surveyGeometry_, *cosmologyFunctions_, *powerSpectrum_, *massDistributionOperator_, *massPropertyOperator_, *separationPropertyOperator_, *massPropertyExtractor_, targetLabel, binnedProjectedCorrelationTarget, binnedProjectedCorrelationCovarianceTarget"/>
+    <constructorAssign variables="label, comment, separations, massMinima, massMaxima, massHaloBinsPerDecade, massHaloMinimum, massHaloMaximum, integralConstraint, wavenumberCount, wavenumberMinimum, wavenumberMaximum, depthLineOfSight, halfIntegral, *galacticFilter_, *outputTimes_, *darkMatterProfileDMO_, *darkMatterHaloBias_, *haloModelPowerSpectrumModifier_, *surveyGeometry_, *cosmologyFunctions_, *powerSpectrum_, *massDistributionOperator_, *massPropertyOperator_, *separationPropertyOperator_, *massPropertyExtractor_, targetLabel, binnedProjectedCorrelationTarget, binnedProjectedCorrelationCovarianceTarget"/>
     !!]
 
+    ! Assign 1D versions of target for use in descriptor.
+    self%binnedProjectedCorrelationTarget1D          =reshape(binnedProjectedCorrelationTarget,[size(binnedProjectedCorrelationTarget          )])
+    self%binnedProjectedCorrelationCovarianceTarget1D=reshape(binnedProjectedCorrelationTarget,[size(binnedProjectedCorrelationCovarianceTarget)])
     ! Compute weight that applies to each output redshift.
     self%massCount=size(self%massMinima               )
     self%binCount =size(self%separations,kind=c_size_t)

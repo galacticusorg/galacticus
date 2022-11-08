@@ -43,7 +43,8 @@
   
   !![
   <task name="taskHaloMassFunction">
-   <description>A task which computes and outputs the halo mass function and related quantities.</description>
+    <description>A task which computes and outputs the halo mass function and related quantities.</description>
+    <descriptorSpecial>descriptorSpecial</descriptorSpecial>
   </task>
   !!]
   type, extends(taskClass) :: taskHaloMassFunction
@@ -78,9 +79,15 @@
      type            (virialDensityContrastList              ), allocatable, dimension(:) :: virialDensityContrasts
      ! Pointer to the parameters for this task.
      type            (inputParameters                        )                            :: parameters
-  contains
-     final     ::            haloMassFunctionDestructor
-     procedure :: perform => haloMassFunctionPerform
+   contains
+     !![
+     <methods>
+       <method method="descriptorSpecial" description="Handle adding special parameters to the descriptor."/>
+     </methods>
+     !!]
+     final     ::                      haloMassFunctionDestructor
+     procedure :: perform           => haloMassFunctionPerform
+     procedure :: descriptorSpecial => haloMassFunctionDescriptorSpecial
   end type taskHaloMassFunction
 
   interface taskHaloMassFunction
@@ -977,3 +984,26 @@ contains
     end function subhaloMassFunctionIntegrand
 
   end subroutine haloMassFunctionPerform
+
+  subroutine haloMassFunctionDescriptorSpecial(self,descriptor)
+    !!{
+    Add special parameters to the descriptor.
+    !!}
+    use :: Input_Parameters  , only : inputParameters
+    use :: ISO_Varying_String, only : char
+    use :: String_Handling   , only : String_Join
+    implicit none
+    class  (taskHaloMassFunction), intent(inout) :: self
+    type   (inputParameters     ), intent(inout) :: descriptor
+    type   (inputParameters     )                :: subParameters
+    integer                                      :: i
+    
+    if (allocated(self%virialDensityContrasts)) then
+       subParameters=descriptor%subparameters('massDefinitions')
+       call subParameters%addParameter('labels',char(String_Join(self%virialDensityContrasts%label," ")))
+       do i=1,size(self%virialDensityContrasts)
+          call self%virialDensityContrasts(i)%virialDensityContrast_%descriptor(subParameters)
+       end do
+    end if
+    return
+  end subroutine haloMassFunctionDescriptorSpecial
