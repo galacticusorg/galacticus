@@ -179,7 +179,7 @@ program Tests_Merger_Tree_Branching
        &                                                                                                                       varianceNumberPerUnitProbability       =100                                                          , &
        &                                                                                                                       varianceNumberPerUnit                  = 16                                                          , &
        &                                                                                                                       varianceNumberPerDecade                = 32                                                          , &
-       &                                                                                                                       timeNumberPerDecade                    = 10                                                          , &
+       &                                                                                                                       timeNumberPerDecade                    = 16                                                          , &
        &                                                                                                                       varianceIsUnlimited                    =.true.                                                       , &
        &                                                                                                                       cosmologyFunctions_                    =cosmologyFunctionsMatterLambda_                              , &
        &                                                                                                                       excursionSetBarrier_                   =excursionSetBarrierCriticalOverdensity_                      , &
@@ -290,14 +290,12 @@ program Tests_Merger_Tree_Branching
      call Assert('Accretion rate'            ,accretionRate           ,accretionRateTarget           /rootVarianceParent,relTol=2.0d-3)
      call Unit_Tests_End_Group  (                                             )
      call Unit_Tests_Begin_Group("Generalized Press-Schechter general barrier branching rates")
-     branchingProbabilityRateTargetGeneral= mergerTreeBranchingProbabilityGnrlzdPrssSchchtr_(2)%probability          (massParent,criticalOverdensity_,time,massResolution,node)
-     accretionRateTargetGeneral           = mergerTreeBranchingProbabilityGnrlzdPrssSchchtr_(2)%fractionSubresolution(massParent,criticalOverdensity_,time,massResolution,node)
-     smoothAccretionRateTargetGeneral     =+mergerTreeBranchingProbabilityGnrlzdPrssSchchtr_(4)%fractionSubresolution(massParent,criticalOverdensity_,time,massResolution,node) &
-          &                                -accretionRateTargetGeneral
-     branchingProbabilityRate             = mergerTreeBranchingProbabilityGnrlzdPrssSchchtr_(3)%probability          (massParent,criticalOverdensity_,time,massResolution,node)
-     accretionRate                        = mergerTreeBranchingProbabilityGnrlzdPrssSchchtr_(3)%fractionSubresolution(massParent,criticalOverdensity_,time,massResolution,node)
-     smoothAccretionRate                  =+mergerTreeBranchingProbabilityGnrlzdPrssSchchtr_(5)%fractionSubresolution(massParent,criticalOverdensity_,time,massResolution,node) &
-          &                                -accretionRate
+     smoothAccretionRateTargetGeneral     =mergerTreeBranchingProbabilityGnrlzdPrssSchchtr_(4)%fractionSubresolution(massParent,criticalOverdensity_,time,1.0d-1*massResolution,node)
+     accretionRateTargetGeneral           =mergerTreeBranchingProbabilityGnrlzdPrssSchchtr_(2)%fractionSubresolution(massParent,criticalOverdensity_,time,       massResolution,node)
+     branchingProbabilityRateTargetGeneral=mergerTreeBranchingProbabilityGnrlzdPrssSchchtr_(2)%probability          (massParent,criticalOverdensity_,time,       massResolution,node)
+     smoothAccretionRate                  =mergerTreeBranchingProbabilityGnrlzdPrssSchchtr_(5)%fractionSubresolution(massParent,criticalOverdensity_,time,1.0d-1*massResolution,node)
+     accretionRate                        =mergerTreeBranchingProbabilityGnrlzdPrssSchchtr_(3)%fractionSubresolution(massParent,criticalOverdensity_,time,       massResolution,node)
+     branchingProbabilityRate             =mergerTreeBranchingProbabilityGnrlzdPrssSchchtr_(3)%probability          (massParent,criticalOverdensity_,time,       massResolution,node)
      call Assert('Branching probability rate',branchingProbabilityRate,branchingProbabilityRateTargetGeneral,relTol=2.5d-2)
      call Assert('Accretion rate'            ,accretionRate           ,accretionRateTargetGeneral           ,relTol=2.5d-2)
      call Assert('Smooth accretion rate'     ,smoothAccretionRate     ,smoothAccretionRateTargetGeneral     ,relTol=2.5d-2)
