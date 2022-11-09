@@ -33,8 +33,19 @@
      A thermal Sunyaev-Zeldovich signal vs stellar mass analysis class using the results of \cite{planck_collaboration_planck_2013}.
      !!}
      private
+     double precision                                , allocatable  , dimension(:) :: systematicErrorPolynomialCoefficient          , randomErrorPolynomialCoefficient
+     class           (cosmologyParametersClass      ), pointer                     :: cosmologyParameters_                 => null()
+     class           (cosmologyFunctionsClass       ), pointer                     :: cosmologyFunctions_                  => null()
+     class           (darkMatterHaloScaleClass      ), pointer                     :: darkMatterHaloScale_                 => null()
+     class           (hotHaloMassDistributionClass  ), pointer                     :: hotHaloMassDistribution_             => null()
+     class           (hotHaloTemperatureProfileClass), pointer                     :: hotHaloTemperatureProfile_           => null()
+     class           (chemicalStateClass            ), pointer                     :: chemicalState_                       => null()
+     class           (galacticStructureClass        ), pointer                     :: galacticStructure_                   => null()
+     double precision                                                              :: randomErrorMinimum                            , randomErrorMaximum
+   contains
+     final :: sunyaevZeldovichPlanck2013Destructor
   end type outputAnalysisSunyaevZeldovichPlanck2013
-
+  
   interface outputAnalysisSunyaevZeldovichPlanck2013
      !!{
      Constructors for the ``sunyaevZeldovichPlanck2013'' output analysis class.
@@ -178,7 +189,10 @@ contains
     double precision                                                     , parameter                     :: errorPolynomialZeroPoint                        =11.300d00
     integer         (c_size_t                                           ), parameter                     :: bufferCount                                     =10
     integer         (c_size_t                                           )                                :: iBin                                                      , binCount
-
+    !![
+    <constructurAssign variables="systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterHaloScale_, *hotHaloMassDistribution_, *hotHaloTemperatureProfile_, *chemicalState_, *galacticStructure_"/>
+    !!]
+    
     ! Construct the target data.
     binCount=20_c_size_t
     allocate(masses(binCount))
@@ -381,3 +395,23 @@ contains
     nullify(filters_          )
     return
   end function sunyaevZeldovichPlanck2013ConstructorInternal
+
+  subroutine sunyaevZeldovichPlanck2013Destructor(self)
+    !!{
+    Destructor for the ``sunyaevZeldovichPlanck2013'' output analysis class.
+    !!}
+    implicit none
+    type(outputAnalysisSunyaevZeldovichPlanck2013), intent(inout) :: self
+    
+    !![
+    <objectDestructor name="self%cosmologyParameters_"      />
+    <objectDestructor name="self%cosmologyFunctions_"       />
+    <objectDestructor name="self%darkMatterHaloScale_"      />
+    <objectDestructor name="self%hotHaloMassDistribution_"  />
+    <objectDestructor name="self%hotHaloTemperatureProfile_"/>
+    <objectDestructor name="self%chemicalState_"            />
+    <objectDestructor name="self%outputTimes_"              />
+    <objectDestructor name="self%galacticStructure_"        />
+    !!]
+    return
+  end subroutine sunyaevZeldovichPlanck2013Destructor

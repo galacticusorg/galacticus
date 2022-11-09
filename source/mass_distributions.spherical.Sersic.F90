@@ -34,7 +34,7 @@
      The S\'ersic density profile.
      !!}
      double precision                                               :: densityNormalization         , mass              , &
-          &                                                            radiusHalfMass_              , index
+          &                                                            radiusHalfMass_              , index_
      ! Tabulation of the Sérsic profile.
      double precision                                               :: coefficient                  , radiusStart
      logical                                                        :: tableInitialized     =.false.
@@ -141,18 +141,16 @@ contains
     double precision                        , intent(in   )           :: index
     double precision                        , intent(in   ), optional :: radiusHalfMass, mass
     logical                                 , intent(in   ), optional :: dimensionless
-    !![
-    <constructorAssign variables="index"/>
-    !!]
 
     ! Determine if profile is dimensionless.
     self%dimensionless=.false.
     if (present(dimensionless)) self%dimensionless=dimensionless
     ! Initialize state.
-    self%tableInitialized       =.false.
-    self%tableRadiusMaximum     =1.0d+3
-    self%tableRadiusMinimum     =1.0d-3
-    self%table3dRadiusHalfMass  =1.0d+0
+    self%tableInitialized     =.false.
+    self%tableRadiusMaximum   =1.0d+3
+    self%tableRadiusMinimum   =1.0d-3
+    self%table3dRadiusHalfMass=1.0d+0
+    self%index_               =index
     !$ call OMP_Init_Lock(self%tableLock)
     ! Tabulate the profile.
     call self%tabulate()
@@ -508,7 +506,7 @@ contains
     implicit none
     double precision, intent(in   ) :: coefficient
 
-    sersicCoefficientRoot=Gamma_Function_Incomplete(2.0d0*sersicActive%index,coefficient)-0.5d0
+    sersicCoefficientRoot=Gamma_Function_Incomplete(2.0d0*sersicActive%index_,coefficient)-0.5d0
     return
   end function sersicCoefficientRoot
 
@@ -521,13 +519,13 @@ contains
     double precision, intent(in   ) :: radius
 
     if (radius > sersicActive%radiusStart) then
-       sersicAbelIntegrand=+      sersicActive%coefficient*(radius**(1.0d0/dble(sersicActive%index) -1.0d0)) &
-            &              * exp(-sersicActive%coefficient*(radius**(1.0d0/dble(sersicActive%index))-1.0d0)) &
-            &              /                                               dble(sersicActive%index)          &
-            &              /sqrt(                                                                            &
-            &                    +     radius     **2                                                        &
-            &                    -sersicActive%radiusStart**2                                                &
-            &                   )                                                                            &
+       sersicAbelIntegrand=+      sersicActive%coefficient*(radius**(1.0d0/dble(sersicActive%index_) -1.0d0)) &
+            &              * exp(-sersicActive%coefficient*(radius**(1.0d0/dble(sersicActive%index_))-1.0d0)) &
+            &              /                                               dble(sersicActive%index_)          &
+            &              /sqrt(                                                                             &
+            &                    +     radius     **2                                                         &
+            &                    -sersicActive%radiusStart**2                                                 &
+            &                   )                                                                             &
             &              /Pi
     else
        sersicAbelIntegrand=0.0d0

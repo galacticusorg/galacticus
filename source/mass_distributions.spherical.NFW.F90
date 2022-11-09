@@ -33,7 +33,8 @@
      private
      double precision :: densityNormalization, scaleLength
    contains
-     procedure :: density => nfwDensity
+     procedure :: density    => nfwDensity
+     procedure :: descriptor => nfwDescriptor
   end type massDistributionNFW
 
   interface massDistributionNFW
@@ -183,3 +184,25 @@ contains
          &     /(1.0d0+r)**2
     return
   end function nfwDensity
+  
+  subroutine nfwDescriptor(self,descriptor,includeClass)
+    !!{
+    Return an input parameter list descriptor which could be used to recreate this object.
+    !!}
+    use :: Input_Parameters, only : inputParameters
+    implicit none
+    class    (massDistributionNFW), intent(inout)           :: self
+    type     (inputParameters    ), intent(inout)           :: descriptor
+    logical                       , intent(in   ), optional :: includeClass
+    character(len=18             )                          :: parameterLabel
+    type     (inputParameters    )                          :: parameters
+
+    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter('massDistribution','NFW')
+    parameters=descriptor%subparameters('massDistribution')
+    write (parameterLabel,'(e17.10)') self%densityNormalization
+    call parameters%addParameter('densityNormalization',trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e17.10)') self%scaleLength
+    call parameters%addParameter('scaleLength'         ,trim(adjustl(parameterLabel)))
+    return
+  end subroutine nfwDescriptor
+

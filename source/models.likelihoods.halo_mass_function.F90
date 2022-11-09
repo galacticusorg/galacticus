@@ -33,17 +33,19 @@
      Implementation of a posterior sampling likelihood class which implements a likelihood for halo mass functions.
      !!}
      private
-     double precision                , dimension(:  ), allocatable :: mass                 , massFunction, &
-          &                                                           massMinimum          , massMaximum
-     double precision                , dimension(:,:), allocatable :: covarianceMatrix
-     integer         (c_size_t      ), dimension(:  ), allocatable :: countHalos
-     double precision                                              :: time                 , massParticle, &
-          &                                                           massRangeMinimum     , redshift    , &
-          &                                                           countConversionFactor
-     logical                                                       :: likelihoodPoisson
-     type            (vector        )                              :: means
-     type            (matrix        )                              :: covariance
-     type            (varying_string)                              :: fileName
+     class           (cosmologyFunctionsClass), pointer                     :: cosmologyFunctions_ => null()
+     double precision                         , dimension(:  ), allocatable :: mass                         , massFunction, &
+          &                                                                    massMinimum                  , massMaximum
+     double precision                         , dimension(:,:), allocatable :: covarianceMatrix
+     integer         (c_size_t               ), dimension(:  ), allocatable :: countHalos
+     double precision                                                       :: time                         , massParticle, &
+          &                                                                    massRangeMinimum             , redshift    , &
+          &                                                                    countConversionFactor
+     logical                                                                :: likelihoodPoisson
+     integer                                                                :: binCountMinimum
+     type            (vector                 )                              :: means
+     type            (matrix                 )                              :: covariance
+     type            (varying_string         )                              :: fileName
    contains
      final     ::                    haloMassFunctionDestructor
      procedure :: evaluate        => haloMassFunctionEvaluate
@@ -140,7 +142,7 @@ contains
     integer                                                    , intent(in   )                 :: binCountMinimum
     logical                                                    , intent(in   )                 :: likelihoodPoisson
     type            (inputParameters                          ), intent(inout), target         :: parametersModel
-    class           (cosmologyFunctionsClass                  ), intent(inout)                 :: cosmologyFunctions_
+    class           (cosmologyFunctionsClass                  ), intent(inout), target         :: cosmologyFunctions_
     double precision                                           , allocatable  , dimension(:  ) :: eigenValueArray               , massOriginal     , &
          &                                                                                        massFunctionOriginal
     integer         (c_size_t                                 ), allocatable  , dimension(:  ) :: massFunctionCountOriginal
@@ -154,7 +156,7 @@ contains
     type            (matrix                                   )                                :: eigenVectors
     type            (vector                                   )                                :: eigenValues
     !![
-    <constructorAssign variables="fileName, redshift, massRangeMinimum, likelihoodPoisson, *parametersModel"/>
+    <constructorAssign variables="fileName, redshift, binCountMinimum, massRangeMinimum, likelihoodPoisson, *parametersModel, *cosmologyFunctions_"/>
     !!]
 
     ! Convert redshift to time.

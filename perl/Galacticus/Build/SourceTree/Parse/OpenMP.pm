@@ -137,8 +137,10 @@ sub Parse_OpenMP {
 		    if ( defined($rawCode) ) {
 			my $rawNode =
 			{
-			    type    => "code",
-			    content => $rawCode
+			    type    => "code"     ,
+			    content => $rawCode   ,
+			    source  => $source    ,
+			    line    => $lineNumber
 			};
 			undef($rawCode);
 			unshift(@newNodes,$rawNode);
@@ -154,12 +156,16 @@ sub Parse_OpenMP {
 		my $rawNode =
 		{
 		    type    => "code",
-		    content => $rawCode
+		    content => $rawCode   ,
+		    source  => $source    ,
+		    line    => $lineNumber
 		};
 		undef($rawCode);
 		push(@newNodesCombined,$rawNode);
 	    }
-	    &Galacticus::Build::SourceTree::ReplaceNode($node,\@newNodesCombined); 
+	    unless ( scalar(@newNodesCombined) == 1 && $newNodesCombined[0]->{'type'} eq "code" ) {
+		&Galacticus::Build::SourceTree::ReplaceNode($node,\@newNodesCombined);
+	    }
 	}
 	$node = &Galacticus::Build::SourceTree::Walk_Tree($node,\$depth);
     }    

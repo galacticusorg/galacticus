@@ -32,6 +32,13 @@ Contains a module which implements a stellar mass function output analysis class
      An SDSS H$\alpha$ luminosity function output analysis class for the \cite{sobral_large_2013} analysis.
      !!}
      private
+     class           (gravitationalLensingClass), pointer                     :: gravitationalLensing_            => null()
+     double precision                           , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient          , systematicErrorPolynomialCoefficient
+     integer                                                                  :: redshiftInterval
+     double precision                                                         :: randomErrorMinimum                        , randomErrorMaximum                  , &
+          &                                                                      sizeSourceLensing
+   contains
+     final :: luminosityFunctionSobral2013HiZELSDestructor
   end type outputAnalysisLuminosityFunctionSobral2013HiZELS
 
   interface outputAnalysisLuminosityFunctionSobral2013HiZELS
@@ -209,7 +216,10 @@ contains
     type            (distributionOperatorList                           )               , pointer      :: distributionOperatorSequence
     double precision                                                                    , parameter    :: errorPolynomialZeroPoint                            =40.0d0
     type            (varying_string                                     )                              :: fileName
-
+    !![
+    <constructorAssign variables="randomErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, redshiftInterval, randomErrorMinimum, randomErrorMaximum, sizeSourceLensing, *gravitationalLensing_"/>
+    !!]
+    
     ! Build a filter which select galaxies with stellar mass 10³M☉ or greater.
     allocate(galacticFilter_)
     !![
@@ -348,3 +358,17 @@ contains
     nullify(distributionOperatorSequence)
     return
   end function luminosityFunctionSobral2013HiZELSConstructorInternal
+
+  subroutine luminosityFunctionSobral2013HiZELSDestructor(self)
+    !!{
+    Destructor for the ``luminosityFunctionSobral2013HiZELS'' output analysis class.
+    !!}
+    implicit none
+    type(outputAnalysisLuminosityFunctionSobral2013HiZELS), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%gravitationalLensing_"/>
+    !!]
+    return
+  end subroutine luminosityFunctionSobral2013HiZELSDestructor
+  

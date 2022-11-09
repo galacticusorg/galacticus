@@ -32,7 +32,15 @@
      An output analysis class for Local Group satellite galaxy mass-metallicity relations.
      !!}
      private
-     class(outputAnalysisClass), pointer :: outputAnalysis_ => null()
+     class           (outputAnalysisClass        ), pointer                   :: outputAnalysis_                                 => null()
+     class           (outputTimesClass           ), pointer                   :: outputTimes_                                    => null()
+     class           (galacticStructureClass     ), pointer                   :: galacticStructure_                              => null()
+     double precision                             , allocatable, dimension(:) :: randomErrorPolynomialCoefficient                         , systematicErrorPolynomialCoefficient, &
+          &                                                                      metallicitySystematicErrorPolynomialCoefficient
+     integer                                                                  :: covarianceBinomialBinsPerDecade
+     double precision                                                         :: covarianceBinomialMassHaloMinimum                        , covarianceBinomialMassHaloMaximum   , &
+          &                                                                      randomErrorMinimum                                       , randomErrorMaximum
+     type            (enumerationPositionTypeType)                            :: positionType
    contains
      final     ::                  localGroupMassMetallicityRelationDestructor
      procedure :: analyze       => localGroupMassMetallicityRelationAnalyze
@@ -180,7 +188,7 @@ contains
     double precision                                                        , intent(in   ), dimension(:  ) :: randomErrorPolynomialCoefficient                           , systematicErrorPolynomialCoefficient                              , &
          &                                                                                                     metallicitySystematicErrorPolynomialCoefficient
     type            (enumerationPositionTypeType                           ), intent(in   )                 :: positionType
-    class           (outputTimesClass                                      ), intent(inout)                 :: outputTimes_
+    class           (outputTimesClass                                      ), intent(inout), target         :: outputTimes_
     class           (galacticStructureClass                                ), intent(in   ), target         :: galacticStructure_
     type            (nodePropertyExtractorMassStellar                      )               , pointer        :: nodePropertyExtractor_
     type            (nodePropertyExtractorMetallicityStellar               )               , pointer        :: outputAnalysisWeightPropertyExtractor_
@@ -218,6 +226,9 @@ contains
          &                                                                                                     bufferCount                                                 , binCountNonZero
     type            (localGroupDB                                          )                                :: localGroupDB_
     double precision                                                                                        :: massesWidthBin
+    !![
+    <constructorAssign variables="*outputTimes_, *galacticStructure_, randomErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, metallicitySystematicErrorPolynomialCoefficient, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum, randomErrorMinimum, randomErrorMaximum, positionType"/>
+    !!]
     
     ! Construct mass bins.
     allocate(masses(binCount))
@@ -494,7 +505,9 @@ contains
     type(outputAnalysisLocalGroupMassMetallicityRelation), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%outputAnalysis_"/>
+    <objectDestructor name="self%outputAnalysis_"   />
+    <objectDestructor name="self%outputTimes_"      />
+    <objectDestructor name="self%galacticStructure_"/>
     !!]
     return
   end subroutine localGroupMassMetallicityRelationDestructor

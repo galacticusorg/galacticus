@@ -31,6 +31,11 @@ Contains a module which implements a correlation function output analysis class 
      A correlation function function output analysis class for the \cite{hearin_dark_2013} analysis.
      !!}
      private
+     class           (galacticStructureClass), pointer                   :: galacticStructure_               => null()
+     double precision                        , allocatable, dimension(:) :: randomErrorPolynomialCoefficient          , systematicErrorPolynomialCoefficient
+     double precision                                                    :: randomErrorMinimum                        , randomErrorMaximum
+   contains
+     final :: correlationFunctionHearin2013SDSSDestructor
   end type outputAnalysisCorrelationFunctionHearin2013SDSS
 
   interface outputAnalysisCorrelationFunctionHearin2013SDSS
@@ -188,7 +193,10 @@ contains
     integer         (c_size_t                                           ), parameter                     :: wavenumberCount                       =60
     double precision                                                     , parameter                     :: wavenumberMinimum                     = 1.0d-3, wavenumberMaximum=1.0d+4
     logical                                                              , parameter                     :: halfIntegral                          =.false.
-
+    !![
+    <constructorAssign variables="randomErrorMinimum, randomErrorMaximum, randomErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, *galacticStructure_"/>
+    !!]
+    
     ! Build a filter which selects galaxies above some minimum stellar mass.
     allocate(galacticFilter_         )
     !![
@@ -313,3 +321,16 @@ contains
     nullify(propertyOperators_)
     return
   end function correlationFunctionHearin2013SDSSConstructorInternal
+
+  subroutine correlationFunctionHearin2013SDSSDestructor(self)
+    !!{
+    Destructor for  the ``correlationFunctionHearin2013SDSS'' output analysis class.
+    !!}
+    implicit none
+    type(outputAnalysisCorrelationFunctionHearin2013SDSS), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%galacticStructure_"/>
+    !!]
+    return
+  end subroutine correlationFunctionHearin2013SDSSDestructor

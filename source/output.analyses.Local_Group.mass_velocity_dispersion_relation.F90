@@ -32,7 +32,16 @@
      An output analysis class for Local Group satellite galaxy mass-velocity dispersion relations.
      !!}
      private
-     class(outputAnalysisClass), pointer :: outputAnalysis_ => null()
+     class           (outputAnalysisClass        ), pointer                     :: outputAnalysis_                                        => null()
+     class           (outputTimesClass           ), pointer                     :: outputTimes_                                           => null()
+     class           (galacticStructureClass     ), pointer                     :: galacticStructure_                                     => null()
+     class           (darkMatterHaloScaleClass   ), pointer                     :: darkMatterHaloScale_                                   => null()
+     double precision                             , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient                                , systematicErrorPolynomialCoefficient, &
+          &                                                                        velocityDispersionSystematicErrorPolynomialCoefficient
+     integer                                                                    :: covarianceBinomialBinsPerDecade
+     double precision                                                           :: covarianceBinomialMassHaloMinimum                               , covarianceBinomialMassHaloMaximum   , &
+          &                                                                        randomErrorMinimum                                              , randomErrorMaximum
+     type            (enumerationPositionTypeType)                              :: positionType
    contains
      final     ::                  localGroupMassVelocityDispersionRelationDestructor
      procedure :: analyze       => localGroupMassVelocityDispersionRelationAnalyze
@@ -183,7 +192,7 @@ contains
     double precision                                                        , intent(in   ), dimension(:  ) :: randomErrorPolynomialCoefficient                           , systematicErrorPolynomialCoefficient                              , &
          &                                                                                                     velocityDispersionSystematicErrorPolynomialCoefficient
     type            (enumerationPositionTypeType                           ), intent(in   )                 :: positionType
-    class           (outputTimesClass                                      ), intent(inout)                 :: outputTimes_
+    class           (outputTimesClass                                      ), intent(inout), target         :: outputTimes_
     class           (galacticStructureClass                                ), intent(in   ), target         :: galacticStructure_
     class           (darkMatterHaloScaleClass                              ), intent(in   ), target         :: darkMatterHaloScale_
     type            (nodePropertyExtractorMassStellar                      )               , pointer        :: nodePropertyExtractor_
@@ -223,6 +232,9 @@ contains
          &                                                                                                     bufferCount                                                 , binCountNonZero
     type            (localGroupDB                                          )                                :: localGroupDB_
     double precision                                                                                        :: massesWidthBin
+    !![
+    <constructorAssign variables="*outputTimes_, *galacticStructure_, *darkMatterHaloScale_, randomErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, velocityDispersionSystematicErrorPolynomialCoefficient, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum, randomErrorMinimum, randomErrorMaximum, positionType"/>
+    !!]
 
     ! Construct mass bins.
     allocate(masses(binCount))
@@ -505,7 +517,10 @@ contains
     type(outputAnalysisLocalGroupMassVelocityDispersionRelation), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%outputAnalysis_"/>
+    <objectDestructor name="self%outputAnalysis_"     />
+    <objectDestructor name="self%outputTimes_"        />
+    <objectDestructor name="self%galacticStructure_"  />
+    <objectDestructor name="self%darkMatterHaloScale_"/>
     !!]
     return
   end subroutine localGroupMassVelocityDispersionRelationDestructor
@@ -516,8 +531,8 @@ contains
     !!}
     implicit none
     class  (outputAnalysisLocalGroupMassVelocityDispersionRelation), intent(inout) :: self
-    type   (treeNode                                       ), intent(inout) :: node
-    integer(c_size_t                                       ), intent(in   ) :: iOutput
+    type   (treeNode                                              ), intent(inout) :: node
+    integer(c_size_t                                              ), intent(in   ) :: iOutput
 
     call self%outputAnalysis_%analyze(node,iOutput)
     return

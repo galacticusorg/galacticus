@@ -137,8 +137,14 @@ sub BuildDeclarations {
 	$declarationCode    .= "!\$ "
 	    if ( exists($declaration->{'openMP'}) && $declaration->{'openMP'} );
 	$declarationCode    .= $declaration->{'intrinsic'};
-	$declarationCode    .= "(".$declaration->{'type'}.")"
-	    if ( exists($declaration->{'type'}) && defined($declaration->{'type'}) );
+	if ( exists($declaration->{'type'}) && defined($declaration->{'type'}) ) {
+	    my $hasParentheses = $declaration->{'type'} =~ m/^\(/ && $declaration->{'type'} =~ m/\)$/;
+	    $declarationCode .= "("
+		unless ( $hasParentheses );
+	    $declarationCode .= $declaration->{'type'};
+	    $declarationCode .= ")"
+		unless ( $hasParentheses );
+	}
 	$declarationCode    .= ", ".join(", ",@{$declaration->{'attributes'}})
 	    if ( exists($declaration->{'attributes'}) && $declaration->{'attributes'} && scalar(@{$declaration->{'attributes'}}) > 0 );
 	$declarationCode    .= " :: ".join(", ",@{$declaration->{'variables'}})."\n";
@@ -305,7 +311,7 @@ sub parseDeclaration {
 	    my $attributesText = $matches[$Fortran::Utils::intrinsicDeclarations{$_}->{'attributes'}];
 	    $attributesText =~ s/^\s*,\s*//
 		if  ( $attributesText );
-	    my @attributes    = &Fortran::Utils::Extract_Variables($attributesText,keepQualifiers => 1);
+	    my @attributes    = &Fortran::Utils::Extract_Variables($attributesText                                                    ,keepQualifiers => 1                );
 	    my @variables     = &Fortran::Utils::Extract_Variables($matches[$Fortran::Utils::intrinsicDeclarations{$_}->{'variables'}],keepQualifiers => 1                );
 	    my @variableNames = &Fortran::Utils::Extract_Variables($matches[$Fortran::Utils::intrinsicDeclarations{$_}->{'variables'}],keepQualifiers => 0, lowerCase => 0);
 	    $declaration = {

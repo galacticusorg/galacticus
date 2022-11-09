@@ -48,6 +48,7 @@
       post-convergence are constructed from all other chains.
     \end{description}
    </description>
+   <descriptorSpecial>descriptorSpecial</descriptorSpecial>
   </posteriorSampleSimulation>
   !!]
   type, extends(posteriorSampleSimulationClass) :: posteriorSampleSimulationDifferentialEvolution
@@ -76,24 +77,26 @@
    contains
      !![
      <methods>
-       <method description="Return true if the simulator is currently logging state." method="logging" />
-       <method description="Return the log of posterior probability for the given {\normalfont \ttfamily posteriorSampleState}." method="posterior" />
-       <method description="Update the simulator to the new {\normalfont \ttfamily stateVector} after a step." method="update" />
-       <method description="Return the current temperature." method="temperature" />
-       <method description="Return true if the proposed state should be accepted." method="acceptProposal" />
-       <method description="Return the step size parameter, $\gamma$, for the differential evolution proposal vector." method="stepSize" />
-       <method description="Select a chain." method="chainSelect" />
+       <method method="logging"           description="Return true if the simulator is currently logging state."                                           />
+       <method method="posterior"         description="Return the log of posterior probability for the given {\normalfont \ttfamily posteriorSampleState}."/>
+       <method method="update"            description="Update the simulator to the new {\normalfont \ttfamily stateVector} after a step."                  />
+       <method method="temperature"       description="Return the current temperature."                                                                    />
+       <method method="acceptProposal"    description="Return true if the proposed state should be accepted."                                              />
+       <method method="stepSize"          description="Return the step size parameter, $\gamma$, for the differential evolution proposal vector."          />
+       <method method="chainSelect"       description="Select a chain."                                                                                    />
+       <method method="descriptorSpecial" description="Handle adding special parameters to the descriptor."                                                />
      </methods>
      !!]
-     final     ::                   differentialEvolutionDestructor
-     procedure :: simulate       => differentialEvolutionSimulate
-     procedure :: logging        => differentialEvolutionLogging
-     procedure :: posterior      => differentialEvolutionPosterior
-     procedure :: update         => differentialEvolutionUpdate
-     procedure :: stepSize       => differentialEvolutionStepSize
-     procedure :: acceptProposal => differentialEvolutionAcceptProposal
-     procedure :: temperature    => differentialEvolutionTemperature
-     procedure :: chainSelect    => differentialEvolutionChainSelect
+     final     ::                      differentialEvolutionDestructor
+     procedure :: simulate          => differentialEvolutionSimulate
+     procedure :: logging           => differentialEvolutionLogging
+     procedure :: posterior         => differentialEvolutionPosterior
+     procedure :: update            => differentialEvolutionUpdate
+     procedure :: stepSize          => differentialEvolutionStepSize
+     procedure :: acceptProposal    => differentialEvolutionAcceptProposal
+     procedure :: temperature       => differentialEvolutionTemperature
+     procedure :: chainSelect       => differentialEvolutionChainSelect
+     procedure :: descriptorSpecial => differentialEvolutionDescriptorSpecial
   end type posteriorSampleSimulationDifferentialEvolution
 
   interface posteriorSampleSimulationDifferentialEvolution
@@ -887,3 +890,26 @@ contains
     differentialEvolutionTemperature=1.0d0
     return
   end function differentialEvolutionTemperature
+
+  subroutine differentialEvolutionDescriptorSpecial(self,descriptor)
+    !!{
+    Add special parameters to the descriptor.
+    !!}
+    use :: Input_Parameters, only : inputParameters
+    implicit none
+    class  (posteriorSampleSimulationDifferentialEvolution), intent(inout) :: self
+    type   (inputParameters                               ), intent(inout) :: descriptor
+    integer                                                                :: i
+    
+    if (allocated(self%modelParametersActive_  )) then
+       do i=1,size(self%modelParametersActive_  )
+          call self%modelParametersActive_  (i)%modelParameter_%descriptor(descriptor)
+       end do
+    end if
+    if (allocated(self%modelParametersInactive_)) then
+       do i=1,size(self%modelParametersInactive_)
+          call self%modelParametersInactive_(i)%modelParameter_%descriptor(descriptor)
+       end do
+    end if
+    return
+  end subroutine differentialEvolutionDescriptorSpecial

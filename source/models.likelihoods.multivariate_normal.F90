@@ -56,6 +56,7 @@
    contains
      procedure :: evaluate        => multivariateNormalEvaluate
      procedure :: functionChanged => multivariateNormalFunctionChanged
+     procedure :: descriptor      => multivariateNormalDescriptor
   end type posteriorSampleLikelihoodMultivariateNormal
 
   interface posteriorSampleLikelihoodMultivariateNormal
@@ -163,3 +164,42 @@ contains
 
     return
   end subroutine multivariateNormalFunctionChanged
+
+  subroutine multivariateNormalDescriptor(self,descriptor,includeClass)
+    !!{
+    Return an input parameter list descriptor which could be used to recreate this object.
+    !!}
+    use :: Input_Parameters, only : inputParameters
+    use :: Linear_Algebra  , only : assignment(=)
+    implicit none
+    class           (posteriorSampleLikelihoodMultivariateNormal), intent(inout)               :: self
+    type            (inputParameters                            ), intent(inout)               :: descriptor
+    logical                                                      , intent(in   ), optional     :: includeClass
+    character       (len=18                                     )                              :: parameterLabel
+    type            (inputParameters                            )                              :: parameters
+    double precision                                             , allocatable, dimension(:  ) :: means
+    double precision                                             , allocatable, dimension(:,:) :: covariance
+    type            (varying_string                             )                              :: parameterCombined
+    integer                                                                                    :: i                , j
+
+    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter('posteriorSampleLikelihood','multivariateNormal')
+    parameters       =descriptor%subparameters('posteriorSampleLikelihood')
+    means            =self%means
+    covariance       =self%covariance
+    parameterCombined=""
+    do i=1,size(means,dim=1)
+       write (parameterLabel,'(e17.10)') means(i)
+       if (i > 1) parameterCombined=parameterCombined//" "
+       parameterCombined=parameterCombined//trim(adjustl(parameterLabel))
+    end do
+    call parameters%addParameter('means',trim(adjustl(parameterLabel)))
+    do i=1,size(covariance,dim=1)
+       do j=1,size(covariance,dim=2)
+          write (parameterLabel,'(e17.10)') covariance(i,j)
+          if (i > 1 .or. j > 1) parameterCombined=parameterCombined//" "
+          parameterCombined=parameterCombined//trim(adjustl(parameterLabel))
+       end do
+    end do
+    call parameters%addParameter('covariance',trim(adjustl(parameterLabel)))
+    return
+  end subroutine multivariateNormalDescriptor

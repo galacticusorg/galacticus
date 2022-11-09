@@ -75,7 +75,7 @@ module Chemical_Structures
   end type chemicalStructure
 
   ! Atoms (we include an electron here for convenience).
-  type(atomicStructure),   parameter                 :: atoms(2)=[ &
+  type(atomicStructure),   parameter                 :: atoms(2)=[                                                             &
        &                                                          atomicStructure("electron","e",electronMass/atomicMassUnit), &
        &                                                          atomicStructure("hydrogen","H",atomicMassHydrogen         )  &
        &                                                         ]

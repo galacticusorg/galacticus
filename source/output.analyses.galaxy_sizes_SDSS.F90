@@ -42,9 +42,11 @@ Contains a module which implements a galaxy size output analysis class for SDSS 
      A galaxySizesSDSS output analysis class.
      !!}
      private
-     integer                                            :: distributionNumber
-     double precision                                   :: massStellarRatio
-     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
+     integer                                              :: distributionNumber
+     double precision                                     :: massStellarRatio               , sizeSourceLensing
+     class           (cosmologyFunctionsClass  ), pointer :: cosmologyFunctions_   => null()
+     class           (gravitationalLensingClass), pointer :: gravitationalLensing_ => null()
+     class           (galacticStructureClass   ), pointer :: galacticStructure_    => null()
    contains
      final :: galaxySizesSDSSDestructor
   end type outputAnalysisGalaxySizesSDSS
@@ -189,7 +191,7 @@ contains
     type            (varying_string                                 )                              :: description
     logical                                                                                        :: isLateType
     !![
-    <constructorAssign variables="distributionNumber, massStellarRatio, *cosmologyFunctions_"/>
+    <constructorAssign variables="distributionNumber, massStellarRatio, sizeSourceLensing, *cosmologyFunctions_, *outputTimes_, *gravitationalLensing_, *galacticStructure_"/>
     !!]
 
     ! Validate input.
@@ -502,7 +504,9 @@ contains
     type(outputAnalysisGalaxySizesSDSS), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%cosmologyFunctions_" />
+    <objectDestructor name="self%cosmologyFunctions_"  />
+    <objectDestructor name="self%gravitationalLensing_"/>
+    <objectDestructor name="self%galacticStructure_"   />
     !!]
     return
   end subroutine galaxySizesSDSSDestructor

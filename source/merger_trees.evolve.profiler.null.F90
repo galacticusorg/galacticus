@@ -32,7 +32,8 @@ Implements a merger tree evolve profiler that does nothing.
      !!}
      private
    contains
-     procedure :: profile => nullProfile
+     procedure :: stepDescriptor => nullStepDescriptor
+     procedure :: profile        => nullProfile
   end type mergerTreeEvolveProfilerNull
 
   interface mergerTreeEvolveProfilerNull
@@ -60,18 +61,35 @@ contains
     return
   end function nullConstructorParameters
 
-  subroutine nullProfile(self,node,timestep,countEvaluations,interrupted,propertyName,timeCPU)
+  subroutine nullStepDescriptor(self,descriptor)
+    !!{
+    Set the descriptor for the current step.
+    !!}
+    implicit none
+    class(mergerTreeEvolveProfilerNull), intent(inout) :: self
+    type (varying_string              ), intent(in   ) :: descriptor
+    !$GLC attributes unused :: self, descriptor
+    
+    return
+  end subroutine nullStepDescriptor
+  
+  subroutine nullProfile(self,node,time,timeStart,timeEnd,timestep,countEvaluations,interrupted,propertyIndex,propertyName,propertyValue,propertyRate,propertyScale,propertyError,timeCPU)
     !!{
     Profile the differential evolution step.
     !!}
     implicit none
-    class           (mergerTreeEvolveProfilerNull), intent(inout) :: self
-    type            (treeNode                    ), intent(in   ) :: node
-    double precision                              , intent(in   ) :: timeStep        , timeCPU
-    integer         (c_size_t                    ), intent(in   ) :: countEvaluations
-    logical                                       , intent(in   ) :: interrupted
-    type            (varying_string              ), intent(in   ) :: propertyName
-    !$GLC attributes unused :: self, node, timeStep, countEvaluations, interrupted, propertyName, timeCPU
+    class           (mergerTreeEvolveProfilerNull), intent(inout)               :: self
+    type            (treeNode                    ), intent(in   )               :: node
+    double precision                              , intent(in   )               :: time            , timeStep     , &
+         &                                                                         timeStart       , timeEnd      , &
+         &                                                                         timeCPU
+    integer         (c_size_t                    ), intent(in   )               :: countEvaluations
+    logical                                       , intent(in   )               :: interrupted
+    integer         (c_size_t                    ), intent(in   )               :: propertyIndex
+    type            (varying_string              ), intent(in   )               :: propertyName
+    double precision                              , intent(in   ), dimension(:) :: propertyValue   , propertyScale, &
+         &                                                                         propertyError   , propertyRate
+    !$GLC attributes unused :: self, node, time, timeStart, timeEnd, timeStep, countEvaluations, interrupted, propertyIndex, propertyName, propertyValue, propertyRate, propertyScale, propertyError, timeCPU
 
     return
   end subroutine nullProfile

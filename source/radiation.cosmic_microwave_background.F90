@@ -34,15 +34,12 @@
      !!}
      private
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
-     double precision                                   :: time
+     double precision                                   :: time_
    contains
-     !![
-     <methods>
-       <method description="Set the time for the radiation field." method="timeSet" />
-     </methods>
-     !!]
-     final     ::            cosmicMicrowaveBackgroundDestructor
-     procedure :: timeSet => cosmicMicrowaveBackgroundTimeSet
+     final     ::                      cosmicMicrowaveBackgroundDestructor
+     procedure :: time              => cosmicMicrowaveBackgroundTime
+     procedure :: timeSet           => cosmicMicrowaveBackgroundTimeSet
+     procedure :: timeDependentOnly => cosmicMicrowaveBackgroundTimeDependentOnly
   end type radiationFieldCosmicMicrowaveBackground
 
   interface radiationFieldCosmicMicrowaveBackground
@@ -104,6 +101,17 @@ contains
     return
   end subroutine cosmicMicrowaveBackgroundDestructor
 
+  double precision function cosmicMicrowaveBackgroundTime(self)
+    !!{
+    Return the time for which this radiation field is set.
+    !!}
+    implicit none
+    class(radiationFieldCosmicMicrowaveBackground), intent(inout) :: self
+
+    cosmicMicrowaveBackgroundTime=self%time_
+    return
+  end function cosmicMicrowaveBackgroundTime
+
   subroutine cosmicMicrowaveBackgroundTimeSet(self,time)
     !!{
     Set the time (and temperature) of the cosmic microwave background radiation field.
@@ -112,7 +120,19 @@ contains
     class           (radiationFieldCosmicMicrowaveBackground), intent(inout) :: self
     double precision                                         , intent(in   ) :: time
 
-    self%time        =                                                    time
+    self%time_       =                                                    time
     self%temperature_=self%cosmologyFunctions_%temperatureCMBEpochal(time=time)
     return
   end subroutine cosmicMicrowaveBackgroundTimeSet
+
+  logical function cosmicMicrowaveBackgroundTimeDependentOnly(self)
+    !!{
+    Return true as this radiation field depends on time only.
+    !!}
+    implicit none
+    class(radiationFieldCosmicMicrowaveBackground), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    cosmicMicrowaveBackgroundTimeDependentOnly=.true.
+    return
+  end function cosmicMicrowaveBackgroundTimeDependentOnly

@@ -32,7 +32,15 @@
      An output analysis class for the Local Group stellar mass-halo mass relation.
      !!}
      private
-     class(outputAnalysisClass), pointer :: outputAnalysis_ => null()
+     class           (outputAnalysisClass        ), pointer                     :: outputAnalysis_                                 => null()
+     class           (outputTimesClass           ), pointer                     :: outputTimes_                                    => null()
+     class           (galacticStructureClass     ), pointer                     :: galacticStructure_                              => null()
+     double precision                             , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient                         , systematicErrorPolynomialCoefficient, &
+          &                                                                        massStellarSystematicErrorPolynomialCoefficient
+     integer                                                                    :: covarianceBinomialBinsPerDecade
+     double precision                                                           :: covarianceBinomialMassHaloMinimum                        , covarianceBinomialMassHaloMaximum   , &
+          &                                                                        randomErrorMinimum                                       , randomErrorMaximum
+     type            (enumerationPositionTypeType)                              :: positionType
    contains
      final     ::                  localGroupStellarMassHaloMassRelationDestructor
      procedure :: analyze       => localGroupStellarMassHaloMassRelationAnalyze
@@ -179,7 +187,7 @@ contains
     double precision                                                        , intent(in   ), dimension(:  ) :: randomErrorPolynomialCoefficient                           , systematicErrorPolynomialCoefficient                              , &
          &                                                                                                     massStellarSystematicErrorPolynomialCoefficient
     type            (enumerationPositionTypeType                           ), intent(in   )                 :: positionType
-    class           (outputTimesClass                                      ), intent(inout)                 :: outputTimes_
+    class           (outputTimesClass                                      ), intent(inout), target         :: outputTimes_
     class           (galacticStructureClass                                ), intent(in   ), target         :: galacticStructure_
     type            (nodePropertyExtractorMassBasic                        )               , pointer        :: nodePropertyExtractor_
     type            (nodePropertyExtractorMassStellar                      )               , pointer        :: outputAnalysisWeightPropertyExtractor_
@@ -209,7 +217,10 @@ contains
     double precision                                                        , parameter                     :: massStellarThreshold                            =+1.0d-3
     integer         (c_size_t                                              )                                :: i                                                           , bufferCount
     type            (hdf5Object                                            )                                :: fileData
-
+    !![
+    <constructorAssign variables="*outputTimes_, *galacticStructure_, positionType, randomErrorMinimum, randomErrorMaximum, randomErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, massStellarSystematicErrorPolynomialCoefficient, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum"/>
+    !!]
+    
     ! Construct the target distribution.
     !$ call hdf5Access%set  ()
     call fileData%openFile(char(inputPath(pathTypeDataStatic))//"observations/stellarHaloMassRelation/stellarHaloMassRelation_Local_Group_Nadler2020.hdf5")
@@ -430,7 +441,9 @@ contains
     type(outputAnalysisLocalGroupStellarMassHaloMassRelation), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%outputAnalysis_"/>
+    <objectDestructor name="self%outputAnalysis_"   />
+    <objectDestructor name="self%outputTimes_"      />
+    <objectDestructor name="self%galacticStructure_"/>
     !!]
     return
   end subroutine localGroupStellarMassHaloMassRelationDestructor

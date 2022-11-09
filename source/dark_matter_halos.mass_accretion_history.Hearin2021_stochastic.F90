@@ -82,6 +82,7 @@
      procedure :: timeZeroLogarithmic => hearin2021StochasticLog10TimeZero
      procedure :: sample              => hearin2021StochasticSample
      procedure :: fractionLate        => hearin2021StochasticFractionLate
+     procedure :: descriptor          => hearin2021StochasticDescriptor
   end type darkMatterHaloMassAccretionHistoryHearin2021Stochastic
 
   interface darkMatterHaloMassAccretionHistoryHearin2021Stochastic
@@ -791,3 +792,101 @@ contains
     softPlus=log(1.0d0+exp(x)) 
     return
   end function softPlus
+
+  subroutine hearin2021StochasticDescriptor(self,descriptor,includeClass)
+    !!{
+    Return an input parameter list descriptor which could be used to recreate this object.
+    !!}
+    use :: Input_Parameters, only : inputParameters
+    implicit none
+    class    (darkMatterHaloMassAccretionHistoryHearin2021Stochastic), intent(inout)           :: self
+    type     (inputParameters                                       ), intent(inout)           :: descriptor
+    logical                                                          , intent(in   ), optional :: includeClass
+    character(len=18                                                )                          :: parameterLabel
+    type     (inputParameters                                       )                          :: parameters
+
+    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter('darkMatterHaloMassAccretionHistory','hearin2021Stochastic')
+    parameters=descriptor%subparameters('darkMatterHaloMassAccretionHistory')
+    ! Population fractions.
+    write (parameterLabel,'(e17.10)') self%fractionLateLow
+    call parameters%addParameter('fractionLateLow'                                   ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e17.10)') self%fractionLateHigh
+    call parameters%addParameter('fractionLateHigh'                                  ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e17.10)') self%rateRollOver
+    call parameters%addParameter('rateRollOver'                                      ,trim(adjustl(parameterLabel)))
+    ! Means.
+    write (parameterLabel,'(e17.10)') self%means           (massLow %ID,formationEarly%ID,parameterUEarly       %ID                          )
+    call parameters%addParameter('meanUEarlyLowEarlyForming'                         ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e17.10)') self%means           (massHigh%ID,formationEarly%ID,parameterUEarly       %ID                          )
+    call parameters%addParameter('meanUEarlyHighEarlyForming'                        ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e17.10)') self%means           (massLow %ID,formationLate %ID,parameterUEarly       %ID                          )
+    call parameters%addParameter('meanUEarlyLowLateForming'                          ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e17.10)') self%means           (massHigh%ID,formationLate %ID,parameterUEarly       %ID                          )
+    call parameters%addParameter('meanUEarlyHighLateForming'                         ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e17.10)') self%means           (massLow %ID,formationEarly%ID,parameterULate        %ID                          )
+    call parameters%addParameter('meanULateLowEarlyForming'                          ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e17.10)') self%means           (massHigh%ID,formationEarly%ID,parameterULate        %ID                          )
+    call parameters%addParameter('meanULateHighEarlyForming'                         ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e17.10)') self%means           (massLow %ID,formationLate %ID,parameterULate        %ID                          )
+    call parameters%addParameter('meanULateLowLateForming'                           ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e17.10)') self%means           (massHigh%ID,formationLate %ID,parameterULate        %ID                          )
+    call parameters%addParameter('meanULateHighLateForming'                          ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e17.10)') self%means           (massLow %ID,formationEarly%ID,parameterLog10TimeZero%ID                          )
+    call parameters%addParameter('meanLog10TimeZeroLowEarlyForming'                  ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e17.10)') self%means           (massHigh%ID,formationEarly%ID,parameterLog10TimeZero%ID                          )
+    call parameters%addParameter('meanLog10TimeZeroHighEarlyForming'                 ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e17.10)') self%means           (massLow %ID,formationLate %ID,parameterLog10TimeZero%ID                          )
+    call parameters%addParameter('meanLog10TimeZeroLowLateForming'                   ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e17.10)') self%means           (massHigh%ID,formationLate %ID,parameterLog10TimeZero%ID                          )
+    call parameters%addParameter('meanLog10TimeZeroHighLateForming'                  ,trim(adjustl(parameterLabel)))
+    ! Cholesky matrix elements.
+    write (parameterLabel,'(e17.10)') self%cholesky        (massLow %ID,formationEarly%ID,parameterUEarly       %ID,parameterUEarly       %ID)
+    call parameters%addParameter('choleskyUEarlyUEarlyLowEarlyForming'               ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e17.10)') self%cholesky        (massHigh%ID,formationEarly%ID,parameterUEarly       %ID,parameterUEarly       %ID)
+    call parameters%addParameter('choleskyUEarlyUEarlyHighEarlyForming'              ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e17.10)') self%cholesky        (massLow %ID,formationLate %ID,parameterUEarly       %ID,parameterUEarly       %ID)
+    call parameters%addParameter('choleskyUEarlyUEarlyLowLateForming'                ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e17.10)') self%cholesky        (massHigh%ID,formationLate %ID,parameterUEarly       %ID,parameterUEarly       %ID)
+    call parameters%addParameter('choleskyUEarlyUEarlyHighLateForming'               ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e17.10)') self%cholesky        (massLow %ID,formationEarly%ID,parameterUEarly       %ID,parameterULate        %ID)
+    call parameters%addParameter('choleskyUEarlyULateLowEarlyForming'                ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e17.10)') self%cholesky        (massHigh%ID,formationEarly%ID,parameterUEarly       %ID,parameterULate        %ID)
+    call parameters%addParameter('choleskyUEarlyULateHighEarlyForming'               ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e17.10)') self%cholesky        (massLow %ID,formationLate %ID,parameterUEarly       %ID,parameterULate        %ID)
+    call parameters%addParameter('choleskyUEarlyULateLowLateForming'                 ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e17.10)') self%cholesky        (massHigh%ID,formationLate %ID,parameterUEarly       %ID,parameterULate        %ID)
+    call parameters%addParameter('choleskyUEarlyULateHighLateForming'                ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e17.10)') self%cholesky        (massLow %ID,formationEarly%ID,parameterUEarly       %ID,parameterLog10TimeZero%ID)
+    call parameters%addParameter('choleskyUEarlyLog10TimeZeroLowEarlyForming'        ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e17.10)') self%cholesky        (massHigh%ID,formationEarly%ID,parameterUEarly       %ID,parameterLog10TimeZero%ID)
+    call parameters%addParameter('choleskyUEarlyLog10TimeZeroHighEarlyForming'       ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e17.10)') self%cholesky        (massLow %ID,formationLate %ID,parameterUEarly       %ID,parameterLog10TimeZero%ID)
+    call parameters%addParameter('choleskyUEarlyLog10TimeZeroLowLateForming'         ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e17.10)') self%cholesky        (massHigh%ID,formationLate %ID,parameterUEarly       %ID,parameterLog10TimeZero%ID)
+    call parameters%addParameter('choleskyUEarlyLog10TimeZeroHighLateForming'        ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e17.10)') self%cholesky        (massLow %ID,formationEarly%ID,parameterULate        %ID,parameterULate        %ID)
+    call parameters%addParameter('choleskyULateULateLowEarlyForming'                 ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e17.10)') self%cholesky        (massHigh%ID,formationEarly%ID,parameterULate        %ID,parameterULate        %ID)
+    call parameters%addParameter('choleskyULateULateHighEarlyForming'                ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e17.10)') self%cholesky        (massLow %ID,formationLate %ID,parameterULate        %ID,parameterULate        %ID)
+    call parameters%addParameter('choleskyULateULateLowLateForming'                  ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e17.10)') self%cholesky        (massHigh%ID,formationLate %ID,parameterULate        %ID,parameterULate        %ID)
+    call parameters%addParameter('choleskyULateULateHighLateForming'                 ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e17.10)') self%cholesky        (massLow %ID,formationEarly%ID,parameterULate        %ID,parameterLog10TimeZero%ID)
+    call parameters%addParameter('choleskyULateLog10TimeZeroLowEarlyForming'         ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e17.10)') self%cholesky        (massHigh%ID,formationEarly%ID,parameterULate        %ID,parameterLog10TimeZero%ID)
+    call parameters%addParameter('choleskyULateLog10TimeZeroHighEarlyForming'        ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e17.10)') self%cholesky        (massLow %ID,formationLate %ID,parameterULate        %ID,parameterLog10TimeZero%ID)
+    call parameters%addParameter('choleskyULateLog10TimeZeroLowLateForming'          ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e17.10)') self%cholesky        (massHigh%ID,formationLate %ID,parameterULate        %ID,parameterLog10TimeZero%ID)
+    call parameters%addParameter('choleskyULateLog10TimeZeroHighLateForming'         ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e17.10)') self%cholesky        (massLow %ID,formationEarly%ID,parameterLog10TimeZero%ID,parameterLog10TimeZero%ID)
+    call parameters%addParameter('choleskyLog10TimeZeroLog10TimeZeroLowEarlyForming' ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e17.10)') self%cholesky        (massHigh%ID,formationEarly%ID,parameterLog10TimeZero%ID,parameterLog10TimeZero%ID)
+    call parameters%addParameter('choleskyLog10TimeZeroLog10TimeZeroHighEarlyForming',trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e17.10)') self%cholesky        (massLow %ID,formationLate %ID,parameterLog10TimeZero%ID,parameterLog10TimeZero%ID)
+    call parameters%addParameter('choleskyLog10TimeZeroLog10TimeZeroLowLateForming'  ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e17.10)') self%cholesky        (massHigh%ID,formationLate %ID,parameterLog10TimeZero%ID,parameterLog10TimeZero%ID)
+    call parameters%addParameter('choleskyLog10TimeZeroLog10TimeZeroHighLateForming' ,trim(adjustl(parameterLabel)))
+    return
+  end subroutine hearin2021StochasticDescriptor

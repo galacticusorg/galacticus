@@ -53,6 +53,13 @@ Contains a module which implements an output analysis class for the \cite{baldry
      A \cite{baldry_galaxy_2012} stellar mass function output analysis class.
      !!}
      private
+     class           (gravitationalLensingClass      ), pointer                   :: gravitationalLensing_            => null()
+     class           (massFunctionIncompletenessClass), pointer                   :: massFunctionIncompleteness_      => null()
+     double precision                                 , allocatable, dimension(:) :: randomErrorPolynomialCoefficient          , systematicErrorPolynomialCoefficient
+     double precision                                                             :: randomErrorMinimum                        , randomErrorMaximum                  , &
+          &                                                                          sizeSourceLensing
+   contains
+     final :: massFunctionStellarBaldry2012GAMADestructor
   end type outputAnalysisMassFunctionStellarBaldry2012GAMA
 
   interface outputAnalysisMassFunctionStellarBaldry2012GAMA
@@ -194,7 +201,7 @@ contains
     class           (massFunctionIncompletenessClass                     ), intent(in   ), target       :: massFunctionIncompleteness_
     class           (galacticStructureClass                              ), intent(in   ), target       :: galacticStructure_
     double precision                                                      , intent(in   )               :: randomErrorMinimum                                          , randomErrorMaximum                  , &
-         &                                                                                                sizeSourceLensing
+         &                                                                                                 sizeSourceLensing
     double precision                                                      , intent(in   ), dimension(:) :: randomErrorPolynomialCoefficient                            , systematicErrorPolynomialCoefficient
     integer                                                               , intent(in   )               :: covarianceBinomialBinsPerDecade
     double precision                                                      , intent(in   )               :: covarianceBinomialMassHaloMinimum                           , covarianceBinomialMassHaloMaximum
@@ -209,6 +216,9 @@ contains
     type            (cosmologyFunctionsMatterLambda                      )               , pointer      :: cosmologyFunctionsData
     type            (distributionOperatorList                            )               , pointer      :: distributionOperatorSequence
     double precision                                                      , parameter                   :: errorPolynomialZeroPoint                             =11.3d+0
+    !![
+    <constructorAssign variables="randomErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, sizeSourceLensing, *gravitationalLensing_, *massFunctionIncompleteness_"/>
+    !!]
 
     ! Build a filter which select galaxies with stellar mass 10⁸M☉ or greater.
     allocate(galacticFilter_)
@@ -337,3 +347,16 @@ contains
     nullify(distributionOperatorSequence)
     return
   end function massFunctionStellarBaldry2012GAMAConstructorInternal
+
+  subroutine massFunctionStellarBaldry2012GAMADestructor(self)
+    !!{
+    Destructor for the {\normalfont \ttfamily massFunctionStellarBaldry2012GAMA} output analysis class.
+    !!}
+    implicit none
+    type(outputAnalysisMassFunctionStellarBaldry2012GAMA), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%galacticStructure_"/>
+    !!]
+    return
+  end subroutine massFunctionStellarBaldry2012GAMADestructor

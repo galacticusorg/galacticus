@@ -342,13 +342,15 @@ contains
     logical                                                                                           :: computeTable                                  , calculateLuminosity                  , &
          &                                                                                               stellarPopulationHashedDescriptorComputed     , copyDone
     double precision                                                                                  :: toleranceRelative                             , normalization
-    type            (varying_string                                )                                  :: message                                       , luminositiesFileName                 , &
+    type            (varying_string                                ), save                            :: message                                       , luminositiesFileName                 , &
          &                                                                                               descriptorString                              , stellarPopulationHashedDescriptor    , &
          &                                                                                               postprocessorHashedDescriptor
+    !$omp threadprivate(message,luminositiesFileName,descriptorString,stellarPopulationHashedDescriptor,postprocessorHashedDescriptor)
     character       (len=16                                        )                                  :: datasetName                                   , redshiftLabel                        , &
          &                                                                                               label
-    type            (hdf5Object                                    )                                  :: luminositiesFile
-
+    type            (hdf5Object                                    ), save                            :: luminositiesFile
+    !$omp threadprivate(luminositiesFile)
+    
     ! Obtain a read lock on the luminosity tables.
     call self%luminosityTableLock%setRead()
     ! Allocate table storage. First test if the tables must be resized (or allocated).
@@ -422,6 +424,7 @@ contains
              !$omp end single
              ! If we haven't, do so now.
              if (computeTable) then
+
                 !$omp single
                 ! Determine if we can read the required luminosity from file.
                 calculateLuminosity=.true.
@@ -463,7 +466,7 @@ contains
                       call File_Unlock(lockFileDescriptor)
                    end if
                 end if
-                !$omp end single
+                !$omp end single copyprivate(luminositiesFileName,stellarPopulationHashedDescriptor,postprocessorHashedDescriptor)
                 ! Compute the luminosity if necessary.
                 if (calculateLuminosity) then
                    !$omp single
