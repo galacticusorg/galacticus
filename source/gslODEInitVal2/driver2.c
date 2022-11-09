@@ -150,7 +150,7 @@ gsl_odeiv2_driver2_apply (gsl_odeiv2_driver * d, double *t,
 			  const double t1, double y[],
 			  void(*postStep)(double t, double y[], int *s),
 			  void(*latentIntegrator)(double *t),
-			  void(*stepAnalyzer)(double y[], double yerr[], double h, int s)
+			  void(*stepAnalyzer)(double t, double t1, double y[], double yerr[], double h, int s)
 			  )
 {
   /* Main driver function that evolves the system from t to t1. In
@@ -194,7 +194,7 @@ gsl_odeiv2_driver2_apply (gsl_odeiv2_driver * d, double *t,
 
       if (stepAnalyzer != NULL ) 
 	{
-	  stepAnalyzer(y,d->e->yerr,d->e->last_step,s);
+	  stepAnalyzer(*t,t1,y,d->e->yerr,d->e->last_step,s);
 	}
 
       if (s != GSL_SUCCESS)

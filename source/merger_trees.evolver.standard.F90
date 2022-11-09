@@ -21,14 +21,15 @@
   Implements the standard class for evolving merger trees.
   !!}
 
-  use :: Cosmology_Functions       , only : cosmologyFunctions        , cosmologyFunctionsClass
-  use :: Galactic_Structure_Solvers, only : galacticStructureSolver   , galacticStructureSolverClass
-  use :: Galacticus_Nodes          , only : treeNode
-  use :: Kind_Numbers              , only : kind_int8
-  use :: Merger_Tree_Initialization, only : mergerTreeInitializorClass
-  use :: Merger_Tree_Timesteps     , only : mergerTreeEvolveTimestep  , mergerTreeEvolveTimestepClass
-  use :: Merger_Trees_Evolve_Node  , only : mergerTreeNodeEvolver     , mergerTreeNodeEvolverClass
-  use :: Galactic_Structure        , only : galacticStructureClass
+  use :: Cosmology_Functions         , only : cosmologyFunctions        , cosmologyFunctionsClass
+  use :: Galactic_Structure_Solvers  , only : galacticStructureSolver   , galacticStructureSolverClass
+  use :: Galacticus_Nodes            , only : treeNode
+  use :: Kind_Numbers                , only : kind_int8
+  use :: Merger_Tree_Evolve_Profilers, only : mergerTreeEvolveProfilerClass
+  use :: Merger_Tree_Initialization  , only : mergerTreeInitializorClass
+  use :: Merger_Tree_Timesteps       , only : mergerTreeEvolveTimestep  , mergerTreeEvolveTimestepClass
+  use :: Merger_Trees_Evolve_Node    , only : mergerTreeNodeEvolver     , mergerTreeNodeEvolverClass
+  use :: Galactic_Structure          , only : galacticStructureClass
 
   ! Structure used to store list of nodes for deadlock reporting.
   type :: deadlockList
@@ -122,8 +123,9 @@
      class           (mergerTreeNodeEvolverClass   ), pointer :: mergerTreeNodeEvolver_           => null()
      class           (mergerTreeInitializorClass   ), pointer :: mergerTreeInitializor_           => null()
      class           (galacticStructureClass       ), pointer :: galacticStructure_               => null()
+     class           (mergerTreeEvolveProfilerClass), pointer :: mergerTreeEvolveProfiler_        => null()
      logical                                                  :: allTreesExistAtFinalTime                  , dumpTreeStructure    , &
-          &                                                      backtrackToSatellites
+          &                                                      backtrackToSatellites                     , profileSteps
      double precision                                         :: timestepHostAbsolute                      , timestepHostRelative , &
           &                                                      fractionTimestepSatelliteMinimum
      type            (deadlockList                 ), pointer :: deadlockHeadNode                 => null()
@@ -166,8 +168,9 @@ contains
     class           (mergerTreeNodeEvolverClass   ), pointer       :: mergerTreeNodeEvolver_
     class           (mergerTreeInitializorClass   ), pointer       :: mergerTreeInitializor_
     class           (galacticStructureClass       ), pointer       :: galacticStructure_
+    class           (mergerTreeEvolveProfilerClass), pointer       :: mergerTreeEvolveProfiler_
     logical                                                        :: allTreesExistAtFinalTime        , dumpTreeStructure         , &
-         &                                                            backtrackToSatellites
+         &                                                            backtrackToSatellites           , profileSteps
     double precision                                               :: timestepHostRelative            , timestepHostAbsolute      , &
          &                                                            fractionTimestepSatelliteMinimum
 
@@ -209,6 +212,12 @@ contains
       <description>If true, after successfully evolving a node with satellites, revisit the satellites and attempt to evolve them again.</description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter>
+      <name>profileSteps</name>
+      <defaultValue>.false.</defaultValue>
+      <description>Specifies whether or not to profile the ODE evolver.</description>
+      <source>parameters</source>
+    </inputParameter>
     !!]
     ! A galacticStructureSolver is built here. Even though this is not called explicitly by this mergerTreeEvolver, the
     ! galacticStructureSolver is expected to hook itself to any events which will trigger a change in galactic structure.
@@ -219,8 +228,9 @@ contains
     <objectBuilder class="mergerTreeNodeEvolver"    name="mergerTreeNodeEvolver_"    source="parameters"/>
     <objectBuilder class="mergerTreeInitializor"    name="mergerTreeInitializor_"    source="parameters"/>
     <objectBuilder class="galacticStructure"        name="galacticStructure_"        source="parameters"/>
+    <objectBuilder class="mergerTreeEvolveProfiler" name="mergerTreeEvolveProfiler_" source="parameters"/>
     !!]
-    self=mergerTreeEvolverStandard(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,fractionTimestepSatelliteMinimum,backtrackToSatellites,cosmologyFunctions_,mergerTreeNodeEvolver_,mergerTreeEvolveTimestep_,mergerTreeInitializor_,galacticStructureSolver_,galacticStructure_)
+    self=mergerTreeEvolverStandard(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,fractionTimestepSatelliteMinimum,backtrackToSatellites,profileSteps,cosmologyFunctions_,mergerTreeNodeEvolver_,mergerTreeEvolveTimestep_,mergerTreeInitializor_,galacticStructureSolver_,galacticStructure_,mergerTreeEvolveProfiler_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"      />
@@ -229,11 +239,12 @@ contains
     <objectDestructor name="galacticStructureSolver_" />
     <objectDestructor name="mergerTreeInitializor_"   />
     <objectDestructor name="galacticStructure_"       />
+    <objectDestructor name="mergerTreeEvolveProfiler_"/>
     !!]
     return
   end function standardConstructorParameters
 
-  function standardConstructorInternal(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,fractionTimestepSatelliteMinimum,backtrackToSatellites,cosmologyFunctions_,mergerTreeNodeEvolver_,mergerTreeEvolveTimestep_,mergerTreeInitializor_,galacticStructureSolver_,galacticStructure_) result(self)
+  function standardConstructorInternal(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,fractionTimestepSatelliteMinimum,backtrackToSatellites,profileSteps,cosmologyFunctions_,mergerTreeNodeEvolver_,mergerTreeEvolveTimestep_,mergerTreeInitializor_,galacticStructureSolver_,galacticStructure_,mergerTreeEvolveProfiler_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily standard} merger tree evolver class.
     !!}
@@ -245,12 +256,13 @@ contains
     class           (mergerTreeNodeEvolverClass   ), intent(in   ), target :: mergerTreeNodeEvolver_
     class           (mergerTreeInitializorClass   ), intent(in   ), target :: mergerTreeInitializor_
     class           (galacticStructureClass       ), intent(in   ), target :: galacticStructure_
+    class           (mergerTreeEvolveProfilerClass), intent(in   ), target :: mergerTreeEvolveProfiler_
     logical                                        , intent(in   )         :: allTreesExistAtFinalTime        , dumpTreeStructure   , &
-         &                                                                    backtrackToSatellites
+         &                                                                    backtrackToSatellites           , profileSteps
     double precision                               , intent(in   )         :: timestepHostRelative            , timestepHostAbsolute, &
          &                                                                    fractionTimestepSatelliteMinimum
     !![
-    <constructorAssign variables="allTreesExistAtFinalTime, dumpTreeStructure, timestepHostRelative, timestepHostAbsolute, fractionTimestepSatelliteMinimum, backtrackToSatellites, *cosmologyFunctions_, *mergerTreeNodeEvolver_, *mergerTreeEvolveTimestep_, *mergerTreeInitializor_, *galacticStructureSolver_, *galacticStructure_"/>
+    <constructorAssign variables="allTreesExistAtFinalTime, dumpTreeStructure, timestepHostRelative, timestepHostAbsolute, fractionTimestepSatelliteMinimum, backtrackToSatellites, profileSteps, *cosmologyFunctions_, *mergerTreeNodeEvolver_, *mergerTreeEvolveTimestep_, *mergerTreeInitializor_, *galacticStructureSolver_, *galacticStructure_, *mergerTreeEvolveProfiler_"/>
     !!]
 
     self%deadlockHeadNode => null()
@@ -271,6 +283,7 @@ contains
     <objectDestructor name="self%mergerTreeNodeEvolver_"   />
     <objectDestructor name="self%mergerTreeInitializor_"   />
     <objectDestructor name="self%galacticStructure_"       />
+    <objectDestructor name="self%mergerTreeEvolveProfiler_"/>
     !!]
     return
   end subroutine standardDestructor
@@ -548,6 +561,9 @@ contains
                             timeEndThisNode=self%timeEvolveTo(node,timeEnd,timestepTask_,timestepSelf,report=.true. ,nodeLock=nodeLock,lockType=lockType)
                             call displayUnindent("end node")
                             call self%deadlockAddNode(node,currentTree%index,nodeLock,lockType)
+                         else if (self%profileSteps) then
+                            timeEndThisNode=self%timeEvolveTo(node,timeEnd,timestepTask_,timestepSelf,report=.false.                  ,lockType=lockType)
+                            call self%mergerTreeEvolveProfiler_%stepDescriptor(lockType)
                          else
                             timeEndThisNode=self%timeEvolveTo(node,timeEnd,timestepTask_,timestepSelf,report=.false.                                    )
                          end if

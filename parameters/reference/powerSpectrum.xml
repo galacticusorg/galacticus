@@ -14,6 +14,8 @@
   </cosmologicalMassVariance>
   <transferFunction                   value="CAMB"     >
     <redshift value="100.0"/>
+    <!-- Include cosmological model explicitly here so that baryons are included in the transfer function even for dark matter-only models. -->
+    <xi:include href="cosmology.xml" xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
   </transferFunction>
   <powerSpectrumPrimordial            value="powerLaw" >
     <index               value="0.9649"/> <!-- Planck 2018; https://ui.adsabs.harvard.edu/abs/2018arXiv180706211P -->

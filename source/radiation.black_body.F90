@@ -35,11 +35,14 @@
    contains
      !![
      <methods>
-       <method description="Return the temperature of te black-body radiation field." method="temperature" />
+       <method description="Return the temperature of the black-body radiation field." method="temperature" />
      </methods>
      !!]
-     procedure :: flux        => blackBodyFlux
-     procedure :: temperature => blackBodyTemperature
+     procedure :: flux              => blackBodyFlux
+     procedure :: temperature       => blackBodyTemperature
+     procedure :: time              => blackBodyTime
+     procedure :: timeSet           => blackBodyTimeSet
+     procedure :: timeDependentOnly => blackBodyTimeDependentOnly
   end type radiationFieldBlackBody
 
   interface radiationFieldBlackBody
@@ -120,3 +123,43 @@ contains
     blackBodyTemperature=self%temperature_
     return
   end function blackBodyTemperature
+
+  double precision function blackBodyTime(self)
+    !!{
+    Return the time for which this radiation field is set.
+    !!}
+    use Error, only : Error_Report
+    implicit none
+    class(radiationFieldBlackBody), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    blackBodyTime=0.0d0
+    call Error_Report('time is not applicable to this radiation field'//{introspection:location})
+    return
+  end function blackBodyTime
+
+  subroutine blackBodyTimeSet(self,time)
+    !!{
+    Set the time (and temperature) of the cosmic microwave background radiation field.
+    !!}
+    use Error, only : Error_Report
+    implicit none
+    class           (radiationFieldBlackBody), intent(inout) :: self
+    double precision                         , intent(in   ) :: time
+    !$GLC attributes unused :: self, time
+
+    call Error_Report('time is not applicable to this radiation field'//{introspection:location})
+    return
+  end subroutine blackBodyTimeSet
+
+  logical function blackBodyTimeDependentOnly(self)
+    !!{
+    Return false as this radiation field depends on non-time variables.
+    !!}
+    implicit none
+    class(radiationFieldBlackBody), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    blackBodyTimeDependentOnly=.false.
+    return
+  end function blackBodyTimeDependentOnly

@@ -21,27 +21,6 @@
   Contains a module which implements an output analysis class for the quiescent fraction measurements of \cite{wagner_evolution_2016}.
   !!}
   
-  !![
-  <outputAnalysis name="outputAnalysisQuiescentFractionWagner2016">
-    <description>An output analysis class for the quiescent fraction measurements of \cite{wagner_evolution_2016}.</description>
-  </outputAnalysis>
-  !!]
-  type, extends(outputAnalysisQuiescentFraction) :: outputAnalysisQuiescentFractionWagner2016
-     !!{
-     An output analysis class for the quiescent fraction measurements of \cite{wagner_evolution_2016}.
-     !!}
-     private
-   contains
-  end type outputAnalysisQuiescentFractionWagner2016
-
-  interface outputAnalysisQuiescentFractionWagner2016
-     !!{
-     Constructors for the ``quiescentFractionWagner2016'' output analysis class.
-     !!}
-     module procedure quiescentFractionWagner2016ConstructorParameters
-     module procedure quiescentFractionWagner2016ConstructorInternal
-  end interface outputAnalysisQuiescentFractionWagner2016
-
   ! Enumerations of analyses.
   !![
   <enumeration>
@@ -56,6 +35,35 @@
   </enumeration>
   !!]
   
+  !![
+  <outputAnalysis name="outputAnalysisQuiescentFractionWagner2016">
+    <description>An output analysis class for the quiescent fraction measurements of \cite{wagner_evolution_2016}.</description>
+  </outputAnalysis>
+  !!]
+  type, extends(outputAnalysisQuiescentFraction) :: outputAnalysisQuiescentFractionWagner2016
+     !!{
+     An output analysis class for the quiescent fraction measurements of \cite{wagner_evolution_2016}.
+     !!}
+     private
+     class           (cosmologyParametersClass                       ), pointer                     :: cosmologyParameters_                       => null()
+     class           (darkMatterProfileDMOClass                      ), pointer                     :: darkMatterProfileDMO_                      => null()
+     class           (virialDensityContrastClass                     ), pointer                     :: virialDensityContrast_                     => null()
+     double precision                                                 , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient                    , systematicErrorPolynomialCoefficient, &
+         &                                                                                             weightSystematicErrorPolynomialCoefficient
+     double precision                                                                               :: randomErrorMinimum                                  , randomErrorMaximum
+     type            (enumerationWagner2016QuiescentRedshiftRangeType)                              :: redshiftRange
+   contains
+     final :: quiescentFractionWagner2016Destructor
+  end type outputAnalysisQuiescentFractionWagner2016
+
+  interface outputAnalysisQuiescentFractionWagner2016
+     !!{
+     Constructors for the ``quiescentFractionWagner2016'' output analysis class.
+     !!}
+     module procedure quiescentFractionWagner2016ConstructorParameters
+     module procedure quiescentFractionWagner2016ConstructorInternal
+  end interface outputAnalysisQuiescentFractionWagner2016
+
 contains
 
   function quiescentFractionWagner2016ConstructorParameters(parameters) result (self)
@@ -127,6 +135,13 @@ contains
       <variable>systematicErrorPolynomialCoefficient</variable>
       <defaultValue>[0.0d0]</defaultValue>
       <description>The coefficients of the systematic error polynomial for SDSS stellar masses.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>weightSystematicErrorPolynomialCoefficient</name>
+      <source>parameters</source>
+      <variable>weightSystematicErrorPolynomialCoefficient</variable>
+      <defaultValue>[0.0d0]</defaultValue>
+      <description>The coefficients of the systematic error polynomial for specific star formation rates.</description>
     </inputParameter>
     <inputParameter>
       <name>redshiftRange</name>
@@ -212,7 +227,10 @@ contains
          &                                                                                                massHostThreshold
     type            (varying_string                                     )                              :: fileName                                              , label                                , &
          &                                                                                                description
-
+    !![
+    <constructorAssign variables="redshiftRange, randomErrorMinimum, randomErrorMaximum, randomErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, *cosmologyParameters_, *darkMatterProfileDMO_, *virialDensityContrast_"/>
+    !!]
+    
     ! Construct file name and label for the analysis.
     fileName   =inputPath(pathTypeDataStatic)//'observations/starFormationRate/quiescentFractionWagner2016_z'
     label      ='Wagner2016'
@@ -371,3 +389,18 @@ contains
     nullify(filters_)    
     return
   end function quiescentFractionWagner2016ConstructorInternal
+
+  subroutine quiescentFractionWagner2016Destructor(self)
+    !!{
+    Destructor for the ``quiescentFractionWagner2016'' output analysis class.
+    !!}
+    implicit none
+    type(outputAnalysisQuiescentFractionWagner2016), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%cosmologyParameters_" />
+    <objectDestructor name="self%darkMatterProfileDMO_" />
+    <objectDestructor name="self%virialDensityContrast_"/>
+    !!]
+    return
+  end subroutine quiescentFractionWagner2016Destructor

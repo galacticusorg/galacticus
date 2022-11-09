@@ -40,13 +40,17 @@
      !!}
      private
      class           (cosmologyFunctionsClass       ), pointer                     :: cosmologyFunctions_               => null()
-     type            (outputAnalysisVolumeFunction1D), pointer                     :: volumeFunctionsSubHalos           => null(), volumeFunctionsHostHalos => null()
-     double precision                                , allocatable, dimension(:  ) :: massRatios                                 , massFunction                      , &
+     class           (outputTimesClass              ), pointer                     :: outputTimes_                      => null()
+     class           (virialDensityContrastClass    ), pointer                     :: virialDensityContrast_            => null(), virialDensityContrastDefinition_ => null()
+     class           (cosmologyParametersClass      ), pointer                     :: cosmologyParameters_              => null()
+     class           (darkMatterProfileDMOClass     ), pointer                     :: darkMatterProfileDMO_             => null()
+     type            (outputAnalysisVolumeFunction1D), pointer                     :: volumeFunctionsSubHalos           => null(), volumeFunctionsHostHalos         => null()
+     double precision                                , allocatable, dimension(:  ) :: massRatios                                 , massFunction                              , &
           &                                                                           massFunctionTarget
      double precision                                , allocatable, dimension(:,:) :: covariance                                 , massFunctionCovarianceTarget
-     type            (varying_string                )                              :: labelTarget
-     double precision                                                              :: negativeBinomialScatterFractional          , countFailures                     , &
-          &                                                                           massRatioMinimum                           , massRatioMaximum                  , &
+     type            (varying_string                )                              :: labelTarget                                , fileName
+     double precision                                                              :: negativeBinomialScatterFractional          , countFailures                             , &
+          &                                                                           massRatioMinimum                           , massRatioMaximum                          , &
           &                                                                           time                                       , redshift
      integer         (c_size_t                      )                              :: countMassRatios 
      logical                                                                       :: finalized
@@ -197,9 +201,6 @@ contains
     integer         (c_size_t                         )                                :: countMassRatios                  , i
     type            (varying_string                   )                                :: labelTarget
     type            (hdf5Object                       )                                :: file                             , massFunctionGroup
-    !![
-    <constructorAssign variables="redshift, *cosmologyFunctions_"/>
-    !!]
 
     ! Read properties from the file.
     !$ call hdf5Access%set()
@@ -226,6 +227,9 @@ contains
        massFunctionCovarianceTarget(i,i)=massFunctionErrorTarget(i)**2
     end do
     self=outputAnalysisSubhaloMassFunction(outputTimes_,virialDensityContrastDefinition_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,darkMatterProfileDMO_,time,massRatioMinimum,massRatioMaximum,countMassRatios,negativeBinomialScatterFractional,massFunctionTarget,massFunctionCovarianceTarget,labelTarget)
+    !![
+    <constructorAssign variables="fileName, redshift"/>
+    !!]
     return
   end function subhaloMassFunctionConstructorFile
 
@@ -251,11 +255,11 @@ contains
     double precision                                              , intent(in   )                           :: negativeBinomialScatterFractional               , massRatioMinimum                      , &
          &                                                                                                     massRatioMaximum                                , time
     integer         (c_size_t                                    ), intent(in   )                           :: countMassRatios
-    class           (outputTimesClass                            ), intent(inout)                           :: outputTimes_
-    class           (virialDensityContrastClass                  ), intent(in   )                           :: virialDensityContrast_                          , virialDensityContrastDefinition_
-    class           (cosmologyParametersClass                    ), intent(in   )                           :: cosmologyParameters_
+    class           (outputTimesClass                            ), intent(inout), target                   :: outputTimes_
+    class           (virialDensityContrastClass                  ), intent(in   ), target                   :: virialDensityContrast_                          , virialDensityContrastDefinition_
+    class           (cosmologyParametersClass                    ), intent(in   ), target                   :: cosmologyParameters_
     class           (cosmologyFunctionsClass                     ), intent(in   ), target                   :: cosmologyFunctions_
-    class           (darkMatterProfileDMOClass                   ), intent(in   )                           :: darkMatterProfileDMO_
+    class           (darkMatterProfileDMOClass                   ), intent(in   ), target                   :: darkMatterProfileDMO_
     double precision                                              , intent(in   ), dimension(:)  , optional :: massFunctionTarget
     double precision                                              , intent(in   ), dimension(:,:), optional :: massFunctionCovarianceTarget
     type            (varying_string                              ), intent(in   )                , optional :: labelTarget
@@ -281,7 +285,7 @@ contains
     double precision                                              , parameter                               :: massHostLogarithmicMaximum           =1.0d2
     integer         (c_size_t                                    )                                          :: i
     !![
-    <constructorAssign variables="negativeBinomialScatterFractional, countMassRatios, massRatioMinimum, massRatioMaximum, massFunctionTarget, massFunctionCovarianceTarget, labelTarget, *cosmologyFunctions_"/>
+    <constructorAssign variables="negativeBinomialScatterFractional, countMassRatios, massRatioMinimum, massRatioMaximum, massFunctionTarget, massFunctionCovarianceTarget, labelTarget, *cosmologyFunctions_, *outputTimes_, *cosmologyParameters_, *virialDensityContrast_, *virialDensityContrastDefinition_, *darkMatterProfileDMO_"/>
     !!]
 
     ! Initialize.
@@ -460,10 +464,15 @@ contains
     type(outputAnalysisSubhaloMassFunction), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%volumeFunctionsSubHalos" />
-    <objectDestructor name="self%volumeFunctionsHostHalos"/>
-    <objectDestructor name="self%cosmologyFunctions_"     />
-    !!]
+    <objectDestructor name="self%volumeFunctionsSubHalos"         />
+    <objectDestructor name="self%volumeFunctionsHostHalos"        />
+    <objectDestructor name="self%cosmologyFunctions_"             />
+    <objectDestructor name="self%outputTimes_"                    />
+    <objectDestructor name="self%cosmologyParameters_"            />
+    <objectDestructor name="self%darkMatterProfileDMO_"           />
+    <objectDestructor name="self%virialDensityContrast_"          />
+    <objectDestructor name="self%virialDensityContrastDefinition_"/>
+   !!]
     return
   end subroutine subhaloMassFunctionDestructor
 

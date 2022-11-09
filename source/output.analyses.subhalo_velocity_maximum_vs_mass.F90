@@ -33,8 +33,14 @@
      An output analysis class that computes subhalo mean maximum velocity as a function of mass.
      !!}
      private
-     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
-     double precision                                      redshift     
+     class           (cosmologyParametersClass  ), pointer :: cosmologyParameters_   => null()
+     class           (cosmologyFunctionsClass   ), pointer :: cosmologyFunctions_    => null()
+     class           (virialDensityContrastClass), pointer :: virialDensityContrast_ => null(), virialDensityContrastDefinition_ => null()
+     class           (darkMatterProfileDMOClass ), pointer :: darkMatterProfileDMO_  => null()
+     double precision                                      :: massMinimum                     , massMaximum                               , &
+          &                                                   redshift
+     integer         (c_size_t                  )          :: countMasses
+     type            (varying_string            )          :: fileName
    contains
      final :: subhaloVMaxVsMassDestructor
   end type outputAnalysisSubhaloVMaxVsMass
@@ -219,15 +225,15 @@ contains
     use :: Dark_Matter_Profiles_DMO              , only : darkMatterProfileDMOClass
     implicit none
     type            (outputAnalysisSubhaloVMaxVsMass           )                                          :: self
-    double precision                                            , intent(in   )                           :: massMinimum                          , massMaximum, &
+    double precision                                            , intent(in   )                           :: massMinimum                          , massMaximum                     , &
          &                                                                                                   time
     integer         (c_size_t                                  ), intent(in   )                           :: countMasses
-    class           (outputTimesClass                          ), intent(inout)                           :: outputTimes_
-    class           (virialDensityContrastClass                ), intent(in   )                           :: virialDensityContrast_               , virialDensityContrastDefinition_
-    class           (cosmologyParametersClass                  ), intent(in   )                           :: cosmologyParameters_
+    class           (outputTimesClass                          ), intent(inout), target                   :: outputTimes_
+    class           (virialDensityContrastClass                ), intent(in   ), target                   :: virialDensityContrast_               , virialDensityContrastDefinition_
+    class           (cosmologyParametersClass                  ), intent(in   ), target                   :: cosmologyParameters_
     class           (cosmologyFunctionsClass                   ), intent(in   ), target                   :: cosmologyFunctions_
-    class           (darkMatterProfileDMOClass                 ), intent(in   )                           :: darkMatterProfileDMO_
-    double precision                                            , intent(in   ), dimension(:)  , optional :: functionTarget
+    class           (darkMatterProfileDMOClass                 ), intent(in   ), target                   :: darkMatterProfileDMO_
+    double precision                                            , intent(in   ), dimension(:  ), optional :: functionTarget
     double precision                                            , intent(in   ), dimension(:,:), optional :: functionCovarianceTarget
     type            (varying_string                            ), intent(in   )                , optional :: labelTarget
     type            (nodePropertyExtractorMassBound            )               , pointer                  :: nodePropertyExtractorMassBound_
@@ -249,7 +255,7 @@ contains
     double precision                                            , allocatable  , dimension(:,:)           :: outputWeight
     integer         (c_size_t                                  )                                          :: i
     !![
-    <constructorAssign variables="*cosmologyFunctions_"/>
+    <constructorAssign variables="*cosmologyFunctions_, *virialDensityContrastDefinition_, *cosmologyParameters_, *virialDensityContrast_, *darkMatterProfileDMO_, massMinimum, massMaximum, countMasses"/>
     !!]
 
     ! Initialize.
@@ -383,7 +389,12 @@ contains
     type(outputAnalysisSubhaloVMaxVsMass), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%cosmologyFunctions_"/>
+    <objectDestructor name="self%outputTimes_"                    />
+    <objectDestructor name="self%cosmologyParameters_"            />
+    <objectDestructor name="self%cosmologyFunctions_"             />
+    <objectDestructor name="self%darkMatterProfileDMO_"           />
+    <objectDestructor name="self%virialDensityContrast_"          />
+    <objectDestructor name="self%virialDensityContrastDefinition_"/>
     !!]
     return
   end subroutine subhaloVMaxVsMassDestructor

@@ -40,6 +40,7 @@
      procedure :: densityRadialMoment   => betaProfileDensityRadialMoment
      procedure :: massEnclosedBySphere  => betaProfileMassEnclosedBySphere
      procedure :: potential             => betaProfilePotential
+     procedure :: descriptor            => betaProfileDescriptor
   end type massDistributionBetaProfile
 
   interface massDistributionBetaProfile
@@ -560,3 +561,26 @@ contains
     end function radialMomentTwoThirds
 
   end function betaProfileDensityRadialMoment
+
+  subroutine betaProfileDescriptor(self,descriptor,includeClass)
+    !!{
+    Return an input parameter list descriptor which could be used to recreate this object.
+    !!}
+    use :: Input_Parameters, only : inputParameters
+    implicit none
+    class    (massDistributionBetaProfile), intent(inout)           :: self
+    type     (inputParameters            ), intent(inout)           :: descriptor
+    logical                               , intent(in   ), optional :: includeClass
+    character(len=18                     )                          :: parameterLabel
+    type     (inputParameters            )                          :: parameters
+
+    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter('massDistribution','betaProfile')
+    parameters=descriptor%subparameters('massDistribution')
+    write (parameterLabel,'(e17.10)') self%densityNormalization
+    call parameters%addParameter('densityNormalization',trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e17.10)') self%beta
+    call parameters%addParameter('beta'                ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e17.10)') self%coreRadius
+    call parameters%addParameter('coreRadius'          ,trim(adjustl(parameterLabel)))
+    return
+  end subroutine betaProfileDescriptor

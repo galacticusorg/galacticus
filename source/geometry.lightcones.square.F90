@@ -21,8 +21,9 @@
   An implementation of the lightcone geometry class which assumes a square field of view.
   !!}
 
-  use :: Cosmology_Functions, only : cosmologyFunctionsClass
-  use :: Output_Times       , only : outputTimesClass
+  use :: Cosmology_Parameters, only : cosmologyParametersClass
+  use :: Cosmology_Functions , only : cosmologyFunctionsClass
+  use :: Output_Times        , only : outputTimesClass
 
   !![
   <geometryLightcone name="geometryLightconeSquare">
@@ -69,19 +70,21 @@
      A lightcone geometry class which assumes a square field of view.
      !!}
      private
-     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_       => null()
-     class           (outputTimesClass       ), pointer                   :: outputTimes_              => null()
-     double precision                         , dimension(3,3)            :: unitVector
-     double precision                         , dimension(3  )            :: origin                             , nodePositionCrossing   , &
-          &                                                                  nodeVelocityCrossing               , unitVector1            , &
-          &                                                                  unitVector2                        , unitVector3
-     double precision                         , dimension(:), allocatable :: outputTimes                        , distanceMinimum        , &
-          &                                                                  distanceMaximum
-     double precision                                                     :: lengthReplication                  , angularSize            , &
-          &                                                                  solidAngleSubtended
-     logical                                                              :: timeEvolvesAlongLightcone          , positionGettableChecked, &
-          &                                                                  timeOfMergingGettableChecked
-     integer         (kind_int8              )                            :: nodeUniqueIDCrossing
+     class           (cosmologyParametersClass), pointer                   :: cosmologyParameters_      => null()
+     class           (cosmologyFunctionsClass ), pointer                   :: cosmologyFunctions_       => null()
+     class           (outputTimesClass        ), pointer                   :: outputTimes_              => null()
+     double precision                          , dimension(3,3)            :: unitVector
+     double precision                          , dimension(3  )            :: origin                             , nodePositionCrossing   , &
+          &                                                                   nodeVelocityCrossing               , unitVector1            , &
+          &                                                                   unitVector2                        , unitVector3
+     double precision                          , dimension(:), allocatable :: outputTimes                        , distanceMinimum        , &
+          &                                                                   distanceMaximum
+     double precision                                                      :: lengthReplication                  , angularSize            , &
+          &                                                                   solidAngleSubtended                , lengthUnitsInSI
+     integer                                                               :: lengthHubbleExponent
+     logical                                                               :: timeEvolvesAlongLightcone          , positionGettableChecked, &
+          &                                                                   timeOfMergingGettableChecked
+     integer         (kind_int8               )                            :: nodeUniqueIDCrossing
    contains
      !![
      <methods>
@@ -245,7 +248,9 @@ contains
     origin              =origin           *unitConversionLength
     lengthReplication   =lengthReplication*unitConversionLength
     ! Construct the object.
-    self=geometryLightconeSquare(origin,unitVector,angularSize,lengthReplication,timeEvolvesAlongLightcone,cosmologyFunctions_,outputTimes_)
+    self=geometryLightconeSquare(origin,unitVector,angularSize,lengthReplication,timeEvolvesAlongLightcone,cosmologyParameters_,cosmologyFunctions_,outputTimes_)
+    self%lengthUnitsInSI     =lengthUnitsInSI
+    self%lengthHubbleExponent=lengthHubbleExponent
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"/>
@@ -255,35 +260,37 @@ contains
     return
   end function squareConstructorParameters
 
-  function squareConstructorInternal(origin,unitVector,angularSize,lengthReplication,timeEvolvesAlongLightcone,cosmologyFunctions_,outputTimes_) result(self)
+  function squareConstructorInternal(origin,unitVector,angularSize,lengthReplication,timeEvolvesAlongLightcone,cosmologyParameters_,cosmologyFunctions_,outputTimes_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily square} lightcone geometry distribution class.
     !!}
-    use :: Error                   , only : Error_Report
-    use :: ISO_Varying_String      , only : var_str         , varying_string
-    use :: Numerical_Constants_Math, only : Pi              , e
-    use :: String_Handling         , only : operator(//)
-    use :: Vectors                 , only : Vector_Magnitude
+    use :: Error                           , only : Error_Report
+    use :: ISO_Varying_String              , only : var_str         , varying_string
+    use :: Numerical_Constants_Math        , only : Pi              , e
+    use :: Numerical_Constants_Astronomical, only : megaParsec
+    use :: String_Handling                 , only : operator(//)
+    use :: Vectors                         , only : Vector_Magnitude
     implicit none
-    type            (geometryLightconeSquare)                                :: self
-    double precision                         , dimension(3,3), intent(in   ) :: unitVector
-    double precision                         , dimension(3)  , intent(in   ) :: origin
-    class           (cosmologyFunctionsClass), target        , intent(in   ) :: cosmologyFunctions_
-    class           (outputTimesClass       ), target        , intent(in   ) :: outputTimes_
-    double precision                                         , intent(in   ) :: lengthReplication                 , angularSize
-    logical                                                  , intent(in   ) :: timeEvolvesAlongLightcone
-    double precision                         , parameter                     :: orthogonalityTolerance   =1.000d-6
-    double precision                         , parameter                     :: angularSizeSmall         =0.017d+0
-    integer                                                                  :: i                                 , j
-    integer         (c_size_t               )                                :: iOutput
-    double precision                                                         :: timeMinimum                       , timeMaximum    , &
-         &                                                                      tanHalfAngle                      , outputTime     , &
-         &                                                                      distanceMinimum                   , distanceMaximum, &
-         &                                                                      magnitude
-    character       (len=12                 )                                :: label
-    type            (varying_string         )                                :: message
+    type            (geometryLightconeSquare )                                :: self
+    double precision                          , dimension(3,3), intent(in   ) :: unitVector
+    double precision                          , dimension(3)  , intent(in   ) :: origin
+    class           (cosmologyParametersClass), target        , intent(in   ) :: cosmologyParameters_
+    class           (cosmologyFunctionsClass ), target        , intent(in   ) :: cosmologyFunctions_
+    class           (outputTimesClass        ), target        , intent(in   ) :: outputTimes_
+    double precision                                          , intent(in   ) :: lengthReplication                 , angularSize
+    logical                                                   , intent(in   ) :: timeEvolvesAlongLightcone
+    double precision                          , parameter                     :: orthogonalityTolerance   =1.000d-6
+    double precision                          , parameter                     :: angularSizeSmall         =0.017d+0
+    integer                                                                   :: i                                 , j
+    integer         (c_size_t                )                                :: iOutput
+    double precision                                                          :: timeMinimum                       , timeMaximum    , &
+         &                                                                       tanHalfAngle                      , outputTime     , &
+         &                                                                       distanceMinimum                   , distanceMaximum, &
+         &                                                                       magnitude
+    character       (len=12                  )                                :: label
+    type            (varying_string          )                                :: message
     !![
-    <constructorAssign variables="origin, unitVector, angularSize, lengthReplication, timeEvolvesAlongLightcone, *cosmologyFunctions_, *outputTimes_"/>
+    <constructorAssign variables="origin, unitVector, angularSize, lengthReplication, timeEvolvesAlongLightcone, *cosmologyParameters_, *cosmologyFunctions_, *outputTimes_"/>
     !!]
 
     ! Store unit vectors.
@@ -376,6 +383,9 @@ contains
     self%nodeUniqueIDCrossing=-1_kind_int8
     self%nodePositionCrossing=0.0d0
     self%nodeVelocityCrossing=0.0d0
+    ! Set unit conversion rates (to defaults).
+    self%lengthUnitsInSI     =megaParsec
+    self%lengthHubbleExponent=0
     return
 
   contains
@@ -417,6 +427,7 @@ contains
     type(geometryLightconeSquare), intent(inout) :: self
 
     !![
+    <objectDestructor name="self%cosmologyParameters_"/>
     <objectDestructor name="self%cosmologyFunctions_" />
     <objectDestructor name="self%outputTimes_"        />
     !!]

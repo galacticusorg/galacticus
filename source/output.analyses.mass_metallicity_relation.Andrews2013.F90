@@ -31,8 +31,18 @@
      A mass-metallicity relation output analysis class.
      !!}
      private
+     double precision                                 , allocatable, dimension(:) :: systematicErrorPolynomialCoefficient                     , randomErrorPolynomialCoefficient, &
+          &                                                                          metallicitySystematicErrorPolynomialCoefficient
+     class           (cosmologyFunctionsClass        ), pointer                   :: cosmologyFunctions_                             => null()
+     class           (starFormationRateDisksClass    ), pointer                   :: starFormationRateDisks_                         => null()
+     class           (starFormationRateSpheroidsClass), pointer                   :: starFormationRateSpheroids_                     => null()
+     class           (galacticStructureClass         ), pointer                   :: galacticStructure_                              => null()
+     double precision                                                             :: randomErrorMinimum                                       , randomErrorMaximum              , &
+          &                                                                          fractionGasThreshold
+   contains
+     final :: massMetallicityAndrews2013Destructor
   end type outputAnalysisMassMetallicityAndrews2013
-
+  
   interface outputAnalysisMassMetallicityAndrews2013
      !!{
      Constructors for the ``massMetallicityAndrews2013'' output analysis class.
@@ -199,7 +209,10 @@ contains
     integer         (c_size_t                                           )                                :: iBin                                                    , binCount
     type            (hdf5Object                                         )                                :: dataFile
     integer                                                                                              :: indexOxygen
-
+    !![
+    <constructorAssign variables="metallicitySystematicErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, fractionGasThreshold, *cosmologyFunctions_, *starFormationRateDisks_, *starFormationRateSpheroids_, *galacticStructure_"/>
+    !!]
+    
     ! Read masses at which fraction was measured.
     !$ call hdf5Access%set()
     call dataFile%openFile   (char(inputPath(pathTypeDataStatic))//"observations/abundances/gasPhaseMetallicityAndrews2013.hdf5",readOnly=.true.                  )
@@ -447,3 +460,19 @@ contains
     return
   end function massMetallicityAndrews2013ConstructorInternal
 
+  subroutine massMetallicityAndrews2013Destructor(self)
+    !!{
+    Destructor for the {\normalfont \ttfamily massMetallicityAndrews2013} output analysis class.
+    !!}
+    implicit none
+    type(outputAnalysisMassMetallicityAndrews2013), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"        />
+    <objectDestructor name="self%outputTimes_"               />
+    <objectDestructor name="self%starFormationRateDisks_"    />
+    <objectDestructor name="self%starFormationRateSpheroids_"/>
+    <objectDestructor name="self%galacticStructure_"         />
+    !!]
+    return
+  end subroutine massMetallicityAndrews2013Destructor

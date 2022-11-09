@@ -194,7 +194,9 @@ sub AddUses {
 	    type       => "moduleUse",
 	    sibling    => undef()    ,
 	    parent     => undef()    ,
-	    moduleUse  => undef()
+	    moduleUse  => undef()    ,
+	    source     => "Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses()",
+	    line       => 1
 	};
 	$usesNode->{'firstChild'} =
 	{
@@ -202,7 +204,9 @@ sub AddUses {
 	    content    => ""       ,
 	    sibling    => undef()  ,
 	    parent     => $usesNode,
-	    firstChild => undef()
+	    firstChild => undef()  ,
+	    source     => "Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses()",
+	    line       => 1
 	};
 	&Galacticus::Build::SourceTree::InsertBeforeNode($node->{'firstChild'},[$usesNode]);
     }

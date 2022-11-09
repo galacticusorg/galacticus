@@ -108,7 +108,8 @@ mass function) output analysis class.
      double precision                                              , dimension(:,:), allocatable :: outputWeight                                   , functionCovariance                               , &
           &                                                                                         weightMainBranch                               , functionCovarianceTarget
      double precision                                              , dimension(:  ), allocatable :: binCenter                                      , functionValue                                    , &
-          &                                                                                         functionValueTarget                            , weightMainBranchSquared
+          &                                                                                         functionValueTarget                            , weightMainBranchSquared                          , &
+          &                                                                                         functionCovarianceTarget1D
      double precision                                              , dimension(:  ), allocatable :: binMinimum                                     , binMaximum
      integer         (c_size_t                                    )                              :: binCount                                       , bufferCount                                      , &
           &                                                                                         binCountTotal                                  , covarianceModelBinomialBinCount
@@ -470,6 +471,8 @@ contains
     <constructorAssign variables="label, comment, propertyLabel, propertyComment, propertyUnits, propertyUnitsInSI, distributionLabel, distributionComment, distributionUnits, distributionUnitsInSI, binCenter, bufferCount, outputWeight, *nodePropertyExtractor_, *outputAnalysisPropertyOperator_, *outputAnalysisPropertyUnoperator_, *outputAnalysisWeightOperator_, *outputAnalysisDistributionOperator_, *outputAnalysisDistributionNormalizer_, *galacticFilter_, *outputTimes_, covarianceModel, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum, xAxisLabel='x', yAxisLabel='y', xAxisIsLog=.false., yAxisIsLog=.false., targetLabel, functionValueTarget, functionCovarianceTarget, binWidth"/>
     !!]
 
+    ! Assign 1D version of the target covariance for use in the decriptor.
+    if (present(functionCovarianceTarget)) self%functionCovarianceTarget1D=reshape(functionCovarianceTarget,[size(functionCovarianceTarget)])
     ! Validate.
     select type (nodePropertyExtractor_)
     class is (nodePropertyExtractorScalar)

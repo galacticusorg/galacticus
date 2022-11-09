@@ -60,23 +60,25 @@
      double precision                                                                      :: redshiftMinimum                             , redshiftMaximum
      double precision                                                                      :: timeMinimum                                 , timeMaximum
      double precision                                        , allocatable, dimension(:  ) :: wavelength                                  , redshift                       , &
-          &                                                                                   time                                        , crossSectionNeutralHydrogen    , &
+          &                                                                                   time_                                       , crossSectionNeutralHydrogen    , &
           &                                                                                   crossSectionNeutralHelium                   , crossSectionSinglyIonizedHelium, &
           &                                                                                   spectrum
      double precision                                        , allocatable, dimension(:,:) :: emissivityODE                               , emissivity
      double precision                                                     , dimension(0:1) :: timeODE
      double precision                                                                      :: timeCurrent
      type            (interpolator                          )                              :: interpolatorWavelength                      , interpolatorTime
-     class           (*                                     ), pointer                     :: statePrevious
+     class           (*                                     ), pointer                     :: statePrevious                      => null()
      double precision                                                                      :: timePrevious
      integer         (kind_int8                             )                              :: universeUniqueIDPrevious
      integer         (c_size_t                              )                              :: iTime
      double precision                                                     , dimension(0:1) :: hTime
    contains
-     final     ::             intergalacticBackgroundInternalDestructor
-     procedure :: flux     => intergalacticBackgroundInternalFlux
-     procedure :: timeSet  => intergalacticBackgroundInternalTimeSet
-     procedure :: autoHook => intergalacticBackgroundInternalAutoHook
+     final     ::                      intergalacticBackgroundInternalDestructor
+     procedure :: flux              => intergalacticBackgroundInternalFlux
+     procedure :: time              => intergalacticBackgroundInternalTime
+     procedure :: timeSet           => intergalacticBackgroundInternalTimeSet
+     procedure :: timeDependentOnly => intergalacticBackgroundInternalTimeDependentOnly
+     procedure :: autoHook          => intergalacticBackgroundInternalAutoHook
   end type radiationFieldIntergalacticBackgroundInternal
 
   interface radiationFieldIntergalacticBackgroundInternal
@@ -239,7 +241,7 @@ contains
          &               +1
     allocate(self%wavelength   (self%wavelengthCount                 ))
     allocate(self%spectrum     (self%wavelengthCount                 ))
-    allocate(self%time         (                       self%timeCount))
+    allocate(self%time_        (                       self%timeCount))
     allocate(self%redshift     (                       self%timeCount))
     allocate(self%emissivity   (self%wavelengthCount,  self%timeCount))
     allocate(self%emissivityODE(self%wavelengthCount,0:2             ))
@@ -249,7 +251,7 @@ contains
          &                     int(self%wavelengthCount  ), &
          &                     rangeTypeLogarithmic         &
          &                    )
-    self%time      =Make_Range(                             &
+    self%time_     =Make_Range(                             &
          &                         self%timeMinimum       , &
          &                         self%timeMaximum       , &
          &                     int(self%timeCount        ), &
@@ -257,11 +259,11 @@ contains
          &                    )
     ! Convert times to redshifts.
     do iTime=1,self%timeCount
-       self%redshift(iTime)                                                           &
-            & =self%cosmologyFunctions_%redshiftFromExpansionFactor(                  &
-            &  self%cosmologyFunctions_%expansionFactor             (                 &
-            &                                                        self%time(iTime) &
-            &                                                       )                 &
+       self%redshift(iTime)                                                            &
+            & =self%cosmologyFunctions_%redshiftFromExpansionFactor(                   &
+            &  self%cosmologyFunctions_%expansionFactor             (                  &
+            &                                                        self%time_(iTime) &
+            &                                                       )                  &
             &                                                      )
     end do
     ! Initialize the background radiation to zero.
@@ -279,7 +281,7 @@ contains
     end do
     ! Build interpolators.
     self%interpolatorWavelength=interpolator(self%wavelength)
-    self%interpolatorTime      =interpolator(self%time      )
+    self%interpolatorTime      =interpolator(self%time_     )
     ! Initialize state.
     self%statePrevious            => null()
     self%timePrevious             =  -1.0d0
@@ -323,6 +325,17 @@ contains
     !$omp end master
     return
   end subroutine intergalacticBackgroundInternalDestructor
+
+  double precision function intergalacticBackgroundInternalTime(self)
+    !!{
+    Return the epoch.
+    !!}
+    implicit none
+    class(radiationFieldIntergalacticBackgroundInternal), intent(inout) :: self
+
+    intergalacticBackgroundInternalTime=self%timeCurrent
+    return
+  end function intergalacticBackgroundInternalTime
 
   subroutine intergalacticBackgroundInternalTimeSet(self,time)
     !!{
@@ -419,13 +432,13 @@ contains
        if (.not.universe_%attributes%exists('radiationFieldIntergalacticBackgroundInternal')) then
           ! Create the first interrupt event in the universe object.
           event                       => universe_%createEvent( )
-          event%time                  =  self     %time       (1)
+          event%time                  =  self     %time_      (1)
           event%creator               => self
           event%task                  => intergalacticBackgroundInternalUpdate
           !$omp critical (radiationFieldIntergalacticBackgroundInternalCritical)
           allocate(state                                          )
           allocate(state%flux(self%wavelengthCount,self%timeCount))
-          state%timeNext    =self%time(1)
+          state%timeNext    =self%time_(1)
           state%timePrevious=0.0d0
           state%flux        =0.0d0
           call universe_%attributes%set('radiationFieldIntergalacticBackgroundInternal',state)
@@ -507,7 +520,7 @@ contains
        message="Evolving cosmic background radiation to time "//trim(label)//" Gyr"
        call displayIndent(message)
        ! Find the current timestep.
-       iNow=searchArrayClosest(self%time,event%time)
+       iNow=searchArrayClosest(self%time_,event%time)
        ! Iterate over all nodes.
        call displayMessage('Accumulating emissivity')
        treeTimeLatest=0.0d0
@@ -540,13 +553,13 @@ contains
                    firstTime=.true.
                    do iTime=1,self%timeCount
                       ! Skip times in the past.
-                      if (self%time(iTime) < event%time) cycle
+                      if (self%time_(iTime) < event%time) cycle
                       ! Compute age of the currently forming population at this time.
-                      ageEnd=self%time(iTime)-event%time
+                      ageEnd=self%time_(iTime)-event%time
                       if (iTime == 1) then
                          ageStart=                                  0.0d0
                       else
-                         ageStart=max(self%time(iTime-1)-event%time,0.0d0)
+                         ageStart=max(self%time_(iTime-1)-event%time,0.0d0)
                       end if
                       ! Iterate over wavelength
                       integrator_=integrator(stellarSpectraConvolution,toleranceAbsolute=integrationToleranceAbsolute,toleranceRelative=integrationToleranceRelative)
@@ -586,12 +599,12 @@ contains
        type is (intergalacticBackgroundInternalState)
           if (iNow > 1) then
              call displayMessage('Solving cosmic background radiation evolution')
-             self%timeODE      (  0:1)=self%time      (  iNow-1:iNow)
+             self%timeODE      (  0:1)=self%time_     (  iNow-1:iNow)
              self%emissivityODE(:,0  )=self%emissivity(:,iNow-1     )
              self%emissivityODE(:,  1)=self%emissivity(:,       iNow)
              intergalacticBackgroundInternalSelf => self
-             timeStart=self%time(iNow-1)
-             timeEnd  =self%time(iNow  )
+             timeStart=self%time_(iNow-1)
+             timeEnd  =self%time_(iNow  )
              solver   =odeSolver(self%wavelengthCount,intergalacticBackgroundInternalODEs,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative)    
              call solver%solve(timeStart,timeEnd,self%spectrum)
              ! Convert
@@ -612,27 +625,27 @@ contains
           end if
           ! Add the next event to the universe.
           !$omp critical (radiationFieldIntergalacticBackgroundInternalCritical)
-          state    %timePrevious=self%time(iNow  )
+          state    %timePrevious=self%time_(iNow  )
           if (iNow < self%timeCount) then
-             state%timeNext     =self%time(iNow+1)
+             state%timeNext     =self%time_(iNow+1)
           else
              ! At the final step, set the next time to the current time plus a small tolerance to allow interpolation of the
              ! radiation field to slightly later times (which may occur due to numerical inaccuracies).
-             state%timeNext     =self%time(iNow  )*(1.0d0+timeTolerance)
+             state%timeNext     =self%time_(iNow  )*(1.0d0+timeTolerance)
           end if
           !$omp end critical (radiationFieldIntergalacticBackgroundInternalCritical)
           self%universeUniqueIDPrevious =  -1_kind_int8
           self%timePrevious             =  -1.0d0
           self%statePrevious            => null()
-          if     (                                                                           &
-               &             iNow    <                        self             %timeCount    &
-               &  .and.                                                                      &
-               &   self%time(iNow+1) < treeTimeLatest                                        &
-               &  .and.                                                                      &
-               &   self%time(iNow+1) < self%outputTimes_%time(self%outputTimes_%count    ()) &
+          if     (                                                                            &
+               &              iNow    <                        self             %timeCount    &
+               &  .and.                                                                       &
+               &   self%time_(iNow+1) < treeTimeLatest                                        &
+               &  .and.                                                                       &
+               &   self%time_(iNow+1) < self%outputTimes_%time(self%outputTimes_%count    ()) &
                & ) then
              eventNew         => universe_%createEvent(      )
-             eventNew%time    =  self     %time       (iNow+1)
+             eventNew%time    =  self     %time_      (iNow+1)
              eventNew%creator => event    %creator
              eventNew%task    => intergalacticBackgroundInternalUpdate
           else
@@ -781,3 +794,15 @@ contains
     intergalacticBackgroundInternalODEs=GSL_Success
     return
   end function intergalacticBackgroundInternalODEs
+
+  logical function intergalacticBackgroundInternalTimeDependentOnly(self)
+    !!{
+    Return false as, while this radiation field depends only on time, it can not be evaulated for arbitrary times.
+    !!}
+    implicit none
+    class(radiationFieldIntergalacticBackgroundInternal), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    intergalacticBackgroundInternalTimeDependentOnly=.false.
+    return
+  end function intergalacticBackgroundInternalTimeDependentOnly

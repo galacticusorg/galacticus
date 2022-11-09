@@ -32,6 +32,12 @@ Contains a module which implements an output analysis class for the \cite{bernar
      A \cite{bernardi_massive_2013} stellar mass function output analysis class.
      !!}
      private
+     class           (gravitationalLensingClass), pointer                   :: gravitationalLensing_            => null()
+     double precision                           , allocatable, dimension(:) :: randomErrorPolynomialCoefficient          , systematicErrorPolynomialCoefficient
+     double precision                                                       :: randomErrorMinimum                        , randomErrorMaximum                  , &
+          &                                                                    sizeSourceLensing
+   contains
+     final :: massFunctionStellarBernardi2013SDSSDestructor
   end type outputAnalysisMassFunctionStellarBernardi2013SDSS
 
   interface outputAnalysisMassFunctionStellarBernardi2013SDSS
@@ -181,6 +187,9 @@ contains
     type            (cosmologyFunctionsMatterLambda                     )               , pointer      :: cosmologyFunctionsData
     type            (distributionOperatorList                           )               , pointer      :: distributionOperatorSequence
     double precision                                                     , parameter                   :: errorPolynomialZeroPoint                            =11.3d+0
+    !![
+    <constructorAssign variables="randomErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, sizeSourceLensing, *gravitationalLensing_"/>
+    !!]
 
     ! Build a filter which select galaxies with stellar mass 10⁸M☉ or greater.
     allocate(galacticFilter_)
@@ -294,3 +303,16 @@ contains
     nullify(distributionOperatorSequence)
     return
   end function massFunctionStellarBernardi2013SDSSConstructorInternal
+
+  subroutine massFunctionStellarBernardi2013SDSSDestructor(self)
+    !!{
+    Destructor for the {\normalfont \ttfamily massFunctionStellarBernardi2013SDSS} output analysis class.
+    !!}
+    implicit none
+    type(outputAnalysisMassFunctionStellarBernardi2013SDSS), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%galacticStructure_"/>
+    !!]
+    return
+  end subroutine massFunctionStellarBernardi2013SDSSDestructor

@@ -24,6 +24,7 @@
   !![
   <stellarPopulationSpectraPostprocessorBuilder name="stellarPopulationSpectraPostprocessorBuilderLookup">
    <description>A stellar population spectra postprocessor builder which simply looks up postprocessors by name.</description>
+   <descriptorSpecial>descriptorSpecial</descriptorSpecial>
   </stellarPopulationSpectraPostprocessorBuilder>
   !!]
   type, extends(stellarPopulationSpectraPostprocessorBuilderClass) :: stellarPopulationSpectraPostprocessorBuilderLookup
@@ -34,8 +35,14 @@
      type(varying_string                           ), allocatable, dimension(:) :: names
      type(stellarPopulationSpectraPostprocessorList), allocatable, dimension(:) :: postprocessors
    contains
-     final     ::          lookupDestructor
-     procedure :: build => lookupBuild
+     !![
+     <methods>
+       <method method="descriptorSpecial" description="Handle adding special parameters to the descriptor."/>
+     </methods>
+     !!]
+     final     ::                      lookupDestructor
+     procedure :: build             => lookupBuild
+     procedure :: descriptorSpecial => lookupDescriptorSpecial
   end type stellarPopulationSpectraPostprocessorBuilderLookup
 
   interface stellarPopulationSpectraPostprocessorBuilderLookup
@@ -161,3 +168,21 @@ contains
     if (.not.associated(postprocessor)) call Error_Report('unable to located postprocessor "'//descriptor//'"'//{introspection:location})
     return
   end function lookupBuild
+
+  subroutine lookupDescriptorSpecial(self,descriptor)
+    !!{
+    Add special parameters to the descriptor.
+    !!}
+    use :: Input_Parameters, only : inputParameters
+    implicit none
+    class  (stellarPopulationSpectraPostprocessorBuilderLookup), intent(inout) :: self
+    type   (inputParameters                                   ), intent(inout) :: descriptor
+    integer                                                                    :: i
+    
+    if (allocated(self%postprocessors)) then
+       do i=1,size(self%postprocessors)
+          call self%postprocessors(i)%stellarPopulationSpectraPostprocessor_%descriptor(descriptor)
+       end do
+    end if
+    return
+  end subroutine lookupDescriptorSpecial

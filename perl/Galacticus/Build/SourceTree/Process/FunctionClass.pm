@@ -235,6 +235,14 @@ sub Process_FunctionClass {
 				     &&
 				     grep {$_ eq "pointer"} @{$declaration->{'attributes'}}
 				    );
+				# Identify stateful types.
+				push(@{$potentialNames->{'statefulTypes'}},$declaration)
+				    if
+				    (
+				     $declaration->{'intrinsic'} eq "type"
+				     &&
+				     $declaration->{'type'     } =~ m/^stateful(Integer|Double|Logical)\s*$/i
+				    );
 				# Identify enumerations.
 				push(@{$potentialNames->{'enumerations'}},$declaration)
 				    if
@@ -292,6 +300,14 @@ sub Process_FunctionClass {
 			 &&
 			 grep {$_ eq "pointer"} @{$declaration->{'attributes'}}
 			);
+		    # Identify stateful types.
+		    push(@{$potentialNames->{'statefulTypes'}},$declaration)
+			if
+			(
+			 $declaration->{'intrinsic'} eq "type"
+			 &&
+			 $declaration->{'type'     } =~ m/^stateful(Integer|Double|Logical)\s*$/i
+			);
 		    # Identify enumerations.
 		    push(@{$potentialNames->{'enumerations'}},$declaration)
 			if
@@ -333,6 +349,14 @@ sub Process_FunctionClass {
 				      )
 				     &&
 				     grep {$_ eq "pointer"} @{$declaration->{'attributes'}}
+				    );
+				# Identify stateful types.
+				push(@{$potentialNames->{'statefulTypes'}},$declaration)
+				    if
+				    (
+				     $declaration->{'intrinsic'} eq "type"
+				     &&
+				     $declaration->{'type'     } =~ m/^stateful(Integer|Double|Logical)\s*$/i
 				    );
 				# Identify enumerations.
 				push(@{$potentialNames->{'enumerations'}},$declaration)
@@ -429,7 +453,20 @@ sub Process_FunctionClass {
 					# A regular parameter, defined by its name.
 					my $name;
 					if ( exists($constructorNode->{'directive'}->{'variable'}) ) {
-					    ($name = $constructorNode->{'directive'}->{'variable'}) =~ s/.*\%(.*)/$1/;
+					    if ( $constructorNode->{'directive'}->{'variable'} =~ m/(.*)\%(.*)/ ) {
+						my $object  = $1;
+						my $element = $2;
+						if ( lc($object) eq lc($result) ) {
+						    # Direct read into an element of the object being constructed.
+						    $name = $element;
+						} else {
+						    # Read of some other derived-type component. Use the name of the derioved type
+						    # variable in case it is of a type that we can handle.
+						    $name = $object;
+						}
+					    } else {
+						$name = $constructorNode->{'directive'}->{'variable'};
+					    }
 					} else {
 					    $name = $constructorNode->{'directive'}->{'name'};
 					}
@@ -454,6 +491,14 @@ sub Process_FunctionClass {
 					    # Find the matched variable.
 					    my $descriptor;
 					    foreach my $potentialDescriptor ( @{$potentialNames->{'enumerations'}} ) {
+						$descriptor = $potentialDescriptor
+						    if ( grep {$_ eq lc($name)} @{$potentialDescriptor->{'variables'}} );
+					    }
+					} elsif ( grep {$_ eq lc($name)} (map {@{$_->{'variables'}}} @{$potentialNames->{'statefulTypes'}}) ) {
+					    push(@{$descriptorParameters->{'statefulTypes'}},{name => $name, inputName => $constructorNode->{'directive'}->{'name'}, source => $constructorNode->{'directive'}->{'source'}});
+					    # Find the matched variable.
+					    my $descriptor;
+					    foreach my $potentialDescriptor ( @{$potentialNames->{'statefulTypes'}} ) {
 						$descriptor = $potentialDescriptor
 						    if ( grep {$_ eq lc($name)} @{$potentialDescriptor->{'variables'}} );
 					    }
@@ -506,7 +551,7 @@ sub Process_FunctionClass {
 		    $descriptorModules{'Error'} = 1;
 		} else{
 		    # Build an auto-descriptor function.
-		    if ( $declarationMatches && $supported == 1 ) {
+		    if ( $declarationMatches && ( $supported == 1 || exists($nonAbstractClass->{'descriptorSpecial'}) ) ) {
 			$descriptorUsed = 1;
 			$descriptorCode .= " if (present(includeClass)) then\n";
 			$descriptorCode .= "  includeClass_=includeClass\n";
@@ -638,6 +683,77 @@ sub Process_FunctionClass {
 				    }
 				}
 			    }
+			    # Stateful types.
+			    if ( defined($descriptorParameters->{'statefulTypes'}) ) {
+				foreach my $parameter ( @{$descriptorParameters->{'statefulTypes'}} ) {
+				    foreach my $declaration ( @{$potentialNames->{'statefulTypes'}} ) {
+					if ( grep {$_ eq lc($parameter->{'name'})} @{$declaration->{'variables'}} ) {
+					    my $format;
+					    my $isLogical = 0;
+					    if      ( $declaration->{'type'} eq "statefulInteger" ) {
+						$format     = "i17";
+					    } elsif ( $declaration->{'type'} eq "statefulDouble"  ) {
+						$format     = "e17.10";
+					    } elsif ( $declaration->{'type'} eq "statefulLogical" ) {
+						$isLogical = 1;
+					    } else {
+						die("unknown stateful-type");
+					    }
+					    $addLabel  = 1;
+					    if ( grep {$_ =~ m/^dimension\s*\([a-z0-9_:,\s]+\)/} @{$declaration->{'attributes'}} ) {
+						# Non-scalar parameter - values must be concatenated.
+						my $dimensionDeclarator = join(",",map {/^dimension\s*\(([a-zA-Z0-9_,:\s]+)\)/} @{$declaration->{'attributes'}});
+						my $rank                = ($dimensionDeclarator =~ tr/,//)+1;
+						$rankMaximum            = $rank
+						    if ( $rank > $rankMaximum );
+						$descriptorCode .= "parameterValues=''\n";
+						for(my $i=1;$i<=$rank;++$i) {
+						    $descriptorCode .= " parameterValues=parameterValues//'['\n";
+						    $descriptorCode .= "do i".$i."=lbound(self%".$parameter->{'name'}.",dim=".$i."),ubound(self%".$parameter->{'name'}.",dim=".$i.")\n";
+						}
+						$descriptorCode .= "if (self%".$parameter->{'name'}."(".join(",",map {"i".$_} 1..$rank).")%isSet) then\n";
+						if ( $isLogical ) {
+						    $descriptorCode .= "if (self%".$parameter->{'name'}."(".join(",",map {"i".$_} 1..$rank)."%value) then\n";
+						    $descriptorCode .= "  parameterLabel='true'\n";
+						    $descriptorCode .= "else\n";
+						    $descriptorCode .= "  parameterLabel='false'\n";
+						    $descriptorCode .= "end if\n";
+						} else {
+						    $descriptorCode .= &performIO("write (parameterLabel,'(".$format.")') self%".$parameter->{'name'}."(".join(",",map {"i".$_} 1..$rank).")%value\n");
+						}
+						$descriptorCode .= " else\n";
+						$descriptorCode .= "  parameterLabel='?'\n";
+						$descriptorCode .= " end if\n";
+						$descriptorCode .= " parameterValues=parameterValues//trim(adjustl(parameterLabel))\n";
+						$descriptorCode .= " if (i".$rank." /= size(self%".$parameter->{'name'}.",dim=".$rank.")) parameterValues=parameterValues//','\n";
+						for(my $i=1;$i<=$rank;++$i) {
+						    $descriptorCode .= "end do\n";
+						    $descriptorCode .= " parameterValues=parameterValues//']'\n";
+						    $descriptorCode .= " if (i".($i-1)." /= size(self%".$parameter->{'name'}.",dim=".($i-1).")) parameterValues=parameterValues//','\n"
+							unless ( $i == 1 );
+						}
+						$descriptorCode .= "call ".$parameter->{'source'}."%addParameter('".$parameter->{'inputName'}."',char(parameterValues))\n";
+					    } else {
+						# Scalar parameter.
+						$descriptorCode .= "if (self%".$parameter->{'name'}."%isSet) then\n";
+						if ( $isLogical ) {
+						    $descriptorCode .= "if (self%".$parameter->{'name'}."%value) then\n";
+						    $descriptorCode .= "  parameterLabel='true'\n";
+						    $descriptorCode .= "else\n";
+						    $descriptorCode .= "  parameterLabel='false'\n";
+						    $descriptorCode .= "end if\n";
+						} else {
+						    $descriptorCode .= &performIO("write (parameterLabel,'(".$format.")') self%".$parameter->{'name'}."%value\n");
+						}
+						$descriptorCode .= " else\n";
+						$descriptorCode .= "  parameterLabel='?'\n";
+						$descriptorCode .= " end if\n";
+						$descriptorCode .= "call ".$parameter->{'source'}."%addParameter('".$parameter->{'inputName'}."',trim(adjustl(parameterLabel)))\n";
+					    }
+					 }
+				    }
+				}
+			    }
 			    # Handle objects built via objectBuilder directives.
 			    if ( defined($descriptorParameters->{'objects'}) ) {
 				foreach ( @{$descriptorParameters->{'objects'}} ) {
@@ -655,14 +771,14 @@ sub Process_FunctionClass {
 			if ( $parentConstructorUsed ) {
 			    $descriptorCode .= "call self%".$extensionOf."%descriptor(descriptor,includeClass=.false.)\n";
 			}
-		    } elsif ( ! $declarationMatches     ) {
-			$descriptorCode .= " call Error_Report('auto-descriptor not supported for this class: parameter-based constructor not found'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
-			$descriptorModules{'Error'} = 1;
-		    } elsif (   $supported         != 1 ) {
-			$descriptorCode .= " call Error_Report('auto-descriptor not supported for this class because:'//char(10)//".join("//char(10)// &\n & ",map {"'  --> ".$_."'"} @failureMessage)."//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
-			$descriptorModules{'Error'} = 1;
+		    } elsif ( ! $declarationMatches     && ! exists($nonAbstractClass->{'descriptorSpecial'}) ) {
+			die("Automatic descriptor can not be built for class '".$nonAbstractClass->{'name'}."': parameter-based constructor not found");
+		    } elsif (   $supported         != 1 && ! exists($nonAbstractClass->{'descriptorSpecial'}) ) {
+			die("Automatic descriptor can not be built for class '".$nonAbstractClass->{'name'}."' because:\n   ".join("\n   ",@failureMessage));
 		    }
 		}
+		$descriptorCode .= " call self%".$nonAbstractClass->{'descriptorSpecial'}."(parameters)\n"
+		    if ( exists($nonAbstractClass->{'descriptorSpecial'}) );
 	    }
 	    $descriptorCode .= "end select\n";
 	    if ( scalar(@{$descriptorLinkedListVariables}) > 0 ) {
@@ -1096,6 +1212,7 @@ CODE
 				     &&
 				     (grep {$_->{'type'} eq $type} &List::ExtraUtils::as_array($deepCopyActions->{'deepCopyActions'}))
 				    ) {
+					my $isAllocatable = grep {$_ eq "allocatable"} @{$declaration->{'attributes'}};
 					my $rank = 0;
 					if ( grep {$_ =~ m/^dimension\s*\(/} @{$declaration->{'attributes'}} ) {
 					    my $dimensionDeclarator = join(",",map {/^dimension\s*\(([a-zA-Z0-9_,:\s]+)\)/} @{$declaration->{'attributes'}});
@@ -1105,7 +1222,7 @@ CODE
 					}
 					foreach my $variableName ( @{$declaration->{'variableNames'}} ) {
 					    $assignments .= "if (allocated(self%".$variableName.")) then\n"
-						if ( grep {$_ eq "allocatable"} @{$declaration->{'attributes'}} );
+						if ( $isAllocatable );
 					    for(my $i=1;$i<=$rank;++$i) {
 						$assignments .= (" " x $i)."do i".$i."=lbound(self%".$variableName.",dim=".$i."),ubound(self%".$variableName.",dim=".$i.")\n";
 					    }
@@ -1115,7 +1232,7 @@ CODE
 						    $assignments .= (" " x ($rank+1-$i))."end do\n";
 					    }
 					    $assignments .= "end if\n"
-						if ( grep {$_ eq "allocatable"} @{$declaration->{'attributes'}} );
+						if ( $isAllocatable );
 					}
 				}
 				# Deep copy of HDF5 objects.
@@ -1336,6 +1453,7 @@ CODE
 			 &&
 			 (grep {$_->{'type'} eq $type} &List::ExtraUtils::as_array($deepCopyActions->{'deepCopyActions'}))
 			) {
+			    my $isAllocatable = grep {$_ eq "allocatable"} @{$declaration->{'attributes'}};
 			    my $rank = 0;
 			    if ( grep {$_ =~ m/^dimension\s*\(/} @{$declaration->{'attributes'}} ) {
 				my $dimensionDeclarator = join(",",map {/^dimension\s*\(([a-zA-Z0-9_,:\s]+)\)/} @{$declaration->{'attributes'}});
@@ -1344,6 +1462,8 @@ CODE
 				    if ( $rank > $rankMaximum );
 			    }
 			    foreach my $variableName ( @{$declaration->{'variableNames'}} ) {
+				$assignments .= "if (allocated(self%".$variableName.")) then\n"
+				    if ( $isAllocatable );
 				for(my $i=1;$i<=$rank;++$i) {
 				    $assignments .= (" " x $i)."do i".$i."=lbound(self%".$variableName.",dim=".$i."),ubound(self%".$variableName.",dim=".$i.")\n";
 				}
@@ -1352,6 +1472,8 @@ CODE
 				for(my $i=1;$i<=$rank;++$i) {
 					$assignments .= (" " x ($rank+1-$i))."end do\n";
 				}
+				$assignments .= "end if\n"
+				    if ( $isAllocatable );
 			    }
 		    }
 		    # Deep copy of HDF5 objects.
@@ -2611,7 +2733,9 @@ CODE
 			intrinsic => 0,
 			all       => 1
 		    }
-		}
+		},
+		source     => "Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass()",
+		line       => 1
 	    };
             $usesNode->{'moduleUse'}->{'ISO_C_Binding'} = {intrinsic => 1, all => 1}
                 if ( $debugging );
@@ -2810,7 +2934,9 @@ CODE
 				intrinsic => 0,
 				all       => 1
 			    }
-			}
+			},
+			source     => "Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass()",
+			line       => 1
 		    };
 		    &Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$usesNode);
                 }
@@ -3080,14 +3206,18 @@ CODE
 					    content    => $functionNode->{'firstChild'}->{'content'},
 					    sibling    => undef()       ,
 					    parent     => undef()       ,
-					    firstChild => undef()
+					    firstChild => undef()       ,
+					    source     => "Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass()",
+					    line       => 1
 					};
 					my $moduleUseNode =
 					{
 					    type       => "moduleUse",
 					    sibling    => undef()    ,
 					    parent     => undef()    ,
-					    firstChild => $content,
+					    firstChild => $content   ,
+					    source     => "Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass()",
+					    line       => 1          ,
 					    moduleUse  => dclone($functionNode->{'moduleUse' })
 					};
 					$content->{'parent'} = $moduleUseNode;
@@ -3188,15 +3318,19 @@ CODE
 				    my $declarationNew = {
 					type       => "declaration",
 					sibling    => undef()      ,
-					parent     => undef()
+					parent     => undef()      ,
+					source     => "Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass()",
+					line       => 1
 				    };
 				    $declarationNew->{'firstChild'} =
 				    {
-					type       => "code"   ,
-					content    => ""       ,
-					sibling    => undef()  ,
+					type       => "code"         ,
+					content    => ""             ,
+					sibling    => undef()        ,
 					parent     => $declarationNew,
-					firstChild => undef()
+					firstChild => undef()        ,
+					source     => "Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass()",
+					line       => 1
 				    };
 				    push(@{$declarationNew->{'declarations'}},$declaration);
 				    push(@{$codeContent->{'module'}->{'interfaces'}},$declarationNew);
@@ -3221,15 +3355,19 @@ CODE
 					my $declarationNew = {
 					    type       => "declaration",
 					    sibling    => undef()      ,
-					    parent     => undef()
+					    parent     => undef()      ,
+					    source     => "Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass()",
+					    line       => 1
 					};
 					$declarationNew->{'firstChild'} =
 					{
-					    type       => "code"   ,
-					    content    => ""       ,
-					    sibling    => undef()  ,
+					    type       => "code"         ,
+					    content    => ""             ,
+					    sibling    => undef()        ,
 					    parent     => $declarationNew,
-					    firstChild => undef()
+					    firstChild => undef()        ,
+					    source     => "Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass()",
+					    line       => 1
 					};
 					push(@{$declarationNew->{'declarations'}},$moduleDeclaration);
 					push(@{$codeContent->{'module'}->{'interfaces'}},$declarationNew);
@@ -3299,7 +3437,9 @@ CODE
 	        sibling    => undef()    ,
 	        parent     => undef()    ,
 		firstChild => undef()    ,
-                moduleUse  => {ISO_C_Binding => {intrinsic => 1, only => {C_Char => 1}}}
+                moduleUse  => {ISO_C_Binding => {intrinsic => 1, only => {C_Char => 1}}},
+		source     => "Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass()",
+		line       => 1
 	    };
             &Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$bindingNode);
 	    # Create functions.

@@ -19,6 +19,11 @@
     <dimensionless value="true"/>
   </spheroidMassDistribution>
 
+  <!-- Intergalactic background radiation -->
+  <radiationFieldIntergalacticBackground value="intergalacticBackgroundFile">
+    <fileName value="%DATASTATICPATH%/radiation/Cosmic_Background_Radiation_Haardt_Madau_2012_Quasars_Galaxies.xml"/>
+  </radiationFieldIntergalacticBackground>
+
   <!-- Halo accretion options -->
   <accretionHalo value="naozBarkana2007"/>
   <intergalacticMediumFilteringMass value="gnedin2000"/>
@@ -53,7 +58,8 @@
   </coolingFunction>
 
   <chemicalReactionRate value="hydrogenNetwork">
-    <fast value="true"/>
+    <fast                 value="true"/>
+    <includeSelfShielding value="true"/>
   </chemicalReactionRate>
   <chemicalsToTrack value="AtomicHydrogen AtomicHydrogenCation MolecularHydrogen Electron"/>
 
@@ -188,6 +194,10 @@
       <!-- Subhalos will be removed if they fall below the merger tree mass resolution limit. -->
       <massDestruction           value="=[mergerTreeMassResolution::massResolution]"/>
       <massDestructionFractional value="0.0"                                        />
+    </nodeOperator>
+    <!-- CGM -->
+    <nodeOperator value="CGMChemistry">
+      <fractionTimescaleEquilibrium value="1.0e-3"/>
     </nodeOperator>
     <!-- Star formation -->
     <nodeOperator value="starFormationDisks"/>

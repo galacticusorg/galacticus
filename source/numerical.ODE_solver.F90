@@ -274,10 +274,11 @@ module Numerical_ODE_Solvers
 
   ! Error analyzer interface.
   abstract interface
-     subroutine errorAnalyzerTemplate(y,yerr,xStep,status)
+     subroutine errorAnalyzerTemplate(x,x1,y,yerr,xStep,status)
        import c_int, c_double
        real   (c_double), intent(in   ), dimension(*) :: y     , yerr
-       real   (c_double), intent(in   ), value        :: xStep
+       real   (c_double), intent(in   ), value        :: x     , x1  , &
+            &                                            xStep
        integer(c_int   ), intent(in   ), value        :: status
      end subroutine errorAnalyzerTemplate
   end interface
