@@ -66,6 +66,7 @@
     <darkMatterProfileDMO value="heatedMonotonic">
       <darkMatterProfileDMO value="NFW" />
       <nonAnalyticSolver value="numerical" />
+      <toleranceRelativeVelocityDispersionMaximum value="0.1"/>
     </darkMatterProfileDMO>
   </darkMatterProfileDMO>
 

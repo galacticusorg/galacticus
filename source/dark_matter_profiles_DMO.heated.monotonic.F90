@@ -410,7 +410,7 @@ contains
                &                *exp(self%massProfile%interpolate(log(radius_))) &
                &                /4.0d0                                           &
                &                /Pi                                              &
-               &                /radius**3
+               &                /radius_**3
        else
           heatedMonotonicDensity=+0.0d0
        end if
