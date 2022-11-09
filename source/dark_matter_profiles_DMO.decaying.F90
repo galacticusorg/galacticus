@@ -222,7 +222,7 @@ contains
     double precision                                      , intent(in   ) :: radius
     double precision                                      , intent(  out) :: fraction
     double precision                                                      :: sigma, vEsc
-    sigma = self%radialVelocityDispersion(node, radius)
+    sigma = self%darkMatterProfileDMO_%radialVelocityDispersion(node, radius)
     vEsc = +2.0d0 * (-self%potential(node, radius) + self%potential(node, +1.0d3 * self%darkMatterHaloScale_%radiusVirial(node))) !! Check sign
     nonCentralChi = distributionFunction1DNonCentralChi(       &
                   & (self%massSplitting_/(speedLight/kilo))**2 &
