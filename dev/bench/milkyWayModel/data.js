@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1667900124687,
+  "lastUpdate": 1667960979053,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
@@ -3376,6 +3376,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 10.444629763155,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5450ea618b824e3826e22815cefeccabc8d8d010",
+          "message": "Merge pull request #325 from galacticusorg/dev\n\nFailure to create auto-descriptors is now fatal at build time",
+          "timestamp": "2022-11-08T15:51:39-08:00",
+          "tree_id": "10fa7addea042b23d7beff232f11bc7669591479",
+          "url": "https://github.com/galacticusorg/galacticus/commit/5450ea618b824e3826e22815cefeccabc8d8d010"
+        },
+        "date": 1667960978131,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 12.361,
+            "unit": "seconds",
+            "range": 0.148387667951216
           }
         ]
       }
