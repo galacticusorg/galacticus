@@ -478,7 +478,7 @@ contains
 
     ! Use recursive self if necessary.
     if (self%isRecursive) then
-       adiabaticGnedin2004RadiusEnclosingMass=self%recursiveSelf%radiusEnclosingDensity(node,mass)
+       adiabaticGnedin2004RadiusEnclosingMass=self%recursiveSelf        %radiusEnclosingMass         (node,mass)
        return
     end if
     if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
