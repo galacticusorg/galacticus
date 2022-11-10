@@ -1036,7 +1036,7 @@ contains
           barrierRateTest=self%excursionSetBarrier_%barrier(self%varianceMaximumRate,self%timeMinimumRate*(1.0d0-self%fractionalTimeStep),node,rateCompute=.true.)
           barrierRateTest=self%excursionSetBarrier_%barrier(self%varianceMaximumRate,self%timeMaximumRate                                ,node,rateCompute=.true.)
           ! Begin an OpenMP parallel region. Each parallel thread will compute first crossing rates for a different epoch.
-          !$omp parallel private(iTime,timeProgenitor,iVariance,varianceStepRate,i,j,probabilityCrossingPrior,crossingFraction,barrier,barrierProgenitorEffective,firstCrossingRateQuad,excursionSetBarrier_,cosmologicalMassVariance_,barrierRateQuad,massProgenitor,growthFactorEffective,offsetEffective,varianceResidual) if (.not.mpiSelf%isActive() .or. .not.self%coordinatedMPI_)
+          !$omp parallel private(iTime,timeProgenitor,iVariance,varianceStepRate,i,j,probabilityCrossingPrior,crossingFraction,barrier,barrierProgenitorEffective,firstCrossingRateQuad,excursionSetBarrier_,cosmologicalMassVariance_,barrierRateQuad,massProgenitor,growthFactorEffective,offsetEffective,varianceResidual,varianceMaximumRateNonCrossing) if (.not.mpiSelf%isActive() .or. .not.self%coordinatedMPI_)
           ! Create threadprivate copies of the barrier and mass variance objects.
           allocate(excursionSetBarrier_     ,mold=self%excursionSetBarrier_     )
           allocate(cosmologicalMassVariance_,mold=self%cosmologicalMassVariance_)

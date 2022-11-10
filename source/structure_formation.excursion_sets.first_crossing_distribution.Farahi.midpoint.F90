@@ -688,7 +688,7 @@ contains
           barrierRateTest=self%excursionSetBarrier_%barrier(self%varianceMaximumRate,self%timeMinimumRate*(1.0d0-self%fractionalTimeStep),node,rateCompute=.true.)
           barrierRateTest=self%excursionSetBarrier_%barrier(self%varianceMaximumRate,self%timeMaximumRate                                ,node,rateCompute=.true.)
           ! Enter an OpenMP parallel region. Each parallel thread will solve for the first crossing rate at a different epoch.
-          !$omp parallel private(iTime,timeProgenitor,iVariance,varianceStepRate,i,j,probabilityCrossingPrior,integralKernelRate,crossingFraction,crossingFractionNew,barrier,effectiveBarrierInitial,firstCrossingRateQuad,excursionSetBarrier_,cosmologicalMassVariance_,barrierRateQuad,barrierMidpointRateQuad,massProgenitor,growthFactorEffective,offsetEffective,varianceResidual,erfcArgumentNumerator,erfcArgumentDenominator,erfcValue,message,label) if (.not.mpiSelf%isActive() .or. .not.self%coordinatedMPI_)
+          !$omp parallel private(iTime,timeProgenitor,iVariance,varianceStepRate,i,j,probabilityCrossingPrior,integralKernelRate,crossingFraction,crossingFractionNew,barrier,effectiveBarrierInitial,firstCrossingRateQuad,excursionSetBarrier_,cosmologicalMassVariance_,barrierRateQuad,barrierMidpointRateQuad,massProgenitor,growthFactorEffective,offsetEffective,varianceResidual,erfcArgumentNumerator,erfcArgumentDenominator,erfcValue,message,label,varianceMaximumRateNonCrossing) if (.not.mpiSelf%isActive() .or. .not.self%coordinatedMPI_)
           allocate(excursionSetBarrier_     ,mold=self%excursionSetBarrier_     )
           allocate(cosmologicalMassVariance_,mold=self%cosmologicalMassVariance_)
           !$omp critical(excursionSetsSolverFarahiMidpointDeepCopy)
