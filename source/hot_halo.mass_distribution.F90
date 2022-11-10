@@ -240,7 +240,7 @@ module Hot_Halo_Mass_Distributions
    <unitName>hotHaloMassDistributionChandrasekharIntegral</unitName>
   </chandrasekharIntegralTask>
   !!]
-  function hotHaloMassDistributionChandrasekharIntegral(node,positionCartesian,velocityCartesian,componentType,massType)
+  function hotHaloMassDistributionChandrasekharIntegral(node,positionCartesian,velocityCartesian,radiusHalfMass,componentType,massType)
     !!{
     Computes the Chandrasekhar integral due to the hot halo.
     !!}
@@ -254,16 +254,18 @@ module Hot_Halo_Mass_Distributions
     type            (enumerationComponentTypeType), intent(in   )               :: componentType
     type            (enumerationMassTypeType     ), intent(in   )               :: massType
     double precision                              , intent(in   ), dimension(3) :: positionCartesian                                   , velocityCartesian
+    double precision                              , intent(in   )               :: radiusHalfMass
     double precision                                             , dimension(3) :: positionSpherical
     double precision                              , parameter                   :: XvMaximum                                    =10.0d0
     double precision                                                            :: radius                                              , velocity         , &
          &                                                                         density                                             , xV
-
+    !$GLC attributes unused :: radiusHalfMass
+    
     radius                                      = sqrt(sum(positionCartesian**2))
     velocity                                    = sqrt(sum(velocityCartesian**2))
     positionSpherical                           = [radius,0.0d0,0.0d0]
     density                                     = hotHaloMassDistributionDensity(node,positionSpherical,componentType,massType,weightByMass,weightIndexNull)
-    xV                                          =+velocity                                                                   &
+    xV                                          =+velocity                                                                       &
          &                                       /Ideal_Gas_Sound_Speed(hotHaloTemperatureProfile_%temperature(node,radius)) &
          &                                       /sqrt(2.0d0)
     hotHaloMassDistributionChandrasekharIntegral=-density              &

@@ -145,8 +145,8 @@ contains
     Return an acceleration for satellites due to dynamical friction using the formulation of \cite{chandrasekhar_dynamical_1943}.
     !!}
     use :: Error_Functions                 , only : Error_Function
-    use :: Galactic_Structure_Options      , only : coordinateSystemCartesian
-    use :: Galacticus_Nodes                , only : nodeComponentSatellite   , treeNode
+    use :: Galactic_Structure_Options      , only : coordinateSystemCartesian, componentTypeAll               , massTypeAll
+    use :: Galacticus_Nodes                , only : nodeComponentSatellite   , nodeComponentBasic             , treeNode
     use :: Numerical_Constants_Astronomical, only : gigaYear                 , gravitationalConstantGalacticus, megaParsec
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Prefixes    , only : kilo
@@ -155,62 +155,33 @@ contains
     double precision                                             , dimension(3)          :: chandrasekhar1943Acceleration
     class           (satelliteDynamicalFrictionChandrasekhar1943), intent(inout), target :: self
     type            (treeNode                                   ), intent(inout)         :: node
+    class           (nodeComponentBasic                         ), pointer               :: basic
     class           (nodeComponentSatellite                     ), pointer               :: satellite
     type            (treeNode                                   ), pointer               :: nodeHost
-    double precision                                             , dimension(3)          :: position                            , velocity
-    double precision                                                                     :: massSatellite                       , densityHost       , &
-         &                                                                                  velocityMagnitude                   , velocityDispersion, &
-         &                                                                                  Xv                                  , radius
-    double precision                                             , parameter             :: XvMaximum                    =10.0d0
+    double precision                                             , dimension(3)          :: position                     , velocity
+    double precision                                                                     :: massSatellite                , radiusHalfMassSatellite
 
-    nodeHost                     =>  node                           %mergesWith              (                                             )
-    satellite                    =>  node                           %satellite               (                                             )
-    massSatellite                =   satellite                      %boundMass               (                                             )
-    position                     =   satellite                      %position                (                                             )
-    velocity                     =   satellite                      %velocity                (                                             )
-    radius                       =   Vector_Magnitude                                        (         position                            )
-    velocityDispersion           =   self     %darkMatterProfileDMO_%radialVelocityDispersion(nodeHost,radius                              )
-    velocityMagnitude            =   Vector_Magnitude                                        (         velocity                            )
-    densityHost                  =   self     %galacticStructure_   %density                 (nodeHost,position,coordinateSystemCartesian  )
-    if (velocityDispersion > 0.0d0) then
-       Xv                        =  +velocityMagnitude                     &
-            &                       /velocityDispersion                    &
-            &                       /sqrt(2.0d0)
-    else
-       Xv                        =  +huge(0.0d0)
-    end if
-    if (Xv <= XvMaximum) then
-       chandrasekhar1943Acceleration=  -4.0d0                              &
-            &                          *Pi                                 &
-            &                          *self%coulombLogarithm(node)        &
-            &                          *gravitationalConstantGalacticus**2 &
-            &                          *massSatellite                      &
-            &                          *densityHost                        &
-            &                          /velocityMagnitude**3               &
-            &                          *(                                  &
-            &                            +Error_Function(Xv)               &
-            &                            -2.0d0                            &
-            &                            *Xv                               &
-            &                            *exp(-Xv**2)                      &
-            &                            /sqrt(Pi)                         &
-            &                           )                                  &
-            &                          *velocity                           &
-            &                          *kilo                               &
-            &                          *gigaYear                           &
-            &                          /megaParsec
-    else
-       chandrasekhar1943Acceleration=  -4.0d0                              &
-            &                          *Pi                                 &
-            &                          *self%coulombLogarithm(node)        &
-            &                          *gravitationalConstantGalacticus**2 &
-            &                          *massSatellite                      &
-            &                          *densityHost                        &
-            &                          /velocityMagnitude**3               &
-            &                          *velocity                           &
-            &                          *kilo                               &
-            &                          *gigaYear                           &
-            &                          /megaParsec
-    end if
+    nodeHost                      =>  node                        %mergesWith           (                          )
+    basic                         =>  node                        %basic                (                          )
+    satellite                     =>  node                        %satellite            (                          )
+    massSatellite                 =   satellite                   %boundMass            (                          )
+    position                      =   satellite                   %position             (                          )
+    velocity                      =   satellite                   %velocity             (                          )
+    radiusHalfMassSatellite       =   self     %galacticStructure_%radiusEnclosingMass  (                                 &
+         &                                                                               node                           , &
+         &                                                                               massFractional=0.5d0           , &
+         &                                                                               componentType =componentTypeAll, &
+         &                                                                               massType      =massTypeAll       &
+         &                                                                              )
+    chandrasekhar1943Acceleration =  +4.0d0                                                                                             &
+            &                        *Pi                                                                                                &
+            &                        *self%galacticStructure_%chandrasekharIntegral(nodeHost,position,velocity,radiusHalfMassSatellite) &
+            &                        *self                   %coulombLogarithm     (node                                              ) &
+            &                        *gravitationalConstantGalacticus**2                                                                &
+            &                        *massSatellite                                                                                     &
+            &                        *kilo                                                                                              &
+            &                        *gigaYear                                                                                          &
+            &                        /megaParsec
     return
   end function chandrasekhar1943Acceleration
 

@@ -207,7 +207,7 @@ function Node_Component_Disk_Standard_Tidal_Tensor(self,positionCartesian,compon
   return
 end function Node_Component_Disk_Standard_Tidal_Tensor
 
-function Node_Component_Disk_Standard_Chandrasekhar_Integral(self,positionCartesian,velocityCartesian,componentType,massType)
+function Node_Component_Disk_Standard_Chandrasekhar_Integral(self,positionCartesian,velocityCartesian,radiusHalfMass,componentType,massType)
   !!{
   Computes the gravitational acceleration at a given position for a standard disk.
   !!}
@@ -222,6 +222,7 @@ function Node_Component_Disk_Standard_Chandrasekhar_Integral(self,positionCartes
   double precision                                                  , dimension(3) :: Node_Component_Disk_Standard_Chandrasekhar_Integral
   class           (nodeComponentDiskStandard        ), intent(inout)               :: self
   double precision                                   , intent(in   ), dimension(3) :: positionCartesian                                          , velocityCartesian
+  double precision                                   , intent(in   )               :: radiusHalfMass
   type            (enumerationComponentTypeType     ), intent(in   )               :: componentType
   type            (enumerationMassTypeType          ), intent(in   )               :: massType
   double precision                                   , parameter                   :: toomreQRadiusHalfMass                              =1.50d0  ! The Toomre Q-parameter at the disk half-mass radius (Benson et al.,
@@ -247,7 +248,8 @@ function Node_Component_Disk_Standard_Chandrasekhar_Integral(self,positionCartes
        &                                                                              frequencyCircular                                          , frequencyEpicyclic              , &
        &                                                                              frequencyCircularHalfMassRadius                            , frequencyEpicyclicHalfMassRadius, &
        &                                                                              densitySurfaceRadiusHalfMass                               , velocityDispersionRadialHalfMass, &
-       &                                                                              velocityDispersionMaximum                                  , velocityRelativeMagnitude
+       &                                                                              velocityDispersionMaximum                                  , velocityRelativeMagnitude       , &
+       &                                                                              factorSuppressionExtendedMass
   type            (matrix                           )                              :: rotation
 
   ! Return if the disk component is not selected.
@@ -269,7 +271,7 @@ function Node_Component_Disk_Standard_Chandrasekhar_Integral(self,positionCartes
   velocityCircularSquaredGradient              =Node_Component_Disk_Standard_Rotation_Curve_Gradient(self,     radiusMidplane  ,componentType,massType)
   velocityCircularHalfMassRadius               =Node_Component_Disk_Standard_Rotation_Curve         (self,self%halfMassRadius(),componentType,massType)
   velocityCircularSquaredGradientHalfMassRadius=Node_Component_Disk_Standard_Rotation_Curve_Gradient(self,self%halfMassRadius(),componentType,massType)
-  velocityDisk                                 =+[positionCartesianMidplane(2),-positionCartesianMidplane(1),0.0d0] &
+  velocityDisk                                =+[positionCartesianMidplane(2),-positionCartesianMidplane(1),0.0d0] &
        &                                        /radiusMidplane                                                     &
        &                                        *velocityCircular
   ! Compute epicyclic frequency.
@@ -293,13 +295,16 @@ function Node_Component_Disk_Standard_Chandrasekhar_Integral(self,positionCartes
        &                           *toomreQRadiusHalfMass            &
        &                           /frequencyEpicyclicHalfMassRadius
   ! Find the velocity dispersion components of the disk.
-  velocityDispersionRadial=velocityDispersionRadialHalfMass*exp(-radiusMidPlane/self%radius()/2.0d0)/exp(-self%halfMassRadius()/self%radius()/2.0d0)
-  velocityDispersionAzimuthal=velocityDispersionRadial*frequencyEpicyclic/2.0d0/frequencyCircular
-  velocityDispersionVertical=sqrt(Pi*gravitationalConstantGalacticus*densitySurface*heightScale)
-  velocityDispersionMaximum=maxval([velocityDispersionRadial,velocityDispersionAzimuthal,velocityDispersionVertical])
-  velocityDispersionRadial=velocityDispersionRadial/velocityDispersionMaximum
-  velocityDispersionAzimuthal=velocityDispersionAzimuthal/velocityDispersionMaximum
-  velocityDispersionVertical=velocityDispersionVertical/velocityDispersionMaximum
+  velocityDispersionRadial   =+velocityDispersionRadialHalfMass                &
+       &                      *exp(-     radiusMidPlane  /self%radius()/2.0d0) &
+       &                      /exp(-self%halfMassRadius()/self%radius()/2.0d0)
+  velocityDispersionAzimuthal=+velocityDispersionRadial*frequencyEpicyclic/2.0d0/frequencyCircular
+  velocityDispersionVertical =+sqrt(Pi*gravitationalConstantGalacticus*densitySurface*heightScale)
+  velocityDispersionMaximum  =+maxval([velocityDispersionRadial,velocityDispersionAzimuthal,velocityDispersionVertical])
+  velocityDispersionRadial   =+velocityDispersionRadial   /velocityDispersionMaximum
+  velocityDispersionAzimuthal=+velocityDispersionAzimuthal/velocityDispersionMaximum
+  velocityDispersionVertical =+velocityDispersionVertical /velocityDispersionMaximum
+  if (any([velocityDispersionRadial,velocityDispersionAzimuthal,velocityDispersionVertical] <= 0.0d0)) return
   ! Find the relative velocity of the perturber and the disk.
   velocityRelative=(velocityCartesian-velocityDisk)/velocityDispersionMaximum
   ! Handle limiting case of large relative velocity.
@@ -320,10 +325,20 @@ function Node_Component_Disk_Standard_Chandrasekhar_Integral(self,positionCartes
      velocityDistributionInitialized=.true.
   end if
   call velocityDistribution%initialize(scaleLength=[velocityDispersionRadial,velocityDispersionAzimuthal,velocityDispersionVertical],rotation=rotation)
+  ! Compute suppression factor due to satellite being an extended mass distribution. This is largely untested - it is meant to
+  ! simply avoid extremely large accelerations for subhalo close to the disk plane when that subhalo is much more extended than
+  ! the disk.
+  if (radiusHalfMass > heightScale) then
+     factorSuppressionExtendedMass=+heightScale    &
+          &                        /radiusHalfMass
+  else
+     factorSuppressionExtendedMass=+1.0d0
+  end if
   ! Evaluate the integral.
-  Node_Component_Disk_Standard_Chandrasekhar_Integral=+density                                                         &
-       &                                              *velocityDistribution     %acceleration(coordinatesCartesian)    &
-       &                                              /velocityDispersionMaximum                                   **2
+  Node_Component_Disk_Standard_Chandrasekhar_Integral=+density                                                             &
+       &                                              *velocityDistribution         %acceleration(coordinatesCartesian)    &
+       &                                              /velocityDispersionMaximum                                       **2 &
+       &                                              *factorSuppressionExtendedMass
   return
 end function Node_Component_Disk_Standard_Chandrasekhar_Integral
 

@@ -327,25 +327,29 @@ contains
    <unitName>Node_Component_Hot_Halo_Cold_Mode_Chandrasekhar_Integral</unitName>
   </chandrasekharIntegralTask>
   !!]
-  function Node_Component_Hot_Halo_Cold_Mode_Chandrasekhar_Integral(node,positionCartesian,velocityCartesian,componentType,massType)
+  function Node_Component_Hot_Halo_Cold_Mode_Chandrasekhar_Integral(node,positionCartesian,velocityCartesian,radiusHalfMass,componentType,massType)
     !!{
     Computes the Chandrasekhar integral due to a cold-mode profile.
     !!}
     use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScale, darkMatterHaloScaleClass
     use :: Galactic_Structure_Options, only : weightByMass       , weightIndexNull         , enumerationComponentTypeType, enumerationMassTypeType
-    use :: Galacticus_Nodes          , only : treeNode
+    use :: Galacticus_Nodes          , only : treeNode           , defaultHotHaloComponent
     use :: Numerical_Constants_Math  , only : Pi
     implicit none
     double precision                                             , dimension(3) :: Node_Component_Hot_Halo_Cold_Mode_Chandrasekhar_Integral
     type            (treeNode                    ), intent(inout)               :: node
-    type            (enumerationComponentTypeType), intent(in   )           :: componentType
-    type            (enumerationMassTypeType     ), intent(in   )           :: massType
+    type            (enumerationComponentTypeType), intent(in   )               :: componentType
+    type            (enumerationMassTypeType     ), intent(in   )               :: massType
     double precision                              , intent(in   ), dimension(3) :: positionCartesian                                              , velocityCartesian
+    double precision                              , intent(in   )               :: radiusHalfMass
     double precision                                             , dimension(3) :: positionSpherical
     double precision                              , parameter                   :: XvMaximum                                               =10.0d0
     double precision                                                            :: radius                                                         , velocity         , &
          &                                                                         density                                                        , xV
-    
+    !$GLC attributes unused :: radiusHalfMass
+
+    Node_Component_Hot_Halo_Cold_Mode_Chandrasekhar_Integral=0.0d0
+    if (.not.defaultHotHaloComponent%coldModeIsActive() ) return
     radius                                                   =  sqrt(sum(positionCartesian**2))
     velocity                                                 =  sqrt(sum(velocityCartesian**2))
     positionSpherical                                        =  [radius,0.0d0,0.0d0]

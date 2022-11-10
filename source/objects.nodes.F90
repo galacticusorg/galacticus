@@ -49,15 +49,15 @@ module Galacticus_Nodes
      !!{
      Type to give a list of treeNodes.
      !!}
-     type(treeNode), pointer :: node
+     type(treeNode), pointer :: node => null()
   end type treeNodeList
   
   type, public :: treeNodeLinkedList
      !!{
      Type to give a linked list of treeNodes.
      !!}
-     type(treeNode          ), pointer :: node
-     type(treeNodeLinkedList), pointer :: next
+     type(treeNode          ), pointer :: node => null()
+     type(treeNodeLinkedList), pointer :: next => null()
   end type treeNodeLinkedList
 
   type, public :: mergerTree
@@ -110,10 +110,10 @@ module Galacticus_Nodes
      !!}
      private
      integer         (kind=kind_int8)         , public :: ID
-     type            (mergerTree    ), pointer, public :: tree
+     type            (mergerTree    ), pointer, public :: tree => null()
      double precision                         , public :: time
-     type            (treeEvent     ), pointer, public :: next
-     procedure       (treeEventTask ), pointer, public :: task
+     type            (treeEvent     ), pointer, public :: next => null()
+     procedure       (treeEventTask ), pointer, public :: task => null()
   end type treeEvent
   
   ! Interface for tree event tasks.
@@ -130,8 +130,8 @@ module Galacticus_Nodes
      !!{
      A class used for building linked lists of merger trees.
      !!}
-     type(mergerTreeList), pointer :: next
-     type(mergerTree    ), pointer :: tree
+     type(mergerTreeList), pointer :: next => null()
+     type(mergerTree    ), pointer :: tree => null()
   end type mergerTreeList
 
   type, public :: universe
@@ -171,11 +171,11 @@ module Galacticus_Nodes
      !!}
      private
      integer         (kind=kind_int8   )         , public :: ID
-     type            (universe         ), pointer, public :: universe
+     type            (universe         ), pointer, public :: universe => null()
      double precision                            , public :: time
-     type            (universeEvent    ), pointer, public :: next
-     procedure       (universeEventTask), pointer, public :: task
-     class           (*                ), pointer, public :: creator
+     type            (universeEvent    ), pointer, public :: next     => null()
+     procedure       (universeEventTask), pointer, public :: task     => null()
+     class           (*                ), pointer, public :: creator  => null()
   end type universeEvent
 
   ! Interface for universe event tasks.
@@ -1375,7 +1375,7 @@ module Galacticus_Nodes
     return
   end function Node_Component_Acceleration_Null
 
-  function Node_Component_Chandrasekhar_Integral_Null(self,positionCartesian,velocityCartesian,componentType,massType)
+  function Node_Component_Chandrasekhar_Integral_Null(self,positionCartesian,velocityCartesian,radiusHalfMass,componentType,massType)
     !!{
     A null implementation of the acceleration due to a component. Always returns zero.
     !!}
@@ -1386,7 +1386,8 @@ module Galacticus_Nodes
     type            (enumerationComponentTypeType)              , intent(in   ) :: componentType
     type            (enumerationMassTypeType     )              , intent(in   ) :: massType
     double precision                              , dimension(3), intent(in   ) :: positionCartesian                         , velocityCartesian
-    !$GLC attributes unused :: self, positionCartesian, velocityCartesian, componentType, massType
+    double precision                                            , intent(in   ) :: radiusHalfMass
+    !$GLC attributes unused :: self, positionCartesian, velocityCartesian, radiusHalfMass, componentType, massType
 
     Node_Component_Chandrasekhar_Integral_Null=0.0d0
     return

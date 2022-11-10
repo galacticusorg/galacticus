@@ -154,7 +154,7 @@ contains
    <unitName>Dark_Matter_Profile_Chandrasekhar_Integral_Task</unitName>
   </chandrasekharIntegralTask>
   !!]
-  function Dark_Matter_Profile_Chandrasekhar_Integral_Task(node,positionCartesian,velocityCartesian,componentType,massType)
+  function Dark_Matter_Profile_Chandrasekhar_Integral_Task(node,positionCartesian,velocityCartesian,radiusHalfMass,componentType,massType)
     !!{
     Computes the Chandrasekhar integral due to a dark matter profile.
     !!}
@@ -167,18 +167,26 @@ contains
     type            (enumerationComponentTypeType), intent(in   )               :: componentType
     type            (enumerationMassTypeType     ), intent(in   )               :: massType
     double precision                              , intent(in   ), dimension(3) :: positionCartesian                                     , velocityCartesian
+    double precision                              , intent(in   )               :: radiusHalfMass
     double precision                                             , dimension(3) :: positionSpherical
     double precision                              , parameter                   :: XvMaximum                                      =10.0d0
     double precision                                                            :: radius                                                , velocity         , &
-         &                                                                         density                                               , xV
+         &                                                                         density                                               , xV               , &
+         &                                                                         velocityDispersion
+    !$GLC attributes unused :: radiusHalfMass
 
-    radius                                          =  sqrt(sum(positionCartesian**2))
-    velocity                                        =  sqrt(sum(velocityCartesian**2))
-    positionSpherical                               =  [radius,0.0d0,0.0d0]
-    density                                         =  Dark_Matter_Profile_Density_Task(node,positionSpherical,componentType,massType,weightByMass,weightIndexNull)
-    xV                                              = +                         velocity                        &
-         &                                            /darkMatterProfile_%radialVelocityDispersion(node,radius) &
-         &                                            /sqrt(2.0d0)
+    radius            =sqrt(sum(positionCartesian**2))
+    velocity          =sqrt(sum(velocityCartesian**2))
+    positionSpherical =[radius,0.0d0,0.0d0]
+    density           =Dark_Matter_Profile_Density_Task(node,positionSpherical,componentType,massType,weightByMass,weightIndexNull)
+    velocityDispersion=darkMatterProfile_%radialVelocityDispersion(node,radius)
+    if (velocityDispersion > 0.0d0) then    
+       xV     =+velocity           &
+            &  /velocityDispersion &
+            &  /sqrt(2.0d0)
+    else
+       xV=huge(0.0d0)
+    end if
     Dark_Matter_Profile_Chandrasekhar_Integral_Task = -density              &
          &                                            *velocityCartesian    &
          &                                            /velocity         **3
