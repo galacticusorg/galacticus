@@ -356,16 +356,20 @@ contains
     double precision                                                    :: radiusInitial
     double precision                                                    :: energySpecific
 
-    radiusInitial            =self%darkMatterProfileDMO_    %radiusEnclosingMass(node,mass                                    )
-    energySpecific           =self%darkMatterProfileHeating_%specificEnergy     (node,radiusInitial,self%darkMatterProfileDMO_)
-    heatedRadiusEnclosingMass=+1.0d0                                                      &
-         &                    /                                                           &
-         &                    (                                                           &
-         &                     +1.0d0/radiusInitial                                       &
-         &                     -2.0d0/gravitationalConstantGalacticus/mass*energySpecific &
-         &                    )
-    ! If the radius found is negative, which means the intial shell has expanded to infinity, return the largest radius.
-    if (heatedRadiusEnclosingMass < 0.0d0) heatedRadiusEnclosingMass=radiusLarge
+    radiusInitial =self%darkMatterProfileDMO_    %radiusEnclosingMass(node,mass                                    )
+    energySpecific=self%darkMatterProfileHeating_%specificEnergy     (node,radiusInitial,self%darkMatterProfileDMO_)
+    if (radiusInitial <= 0.0d0) then
+       heatedRadiusEnclosingMass=radiusLarge
+    else       
+       heatedRadiusEnclosingMass=+1.0d0                                                      &
+            &                    /                                                           &
+            &                    (                                                           &
+            &                     +1.0d0/radiusInitial                                       &
+            &                     -2.0d0/gravitationalConstantGalacticus/mass*energySpecific &
+            &                    )
+       ! If the radius found is negative, which means the intial shell has expanded to infinity, return the largest radius.
+       if (heatedRadiusEnclosingMass < 0.0d0) heatedRadiusEnclosingMass=radiusLarge
+    end if
     return
   end function heatedRadiusEnclosingMass
 
