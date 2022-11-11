@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1668114229402,
+  "lastUpdate": 1668156158260,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
@@ -3544,6 +3544,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 10.439381076855,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2b27eb48c3870a038e5b39cacbbaa8d99762c053",
+          "message": "Merge pull request #327 from galacticusorg/orbitMassRatios\n\nLimit mass ratio in orbit calculations",
+          "timestamp": "2022-11-10T19:31:52-08:00",
+          "tree_id": "a00cdb2be2e7b2be8a443dc90fde67e70f553633",
+          "url": "https://github.com/galacticusorg/galacticus/commit/2b27eb48c3870a038e5b39cacbbaa8d99762c053"
+        },
+        "date": 1668156156886,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 12.502,
+            "unit": "seconds",
+            "range": 0.016112107249021
           }
         ]
       }
