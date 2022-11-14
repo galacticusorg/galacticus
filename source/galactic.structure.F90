@@ -156,9 +156,8 @@ module Galactic_Structure
     <description>Compute the integral appearing in the \cite{chandrasekhar_dynamical_1943} dynamical friction model in {\normalfont \ttfamily node}.</description>
     <type>double precision, dimension(3)</type>
     <pass>yes</pass>
-    <argument>type            (treeNode                       ), intent(inout), target       :: node                                </argument>
+    <argument>type            (treeNode                       ), intent(inout), target       :: node             , nodeSatellite    </argument>
     <argument>double precision                                 , intent(in   ), dimension(3) :: positionCartesian, velocityCartesian</argument>
-    <argument>double precision                                 , intent(in   )               :: radiusHalfMass                      </argument>
     <argument>type            (enumerationComponentTypeType   ), intent(in   ), optional     :: componentType                       </argument>
     <argument>type            (enumerationMassTypeType        ), intent(in   ), optional     :: massType                            </argument>
    </method>   

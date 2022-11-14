@@ -145,7 +145,7 @@ contains
     Return an acceleration for satellites due to dynamical friction using the formulation of \cite{chandrasekhar_dynamical_1943}.
     !!}
     use :: Error_Functions                 , only : Error_Function
-    use :: Galactic_Structure_Options      , only : coordinateSystemCartesian, componentTypeAll               , massTypeAll
+    use :: Galactic_Structure_Options      , only : coordinateSystemCartesian, componentTypeDarkHalo          , massTypeDark
     use :: Galacticus_Nodes                , only : nodeComponentSatellite   , nodeComponentBasic             , treeNode
     use :: Numerical_Constants_Astronomical, only : gigaYear                 , gravitationalConstantGalacticus, megaParsec
     use :: Numerical_Constants_Math        , only : Pi
@@ -159,7 +159,7 @@ contains
     class           (nodeComponentSatellite                     ), pointer               :: satellite
     type            (treeNode                                   ), pointer               :: nodeHost
     double precision                                             , dimension(3)          :: position                     , velocity
-    double precision                                                                     :: massSatellite                , radiusHalfMassSatellite
+    double precision                                                                     :: massSatellite
 
     nodeHost                      =>  node                        %mergesWith           (                          )
     basic                         =>  node                        %basic                (                          )
@@ -167,20 +167,14 @@ contains
     massSatellite                 =   satellite                   %boundMass            (                          )
     position                      =   satellite                   %position             (                          )
     velocity                      =   satellite                   %velocity             (                          )
-    radiusHalfMassSatellite       =   self     %galacticStructure_%radiusEnclosingMass  (                                 &
-         &                                                                               node                           , &
-         &                                                                               massFractional=0.5d0           , &
-         &                                                                               componentType =componentTypeAll, &
-         &                                                                               massType      =massTypeAll       &
-         &                                                                              )
-    chandrasekhar1943Acceleration =  +4.0d0                                                                                             &
-            &                        *Pi                                                                                                &
-            &                        *self%galacticStructure_%chandrasekharIntegral(nodeHost,position,velocity,radiusHalfMassSatellite) &
-            &                        *self                   %coulombLogarithm     (node                                              ) &
-            &                        *gravitationalConstantGalacticus**2                                                                &
-            &                        *massSatellite                                                                                     &
-            &                        *kilo                                                                                              &
-            &                        *gigaYear                                                                                          &
+    chandrasekhar1943Acceleration =  +4.0d0                                                                          &
+            &                        *Pi                                                                             &
+            &                        *self%galacticStructure_%chandrasekharIntegral(nodeHost,node,position,velocity) &
+            &                        *self                   %coulombLogarithm     (         node                  ) &
+            &                        *gravitationalConstantGalacticus**2                                             &
+            &                        *massSatellite                                                                  &
+            &                        *kilo                                                                           &
+            &                        *gigaYear                                                                       &
             &                        /megaParsec
     return
   end function chandrasekhar1943Acceleration

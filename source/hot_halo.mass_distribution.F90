@@ -240,7 +240,7 @@ module Hot_Halo_Mass_Distributions
    <unitName>hotHaloMassDistributionChandrasekharIntegral</unitName>
   </chandrasekharIntegralTask>
   !!]
-  function hotHaloMassDistributionChandrasekharIntegral(node,positionCartesian,velocityCartesian,radiusHalfMass,componentType,massType)
+  function hotHaloMassDistributionChandrasekharIntegral(node,nodeSatellite,positionCartesian,velocityCartesian,componentType,massType)
     !!{
     Computes the Chandrasekhar integral due to the hot halo.
     !!}
@@ -250,11 +250,10 @@ module Hot_Halo_Mass_Distributions
     use :: Numerical_Constants_Math  , only : Pi
     implicit none
     double precision                                             , dimension(3) :: hotHaloMassDistributionChandrasekharIntegral
-    type            (treeNode                    ), intent(inout)               :: node
+    type            (treeNode                    ), intent(inout)               :: node                                                , nodeSatellite
     type            (enumerationComponentTypeType), intent(in   )               :: componentType
     type            (enumerationMassTypeType     ), intent(in   )               :: massType
     double precision                              , intent(in   ), dimension(3) :: positionCartesian                                   , velocityCartesian
-    double precision                              , intent(in   )               :: radiusHalfMass
     double precision                                             , dimension(3) :: positionSpherical
     double precision                              , parameter                   :: XvMaximum                                    =10.0d0
     double precision                                                            :: radius                                              , velocity         , &

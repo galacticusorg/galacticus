@@ -154,7 +154,7 @@ contains
    <unitName>Dark_Matter_Profile_Chandrasekhar_Integral_Task</unitName>
   </chandrasekharIntegralTask>
   !!]
-  function Dark_Matter_Profile_Chandrasekhar_Integral_Task(node,positionCartesian,velocityCartesian,radiusHalfMass,componentType,massType)
+  function Dark_Matter_Profile_Chandrasekhar_Integral_Task(node,nodeSatellite,positionCartesian,velocityCartesian,componentType,massType)
     !!{
     Computes the Chandrasekhar integral due to a dark matter profile.
     !!}
@@ -163,17 +163,16 @@ contains
     use :: Numerical_Constants_Math  , only : Pi
     implicit none
     double precision                                             , dimension(3) :: Dark_Matter_Profile_Chandrasekhar_Integral_Task
-    type            (treeNode                    ), intent(inout)               :: node
+    type            (treeNode                    ), intent(inout)               :: node                                                  , nodeSatellite
     type            (enumerationComponentTypeType), intent(in   )               :: componentType
     type            (enumerationMassTypeType     ), intent(in   )               :: massType
     double precision                              , intent(in   ), dimension(3) :: positionCartesian                                     , velocityCartesian
-    double precision                              , intent(in   )               :: radiusHalfMass
     double precision                                             , dimension(3) :: positionSpherical
     double precision                              , parameter                   :: XvMaximum                                      =10.0d0
     double precision                                                            :: radius                                                , velocity         , &
          &                                                                         density                                               , xV               , &
          &                                                                         velocityDispersion
-    !$GLC attributes unused :: radiusHalfMass
+    !$GLC attributes unused :: nodeSatellite
 
     radius            =sqrt(sum(positionCartesian**2))
     velocity          =sqrt(sum(velocityCartesian**2))

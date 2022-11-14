@@ -101,14 +101,13 @@ Contains a module which implements the standard galactic structure functions.
   type            (enumerationStructureErrorCodeType),                            :: status_
   double precision                                   , dimension(3)               :: positionSpherical_           , positionCartesian_ , &
        &                                                                             positionCylindrical_         , velocityCartesian_
-  double precision                                                                :: radiusHalfMass_
-  !$omp threadprivate(status_,positionSpherical_,positionCartesian_,positionCylindrical_,velocityCartesian_,radiusHalfMass_)
+  !$omp threadprivate(status_,positionSpherical_,positionCartesian_,positionCylindrical_,velocityCartesian_)
 
   ! Submodule-scope variables used in root finding.
   double precision                                                                :: massTarget                   , surfaceDensityTarget
-  type            (treeNode                         ), pointer                    :: node_
+  type            (treeNode                         ), pointer                    :: node_                        , nodeSatellite_
   class           (galacticStructureStandard        ), pointer                    :: self_
-  !$omp threadprivate(self_,node_,massTarget,surfaceDensityTarget)
+  !$omp threadprivate(self_,node_,nodeSatellite_,massTarget,surfaceDensityTarget)
 
 contains
 
@@ -898,7 +897,7 @@ contains
     return
   end function tidalTensorComponent
 
-  function standardChandrasekharIntegral(self,node,positionCartesian,velocityCartesian,radiusHalfMass,componentType,massType) result(chandrasekharIntegral)
+  function standardChandrasekharIntegral(self,node,nodeSatellite,positionCartesian,velocityCartesian,componentType,massType) result(chandrasekharIntegral)
     !!{
     Compute the integral appearing in the \cite{chandrasekhar_dynamical_1943} dynamical friction model:
     \begin{equation}
@@ -920,9 +919,8 @@ contains
     implicit none
     double precision                                               , dimension(3) :: chandrasekharIntegral
     class           (galacticStructureStandard     ), intent(inout)               :: self
-    type            (treeNode                      ), intent(inout), target       :: node
+    type            (treeNode                      ), intent(inout), target       :: node                              , nodeSatellite
     double precision                                , intent(in   ), dimension(3) :: positionCartesian                 , velocityCartesian
-    double precision                                , intent(in   )               :: radiusHalfMass
     type            (enumerationComponentTypeType  ), intent(in   ), optional     :: componentType
     type            (enumerationMassTypeType       ), intent(in   ), optional     :: massType
     integer                                         , parameter                   :: chandrasekharIntegralSize       =3
@@ -932,12 +930,12 @@ contains
     call self%defaults(componentType=componentType,massType=massType)
     positionCartesian_              =  positionCartesian
     velocityCartesian_              =  velocityCartesian
-    radiusHalfMass_                 =  radiusHalfMass
+    nodeSatellite_                  => nodeSatellite
     chandrasekharIntegralComponent_ => chandrasekharIntegralComponent
     chandrasekharIntegral           =  node%mapDouble1(chandrasekharIntegralComponent_,chandrasekharIntegralSize,reductionSummation,optimizeFor=optimizeForChandrasekharIntegralSummation)
     !![
     <include directive="chandrasekharIntegralTask" type="functionCall" functionType="function" returnParameter="chandrasekharIntegralComponent__">
-     <functionArgs>node,positionCartesian_,velocityCartesian_,radiusHalfMass_,galacticStructureState_(galacticStructureStateCount)%componentType_,galacticStructureState_(galacticStructureStateCount)%massType_</functionArgs>
+     <functionArgs>node,nodeSatellite,positionCartesian_,velocityCartesian_,galacticStructureState_(galacticStructureStateCount)%componentType_,galacticStructureState_(galacticStructureStateCount)%massType_</functionArgs>
      <onReturn>chandrasekharIntegral=chandrasekharIntegral+chandrasekharIntegralComponent__</onReturn>
     !!]
     include 'galactic_structure.chandrasekharIntegral.tasks.inc'
@@ -958,7 +956,7 @@ contains
     class           (nodeComponent), intent(inout)         :: component
     double precision               , dimension(resultSize) :: chandrasekharIntegralComponent
 
-    chandrasekharIntegralComponent=component%chandrasekharIntegral(positionCartesian_,velocityCartesian_,radiusHalfMass_,galacticStructureState_(galacticStructureStateCount)%componentType_,galacticStructureState_(galacticStructureStateCount)%massType_)
+    chandrasekharIntegralComponent=component%chandrasekharIntegral(nodeSatellite_,positionCartesian_,velocityCartesian_,galacticStructureState_(galacticStructureStateCount)%componentType_,galacticStructureState_(galacticStructureStateCount)%massType_)
     return
   end function chandrasekharIntegralComponent
 

@@ -327,7 +327,7 @@ contains
    <unitName>Node_Component_Hot_Halo_Cold_Mode_Chandrasekhar_Integral</unitName>
   </chandrasekharIntegralTask>
   !!]
-  function Node_Component_Hot_Halo_Cold_Mode_Chandrasekhar_Integral(node,positionCartesian,velocityCartesian,radiusHalfMass,componentType,massType)
+  function Node_Component_Hot_Halo_Cold_Mode_Chandrasekhar_Integral(node,nodeSatellite,positionCartesian,velocityCartesian,componentType,massType)
     !!{
     Computes the Chandrasekhar integral due to a cold-mode profile.
     !!}
@@ -337,16 +337,15 @@ contains
     use :: Numerical_Constants_Math  , only : Pi
     implicit none
     double precision                                             , dimension(3) :: Node_Component_Hot_Halo_Cold_Mode_Chandrasekhar_Integral
-    type            (treeNode                    ), intent(inout)               :: node
+    type            (treeNode                    ), intent(inout)               :: node                                                    , nodeSatellite
     type            (enumerationComponentTypeType), intent(in   )               :: componentType
     type            (enumerationMassTypeType     ), intent(in   )               :: massType
     double precision                              , intent(in   ), dimension(3) :: positionCartesian                                              , velocityCartesian
-    double precision                              , intent(in   )               :: radiusHalfMass
     double precision                                             , dimension(3) :: positionSpherical
     double precision                              , parameter                   :: XvMaximum                                               =10.0d0
     double precision                                                            :: radius                                                         , velocity         , &
          &                                                                         density                                                        , xV
-    !$GLC attributes unused :: radiusHalfMass
+    !$GLC attributes unused :: nodeSatellite
 
     Node_Component_Hot_Halo_Cold_Mode_Chandrasekhar_Integral=0.0d0
     if (.not.defaultHotHaloComponent%coldModeIsActive() ) return

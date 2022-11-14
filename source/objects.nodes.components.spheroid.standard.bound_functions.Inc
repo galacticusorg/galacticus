@@ -161,7 +161,7 @@ function Node_Component_Spheroid_Standard_Tidal_Tensor(self,positionCartesian,co
   return
 end function Node_Component_Spheroid_Standard_Tidal_Tensor
 
-function Node_Component_Spheroid_Standard_Chandrasekhar_Integral(self,positionCartesian,velocityCartesian,radiusHalfMass,componentType,massType)
+function Node_Component_Spheroid_Standard_Chandrasekhar_Integral(self,nodeSatellite,positionCartesian,velocityCartesian,componentType,massType)
   !!{
   Computes the gravitational acceleration at a given position for a standard spheroid.
   !!}
@@ -171,8 +171,8 @@ function Node_Component_Spheroid_Standard_Chandrasekhar_Integral(self,positionCa
   implicit none
   double precision                                              , dimension(3) :: Node_Component_Spheroid_Standard_Chandrasekhar_Integral
   class           (nodeComponentSpheroidStandard), intent(inout)               :: self
+  type            (treeNode                     ), intent(inout)               :: nodeSatellite
   double precision                               , intent(in   ), dimension(3) :: positionCartesian                                             , velocityCartesian
-  double precision                               , intent(in   )               :: radiusHalfMass
   type            (enumerationComponentTypeType ), intent(in   )               :: componentType
   type            (enumerationMassTypeType      ), intent(in   )               :: massType
   double precision                                              , dimension(3) :: positionSpherical
@@ -180,7 +180,7 @@ function Node_Component_Spheroid_Standard_Chandrasekhar_Integral(self,positionCa
   double precision                                                             :: radius                                                        , velocity          , &
        &                                                                          density                                                       , xV                , &
        &                                                                          velocityRotation                                              , velocityDispersion
-  !$GLC attributes unused :: radiusHalfMass
+  !$GLC attributes unused :: nodeSatellite
   
   ! Return if the spheroid component is not selected.
   Node_Component_Spheroid_Standard_Chandrasekhar_Integral=0.0d0

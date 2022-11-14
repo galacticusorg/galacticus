@@ -28,6 +28,7 @@ module Galacticus_Nodes
   !!}
   use            :: Abundances_Structure               , only : abundances
   use            :: Chemical_Abundances_Structure      , only : chemicalAbundances
+  use            :: Galactic_Structure_Options         , only : enumerationComponentTypeType , enumerationMassTypeType
   use            :: Hashes                             , only : doubleHash                   , genericHash
   use            :: Histories                          , only : history                      , longIntegerHistory
   use            :: IO_HDF5                            , only : hdf5Object
@@ -1375,7 +1376,7 @@ module Galacticus_Nodes
     return
   end function Node_Component_Acceleration_Null
 
-  function Node_Component_Chandrasekhar_Integral_Null(self,positionCartesian,velocityCartesian,radiusHalfMass,componentType,massType)
+  function Node_Component_Chandrasekhar_Integral_Null(self,nodeSatellite,positionCartesian,velocityCartesian,componentType,massType)
     !!{
     A null implementation of the acceleration due to a component. Always returns zero.
     !!}
@@ -1383,11 +1384,11 @@ module Galacticus_Nodes
     implicit none
     double precision                              , dimension(3)                :: Node_Component_Chandrasekhar_Integral_Null
     class           (nodeComponent               )              , intent(inout) :: self
+    type            (treeNode                    )              , intent(inout) :: nodeSatellite
     type            (enumerationComponentTypeType)              , intent(in   ) :: componentType
     type            (enumerationMassTypeType     )              , intent(in   ) :: massType
     double precision                              , dimension(3), intent(in   ) :: positionCartesian                         , velocityCartesian
-    double precision                                            , intent(in   ) :: radiusHalfMass
-    !$GLC attributes unused :: self, positionCartesian, velocityCartesian, radiusHalfMass, componentType, massType
+    !$GLC attributes unused :: self, nodeSatellite, positionCartesian, velocityCartesian, componentType, massType
 
     Node_Component_Chandrasekhar_Integral_Null=0.0d0
     return
