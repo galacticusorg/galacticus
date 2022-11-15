@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1668156167499,
+  "lastUpdate": 1668514019524,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
@@ -3628,6 +3628,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 10.4559841688061,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d961f9f4b89ee922ef58bb7ef8b97b5b4b01cf22",
+          "message": "Merge pull request #328 from galacticusorg/chandraIntegrals\n\nPass a half-mass radius to Chandrasekhar integral functions",
+          "timestamp": "2022-11-14T22:19:06-08:00",
+          "tree_id": "9e04dfbaec9029b954effe6798c60e4646535466",
+          "url": "https://github.com/galacticusorg/galacticus/commit/d961f9f4b89ee922ef58bb7ef8b97b5b4b01cf22"
+        },
+        "date": 1668514018645,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 17.584,
+            "unit": "seconds",
+            "range": 0.227214436161093
           }
         ]
       }
