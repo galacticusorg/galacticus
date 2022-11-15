@@ -220,7 +220,7 @@ contains
     type            (table1DGeneric                                      )                                :: interpolator
     character       (len=4                                               )                                :: redshiftMinimumLabel                                          , redshiftMaximumLabel
     !![
-    <constructureAssign variables="redshiftInterval, likelihoodBin, computeScatter, systematicErrorPolynomialCoefficient, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterProfileDMO_, *virialDensityContrast_,* galacticStructure_, *outputTimes_"/>
+    <constructorAssign variables="redshiftInterval, likelihoodBin, computeScatter, systematicErrorPolynomialCoefficient, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterProfileDMO_, *virialDensityContrast_, *galacticStructure_, *outputTimes_"/>
     !!]
     
     ! Construct survey geometry.
