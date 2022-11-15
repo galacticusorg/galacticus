@@ -154,7 +154,7 @@ sub Build_Node_Component_Class {
 	     function    => "Node_Component_Output_Null"                                                                           ,
 	     description => "Generate values of outputtable properties."                                                           ,
 	     returnType  => "\\void"                                                                                               ,
-	     arguments   => "\\intzero\\ integerProperty\\arginout, \\intzero\\ integerBufferCount\\arginout, \\textcolor{red}{\\textless type(outputPropertyInteger)(:)\\textgreater} integerProperties\\arginout, \\intzero doubleProperty\\arginout, \\intzero\\ doubleBufferCount\\arginout, \\textcolor{red}{\\textless type(otuputPropertyDouble)(:)\\textgreater} doubleProperties\\arginout, \\doublezero\\ time\\argin, \\intzero\\ instance\\argin"
+	     arguments   => "\\intzero\\ integerProperty\\arginout, \\intzero\\ integerBufferCount\\arginout, \\textcolor{red}{\\textless type(outputPropertyInteger)(:)\\textgreater} integerProperties\\arginout, \\intzero doubleProperty\\arginout, \\intzero\\ doubleBufferCount\\arginout, \\textcolor{red}{\\textless type(outputPropertyDouble)(:)\\textgreater} doubleProperties\\arginout, \\doublezero\\ time\\argin, \\intzero\\ instance\\argin"
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
@@ -181,7 +181,7 @@ sub Build_Node_Component_Class {
 	     description => "Compute the Chandrasekhar integral for a given position and velocity."                                ,
 	     mappable    => "summation"                                                                                            ,
 	     returnType  => "\\doubleone"                                                                                          ,
-	     arguments   => "\\doubleone\\ position\\argin, \\doubleone\\ velocity\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin"
+	     arguments   => "\\doubleone\\ position\\argin, \\doubleone\\ velocity\\argin, \\doublezero\\ radiusHalfMass\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin"
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,

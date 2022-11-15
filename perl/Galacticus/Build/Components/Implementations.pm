@@ -32,9 +32,8 @@ use Galacticus::Build::Components::DataTypes;
 	     ],
 	 gather      =>
 	     [
-	      \&Implementation_Dependencies    ,
-	      \&Implementation_Parents         ,
-	      \&Implementation_Bindings_Inherit
+	      \&Implementation_Dependencies,
+	      \&Implementation_Parents
 	     ],
 	 types       =>
 	     [
@@ -193,29 +192,6 @@ sub Implementation_Parents {
 	if ( exists($implementation->{'extends'}) ) {
 	    my $parentIdentifier = ucfirst($implementation->{'extends'}->{'class'}).ucfirst($implementation->{'extends'}->{'name'});
 	    $implementation->{'extends'}->{'implementation'} = $build->{'components'}->{$parentIdentifier};
-	}
-    }
-}
-
-sub Implementation_Bindings_Inherit {
-    # Inherit bindings from any parent implementations.
-    my $build = shift();
-    # Iterate over implementations.
-    foreach my $implementation ( &List::ExtraUtils::hashList($build->{'components'}) ) {
-	# For extensions, copy any binding from the parent class.
-	if ( exists($implementation->{'extends'}) ) {
-	    foreach my $parentBinding ( @{$implementation->{'extends'}->{'implementation'}->{'bindings'}->{'binding'}} ) {
-		push
-		    (
-		     @{$implementation->{'bindings'}->{'binding'}},
-		     $parentBinding
-		    )
-		    unless ( 
-			! $parentBinding->{'isDeferred'}
-			||
-			grep {$_->{'method'} eq $parentBinding->{'method'}} @{$implementation->{'bindings'}->{'binding'}}
-		    );		    
-	    }
 	}
     }
 }
