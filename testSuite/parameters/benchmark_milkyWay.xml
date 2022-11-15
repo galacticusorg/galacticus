@@ -36,7 +36,7 @@
   <!-- Halo mass resolution -->
   <mergerTreeMassResolution value="fixed">
     <!-- All trees are set to have the same halo mass resolution. -->
-    <massResolution value="1.0e10"/>
+    <massResolution value="1.0e9"/>
   </mergerTreeMassResolution>
 
   <!-- Output epochs -->
