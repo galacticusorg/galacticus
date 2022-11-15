@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1668539621966,
+  "lastUpdate": 1668539632007,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
@@ -3742,6 +3742,60 @@ window.BENCHMARK_DATA = {
             "value": 173.808,
             "unit": "seconds",
             "range": 0.153966230065361
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "6eab8997cd73cb0a474228ade542d133890ad138",
+          "message": "fix: Avoid out-of-range error when integrating Vega spectrum\n\nThe interpolation of the Vega spectrum used for computing AB-Vega offsets previously had no `extrapolationType` defined, causing it to fail if integration extended outside of the tabulated range (e.g. for some ionizing luminosity filters). The `extrapolationType` is now set to `zero` so that zero flux is assumed outside of the tabulated range.",
+          "timestamp": "2022-11-15T08:28:30-08:00",
+          "tree_id": "f719a6b9bcd1a3c271446d6abae1156039d42e13",
+          "url": "https://github.com/galacticusorg/galacticus/commit/6eab8997cd73cb0a474228ade542d133890ad138"
+        },
+        "date": 1668539630689,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassMetallicityRelation",
+            "value": 3.31979942141629,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassSizeRelation",
+            "value": 4.63147644711799,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassVelocityDispersionRelation",
+            "value": 0.759755093109701,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupOccupationFraction",
+            "value": 23.7020542554721,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassFunction",
+            "value": 290.888298717031,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
+            "value": 11.1286085085407,
+            "unit": "-logℒ"
           }
         ]
       }
