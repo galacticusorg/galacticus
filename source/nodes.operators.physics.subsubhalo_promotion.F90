@@ -73,6 +73,8 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily subsubhaloPromotion} node operator class.
     !!}
+    use            :: Error               , only : Component_List           , Error_Report
+    use            :: Galacticus_Nodes    , only : defaultSatelliteComponent
     implicit none
     type (nodeOperatorSubsubhaloPromotion)                        :: self
     class(darkMatterProfileDMOClass      ), intent(in   ), target :: darkMatterProfileDMO_
@@ -80,6 +82,16 @@ contains
     <constructorAssign variables="*darkMatterProfileDMO_"/>
     !!]
 
+    if (.not.defaultSatelliteComponent%positionIsGettable())                                                             &
+            & call Error_Report                                                                                          &
+            &      (                                                                                                     &
+            &       'sub-subhalo promotion requires that the position property of the satellite component be gettable'// &
+            &       Component_List(                                                                                      &
+            &                      'satellite'                                                                        ,  &
+            &                       defaultSatelliteComponent%positionAttributeMatch(requireGettable=.true.)             &
+            &                     )                                                                                   // &
+            &       {introspection:location}                                                                             &
+            &      )
     return
   end function subsubhaloPromotionConstructorInternal
 

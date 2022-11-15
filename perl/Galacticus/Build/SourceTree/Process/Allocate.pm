@@ -23,16 +23,26 @@ sub Process_Allocate {
 	    # Record that node is processed.
 	    $node->{'processed'} = 1;
 	    # Get the declaration and determine rank of the shape variable.
-	    my $declaration = &Galacticus::Build::SourceTree::Parse::Declarations::GetDeclaration($node->{'parent'},$node->{'directive'}->{'shape'});
-	    my $rank = 0;
-	    foreach my $attribute ( @{$declaration->{'attributes'}} ) {
-		if ( $attribute =~ m/^dimension/ ) {
-		    $rank = ($attribute =~ tr/,//)+1;
+	    my $rank;
+	    if ( exists($node->{'directive'}->{'rank'}) ) {
+		$rank = $node->{'directive'}->{'rank'};
+	    } else {
+		my $declaration = &Galacticus::Build::SourceTree::Parse::Declarations::GetDeclaration($node->{'parent'},$node->{'directive'}->{'variable'});
+		foreach my $attribute ( @{$declaration->{'attributes'}} ) {
+		    if ( $attribute =~ m/^dimension/ ) {
+			$rank = ($attribute =~ tr/,//)+1;
+		    }
 		}
 	    }
 	    # Generate code.
 	    my $allocator  = "! Auto-generated allocation\n";
-	    $allocator    .= "allocate(".$node->{'directive'}->{'variable'}.($rank == 0 ? "" : "(".join(",",map {"size(".$node->{'directive'}->{'shape'}.",dim=".$_.")"} 1..$rank).")").")\n";
+	    if (exists($node->{'directive'}->{'shape'})) {
+		$allocator    .= "allocate(".$node->{'directive'}->{'variable'}.($rank == 0 ? "" : "(".join(",",map {"".$node->{'directive'}->{'shape'}."(".$_.")"} 1..$rank).")").")\n";
+	    } elsif (exists($node->{'directive'}->{'size'}) ) {
+		$allocator    .= "allocate(".$node->{'directive'}->{'variable'}.($rank == 0 ? "" : "(".join(",",map {"size(".$node->{'directive'}->{'size' }.",dim=".$_.")"} 1..$rank).")").")\n";
+	    } else {
+		die("No source given for allocation");
+	    }
 	    $allocator    .= "! End auto-generated allocation\n";
 	    # Create a new node.
 	    my $allocatorNode =

@@ -33,7 +33,26 @@
      A spinDistribution output analysis class.
      !!}
      private
+     class           (cosmologyParametersClass         ), pointer :: cosmologyParameters_          => null()
+     class           (cosmologyFunctionsClass          ), pointer :: cosmologyFunctions_           => null()
+     class           (nbodyHaloMassErrorClass          ), pointer :: nbodyHaloMassError_           => null()
+     class           (haloMassFunctionClass            ), pointer :: haloMassFunction_             => null()
+     class           (darkMatterHaloScaleClass         ), pointer :: darkMatterHaloScale_          => null()
+     class           (darkMatterProfileDMOClass        ), pointer :: darkMatterProfileDMO_         => null()
+     class           (darkMatterProfileScaleRadiusClass), pointer :: darkMatterProfileScaleRadius_ => null()
+     class           (virialDensityContrastClass       ), pointer :: virialDensityContrast_        => null(), virialDensityContrastDefinition_   => null()
+     double precision                                             :: timeRecent                             , logNormalRange                              , &
+          &                                                          massMinimum                            , massMaximum                                 , &
+          &                                                          spinMinimum                            , spinMaximum                                 , &
+          &                                                          countSpinsPerDecade                    , redshift                                    , &
+          &                                                          time                                   , energyEstimateParticleCountMaximum          , &
+          &                                                          massParticle
+     integer         (c_size_t                         )          :: countSpins
+     integer                                                      :: particleCountMinimum
+     logical                                                      :: errorTolerant
+     type            (varying_string                   )          :: fileName
    contains
+     final     ::                  spinDistributionDestructor
      procedure :: logLikelihood => spinDistributionLogLikelihood
   end type outputAnalysisSpinDistribution
 
@@ -42,9 +61,9 @@
      Constructors for the ``spinDistribution'' output analysis class.
      !!}
      module procedure spinDistributionConstructorParameters
-     module procedure spinDistributionConstructorFile
-     module procedure spinDistributionConstructorInternal
-  end interface outputAnalysisSpinDistribution
+       module procedure spinDistributionConstructorFile
+         module procedure spinDistributionConstructorInternal
+        end interface outputAnalysisSpinDistribution
 
 contains
 
@@ -360,7 +379,6 @@ contains
     use :: Halo_Mass_Functions                     , only : haloMassFunctionClass
     use :: Halo_Spin_Distributions                 , only : haloSpinDistributionDeltaFunction                , haloSpinDistributionNbodyErrors
     use :: ISO_Varying_String                      , only : var_str
-    use :: Memory_Management                       , only : allocateArray
     use :: Node_Property_Extractors                , only : nodePropertyExtractorSpin
     use :: Numerical_Comparison                    , only : Values_Agree
     use :: Numerical_Ranges                        , only : Make_Range                                       , rangeTypeLogarithmic
@@ -420,12 +438,15 @@ contains
     integer                                                            , parameter                                  :: covarianceBinomialBinsPerDecade         =2
     double precision                                                   , parameter                                  :: covarianceBinomialMassHaloMinimum       =3.000d11, covarianceBinomialMassHaloMaximum=1.0d15
     integer         (c_size_t                                         )                                             :: i                                                , bufferCount
-
+    !![
+    <constructorAssign variables="label, comment, time, massMinimum, massMaximum, spinMinimum, spinMaximum, countSpins, timeRecent, massParticle, particleCountMinimum, energyEstimateParticleCountMaximum, logNormalRange, errorTolerant, *cosmologyParameters_, *cosmologyFunctions_, *nbodyHaloMassError_, *haloMassFunction_, *darkMatterHaloScale_, *darkMatterProfileDMO_, *darkMatterProfileScaleRadius_, *outputTimes_, *virialDensityContrast_, *virialDensityContrastDefinition_, targetLabel, functionValueTarget, functionCovarianceTarget"/>
+    !!]
+    
     ! Build grid of spins.
-    call allocateArray(spins,[countSpins])
+    allocate(spins(countSpins))
     spins=Make_Range(spinMinimum,spinMaximum,int(countSpins),rangeType=rangeTypeLogarithmic)
     ! Compute weights that apply to each output redshift.
-    call allocateArray(outputWeight,[countSpins,outputTimes_%count()])
+    allocate(outputWeight(countSpins,outputTimes_%count()))
     outputWeight=0.0d0
     do i=1,outputTimes_%count()
        if (Values_Agree(outputTimes_%time(i),time,absTol=1.0d-10)) outputWeight(:,i)=1.0d0
@@ -660,3 +681,24 @@ contains
     end if
     return
   end function spinDistributionLogLikelihood
+
+  subroutine spinDistributionDestructor(self)
+    !!{
+    Destructor for the {\normalfont \ttfamily spinDistribution} output analysis class.
+    !!}
+    implicit none
+    type(outputAnalysisSpinDistribution), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%nbodyHaloMassError_"             />
+    <objectDestructor name="self%haloMassFunction_"               />
+    <objectDestructor name="self%darkMatterHaloScale_"            />
+    <objectDestructor name="self%darkMatterProfileDMO_"           />
+    <objectDestructor name="self%darkMatterProfileScaleRadius_"   />
+    <objectDestructor name="self%virialDensityContrast_"          />
+    <objectDestructor name="self%virialDensityContrastDefinition_"/>
+    <objectDestructor name="self%cosmologyFunctions_"             />
+    <objectDestructor name="self%cosmologyParameters_"            />
+    !!]
+    return
+  end subroutine spinDistributionDestructor

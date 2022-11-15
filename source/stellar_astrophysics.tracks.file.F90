@@ -135,7 +135,6 @@ contains
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : hdf5Object
     use :: ISO_Varying_String, only : assignment(=), operator(//), varying_string
-    use :: Memory_Management , only : allocateArray
     use :: String_Handling   , only : operator(//)
     implicit none
     type     (stellarTracksFile)                :: self
@@ -189,13 +188,13 @@ contains
        end if
     end do
     ! Allocate storage space for data.
-    call allocateArray(self%metallicityLogarithmic,[                                        metallicityCountMaximum])
-    call allocateArray(self%countMassInitial      ,[                                        metallicityCountMaximum])
-    call allocateArray(self%massInitial           ,[                initialMassCountMaximum,metallicityCountMaximum])
-    call allocateArray(self%countAge              ,[                initialMassCountMaximum,metallicityCountMaximum])
-    call allocateArray(self%age                   ,[ageCountMaximum,initialMassCountMaximum,metallicityCountMaximum])
-    call allocateArray(self%luminosityTrack       ,[ageCountMaximum,initialMassCountMaximum,metallicityCountMaximum])
-    call allocateArray(self%temperatureTrack      ,[ageCountMaximum,initialMassCountMaximum,metallicityCountMaximum])
+    allocate(self%metallicityLogarithmic(metallicityCountMaximum))
+    allocate(self%countMassInitial      (metallicityCountMaximum))
+    allocate(self%massInitial           (initialMassCountMaximum,metallicityCountMaximum))
+    allocate(self%countAge              (initialMassCountMaximum,metallicityCountMaximum))
+    allocate(self%age                   (ageCountMaximum,initialMassCountMaximum,metallicityCountMaximum))
+    allocate(self%luminosityTrack       (ageCountMaximum,initialMassCountMaximum,metallicityCountMaximum))
+    allocate(self%temperatureTrack      (ageCountMaximum,initialMassCountMaximum,metallicityCountMaximum))
     ! Read in all data.
     do metallicityCount=1,metallicityCountMaximum
        ! Open the metallicity group.

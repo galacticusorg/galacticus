@@ -269,7 +269,7 @@ contains
     newHistory%data(1:size(historyStarFormation%time),:)=historyStarFormation%data(:,:)
     call historyStarFormation%destroy()
     historyStarFormation=newHistory
-    call newHistory%destroy(recordMemory=.false.)
+    call newHistory%destroy()
     return
   end subroutine inSituOutput
 
@@ -277,7 +277,6 @@ contains
     !!{
     Set the scalings for error control on the absolute values of star formation histories.
     !!}
-    use :: Memory_Management, only : deallocateArray
     implicit none
     class           (starFormationHistoryInSitu), intent(inout)               :: self
     double precision                            , intent(in   )               :: massStellar
@@ -293,7 +292,7 @@ contains
     forall(i=1:2)
        historyStarFormation%data(:,i)=max(massStellar,massStellarMinimum)/timeSteps
     end forall
-    call deallocateArray(timeSteps)
+    deallocate(timeSteps)
     return
   end subroutine inSituScales
 

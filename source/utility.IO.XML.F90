@@ -70,8 +70,8 @@ module IO_XML
      !!{
      Type used while resolving XInclude references during XML parsing.
      !!}
-     type(node          ), pointer :: nodeParent, nodeXInclude
-     type(varying_string)          :: fileName  , xPath
+     type(node          ), pointer :: nodeParent => null(), nodeXInclude => null()
+     type(varying_string)          :: fileName            , xPath
   end type xincludeNode
 
   type :: xincludeNodeList
@@ -85,7 +85,7 @@ module IO_XML
      !!{
      Type used to provide lists of XML nodes.
      !!}
-     type(node), pointer :: element
+     type(node), pointer :: element => null()
   end type xmlNodeList
   
 contains
@@ -132,7 +132,6 @@ contains
     Read one column of data from an array of XML elements.
     !!}
     use :: FoX_dom          , only : extractDataContent, getElementsByTagName, node
-    use :: Memory_Management, only : allocateArray
     implicit none
     type            (node       )                           , intent(in   ), pointer :: xmlElement
     character       (len=*      )                           , intent(in   )          :: arrayElementName
@@ -143,7 +142,8 @@ contains
     integer                                                                          :: i
 
     call XML_Get_Elements_By_Tag_Name(xmlElement,arrayElementName,arrayElements)
-    call allocateArray(column1,[size(arrayElements)])
+    if (allocated(column1)) deallocate(column1)
+    allocate(column1(size(arrayElements)))
     do i=1,size(arrayElements)
        arrayElement => arrayElements(i-1)%element
        call extractDataContent(arrayELement,dataValues)
@@ -157,7 +157,6 @@ contains
     Read two columns of data from an array of XML elements.
     !!}
     use :: FoX_dom          , only : extractDataContent, getElementsByTagName, node
-    use :: Memory_Management, only : allocateArray
     implicit none
     type            (node       )                           , intent(in   ), pointer :: xmlElement
     character       (len=*      )                           , intent(in   )          :: arrayElementName
@@ -168,8 +167,10 @@ contains
     integer                                                                          :: i
 
     call XML_Get_Elements_By_Tag_Name(xmlElement,arrayElementName,arrayElements)
-    call allocateArray(column1,[size(arrayElements)])
-    call allocateArray(column2,[size(arrayElements)])
+    if (allocated(column1)) deallocate(column1)
+    if (allocated(column2)) deallocate(column2)
+    allocate(column1(size(arrayElements)))
+    allocate(column2(size(arrayElements)))
     do i=1,size(arrayElements)
        arrayElement => arrayElements(i-1)%element
        call extractDataContent(arrayELement,dataValues)
@@ -184,7 +185,6 @@ contains
     Read one column of data from an array of XML elements.
     !!}
     use :: FoX_dom          , only : extractDataContent, node
-    use :: Memory_Management, only : allocateArray
     implicit none
     type            (xmlNodeList)             , dimension(0:), intent(in   ) :: xmlElements
     character       (len=*      )                            , intent(in   ) :: arrayElementName
@@ -193,7 +193,8 @@ contains
     double precision                          , dimension(1 )                :: dataValues
     integer                                                                  :: i
 
-    call allocateArray(column1,[size(xmlElements)])
+    if (allocated(column1)) deallocate(column1)
+    allocate(column1(size(xmlElements)))
     do i=1,size(xmlElements)
        arrayElement => XML_Get_First_Element_By_Tag_Name(xmlElements(i-1)%element,arrayElementName)
        call extractDataContent(arrayELement,dataValues)
@@ -509,7 +510,8 @@ contains
           &                           getChildNodes, getDocumentElement, getFirstChild, getNextSibling  , &
           &                           getNodeName  , getNodeType       , getParentNode, hasAttribute    , &
           &                           hasChildNodes, importNode        , insertBefore , node            , &
-          &                           parseFile    , removeChild       , replaceChild , setLiveNodeLists
+          &                           parseFile    , removeChild       , replaceChild , setLiveNodeLists, &
+          &                           setAttribute
     use :: Error             , only : Error_Report
     use :: ISO_Varying_String, only : assignment(=), char              , extract      , len             , &
           &                           operator(//) , operator(==)
@@ -528,7 +530,7 @@ contains
     integer                                                  :: stackCount         , stackListCount, &
          &                                                      i                  , countElements
     type     (varying_string  )                              :: filePath           , fileLeaf      , &
-         &                                                      nameInsert
+         &                                                      nameInsert         , fileNameFull
     logical                                                  :: allElements
 
     ! Extract the path and leaf name to our document.
@@ -558,13 +560,24 @@ contains
 #ifdef THREADSAFEIO
        !$omp critical(gfortranInternalIO)
 #endif
-       nodeNew      => parseFile(char(filePath//stack(stackCount)%fileName    ),iostat=iostat,ex=ex)
+       nodeNew => parseFile(char(filePath//stack(stackCount)%fileName),iostat=iostat,ex=ex)
 #ifdef THREADSAFEIO
        !$omp end critical(gfortranInternalIO)
 #endif
        if (present(iostat).and.iostat /= 0) return
-       nodeParent   =>                          stack(stackCount)%nodeParent
-       nodeXInclude =>                          stack(stackCount)%nodeXInclude
+       ! Paths in any xi:include elements are relative to the file they are defined in. We must update this to be relative to our base parameter file.
+       call XML_Get_Elements_By_Tag_Name(nodeNew,"xi:include",nodesCurrent)
+       do i=0,size(nodesCurrent)-1
+          nodeCurrent => nodesCurrent(i)%element
+          if (getNodeName(nodeCurrent) == "xi:include") then
+             if (.not.hasAttribute(nodeCurrent,"href")) call Error_Report("missing 'href' in XInclude"//{introspection:location})
+             fileNameFull=File_Path(stack(stackCount)%fileName)//getAttribute(nodeCurrent,"href")
+             call setAttribute(nodeCurrent,"href",char(fileNameFull))
+          end if
+       end do
+       ! Process the file into our combined document.
+       nodeParent   => stack(stackCount)%nodeParent
+       nodeXInclude => stack(stackCount)%nodeXInclude
        if (stack(stackCount)%xPath == "") then
           nodeInsert => getDocumentElement(nodeNew)
           nameInsert =  ""

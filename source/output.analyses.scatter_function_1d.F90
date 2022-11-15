@@ -40,19 +40,31 @@
      A generic 1D scatter function (i.e. scatter of some property weighted by number density of objects binned by some property) output analysis class.
      !!}
      private
-     type            (varying_string              )                              :: label                       , comment                          , &
-          &                                                                         propertyLabel               , propertyComment                  , &
-          &                                                                         scatterLabel                , scatterComment                   , &
-          &                                                                         propertyUnits               , scatterUnits                     , &
-          &                                                                         xAxisLabel                  , yAxisLabel                       , &
-          &                                                                         targetLabel
-     double precision                                                            :: propertyUnitsInSI           , scatterUnitsInSI
-     type            (outputAnalysisMeanFunction1D), pointer                     :: meanFunction       => null(), meanSquaredFunction     => null()
-     double precision                              , allocatable, dimension(:  ) :: binCenter                   , scatterValue                     , &
-          &                                                                         scatterValueTarget
-     double precision                              , allocatable, dimension(:,:) :: scatterCovariance           , scatterCovarianceTarget
-     logical                                                                     :: finalized                   , likelihoodNormalize              , &
-          &                                                                         xAxisIsLog                  , yAxisIsLog
+     class           (nodePropertyExtractorClass                  ), pointer                     :: nodePropertyExtractor_                => null(), outputAnalysisWeightPropertyExtractor_ => null()
+     class           (outputAnalysisPropertyOperatorClass         ), pointer                     :: outputAnalysisPropertyOperator_       => null(), outputAnalysisPropertyUnoperator_      => null(), &
+          &                                                                                         outputAnalysisWeightPropertyOperator_ => null()
+     class           (outputAnalysisWeightOperatorClass           ), pointer                     :: outputAnalysisWeightOperator_         => null()
+     class           (outputAnalysisDistributionOperatorClass     ), pointer                     :: outputAnalysisDistributionOperator_   => null()
+     class           (galacticFilterClass                         ), pointer                     :: galacticFilter_                       => null()
+     class           (outputTimesClass                            ), pointer                     :: outputTimes_                          => null()
+     integer         (c_size_t                                    )                              :: bufferCount
+     integer                                                                                     :: covarianceBinomialBinsPerDecade
+     type            (enumerationOutputAnalysisCovarianceModelType)                              :: covarianceModel
+     type            (varying_string                              )                              :: label                                          , comment                                         , &
+          &                                                                                         propertyLabel                                  , propertyComment                                 , &
+          &                                                                                         scatterLabel                                   , scatterComment                                  , &
+          &                                                                                         propertyUnits                                  , scatterUnits                                    , &
+          &                                                                                         xAxisLabel                                     , yAxisLabel                                      , &
+          &                                                                                         targetLabel
+     double precision                                                                            :: propertyUnitsInSI                              , scatterUnitsInSI                                , &
+          &                                                                                         covarianceBinomialMassHaloMinimum              , covarianceBinomialMassHaloMaximum
+     type            (outputAnalysisMeanFunction1D                ), pointer                     :: meanFunction                          => null(), meanSquaredFunction                    => null()
+     double precision                                              , allocatable, dimension(:  ) :: binCenter                                      , scatterValue                                    , &
+          &                                                                                         scatterValueTarget                             , scatterCovarianceTarget1D                       , &
+          &                                                                                         outputWeight
+     double precision                                              , allocatable, dimension(:,:) :: scatterCovariance                              , scatterCovarianceTarget
+     logical                                                                                     :: finalized                                      , likelihoodNormalize                             , &
+          &                                                                                         xAxisIsLog                                     , yAxisIsLog
    contains
      final     ::                  scatterFunction1DDestructor
      procedure :: analyze       => scatterFunction1DAnalyze
@@ -77,12 +89,11 @@ contains
     !!}
     use :: Error                  , only : Error_Report
     use :: Input_Parameters       , only : inputParameter                                , inputParameters
-    use :: Memory_Management      , only : allocateArray
     use :: Output_Analyses_Options, only : enumerationOutputAnalysisCovarianceModelEncode
     implicit none
     type            (outputAnalysisScatterFunction1D        )                              :: self
     type            (inputParameters                        ), intent(inout)               :: parameters
-    class           (nodePropertyExtractorClass             ), pointer                     :: nodePropertyExtractor_     , outputAnalysisWeightPropertyExtractor_
+    class           (nodePropertyExtractorClass             ), pointer                     :: nodePropertyExtractor_               , outputAnalysisWeightPropertyExtractor_
     class           (outputAnalysisPropertyOperatorClass    ), pointer                     :: outputAnalysisPropertyOperator_      , outputAnalysisPropertyUnoperator_     , &
          &                                                                                    outputAnalysisWeightPropertyOperator_
     class           (outputAnalysisWeightOperatorClass      ), pointer                     :: outputAnalysisWeightOperator_
@@ -120,8 +131,8 @@ contains
     !!]
     unoperatorParameters=parameters%subParameters('unoperator',requireValue=.false.)
     weightParameters    =parameters%subParameters('weight'    ,requireValue=.false.)
-    call allocateArray(binCenter   ,[int(parameters%count('binCenter'),kind=c_size_t)                     ])
-    call allocateArray(outputWeight,[int(parameters%count('binCenter'),kind=c_size_t)*outputTimes_%count()])
+    allocate(binCenter   (int(parameters%count('binCenter'))                     ))
+    allocate(outputWeight(int(parameters%count('binCenter'))*outputTimes_%count()))
     if (parameters%count('outputWeight') /= parameters%count('binCenter')*outputTimes_%count()) &
          & call Error_Report('incorrect number of output weights provided'//{introspection:location})
     !![
@@ -384,9 +395,13 @@ contains
     type            (outputAnalysisPropertyOperatorSequence      ), pointer                                 :: outputAnalysisWeightPropertyOperatorSquaring_
     type            (outputAnalysisPropertyOperatorSquare        ), pointer                                 :: outputAnalysisWeightPropertyOperatorSquare_
     !![
-    <constructorAssign variables="label, comment, propertyLabel, propertyComment, propertyUnits, propertyUnitsInSI, scatterLabel, scatterComment, scatterUnits, scatterUnitsInSI, xAxisLabel, yAxisLabel, xAxisIsLog, yAxisIsLog, targetLabel, scatterValueTarget, scatterCovarianceTarget"/>
+    <constructorAssign variables="label, comment, propertyLabel, propertyComment, propertyUnits, propertyUnitsInSI, scatterLabel, scatterComment, scatterUnits, scatterUnitsInSI, xAxisLabel, yAxisLabel, xAxisIsLog, yAxisIsLog, targetLabel, scatterValueTarget, scatterCovarianceTarget, *nodePropertyExtractor_, *outputAnalysisWeightPropertyExtractor_, *outputAnalysisPropertyOperator_, *outputAnalysisWeightPropertyOperator_, *outputAnalysisPropertyUnoperator_, *outputAnalysisWeightOperator_, *outputAnalysisDistributionOperator_, *galacticFilter_, *outputTimes_, bufferCount, covarianceModel, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum"/>
     !!]
 
+    ! Set properties needed for descriptor.
+    if (present(scatterCovarianceTarget))                                                                  &
+         & self%scatterCovarianceTarget1D=reshape(scatterCovarianceTarget,[size(scatterCovarianceTarget)])
+    self       %outputWeight             =reshape(outputWeight           ,[size(outputWeight           )])
     ! Mark as unfinalized.
     self%finalized=.false.
     ! Set normalization state for likelihood.
@@ -492,8 +507,17 @@ contains
     type(outputAnalysisScatterFunction1D), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%meanFunction"       />
-    <objectDestructor name="self%meanSquaredFunction"/>
+    <objectDestructor name="self%meanFunction"                          />
+    <objectDestructor name="self%meanSquaredFunction"                   />
+    <objectDestructor name="self%nodePropertyExtractor_"                />
+    <objectDestructor name="self%outputAnalysisWeightPropertyExtractor_"/>
+    <objectDestructor name="self%outputAnalysisPropertyOperator_"       />
+    <objectDestructor name="self%outputAnalysisWeightPropertyOperator_" />
+    <objectDestructor name="self%outputAnalysisPropertyUnoperator_"     />
+    <objectDestructor name="self%outputAnalysisWeightOperator_"         />
+    <objectDestructor name="self%outputAnalysisDistributionOperator_"   />
+    <objectDestructor name="self%galacticFilter_"                       />
+    <objectDestructor name="self%outputTimes_"                          />
     !!]
     return
   end subroutine scatterFunction1DDestructor

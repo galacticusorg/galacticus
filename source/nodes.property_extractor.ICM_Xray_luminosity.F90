@@ -167,19 +167,19 @@ contains
       !!}
       use :: Abundances_Structure             , only : abundances
       use :: Chemical_Abundances_Structure    , only : chemicalAbundances
-      use :: Chemical_Reaction_Rates_Utilities, only : Chemicals_Mass_To_Density_Conversion
-      use :: Numerical_Constants_Astronomical , only : massSolar                           , megaParsec
+      use :: Chemical_Reaction_Rates_Utilities, only : Chemicals_Mass_To_Fraction_Conversion
+      use :: Numerical_Constants_Astronomical , only : massSolar                            , megaParsec
       use :: Numerical_Constants_Atomic       , only : massHydrogenAtom
       use :: Numerical_Constants_Math         , only : Pi
-      use :: Numerical_Constants_Prefixes     , only : centi                               , hecto
+      use :: Numerical_Constants_Prefixes     , only : centi                                , hecto
       implicit none
       double precision                      , intent(in   ) :: radius
       class           (nodeComponentHotHalo), pointer       :: hotHalo
-      double precision                                      :: density                , temperature       , &
-           &                                                   numberDensityHydrogen  , massICM           , &
+      double precision                                      :: density                , temperature        , &
+           &                                                   numberDensityHydrogen  , massICM            , &
            &                                                   massToDensityConversion
       type            (abundances          )                :: abundancesICM
-      type            (chemicalAbundances  )                :: massChemicalICM        , densityChemicalICM
+      type            (chemicalAbundances  )                :: massChemicalICM        , fractionChemicalICM
 
       ! Get the density of the ICM.
       density    =self%hotHaloMassDistribution_  %density    (node,radius)
@@ -190,16 +190,16 @@ contains
       massICM         =  hotHalo%mass      ()
       abundancesICM   =  hotHalo%abundances()
       massChemicalICM =  hotHalo%chemicals ()
-      call abundancesICM  %massToMassFraction(           massICM)
-      call massChemicalICM%massToNumber      (densityChemicalICM)
+      call abundancesICM  %massToMassFraction(            massICM)
+      call massChemicalICM%massToNumber      (fractionChemicalICM)
       ! Compute factor converting mass of chemicals in (M☉/Mₐₘᵤ) to number density in cm⁻³.
-      if (hotHalo%outerRadius() > 0.0d0) then
-         massToDensityConversion=Chemicals_Mass_To_Density_Conversion(hotHalo%outerRadius())
+      if (hotHalo%mass() > 0.0d0) then
+         massToDensityConversion=Chemicals_Mass_To_Fraction_Conversion(hotHalo%mass())
       else
          massToDensityConversion=0.0d0
       end if
-      ! Convert to number density.
-      densityChemicalICM=densityChemicalICM*massToDensityConversion
+      ! Convert to number density per unit total mass density.
+      fractionChemicalICM=fractionChemicalICM*massToDensityConversion
       ! Compute number density of hydrogen (in cm⁻³).
       numberDensityHydrogen  =+density                                    &
            &                  *abundancesICM   %hydrogenMassFraction()    &
@@ -208,13 +208,13 @@ contains
            &                  /hecto                                  **3 &
            &                  /megaParsec                             **3
       ! Evaluate the integrand.
-      integrandLuminosityXray=+4.0d0                                                                                                                     &
-           &                  *Pi                                                                                                                        &
-           &                  *radius**2                                                                                                                 &
-           &                  *self%coolingFunction_%coolingFunction(node,numberDensityHydrogen,temperature,abundancesICM,densityChemicalICM,radiation_) &
-           &                  *(                                                                                                                         &
-           &                    +megaParsec                                                                                                              &
-           &                    /centi                                                                                                                   &
+      integrandLuminosityXray=+4.0d0                                                                                                                              &
+           &                  *Pi                                                                                                                                 &
+           &                  *radius**2                                                                                                                          &
+           &                  *self%coolingFunction_%coolingFunction(node,numberDensityHydrogen,temperature,abundancesICM,fractionChemicalICM*density,radiation_) &
+           &                  *(                                                                                                                                  &
+           &                    +megaParsec                                                                                                                       &
+           &                    /centi                                                                                                                            &
            &                   )**3
       return
     end function integrandLuminosityXray

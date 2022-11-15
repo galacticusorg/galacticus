@@ -91,7 +91,7 @@
           &                                                                              odeTolerancesInactiveRelative                , odeTolerancesInactiveAbsolute
      logical                                                                          :: profileOdeEvolver                            , reuseODEStepSize
      integer         (kind=kind_int8                     )                            :: activeTreeIndex
-     type            (treeNode                           ), pointer                   :: activeNode
+     type            (treeNode                           ), pointer                   :: activeNode                          => null()
      integer                                                                          :: trialCount                                   , propertyTypeODE              , &
           &                                                                              propertyTypeIntegrator
      logical                                                                          :: interruptFirstFound
@@ -120,12 +120,13 @@
   end interface mergerTreeNodeEvolverStandard
 
   ! Maximum number of trials to solve ODEs.
-  integer                               , parameter :: standardTrialCountMaximum=8
+  integer                                        , parameter :: standardTrialCountMaximum=8
 
   ! Pointer to self and solver.
-  class  (mergerTreeNodeEvolverStandard), pointer   :: standardSelf
-  type   (odeSolver                    ), pointer   :: standardSolver
-  !$omp threadprivate(standardSelf,standardSolver)
+  class           (mergerTreeNodeEvolverStandard), pointer   :: standardSelf
+  type            (odeSolver                    ), pointer   :: standardSolver
+  double precision                                           :: timeStartSaved
+  !$omp threadprivate(standardSelf,standardSolver,timeStartSaved)
   !$GLC ignore outlive :: standardSolver
   
 contains
@@ -342,17 +343,16 @@ contains
     !!{
     Evolves {\normalfont \ttfamily node} to time {\normalfont \ttfamily timeEnd}, or until evolution is interrupted.
     !!}
-    use            :: Display               , only : displayIndent                , displayMessage                                  , displayUnindent                                , displayMagenta    , &
+    use            :: Display               , only : displayIndent              , displayMessage                                  , displayUnindent                                , displayMagenta    , &
          &                                           displayReset
     use            :: Calculations_Resets   , only : Calculations_Reset
-    use            :: Error                 , only : Error_Report                 , Warn                                            , errorStatusFail                                , errorStatusSuccess, &
+    use            :: Error                 , only : Error_Report               , Warn                                            , errorStatusFail                                , errorStatusSuccess, &
           &                                          errorStatusXCPU
-    use            :: Galacticus_Nodes      , only : interruptTask                , mergerTree                                      , nodeComponentBasic                             , propertyTypeActive, &
-          &                                          propertyTypeAll              , propertyTypeInactive                            , propertyTypeNone                               , rateComputeState  , &
-          &                                          treeNode                     , propertyTypeNumerics
-    use, intrinsic :: ISO_C_Binding         , only : c_funloc                     , c_funptr                                        , c_null_funptr
-    use            :: Memory_Management     , only : Memory_Usage_Record
-    use            :: Numerical_Integration2, only : integratorMultiVectorized1D  , integratorMultiVectorizedCompositeGaussKronrod1D, integratorMultiVectorizedCompositeTrapezoidal1D
+    use            :: Galacticus_Nodes      , only : interruptTask              , mergerTree                                      , nodeComponentBasic                             , propertyTypeActive, &
+          &                                          propertyTypeAll            , propertyTypeInactive                            , propertyTypeNone                               , rateComputeState  , &
+          &                                          treeNode                   , propertyTypeNumerics
+    use, intrinsic :: ISO_C_Binding         , only : c_funloc                   , c_funptr                                        , c_null_funptr
+    use            :: Numerical_Integration2, only : integratorMultiVectorized1D, integratorMultiVectorizedCompositeGaussKronrod1D, integratorMultiVectorizedCompositeTrapezoidal1D
     use            :: ODE_Solver_Error_Codes, only : odeSolverInterrupt
     !![
     <include directive="preEvolveTask"      type="moduleUse">
@@ -392,8 +392,7 @@ contains
     type            (odeSolver                          )                            , target  :: solver
     logical                                                                                    :: solvedAnalytically       , solvedNumerically, &
          &                                                                                        jacobianSolver           , solverInitialized
-    double precision                                                                           :: timeStart                , stepSize         , &
-         &                                                                                        timeStartSaved
+    double precision                                                                           :: timeStart                , stepSize
     integer                                                                                    :: lengthMaximum            , odeStatus        , &
          &                                                                                        odeAlgorithm
     integer         (c_size_t                           )                                      :: i
@@ -452,55 +451,31 @@ contains
        ! Allocate pointer arrays if necessary.
        if (self%propertyCountAll > self%propertyCountMaximum) then
           if (allocated(self%propertyValuesActive)) then
-             call Memory_Usage_Record(sizeof(self%propertyValuesActive         ),addRemove=-1)
              deallocate(self%propertyValuesActive         )
-             call Memory_Usage_Record(sizeof(self%propertyValuesActiveSaved    ),addRemove=-1)
              deallocate(self%propertyValuesActiveSaved    )
-             call Memory_Usage_Record(sizeof(self%propertyValuesInactive       ),addRemove=-1)
              deallocate(self%propertyValuesInactive       )
-             call Memory_Usage_Record(sizeof(self%propertyValuesInactiveSaved  ),addRemove=-1)
              deallocate(self%propertyValuesInactiveSaved  )
-             call Memory_Usage_Record(sizeof(self%propertyScalesActive         ),addRemove=-1)
              deallocate(self%propertyScalesActive         )
-             call Memory_Usage_Record(sizeof(self%propertyScalesInactive       ),addRemove=-1)
              deallocate(self%propertyScalesInactive       )
-             call Memory_Usage_Record(sizeof(self%propertyValuesPrevious       ),addRemove=-1)
              deallocate(self%propertyValuesPrevious       )
-             call Memory_Usage_Record(sizeof(self%propertyRatesPrevious        ),addRemove=-1)
              deallocate(self%propertyRatesPrevious        )
-             call Memory_Usage_Record(sizeof(self%propertyErrors               ),addRemove=-1)
              deallocate(self%propertyErrors               )
-             call Memory_Usage_Record(sizeof(self%propertyTolerances           ),addRemove=-1)
              deallocate(self%propertyTolerances           )
-             call Memory_Usage_Record(sizeof(self%odeTolerancesInactiveRelative),addRemove=-1)
              deallocate(self%odeTolerancesInactiveRelative)
-             call Memory_Usage_Record(sizeof(self%odeTolerancesInactiveAbsolute),addRemove=-1)
              deallocate(self%odeTolerancesInactiveAbsolute)
           end if
           allocate(self%propertyValuesActive         (self%propertyCountAll))
-          call Memory_Usage_Record(sizeof(self%propertyValuesActive         ))
           allocate(self%propertyValuesActiveSaved  (self%propertyCountAll))
-          call Memory_Usage_Record(sizeof(self%propertyValuesActiveSaved    ))
           allocate(self%propertyValuesInactive       (self%propertyCountAll))
-          call Memory_Usage_Record(sizeof(self%propertyValuesInactive       ))
           allocate(self%propertyValuesInactiveSaved  (self%propertyCountAll))
-          call Memory_Usage_Record(sizeof(self%propertyValuesInactiveSaved  ))
           allocate(self%propertyScalesActive         (self%propertyCountAll))
-          call Memory_Usage_Record(sizeof(self%propertyScalesActive         ))
           allocate(self%propertyScalesInactive       (self%propertyCountAll))
-          call Memory_Usage_Record(sizeof(self%propertyScalesInactive       ))
           allocate(self%propertyValuesPrevious       (self%propertyCountAll))
-          call Memory_Usage_Record(sizeof(self%propertyValuesPrevious       ))
           allocate(self%propertyRatesPrevious        (self%propertyCountAll))
-          call Memory_Usage_Record(sizeof(self%propertyRatesPrevious        ))
           allocate(self%propertyErrors               (self%propertyCountAll))
-          call Memory_Usage_Record(sizeof(self%propertyErrors               ))
           allocate(self%propertyTolerances           (self%propertyCountAll))
-          call Memory_Usage_Record(sizeof(self%propertyTolerances           ))
           allocate(self%odeTolerancesInactiveRelative(self%propertyCountAll))
-          call Memory_Usage_Record(sizeof(self%odeTolerancesInactiveRelative))
           allocate(self%odeTolerancesInactiveAbsolute(self%propertyCountAll))
-          call Memory_Usage_Record(sizeof(self%odeTolerancesInactiveAbsolute))
           self%propertyCountMaximum  =self%propertyCountAll
           self%propertyValuesPrevious=0.0d0
        end if
@@ -1140,21 +1115,23 @@ contains
     return
   end subroutine standardPostStepProcessing
 
-  subroutine standardStepErrorAnalyzer(currentPropertyValue,currentPropertyError,timeStep,stepStatus) bind(c)
+  subroutine standardStepErrorAnalyzer(time,timeEnd,currentPropertyValue,currentPropertyError,timeStep,stepStatus) bind(c)
     !!{
     Profiles ODE solver step sizes and errors.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_double   , c_int
     use            :: Interface_GSL, only : GSL_Success
     implicit none
-    real            (kind=c_double ), intent(in   ), dimension(*) :: currentPropertyValue
-    real            (kind=c_double ), intent(in   ), dimension(*) :: currentPropertyError
-    real            (kind=c_double ), intent(in   ), value        :: timeStep
-    integer         (kind=c_int    ), intent(in   ), value        :: stepStatus
-    double precision                                              :: scale               , scaledError     , &
-         &                                                           scaledErrorMaximum
-    integer         (c_size_t      )                              :: iProperty           , limitingProperty
-    type            (varying_string)                              :: propertyName
+    real            (kind=c_double ), intent(in   ), dimension(*                                ) :: currentPropertyValue
+    real            (kind=c_double ), intent(in   ), dimension(*                                ) :: currentPropertyError
+    real            (kind=c_double ), intent(in   ), value                                        :: time                , timeEnd         , &
+         &                                                                                           timeStep
+    integer         (kind=c_int    ), intent(in   ), value                                        :: stepStatus
+    double precision                                                                              :: scale               , scaledError     , &
+         &                                                                                           scaledErrorMaximum
+    integer         (c_size_t      )                                                              :: iProperty           , limitingProperty
+    type            (varying_string)                                                              :: propertyName
+    double precision                                , dimension(standardSelf%propertyCountActive) :: scale               , rate
 
     ! Count steps.
     standardSelf%countEvaluationsToSuccess=standardSelf%countEvaluationsToSuccess+1_c_size_t
@@ -1165,9 +1142,10 @@ contains
     ! Find the property with the largest error (i.e. that which is limiting the step).
     scaledErrorMaximum=0.0d0
     limitingProperty  =-1_c_size_t
+    scale             =+standardSelf%odeToleranceAbsolute*    standardSelf%propertyScalesActive(1:standardSelf%propertyCountActive)  &
+         &             +standardSelf%odeToleranceRelative*abs(             currentPropertyValue(1:standardSelf%propertyCountActive))
     do iProperty=1,standardSelf%propertyCountActive
-       scale      =standardSelf%odeToleranceAbsolute*standardSelf%propertyScalesActive(iProperty)+standardSelf%odeToleranceRelative*abs(currentPropertyValue(iProperty))
-       scaledError=abs(currentPropertyError(iProperty))/scale
+       scaledError=abs(currentPropertyError(iProperty))/scale(iProperty)
        if (scaledError > scaledErrorMaximum) then
           scaledErrorMaximum=scaledError
           limitingProperty  =iProperty
@@ -1180,8 +1158,10 @@ contains
     else
        propertyName="unknown"
     end if
+    ! Serialize rates.
+    call standardSelf%activeNode%serializeRates(rate,standardSelf%propertyTypeODE)
     ! Profile the step.
-    call standardSelf%mergerTreeEvolveProfiler_%profile(standardSelf%activeNode,timeStep,standardSelf%countEvaluationsToSuccess,standardSelf%interruptFirstFound,propertyName,standardSelf%stepTimer%report())
+    call standardSelf%mergerTreeEvolveProfiler_%profile(standardSelf%activeNode,time,timeStartSaved,timeEnd,timeStep,standardSelf%countEvaluationsToSuccess,standardSelf%interruptFirstFound,limitingProperty,propertyName,currentPropertyValue(1:standardSelf%propertyCountActive),rate,scale,currentPropertyError(1:standardSelf%propertyCountActive),standardSelf%stepTimer%report())
     ! Reset the count of steps to success.
     standardSelf%countEvaluationsToSuccess=0_c_size_t
     ! Restart the timer.

@@ -33,21 +33,4 @@
      A radiation field class for intergalactic background light.
      !!}
      private
-   contains
-     !![
-     <methods>
-       <method description="Set the time for the intergalactic background radiation field." method="timeSet" />
-     </methods>
-     !!]
-     procedure(intergalacticBackgroundTimeSet), deferred :: timeSet
   end type radiationFieldIntergalacticBackground
-
-  abstract interface
-     subroutine intergalacticBackgroundTimeSet(self,time)
-       import radiationFieldIntergalacticBackground
-       class           (radiationFieldIntergalacticBackground), intent(inout) :: self
-       double precision                                       , intent(in   ) :: time
-     end subroutine intergalacticBackgroundTimeSet
-  end interface
-
-

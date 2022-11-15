@@ -138,7 +138,6 @@ contains
     Internal constructor for the ``luminosityStellar'' output analysis property extractor class.
     !!}
     use, intrinsic :: ISO_C_Binding                 , only : c_size_t
-    use            :: Memory_Management             , only : allocateArray
     use            :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
     implicit none
     type            (nodePropertyExtractorLuminosityStellar)                                        :: self
@@ -154,7 +153,7 @@ contains
     <constructorAssign variables="filterName, filterType, redshiftBand, postprocessChain, *outputTimes_, *galacticStructure_"/>
     !!]
 
-    call allocateArray(self%luminosityIndex,[self%outputTimes_%count()])
+    allocate(self%luminosityIndex(self%outputTimes_%count()))
     do i=1,self%outputTimes_%count()
        if (present(outputMask).and..not.outputMask(i)) then
           self%luminosityIndex(i)=-1

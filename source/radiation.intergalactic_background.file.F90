@@ -76,7 +76,7 @@
      private
      class           (cosmologyFunctionsClass), pointer                     :: cosmologyFunctions_     => null()
      type            (varying_string         )                              :: fileName
-     double precision                                                       :: time
+     double precision                                                       :: time_
      integer                                                                :: spectraTimesCount                , spectraWavelengthsCount
      double precision                         , allocatable, dimension(:  ) :: spectraTimes                     , spectraWavelengths
      double precision                         , allocatable, dimension(:,:) :: spectra
@@ -84,14 +84,11 @@
      integer         (c_size_t               )                              :: iTime
      double precision                         , dimension(0:1)              :: hTime
    contains
-     !![
-     <methods>
-       <method description="Set the time for the radiation field." method="timeSet" />
-     </methods>
-     !!]
-     final     ::            intergalacticBackgroundFileDestructor
-     procedure :: flux    => intergalacticBackgroundFileFlux
-     procedure :: timeSet => intergalacticBackgroundFileTimeSet
+     final     ::                      intergalacticBackgroundFileDestructor
+     procedure :: flux              => intergalacticBackgroundFileFlux
+     procedure :: time              => intergalacticBackgroundFileTime
+     procedure :: timeSet           => intergalacticBackgroundFileTimeSet
+     procedure :: timeDependentOnly => intergalacticBackgroundFileTimeDependentOnly
   end type radiationFieldIntergalacticBackgroundFile
 
   interface radiationFieldIntergalacticBackgroundFile
@@ -144,7 +141,6 @@ contains
     use :: Error            , only : Error_Report
     use :: IO_XML           , only : XML_Array_Read                   , XML_Array_Read_Static, XML_Count_Elements_By_Tag_Name, XML_Get_Elements_By_Tag_Name, &
           &                          XML_Get_First_Element_By_Tag_Name, XML_Parse            , xmlNodeList
-    use :: Memory_Management, only : allocateArray
     implicit none
     type   (radiationFieldIntergalacticBackgroundFile)                              :: self
     type   (varying_string                           ), intent(in   )               :: fileName
@@ -174,8 +170,8 @@ contains
     self%spectraWavelengthsCount=size(self%spectraWavelengths)
     ! Allocate array for spectra.
     self%spectraTimesCount=size(spectraList)
-    call allocateArray(self%spectra     ,[self%spectraWavelengthsCount,self%spectraTimesCount])
-    call allocateArray(self%spectraTimes,[                             self%spectraTimesCount])
+    allocate(self%spectra     (self%spectraWavelengthsCount,self%spectraTimesCount))
+    allocate(self%spectraTimes(self%spectraTimesCount))
     ! Read times.
     do iSpectrum=1,self%spectraTimesCount
        ! Get the data.
@@ -242,9 +238,9 @@ contains
     intergalacticBackgroundFileFlux=0.0d0
     ! Return if out of range.
     if     (                                                                    &
-         &   self%time  < self%spectraTimes      (1                           ) &
+         &   self%time_ < self%spectraTimes      (1                           ) &
          &  .or.                                                                &
-         &   self%time  > self%spectraTimes      (self%spectraTimesCount      ) &
+         &   self%time_ > self%spectraTimes      (self%spectraTimesCount      ) &
          &  .or.                                                                &
          &   wavelength < self%spectraWavelengths(1                           ) &
          &  .or.                                                                &
@@ -264,16 +260,39 @@ contains
     return
   end function intergalacticBackgroundFileFlux
 
+  double precision function intergalacticBackgroundFileTime(self)
+    !!{
+    Set the time of the intergalactic background radiation field.
+    !!}
+    implicit none
+    class(radiationFieldIntergalacticBackgroundFile), intent(inout) :: self
+
+    intergalacticBackgroundFileTime=self%time_
+    return
+  end function intergalacticBackgroundFileTime
+
   subroutine intergalacticBackgroundFileTimeSet(self,time)
     !!{
-    Set the time of the intergalactic backgroun radiation field.
+    Set the time of the intergalactic background radiation field.
     !!}
     implicit none
     class           (radiationFieldIntergalacticBackgroundFile), intent(inout) :: self
     double precision                                           , intent(in   ) :: time
 
-    self%time=time
+    self%time_=time
     ! Find interpolating factors in the array of times.
     call self%interpolatorTimes%linearFactors(time,self%iTime,self%hTime)
     return
   end subroutine intergalacticBackgroundFileTimeSet
+
+  logical function intergalacticBackgroundFileTimeDependentOnly(self)
+    !!{
+    Return true as this radiation field depends on time only.
+    !!}
+    implicit none
+    class(radiationFieldIntergalacticBackgroundFile), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    intergalacticBackgroundFileTimeDependentOnly=.true.
+    return
+  end function intergalacticBackgroundFileTimeDependentOnly

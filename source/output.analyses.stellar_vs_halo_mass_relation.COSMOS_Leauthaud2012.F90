@@ -33,9 +33,17 @@
      A stellar vs halo mass relation output analysis class.
      !!}
      private
-     class  (outputAnalysisClass), pointer :: outputAnalysis_  => null()
-     integer(c_size_t           )          :: likelihoodBin
-     integer                               :: redshiftInterval
+     class           (outputAnalysisClass       ), pointer                     :: outputAnalysis_                      => null()
+     class           (cosmologyParametersClass  ), pointer                     :: cosmologyParameters_                 => null()
+     class           (cosmologyFunctionsClass   ), pointer                     :: cosmologyFunctions_                  => null()
+     class           (darkMatterProfileDMOClass ), pointer                     :: darkMatterProfileDMO_                => null()
+     class           (galacticStructureClass    ), pointer                     :: galacticStructure_                   => null()
+     class           (virialDensityContrastClass), pointer                     :: virialDensityContrast_               => null()
+     class           (outputTimesClass          ), pointer                     :: outputTimes_                         => null()
+     logical                                                                   :: computeScatter
+     integer         (c_size_t                  )                              :: likelihoodBin
+     integer                                                                   :: redshiftInterval
+     double precision                            , allocatable, dimension(:  ) :: systematicErrorPolynomialCoefficient
    contains
      final     ::                  stellarVsHaloMassRelationLeauthaud2012Destructor
      procedure :: analyze       => stellarVsHaloMassRelationLeauthaud2012Analyze
@@ -145,7 +153,6 @@ contains
     use :: Geometry_Surveys                      , only : surveyGeometryFullSky
     use :: IO_HDF5                               , only : hdf5Object
     use :: ISO_Varying_String                    , only : var_str                                    , varying_string
-    use :: Memory_Management                     , only : allocateArray
     use :: Node_Property_Extractors              , only : nodePropertyExtractorMassHalo              , nodePropertyExtractorMassStellar
     use :: Numerical_Constants_Astronomical      , only : massSolar
     use :: Numerical_Interpolation               , only : gsl_interp_cspline
@@ -212,7 +219,10 @@ contains
     type            (hdf5Object                                          )                                :: fileData                                                      , groupRedshift
     type            (table1DGeneric                                      )                                :: interpolator
     character       (len=4                                               )                                :: redshiftMinimumLabel                                          , redshiftMaximumLabel
-
+    !![
+    <constructureAssign variables="redshiftInterval, likelihoodBin, computeScatter, systematicErrorPolynomialCoefficient, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterProfileDMO_, *virialDensityContrast_,* galacticStructure_, *outputTimes_"/>
+    !!]
+    
     ! Construct survey geometry.
     select case (redshiftInterval)
     case (1)
@@ -237,7 +247,7 @@ contains
     <referenceConstruct object="surveyGeometry_" constructor="surveyGeometryFullSky(redshiftMinimum=redshiftMinimum,redshiftMaximum=redshiftMaximum,cosmologyFunctions_=cosmologyFunctions_)"/>
     !!]
     ! Create output time weights.
-    call allocateArray(outputWeight,[massHaloCount,outputTimes_%count()])
+    allocate(outputWeight(massHaloCount,outputTimes_%count()))
     outputWeight(1,:)=Output_Analysis_Output_Weight_Survey_Volume(surveyGeometry_,cosmologyFunctions_,outputTimes_,massStellarLimit,allowSingleEpoch=.true.)
     forall(iBin=2:massHaloCount)
        outputWeight(iBin,:)=outputWeight(1,:)
@@ -305,7 +315,6 @@ contains
     call interpolator%destroy()
     massStellarLogarithmicTarget          =massStellarLogarithmicTarget          /log(10.0d0)
     massStellarLogarithmicCovarianceTarget=massStellarLogarithmicCovarianceTarget/log(10.0d0)**2
-    self%likelihoodBin=likelihoodBin
     if (self%likelihoodBin > 0_c_size_t) then
        ! Assume that only a single bin of the relation is to be populated. Set the target dataset in all other bins to zero so
        ! that they do not contribute to the likelihood.
@@ -559,7 +568,13 @@ contains
     type(outputAnalysisStellarVsHaloMassRelationLeauthaud2012), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%outputAnalysis_"/>
+    <objectDestructor name="self%outputAnalysis_"       />
+    <objectDestructor name="self%cosmologyParameters_"  />
+    <objectDestructor name="self%cosmologyFunctions_"   />
+    <objectDestructor name="self%darkMatterProfileDMO_" />
+    <objectDestructor name="self%galacticStructure_"    />
+    <objectDestructor name="self%virialDensityContrast_"/>
+    <objectDestructor name="self%outputTimes_"          />
     !!]
     return
   end subroutine stellarVsHaloMassRelationLeauthaud2012Destructor

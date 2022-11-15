@@ -250,14 +250,13 @@ contains
     !!{
     Construct a fully-specified merger tree.
     !!}
-    use            :: Display          , only : displayIndent               , displayUnindent, displayVerbosity, verbosityLevelInfo
-    use            :: FoX_DOM          , only : node
-    use            :: Error            , only : Error_Report
-    use            :: Galacticus_Nodes , only : mergerTree                  , treeNode       , treeNodeList
-    use            :: IO_XML           , only : XML_Get_Elements_By_Tag_Name
-    use, intrinsic :: ISO_C_Binding    , only : c_size_t
-    use            :: Kind_Numbers     , only : kind_int8
-    use            :: Memory_Management, only : Memory_Usage_Record
+    use            :: Display         , only : displayIndent               , displayUnindent, displayVerbosity, verbosityLevelInfo
+    use            :: FoX_DOM         , only : node
+    use            :: Error           , only : Error_Report
+    use            :: Galacticus_Nodes, only : mergerTree                  , treeNode       , treeNodeList
+    use            :: IO_XML          , only : XML_Get_Elements_By_Tag_Name
+    use, intrinsic :: ISO_C_Binding   , only : c_size_t
+    use            :: Kind_Numbers    , only : kind_int8
     implicit none
     type   (mergerTree                         ), pointer                     :: tree
     class  (mergerTreeConstructorFullySpecified), intent(inout)               :: self
@@ -282,7 +281,6 @@ contains
        allocate(tree)
        ! Create an array of nodes.
        allocate(nodeArray(nodeCount))
-       call Memory_Usage_Record(sizeof(nodeArray))
        ! Iterate over nodes.
        do i=1,nodeCount
           ! Create the node.

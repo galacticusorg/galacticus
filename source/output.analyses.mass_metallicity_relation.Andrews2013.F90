@@ -31,8 +31,18 @@
      A mass-metallicity relation output analysis class.
      !!}
      private
+     double precision                                 , allocatable, dimension(:) :: systematicErrorPolynomialCoefficient                     , randomErrorPolynomialCoefficient, &
+          &                                                                          metallicitySystematicErrorPolynomialCoefficient
+     class           (cosmologyFunctionsClass        ), pointer                   :: cosmologyFunctions_                             => null()
+     class           (starFormationRateDisksClass    ), pointer                   :: starFormationRateDisks_                         => null()
+     class           (starFormationRateSpheroidsClass), pointer                   :: starFormationRateSpheroids_                     => null()
+     class           (galacticStructureClass         ), pointer                   :: galacticStructure_                              => null()
+     double precision                                                             :: randomErrorMinimum                                       , randomErrorMaximum              , &
+          &                                                                          fractionGasThreshold
+   contains
+     final :: massMetallicityAndrews2013Destructor
   end type outputAnalysisMassMetallicityAndrews2013
-
+  
   interface outputAnalysisMassMetallicityAndrews2013
      !!{
      Constructors for the ``massMetallicityAndrews2013'' output analysis class.
@@ -146,7 +156,6 @@ contains
     use :: Geometry_Surveys                      , only : surveyGeometryLiWhite2009SDSS
     use :: HDF5_Access                           , only : hdf5Access
     use :: IO_HDF5                               , only : hdf5Object
-    use :: Memory_Management                     , only : allocateArray
     use :: Node_Property_Extractors              , only : nodePropertyExtractorMassStellar                   , nodePropertyExtractorMetallicityISM
     use :: Numerical_Constants_Astronomical      , only : massSolar
     use :: Output_Analyses_Options               , only : outputAnalysisCovarianceModelBinomial
@@ -200,7 +209,10 @@ contains
     integer         (c_size_t                                           )                                :: iBin                                                    , binCount
     type            (hdf5Object                                         )                                :: dataFile
     integer                                                                                              :: indexOxygen
-
+    !![
+    <constructorAssign variables="metallicitySystematicErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, fractionGasThreshold, *cosmologyFunctions_, *starFormationRateDisks_, *starFormationRateSpheroids_, *galacticStructure_"/>
+    !!]
+    
     ! Read masses at which fraction was measured.
     !$ call hdf5Access%set()
     call dataFile%openFile   (char(inputPath(pathTypeDataStatic))//"observations/abundances/gasPhaseMetallicityAndrews2013.hdf5",readOnly=.true.                  )
@@ -218,7 +230,7 @@ contains
     !!]
     ! Compute weights that apply to each output redshift.
     binCount=size(masses,kind=c_size_t)
-    call allocateArray(outputWeight,[binCount,outputTimes_%count()])
+    allocate(outputWeight(binCount,outputTimes_%count()))
     do iBin=1,binCount
        outputWeight(iBin,:)=Output_Analysis_Output_Weight_Survey_Volume(surveyGeometry_,cosmologyFunctions_,outputTimes_,masses(iBin))
     end do
@@ -448,3 +460,19 @@ contains
     return
   end function massMetallicityAndrews2013ConstructorInternal
 
+  subroutine massMetallicityAndrews2013Destructor(self)
+    !!{
+    Destructor for the {\normalfont \ttfamily massMetallicityAndrews2013} output analysis class.
+    !!}
+    implicit none
+    type(outputAnalysisMassMetallicityAndrews2013), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"        />
+    <objectDestructor name="self%outputTimes_"               />
+    <objectDestructor name="self%starFormationRateDisks_"    />
+    <objectDestructor name="self%starFormationRateSpheroids_"/>
+    <objectDestructor name="self%galacticStructure_"         />
+    !!]
+    return
+  end subroutine massMetallicityAndrews2013Destructor

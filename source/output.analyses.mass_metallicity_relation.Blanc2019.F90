@@ -31,7 +31,17 @@
      A gas-phase mass-metallicity relation analysis class using the observational results of \cite{blanc_characteristic_2019}.
      !!}
      private
-  end type outputAnalysisMassMetallicityBlanc2019
+    double precision                                 , allocatable, dimension(:) :: systematicErrorPolynomialCoefficient                    , randomErrorPolynomialCoefficient, &
+         &                                                                          metallicitySystematicErrorPolynomialCoefficient
+    class           (cosmologyFunctionsClass        ), pointer                   :: cosmologyFunctions_                             => null()
+    class           (starFormationRateDisksClass    ), pointer                   :: starFormationRateDisks_                         => null()
+    class           (starFormationRateSpheroidsClass), pointer                   :: starFormationRateSpheroids_                     => null()
+    class           (galacticStructureClass         ), pointer                   :: galacticStructure_                              => null()
+    double precision                                                             :: randomErrorMinimum                                       , randomErrorMaximum              , &
+         &                                                                          fractionGasThreshold
+  contains
+    final :: massMetallicityBlanc2019Destructor
+ end type outputAnalysisMassMetallicityBlanc2019
 
   interface outputAnalysisMassMetallicityBlanc2019
      !!{
@@ -146,7 +156,6 @@ contains
     use :: Geometry_Surveys                      , only : surveyGeometryLiWhite2009SDSS
     use :: HDF5_Access                           , only : hdf5Access
     use :: IO_HDF5                               , only : hdf5Object
-    use :: Memory_Management                     , only : allocateArray
     use :: Node_Property_Extractors              , only : nodePropertyExtractorMassStellar                   , nodePropertyExtractorMetallicityISM
     use :: Numerical_Constants_Astronomical      , only : massSolar
     use :: Output_Analyses_Options               , only : outputAnalysisCovarianceModelBinomial
@@ -201,7 +210,10 @@ contains
     integer         (c_size_t                                           )                                :: iBin                                                    , binCount
     type            (hdf5Object                                         )                                :: dataFile
     integer                                                                                              :: indexOxygen
-
+    !![
+    <constructorAssign variables="metallicitySystematicErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, fractionGasThreshold, *cosmologyFunctions_, *starFormationRateDisks_, *starFormationRateSpheroids_, *galacticStructure_"/>
+    !!]
+    
     ! Read masses at which fraction was measured.
     !$ call hdf5Access%set()
     call dataFile%openFile   (char(inputPath(pathTypeDataStatic))//"observations/abundances/massMetallicityRelationBlanc2019.hdf5",readOnly=.true.             )
@@ -223,7 +235,7 @@ contains
     do iBin=1,binCount
        functionCovarianceTarget(iBin,iBin)=(0.5d0*(function84Target(iBin)-function16Target(iBin)))**2
     end do
-    call allocateArray(outputWeight,[binCount,outputTimes_%count()])
+    allocate(outputWeight(binCount,outputTimes_%count()))
     do iBin=1,binCount
        outputWeight(iBin,:)=Output_Analysis_Output_Weight_Survey_Volume(surveyGeometry_,cosmologyFunctions_,outputTimes_,masses(iBin))
     end do
@@ -451,4 +463,21 @@ contains
     nullify(filters_                )
     return
   end function massMetallicityBlanc2019ConstructorInternal
+
+  subroutine massMetallicityBlanc2019Destructor(self)
+    !!{
+    Destructor for the {\normalfont \ttfamily massMetallicityAndrews2013} output analysis class.
+    !!}
+    implicit none
+    type(outputAnalysisMassMetallicityBlanc2019), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"        />
+    <objectDestructor name="self%outputTimes_"               />
+    <objectDestructor name="self%starFormationRateDisks_"    />
+    <objectDestructor name="self%starFormationRateSpheroids_"/>
+    <objectDestructor name="self%galacticStructure_"         />
+    !!]
+    return
+  end subroutine massMetallicityBlanc2019Destructor
 

@@ -33,7 +33,12 @@
      A black hole-bulge mass relation output analysis class.
      !!}
      private
-     class(galacticStructureClass), pointer :: galacticStructure_ => null()
+     class           (galacticStructureClass ), pointer                     :: galacticStructure_                   => null()
+     class           (cosmologyFunctionsClass), pointer                     :: cosmologyFunctions_                  => null()
+     double precision                         , allocatable  , dimension(:) :: systematicErrorPolynomialCoefficient          , randomErrorPolynomialCoefficient
+     double precision                                                       :: randomErrorMinimum                            , randomErrorMaximum
+   contains
+     final :: blackHoleBulgeRelationDestructor
   end type outputAnalysisBlackHoleBulgeRelation
 
   interface outputAnalysisBlackHoleBulgeRelation
@@ -120,7 +125,6 @@ contains
     use :: Input_Paths                           , only : inputPath                                          , pathTypeDataStatic
     use :: HDF5_Access                           , only : hdf5Access
     use :: IO_HDF5                               , only : hdf5Object
-    use :: Memory_Management                     , only : allocateArray
     use :: Node_Property_Extractors              , only : nodePropertyExtractorMassBlackHole                 , nodePropertyExtractorMassStellarSpheroid
     use :: Numerical_Comparison                  , only : Values_Agree
     use :: Numerical_Constants_Astronomical      , only : massSolar
@@ -162,7 +166,10 @@ contains
     integer         (c_size_t                                           )                                :: iOutput                                                 , i
     type            (hdf5Object                                         )                                :: dataFile
     type            (varying_string                                     )                                :: targetLabel
-
+    !![
+    <constructorAssign variables="systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, *cosmologyFunctions_, *outputTimes_, *galacticStructure_"/>
+    !!]
+    
     !$ call hdf5Access%set()
     call dataFile%openFile     (char(inputPath(pathTypeDataStatic)//'/observations/blackHoles/blackHoleMassVsBulgeMass_KormendyHo2013.hdf5'),readOnly=.true.             )
     call dataFile%readDataset  ('massBulgeBinned'                                                                                           ,         masses             )
@@ -177,7 +184,7 @@ contains
        functionCovarianceTarget(i,i)=functionErrorTarget(i)**2
     end do
     ! Compute weights that apply to each output redshift.
-    call allocateArray(outputWeight,[size(masses,kind=c_size_t),outputTimes_%count()])
+    allocate(outputWeight(size(masses),outputTimes_%count()))
     outputWeight=0.0d0
     do iOutput=1,outputTimes_%count()
        if (Values_Agree(outputTimes_%redshift(iOutput),0.0d0,absTol=1.0d-10)) outputWeight(:,iOutput)=1.0d0
@@ -345,3 +352,16 @@ contains
     return
   end function blackHoleBulgeRelationConstructorInternal
 
+  subroutine blackHoleBulgeRelationDestructor(self)
+    !!{
+    Destructor for the {\normalfont \ttfamily blackHoleBulgeRelation} output analysis class.
+    !!}
+    implicit none
+    type(outputAnalysisBlackHoleBulgeRelation), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%galacticStructure_" />
+    <objectDestructor name="self%cosmologyFunctions_"/>
+    !!]
+    return
+  end subroutine blackHoleBulgeRelationDestructor

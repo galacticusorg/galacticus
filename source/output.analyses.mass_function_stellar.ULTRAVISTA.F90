@@ -54,6 +54,13 @@ Contains a module which implements a stellar mass function output analysis class
      An ULTRAVISTA stellar mass function output analysis class.
      !!}
      private
+     class           (gravitationalLensingClass), pointer                   :: gravitationalLensing_            => null()
+     double precision                           , allocatable, dimension(:) :: randomErrorPolynomialCoefficient          , systematicErrorPolynomialCoefficient
+     double precision                                                       :: randomErrorMinimum                        , randomErrorMaximum                  , &
+          &                                                                    sizeSourceLensing
+     integer                                                                :: redshiftInterval
+   contains
+     final :: massFunctionStellarULTRAVISTADestructor
   end type outputAnalysisMassFunctionStellarULTRAVISTA
 
   interface outputAnalysisMassFunctionStellarULTRAVISTA
@@ -215,6 +222,9 @@ contains
     double precision                                                     , parameter                   :: errorPolynomialZeroPoint                            =11.3d+0
     type            (varying_string                                     )                              :: fileName                                                    , description
     double precision                                                                                   :: massThreshold
+    !![
+    <constructorAssign variables="redshiftInterval, randomErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, sizeSourceLensing, *gravitationalLensing_"/>
+    !!]
 
     ! Create cosmological model in which data were analyzed.
     allocate(cosmologyParametersData)
@@ -363,3 +373,16 @@ contains
     nullify(distributionOperatorSequence)
     return
   end function massFunctionStellarULTRAVISTAConstructorInternal
+
+  subroutine massFunctionStellarULTRAVISTADestructor(self)
+    !!{
+    Destructor for the {\normalfont \ttfamily massFunctionStellarULTRAVISTA} output analysis class.
+    !!}
+    implicit none
+    type(outputAnalysisMassFunctionStellarULTRAVISTA), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%galacticStructure_"/>
+    !!]
+    return
+  end subroutine massFunctionStellarULTRAVISTADestructor

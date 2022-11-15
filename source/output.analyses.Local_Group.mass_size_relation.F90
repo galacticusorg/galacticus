@@ -32,7 +32,15 @@
      An output analysis class for Local Group satellite galaxy mass-size relations.
      !!}
      private
-     class(outputAnalysisClass), pointer :: outputAnalysis_ => null()
+     class           (outputAnalysisClass        ), pointer                     :: outputAnalysis_                          => null()
+     class           (outputTimesClass           ), pointer                     :: outputTimes_                             => null()
+     class           (galacticStructureClass     ), pointer                     :: galacticStructure_                       => null()
+     double precision                             , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient                  , systematicErrorPolynomialCoefficient, &
+          &                                                                        sizeSystematicErrorPolynomialCoefficient
+     integer                                                                    :: covarianceBinomialBinsPerDecade
+     double precision                                                           :: covarianceBinomialMassHaloMinimum                 , covarianceBinomialMassHaloMaximum   , &
+          &                                                                        randomErrorMinimum                                , randomErrorMaximum
+     type            (enumerationPositionTypeType)                              :: positionType
    contains
      final     ::                  localGroupMassSizeRelationDestructor
      procedure :: analyze       => localGroupMassSizeRelationAnalyze
@@ -178,7 +186,7 @@ contains
     double precision                                                        , intent(in   ), dimension(:  ) :: randomErrorPolynomialCoefficient                           , systematicErrorPolynomialCoefficient                              , &
          &                                                                                                     sizeSystematicErrorPolynomialCoefficient
     type            (enumerationPositionTypeType                           ), intent(in   )                 :: positionType
-    class           (outputTimesClass                                      ), intent(inout)                 :: outputTimes_
+    class           (outputTimesClass                                      ), intent(inout), target         :: outputTimes_
     class           (galacticStructureClass                                ), intent(in   ), target         :: galacticStructure_
     type            (nodePropertyExtractorMassStellar                      )               , pointer        :: nodePropertyExtractor_
     type            (nodePropertyExtractorRadiusHalfMassStellar            )               , pointer        :: outputAnalysisWeightPropertyExtractor_
@@ -216,7 +224,10 @@ contains
          &                                                                                                     bufferCount                                                 , binCountNonZero
     type            (localGroupDB                                          )                                :: localGroupDB_
     double precision                                                                                        :: massesWidthBin
-
+    !![
+    <constructorAssign variables="*outputTimes_, *galacticStructure_, randomErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, sizeSystematicErrorPolynomialCoefficient, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum, randomErrorMinimum, randomErrorMaximum, positionType"/>
+    !!]
+    
     ! Construct mass bins.
     allocate(masses(binCount))
     masses        =Make_Range(log10(massMinimum),log10(massMaximum),int(binCount),rangeTypeLinear)
@@ -493,7 +504,9 @@ contains
     type(outputAnalysisLocalGroupMassSizeRelation), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%outputAnalysis_"/>
+    <objectDestructor name="self%outputAnalysis_"   />
+    <objectDestructor name="self%outputTimes_"      />
+    <objectDestructor name="self%galacticStructure_"/>
     !!]
     return
   end subroutine localGroupMassSizeRelationDestructor

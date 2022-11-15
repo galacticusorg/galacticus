@@ -336,7 +336,7 @@ contains
     use               :: Galacticus_Nodes      , only : mergerTree                       , nodeComponentBasic                 , treeNode       , universe          , &
           &                                             universeEvent
     use   , intrinsic :: ISO_C_Binding         , only : c_size_t
-    use               :: Memory_Management     , only : Memory_Usage_Record              , Memory_Usage_Report                , memoryTypeNodes
+    use               :: Memory_Reporting      , only : reportMemoryUsage
     use               :: Merger_Tree_Walkers   , only : mergerTreeWalkerAllNodes         , mergerTreeWalkerIsolatedNodes
     use               :: Node_Components       , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
     use               :: Node_Events_Inter_Tree, only : Inter_Tree_Event_Post_Evolve
@@ -478,7 +478,8 @@ contains
     !$omp barrier
     ! Begin processing trees.
     treeProcess : do while (.not.finished)
-       call Memory_Usage_Report()
+       ! Report on memory utilization.
+       call reportMemoryUsage()
        ! For single forest evolution, only the master thread should retrieve a merger tree.
        singleForestTreeFetch : if (OMP_Get_Thread_Num() == 0 .or. .not.self%evolveSingleForest) then
           ! Attempt to get a new tree to process. We first try to get a new tree. If no new trees exist, we will look for a tree on
@@ -875,7 +876,6 @@ contains
                 currentTree  => currentTree%nextTree
                 call previousTree%destroy()
                 ! Deallocate the tree.
-                call Memory_Usage_Record(sizeof(previousTree),addRemove=-1,memoryType=memoryTypeNodes)
                 deallocate(previousTree)
              end do
              nullify(tree)

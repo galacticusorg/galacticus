@@ -44,7 +44,7 @@ sub Implementation_Deferred_Binding_Pointers {
 	    @{$build->{'variables'}},
 	    {
 		intrinsic  => "procedure",
-		type       => $class->{'name'}.ucfirst($binding->{'method'})."Interface",
+		type       => $class->{'name'}.ucfirst($member->{'name'}).ucfirst($binding->{'method'}),
 		attributes => [ "pointer" ],
 		variables  => [ $componentFunctionName."Deferred" ]
 	    },
@@ -75,7 +75,7 @@ sub Implementation_Deferred_Binding_Attachers {
 		[
 		 {
 		     intrinsic  => "procedure",
-		     type       => $class->{'name'}.ucfirst($binding->{'method'})."Interface",
+		     type       => $class->{'name'}.ucfirst($member->{'name'}).ucfirst($binding->{'method'}),
 		     isArgument => 1,
 		     variables  => [ "deferredFunction" ]
 		 }
@@ -139,6 +139,7 @@ sub Implementation_Deferred_Binding_Wrappers {
     foreach $code::binding ( grep {$_->{'isDeferred'}} @{$code::member->{'bindings'}->{'binding'}} ) {
 	# Create the name of the function.
 	$code::memberFunctionName = $code::class->{'name'}.ucfirst($code::member->{'name'}).ucfirst($code::binding->{'method'});
+	$code::returnName         = $code::memberFunctionName;
 	# Create the function.
 	my $function =
 	{
@@ -150,6 +151,18 @@ sub Implementation_Deferred_Binding_Wrappers {
 		 "Error"
 		]
 	};
+	# Handle any rank/shape.
+	if      ( exists($code::binding->{'interface'}->{'rank'}) && $code::binding->{'interface'}->{'rank'} > 0 ) {
+	    die('can not specify both "rank" and "shape"')
+		if ( exists($code::binding->{'interface'}->{'shape'}) );
+	    $code::returnName .="_";
+	    $function->{'type'} .= ", allocatable, dimension(".join(",",map {":"} 1..$code::binding->{'interface'}->{'rank'}).") => ".$code::returnName;
+	} elsif ( exists($code::binding->{'interface'}->{'shape'}) ) {
+	    die('can not specify both "rank" and "shape"')
+		if ( exists($code::binding->{'interface'}->{'rank' }) );
+	    $code::returnName .="_";
+	    $function->{'type'} .= ", dimension(".$code::binding->{'interface'}->{'shape'}.") => ".$code::returnName;
+	}
 	# Add a "self" argument if required.
 	push
 	    (
@@ -181,7 +194,7 @@ CODE
 CODE
 	} else {
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-      {$memberFunctionName}={$memberFunctionName}Deferred({join(",",@arguments)})
+      {$returnName}={$memberFunctionName}Deferred({join(",",@arguments)})
 CODE
 	}
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
@@ -200,14 +213,14 @@ CODE
 CODE
 	    } else {
 		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-      {$memberFunctionName}=self%{$parentType}%{$binding->{'method'}}({join(",",grep {$_ ne "self"} @arguments)})
+      {$returnName}=self%{$parentType}%{$binding->{'method'}}({join(",",grep {$_ ne "self"} @arguments)})
 CODE
 	    }
 	} else {
 	    if ( &isIntrinsic($code::binding->{'interface'}->{'type'}) && $code::binding->{'interface'}->{'type'} ne "void" ) {
 		$code::nullValue = $intrinsicNulls{$code::binding->{'interface'}->{'type'}};
 		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-      {$memberFunctionName}={$nullValue}
+      {$returnName}={$nullValue}
 CODE
 	    }
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
@@ -221,7 +234,7 @@ CODE
 	if ( &isIntrinsic($code::binding->{'interface'}->{'type'}) && $code::binding->{'interface'}->{'type'} ne "void" ) {
 	    $code::nullValue = $intrinsicNulls{$code::binding->{'interface'}->{'type'}};
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-      {$memberFunctionName}={$nullValue}
+      {$returnName}={$nullValue}
 CODE
 	}
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');

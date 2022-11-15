@@ -136,6 +136,7 @@ module Merger_Tree_Data_Structure
    <visibility>public</visibility>
    <validator>yes</validator>
    <encodeFunction>yes</encodeFunction>
+   <decodeFunction>yes</decodeFunction>
    <entry label="generic"     />
    <entry label="cosmology"   />
    <entry label="simulation"  />
@@ -293,7 +294,6 @@ contains
     !!{
     Reset a merger tree data object.
     !!}
-    use :: Memory_Management, only : deallocateArray
     implicit none
     class  (mergerTreeData), intent(inout) :: mergerTrees
     integer                                :: i
@@ -337,29 +337,29 @@ contains
     mergerTrees%hasVelocityDispersion              =.false.
 
     ! Deallocate any previous data.
-    if (allocated(mergerTrees%treeBeginsAt          )) call deallocateArray(mergerTrees%treeBeginsAt          )
-    if (allocated(mergerTrees%treeNodeCount         )) call deallocateArray(mergerTrees%treeNodeCount         )
-    if (allocated(mergerTrees%forestID              )) call deallocateArray(mergerTrees%forestID              )
-    if (allocated(mergerTrees%treeWeight            )) call deallocateArray(mergerTrees%treeWeight            )
-    if (allocated(mergerTrees%forestWeightNode      )) call deallocateArray(mergerTrees%forestWeightNode      )
-    if (allocated(mergerTrees%forestIndex           )) call deallocateArray(mergerTrees%forestIndex           )
-    if (allocated(mergerTrees%nodeIndex             )) call deallocateArray(mergerTrees%nodeIndex             )
-    if (allocated(mergerTrees%mostBoundParticleIndex)) call deallocateArray(mergerTrees%mostBoundParticleIndex)
-    if (allocated(mergerTrees%descendentIndex       )) call deallocateArray(mergerTrees%descendentIndex       )
-    if (allocated(mergerTrees%hostIndex             )) call deallocateArray(mergerTrees%hostIndex             )
-    if (allocated(mergerTrees%redshift              )) call deallocateArray(mergerTrees%redshift              )
-    if (allocated(mergerTrees%scaleFactor           )) call deallocateArray(mergerTrees%scaleFactor           )
-    if (allocated(mergerTrees%nodeMass              )) call deallocateArray(mergerTrees%nodeMass              )
-    if (allocated(mergerTrees%nodeMass200Mean       )) call deallocateArray(mergerTrees%nodeMass200Mean       )
-    if (allocated(mergerTrees%nodeMass200Crit       )) call deallocateArray(mergerTrees%nodeMass200Crit       )
-    if (allocated(mergerTrees%particleCount         )) call deallocateArray(mergerTrees%particleCount         )
-    if (allocated(mergerTrees%position              )) call deallocateArray(mergerTrees%position              )
-    if (allocated(mergerTrees%velocity              )) call deallocateArray(mergerTrees%velocity              )
-    if (allocated(mergerTrees%spin                  )) call deallocateArray(mergerTrees%spin                  )
-    if (allocated(mergerTrees%halfMassRadius        )) call deallocateArray(mergerTrees%halfMassRadius        )
-    if (allocated(mergerTrees%scaleRadius           )) call deallocateArray(mergerTrees%scaleRadius           )
-    if (allocated(mergerTrees%velocityMaximum       )) call deallocateArray(mergerTrees%velocityMaximum       )
-    if (allocated(mergerTrees%velocityDispersion    )) call deallocateArray(mergerTrees%velocityDispersion    )
+    if (allocated(mergerTrees%treeBeginsAt          )) deallocate(mergerTrees%treeBeginsAt          )
+    if (allocated(mergerTrees%treeNodeCount         )) deallocate(mergerTrees%treeNodeCount         )
+    if (allocated(mergerTrees%forestID              )) deallocate(mergerTrees%forestID              )
+    if (allocated(mergerTrees%treeWeight            )) deallocate(mergerTrees%treeWeight            )
+    if (allocated(mergerTrees%forestWeightNode      )) deallocate(mergerTrees%forestWeightNode      )
+    if (allocated(mergerTrees%forestIndex           )) deallocate(mergerTrees%forestIndex           )
+    if (allocated(mergerTrees%nodeIndex             )) deallocate(mergerTrees%nodeIndex             )
+    if (allocated(mergerTrees%mostBoundParticleIndex)) deallocate(mergerTrees%mostBoundParticleIndex)
+    if (allocated(mergerTrees%descendentIndex       )) deallocate(mergerTrees%descendentIndex       )
+    if (allocated(mergerTrees%hostIndex             )) deallocate(mergerTrees%hostIndex             )
+    if (allocated(mergerTrees%redshift              )) deallocate(mergerTrees%redshift              )
+    if (allocated(mergerTrees%scaleFactor           )) deallocate(mergerTrees%scaleFactor           )
+    if (allocated(mergerTrees%nodeMass              )) deallocate(mergerTrees%nodeMass              )
+    if (allocated(mergerTrees%nodeMass200Mean       )) deallocate(mergerTrees%nodeMass200Mean       )
+    if (allocated(mergerTrees%nodeMass200Crit       )) deallocate(mergerTrees%nodeMass200Crit       )
+    if (allocated(mergerTrees%particleCount         )) deallocate(mergerTrees%particleCount         )
+    if (allocated(mergerTrees%position              )) deallocate(mergerTrees%position              )
+    if (allocated(mergerTrees%velocity              )) deallocate(mergerTrees%velocity              )
+    if (allocated(mergerTrees%spin                  )) deallocate(mergerTrees%spin                  )
+    if (allocated(mergerTrees%halfMassRadius        )) deallocate(mergerTrees%halfMassRadius        )
+    if (allocated(mergerTrees%scaleRadius           )) deallocate(mergerTrees%scaleRadius           )
+    if (allocated(mergerTrees%velocityMaximum       )) deallocate(mergerTrees%velocityMaximum       )
+    if (allocated(mergerTrees%velocityDispersion    )) deallocate(mergerTrees%velocityDispersion    )
     do i=unitsMin,unitsMax
        if (allocated(mergerTrees%units(i)%name)) deallocate(mergerTrees%units(i)%name)
     end do
@@ -428,7 +428,6 @@ contains
     !!}
     use :: Error             , only : Error_Report
     use :: ISO_Varying_String, only : assignment(=)
-    use :: Memory_Management , only : Memory_Usage_Record
     implicit none
     class           (mergerTreeData             ), intent(inout)               :: mergerTrees
     type            (enumerationMetaDataTypeType), intent(in   )               :: metadataType
@@ -445,11 +444,9 @@ contains
     ! Ensure we have enough space in the metadata properties array.
     if (mergerTrees%metaDataCount == 0) then
        allocate(mergerTrees%metaData(metadataBlockSize))
-       call Memory_Usage_Record(sizeof(mergerTrees%metaData))
     else if (mergerTrees%metaDataCount == mergerTrees%metaDataCount) then
        call Move_Alloc(mergerTrees%metaData,metaDataTemporary)
        allocate(mergerTrees%metaData(size(metaDataTemporary)+metadataBlockSize))
-       call Memory_Usage_Record(sizeof(metaDataTemporary(1)),addRemove=metadataBlockSize,blockCount=0)
        mergerTrees%metaData(1:size(metaDataTemporary))=metaDataTemporary
        deallocate(metaDataTemporary)
     end if
@@ -682,7 +679,6 @@ contains
     !!{
     Set column mapping from the input file.
     !!}
-    use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class  (mergerTreeData             ), intent(inout)               :: mergerTrees
     integer                             , intent(in   )               :: columnNumber
@@ -711,7 +707,6 @@ contains
     !!{
     Set column mapping from the input file.
     !!}
-    use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class  (mergerTreeData             ), intent(inout)               :: mergerTrees
     type   (enumerationPropertyTypeType), intent(in   )               :: propertyType
@@ -741,7 +736,6 @@ contains
     Set a property in the merger trees.
     !!}
     use :: Error            , only : Error_Report
-    use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class  (mergerTreeData             )              , intent(inout) :: mergerTrees
     type   (enumerationPropertyTypeType)              , intent(in   ) :: propertyType
@@ -754,29 +748,29 @@ contains
     select case (propertyType%ID)
     case (propertyTypeTreeIndex      %ID)
        mergerTrees%hasForestIndex    =.true.
-       if (allocated(mergerTrees%forestIndex    )) call deallocateArray(mergerTrees%forestIndex    )
-       call allocateArray(mergerTrees%forestIndex    ,[size(property)])
+       if (allocated(mergerTrees%forestIndex    )) deallocate(mergerTrees%forestIndex    )
+       allocate(mergerTrees%forestIndex    (size(property)))
        mergerTrees%forestIndex    =property
        call Merger_Tree_Data_Structure_Set_Tree_Indices(mergerTrees)
     case (propertyTypeNodeIndex      %ID)
        mergerTrees%hasNodeIndex      =.true.
-       if (allocated(mergerTrees%nodeIndex      )) call deallocateArray(mergerTrees%nodeIndex      )
-       call allocateArray(mergerTrees%nodeIndex      ,[size(property)])
+       if (allocated(mergerTrees%nodeIndex      )) deallocate(mergerTrees%nodeIndex      )
+       allocate(mergerTrees%nodeIndex      (size(property)))
        mergerTrees%nodeIndex      =property
     case (propertyTypeHostIndex      %ID)
        mergerTrees%hasHostIndex      =.true.
-       if (allocated(mergerTrees%hostIndex      )) call deallocateArray(mergerTrees%hostIndex      )
-       call allocateArray(mergerTrees%hostIndex      ,[size(property)])
+       if (allocated(mergerTrees%hostIndex      )) deallocate(mergerTrees%hostIndex      )
+       allocate(mergerTrees%hostIndex      (size(property)))
        mergerTrees%hostIndex      =property
     case (propertyTypeDescendentIndex%ID)
        mergerTrees%hasDescendentIndex=.true.
-       if (allocated(mergerTrees%descendentIndex)) call deallocateArray(mergerTrees%descendentIndex)
-       call allocateArray(mergerTrees%descendentIndex,[size(property)])
+       if (allocated(mergerTrees%descendentIndex)) deallocate(mergerTrees%descendentIndex)
+       allocate(mergerTrees%descendentIndex(size(property)))
        mergerTrees%descendentIndex=property
     case (propertyTypeSnapshot       %ID)
        mergerTrees%hasSnapshot       =.true.
-       if (allocated(mergerTrees%snapshot       )) call deallocateArray(mergerTrees%snapshot       )
-       call allocateArray(mergerTrees%snapshot       ,[size(property)])
+       if (allocated(mergerTrees%snapshot       )) deallocate(mergerTrees%snapshot       )
+       allocate(mergerTrees%snapshot       (size(property)))
        mergerTrees%snapshot=property
     case default
        call Error_Report('unrecognized integer property'//{introspection:location})
@@ -789,7 +783,6 @@ contains
     Set a property in the merger trees.
     !!}
     use :: Error            , only : Error_Report
-    use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class           (mergerTreeData             )              , intent(inout) :: mergerTrees
     type            (enumerationPropertyTypeType)              , intent(in   ) :: propertyType
@@ -802,28 +795,28 @@ contains
     select case (propertyType%ID)
     case (propertyTypeTreeWeight     %ID)
        mergerTrees%hasForestWeight  =.true.
-       if (allocated(mergerTrees%forestWeightNode)) call deallocateArray(mergerTrees%forestWeightNode)
-       call allocateArray(mergerTrees%forestWeightNode ,[size(property)])
+       if (allocated(mergerTrees%forestWeightNode)) deallocate(mergerTrees%forestWeightNode)
+       allocate(mergerTrees%forestWeightNode (size(property)))
        mergerTrees%forestWeightNode =property
     case (propertyTypeRedshift       %ID)
        mergerTrees%hasRedshift       =.true.
-       if (allocated(mergerTrees%redshift        )) call deallocateArray(mergerTrees%redshift        )
-       call allocateArray(mergerTrees%redshift       ,[size(property)])
+       if (allocated(mergerTrees%redshift        )) deallocate(mergerTrees%redshift        )
+       allocate(mergerTrees%redshift       (size(property)))
        mergerTrees%redshift       =property
     case (propertyTypeNodeMass       %ID)
        mergerTrees%hasNodeMass       =.true.
-       if (allocated(mergerTrees%nodeMass        )) call deallocateArray(mergerTrees%nodeMass        )
-       call allocateArray(mergerTrees%nodeMass       ,[size(property)])
+       if (allocated(mergerTrees%nodeMass        )) deallocate(mergerTrees%nodeMass        )
+       allocate(mergerTrees%nodeMass       (size(property)))
        mergerTrees%nodeMass       =property
     case (propertyTypeNodeMass200Mean%ID)
        mergerTrees%hasNodeMass200Mean=.true.
-       if (allocated(mergerTrees%nodeMass200Mean )) call deallocateArray(mergerTrees%nodeMass200Mean )
-       call allocateArray(mergerTrees%nodeMass200Mean,[size(property)])
+       if (allocated(mergerTrees%nodeMass200Mean )) deallocate(mergerTrees%nodeMass200Mean )
+       allocate(mergerTrees%nodeMass200Mean(size(property)))
        mergerTrees%nodeMass200Mean=property
     case (propertyTypeNodeMass200Crit%ID)
        mergerTrees%hasNodeMass200Crit=.true.
-       if (allocated(mergerTrees%nodeMass200Crit )) call deallocateArray(mergerTrees%nodeMass200Crit )
-       call allocateArray(mergerTrees%nodeMass200Crit,[size(property)])
+       if (allocated(mergerTrees%nodeMass200Crit )) deallocate(mergerTrees%nodeMass200Crit )
+       allocate(mergerTrees%nodeMass200Crit(size(property)))
        mergerTrees%nodeMass200Crit=property
     case (propertyTypePositionX      %ID)
        if (                                             &
@@ -831,9 +824,9 @@ contains
             & .and..not.mergerTrees%hasPositionX        &
             & .and..not.mergerTrees%hasPositionY        &
             & .and..not.mergerTrees%hasPositionZ        &
-            &) call deallocateArray(mergerTrees%position)
+            &) deallocate(mergerTrees%position)
        mergerTrees%hasPositionX=.true.
-       if (.not.allocated(mergerTrees%position)) call allocateArray(mergerTrees%position,[3,size(property)])
+       if (.not.allocated(mergerTrees%position)) allocate(mergerTrees%position(3,size(property)))
        mergerTrees%position(1,:)=property
     case (propertyTypePositionY      %ID)
        if (                                             &
@@ -841,9 +834,9 @@ contains
             & .and..not.mergerTrees%hasPositionX        &
             & .and..not.mergerTrees%hasPositionY        &
             & .and..not.mergerTrees%hasPositionZ        &
-            &) call deallocateArray(mergerTrees%position)
+            &) deallocate(mergerTrees%position)
        mergerTrees%hasPositionY=.true.
-       if (.not.allocated(mergerTrees%position)) call allocateArray(mergerTrees%position,[3,size(property)])
+       if (.not.allocated(mergerTrees%position)) allocate(mergerTrees%position(3,size(property)))
        mergerTrees%position(2,:)=property
     case (propertyTypePositionZ      %ID)
        if (                                             &
@@ -851,9 +844,9 @@ contains
             & .and..not.mergerTrees%hasPositionX        &
             & .and..not.mergerTrees%hasPositionY        &
             & .and..not.mergerTrees%hasPositionZ        &
-            &) call deallocateArray(mergerTrees%position)
+            &) deallocate(mergerTrees%position)
        mergerTrees%hasPositionZ=.true.
-       if (.not.allocated(mergerTrees%position)) call allocateArray(mergerTrees%position,[3,size(property)])
+       if (.not.allocated(mergerTrees%position)) allocate(mergerTrees%position(3,size(property)))
        mergerTrees%position(3,:)=property
     case (propertyTypeVelocityX      %ID)
        if (                                             &
@@ -861,9 +854,9 @@ contains
             & .and..not.mergerTrees%hasVelocityX        &
             & .and..not.mergerTrees%hasVelocityY        &
             & .and..not.mergerTrees%hasVelocityZ        &
-            &) call deallocateArray(mergerTrees%velocity)
+            &) deallocate(mergerTrees%velocity)
        mergerTrees%hasVelocityX=.true.
-       if (.not.allocated(mergerTrees%velocity)) call allocateArray(mergerTrees%velocity,[3,size(property)])
+       if (.not.allocated(mergerTrees%velocity)) allocate(mergerTrees%velocity(3,size(property)))
        mergerTrees%velocity(1,:)=property
     case (propertyTypeVelocityY      %ID)
        if (                                             &
@@ -871,9 +864,9 @@ contains
             & .and..not.mergerTrees%hasVelocityX        &
             & .and..not.mergerTrees%hasVelocityY        &
             & .and..not.mergerTrees%hasVelocityZ        &
-            &) call deallocateArray(mergerTrees%velocity)
+            &) deallocate(mergerTrees%velocity)
        mergerTrees%hasVelocityY=.true.
-       if (.not.allocated(mergerTrees%velocity)) call allocateArray(mergerTrees%velocity,[3,size(property)])
+       if (.not.allocated(mergerTrees%velocity)) allocate(mergerTrees%velocity(3,size(property)))
        mergerTrees%velocity(2,:)=property
     case (propertyTypeVelocityZ      %ID)
        if (                                             &
@@ -881,9 +874,9 @@ contains
             & .and..not.mergerTrees%hasVelocityX        &
             & .and..not.mergerTrees%hasVelocityY        &
             & .and..not.mergerTrees%hasVelocityZ        &
-            &) call deallocateArray(mergerTrees%velocity)
+            &) deallocate(mergerTrees%velocity)
        mergerTrees%hasVelocityZ=.true.
-       if (.not.allocated(mergerTrees%velocity)) call allocateArray(mergerTrees%velocity,[3,size(property)])
+       if (.not.allocated(mergerTrees%velocity)) allocate(mergerTrees%velocity(3,size(property)))
        mergerTrees%velocity(3,:)=property
     case default
        call Error_Report('unrecognized double property'//{introspection:location})
@@ -899,7 +892,6 @@ contains
     use :: File_Utilities    , only : Count_Lines_In_File
     use :: Error             , only : Error_Report
     use :: ISO_Varying_String, only : assignment(=)      , operator(//)
-    use :: Memory_Management , only : allocateArray      , deallocateArray
     use :: String_Handling   , only : String_Count_Words , String_Split_Words, operator(//)
     implicit none
     class    (mergerTreeData), intent(inout)               :: mergerTrees
@@ -998,53 +990,53 @@ contains
          & call Error_Report("either redshift or scale factor has to be given"//{introspection:location})
 
     ! Deallocate internal arrays.
-    if (allocated(mergerTrees%forestIndex           )) call deallocateArray(mergerTrees%forestIndex           )
-    if (allocated(mergerTrees%forestWeightNode      )) call deallocateArray(mergerTrees%forestWeightNode      )
-    if (allocated(mergerTrees%nodeIndex             )) call deallocateArray(mergerTrees%nodeIndex             )
-    if (allocated(mergerTrees%mostBoundParticleIndex)) call deallocateArray(mergerTrees%mostBoundParticleIndex)
-    if (allocated(mergerTrees%snapshot              )) call deallocateArray(mergerTrees%snapshot              )
-    if (allocated(mergerTrees%descendentIndex       )) call deallocateArray(mergerTrees%descendentIndex       )
-    if (allocated(mergerTrees%hostIndex             )) call deallocateArray(mergerTrees%hostIndex             )
-    if (allocated(mergerTrees%redshift              )) call deallocateArray(mergerTrees%redshift              )
-    if (allocated(mergerTrees%scaleFactor           )) call deallocateArray(mergerTrees%scaleFactor           )
-    if (allocated(mergerTrees%nodeMass              )) call deallocateArray(mergerTrees%nodeMass              )
-    if (allocated(mergerTrees%nodeMass200Mean       )) call deallocateArray(mergerTrees%nodeMass200Mean       )
-    if (allocated(mergerTrees%nodeMass200Crit       )) call deallocateArray(mergerTrees%nodeMass200Crit       )
-    if (allocated(mergerTrees%particleCount         )) call deallocateArray(mergerTrees%particleCount         )
-    if (allocated(mergerTrees%position              )) call deallocateArray(mergerTrees%position              )
-    if (allocated(mergerTrees%velocity              )) call deallocateArray(mergerTrees%velocity              )
-    if (allocated(mergerTrees%spin                  )) call deallocateArray(mergerTrees%spin                  )
-    if (allocated(mergerTrees%halfMassRadius        )) call deallocateArray(mergerTrees%halfMassRadius        )
-    if (allocated(mergerTrees%scaleRadius           )) call deallocateArray(mergerTrees%scaleRadius           )
-    if (allocated(mergerTrees%velocityMaximum       )) call deallocateArray(mergerTrees%velocityMaximum       )
-    if (allocated(mergerTrees%velocityDispersion    )) call deallocateArray(mergerTrees%velocityDispersion    )
+    if (allocated(mergerTrees%forestIndex           )) deallocate(mergerTrees%forestIndex           )
+    if (allocated(mergerTrees%forestWeightNode      )) deallocate(mergerTrees%forestWeightNode      )
+    if (allocated(mergerTrees%nodeIndex             )) deallocate(mergerTrees%nodeIndex             )
+    if (allocated(mergerTrees%mostBoundParticleIndex)) deallocate(mergerTrees%mostBoundParticleIndex)
+    if (allocated(mergerTrees%snapshot              )) deallocate(mergerTrees%snapshot              )
+    if (allocated(mergerTrees%descendentIndex       )) deallocate(mergerTrees%descendentIndex       )
+    if (allocated(mergerTrees%hostIndex             )) deallocate(mergerTrees%hostIndex             )
+    if (allocated(mergerTrees%redshift              )) deallocate(mergerTrees%redshift              )
+    if (allocated(mergerTrees%scaleFactor           )) deallocate(mergerTrees%scaleFactor           )
+    if (allocated(mergerTrees%nodeMass              )) deallocate(mergerTrees%nodeMass              )
+    if (allocated(mergerTrees%nodeMass200Mean       )) deallocate(mergerTrees%nodeMass200Mean       )
+    if (allocated(mergerTrees%nodeMass200Crit       )) deallocate(mergerTrees%nodeMass200Crit       )
+    if (allocated(mergerTrees%particleCount         )) deallocate(mergerTrees%particleCount         )
+    if (allocated(mergerTrees%position              )) deallocate(mergerTrees%position              )
+    if (allocated(mergerTrees%velocity              )) deallocate(mergerTrees%velocity              )
+    if (allocated(mergerTrees%spin                  )) deallocate(mergerTrees%spin                  )
+    if (allocated(mergerTrees%halfMassRadius        )) deallocate(mergerTrees%halfMassRadius        )
+    if (allocated(mergerTrees%scaleRadius           )) deallocate(mergerTrees%scaleRadius           )
+    if (allocated(mergerTrees%velocityMaximum       )) deallocate(mergerTrees%velocityMaximum       )
+    if (allocated(mergerTrees%velocityDispersion    )) deallocate(mergerTrees%velocityDispersion    )
 
     ! Allocate internal arrays to correct size as needed.
-    if (mergerTrees%hasForestIndex                     ) call allocateArray(mergerTrees%forestIndex                     ,[  mergerTrees%nodeCount])
-    if (mergerTrees%hasForestWeight                    ) call allocateArray(mergerTrees%forestWeightNode                ,[  mergerTrees%nodeCount])
-    if (mergerTrees%hasNodeIndex                       ) call allocateArray(mergerTrees%nodeIndex                       ,[  mergerTrees%nodeCount])
-    if (mergerTrees%hasMostBoundParticleIndex          ) call allocateArray(mergerTrees%mostBoundParticleIndex          ,[  mergerTrees%nodeCount])
-    if (mergerTrees%hasSnapshot                        ) call allocateArray(mergerTrees%snapshot                        ,[  mergerTrees%nodeCount])
-    if (mergerTrees%hasDescendentIndex                 ) call allocateArray(mergerTrees%descendentIndex                 ,[  mergerTrees%nodeCount])
-    if (mergerTrees%hasHostIndex                       ) call allocateArray(mergerTrees%hostIndex                       ,[  mergerTrees%nodeCount])
-    if (mergerTrees%hasRedshift                        ) call allocateArray(mergerTrees%redshift                        ,[  mergerTrees%nodeCount])
-    if (mergerTrees%hasScaleFactor                     ) call allocateArray(mergerTrees%scaleFactor                     ,[  mergerTrees%nodeCount])
-    if (mergerTrees%hasNodeMass                        ) call allocateArray(mergerTrees%nodeMass                        ,[  mergerTrees%nodeCount])
-    if (mergerTrees%hasNodeMass200Mean                 ) call allocateArray(mergerTrees%nodeMass200Mean                 ,[  mergerTrees%nodeCount])
-    if (mergerTrees%hasNodeMass200Crit                 ) call allocateArray(mergerTrees%nodeMass200Crit                 ,[  mergerTrees%nodeCount])
-    if (mergerTrees%hasParticleCount                   ) call allocateArray(mergerTrees%particleCount                   ,[  mergerTrees%nodeCount])
-    if (mergerTrees%hasPositionX                       ) call allocateArray(mergerTrees%position                        ,[3,mergerTrees%nodeCount])
-    if (mergerTrees%hasVelocityX                       ) call allocateArray(mergerTrees%velocity                        ,[3,mergerTrees%nodeCount])
-    if (mergerTrees%hasSpinX                           ) call allocateArray(mergerTrees%spin                            ,[3,mergerTrees%nodeCount])
-    if (mergerTrees%hasAngularMomentumX                ) call allocateArray(mergerTrees%angularMomentum                 ,[3,mergerTrees%nodeCount])
-    if (mergerTrees%hasSpecificAngularMomentumX        ) call allocateArray(mergerTrees%specificAngularMomentum         ,[3,mergerTrees%nodeCount])
-    if (mergerTrees%hasSpinMagnitude                   ) call allocateArray(mergerTrees%spinMagnitude                   ,[  mergerTrees%nodeCount])
-    if (mergerTrees%hasAngularMomentumMagnitude        ) call allocateArray(mergerTrees%angularMomentumMagnitude        ,[  mergerTrees%nodeCount])
-    if (mergerTrees%hasSpecificAngularMomentumMagnitude) call allocateArray(mergerTrees%specificAngularMomentumMagnitude,[  mergerTrees%nodeCount])
-    if (mergerTrees%hasHalfMassRadius                  ) call allocateArray(mergerTrees%halfMassRadius                  ,[  mergerTrees%nodeCount])
-    if (mergerTrees%hasScaleRadius                     ) call allocateArray(mergerTrees%scaleRadius                     ,[  mergerTrees%nodeCount])
-    if (mergerTrees%hasVelocityMaximum                 ) call allocateArray(mergerTrees%velocityMaximum                 ,[  mergerTrees%nodeCount])
-    if (mergerTrees%hasVelocityDispersion              ) call allocateArray(mergerTrees%velocityDispersion              ,[  mergerTrees%nodeCount])
+    if (mergerTrees%hasForestIndex                     ) allocate(mergerTrees%forestIndex                     (mergerTrees%nodeCount))
+    if (mergerTrees%hasForestWeight                    ) allocate(mergerTrees%forestWeightNode                (mergerTrees%nodeCount))
+    if (mergerTrees%hasNodeIndex                       ) allocate(mergerTrees%nodeIndex                       (mergerTrees%nodeCount))
+    if (mergerTrees%hasMostBoundParticleIndex          ) allocate(mergerTrees%mostBoundParticleIndex          (mergerTrees%nodeCount))
+    if (mergerTrees%hasSnapshot                        ) allocate(mergerTrees%snapshot                        (mergerTrees%nodeCount))
+    if (mergerTrees%hasDescendentIndex                 ) allocate(mergerTrees%descendentIndex                 (mergerTrees%nodeCount))
+    if (mergerTrees%hasHostIndex                       ) allocate(mergerTrees%hostIndex                       (mergerTrees%nodeCount))
+    if (mergerTrees%hasRedshift                        ) allocate(mergerTrees%redshift                        (mergerTrees%nodeCount))
+    if (mergerTrees%hasScaleFactor                     ) allocate(mergerTrees%scaleFactor                     (mergerTrees%nodeCount))
+    if (mergerTrees%hasNodeMass                        ) allocate(mergerTrees%nodeMass                        (mergerTrees%nodeCount))
+    if (mergerTrees%hasNodeMass200Mean                 ) allocate(mergerTrees%nodeMass200Mean                 (mergerTrees%nodeCount))
+    if (mergerTrees%hasNodeMass200Crit                 ) allocate(mergerTrees%nodeMass200Crit                 (mergerTrees%nodeCount))
+    if (mergerTrees%hasParticleCount                   ) allocate(mergerTrees%particleCount                   (mergerTrees%nodeCount))
+    if (mergerTrees%hasPositionX                       ) allocate(mergerTrees%position                        (3,mergerTrees%nodeCount))
+    if (mergerTrees%hasVelocityX                       ) allocate(mergerTrees%velocity                        (3,mergerTrees%nodeCount))
+    if (mergerTrees%hasSpinX                           ) allocate(mergerTrees%spin                            (3,mergerTrees%nodeCount))
+    if (mergerTrees%hasAngularMomentumX                ) allocate(mergerTrees%angularMomentum                 (3,mergerTrees%nodeCount))
+    if (mergerTrees%hasSpecificAngularMomentumX        ) allocate(mergerTrees%specificAngularMomentum         (3,mergerTrees%nodeCount))
+    if (mergerTrees%hasSpinMagnitude                   ) allocate(mergerTrees%spinMagnitude                   (mergerTrees%nodeCount))
+    if (mergerTrees%hasAngularMomentumMagnitude        ) allocate(mergerTrees%angularMomentumMagnitude        (mergerTrees%nodeCount))
+    if (mergerTrees%hasSpecificAngularMomentumMagnitude) allocate(mergerTrees%specificAngularMomentumMagnitude(mergerTrees%nodeCount))
+    if (mergerTrees%hasHalfMassRadius                  ) allocate(mergerTrees%halfMassRadius                  (mergerTrees%nodeCount))
+    if (mergerTrees%hasScaleRadius                     ) allocate(mergerTrees%scaleRadius                     (mergerTrees%nodeCount))
+    if (mergerTrees%hasVelocityMaximum                 ) allocate(mergerTrees%velocityMaximum                 (mergerTrees%nodeCount))
+    if (mergerTrees%hasVelocityDispersion              ) allocate(mergerTrees%velocityDispersion              (mergerTrees%nodeCount))
 
     ! Open the file and read lines.
     open(newunit=fileUnit,file=inputFile,status='old',form='formatted')
@@ -1065,7 +1057,7 @@ contains
           ! If this is the first data line, determine how many columns are present and allocate array to store them.
           if (.not.gotFirstDataLine) then
              columnsCount=String_Count_Words(inputLine,separator)
-             call allocateArray(inputColumns,[columnsCount])
+             allocate(inputColumns(columnsCount))
              gotFirstDataLine=.true.
           end if
           ! Count nodes.
@@ -1201,25 +1193,25 @@ contains
     call displayMessage(message)
 
     ! Deallocate workspace.
-    if (allocated(inputColumns)) call deallocateArray(inputColumns)
+    if (allocated(inputColumns)) deallocate(inputColumns)
 
     ! If we have the particle mass, set the masses of any subhalos (which have zero mass by default) based on particle count.
     call Merger_Tree_Data_Set_Subhalo_Masses(mergerTrees)
 
     ! Convert specific angular momenta as needed.
     if (mergerTrees%hasSpecificAngularMomentumMagnitude.and..not.mergerTrees%hasAngularMomentumMagnitude) then
-       call allocateArray  (mergerTrees%angularMomentumMagnitude        ,[  mergerTrees%nodeCount])
+       allocate(mergerTrees%angularMomentumMagnitude        (mergerTrees%nodeCount))
        mergerTrees%angularMomentumMagnitude=mergerTrees%specificAngularMomentumMagnitude*mergerTrees%nodeMass
-       call deallocateArray(mergerTrees%specificAngularMomentumMagnitude                          )
+       deallocate(mergerTrees%specificAngularMomentumMagnitude                          )
        mergerTrees%hasSpecificAngularMomentumMagnitude=.false.
        mergerTrees%hasAngularMomentumMagnitude        =.true.
     end if
     if (mergerTrees%hasSpecificAngularMomentumX.and..not.mergerTrees%hasAngularMomentumX) then
-       call allocateArray  (mergerTrees%angularMomentum        ,[3,mergerTrees%nodeCount])
+       allocate(mergerTrees%angularMomentum        (3,mergerTrees%nodeCount))
        forall(i=1:3)
           mergerTrees%angularMomentum(i,:)=mergerTrees%specificAngularMomentum(i,:)*mergerTrees%nodeMass
        end forall
-       call deallocateArray(mergerTrees%specificAngularMomentum                          )
+       deallocate(mergerTrees%specificAngularMomentum                          )
        mergerTrees%hasSpecificAngularMomentumX=.false.
        mergerTrees%hasSpecificAngularMomentumY=.false.
        mergerTrees%hasSpecificAngularMomentumZ=.false.
@@ -1237,7 +1229,7 @@ contains
 
     ! If no redshift is given convert scale factor to redshift.
     if(mergerTrees%hasScaleFactor.and..not.mergerTrees%hasRedshift) then
-        call allocateArray(mergerTrees%redshift,[ mergerTrees%nodeCount])
+        allocate(mergerTrees%redshift(mergerTrees%nodeCount))
         if(present(maximumRedshift)) then
            maximumRedshiftActual=maximumRedshift
         else
@@ -1250,7 +1242,7 @@ contains
               mergerTrees%redshift(iNode)=                                                 maximumRedshiftActual
            end if
         end do
-        call deallocateArray(mergerTrees%scaleFactor)
+        deallocate(mergerTrees%scaleFactor)
         mergerTrees%hasScaleFactor=.false.
         mergerTrees%hasRedshift   =.true.
     end if
@@ -1329,20 +1321,19 @@ contains
     !!{
     Set the merger tree index arrays.
     !!}
-    use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class  (mergerTreeData), intent(inout) :: mergerTrees
     integer                                :: iNode      , iTree
 
     ! Allocate arrays for tree start and stop indices and reference ID.
-    if (allocated(mergerTrees%treeBeginsAt )) call deallocateArray(mergerTrees%treeBeginsAt )
-    if (allocated(mergerTrees%treeNodeCount)) call deallocateArray(mergerTrees%treeNodeCount)
-    if (allocated(mergerTrees%forestID     )) call deallocateArray(mergerTrees%forestID     )
-    if (allocated(mergerTrees%treeWeight   )) call deallocateArray(mergerTrees%treeWeight   )
-    call allocateArray(mergerTrees%treeBeginsAt ,[mergerTrees%forestCount])
-    call allocateArray(mergerTrees%treeNodeCount,[mergerTrees%forestCount])
-    call allocateArray(mergerTrees%forestID     ,[mergerTrees%forestCount])
-    call allocateArray(mergerTrees%treeWeight   ,[mergerTrees%forestCount])
+    if (allocated(mergerTrees%treeBeginsAt )) deallocate(mergerTrees%treeBeginsAt )
+    if (allocated(mergerTrees%treeNodeCount)) deallocate(mergerTrees%treeNodeCount)
+    if (allocated(mergerTrees%forestID     )) deallocate(mergerTrees%forestID     )
+    if (allocated(mergerTrees%treeWeight   )) deallocate(mergerTrees%treeWeight   )
+    allocate(mergerTrees%treeBeginsAt (mergerTrees%forestCount))
+    allocate(mergerTrees%treeNodeCount(mergerTrees%forestCount))
+    allocate(mergerTrees%forestID     (mergerTrees%forestCount))
+    allocate(mergerTrees%treeWeight   (mergerTrees%forestCount))
 
     ! Determine index in arrays where each tree begins.
     mergerTrees%treeBeginsAt (1)=0
@@ -1376,7 +1367,6 @@ contains
     !!}
     use :: File_Utilities   , only : Count_Lines_In_File
     use :: Error            , only : Error_Report
-    use :: Memory_Management, only : allocateArray      , deallocateArray
     use :: String_Handling  , only : String_Count_Words , String_Split_Words
     implicit none
     class    (mergerTreeData), intent(inout)               :: mergerTrees
@@ -1426,18 +1416,18 @@ contains
     if (.not.mergerTrees%hasParticleRedshift) call Error_Report("particle redshift must be supplied"//{introspection:location})
 
     ! Deallocate internal arrays.
-    if (allocated(mergerTrees%particleIndex   )) call deallocateArray(mergerTrees%particleIndex   )
-    if (allocated(mergerTrees%particleRedshift)) call deallocateArray(mergerTrees%particleRedshift)
-    if (allocated(mergerTrees%particlePosition)) call deallocateArray(mergerTrees%particlePosition)
-    if (allocated(mergerTrees%particleVelocity)) call deallocateArray(mergerTrees%particleVelocity)
-    if (allocated(mergerTrees%particleSnapshot)) call deallocateArray(mergerTrees%particleSnapshot)
+    if (allocated(mergerTrees%particleIndex   )) deallocate(mergerTrees%particleIndex   )
+    if (allocated(mergerTrees%particleRedshift)) deallocate(mergerTrees%particleRedshift)
+    if (allocated(mergerTrees%particlePosition)) deallocate(mergerTrees%particlePosition)
+    if (allocated(mergerTrees%particleVelocity)) deallocate(mergerTrees%particleVelocity)
+    if (allocated(mergerTrees%particleSnapshot)) deallocate(mergerTrees%particleSnapshot)
 
     ! Allocate internal arrays to correct size as needed.
-    if (mergerTrees%hasParticleIndex    ) call allocateArray(mergerTrees%particleIndex   ,[  mergerTrees%particlesCount])
-    if (mergerTrees%hasParticleRedshift ) call allocateArray(mergerTrees%particleRedshift,[  mergerTrees%particlesCount])
-    if (mergerTrees%hasParticlePositionX) call allocateArray(mergerTrees%particlePosition,[3,mergerTrees%particlesCount])
-    if (mergerTrees%hasParticleVelocityX) call allocateArray(mergerTrees%particleVelocity,[3,mergerTrees%particlesCount])
-    if (mergerTrees%hasParticleSnapshot ) call allocateArray(mergerTrees%particleSnapshot,[  mergerTrees%particlesCount])
+    if (mergerTrees%hasParticleIndex    ) allocate(mergerTrees%particleIndex   (mergerTrees%particlesCount))
+    if (mergerTrees%hasParticleRedshift ) allocate(mergerTrees%particleRedshift(mergerTrees%particlesCount))
+    if (mergerTrees%hasParticlePositionX) allocate(mergerTrees%particlePosition(3,mergerTrees%particlesCount))
+    if (mergerTrees%hasParticleVelocityX) allocate(mergerTrees%particleVelocity(3,mergerTrees%particlesCount))
+    if (mergerTrees%hasParticleSnapshot ) allocate(mergerTrees%particleSnapshot(mergerTrees%particlesCount))
 
     ! Open the file and read lines.
     open(newunit=fileUnit,file=inputFile,status='old',form='formatted')
@@ -1458,7 +1448,7 @@ contains
           ! If this is the first data line, determine how many columns are present and allocate array to store them.
           if (.not.gotFirstDataLine) then
              columnsCount=String_Count_Words(inputLine,separator)
-             call allocateArray(inputColumns,[columnsCount])
+             allocate(inputColumns(columnsCount))
              gotFirstDataLine=.true.
           end if
           ! Count nodes.
@@ -1504,7 +1494,7 @@ contains
     close(fileUnit)
 
     ! Deallocate workspace.
-    if (allocated(inputColumns)) call deallocateArray(inputColumns)
+    if (allocated(inputColumns)) deallocate(inputColumns)
 
     return
   end subroutine Merger_Tree_Data_Structure_Read_Particles_ASCII
@@ -1550,7 +1540,6 @@ contains
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : hdf5Object
     use :: ISO_Varying_String, only : assignment(=)  , char
-    use :: Memory_Management , only : deallocateArray
     use :: String_Handling   , only : operator(//)
     implicit none
     integer  (kind=hsize_t )                            , intent(in   ) :: hdfChunkSize
@@ -1688,8 +1677,8 @@ contains
        call forestIndexGroup%readDataset("firstNode"    ,firstNode    )
        call forestIndexGroup%readDataset("numberOfNodes",numberOfNodes)
        mergerTrees%treeBeginsAt=mergerTrees%treeBeginsAt+firstNode(size(firstNode))+numberOfNodes(size(numberOfNodes))
-       call deallocateArray(firstNode    )
-       call deallocateArray(numberOfNodes)
+       deallocate(firstNode    )
+       deallocate(numberOfNodes)
     end if
     call        forestIndexGroup%writeDataset(mergerTrees%treeBeginsAt ,"firstNode"    ,"Position of the first node in each forest in the halo data arrays.",appendTo=appendActual)
     call        forestIndexGroup%writeDataset(mergerTrees%treeNodeCount,"numberOfNodes","Number of nodes in each forest."                                   ,appendTo=appendActual)
@@ -1831,7 +1820,6 @@ contains
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : hdf5Object
     use :: ISO_Varying_String, only : assignment(=), char
-    use :: Memory_Management , only : allocateArray, deallocateArray
     implicit none
     integer         (kind=hsize_t  )                           , intent(in   ) ::        hdfChunkSize
     integer                                                    , intent(in   ) ::        hdfCompressionLevel
@@ -1891,7 +1879,7 @@ contains
 
        ! Find those nodes which exist at this snapshot.
        nodesOnSnapshotCount=count(mergerTrees%snapshot == iSnapshot)
-       call allocateArray(snapshotIndices,[nodesOnSnapshotCount])
+       allocate(snapshotIndices(nodesOnSnapshotCount))
        call Array_Which(mergerTrees%snapshot == iSnapshot,snapshotIndices)
 
        ! Write redshift attribute.
@@ -1949,7 +1937,7 @@ contains
        end if
 
        ! Destroy snapshot indices.
-       call deallocateArray(snapshotIndices)
+       deallocate(snapshotIndices)
 
        ! Close the group for halo catalogs
        call haloTrees%close()
@@ -1966,7 +1954,7 @@ contains
     if (.not.fileExists) call mergerTreesGroup%writeAttribute("HaloCatalog","HaloCatalogName")
 
     ! Build snapshot numbers for descendents.
-    call allocateArray(descendentSnapshot,shape(mergerTrees%nodeIndex))
+    allocate(descendentSnapshot(size(mergerTrees%nodeIndex)))
     descendentSnapshot=-1
     do iDescendent=1,size(mergerTrees%nodeIndex)
        if (mergerTrees%descendentIndex(iDescendent) >= 0) then
@@ -1987,7 +1975,7 @@ contains
     if (mergerTrees%hasHostIndex) call mergerTreesGroup%writeDataset(mergerTrees%hostIndex         ,"HostID"            ,"The index of each host halo."         ,appendTo=appendActual)
     call                               mergerTreesGroup%writeDataset(mergerTrees%treeNodeCount     ,"HalosPerTree"      ,"Number of halos in each tree."        ,appendTo=appendActual)
     call                               mergerTreesGroup%writeDataset(mergerTrees%forestID          ,"TreeID"            ,"Unique index of tree."                ,appendTo=appendActual)
-    call deallocateArray(descendentSnapshot)
+    deallocate(descendentSnapshot)
     call mergerTreesGroup%close()
 
     if (mergerTrees%hasMostBoundParticleIndex) then
@@ -2001,12 +1989,12 @@ contains
 
           ! Find those particles which exist at this snapshot.
           particlesOnSnapshotCount=count(mergerTrees%particleSnapshot == iSnapshot)
-          call allocateArray(snapshotIndices,[particlesOnSnapshotCount])
+          allocate(snapshotIndices(particlesOnSnapshotCount))
           call Array_Which(mergerTrees%particleSnapshot == iSnapshot,snapshotIndices)
 
           ! Find those nodes which exist at this snapshot.
           nodesOnSnapshotCount=count(mergerTrees%snapshot == iSnapshot)
-          call allocateArray(nodeSnapshotIndices,[nodesOnSnapshotCount])
+          allocate(nodeSnapshotIndices(nodesOnSnapshotCount))
           call Array_Which(mergerTrees%snapshot == iSnapshot,nodeSnapshotIndices)
 
           ! Create a snapshot group.
@@ -2030,12 +2018,12 @@ contains
           if (.not.snapshotGroup%hasAttribute("Redshift")) call snapshotGroup%writeAttribute(mergerTrees%particleRedshift(snapshotIndices(1)),"Redshift")
 
           ! Write the data.
-          call allocateArray(particleMass,[particlesOnSnapshotCount])
+          allocate(particleMass(particlesOnSnapshotCount))
           particleMass=mergerTrees%particleMass
           call darkParticlesGroup%writeDataset(particleMass,"Mass","The mass of each particle.",datasetReturned=dataset,appendTo=appendActual)
           if (.not.fileExists) call Store_Unit_Attributes_IRATE([unitsMass],mergerTrees,dataset)
           call dataset%close()
-          call deallocateArray(particleMass)
+          deallocate(particleMass)
           if (mergerTrees%hasParticleIndex    ) then
              call darkParticlesGroup%writeDataset(Array_Index(mergerTrees%particleIndex   ,snapshotIndices),"ID"      ,"The index of each particle."                               ,appendTo=appendActual)
           end if
@@ -2050,8 +2038,8 @@ contains
              call dataset%close()
           end if
           ! Destroy the snapshot indices.
-          call deallocateArray(snapshotIndices    )
-          call deallocateArray(nodeSnapshotIndices)
+          deallocate(snapshotIndices    )
+          deallocate(nodeSnapshotIndices)
 
           ! Close the groups.
           call darkParticlesGroup%close()
@@ -2225,7 +2213,6 @@ contains
     If we have most-bound particle indices and particle data has been read, construct arrays giving position of particle data for each node.
     !!}
     use :: Error            , only : Error_Report
-    use :: Memory_Management, only : allocateArray, deallocateArray
     class  (mergerTreeData), intent(inout) :: mergerTrees
     logical                                :: foundParticleData
     integer                                :: iNode            , iParticle
@@ -2234,10 +2221,10 @@ contains
        ! Insist on having particle data.
        if (.not.mergerTrees%hasParticles) call Error_Report("most bound particle IDs provided, but no particle data was read"//{introspection:location})
        ! Allocate arrays for storing indices.
-       if (allocated(mergerTrees%particleReferenceStart)) call deallocateArray(mergerTrees%particleReferenceStart)
-       if (allocated(mergerTrees%particleReferenceCount)) call deallocateArray(mergerTrees%particleReferenceCount)
-       call allocateArray(mergerTrees%particleReferenceStart,[mergerTrees%nodeCount])
-       call allocateArray(mergerTrees%particleReferenceCount,[mergerTrees%nodeCount])
+       if (allocated(mergerTrees%particleReferenceStart)) deallocate(mergerTrees%particleReferenceStart)
+       if (allocated(mergerTrees%particleReferenceCount)) deallocate(mergerTrees%particleReferenceCount)
+       allocate(mergerTrees%particleReferenceStart(mergerTrees%nodeCount))
+       allocate(mergerTrees%particleReferenceCount(mergerTrees%nodeCount))
        mergerTrees%particleReferenceStart=-1
        mergerTrees%particleReferenceCount=-1
        ! Loop over nodes.

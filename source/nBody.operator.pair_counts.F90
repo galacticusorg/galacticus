@@ -161,7 +161,6 @@ contains
 #ifdef USEMPI
     use    :: MPI_Utilities     , only : mpiSelf
 #endif
-    use    :: Memory_Management , only : deallocateArray
     use    :: Nearest_Neighbors , only : nearestNeighbors
     use    :: Numerical_Ranges  , only : Make_Range        , rangeTypeLogarithmic
     !$ use :: OMP_Lib           , only : OMP_Get_Thread_Num

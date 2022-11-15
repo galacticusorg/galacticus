@@ -61,7 +61,6 @@ contains
     !!}
     use :: Error                         , only : Error_Report
     use :: Input_Parameters              , only : inputParameter         , inputParameters
-    use :: Memory_Management             , only : allocateArray
     use :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
     implicit none
     type            (galacticFilterStellarApparentMagnitudes)                              :: self
@@ -76,7 +75,7 @@ contains
          &                    '[apparentMagnitudeThreshold] input array must have same dimension as other luminosity arrays'// &
          &                    {introspection:location}                                                                         &
          &                   )
-    call allocateArray(apparentMagnitudeThreshold,[unitStellarLuminosities%luminosityCount(unmapped=.true.)])
+    allocate(apparentMagnitudeThreshold(unitStellarLuminosities%luminosityCount(unmapped=.true.)))
     !![
     <inputParameter>
       <name>apparentMagnitudeThreshold</name>

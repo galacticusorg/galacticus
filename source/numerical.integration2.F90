@@ -463,7 +463,6 @@ contains
     those used in the \gls{gsl}.
     !!}
     use :: Error , only : Error_Report
-    use :: Memory_Management, only : allocateArray
     implicit none
     class  (integratorCompositeGaussKronrod1D), intent(inout) :: self
     integer                                   , intent(in   ) :: iterationsMaximum, order
@@ -477,9 +476,9 @@ contains
     ! Choose order.
     select case (order)
     case (15) ! 15-point Kronrod rule.
-       call allocateArray(self%xKronrod,[8])
-       call allocateArray(self%wKronrod,[8])
-       call allocateArray(self%wGauss  ,[4])
+       allocate(self%xKronrod(8))
+       allocate(self%wKronrod(8))
+       allocate(self%wGauss  (4))
        self%xKronrod =[                                       &
             &          0.991455371120812639206854697526329d0, &
             &          0.949107912342758524526189684047851d0, &
@@ -507,9 +506,9 @@ contains
             &          0.209482141084727828012999174891714d0  &
             &        ]
     case (61) ! 61-point Kronrod rule.
-       call allocateArray(self%xKronrod,[31])
-       call allocateArray(self%wKronrod,[31])
-       call allocateArray(self%wGauss  ,[15])
+       allocate(self%xKronrod(31))
+       allocate(self%wKronrod(31))
+       allocate(self%wGauss  (15))
        self%xKronrod =[                                       &
             &          0.999484410050490637571325895705811d0, &
             &          0.996893484074649540271630050918695d0, &
@@ -815,7 +814,6 @@ contains
     taken from those used in the \gls{gsl}.
     !!}
     use :: Error , only : Error_Report
-    use :: Memory_Management, only : allocateArray
     implicit none
     class  (integratorVectorizedCompositeGaussKronrod1D), intent(inout) :: self
     integer                                             , intent(in   ) :: iterationsMaximum, order
@@ -829,9 +827,9 @@ contains
     ! Choose order.
     select case (order)
     case (15) ! 15-point Kronrod rule.
-       call allocateArray(self%xKronrod,[8])
-       call allocateArray(self%wKronrod,[8])
-       call allocateArray(self%wGauss  ,[4])
+       allocate(self%xKronrod(8))
+       allocate(self%wKronrod(8))
+       allocate(self%wGauss  (4))
        self%xKronrod =[                                       &
             &          0.991455371120812639206854697526329d0, &
             &          0.949107912342758524526189684047851d0, &
@@ -859,9 +857,9 @@ contains
             &          0.209482141084727828012999174891714d0  &
             &        ]
     case (61) ! 61-point Kronrod rule.
-       call allocateArray(self%xKronrod,[31])
-       call allocateArray(self%wKronrod,[31])
-       call allocateArray(self%wGauss  ,[15])
+       allocate(self%xKronrod(31))
+       allocate(self%wKronrod(31))
+       allocate(self%wGauss  (15))
        self%xKronrod =[                                       &
             &          0.999484410050490637571325895705811d0, &
             &          0.996893484074649540271630050918695d0, &
@@ -1310,7 +1308,6 @@ contains
     Initialize a one-dimensional, vectorized composite trapezoidal numerical integrator.
     !!}
     use :: Error , only : Error_Report
-    use :: Memory_Management, only : allocateArray
     implicit none
     class           (integratorVectorizedCompositeTrapezoidal1D), intent(inout) :: self
     integer                                                     , intent(in   ) :: iterationsMaximum
@@ -1325,7 +1322,7 @@ contains
          &                             )
     self%iterationsMaximum=iterationsMaximum
     workspaceSize=2**iterationsMaximum
-    call allocateArray(self%d,[workspaceSize])
+    allocate(self%d(workspaceSize))
     self%d(1:2)=[0.0d0,1.0d0]
     do i=2,iterationsMaximum
        n=2**i
@@ -1385,12 +1382,11 @@ contains
     !!{
     Destructor for the {\normalfont \ttfamily integratorMulti} class.
     !!}
-    use :: Memory_Management, only : deallocateArray
     implicit none
     type(integratorMulti), intent(inout) :: self
 
-    if (allocated(self%toleranceAbsolute)) call deallocateArray(self%toleranceAbsolute)
-    if (allocated(self%toleranceRelative)) call deallocateArray(self%toleranceRelative)
+    if (allocated(self%toleranceAbsolute)) deallocate(self%toleranceAbsolute)
+    if (allocated(self%toleranceRelative)) deallocate(self%toleranceRelative)
     return
   end subroutine integratorMultiDestructor
 
@@ -1399,7 +1395,6 @@ contains
     Initialize the tolerances for multi-integrand numerical integrators.
     !!}
     use :: Error , only : Error_Report
-    use :: Memory_Management, only : allocateArray          , deallocateArray
     implicit none
     class           (integratorMulti), intent(inout)                         :: self
     double precision                 , intent(in   ), dimension(:), optional :: toleranceAbsolute, toleranceRelative
@@ -1421,10 +1416,10 @@ contains
     else
        toleranceCount=size(toleranceRelative)
     end if
-    if (allocated(self%toleranceAbsolute)) call deallocateArray(self%toleranceAbsolute)
-    if (allocated(self%toleranceRelative)) call deallocateArray(self%toleranceRelative)
-    call allocateArray(self%toleranceAbsolute,[toleranceCount])
-    call allocateArray(self%toleranceRelative,[toleranceCount])
+    if (allocated(self%toleranceAbsolute)) deallocate(self%toleranceAbsolute)
+    if (allocated(self%toleranceRelative)) deallocate(self%toleranceRelative)
+    allocate(self%toleranceAbsolute(toleranceCount))
+    allocate(self%toleranceRelative(toleranceCount))
     self%toleranceAbsolute=0.0d0
     self%toleranceRelative=0.0d0
     if (present(toleranceAbsolute)) then
@@ -1478,7 +1473,6 @@ contains
     and weights are taken from those used in the \gls{gsl}.
     !!}
     use :: Error , only : Error_Report
-    use :: Memory_Management, only : allocateArray
     implicit none
     class  (integratorMultiVectorizedCompositeGaussKronrod1D), intent(inout) :: self
     integer                                                  , intent(in   ) :: intervalsMaximum, order
@@ -1492,9 +1486,9 @@ contains
     ! Choose order.
     select case (order)
     case (15) ! 15-point Kronrod rule.
-       call allocateArray(self%xKronrod,[8])
-       call allocateArray(self%wKronrod,[8])
-       call allocateArray(self%wGauss  ,[4])
+       allocate(self%xKronrod(8))
+       allocate(self%wKronrod(8))
+       allocate(self%wGauss  (4))
        self%xKronrod =[                                       &
             &          0.991455371120812639206854697526329d0, &
             &          0.949107912342758524526189684047851d0, &
@@ -1522,9 +1516,9 @@ contains
             &          0.209482141084727828012999174891714d0  &
             &        ]
     case (61) ! 61-point Kronrod rule.
-       call allocateArray(self%xKronrod,[31])
-       call allocateArray(self%wKronrod,[31])
-       call allocateArray(self%wGauss  ,[15])
+       allocate(self%xKronrod(31))
+       allocate(self%wKronrod(31))
+       allocate(self%wGauss  (15))
        self%xKronrod =[                                       &
             &          0.999484410050490637571325895705811d0, &
             &          0.996893484074649540271630050918695d0, &

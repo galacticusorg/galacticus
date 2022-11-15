@@ -33,7 +33,14 @@
      A concentration vs. halo mass analysis class matched to the \cite{ludlow_mass-concentration-redshift_2016} CDM sample.
      !!}
      private
-  end type outputAnalysisConcentrationVsHaloMassCDMLudlow2016
+    class(cosmologyParametersClass  ), pointer :: cosmologyParameters_   => null()
+    class(cosmologyFunctionsClass   ), pointer :: cosmologyFunctions_    => null()
+    class(virialDensityContrastClass), pointer :: virialDensityContrast_ => null()
+    class(darkMatterProfileDMOClass ), pointer :: darkMatterProfileDMO_  => null()
+    class(nbodyHaloMassErrorClass   ), pointer :: nbodyHaloMassError_    => null()
+  contains
+    final :: concentrationVsHaloMassCDMLudlow2016Destructor
+ end type outputAnalysisConcentrationVsHaloMassCDMLudlow2016
 
   interface outputAnalysisConcentrationVsHaloMassCDMLudlow2016
      !!{
@@ -101,7 +108,6 @@ contains
     use :: HDF5_Access                           , only : hdf5Access
     use :: IO_HDF5                               , only : hdf5Object
     use :: ISO_Varying_String                    , only : var_str
-    use :: Memory_Management                     , only : allocateArray
     use :: Node_Property_Extractors              , only : nodePropertyExtractorConcentration                , nodePropertyExtractorMassHalo
     use :: Numerical_Comparison                  , only : Values_Agree
     use :: Numerical_Constants_Astronomical      , only : massSolar
@@ -116,8 +122,8 @@ contains
     type            (outputAnalysisConcentrationVsHaloMassCDMLudlow2016)                                :: self
     class           (cosmologyParametersClass                          ), target       , intent(in   )  :: cosmologyParameters_
     class           (cosmologyFunctionsClass                           ), target       , intent(in   )  :: cosmologyFunctions_
-    class           (virialDensityContrastClass                        )               , intent(in   )  :: virialDensityContrast_
-    class           (darkMatterProfileDMOClass                         )               , intent(in   )  :: darkMatterProfileDMO_
+    class           (virialDensityContrastClass                        ), target       , intent(in   )  :: virialDensityContrast_
+    class           (darkMatterProfileDMOClass                         ), target       , intent(in   )  :: darkMatterProfileDMO_
     class           (nbodyHaloMassErrorClass                           ), target       , intent(in   )  :: nbodyHaloMassError_
     class           (outputTimesClass                                  ), target       , intent(inout)  :: outputTimes_
     integer         (c_size_t                                          ), parameter                     :: massHaloCount                         =26
@@ -139,7 +145,10 @@ contains
     type            (virialDensityContrastFixed                        ), pointer                       :: virialDensityContrastDefinition_
     integer         (c_size_t                                          )                                :: iOutput
     type            (hdf5Object                                        )                                :: dataFile
-
+    !![
+    <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_, *virialDensityContrast_, *darkMatterProfileDMO_, *nbodyHaloMassError_, *outputTimes_"/>
+    !!]
+    
     ! Construct mass bins matched to those used by Ludlow et al. (2016).
     !$ call hdf5Access%set()
     call dataFile%openFile   (char(inputPath(pathTypeDataStatic)//'darkMatter/concentrationMassRelationCDMLudlow2016.hdf5'),readOnly=.true.             )
@@ -148,7 +157,7 @@ contains
     !$ call hdf5Access%unset()
     massHaloLogarithmic=log10(massHaloLogarithmic)
     ! Compute weights that apply to each output redshift.
-    call allocateArray(outputWeight,[size(massHaloLogarithmic,kind=c_size_t),outputTimes_%count()])
+    allocate(outputWeight(size(massHaloLogarithmic),outputTimes_%count()))
     outputWeight=0.0d0
     do iOutput=1,outputTimes_%count()
        if (Values_Agree(outputTimes_%redshift(iOutput),0.0d0,absTol=1.0d-10)) outputWeight(:,iOutput)=1.0d0
@@ -233,3 +242,21 @@ contains
     nullify(virialDensityContrastDefinition_      )
     return
   end function concentrationVsHaloMassCDMLudlow2016ConstructorInternal
+
+  subroutine concentrationVsHaloMassCDMLudlow2016Destructor(self)
+    !!{
+    Destructor for the {\normalfont \ttfamily concentrationVsHaloMassCDMLudlow2016} output analysis class.
+    !!}
+    implicit none
+    type(outputAnalysisConcentrationVsHaloMassCDMLudlow2016), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%cosmologyParameters_"  />
+    <objectDestructor name="self%cosmologyFunctions_"   />
+    <objectDestructor name="self%outputTimes_"          />
+    <objectDestructor name="self%nbodyHaloMassError_"   />
+    <objectDestructor name="self%darkMatterProfileDMO_" />
+    <objectDestructor name="self%virialDensityContrast_"/>
+    !!]
+    return
+  end subroutine concentrationVsHaloMassCDMLudlow2016Destructor

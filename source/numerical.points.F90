@@ -34,7 +34,6 @@ contains
     !!{
     Prune a set of points.
     !!}
-    use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     double precision, allocatable, dimension(:,:), intent(inout) :: points
     logical                      , dimension(:  ), intent(in   ) :: mask
@@ -43,7 +42,7 @@ contains
 
     pointsCount=count(mask)
     call Move_Alloc(points,pointsTmp)
-    call allocateArray(points,[3,pointsCount])
+    allocate(points(3,pointsCount))
     pointsCount=0
     do i=1,size(pointsTmp,dim=2)
        if (mask(i)) then
@@ -51,7 +50,7 @@ contains
           points(:,pointsCount)=pointsTmp(:,i)
        end if
     end do
-    call deallocateArray(pointsTmp)
+    deallocate(pointsTmp)
     return
   end subroutine Points_Prune
 
@@ -87,7 +86,6 @@ contains
     !!{
     Apply a simple translation to a set of points.
     !!}
-    use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     double precision, dimension(:,:), allocatable, intent(inout) :: points
     integer         , dimension(3  )             , intent(in   ) :: replicantStart  , replicantEnd
@@ -98,8 +96,8 @@ contains
          &                                                          replicationCount, pointsCount
 
     pointsCount=size(points,dim=2)
-    call Move_Alloc(points,pointsTmp)
-    call allocateArray(points,[3,pointsCount*product(replicantEnd-replicantStart+1)])
+    call move_alloc(points,  pointsTmp                                          )
+    allocate       (points(3,pointsCount*product(replicantEnd-replicantStart+1)))
     replicationCount=0
     do i=replicantStart(1),replicantEnd(1)
        do j=replicantStart(2),replicantEnd(2)
@@ -112,7 +110,7 @@ contains
           end do
        end do
     end do
-    call deallocateArray(pointsTmp)
+    deallocate(pointsTmp)
     return
   end subroutine Points_Replicate
 
@@ -166,7 +164,6 @@ contains
     !!}
     use :: Display          , only : displayCounter     , displayCounterClear, displayIndent, displayUnindent
     use :: Geometry_Surveys , only : surveyGeometryClass
-    use :: Memory_Management, only : allocateArray      , deallocateArray
     implicit none
     double precision                     , allocatable, dimension(:,:), intent(inout) :: points
     class           (surveyGeometryClass)                             , intent(inout) :: surveyGeometry_
@@ -191,7 +188,7 @@ contains
     call displayUnindent('done')
     pointInclusionCount=count(pointInclusionMask)
     call Move_Alloc(points,pointsTmp)
-    call allocateArray(points,[3,pointInclusionCount])
+    allocate(points(3,pointInclusionCount))
     pointInclusionCount=0
     do iPoint=1,size(pointsTmp,dim=2)
        if (pointInclusionMask(iPoint)) then
@@ -199,7 +196,7 @@ contains
           points(:,pointInclusionCount)=pointsTmp(:,iPoint)
        end if
     end do
-    call deallocateArray(pointsTmp)
+    deallocate(pointsTmp)
     return
   end subroutine Points_Survey_Geometry
 

@@ -45,7 +45,7 @@
           &                                                                          massHaloMaximum                      , redshiftMinimum              , &
           &                                                                          redshiftMaximum
      logical                                                                      :: useSurveyLimits                      , integrateOverHaloMassFunction
-     type            (varying_string                 )                            :: outputGroupName
+     type            (varying_string                 )                            :: outputGroupName                      , massHalo_
      double precision                                 , allocatable, dimension(:) :: massBinCenters                       , massLogarithmDelta
    contains
      final     ::            conditionalMassFunctionDestructor
@@ -84,7 +84,7 @@ contains
          &                                                                            massHaloMaximum            , timeMinimum                  , &
          &                                                                            timeMaximum
     logical                                                                        :: useSurveyLimits            , integrateOverHaloMassFunction
-    type            (varying_string                 )                              :: outputGroupName            , massHaloText
+    type            (varying_string                 )                              :: outputGroupName            , massHalo_
     character       (len=32                         )                              :: text
 
     !![
@@ -177,10 +177,10 @@ contains
       <defaultValue>var_str('all')</defaultValue>
       <description>The halo mass for which to compute the conditional mass function. A value of ``all'' will cause the conditional mass function to be integrated over the halo mass function, giving the mass function.</description>
       <source>parameters</source>
-      <variable>massHaloText</variable>
+      <variable>massHalo_</variable>
     </inputParameter>
     !!]
-    integrateOverHaloMassFunction=(massHaloText == "all")
+    integrateOverHaloMassFunction=(massHalo_ == "all")
     if (integrateOverHaloMassFunction) then
        !![
        <inputParameter>
@@ -197,7 +197,7 @@ contains
        </inputParameter>
        !!]
     else
-       text=char(massHaloText)
+       text=char(massHalo_)
        read (text,*) massHalo
     end if
     !![
@@ -240,11 +240,10 @@ contains
     Constructor for the {\normalfont \ttfamily conditionalMassFunction} task class which takes a parameter set as input.
     !!}
     use :: Error            , only : Error_Report
-    use :: Memory_Management, only : allocateArray
     use :: Numerical_Ranges , only : Make_Range   , rangeTypeLogarithmic
     implicit none
-    type            (taskConditionalMassFunction    )                                        :: self
     class           (cosmologyFunctionsClass        ), intent(in   ), target                 :: cosmologyFunctions_
+    type            (taskConditionalMassFunction    )                                        :: self
     class           (conditionalMassFunctionClass   ), intent(in   ), target                 :: conditionalMassFunction_
     class           (surveyGeometryClass            ), intent(in   ), target                 :: surveyGeometry_
     class           (massFunctionIncompletenessClass), intent(in   ), target                 :: massFunctionIncompleteness_
@@ -253,10 +252,11 @@ contains
     double precision                                 , intent(in   )              , optional :: massHalo                   , massMinimum       , &
          &                                                                                      massMaximum                , massHaloMinimum   , &
          &                                                                                      massHaloMaximum
-    double precision                                 , intent(in   )                         :: timeMinimum,timeMaximum
+    double precision                                 , intent(in   )                         :: timeMinimum                , timeMaximum
     logical                                          , intent(in   )                         :: useSurveyLimits
     double precision                                 , intent(in   ), dimension(:), optional :: massBinCenters             , massLogarithmDelta
     type            (varying_string                 ), intent(in   )                         :: outputGroupName
+    character       (len=12                         )                                        :: label
 
     !![
     <constructorAssign variables="outputGroupName,massMinimum,massMaximum,countMass,timeMinimum,timeMaximum,useSurveyLimits,massHalo,massHaloMinimum,massHaloMaximum,massBinCenters,massLogarithmDelta,*cosmologyFunctions_,*conditionalMassFunction_,*surveyGeometry_,*massFunctionIncompleteness_, *haloMassFunction_"/>
@@ -268,11 +268,17 @@ contains
        if (.not.present(massHaloMinimum).or..not.present(massHaloMaximum)) call Error_Report('ambiguous halo mass selection'//{introspection:location})
     end if
     self%integrateOverHaloMassFunction=.not.present(massHalo)
+    if (self%integrateOverHaloMassFunction) then
+       self%massHalo_="all"
+    else
+       write (label,'(e12.6)') massHalo
+       self%massHalo_=label
+    end if
     if (present(massBinCenters)) then
        self%massLogarithmDelta=log(self%massLogarithmDelta)
     else
-       call allocateArray(self%massBinCenters    ,[countMass])
-       call allocateArray(self%massLogarithmDelta,[countMass])
+       allocate(self%massBinCenters    (countMass))
+       allocate(self%massLogarithmDelta(countMass))
        self%massBinCenters    =Make_Range(massMinimum,massMaximum,countMass,rangeType=rangeTypeLogarithmic)
        self%massLogarithmDelta=log(self%massBinCenters(2)/self%massBinCenters(1))
     end if
@@ -307,7 +313,6 @@ contains
     use :: Output_HDF5          , only : outputFile
     use :: IO_HDF5              , only : hdf5Object
     use :: ISO_Varying_String   , only : char         , var_str           , varying_string
-    use :: Memory_Management    , only : allocateArray
     use :: Numerical_Integration, only : integrator
     use :: String_Handling      , only : operator(//)
     implicit none
@@ -329,8 +334,8 @@ contains
 
     call displayIndent('Begin task: conditional mass function' )
     if(present(status)) status=errorStatusSuccess
-    call allocateArray(conditionalMassFunction          ,[self%countMass])
-    call allocateArray(conditionalMassFunctionIncomplete,[self%countMass])
+    allocate(conditionalMassFunction          (self%countMass))
+    allocate(conditionalMassFunctionIncomplete(self%countMass))
     ! Find logarithmic limits for halo mass in integrations.
     logHaloMassLower=log10(self%massHaloMinimum)
     logHaloMassUpper=log10(self%massHaloMaximum)

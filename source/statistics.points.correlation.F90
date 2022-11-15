@@ -37,7 +37,6 @@ contains
     use :: Display          , only : displayCounter  , displayCounterClear , displayIndent, displayUnindent
     use :: Error            , only : Error_Report
     use :: Kind_Numbers     , only : kind_int8
-    use :: Memory_Management, only : allocateArray   , deallocateArray
     use :: Nearest_Neighbors, only : nearestNeighbors
     use :: Numerical_Ranges , only : Make_Range      , rangeTypeLogarithmic
     use :: Vectors          , only : Vector_Magnitude
@@ -89,20 +88,20 @@ contains
        radialLogarithmicMinimum    = 0.0d0
     end if
     ! Allocate arrays.
-    if (allocated(separation )) call deallocateArray(separation )
-    if (allocated(correlation)) call deallocateArray(correlation)
-    call allocateArray(separation              ,[separationCount               ])
-    call allocateArray(correlation             ,[separationCount               ])
-    call allocateArray(separationSquaredMinimum,[separationCount               ])
-    call allocateArray(separationSquaredMaximum,[separationCount               ])
-    call allocateArray(dataDataCount           ,[separationCount,radialBinCount])
-    call allocateArray(randomRandomCount       ,[separationCount,radialBinCount])
-    call allocateArray(dataRandomCount         ,[separationCount,radialBinCount])
-    call allocateArray(pairCount               ,[separationCount,radialBinCount])
-    call allocateArray(dataData                ,[separationCount,radialBinCount])
-    call allocateArray(randomRandom            ,[separationCount,radialBinCount])
-    call allocateArray(dataRandom              ,[separationCount,radialBinCount])
-    call allocateArray(correlationTmp          ,[separationCount,radialBinCount])
+    if (allocated(separation )) deallocate(separation )
+    if (allocated(correlation)) deallocate(correlation)
+    allocate(separation              (separationCount               ))
+    allocate(correlation             (separationCount               ))
+    allocate(separationSquaredMinimum(separationCount               ))
+    allocate(separationSquaredMaximum(separationCount               ))
+    allocate(dataDataCount           (separationCount,radialBinCount))
+    allocate(randomRandomCount       (separationCount,radialBinCount))
+    allocate(dataRandomCount         (separationCount,radialBinCount))
+    allocate(pairCount               (separationCount,radialBinCount))
+    allocate(dataData                (separationCount,radialBinCount))
+    allocate(randomRandom            (separationCount,radialBinCount))
+    allocate(dataRandom              (separationCount,radialBinCount))
+    allocate(correlationTmp          (separationCount,radialBinCount))
     ! Initialize counts.
     dataDataCount    =0
     randomRandomCount=0
@@ -256,16 +255,16 @@ contains
        correlation=correlationTmp(:,1)
     end if
     ! Deallocate.
-    call deallocateArray(separationSquaredMinimum)
-    call deallocateArray(separationSquaredMaximum)
-    call deallocateArray(dataDataCount           )
-    call deallocateArray(randomRandomCount       )
-    call deallocateArray(dataRandomCount         )
-    call deallocateArray(pairCount               )
-    call deallocateArray(dataData                )
-    call deallocateArray(randomRandom            )
-    call deallocateArray(dataRandom              )
-    call deallocateArray(correlationTmp          )
+    deallocate(separationSquaredMinimum)
+    deallocate(separationSquaredMaximum)
+    deallocate(dataDataCount           )
+    deallocate(randomRandomCount       )
+    deallocate(dataRandomCount         )
+    deallocate(pairCount               )
+    deallocate(dataData                )
+    deallocate(randomRandom            )
+    deallocate(dataRandom              )
+    deallocate(correlationTmp          )
     return
   end subroutine Statistics_Points_Correlation
 

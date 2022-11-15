@@ -41,20 +41,28 @@
      A dark matter halo progenitor mass function output analysis class.
      !!}
      private
+     class           (cosmologyFunctionsClass              ), pointer                   :: cosmologyFunctions_                    => null()
+     class           (cosmologyParametersClass             ), pointer                   :: cosmologyParameters_                   => null()
+     class           (nbodyHaloMassErrorClass              ), pointer                   :: nbodyHaloMassError_                    => null()
+     class           (virialDensityContrastClass           ), pointer                   :: virialDensityContrastDefinition_       => null(), virialDensityContrast_     => null()
+     class           (darkMatterProfileDMOClass            ), pointer                   :: darkMatterProfileDMO_                  => null()
      type            (galacticFilterAll                    ), pointer                   :: galacticFilterParentMass_              => null()
      type            (outputAnalysisWeightOperatorNbodyMass), pointer                   :: outputAnalysisWeightOperatorNbodyMass_ => null()
      type            (nodePropertyExtractorMassHalo        ), pointer                   :: nodePropertyExtractorMassParent_       => null()
      double precision                                       , allocatable, dimension(:) :: rootVarianceTargetFractional
-     double precision                                                                   :: massRatioMinimum                                , massRatioMaximum          , &
-          &                                                                                massParentMinimum                               , massParentMaximum         , &
-          &                                                                                timeProgenitor                                  , timeParent                , &
-          &                                                                                weightParents                                   , massRatioLikelihoodMinimum, &
+     double precision                                                                   :: massRatioMinimum                                , massRatioMaximum                    , &
+          &                                                                                massParentMinimum                               , massParentMaximum                   , &
+          &                                                                                timeProgenitor                                  , timeParent                          , &
+          &                                                                                redshiftProgenitor                              , redshiftParent                      , &
+          &                                                                                weightParents                                   , massRatioLikelihoodMinimum          , &
           &                                                                                massRatioLikelihoodMaximum
+     integer                                                                            :: indexParent                                     , indexRedshift
      integer         (c_size_t                             )                            :: countMassRatio                                  , indexOutput
-     logical                                                                            :: alwaysIsolatedOnly                              , covarianceDiagonalize     , &
-          &                                                                                covarianceTargetOnly                            , likelihoodInLog           , &
+     logical                                                                            :: alwaysIsolatedOnly                              , covarianceDiagonalize               , &
+          &                                                                                covarianceTargetOnly                            , likelihoodInLog                     , &
           &                                                                                weightsFinalized
-   contains
+     type            (varying_string                       )                            :: fileName
+  contains
      final     ::                     progenitorMassFunctionDestructor
      procedure :: newTree          => progenitorMassFunctionNewTree
      procedure :: reduce           => progenitorMassFunctionReduce
@@ -365,7 +373,7 @@ contains
     type            (hdf5Object                          )                                               :: dataFile                        , simulationGroup
     integer                                                                                              :: i
     logical                                                                                              :: haveBoundaries
-
+    
     !$ call hdf5Access%set  ()
     call dataFile%openFile(char(File_Name_Expand(fileName)),readOnly=.true.)
     simulationGroup=dataFile       %openGroup ('simulation0001'   )
@@ -406,6 +414,9 @@ contains
     timeParent        =cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftParent    ))
     ! Build the object.
     self              =outputAnalysisProgenitorMassFunction(label,comment,massRatio(1),massRatio(size(massRatio)),size(massRatio,kind=c_size_t),massParentMinimum,massParentMaximum,timeProgenitor,timeParent,alwaysIsolatedOnly,massRatioLikelihoodMinimum,massRatioLikelihoodMaximum,covarianceDiagonalize,covarianceTargetOnly,rootVarianceTargetFractional,likelihoodInLog,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_,nbodyHaloMassError_,outputTimes_,targetLabel,functionValueTarget,functionCovarianceTarget)
+    !![
+    <constructorAssign variables="fileName, indexParent, indexRedshift"/>
+    !!]
     return
   end function progenitorMassFunctionConstructorFile
 
@@ -415,7 +426,6 @@ contains
     !!}
     use :: Galactic_Filters                        , only : filterList                                      , galacticFilterDescendentNode                , galacticFilterHaloAlwaysIsolated              , galacticFilterHaloIsolated                  , &
           &                                                 galacticFilterHaloMass                          , galacticFilterNot
-    use :: Memory_Management                       , only : allocateArray
     use :: Node_Property_Extractors                , only : nodePropertyExtractorDescendentNode             , nodePropertyExtractorRatio
     use :: Numerical_Comparison                    , only : Values_Agree
     use :: Numerical_Ranges                        , only : Make_Range                                      , rangeTypeLogarithmic
@@ -481,16 +491,19 @@ contains
     type            (outputAnalysisPropertyOperatorIdentity          ), pointer                                 :: outputAnalysisPropertyIdentity_
     integer         (c_size_t                                        )                                          :: iOutput                                                , bufferCount
     !![
-    <constructorAssign variables="massRatioMinimum, massRatioMaximum, countMassRatio, massParentMinimum, massParentMaximum, timeProgenitor, timeParent, alwaysIsolatedOnly, massRatioLikelihoodMinimum, massRatioLikelihoodMaximum, covarianceDiagonalize, covarianceTargetOnly, rootVarianceTargetFractional, likelihoodInLog"/>
+    <constructorAssign variables="massRatioMinimum, massRatioMaximum, countMassRatio, massParentMinimum, massParentMaximum, timeProgenitor, timeParent, alwaysIsolatedOnly, massRatioLikelihoodMinimum, massRatioLikelihoodMaximum, covarianceDiagonalize, covarianceTargetOnly, rootVarianceTargetFractional, likelihoodInLog, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterProfileDMO_, *virialDensityContrast_, *virialDensityContrastDefinition_, *nbodyHaloMassError_, *outputTimes_"/>
     !!]
 
     ! Initialize state.
     self%weightsFinalized=.false.
+    ! Set redshifts.
+    self%redshiftProgenitor=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(timeProgenitor))
+    self%redshiftParent    =self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(timeParent    ))
     ! Build grid of mass ratios.
-    call allocateArray(massRatios,[countMassRatio])
+    allocate(massRatios(countMassRatio))
     massRatios=Make_Range(massRatioMinimum,massRatioMaximum,int(countMassRatio),rangeType=rangeTypeLogarithmic)
     ! Compute weights that apply to each output redshift.
-    call allocateArray(outputWeight,[countMassRatio,outputTimes_%count()])
+    allocate(outputWeight(countMassRatio,outputTimes_%count()))
     outputWeight=0.0d0
     do iOutput=1,outputTimes_%count()
        if (Values_Agree(outputTimes_%time(iOutput),timeProgenitor,absTol=timeTolerance)) then
@@ -692,6 +705,12 @@ contains
     <objectDestructor name="self%galacticFilterParentMass_"             />
     <objectDestructor name="self%outputAnalysisWeightOperatorNbodyMass_"/>
     <objectDestructor name="self%nodePropertyExtractorMassParent_"      />
+    <objectDestructor name="self%cosmologyFunctions_"                   />
+    <objectDestructor name="self%cosmologyParameters_"                  />
+    <objectDestructor name="self%darkMatterProfileDMO_"                 />
+    <objectDestructor name="self%virialDensityContrast_"                />
+    <objectDestructor name="self%nbodyHaloMassError_"                   />
+    <objectDestructor name="self%virialDensityContrastDefinition_"      />
     !!]
     return
   end subroutine progenitorMassFunctionDestructor

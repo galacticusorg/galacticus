@@ -120,7 +120,9 @@ sub Parse_Directives {
 			type       => $directiveName              ,
 			directive  => $directive->{$directiveName},
 			line       => $node     ->{'line'        },
-			processed  => 0
+			processed  => 0                           ,
+			source     => $source                     ,
+			line       => $rawDirectiveLine
 		    };
 		    (my $rawCloser = $rawOpener) =~ s/\[/\]/;
 		    $rawDirective = $rawOpener.$rawDirective.$rawCloser;

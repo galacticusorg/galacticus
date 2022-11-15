@@ -120,7 +120,6 @@ contains
     Determine the mean position and velocity of N-body particles.
     !!}
     use :: Error            , only : Error_Report
-    use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class          (nbodyOperatorMeanPosition), intent(inout)                 :: self
     type           (nBodyData                ), intent(inout), dimension(:  ) :: simulations

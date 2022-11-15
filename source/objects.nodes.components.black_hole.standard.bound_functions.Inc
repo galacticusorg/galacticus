@@ -128,8 +128,9 @@ function Node_Component_Black_Hole_Standard_Tidal_Tensor(self,positionCartesian,
   type            (enumerationMassTypeType       ), intent(in   )               :: massType
   double precision                                , intent(in   ), dimension(3) :: positionCartesian
   double precision                                                              :: radius
-  type            (tensorRank2Dimension3Symmetric)                              :: positionTensor
-
+  type            (tensorRank2Dimension3Symmetric), save                        :: positionTensor
+  !$omp threadprivate(positionTensor)
+  
   ! Set zero enclosed acceleration by default.
   Node_Component_Black_Hole_Standard_Tidal_Tensor=tensorNullR2D3Sym
   ! Return the black hole mass only if massType and componentType are of black hole type.

@@ -531,14 +531,14 @@ contains
        end do
        call historyStarFormation%destroy()
        historyStarFormation=newHistory
-       call newHistory%destroy(recordMemory=.false.)
+       call newHistory%destroy()
     end if
     return
   end subroutine adaptiveOutput
 
   subroutine adaptiveOutputFlush(self,componentType,treeLock)
     !!{
-    Flush any buffered star formation history data.x
+    Flush any buffered star formation history data.
     !!}
     implicit none
     class(starFormationHistoryAdaptive), intent(inout) :: self

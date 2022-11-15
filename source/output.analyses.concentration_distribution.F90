@@ -31,8 +31,19 @@
      A concentration distribution output analysis class.
      !!}
      private
-     double precision :: rootVarianceFractionalMinimum
+     class           (cosmologyParametersClass  ), pointer :: cosmologyParameters_             => null()
+     class           (cosmologyFunctionsClass   ), pointer :: cosmologyFunctions_              => null()
+     class           (darkMatterProfileDMOClass ), pointer :: darkMatterProfileDMO_            => null()
+     class           (nbodyHaloMassErrorClass   ), pointer :: nbodyHaloMassError_              => null()
+     class           (virialDensityContrastClass), pointer :: virialDensityContrastDefinition_ => null(), virialDensityContrast_ => null()
+     double precision                                      :: rootVarianceFractionalMinimum             , redshift                        , &
+          &                                                   massMinimum                               , massMaximum                     , &
+          &                                                   concentrationMinimum                      , concentrationMaximum            , &
+          &                                                   countConcentrationsPerDecade              , timeRecent                      , &
+          &                                                   massParticle
+     type            (varying_string            )          :: fileName
    contains
+     final     ::                  concentrationDistributionDestructor
      procedure :: logLikelihood => concentrationDistributionLogLikelihood
   end type outputAnalysisConcentrationDistribution
 
@@ -311,6 +322,9 @@ contains
     time=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift))
     ! Build the object.
     self=outputAnalysisConcentrationDistribution(label,comment,time,massMinimum,massMaximum,concentration(1),concentration(size(concentration)),size(concentration,kind=c_size_t),timeRecent,massParticle,rootVarianceFractionalMinimum,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_,outputTimes_,targetLabel,functionValueTarget,functionCovarianceTarget)
+    !![
+    <constructorAssign variables="fileName"/>
+    !!]
     return
   end function concentrationDistributionConstructorFile
 
@@ -321,7 +335,6 @@ contains
     use :: Cosmology_Functions                     , only : cosmologyFunctionsClass
     use :: Galactic_Filters                        , only : filterList                                      , galacticFilterAll                           , galacticFilterFormationTime                   , galacticFilterHaloIsolated
     use :: ISO_Varying_String                      , only : var_str
-    use :: Memory_Management                       , only : allocateArray
     use :: Node_Property_Extractors                , only : nodePropertyExtractorConcentration              , nodePropertyExtractorMassHalo
     use :: Numerical_Ranges                        , only : Make_Range                                      , rangeTypeLogarithmic
     use :: Numerical_Comparison                    , only : Values_Agree
@@ -379,14 +392,17 @@ contains
     double precision                                                  , parameter                                  :: covarianceBinomialMassHaloMinimum       = +3.000d+11, covarianceBinomialMassHaloMaximum=1.0d15
     integer         (c_size_t                                        )                                             :: iOutput                                             , bufferCount
     !![
-    <constructorAssign variables="rootVarianceFractionalMinimum"/>
+    <constructorAssign variables="rootVarianceFractionalMinimum, massMinimum, massMaximum, concentrationMinimum, concentrationMaximum, timeRecent, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterProfileDMO_, *nbodyHaloMassError_, *virialDensityContrastDefinition_, *virialDensityContrast_"/>
     !!]
-    
+
+    ! Set parameters needed for descriptor.
+    self%redshift                    =self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(time))
+    self%countConcentrationsPerDecade=dble(countConcentrations-1_c_size_t)/log10(concentrationMaximum/concentrationMinimum)
     ! Build grid of concentrations.
-    call allocateArray(concentrations,[countConcentrations])
+    allocate(concentrations(countConcentrations))
     concentrations=Make_Range(concentrationMinimum,concentrationMaximum,int(countConcentrations),rangeType=rangeTypeLogarithmic)
     ! Compute weights that apply to each output redshift.
-    call allocateArray(outputWeight,[countConcentrations,outputTimes_%count()])
+    allocate(outputWeight(countConcentrations,outputTimes_%count()))
     outputWeight=0.0d0
     do iOutput=1,outputTimes_%count()
        if (Values_Agree(outputTimes_%time(iOutput),time,absTol=1.0d-10)) outputWeight(:,iOutput)=1.0d0
@@ -651,3 +667,20 @@ contains
     end if
     return
   end function concentrationDistributionLogLikelihood
+
+  subroutine concentrationDistributionDestructor(self)
+    !!{
+    Destructor for  the ``concentrationDistribution'' output analysis class.
+    !!}
+    type(outputAnalysisConcentrationDistribution), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%cosmologyParameters_"            />
+    <objectDestructor name="self%cosmologyFunctions_"             />
+    <objectDestructor name="self%nbodyHaloMassError_"             />
+    <objectDestructor name="self%darkMatterProfileDMO_"           />
+    <objectDestructor name="self%virialDensityContrast_"          />
+    <objectDestructor name="self%virialDensityContrastDefinition_"/>
+    !!]
+    return
+  end subroutine concentrationDistributionDestructor

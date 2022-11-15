@@ -16,10 +16,12 @@ sub dataObjectPrimitiveName {
     (%options) = @_
 	if ( $#_ >= 1 );
     # Validate input.
-    foreach ( "rank", "type" ) {
-	die "DataTypes::dataObjectPrimitveName: no '".$_."' specifier present"
-	    unless ( exists($dataObject->{$_}) );
-    }
+    die "DataTypes::dataObjectPrimitveName: no 'type' specifier present"
+	unless ( exists($dataObject->{'type'}) );
+    die "DataTypes::dataObjectPrimitveName: no 'rank' or 'shape' specifier present"
+	unless ( exists($dataObject->{'rank'}) || exists($dataObject->{'shape'}) );
+    die "DataTypes::dataObjectPrimitveName: can not have both 'rank' and 'shape' specifiers present"
+	if     ( exists($dataObject->{'rank'}) && exists($dataObject->{'shape'}) );
     # Construct name, type, and attributes.
     my $name = 
 	exists($intrinsicTypes{$dataObject->{'type'}}) 
@@ -28,11 +30,14 @@ sub dataObjectPrimitiveName {
         :
 	"type(".                      $dataObject->{'type'}.")";    
     my $type = join("",map {ucfirst($_)} split(" ",$dataObject->{'type'}));
-    my @attributes;
-    if ( $dataObject->{'rank'} > 0 ) {
+    my @attributes;    
+    if ( exists($dataObject->{'rank'}) && $dataObject->{'rank'} > 0 ) {
 	push(@attributes,"dimension(".join(",",(":") x $dataObject->{'rank'}).")");
 	push(@attributes,"allocatable" )
 	    unless ( exists($options{'matchOnly'}) && $options{'matchOnly'} );
+    }
+    if ( exists($dataObject->{'shape'}) ) {
+	push(@attributes,"dimension(".$dataObject->{'shape'}.")");
     }
     my $attributeList = scalar(@attributes) > 0 ? ", ".join(", ",@attributes) : "";
     return ($name,$type,$attributeList);

@@ -70,7 +70,6 @@ contains
     use :: Geometry_Surveys          , only : surveyGeometryClass
     use :: Halo_Mass_Functions       , only : haloMassFunctionClass
     use :: Linear_Growth             , only : linearGrowthClass
-    use :: Memory_Management         , only : allocateArray
     use :: Numerical_Constants_Math  , only : Pi
     use :: Numerical_Integration     , only : GSL_Integ_Gauss61                , integrator
     use :: Numerical_Ranges          , only : Make_Range                       , rangeTypeLogarithmic
@@ -131,9 +130,9 @@ contains
     ! Generate wavenumber range.
     wavenumberCount=int(log10(wavenumberMaximum/wavenumberMinimum)*dble(wavenumberCountPerDecade))+1
     wavenumber     =Make_Range(wavenumberMinimum,wavenumberMaximum,wavenumberCount,rangeTypeLogarithmic)
-    call allocateArray(powerSpectrumTotal  ,[wavenumberCount])
-    call allocateArray(powerSpectrumOneHalo,[wavenumberCount])
-    call allocateArray(powerSpectrumTwoHalo,[wavenumberCount])
+    allocate(powerSpectrumTotal  (wavenumberCount))
+    allocate(powerSpectrumOneHalo(wavenumberCount))
+    allocate(powerSpectrumTwoHalo(wavenumberCount))
     ! Initialize.
     volume              =0.0d0
     galaxyDensity       =0.0d0
@@ -182,8 +181,8 @@ contains
                &                          /galaxyDensity                      **2
        end do
        ! Fourier transform to get the correlation function.
-       call allocateArray(correlation,shape(wavenumber))
-       call allocateArray(separation ,shape(wavenumber))
+       allocate(correlation,mold=wavenumber)
+       allocate(separation,mold=wavenumber)
        call FFTLogSineTransform(                     &
             &                   wavenumber         , &
             &                   separation         , &
@@ -196,7 +195,7 @@ contains
             &                  )
        correlation=correlation/separation
        ! Project the correlation function.
-       call allocateArray(projectedCorrelation,shape(wavenumber))
+       allocate(projectedCorrelation,mold=wavenumber)
        call correlationTable%create(separation(1),separation(wavenumberCount),wavenumberCount,extrapolationType=[extrapolationTypeExtrapolate,extrapolationTypeExtrapolate])
        integrandWeightFunction => projectionIntegrandWeight
        do iSeparation=1,wavenumberCount

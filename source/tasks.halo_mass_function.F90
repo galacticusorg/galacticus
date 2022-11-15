@@ -43,7 +43,8 @@
   
   !![
   <task name="taskHaloMassFunction">
-   <description>A task which computes and outputs the halo mass function and related quantities.</description>
+    <description>A task which computes and outputs the halo mass function and related quantities.</description>
+    <descriptorSpecial>descriptorSpecial</descriptorSpecial>
   </task>
   !!]
   type, extends(taskClass) :: taskHaloMassFunction
@@ -78,9 +79,15 @@
      type            (virialDensityContrastList              ), allocatable, dimension(:) :: virialDensityContrasts
      ! Pointer to the parameters for this task.
      type            (inputParameters                        )                            :: parameters
-  contains
-     final     ::            haloMassFunctionDestructor
-     procedure :: perform => haloMassFunctionPerform
+   contains
+     !![
+     <methods>
+       <method method="descriptorSpecial" description="Handle adding special parameters to the descriptor."/>
+     </methods>
+     !!]
+     final     ::                      haloMassFunctionDestructor
+     procedure :: perform           => haloMassFunctionPerform
+     procedure :: descriptorSpecial => haloMassFunctionDescriptorSpecial
   end type taskHaloMassFunction
 
   interface taskHaloMassFunction
@@ -466,7 +473,6 @@ contains
     use            :: Galacticus_Nodes                    , only : mergerTree                         , nodeComponentBasic                 , nodeComponentDarkMatterProfile, treeNode
     use            :: IO_HDF5                             , only : hdf5Object
     use, intrinsic :: ISO_C_Binding                       , only : c_size_t
-    use            :: Memory_Management                   , only : allocateArray
     use            :: Node_Components                     , only : Node_Components_Thread_Initialize  , Node_Components_Thread_Uninitialize
     use            :: Numerical_Constants_Astronomical    , only : gigaYear                           , massSolar                          , megaParsec
     use            :: Numerical_Constants_Math            , only : Pi
@@ -543,37 +549,37 @@ contains
     call Node_Components_Thread_Initialize(self%parameters)
     ! Get the requested output redshifts.
     outputCount=self%outputTimes_%count()
-    call allocateArray(outputTimes                                   ,[          outputCount])
-    call allocateArray(outputRedshifts                               ,[          outputCount])
-    call allocateArray(outputExpansionFactors                        ,[          outputCount])
-    call allocateArray(outputGrowthFactors                           ,[          outputCount])
-    call allocateArray(outputCriticalOverdensities                   ,[          outputCount])
-    call allocateArray(outputVirialDensityContrast                   ,[          outputCount])
-    call allocateArray(outputTurnaroundRadius                        ,[          outputCount])
-    call allocateArray(outputCharacteristicMass                      ,[          outputCount])
+    allocate(outputTimes                                   (outputCount))
+    allocate(outputRedshifts                               (outputCount))
+    allocate(outputExpansionFactors                        (outputCount))
+    allocate(outputGrowthFactors                           (outputCount))
+    allocate(outputCriticalOverdensities                   (outputCount))
+    allocate(outputVirialDensityContrast                   (outputCount))
+    allocate(outputTurnaroundRadius                        (outputCount))
+    allocate(outputCharacteristicMass                      (outputCount))
     ! Compute number of tabulation points.
     massCount=int(log10(self%haloMassMaximum/self%haloMassMinimum)*self%pointsPerDecade)+1
-    call allocateArray(massHalo                                      ,[                                                massCount            ])
-    call allocateArray(massHaloOutput                                ,[                                                massCount            ])
-    call allocateArray(massFunctionDifferential                      ,[                                                massCount,outputCount])
-    call allocateArray(massFunctionDifferentialLogarithmic           ,[                                                massCount,outputCount])
-    call allocateArray(massFunctionDifferentialLogarithmicBinAveraged,[                                                massCount,outputCount])
-    call allocateArray(massFunctionCumulative                        ,[                                                massCount,outputCount])
-    call allocateArray(massFunctionCumulativeSubhalo                 ,[                                                massCount,outputCount])
-    call allocateArray(massFunctionMassFraction                      ,[                                                massCount,outputCount])
-    call allocateArray(massAccretionRate                             ,[                                                massCount,outputCount])
-    call allocateArray(biasHalo                                      ,[                                                massCount,outputCount])
-    call allocateArray(densityFieldRootVariance                      ,[                                                massCount,outputCount])
-    call allocateArray(densityFieldRootVarianceGradientLogarithmic   ,[                                                massCount,outputCount])
-    call allocateArray(peakHeight                                    ,[                                                massCount,outputCount])
-    call allocateArray(peakHeightMassFunction                        ,[                                                massCount,outputCount])
-    call allocateArray(velocityVirial                                ,[                                                massCount,outputCount])
-    call allocateArray(temperatureVirial                             ,[                                                massCount,outputCount])
-    call allocateArray(radiusVirial                                  ,[                                                massCount,outputCount])
-    call allocateArray(darkMatterProfileRadiusScale                  ,[                                                massCount,outputCount])
-    call allocateArray(velocityMaximum                               ,[                                                massCount,outputCount])
-    call allocateArray(massAlternate                                 ,[size(self%virialDensityContrasts,kind=c_size_t),massCount,outputCount])
-    call allocateArray(radiusAlternate                               ,[size(self%virialDensityContrasts,kind=c_size_t),massCount,outputCount])
+    allocate(massHalo                                      (massCount            ))
+    allocate(massHaloOutput                                (massCount            ))
+    allocate(massFunctionDifferential                      (massCount,outputCount))
+    allocate(massFunctionDifferentialLogarithmic           (massCount,outputCount))
+    allocate(massFunctionDifferentialLogarithmicBinAveraged(massCount,outputCount))
+    allocate(massFunctionCumulative                        (massCount,outputCount))
+    allocate(massFunctionCumulativeSubhalo                 (massCount,outputCount))
+    allocate(massFunctionMassFraction                      (massCount,outputCount))
+    allocate(massAccretionRate                             (massCount,outputCount))
+    allocate(biasHalo                                      (massCount,outputCount))
+    allocate(densityFieldRootVariance                      (massCount,outputCount))
+    allocate(densityFieldRootVarianceGradientLogarithmic   (massCount,outputCount))
+    allocate(peakHeight                                    (massCount,outputCount))
+    allocate(peakHeightMassFunction                        (massCount,outputCount))
+    allocate(velocityVirial                                (massCount,outputCount))
+    allocate(temperatureVirial                             (massCount,outputCount))
+    allocate(radiusVirial                                  (massCount,outputCount))
+    allocate(darkMatterProfileRadiusScale                  (massCount,outputCount))
+    allocate(velocityMaximum                               (massCount,outputCount))
+    allocate(massAlternate                                 (size(self%virialDensityContrasts),massCount,outputCount))
+    allocate(radiusAlternate                               (size(self%virialDensityContrasts),massCount,outputCount))
     ! Compute output time properties.
     do iOutput=1,outputCount
        outputTimes                (iOutput)=self%outputTimes_%time                                 (                                                      iOutput )
@@ -978,3 +984,26 @@ contains
     end function subhaloMassFunctionIntegrand
 
   end subroutine haloMassFunctionPerform
+
+  subroutine haloMassFunctionDescriptorSpecial(self,descriptor)
+    !!{
+    Add special parameters to the descriptor.
+    !!}
+    use :: Input_Parameters  , only : inputParameters
+    use :: ISO_Varying_String, only : char
+    use :: String_Handling   , only : String_Join
+    implicit none
+    class  (taskHaloMassFunction), intent(inout) :: self
+    type   (inputParameters     ), intent(inout) :: descriptor
+    type   (inputParameters     )                :: subParameters
+    integer                                      :: i
+    
+    if (allocated(self%virialDensityContrasts)) then
+       subParameters=descriptor%subparameters('massDefinitions')
+       call subParameters%addParameter('labels',char(String_Join(self%virialDensityContrasts%label," ")))
+       do i=1,size(self%virialDensityContrasts)
+          call self%virialDensityContrasts(i)%virialDensityContrast_%descriptor(subParameters)
+       end do
+    end if
+    return
+  end subroutine haloMassFunctionDescriptorSpecial

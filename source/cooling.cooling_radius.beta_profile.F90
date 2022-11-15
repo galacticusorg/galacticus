@@ -259,8 +259,8 @@ contains
     !!}
     use :: Abundances_Structure             , only : abundances
     use :: Chemical_Abundances_Structure    , only : chemicalAbundances
-    use :: Chemical_Reaction_Rates_Utilities, only : Chemicals_Mass_To_Density_Conversion
-    use :: Galacticus_Nodes                 , only : nodeComponentBasic                  , nodeComponentHotHalo, treeNode
+    use :: Chemical_Reaction_Rates_Utilities, only : Chemicals_Mass_To_Fraction_Conversion
+    use :: Galacticus_Nodes                 , only : nodeComponentBasic                   , nodeComponentHotHalo, treeNode
     implicit none
     class           (coolingRadiusBetaProfile), intent(inout) :: self
     type            (treeNode                ), intent(inout) :: node
@@ -271,7 +271,7 @@ contains
          &                                                       temperature      , outerRadius            , &
          &                                                       densityOuter     , coolingTimeOuter
     type            (abundances              )                :: hotAbundances
-    type            (chemicalAbundances      )                :: chemicalDensities, chemicalMasses
+    type            (chemicalAbundances      )                :: chemicalFractions, chemicalMasses
 
     ! Check if node differs from previous one for which we performed calculations.
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
@@ -288,14 +288,14 @@ contains
        if (self%chemicalsCount > 0) then
           chemicalMasses=hotHalo%chemicals()
           ! Scale all chemical masses by their mass in atomic mass units to get a number density.
-          call chemicalMasses%massToNumber(chemicalDensities)
-          if (hotHalo%outerRadius() > 0.0d0) then
-             massToDensityConversion=Chemicals_Mass_To_Density_Conversion(hotHalo%outerRadius())
+          call chemicalMasses%massToNumber(chemicalFractions)
+          if (hotHalo%mass() > 0.0d0) then
+             massToDensityConversion=Chemicals_Mass_To_Fraction_Conversion(hotHalo%mass())
           else
              massToDensityConversion=0.0d0
-          end if
-          ! Convert to number density.
-          chemicalDensities=chemicalDensities*massToDensityConversion
+          end if          
+          ! Convert to number density per unit total mass density.
+          chemicalFractions=chemicalFractions*massToDensityConversion
        end if
        ! Set epoch for radiation field.
        basic => node%basic()
@@ -307,8 +307,8 @@ contains
        ! Compute density and cooling time at outer radius and zero radius.
        densityZero     =self%hotHaloMassDistribution_  %density(node,0.0d0      )
        densityOuter    =self%hotHaloMassDistribution_  %density(node,outerRadius)
-       coolingTimeZero =self%coolingTime_              %time   (node,temperature,densityZero ,hotAbundances,chemicalDensities,self%radiation)
-       coolingTimeOuter=self%coolingTime_              %time   (node,temperature,densityOuter,hotAbundances,chemicalDensities,self%radiation)
+       coolingTimeZero =self%coolingTime_              %time   (node,temperature,densityZero ,hotAbundances,chemicalFractions*densityZero,self%radiation)
+       coolingTimeOuter=self%coolingTime_              %time   (node,temperature,densityOuter,hotAbundances,chemicalFractions*densityOuter,self%radiation)
        if (coolingTimeOuter < timeAvailable .or. coolingTimeZero > timeAvailable) then
           ! Cooling radius is static.
           self%radiusGrowthRateStored=0.0d0
@@ -337,8 +337,8 @@ contains
     !!}
     use :: Abundances_Structure             , only : abundances
     use :: Chemical_Abundances_Structure    , only : chemicalAbundances
-    use :: Chemical_Reaction_Rates_Utilities, only : Chemicals_Mass_To_Density_Conversion
-    use :: Galacticus_Nodes                 , only : nodeComponentBasic                  , nodeComponentHotHalo, treeNode
+    use :: Chemical_Reaction_Rates_Utilities, only : Chemicals_Mass_To_Fraction_Conversion
+    use :: Galacticus_Nodes                 , only : nodeComponentBasic                   , nodeComponentHotHalo, treeNode
     implicit none
     class           (coolingRadiusBetaProfile), intent(inout), target  :: self
     type            (treeNode                ), intent(inout), target  :: node
@@ -349,7 +349,7 @@ contains
          &                                                                temperature      , outerRadius            , &
          &                                                                densityOuter     , coolingTimeOuter
     type            (abundances              )                         :: hotAbundances
-    type            (chemicalAbundances      )                         :: chemicalDensities, chemicalMasses
+    type            (chemicalAbundances      )                         :: chemicalFractions, chemicalMasses
 
     ! Check if node differs from previous one for which we performed calculations.
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
@@ -365,14 +365,14 @@ contains
        if (self%chemicalsCount > 0) then
           chemicalMasses=hotHalo%chemicals()
           ! Scale all chemical masses by their mass in atomic mass units to get a number density.
-          call chemicalMasses%massToNumber(chemicalDensities)
-          if (hotHalo%outerRadius() > 0.0d0) then
-             massToDensityConversion=Chemicals_Mass_To_Density_Conversion(hotHalo%outerRadius())
+          call chemicalMasses%massToNumber(chemicalFractions)
+          if (hotHalo%mass() > 0.0d0) then
+             massToDensityConversion=Chemicals_Mass_To_Fraction_Conversion(hotHalo%mass())
           else
              massToDensityConversion=0.0d0
-          end if
-          ! Convert to number density.
-          chemicalDensities=chemicalDensities*massToDensityConversion
+          end if          
+          ! Convert to number density per unit total mass density.
+          chemicalFractions=chemicalFractions*massToDensityConversion
        end if
        ! Set epoch for radiation field.
        basic => node%basic()
@@ -384,8 +384,8 @@ contains
        ! Compute density and cooling time at outer radius and zero radius.
        densityZero     =self%hotHaloMassDistribution_  %density(node,0.0d0                                                                  )
        densityOuter    =self%hotHaloMassDistribution_  %density(node,outerRadius                                                            )
-       coolingTimeZero =self%coolingTime_              %time   (node,temperature,densityZero ,hotAbundances,chemicalDensities,self%radiation)
-       coolingTimeOuter=self%coolingTime_              %time   (node,temperature,densityOuter,hotAbundances,chemicalDensities,self%radiation)
+       coolingTimeZero =self%coolingTime_              %time   (node,temperature,densityZero ,hotAbundances,chemicalFractions*densityZero,self%radiation)
+       coolingTimeOuter=self%coolingTime_              %time   (node,temperature,densityOuter,hotAbundances,chemicalFractions*densityOuter,self%radiation)
        if (coolingTimeOuter < timeAvailable) then
           ! Cooling time available exceeds cooling time at virial radius, return virial radius.
           self%radiusStored=outerRadius

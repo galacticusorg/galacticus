@@ -151,7 +151,6 @@ contains
     use            :: Display          , only : displayCounter       , displayCounterClear, displayIndent       , displayUnindent, &
           &                                     verbosityLevelWorking
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
-    use            :: Memory_Management, only : allocateArray        , deallocateArray
     use            :: Numerical_Ranges , only : Make_Range           , rangeTypeLinear    , rangeTypeLogarithmic
     implicit none
     class           (excursionSetFirstCrossingZhangHui), intent(inout)  :: self
@@ -174,9 +173,9 @@ contains
          &     (time     >     self%timeMaximum     )
     if (makeTable) then
        ! Construct the table of variance on which we will solve for the first crossing distribution.
-       if (allocated(self%varianceTable                )) call deallocateArray(self%varianceTable                )
-       if (allocated(self%timeTable                    )) call deallocateArray(self%timeTable                    )
-       if (allocated(self%firstCrossingProbabilityTable)) call deallocateArray(self%firstCrossingProbabilityTable)
+       if (allocated(self%varianceTable                )) deallocate(self%varianceTable                )
+       if (allocated(self%timeTable                    )) deallocate(self%timeTable                    )
+       if (allocated(self%firstCrossingProbabilityTable)) deallocate(self%firstCrossingProbabilityTable)
        self%varianceMaximum   =max(self%varianceMaximum,variance)
        self%varianceTableCount=int(self%varianceMaximum*dble(varianceTableNumberPerUnit))
        if (self%tableInitialized) then
@@ -187,9 +186,9 @@ contains
           self%timeMaximum=2.0d0*time
        end if
        self%timeTableCount=int(log10(self%timeMaximum/self%timeMinimum)*dble(timeTableNumberPerDecade))+1
-       call allocateArray(self%varianceTable                ,[1+self%varianceTableCount]                      ,lowerBounds=[0  ])
-       call allocateArray(self%timeTable                                                ,[self%timeTableCount]                  )
-       call allocateArray(self%firstCrossingProbabilityTable,[1+self%varianceTableCount , self%timeTableCount],lowerBounds=[0,1])
+       allocate(self%varianceTable                (0:self%varianceTableCount                    ))
+       allocate(self%timeTable                    (                          self%timeTableCount))
+       allocate(self%firstCrossingProbabilityTable(0:self%varianceTableCount,self%timeTableCount))
        self%timeTable        =Make_Range(self%timeMinimum,self%timeMaximum    ,self%timeTableCount      ,rangeType=rangeTypeLogarithmic)
        self%varianceTable    =Make_Range(0.0d0           ,self%varianceMaximum,self%varianceTableCount+1,rangeType=rangeTypeLinear     )
        self%varianceTableStep=+self%varianceTable(1) &

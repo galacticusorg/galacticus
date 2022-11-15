@@ -33,9 +33,18 @@
      An HI vs halo mass relation output analysis class.
      !!}
      private
-     integer(c_size_t) :: likelihoodBin
+     class           (cosmologyParametersClass         ), pointer                     :: cosmologyParameters_                 => null()
+     class           (cosmologyFunctionsClass          ), pointer                     :: cosmologyFunctions_                  => null()
+     class           (outputAnalysisMolecularRatioClass), pointer                     :: outputAnalysisMolecularRatio_        => null()
+     class           (virialDensityContrastClass       ), pointer                     :: virialDensityContrast_               => null()
+     class           (darkMatterProfileDMOClass        ), pointer                     :: darkMatterProfileDMO_                => null()
+     class           (galacticStructureClass           ), pointer                     :: galacticStructure_                   => null()
+     double precision                                   , allocatable  , dimension(:) :: systematicErrorPolynomialCoefficient
+     integer         (c_size_t                         )                              :: likelihoodBin
+   contains
+     final :: hiVsHaloMassRelationPadmanabhan2017Destructor
   end type outputAnalysisHIVsHaloMassRelationPadmanabhan2017
-
+  
   interface outputAnalysisHIVsHaloMassRelationPadmanabhan2017
      !!{
      Constructors for the ``hiVsHaloMassRelationPadmanabhan2017'' output analysis class.
@@ -74,7 +83,7 @@ contains
     if (parameters%isPresent('systematicErrorPolynomialCoefficient')) then
        allocate(systematicErrorPolynomialCoefficient(parameters%count('systematicErrorPolynomialCoefficient')))
     else
-       allocate(systematicErrorPolynomialCoefficient(1                                                   ))
+       allocate(systematicErrorPolynomialCoefficient(1                                                      ))
     end if
     !![
     <inputParameter>
@@ -125,7 +134,6 @@ contains
     use :: Galacticus_Nodes                      , only : nodeComponentBasic                                , treeNode
     use :: Geometry_Surveys                      , only : surveyGeometryMartin2010ALFALFA
     use :: ISO_Varying_String                    , only : var_str
-    use :: Memory_Management                     , only : allocateArray
     use :: Node_Property_Extractors              , only : nodePropertyExtractorMassHalo                     , nodePropertyExtractorMassISM
     use :: Numerical_Constants_Astronomical      , only : massSolar
     use :: Numerical_Ranges                      , only : Make_Range                                        , rangeTypeLinear
@@ -144,8 +152,8 @@ contains
     double precision                                                    , intent(in   ), dimension(:  ) :: systematicErrorPolynomialCoefficient
     class           (cosmologyParametersClass                          ), intent(inout), target         :: cosmologyParameters_
     class           (cosmologyFunctionsClass                           ), intent(inout), target         :: cosmologyFunctions_
-    class           (virialDensityContrastClass                        ), intent(in   )                 :: virialDensityContrast_
-    class           (darkMatterProfileDMOClass                         ), intent(in   )                 :: darkMatterProfileDMO_
+    class           (virialDensityContrastClass                        ), intent(in   ), target         :: virialDensityContrast_
+    class           (darkMatterProfileDMOClass                         ), intent(in   ), target         :: darkMatterProfileDMO_
     class           (galacticStructureClass                            ), intent(in   ), target         :: galacticStructure_
     class           (outputTimesClass                                  ), intent(inout), target         :: outputTimes_
     class           (outputAnalysisMolecularRatioClass                 ), intent(in   ), target         :: outputAnalysisMolecularRatio_
@@ -154,7 +162,7 @@ contains
     double precision                                                    , parameter                     :: massHaloMinimum                                       = 1.0d10, massHaloMaximum                                     =1.0d15
     integer                                                             , parameter                     :: covarianceBinomialBinsPerDecade                       =10
     double precision                                                    , parameter                     :: covarianceBinomialMassHaloMinimum                     = 1.0d08        , covarianceBinomialMassHaloMaximum           =1.0d16
-    double precision                                                    , allocatable  , dimension(:  ) :: massHalo                                                              , massHILogarithmicTarget                                     , &
+    double precision                                                    , allocatable  , dimension(:  ) :: massHalo                                                              , massHILogarithmicTarget                              , &
          &                                                                                                 massHaloLogarithmic
     double precision                                                    , allocatable  , dimension(:,:) :: outputWeight                                                          , massHILogarithmicCovarianceTarget
     type            (galacticFilterISMMass                             ), pointer                       :: galacticFilterISMMass_
@@ -164,7 +172,7 @@ contains
     type            (outputAnalysisDistributionOperatorIdentity        ), pointer                       :: outputAnalysisDistributionOperator_
     type            (outputAnalysisWeightOperatorIdentity              ), pointer                       :: outputAnalysisWeightOperator_
     type            (outputAnalysisPropertyOperatorHIMass              ), pointer                       :: outputAnalysisWeightPropertyOperatorHIMass_
-    type            (outputAnalysisPropertyOperatorLog10               ), pointer                       :: outputAnalysisPropertyOperator_                                      , outputAnalysisWeightPropertyOperatorLog10_                   , &
+    type            (outputAnalysisPropertyOperatorLog10               ), pointer                       :: outputAnalysisPropertyOperator_                                      , outputAnalysisWeightPropertyOperatorLog10_            , &
          &                                                                                                 outputAnalysisWeightPropertyOperatorLog10Second_
     type            (outputAnalysisPropertyOperatorAntiLog10           ), pointer                       :: outputAnalysisPropertyUnoperator_                                    , outputAnalysisWeightPropertyOperatorAntiLog10_
     type            (outputAnalysisPropertyOperatorSequence            ), pointer                       :: outputAnalysisWeightPropertyOperator_
@@ -185,24 +193,27 @@ contains
     double precision                                                    , parameter                     :: errorPolynomialZeroPoint                              =10.0d00
     double precision                                                    , parameter                     :: massHILimit                                           = 1.0d06
     logical                                                             , parameter                     :: likelihoodNormalize                                   =.false.
-    double precision                                                    , parameter                     :: alphaFit                                              =0.09d0        , betaFit                                      =-0.58d0       , &
-         &                                                                                                 log10Velocity0Fit                                     =1.56d0        , log10Velocity1Fit                            =+4.64d0       , &
-         &                                                                                                 massReferenceFit                                      =1.0d11        , errorAlphaFit                                =+0.02d0       , &
-         &                                                                                                 errorBetaFit                                          =0.12d0        , errorLog10Velocity0Fit                       =+0.03d0       , &
+    double precision                                                    , parameter                     :: alphaFit                                              =0.09d0        , betaFit                                      =-0.58d0, &
+         &                                                                                                 log10Velocity0Fit                                     =1.56d0        , log10Velocity1Fit                            =+4.64d0, &
+         &                                                                                                 massReferenceFit                                      =1.0d11        , errorAlphaFit                                =+0.02d0, &
+         &                                                                                                 errorBetaFit                                          =0.12d0        , errorLog10Velocity0Fit                       =+0.03d0, &
          &                                                                                                 errorLog10Velocity1Fit                                =0.75d0
-    double precision                                                                                    :: velocityVirial                                                       , fractionHydrogenCosmic                                      , &
-         &                                                                                                 velocity0Fit                                                         , velocity1Fit                                                , &
-         &                                                                                                 jacobianAlpha                                                        , jacobianBeta                                                , &
+    double precision                                                                                    :: velocityVirial                                                       , fractionHydrogenCosmic                               , &
+         &                                                                                                 velocity0Fit                                                         , velocity1Fit                                         , &
+         &                                                                                                 jacobianAlpha                                                        , jacobianBeta                                         , &
          &                                                                                                 jacobianVelocity0                                                    , jacobianVelocity1
     integer         (c_size_t                                          )                                :: iBin
-
+    !![
+    <constructorAssign variables="systematicErrorPolynomialCoefficient, *cosmologyParameters_, *cosmologyFunctions_, *virialDensityContrast_, *darkMatterProfileDMO_, *outputAnalysisMolecularRatio_, *galacticStructure_"/>
+    !!]
+    
     ! Construct survey geometry.
     allocate(surveyGeometry_)
     !![
     <referenceConstruct object="surveyGeometry_" constructor="surveyGeometryMartin2010ALFALFA(cosmologyParameters_)"/>
     !!]
     ! Create output time weights.
-    call allocateArray(outputWeight,[massHaloCount,outputTimes_%count()])
+    allocate(outputWeight(massHaloCount,outputTimes_%count()))
     outputWeight(1,:)=Output_Analysis_Output_Weight_Survey_Volume(surveyGeometry_,cosmologyFunctions_,outputTimes_,massHILimit,allowSingleEpoch=.true.)
     forall(iBin=2:massHaloCount)
        outputWeight(iBin,:)=outputWeight(1,:)
@@ -463,3 +474,21 @@ contains
     nullify(propertyOperators_)
     return
   end function hiVsHaloMassRelationPadmanabhan2017ConstructorInternal
+
+  subroutine hiVsHaloMassRelationPadmanabhan2017Destructor(self)
+    !!{
+    Destructor for the ``hiVsHaloMassRelationPadmanabhan2017'' output analysis class.
+    !!}
+    implicit none
+    type(outputAnalysisHIVsHaloMassRelationPadmanabhan2017), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%cosmologyParameters_"         />
+    <objectDestructor name="self%cosmologyFunctions_"          />
+    <objectDestructor name="self%outputAnalysisMolecularRatio_"/>
+    <objectDestructor name="self%darkMatterProfileDMO_"        />
+    <objectDestructor name="self%virialDensityContrast_"       />
+    <objectDestructor name="self%galacticStructure_"           />
+    !!]
+    return
+  end subroutine hiVsHaloMassRelationPadmanabhan2017Destructor

@@ -60,6 +60,7 @@
      double precision                                , allocatable, dimension(:  ) :: neighborDistances                   , rootVariance
      double precision                                , allocatable, dimension(:,:) :: states
      class           (nearestNeighbors              ), allocatable                 :: searcher
+     type            (varying_string                )                              :: chainBaseName
      integer                                                                       :: dimCount                            , convergedStateCount  , &
           &                                                                           neighborCount
      double precision                                                              :: tolerance                           , logPriorNormalization
@@ -139,7 +140,6 @@ contains
     !!}
     use :: File_Utilities    , only : File_Exists
     use :: ISO_Varying_String, only : varying_string
-    use :: Memory_Management , only : allocateArray
     use :: String_Handling   , only : String_Count_Words, char
     implicit none
     type            (posteriorSampleLikelihoodPosteriorAsPrior)                                        :: self
@@ -158,18 +158,18 @@ contains
     logical                                                                                            :: converged
     double precision                                                                                   :: time                      , likelihood
     !![
-    <constructorAssign variables="tolerance, neighborCount, *posteriorSampleLikelihood_"/>
+    <constructorAssign variables="chainBaseName, tolerance, neighborCount, *posteriorSampleLikelihood_"/>
     !!]
 
     self%initialized=.false.
     if (present(exclusions)) then
-       call allocateArray(self%exclusions,shape(exclusions))
+       allocate(self%exclusions,mold=exclusions)
        self%exclusions=exclusions
     else
-       call allocateArray(self%exclusions,[0])
+       allocate(self%exclusions(0))
     end if
-    call allocateArray(self%neighborIndices  ,[neighborCount])
-    call allocateArray(self%neighborDistances,[neighborCount])
+    allocate(self%neighborIndices  (neighborCount))
+    allocate(self%neighborDistances(neighborCount))
     ! Read MCMC chains.
     iChain=-1
     do while (iChain < 10000)
@@ -184,7 +184,7 @@ contains
           open(newUnit=chainUnit,file=char(chainFileName),status='old',form='formatted',iostat=ioStatus)
           read (chainUnit,'(a)') line
           self%dimCount=String_Count_Words(line)-5
-          call allocateArray(self%included,[self%dimCount])
+          allocate(self%included(self%dimCount))
           self%dimCount=self%dimCount-size(self%exclusions)
           close(chainUnit)
        end if
@@ -211,8 +211,8 @@ contains
           close(chainUnit)
           ! Allocate storage for all converged points.
           self%convergedStateCount=self%convergedStateCount*chainCount
-          call allocateArray(self%states,[self%convergedStateCount,self%dimCount])
-          call allocateArray(     state ,shape(self%included)                    )
+          allocate(self%states(self%convergedStateCount,self%dimCount))
+          allocate(     state (size(self%included)                   ))
        end if
        open(newUnit=chainUnit,file=char(chainFileName),status='old',form='formatted',iostat=ioStatus)
        do while (ioStatus == 0)
@@ -245,7 +245,6 @@ contains
     !!{
     Initialize a ``posterior as prior'' likelihood object.
     !!}
-    use :: Memory_Management, only : allocateArray
     implicit none
     class           (posteriorSampleLikelihoodPosteriorAsPrior), intent(inout)               :: self
     type            (modelParameterList                       ), intent(in   ), dimension(:) :: modelParametersActive_
@@ -267,9 +266,9 @@ contains
        end do
     end do
     ! Estimate variance in each dimension.
-    call allocateArray(mean             ,[self%dimCount])
-    call allocateArray(meanSquared      ,[self%dimCount])
-    call allocateArray(self%rootVariance,[self%dimCount])
+    allocate(mean             (self%dimCount))
+    allocate(meanSquared      (self%dimCount))
+    allocate(self%rootVariance(self%dimCount))
     mean             =sum(self%states   ,dim=1)/dble(self%convergedStateCount)
     meanSquared      =sum(self%states**2,dim=1)/dble(self%convergedStateCount)
     self%rootVariance=sqrt(meanSquared-mean**2)

@@ -693,7 +693,6 @@ contains
     Create a tabulation of the relation between specific angular momentum and radius in an Einasto profile.
     !!}
     use :: Gamma_Functions  , only : Gamma_Function_Incomplete_Complementary
-    use :: Memory_Management, only : allocateArray                          , deallocateArray
     use :: Numerical_Ranges , only : Make_Range                             , rangeTypeLinear, rangeTypeLogarithmic
     implicit none
     class           (darkMatterProfileDMOEinasto), intent(inout) :: self
@@ -736,12 +735,12 @@ contains
           self%angularMomentumTableRadiusCount=int(log10(self%angularMomentumTableRadiusMaximum/self%angularMomentumTableRadiusMinimum) &
                &                                   *dble(einastoAngularMomentumTableRadiusPointsPerDecade)                              &
                &                                  )+1
-          if (allocated(self%angularMomentumTableAlpha )) call deallocateArray(self%angularMomentumTableAlpha )
-          if (allocated(self%angularMomentumTableRadius)) call deallocateArray(self%angularMomentumTableRadius)
-          if (allocated(self%angularMomentumTable      )) call deallocateArray(self%angularMomentumTable      )
-          call allocateArray(self%angularMomentumTableAlpha ,[                                     self%angularMomentumTableAlphaCount])
-          call allocateArray(self%angularMomentumTableRadius,[self%angularMomentumTableRadiusCount                                    ])
-          call allocateArray(self%angularMomentumTable      ,[self%angularMomentumTableRadiusCount,self%angularMomentumTableAlphaCount])
+          if (allocated(self%angularMomentumTableAlpha )) deallocate(self%angularMomentumTableAlpha )
+          if (allocated(self%angularMomentumTableRadius)) deallocate(self%angularMomentumTableRadius)
+          if (allocated(self%angularMomentumTable      )) deallocate(self%angularMomentumTable      )
+          allocate(self%angularMomentumTableAlpha (self%angularMomentumTableAlphaCount))
+          allocate(self%angularMomentumTableRadius(self%angularMomentumTableRadiusCount                                    ))
+          allocate(self%angularMomentumTable      (self%angularMomentumTableRadiusCount,self%angularMomentumTableAlphaCount))
           ! Create ranges of alpha and radius.
           self%angularMomentumTableAlpha =Make_Range(self%angularMomentumTableAlphaMinimum ,self%angularMomentumTableAlphaMaximum,  &
                &                                     self%angularMomentumTableAlphaCount   ,rangeType=rangeTypeLinear     )
@@ -853,7 +852,6 @@ contains
     !!{
     Create a tabulation of the energy of Einasto profiles as a function of their concentration of $\alpha$ parameter.
     !!}
-    use :: Memory_Management       , only : allocateArray, deallocateArray
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Integration   , only : integrator
     use :: Numerical_Ranges        , only : Make_Range   , rangeTypeLinear, rangeTypeLogarithmic
@@ -897,12 +895,12 @@ contains
        self%energyTableConcentrationCount=int(log10(self%energyTableConcentrationMaximum/self%energyTableConcentrationMinimum) &
             &                                 *dble(einastoEnergyTableConcentrationPointsPerDecade                           ) &
             &                                )+1
-       if (allocated(self%energyTableAlpha        )) call deallocateArray(self%energyTableAlpha        )
-       if (allocated(self%energyTableConcentration)) call deallocateArray(self%energyTableConcentration)
-       if (allocated(self%energyTable             )) call deallocateArray(self%energyTable             )
-       call allocateArray(self%energyTableAlpha        ,[                                   self%energyTableAlphaCount])
-       call allocateArray(self%energyTableConcentration,[self%energyTableConcentrationCount                           ])
-       call allocateArray(self%energyTable             ,[self%energyTableConcentrationCount,self%energyTableAlphaCount])
+       if (allocated(self%energyTableAlpha        )) deallocate(self%energyTableAlpha        )
+       if (allocated(self%energyTableConcentration)) deallocate(self%energyTableConcentration)
+       if (allocated(self%energyTable             )) deallocate(self%energyTable             )
+       allocate(self%energyTableAlpha        (self%energyTableAlphaCount))
+       allocate(self%energyTableConcentration(self%energyTableConcentrationCount                           ))
+       allocate(self%energyTable             (self%energyTableConcentrationCount,self%energyTableAlphaCount))
        ! Create ranges of alpha and concentration.
        self%energyTableAlpha        =Make_Range(self%energyTableAlphaMinimum        ,self%energyTableAlphaMaximum        , &
             &                                   self%energyTableAlphaCount          ,rangeType=rangeTypeLinear     )
@@ -1133,7 +1131,6 @@ contains
           &                                         verbosityLevelInfo, verbosityLevelWorking
     use            :: Error                , only : Error_Report      , errorStatusSuccess
     use, intrinsic :: ISO_C_Binding        , only : c_size_t
-    use            :: Memory_Management    , only : allocateArray     , deallocateArray
     use            :: Numerical_Integration, only : integrator
     use            :: Numerical_Ranges     , only : Make_Range        , rangeTypeLinear      , rangeTypeLogarithmic
     implicit none
@@ -1185,14 +1182,14 @@ contains
             &*dble(einastoFourierProfileTableConcentrationPointsPerDecade))+1
        self%fourierProfileTableWavenumberCount   =int(log10(self%fourierProfileTableWavenumberMaximum   /self%fourierProfileTableWavenumberMinimum   ) &
             &*dble(einastoFourierProfileTableWavenumberPointsPerDecade   ))+1
-       if (allocated(self%fourierProfileTableAlpha        )) call deallocateArray(self%fourierProfileTableAlpha        )
-       if (allocated(self%fourierProfileTableConcentration)) call deallocateArray(self%fourierProfileTableConcentration)
-       if (allocated(self%fourierProfileTableWavenumber   )) call deallocateArray(self%fourierProfileTableWavenumber   )
-       if (allocated(self%fourierProfileTable             )) call deallocateArray(self%fourierProfileTable             )
-       call allocateArray(self%fourierProfileTableAlpha        ,[                                                                                   self%fourierProfileTableAlphaCount])
-       call allocateArray(self%fourierProfileTableConcentration,[                                        self%fourierProfileTableConcentrationCount                                   ])
-       call allocateArray(self%fourierProfileTableWavenumber   ,[self%fourierProfileTableWavenumberCount                                                                              ])
-       call allocateArray(self%fourierProfileTable             ,[self%fourierProfileTableWavenumberCount,self%fourierProfileTableConcentrationCount,self%fourierProfileTableAlphaCount])
+       if (allocated(self%fourierProfileTableAlpha        )) deallocate(self%fourierProfileTableAlpha        )
+       if (allocated(self%fourierProfileTableConcentration)) deallocate(self%fourierProfileTableConcentration)
+       if (allocated(self%fourierProfileTableWavenumber   )) deallocate(self%fourierProfileTableWavenumber   )
+       if (allocated(self%fourierProfileTable             )) deallocate(self%fourierProfileTable             )
+       allocate(self%fourierProfileTableAlpha        (self%fourierProfileTableAlphaCount))
+       allocate(self%fourierProfileTableConcentration(self%fourierProfileTableConcentrationCount                                   ))
+       allocate(self%fourierProfileTableWavenumber   (self%fourierProfileTableWavenumberCount                                                                              ))
+       allocate(self%fourierProfileTable             (self%fourierProfileTableWavenumberCount,self%fourierProfileTableConcentrationCount,self%fourierProfileTableAlphaCount))
        ! Create ranges of alpha and wavenumber.
        self%fourierProfileTableAlpha        =Make_Range(self%fourierProfileTableAlphaMinimum        ,self%fourierProfileTableAlphaMaximum        , &
             &                                           self%fourierProfileTableAlphaCount          ,rangeType=rangeTypeLinear     )
@@ -1422,7 +1419,6 @@ contains
     Tabulates the freefall time vs. freefall radius for Einasto halos.
     !!}
     use :: Display          , only : displayCounter, displayIndent  , displayUnindent     , verbosityLevelWorking
-    use :: Memory_Management, only : allocateArray , deallocateArray
     use :: Numerical_Ranges , only : Make_Range    , rangeTypeLinear, rangeTypeLogarithmic
     implicit none
     class           (darkMatterProfileDMOEinasto), intent(inout) :: self
@@ -1463,13 +1459,13 @@ contains
        self%freefallRadiusTableRadiusCount=int(log10(self%freefallRadiusTableRadiusMaximum/self%freefallRadiusTableRadiusMinimum)*dble(einastoFreefallRadiusTableRadiusPointsPerDecade))+1
        self%freefallRadiusTableAlphaCount =int(     (self%freefallRadiusTableAlphaMaximum -self%freefallRadiusTableAlphaMinimum )*dble(einastoFreefallRadiusTableAlphaPointsPerUnit   ))+1
        if (allocated(self%freefallRadiusTableRadius)) then
-          call deallocateArray(self%freefallRadiusTableAlpha )
-          call deallocateArray(self%freefallRadiusTableRadius)
-          call deallocateArray(self%freefallRadiusTable      )
+          deallocate(self%freefallRadiusTableAlpha )
+          deallocate(self%freefallRadiusTableRadius)
+          deallocate(self%freefallRadiusTable      )
        end if
-       call allocateArray(self%freefallRadiusTableAlpha ,[                                    self%freefallRadiusTableAlphaCount])
-       call allocateArray(self%freefallRadiusTableRadius,[self%freefallRadiusTableRadiusCount                                   ])
-       call allocateArray(self%freefallRadiusTable      ,[self%freefallRadiusTableRadiusCount,self%freefallRadiusTableAlphaCount])
+       allocate(self%freefallRadiusTableAlpha (self%freefallRadiusTableAlphaCount))
+       allocate(self%freefallRadiusTableRadius(self%freefallRadiusTableRadiusCount                                   ))
+       allocate(self%freefallRadiusTable      (self%freefallRadiusTableRadiusCount,self%freefallRadiusTableAlphaCount))
        ! Create a range of radii and alpha.
        self%freefallRadiusTableAlpha =Make_Range(self%freefallRadiusTableAlphaMinimum ,self%freefallRadiusTableAlphaMaximum ,self%freefallRadiusTableAlphaCount ,rangeType=rangeTypeLinear     )
        self%freefallRadiusTableRadius=Make_Range(self%freefallRadiusTableRadiusMinimum,self%freefallRadiusTableRadiusMaximum,self%freefallRadiusTableRadiusCount,rangeType=rangeTypeLogarithmic)
@@ -1629,7 +1625,6 @@ contains
     Tabulates the radial velocity dispersion vs. radius for Einasto halos.
     !!}
     use :: Display          , only : displayCounter, displayIndent  , displayUnindent     , verbosityLevelWorking
-    use :: Memory_Management, only : allocateArray , deallocateArray
     use :: Numerical_Ranges , only : Make_Range    , rangeTypeLinear, rangeTypeLogarithmic
     implicit none
     class           (darkMatterProfileDMOEinasto), intent(inout)           :: self
@@ -1669,13 +1664,13 @@ contains
             &                                            *dble(einastoRadialVelocityDispersionTableAlphaPointsPerUnit                               ) &
             &                                           )+1
        if (allocated(self%radialVelocityDispersionTableRadius)) then
-          call deallocateArray(self%radialVelocityDispersionTableAlpha )
-          call deallocateArray(self%radialVelocityDispersionTableRadius)
-          call deallocateArray(self%radialVelocityDispersionTable      )
+          deallocate(self%radialVelocityDispersionTableAlpha )
+          deallocate(self%radialVelocityDispersionTableRadius)
+          deallocate(self%radialVelocityDispersionTable      )
        end if
-       call allocateArray(self%radialVelocityDispersionTableAlpha ,[                                              self%radialVelocityDispersionTableAlphaCount])
-       call allocateArray(self%radialVelocityDispersionTableRadius,[self%radialVelocityDispersionTableRadiusCount                                             ])
-       call allocateArray(self%radialVelocityDispersionTable      ,[self%radialVelocityDispersionTableRadiusCount,self%radialVelocityDispersionTableAlphaCount])
+       allocate(self%radialVelocityDispersionTableAlpha (self%radialVelocityDispersionTableAlphaCount))
+       allocate(self%radialVelocityDispersionTableRadius(self%radialVelocityDispersionTableRadiusCount                                             ))
+       allocate(self%radialVelocityDispersionTable      (self%radialVelocityDispersionTableRadiusCount,self%radialVelocityDispersionTableAlphaCount))
        ! Create a range of radii and alpha.
        self%radialVelocityDispersionTableAlpha =Make_Range(self%radialVelocityDispersionAlphaMinimum ,self%radialVelocityDispersionAlphaMaximum ,self%radialVelocityDispersionTableAlphaCount ,rangeType=rangeTypeLinear     )
        self%radialVelocityDispersionTableRadius=Make_Range(self%radialVelocityDispersionRadiusMinimum,self%radialVelocityDispersionRadiusMaximum,self%radialVelocityDispersionTableRadiusCount,rangeType=rangeTypeLogarithmic)

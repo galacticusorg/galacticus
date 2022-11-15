@@ -34,8 +34,11 @@ Contains a module which implements an HI mass function output analysis class.
      An HI mass function output analysis class.
      !!}
      private
-     class(surveyGeometryClass    ), pointer :: surveyGeometry_     => null()
-     class(cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null(), cosmologyFunctionsData => null()
+     class           (surveyGeometryClass              ), pointer                   :: surveyGeometry_               => null()
+     class           (cosmologyFunctionsClass          ), pointer                   :: cosmologyFunctions_           => null(), cosmologyFunctionsData => null()
+     class           (galacticStructureClass           ), pointer                   :: galacticStructure_            => null()
+     class           (outputAnalysisMolecularRatioClass), pointer                   :: outputAnalysisMolecularRatio_ => null()
+     double precision                                   , allocatable, dimension(:) :: masses
    contains
      final :: massFunctionHIDestructor
   end type outputAnalysisMassFunctionHI
@@ -245,7 +248,6 @@ contains
     use :: Error                                   , only : Error_Report
     use :: Geometry_Surveys                        , only : surveyGeometryClass
     use :: ISO_Varying_String                      , only : var_str                                    , varying_string
-    use :: Memory_Management                       , only : allocateArray
     use :: Node_Property_Extractors                , only : nodePropertyExtractorMassISM
     use :: Numerical_Constants_Astronomical        , only : massSolar                                  , megaParsec
     use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelBinomial
@@ -291,12 +293,12 @@ contains
     integer         (c_size_t                                       ), parameter                               :: bufferCountMinimum                              =5
     integer         (c_size_t                                       )                                          :: iBin                                                  , bufferCount
     !![
-    <constructorAssign variables="*surveyGeometry_, *cosmologyFunctions_, *cosmologyFunctionsData"/>
+    <constructorAssign variables="masses, *galacticStructure_, *outputAnalysisMolecularRatio_, *surveyGeometry_, *cosmologyFunctions_, *cosmologyFunctionsData"/>
     !!]
 
     ! Compute weights that apply to each output redshift.
     self%binCount=size(masses,kind=c_size_t)
-    call allocateArray(outputWeight,[self%binCount,outputTimes_%count()])
+    allocate(outputWeight(self%binCount,outputTimes_%count()))
     do iBin=1,self%binCount
        outputWeight(iBin,:)=Output_Analysis_Output_Weight_Survey_Volume(self%surveyGeometry_,self%cosmologyFunctions_,outputTimes_,masses(iBin))
     end do
@@ -431,9 +433,11 @@ contains
     type(outputAnalysisMassFunctionHI), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%surveyGeometry_"       />
-    <objectDestructor name="self%cosmologyFunctions_"   />
-    <objectDestructor name="self%cosmologyFunctionsData"/>
+    <objectDestructor name="self%surveyGeometry_"              />
+    <objectDestructor name="self%galacticStructure_"           />
+    <objectDestructor name="self%outputAnalysisMolecularRatio_"/>
+    <objectDestructor name="self%cosmologyFunctions_"          />
+    <objectDestructor name="self%cosmologyFunctionsData"       />
     !!]
     return
   end subroutine massFunctionHIDestructor

@@ -35,16 +35,24 @@ module Merger_Tree_Evolve_Profilers
    <descriptiveName>Merger Tree Evolver Profiler</descriptiveName>
    <description>Class providing profilers for merger tree evolution.</description>
    <default>null</default>
+   <method name="stepDescriptor" >
+    <description>Provide a descriptor of the current step.</description>
+    <type>void</type>
+    <pass>yes</pass>
+    <argument>type            (varying_string), intent(in   )               :: descriptor                                                  </argument>
+   </method>
    <method name="profile" >
     <description>Profile a differential evolution step.</description>
     <type>void</type>
     <pass>yes</pass>
-    <argument>type            (treeNode      ), intent(in   ) :: node</argument>
-    <argument>double precision                , intent(in   ) :: timeStep</argument>
-    <argument>integer         (c_size_t      ), intent(in   ) :: countEvaluations</argument>
-    <argument>logical                         , intent(in   ) :: interrupted</argument>
-    <argument>type            (varying_string), intent(in   ) :: propertyName</argument>
-    <argument>double precision                , intent(in   ) :: timeCPU</argument>
+    <argument>type            (treeNode      ), intent(in   )               :: node                                                        </argument>
+    <argument>double precision                , intent(in   )               :: time            , timeStart   , timeEnd      , timeStep     </argument>
+    <argument>integer         (c_size_t      ), intent(in   )               :: countEvaluations                                            </argument>
+    <argument>logical                         , intent(in   )               :: interrupted                                                 </argument>
+    <argument>integer         (c_size_t      ), intent(in   )               :: propertyIndex                                               </argument>
+    <argument>type            (varying_string), intent(in   )               :: propertyName                                                </argument>
+    <argument>double precision                , intent(in   ), dimension(:) :: propertyValue   , propertyRate, propertyScale, propertyError</argument>
+    <argument>double precision                , intent(in   )               :: timeCPU                                                     </argument>
    </method>
   </functionClass>
   !!]

@@ -36,7 +36,6 @@ program Tests_Halo_Mass_Function_Reed2007
   use :: File_Utilities                      , only : Count_Lines_In_File
   use :: Halo_Mass_Functions                 , only : haloMassFunctionReed2007
   use :: Linear_Growth                       , only : linearGrowthCollisionlessMatter
-  use :: Memory_Management                   , only : allocateArray                           , deallocateArray
   use :: Power_Spectra_Primordial            , only : powerSpectrumPrimordialPowerLaw
   use :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredSimple
   use :: Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunctionTopHat
@@ -190,10 +189,10 @@ program Tests_Halo_Mass_Function_Reed2007
      time=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift))
      ! Determine number of masses in reference data file and allocate arrays.
      massCount=Count_Lines_In_File(char(var_str('testSuite/data/haloMassFunction/reed2007MassFunction_z')//int(redshift)//'.txt'))-1
-     call allocateArray(mass            ,[massCount])
-     call allocateArray(massFunction    ,[massCount])
-     call allocateArray(massFunctionReed,[massCount])
-     call allocateArray(success         ,[massCount])
+     allocate(mass            (massCount))
+     allocate(massFunction    (massCount))
+     allocate(massFunctionReed(massCount))
+     allocate(success         (massCount))
      ! Compute mass function for each reference mass.
      open(newUnit=fUnit,file=char(var_str('testSuite/data/haloMassFunction/reed2007MassFunction_z')//int(redshift)//'.txt'),status='old',form='formatted')
      read (fUnit,*)
@@ -215,10 +214,10 @@ program Tests_Halo_Mass_Function_Reed2007
           &      .true.         &
           &     )
      ! Clean up memory.
-     call deallocateArray(mass            )
-     call deallocateArray(massFunction    )
-     call deallocateArray(massFunctionReed)
-     call deallocateArray(success         )
+     deallocate(mass            )
+     deallocate(massFunction    )
+     deallocate(massFunctionReed)
+     deallocate(success         )
   end do
   ! End unit tests.
   call Unit_Tests_End_Group()

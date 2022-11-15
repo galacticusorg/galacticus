@@ -31,8 +31,12 @@
      A radiation field class for null fields.
      !!}
      private
+     double precision :: time_
    contains
-     procedure :: flux => nullFlux
+     procedure :: flux              => nullFlux
+     procedure :: time              => nullTime
+     procedure :: timeSet           => nullTimeSet
+     procedure :: timeDependentOnly => nullTimeDependentOnly
   end type radiationFieldNull
 
   interface radiationFieldNull
@@ -40,6 +44,7 @@
      Constructors for the {\normalfont \ttfamily null} radiation field class.
      !!}
      module procedure nullConstructorParameters
+     module procedure nullConstructorInternal
   end interface radiationFieldNull
 
 contains
@@ -60,6 +65,17 @@ contains
     return
   end function nullConstructorParameters
 
+  function nullConstructorInternal() result(self)
+    !!{
+    Internal constructor for the {\normalfont \ttfamily null} radiation field class.
+    !!}
+    implicit none
+    type(radiationFieldNull) :: self
+
+    self%time_=-huge(0.0d0)
+    return
+  end function nullConstructorInternal
+
   double precision function nullFlux(self,wavelength,node)
     !!{
     Return the flux of a null radiation field.
@@ -73,3 +89,38 @@ contains
     nullFlux=0.0d0
     return
   end function nullFlux
+
+  double precision function nullTime(self)
+    !!{
+    Return the time for which this radiation field is set.
+    !!}
+    implicit none
+    class(radiationFieldNull), intent(inout) :: self
+
+    nullTime=self%time_
+    return
+  end function nullTime
+
+  subroutine nullTimeSet(self,time)
+    !!{
+    Set the time for this radiation field.
+    !!}
+    implicit none
+    class           (radiationFieldNull), intent(inout) :: self
+    double precision                    , intent(in   ) :: time
+
+    self%time_=time
+    return
+  end subroutine nullTimeSet
+
+  logical function nullTimeDependentOnly(self)
+    !!{
+    Return true as this radiation field depends on time only.
+    !!}
+    implicit none
+    class(radiationFieldNull), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    nullTimeDependentOnly=.true.
+    return
+  end function nullTimeDependentOnly

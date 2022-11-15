@@ -162,7 +162,6 @@ contains
     !!}
     use :: Error            , only : Error_Report
     use :: MPI_Utilities    , only : mpiSelf
-    use :: Memory_Management, only : allocateArray
     type            (posteriorSampleConvergenceGelmanRubin)                :: self
     double precision                                       , intent(in   ) :: thresholdHatR             , outlierSignificance, &
          &                                                                    outlierLogLikelihoodOffset
@@ -173,7 +172,7 @@ contains
     <constructorAssign variables="thresholdHatR,burnCount,testCount,outlierCountMaximum,outlierSignificance,outlierLogLikelihoodOffset,reportCount,logFileName"/>
     !!]
 
-    call allocateArray(self%chainMask,[mpiSelf%count()])
+    allocate(self%chainMask(mpiSelf%count()))
     self%estimateCount       = 0
     self%converged           =.false.
     self%convergedAtStepCount=-1
@@ -211,7 +210,6 @@ contains
     use :: Display                 , only : displayMessage
     use :: ISO_Varying_String      , only : varying_string
     use :: MPI_Utilities           , only : mpiBarrier                    , mpiSelf
-    use :: Memory_Management       , only : allocateArray
     use :: Posterior_Sampling_State, only : posteriorSampleStateClass
     use :: Statistics_Distributions, only : distributionFunction1DStudentT
     use :: String_Handling         , only : operator(//)
@@ -258,7 +256,7 @@ contains
     end if
     self%stepCount=0
     ! Allocate Rhat array.
-    if (.not.allocated(self%correctedHatR)) call allocateArray(self%correctedHatR,[simulationState%dimension()])
+    if (.not.allocated(self%correctedHatR)) allocate(self%correctedHatR(simulationState%dimension()))
     ! Find outlier chains using a Grubb's outlier test.
     ! Initialize chain mask to all chains accepted.
     self%chainMask=.true.

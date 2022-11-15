@@ -41,7 +41,6 @@ sub Hierarchy_Initialization {
 	    [ 
 	      "Input_Parameters"  ,
 	      "ISO_Varying_String",
-	      "Memory_Management" ,
 	      "Error"
 	    ],
 	variables   =>

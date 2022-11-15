@@ -248,7 +248,6 @@ contains
     !!}
     use            :: Abundances_Structure, only : Abundances_Get_Metallicity, logMetallicityZero, metallicityTypeLogarithmicByMassSolar
     use, intrinsic :: ISO_C_Binding       , only : c_size_t
-    use            :: Memory_Management   , only : allocateArray
     implicit none
     class           (stellarPopulationBroadBandLuminositiesStandard), intent(inout) :: self
     integer                                                         , intent(in   ), dimension( :   )              :: luminosityIndex                       , filterIndex
@@ -280,8 +279,8 @@ contains
        call self%luminosityTables(populationID)%interpolatorMetallicity%linearFactors(metallicity,iMetallicity,hMetallicity)
     end if
     ! Allocate arrays for ages and luminosities.
-    call allocateArray(ages        ,[self%luminosityTables(populationID)%agesCount                      ])
-    call allocateArray(luminosities,[self%luminosityTables(populationID)%agesCount,size(luminosityIndex)])
+    allocate(ages        (self%luminosityTables(populationID)%agesCount                      ))
+    allocate(luminosities(self%luminosityTables(populationID)%agesCount,size(luminosityIndex)))
     ! Assign ages.
     ages=self%luminosityTables(populationID)%age
     ! Do the interpolation.
@@ -316,7 +315,6 @@ contains
     use            :: ISO_Varying_String              , only : assignment(=)      , char                                 , operator(//)            , var_str
     use            :: Input_Parameters                , only : inputParameters
     use            :: Instruments_Filters             , only : Filter_Extent      , Filter_Name                          , Filter_Response_Function
-    use            :: Memory_Management               , only : Memory_Usage_Record, allocateArray                        , deallocateArray
     use            :: Numerical_Constants_Astronomical, only : metallicitySolar
     use            :: Numerical_Integration           , only : GSL_Integ_Gauss15  , integrator
     use            :: String_Handling                 , only : operator(//)
@@ -344,13 +342,15 @@ contains
     logical                                                                                           :: computeTable                                  , calculateLuminosity                  , &
          &                                                                                               stellarPopulationHashedDescriptorComputed     , copyDone
     double precision                                                                                  :: toleranceRelative                             , normalization
-    type            (varying_string                                )                                  :: message                                       , luminositiesFileName                 , &
+    type            (varying_string                                ), save                            :: message                                       , luminositiesFileName                 , &
          &                                                                                               descriptorString                              , stellarPopulationHashedDescriptor    , &
          &                                                                                               postprocessorHashedDescriptor
+    !$omp threadprivate(message,luminositiesFileName,descriptorString,stellarPopulationHashedDescriptor,postprocessorHashedDescriptor)
     character       (len=16                                        )                                  :: datasetName                                   , redshiftLabel                        , &
          &                                                                                               label
-    type            (hdf5Object                                    )                                  :: luminositiesFile
-
+    type            (hdf5Object                                    ), save                            :: luminositiesFile
+    !$omp threadprivate(luminositiesFile)
+    
     ! Obtain a read lock on the luminosity tables.
     call self%luminosityTableLock%setRead()
     ! Allocate table storage. First test if the tables must be resized (or allocated).
@@ -366,12 +366,10 @@ contains
              self%luminosityTables(1:size(luminosityTablesTemporary))=luminosityTablesTemporary
              self%luminosityTables(size(luminosityTablesTemporary)+1:populationID)%isTabulatedMaximum=0
              deallocate(luminosityTablesTemporary)
-             call Memory_Usage_Record(sizeof(self%luminosityTables(1)),blockCount=0)
           end if
        else
           allocate(self%luminosityTables(populationID))
           self%luminosityTables%isTabulatedMaximum=0
-          call Memory_Usage_Record(sizeof(self%luminosityTables))
        end if
        call self%luminosityTableLock%unsetWrite(haveReadLock=.true.)
     end if
@@ -396,20 +394,19 @@ contains
                 if (size(self%luminosityTables(populationID)%isTabulated) >= luminosityIndex(iLuminosity)) then
                    computeTable=.not.self%luminosityTables(populationID)%isTabulated(luminosityIndex(iLuminosity))
                 else
-                   call Move_Alloc (self%luminosityTables(populationID)%isTabulated,isTabulatedTemporary)
-                   call Move_Alloc (self%luminosityTables(populationID)%luminosity ,luminosityTemporary )
-                   call allocateArray(self%luminosityTables(populationID)%isTabulated,[luminosityIndexMaximum])
-                   call allocateArray(self%luminosityTables(populationID)%luminosity ,[luminosityIndexMaximum&
-                        &,self%luminosityTables(populationID)%agesCount,self%luminosityTables(populationID)%metallicitiesCount])
+                   call move_alloc(self%luminosityTables(populationID)%isTabulated,isTabulatedTemporary                                                                                                        )
+                   call move_alloc(self%luminosityTables(populationID)%luminosity ,luminosityTemporary                                                                                                         )
+                   allocate       (self%luminosityTables(populationID)%isTabulated(luminosityIndexMaximum                                                                                                     ))
+                   allocate       (self%luminosityTables(populationID)%luminosity (luminosityIndexMaximum,self%luminosityTables(populationID)%agesCount,self%luminosityTables(populationID)%metallicitiesCount))
                    self%luminosityTables(populationID)%isTabulated(1:size(isTabulatedTemporary)    )=isTabulatedTemporary
                    self%luminosityTables(populationID)%isTabulated(  size(isTabulatedTemporary)+1:luminosityIndexMaximum)=.false.
                    self%luminosityTables(populationID)%luminosity (1:size(isTabulatedTemporary),:,:)=luminosityTemporary
-                   call deallocateArray(isTabulatedTemporary)
-                   call deallocateArray(luminosityTemporary)
+                   deallocate(isTabulatedTemporary)
+                   deallocate(luminosityTemporary)
                    computeTable=.true.
                 end if
              else
-                call allocateArray(self%luminosityTables(populationID)%isTabulated,[luminosityIndexMaximum])
+                allocate(self%luminosityTables(populationID)%isTabulated(luminosityIndexMaximum))
                 self%luminosityTables(populationID)%isTabulated=.false.
                 ! Since we have not yet tabulated any luminosities yet for this population, we need to get a list of suitable
                 ! metallicities and ages at which to tabulate.
@@ -419,7 +416,7 @@ contains
                 elsewhere
                    self%luminosityTables(populationID)%metallicity=logMetallicityZero
                 end where
-                call allocateArray(self%luminosityTables(populationID)%luminosity,[luminosityIndexMaximum,self%luminosityTables(populationID)%agesCount ,self%luminosityTables(populationID)%metallicitiesCount])
+                allocate(self%luminosityTables(populationID)%luminosity(luminosityIndexMaximum,self%luminosityTables(populationID)%agesCount,self%luminosityTables(populationID)%metallicitiesCount))
                 self%luminosityTables(populationID)%interpolatorAge        =interpolator(self%luminosityTables(populationID)%age        )
                 self%luminosityTables(populationID)%interpolatorMetallicity=interpolator(self%luminosityTables(populationID)%metallicity)
                 computeTable=.true.
@@ -427,6 +424,7 @@ contains
              !$omp end single
              ! If we haven't, do so now.
              if (computeTable) then
+
                 !$omp single
                 ! Determine if we can read the required luminosity from file.
                 calculateLuminosity=.true.
@@ -468,7 +466,7 @@ contains
                       call File_Unlock(lockFileDescriptor)
                    end if
                 end if
-                !$omp end single
+                !$omp end single copyprivate(luminositiesFileName,stellarPopulationHashedDescriptor,postprocessorHashedDescriptor)
                 ! Compute the luminosity if necessary.
                 if (calculateLuminosity) then
                    !$omp single

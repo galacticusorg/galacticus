@@ -32,6 +32,12 @@ Contains a module which implements a stellar mass function output analysis class
      An SDSS H$\alpha$ luminosity function output analysis class for the \cite{gunawardhana_galaxy_2013} analysis.
      !!}
      private
+     class           (gravitationalLensingClass), pointer                     :: gravitationalLensing_            => null()
+     double precision                           , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient          , systematicErrorPolynomialCoefficient
+     double precision                                                         :: randomErrorMinimum                        , randomErrorMaximum                  , &
+          &                                                                      sizeSourceLensing
+   contains
+     final :: luminosityFunctionGunawardhana2013SDSSDestructor
   end type outputAnalysisLuminosityFunctionGunawardhana2013SDSS
 
   interface outputAnalysisLuminosityFunctionGunawardhana2013SDSS
@@ -198,7 +204,10 @@ contains
     type            (cosmologyFunctionsMatterLambda                      )               , pointer      :: cosmologyFunctionsData
     type            (distributionOperatorList                            )               , pointer      :: distributionOperatorSequence
     double precision                                                                     , parameter    :: errorPolynomialZeroPoint                            =40.0d0
-
+    !![
+    <constructorAssign variables="*gravitationalLensing_, randomErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, sizeSourceLensing"/>
+    !!]
+    
     ! Build a filter which select galaxies with stellar mass 10³M☉ or greater.
     allocate(galacticFilter_)
     !![
@@ -316,3 +325,17 @@ contains
     nullify(distributionOperatorSequence)
     return
   end function luminosityFunctionGunawardhana2013SDSSConstructorInternal
+
+  subroutine luminosityFunctionGunawardhana2013SDSSDestructor(self)
+    !!{
+    Destructor for the ``luminosityFunctionGunawardhana2013SDSS'' output analysis class.
+    !!}
+    implicit none
+    type(outputAnalysisLuminosityFunctionGunawardhana2013SDSS), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%gravitationalLensing_"/>
+    !!]
+    return
+  end subroutine luminosityFunctionGunawardhana2013SDSSDestructor
+  
