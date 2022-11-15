@@ -4,6 +4,7 @@ use warnings;
 use lib $ENV{'GALACTICUS_EXEC_PATH'         }."/perl";
 use lib $ENV{'GALACTICUS_ANALYSIS_PERL_PATH'}."/perl";
 use Text::Template qw(fill_in_string);
+use XML::Simple;
 use PDL;
 use PDL::IO::HDF5;
 use Galacticus::Options;
@@ -184,7 +185,13 @@ foreach my $type ( @types ) {
 	$code::massMinimum = sprintf("%11.5e",3000.0*$type->{'massParticle'});
 	foreach my $redshift ( @{$type->{'redshifts'}} ) {
 	    $code::redshift      = sprintf("%11.5e",$redshift);
-	    $code::redshiftShort =  sprintf("%5.3f",$redshift);
+	    $code::redshiftShort = sprintf( "%5.3f",$redshift);
+	    next
+		unless ( -e $options{'simulationDataPath'}."/ZoomIns/".$type->{'label'}."/".$halo."/primaryHalo_z".$code::redshiftShort.".xml" );
+	    # Extract the target halo properties.
+	    my $xml = new XML::Simple();
+	    my $haloTarget = $xml->XMLin($options{'simulationDataPath'}."/ZoomIns/".$type->{'label'}."/".$halo."/primaryHalo_z".$code::redshiftShort.".xml");
+	    $code::massMaximum = sprintf("%11.5e",$haloTarget->{'mc'}/10.0);
 	    # Make the XML for the config file.
 	    my $config = fill_in_string(<<'CODE', PACKAGE => 'code');
     <!-- Zoom-in: {$name} {$halo} -->
@@ -200,6 +207,7 @@ foreach my $type ( @types ) {
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_{$label}_{$halo}_z{$redshiftShort}.hdf5"/>
       <redshift               value="{$redshift}"/>
       <massRangeMinimum       value="{$massMinimum}"/> <!-- 3000 times zoom-in {$name} particle mass -->
+      <massRangeMaximum       value="{$massMaximum}"/> <!-- 1/10 of the target halo mass             -->
       <binCountMinimum        value="0"          />    
       <likelihoodPoisson      value="true"       />
     </posteriorSampleLikelihood>
