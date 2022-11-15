@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1668514015772,
+  "lastUpdate": 1668514023041,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
@@ -4619,6 +4619,45 @@ window.BENCHMARK_DATA = {
             "value": 61.446,
             "unit": "seconds",
             "range": 0.228176247668669
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d961f9f4b89ee922ef58bb7ef8b97b5b4b01cf22",
+          "message": "Merge pull request #328 from galacticusorg/chandraIntegrals\n\nPass a half-mass radius to Chandrasekhar integral functions",
+          "timestamp": "2022-11-14T22:19:06-08:00",
+          "tree_id": "9e04dfbaec9029b954effe6798c60e4646535466",
+          "url": "https://github.com/galacticusorg/galacticus/commit/d961f9f4b89ee922ef58bb7ef8b97b5b4b01cf22"
+        },
+        "date": 1668514022306,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 57.1223603836366,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 25.7948185912783,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 26209.4879648531,
+            "unit": "-logℒ"
           }
         ]
       }
