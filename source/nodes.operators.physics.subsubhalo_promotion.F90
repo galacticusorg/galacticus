@@ -35,6 +35,7 @@
      private
      class(darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
    contains
+     final     ::                          subsubhaloPromotionDestructor
      procedure :: differentialEvolution => subsubhaloPromotionDifferentialEvolution
   end type nodeOperatorSubsubhaloPromotion
   

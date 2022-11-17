@@ -158,7 +158,7 @@ contains
     type(satelliteTidalStrippingRadiusKing1962), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%darkMatterHaloScale_"/>
+    <objectDestructor name="self%cosmologyParameters_"/>
     <objectDestructor name="self%darkMatterHaloScale_"/>
     <objectDestructor name="self%galacticStructure_"  />
     !!]
