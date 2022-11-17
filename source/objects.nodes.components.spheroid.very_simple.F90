@@ -123,8 +123,7 @@ module Node_Component_Spheroid_Very_Simple
   !$omp threadprivate(mergerMassMovements_,stellarPopulationProperties_)
 
   ! Parameters controlling the physical implementation.
-  double precision :: spheroidMassToleranceAbsolute      , spheroidVerySimpleMassScaleAbsolute
-  logical          :: spheroidVerySimpleTrackAbundances  , spheroidVerySimpleTrackLuminosities
+  double precision :: toleranceAbsoluteMass      , scaleAbsoluteMass
 
 contains
 
@@ -133,42 +132,37 @@ contains
    <unitName>Node_Component_Spheroid_Very_Simple_Initialize</unitName>
   </nodeComponentInitializationTask>
   !!]
-  subroutine Node_Component_Spheroid_Very_Simple_Initialize(parameters_)
+  subroutine Node_Component_Spheroid_Very_Simple_Initialize(parameters)
     !!{
     Initializes the tree node very simple spheroid component module.
     !!}
     use :: Galacticus_Nodes, only : defaultSpheroidComponent
     use :: Input_Parameters, only : inputParameter          , inputParameters
     implicit none
-    type(inputParameters), intent(inout) :: parameters_
+    type(inputParameters), intent(inout) :: parameters
+    type(inputParameters)                :: subParameters
 
     ! Initialize the module if necessary.
     if (defaultSpheroidComponent%verySimpleIsActive()) then
+       ! Find our parameters.
+       if (parameters%isPresent('componentSpheroid')) then
+          subParameters=parameters%subParameters('componentSpheroid')
+       else
+          subParameters=inputParameters(subParameters)
+       end if
        ! Read parameters controlling the physical implementation.
        !![
        <inputParameter>
-         <name>spheroidVerySimpleMassScaleAbsolute</name>
+         <name>scaleAbsoluteMass</name>
          <defaultValue>100.0d0</defaultValue>
          <description>The absolute mass scale below which calculations in the very simple spheroid component are allowed to become inaccurate.</description>
-         <source>parameters_</source>
+         <source>subParameters</source>
        </inputParameter>
        <inputParameter>
-         <name>spheroidVerySimpleTrackAbundances</name>
-         <defaultValue>.false.</defaultValue>
-         <description>Specifies whether or not to track abundances in the very simple spheroid component.</description>
-         <source>parameters_</source>
-       </inputParameter>
-       <inputParameter>
-         <name>spheroidVerySimpleTrackLuminosities</name>
-         <defaultValue>.false.</defaultValue>
-         <description>Specifies whether or not to track stellar luminosities in the very simple disk component.</description>
-         <source>parameters_</source>
-       </inputParameter>
-       <inputParameter>
-         <name>spheroidMassToleranceAbsolute</name>
+         <name>toleranceAbsoluteMass</name>
          <defaultValue>1.0d-6</defaultValue>
          <description>The mass tolerance used to judge whether the spheroid is physically plausible.</description>
-         <source>parameters_</source>
+         <source>subParameters</source>
        </inputParameter>
        !!]
     end if
@@ -180,7 +174,7 @@ contains
    <unitName>Node_Component_Spheroid_Very_Simple_Thread_Initialize</unitName>
   </nodeComponentThreadInitializationTask>
   !!]
-  subroutine Node_Component_Spheroid_Very_Simple_Thread_Initialize(parameters_)
+  subroutine Node_Component_Spheroid_Very_Simple_Thread_Initialize(parameters)
     !!{
     Initializes the tree node very simple satellite module.
     !!}
@@ -189,16 +183,23 @@ contains
     use :: Galacticus_Nodes, only : defaultSpheroidComponent
     use :: Input_Parameters, only : inputParameter          , inputParameters
     implicit none
-    type(inputParameters), intent(inout) :: parameters_
+    type(inputParameters), intent(inout) :: parameters
     type(dependencyRegEx), dimension(1)  :: dependencies
+    type(inputParameters)                :: subParameters
 
     if (defaultSpheroidComponent%verySimpleIsActive()) then
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
        call postEvolveEvent     %attach(defaultSpheroidComponent,postEvolve     ,openMPThreadBindingAtLevel,label='nodeComponentSpheroidVerySimple'                          )
        call satelliteMergerEvent%attach(defaultSpheroidComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentSpheroidVerySimple',dependencies=dependencies)
+       ! Find our parameters.
+       if (parameters%isPresent('componentSpheroid')) then
+          subParameters=parameters%subParameters('componentSpheroid')
+       else
+          subParameters=inputParameters(subParameters)
+       end if
        !![
-       <objectBuilder class="stellarPopulationProperties" name="stellarPopulationProperties_" source="parameters_"/>
-       <objectBuilder class="mergerMassMovements"         name="mergerMassMovements_"         source="parameters_"/>
+       <objectBuilder class="stellarPopulationProperties" name="stellarPopulationProperties_" source="subParameters"/>
+       <objectBuilder class="mergerMassMovements"         name="mergerMassMovements_"         source="subParameters"/>
        !!]
     end if
     return
@@ -429,12 +430,12 @@ contains
     class is (nodeComponentSpheroidVerySimple)
        ! Set scale for gas and stellar mass.
        mass=spheroid%massGas()+spheroid%massStellar()
-       call spheroid%massGasScale    (max(mass,spheroidVerySimpleMassScaleAbsolute))
-       call spheroid%massStellarScale(max(mass,spheroidVerySimpleMassScaleAbsolute))
+       call spheroid%massGasScale    (max(mass,scaleAbsoluteMass))
+       call spheroid%massStellarScale(max(mass,scaleAbsoluteMass))
        ! Set scale for gas and stellar abundances.
        abundancesTotal=spheroid%abundancesGas()+spheroid%abundancesStellar()
-       call spheroid%abundancesGasScale    (max(abundancesTotal,unitAbundances*spheroidVerySimpleMassScaleAbsolute))
-       call spheroid%abundancesStellarScale(max(abundancesTotal,unitAbundances*spheroidVerySimpleMassScaleAbsolute))
+       call spheroid%abundancesGasScale    (max(abundancesTotal,unitAbundances*scaleAbsoluteMass))
+       call spheroid%abundancesStellarScale(max(abundancesTotal,unitAbundances*scaleAbsoluteMass))
        ! Set scales for stellar population properties and star formation histories.
        stellarPopulationHistoryScales=spheroid%stellarPropertiesHistory()
        call stellarPopulationProperties_%scales   (spheroid%massStellar(),zeroAbundances,stellarPopulationHistoryScales)
@@ -706,7 +707,7 @@ contains
     spheroid => node%spheroid()
      select type (spheroid)
      class is (nodeComponentSpheroidVerySimple)
-        if (spheroid%massStellar()+spheroid%massGas() < -spheroidMassToleranceAbsolute) node%isPhysicallyPlausible=.false.
+        if (spheroid%massStellar()+spheroid%massGas() < -toleranceAbsoluteMass) node%isPhysicallyPlausible=.false.
      end select
     return
   end subroutine Node_Component_Spheroid_Very_Simple_Radius_Solver_Plausibility

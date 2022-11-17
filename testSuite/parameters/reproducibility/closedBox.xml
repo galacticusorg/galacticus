@@ -10,7 +10,9 @@
   <componentHotHalo value="null"/>
   <componentBlackHole value="null"/>
   <componentDarkMatterProfile value="null"/>
-  <componentDisk value="verySimpleSize"/>
+  <componentDisk value="verySimpleSize">
+    <trackAbundances value="true"/>
+  </componentDisk>
   <componentSatellite value="null"/>
   <componentSpheroid value="null"/>
   <componentSpin value="scalar"/>
@@ -75,7 +77,6 @@
   </starFormationRateDisks>
 
   <!-- Metal production -->
-  <diskVerySimpleTrackAbundances value="true"/>
   <stellarPopulation value="standard">
     <metalYield value="0.025"/>
     <recycledFraction value="0.400"/>
@@ -91,7 +92,7 @@
     <nodeOperator value="haloAngularMomentumInterpolate"/>
     <!-- Satellite evolution -->
     <nodeOperator value="satelliteMergingTime"/>
-    <nodeOperator value="satelliteMassLoss"   />
+    <nodeOperator value="satelliteMassLoss"/>
     <!-- Star formation -->
     <nodeOperator value="starFormationDisks"/>
   </nodeOperator>

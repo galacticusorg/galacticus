@@ -179,10 +179,10 @@ module Node_Component_Disk_Standard
   integer                                     :: abundancesCount
 
   ! Parameters controlling the physical implementation.
-  double precision                            :: diskMassToleranceAbsolute                         , diskStructureSolverRadius            , &
-       &                                         diskMetallicityTolerance
-  logical                                     :: diskNegativeAngularMomentumAllowed                , diskRadiusSolverCole2000Method       , &
-       &                                         diskLuminositiesStellarInactive
+  double precision                            :: toleranceAbsoluteMass                              , radiusStructureSolver               , &
+       &                                         toleranceRelativeMetallicity
+  logical                                     :: diskNegativeAngularMomentumAllowed                 , structureSolverUseCole2000Method    , &
+       &                                         inactiveLuminositiesStellar
 
   ! History of trial radii used to check for oscillations in the solution when solving for the structure of the disk.
   integer                                     :: radiusSolverIteration
@@ -206,7 +206,7 @@ contains
    <unitName>Node_Component_Disk_Standard_Initialize</unitName>
   </nodeComponentInitializationTask>
   !!]
-  subroutine Node_Component_Disk_Standard_Initialize(parameters_)
+  subroutine Node_Component_Disk_Standard_Initialize(parameters)
     !!{
     Initializes the tree node standard disk methods module.
     !!}
@@ -215,8 +215,9 @@ contains
     use :: Galacticus_Nodes    , only : defaultDiskComponent     , nodeComponentDiskStandard
     use :: Input_Parameters    , only : inputParameter           , inputParameters
     implicit none
-    type(inputParameters          ), intent(inout) :: parameters_
+    type(inputParameters          ), intent(inout) :: parameters
     type(nodeComponentDiskStandard)                :: diskStandardComponent
+    type(inputParameters          )                :: subParameters
 
     if (defaultDiskComponent%standardIsActive()) then
        ! Get number of abundance properties.
@@ -228,43 +229,49 @@ contains
        end if
        ! Bind the Chandrasekhar integral function.
        call diskStandardComponent%chandrasekharIntegralFunction(Node_Component_Disk_Standard_Chandrasekhar_Integral)
+       ! Find our parameters.
+       if (parameters%isPresent('componentDisk')) then
+          subParameters=parameters%subParameters('componentDisk')
+       else
+          subParameters=inputParameters(subParameters)
+       end if
        ! Read parameters controlling the physical implementation.
        !![
        <inputParameter>
-         <name>diskMassToleranceAbsolute</name>
+         <name>toleranceAbsoluteMass</name>
          <defaultValue>1.0d-6</defaultValue>
          <description>The mass tolerance used to judge whether the disk is physically plausible.</description>
-         <source>parameters_</source>
+         <source>subParameters</source>
        </inputParameter>
        <inputParameter>
-         <name>diskMetallicityTolerance</name>
+         <name>toleranceRelativeMetallicity</name>
          <defaultValue>1.0d-4</defaultValue>
          <description>The metallicity tolerance for ODE solution.</description>
-         <source>parameters_</source>
+         <source>subParameters</source>
        </inputParameter>
        <inputParameter>
-         <name>diskStructureSolverRadius</name>
+         <name>radiusStructureSolver</name>
          <defaultValue>1.0d0</defaultValue>
          <description>The radius (in units of the standard scale length) to use in solving for the size of the disk.</description>
-         <source>parameters_</source>
+         <source>subParameters</source>
        </inputParameter>
        <inputParameter>
-         <name>diskRadiusSolverCole2000Method</name>
+         <name>structureSolverUseCole2000Method</name>
          <defaultValue>.false.</defaultValue>
          <description></description>
-         <source>parameters_</source>
+         <source>subParameters</source>
        </inputParameter>
        <inputParameter>
          <name>diskNegativeAngularMomentumAllowed</name>
          <defaultValue>.true.</defaultValue>
          <description>Specifies whether or not negative angular momentum is allowed for the disk.</description>
-         <source>parameters_</source>
+         <source>subParameters</source>
        </inputParameter>
        <inputParameter>
-         <name>diskLuminositiesStellarInactive</name>
+         <name>inactiveLuminositiesStellar</name>
          <defaultValue>.false.</defaultValue>
          <description>Specifies whether or not disk stellar luminosities are inactive properties (i.e. do not appear in any ODE being solved).</description>
-         <source>parameters_</source>
+         <source>subParameters</source>
        </inputParameter>
        !!]
     end if
@@ -276,7 +283,7 @@ contains
    <unitName>Node_Component_Disk_Standard_Thread_Initialize</unitName>
   </nodeComponentThreadInitializationTask>
   !!]
-  subroutine Node_Component_Disk_Standard_Thread_Initialize(parameters_)
+  subroutine Node_Component_Disk_Standard_Thread_Initialize(parameters)
     !!{
     Initializes the standard disk component module for each thread.
     !!}
@@ -288,23 +295,30 @@ contains
     use :: Mass_Distributions               , only : massDistributionCylindrical
     use :: Node_Component_Disk_Standard_Data, only : diskMassDistribution       , diskMassDistribution_        
     implicit none
-    type            (inputParameters), intent(inout) :: parameters_
+    type            (inputParameters), intent(inout) :: parameters
     type            (dependencyRegEx), dimension(1)  :: dependencies
     double precision                                 :: diskMassDistributionDensityMoment1, diskMassDistributionDensityMoment2
     logical                                          :: surfaceDensityMoment1IsInfinite   , surfaceDensityMoment2IsInfinite
+    type            (inputParameters)                :: subParameters
 
     ! Check if this implementation is selected. If so, initialize the mass distribution.
     if (defaultDiskComponent%standardIsActive()) then
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
        call satelliteMergerEvent%attach(defaultDiskComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentDiskStandard',dependencies=dependencies)
        call postEvolveEvent     %attach(defaultDiskComponent,postEvolve     ,openMPThreadBindingAtLevel,label='nodeComponentDiskStandard'                          )
+       ! Find our parameters.
+       if (parameters%isPresent('componentDisk')) then
+          subParameters=parameters%subParameters('componentDisk')
+       else
+          subParameters=inputParameters(subParameters)
+       end if
        !![
-       <objectBuilder class="darkMatterHaloScale"                                                 name="darkMatterHaloScale_"         source="parameters_"                    />
-       <objectBuilder class="stellarPopulationProperties"                                         name="stellarPopulationProperties_" source="parameters_"                    />
-       <objectBuilder class="starFormationHistory"                                                name="starFormationHistory_"        source="parameters_"                    />
-       <objectBuilder class="mergerMassMovements"                                                 name="mergerMassMovements_"         source="parameters_"                    />
-       <objectBuilder class="galacticStructure"                                                   name="galacticStructure_"           source="parameters_"                    />
-       <objectBuilder class="massDistribution"               parameterName="diskMassDistribution" name="diskMassDistribution_"        source="parameters_" threadPrivate="yes" >
+       <objectBuilder class="darkMatterHaloScale"                                                 name="darkMatterHaloScale_"         source="subParameters"                    />
+       <objectBuilder class="stellarPopulationProperties"                                         name="stellarPopulationProperties_" source="subParameters"                    />
+       <objectBuilder class="starFormationHistory"                                                name="starFormationHistory_"        source="subParameters"                    />
+       <objectBuilder class="mergerMassMovements"                                                 name="mergerMassMovements_"         source="subParameters"                    />
+       <objectBuilder class="galacticStructure"                                                   name="galacticStructure_"           source="subParameters"                    />
+       <objectBuilder class="massDistribution"               parameterName="diskMassDistribution" name="diskMassDistribution_"        source="subParameters" threadPrivate="yes" >
         <default>
          <diskMassDistribution value="exponentialDisk">
           <dimensionless value="true"/>
@@ -341,7 +355,7 @@ contains
           diskStructureSolverSpecificAngularMomentum=0.5d0
        else
           diskStructureSolverSpecificAngularMomentum=  &
-               & +diskStructureSolverRadius            &
+               & +radiusStructureSolver            &
                & /(                                    &
                &   +diskMassDistributionDensityMoment2 &
                &   /diskMassDistributionDensityMoment1 &
@@ -349,11 +363,11 @@ contains
        end if
        ! If necessary, compute the specific angular momentum correction factor to account for the difference between rotation
        ! curves for thin disk and a spherical mass distribution.
-       if (diskRadiusSolverCole2000Method) then
+       if (structureSolverUseCole2000Method) then
           diskRadiusSolverFlatVsSphericalFactor=                                          &
-               & +diskMassDistribution%rotationCurve       (diskStructureSolverRadius)**2 &
-               & *                                          diskStructureSolverRadius     &
-               & -diskMassDistribution%massEnclosedBySphere(diskStructureSolverRadius)
+               & +diskMassDistribution%rotationCurve       (radiusStructureSolver)**2 &
+               & *                                          radiusStructureSolver     &
+               & -diskMassDistribution%massEnclosedBySphere(radiusStructureSolver)
        end if
     end if
     return
@@ -775,7 +789,7 @@ contains
                &               +abs(+spheroid%abundancesStellar()), &
                &               +max(                                &
                &                    +mass                           &
-               &                    *diskMetallicityTolerance     , &
+               &                    *toleranceRelativeMetallicity , &
                &                    +massMinimum                    &
                &                   )                                &
                &                    *unitAbundances                 &
@@ -826,7 +840,7 @@ contains
     ! Check if an standard disk component exists.
     select type (disk)
     class is (nodeComponentDiskStandard)
-       if (diskLuminositiesStellarInactive) call disk%luminositiesStellarInactive()
+       if (inactiveLuminositiesStellar) call disk%luminositiesStellarInactive()
     end select
     return
   end subroutine Node_Component_Disk_Standard_Inactive
@@ -1007,13 +1021,13 @@ contains
     disk => node%disk()
     select type (disk)
        class is (nodeComponentDiskStandard)
-       if      (disk%angularMomentum()                             <                       0.0d0) &
+       if      (disk%angularMomentum()                <                   0.0d0) &
             & node%isPhysicallyPlausible=.false.
-       if      (disk%massStellar    ()+disk%massGas() <  -diskMassToleranceAbsolute) then
+       if      (disk%massStellar    ()+disk%massGas() <  -toleranceAbsoluteMass) then
           node%isPhysicallyPlausible=.false.
-       else if (disk%massStellar    ()+disk%massGas() >=                      0.0d0) then
-          if      (                                                                               &
-               &   disk%angularMomentum() < 0.0d0                                                 &
+       else if (disk%massStellar    ()+disk%massGas() >=                  0.0d0) then
+          if      (                                                              &
+               &   disk%angularMomentum() < 0.0d0                                &
                &  ) then
              node%isPhysicallyPlausible=.false.
           else
@@ -1053,7 +1067,7 @@ contains
     class(nodeComponentDisk), pointer       :: disk
 
     disk => node%disk()
-    Node_Component_Disk_Standard_Radius_Solve=disk%radius()*diskStructureSolverRadius
+    Node_Component_Disk_Standard_Radius_Solve=disk%radius()*radiusStructureSolver
     return
   end function Node_Component_Disk_Standard_Radius_Solve
 
@@ -1068,7 +1082,7 @@ contains
     class           (nodeComponentDisk), pointer       :: disk
 
     disk => node%disk()
-    call disk%radiusSet(max(radius,0.0d0)/diskStructureSolverRadius)
+    call disk%radiusSet(max(radius,0.0d0)/radiusStructureSolver)
     return
   end subroutine Node_Component_Disk_Standard_Radius_Solve_Set
 
@@ -1148,7 +1162,7 @@ contains
              ! difference between rotation curves for thin disk and a spherical mass distribution. Trap instances where this leads to
              ! imaginary specific angular momentum - this can happen as the radius solver explores the allowed range of radii when
              ! seeking a solution.
-             if (diskRadiusSolverCole2000Method)                                                       &
+             if (structureSolverUseCole2000Method)                                                       &
                   & specificAngularMomentum=sqrt(                                                      &
                   &                               max(                                                 &
                   &                                    0.0d0,                                          &

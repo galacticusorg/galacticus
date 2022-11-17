@@ -28,11 +28,6 @@
   </darkMatterProfile>
 
   <blackHoleBinaryMergers value="rezzolla2008"/>
-  <blackHoleSeedMass value="100"/>
-  <blackHoleWindEfficiency value="0.001"/>
-  <bondiHoyleAccretionEnhancementHotHalo value="1"/>
-  <bondiHoyleAccretionEnhancementSpheroid value="1"/>
-  <bondiHoyleAccretionTemperatureSpheroid value="100"/>
   <coolingFunction value="atomicCIECloudy"/>
   <coolingRadius value="simple"/>
   <coolingRate value="whiteFrenk1991">
@@ -53,8 +48,6 @@
     <concentrationMaximum value="100.0"/>
     <darkMatterProfileScaleRadius value="concentration"/>
   </darkMatterProfileScaleRadius>
-  <diskMassToleranceAbsolute value="1e-06"/>
-
   <galacticStructureSolver value="equilibrium"/>
   <haloMassFunction value="tinker2008"/>
   <haloSpinDistribution value="bett2007">
@@ -129,8 +122,6 @@
   <cosmologicalMassVariance value="filteredPower">
     <sigma_8 value="0.807"/>
   </cosmologicalMassVariance>
-  <spheroidEnergeticOutflowMassRate value="1"/>
-  <spheroidMassToleranceAbsolute value="1e-06"/>
   <starFormationRateDisks value="timescale">
     <starFormationTimescale value="dynamicalTime">
       <efficiency value="0.1"/>
@@ -146,7 +137,6 @@
       <timescaleMinimum value="0.001"/>
     </starFormationTimescale>
   </starFormationRateSpheroids>
-  <starveSatellites value="true"/>
   <stellarPopulationProperties value="instantaneous"/>
   <stellarPopulationSpectra value="FSPS"/>
   <mergerTreeEvolver value="standard">
@@ -165,12 +155,25 @@
     <accuracyFirstOrder value="+0.10"/>
   </mergerTreeBranchingProbability>
   <componentBasic value="standard"/>
-  <componentBlackHole value="standard"/>
+  <componentBlackHole value="standard">
+    <massSeed value="100"/>
+    <efficiencyWind value="0.001"/>
+    <bondiHoyleAccretionEnhancementHotHalo value="1"/>
+    <bondiHoyleAccretionEnhancementSpheroid value="1"/>
+    <bondiHoyleAccretionTemperatureSpheroid value="100"/>
+  </componentBlackHole>
   <componentDarkMatterProfile value="scale"/>
-  <componentDisk value="standard"/>
-  <componentHotHalo value="standard"/>
+  <componentDisk value="standard">
+    <toleranceAbsoluteMass value="1e-06"/>
+  </componentDisk>
+  <componentHotHalo value="standard">
+    <starveSatellites value="true"/>
+  </componentHotHalo>
   <componentSatelliteOrbit value="simple"/>
-  <componentSpheroid value="standard"/>
+  <componentSpheroid value="standard">
+    <efficiencyEnergeticOutflow value="1"/>
+    <toleranceAbsoluteMass value="1e-06"/>
+  </componentSpheroid>
   <spheroidMassDistribution value="hernquist">
     <dimensionless value="true"/>
   </spheroidMassDistribution>
@@ -190,7 +193,7 @@
     <!-- DMO evolution -->
     <nodeOperator value="DMOInterpolate"/>
     <!-- Halo concentrations -->
-    <nodeOperator value="darkMatterProfileScaleSet"        />
+    <nodeOperator value="darkMatterProfileScaleSet"/>
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
     <!-- Halo spins -->
     <nodeOperator value="haloAngularMomentumRandom">
@@ -199,7 +202,7 @@
     <nodeOperator value="haloAngularMomentumInterpolate"/>
     <!-- Satellite evolution -->
     <nodeOperator value="satelliteMergingTime"/>
-    <nodeOperator value="satelliteMassLoss"   />
+    <nodeOperator value="satelliteMassLoss"/>
     <!-- Star formation -->
     <nodeOperator value="starFormationDisks"/>
     <nodeOperator value="starFormationSpheroids"/>

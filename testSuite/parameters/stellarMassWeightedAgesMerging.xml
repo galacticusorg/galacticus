@@ -9,10 +9,14 @@
   <componentBasic value="standard"/>
   <componentBlackHole value="null"/>
   <componentDarkMatterProfile value="null"/>
-  <componentDisk value="standard"/>
+  <componentDisk value="standard">
+    <toleranceAbsoluteMass value="1.0e-6"/>
+  </componentDisk>
   <componentHotHalo value="null"/>
   <componentSatellite value="standard"/>
-  <componentSpheroid value="standard"/>
+  <componentSpheroid value="standard">
+    <toleranceAbsoluteMass value="1.0e-6"/>
+  </componentSpheroid>
   <componentSpin value="scalar"/>
   <diskMassDistribution value="exponentialDisk">
     <dimensionless value="true"/>
@@ -99,7 +103,7 @@
 
   <!-- Metal production -->
   <stellarPopulation value="standard">
-    <metalYield       value="0.0"/>
+    <metalYield value="0.0"/>
     <recycledFraction value="0.0"/>
   </stellarPopulation>
 
@@ -113,7 +117,7 @@
     <nodeOperator value="haloAngularMomentumInterpolate"/>
     <!-- Satellite evolution -->
     <nodeOperator value="satelliteMergingTime"/>
-    <nodeOperator value="satelliteMassLoss"   />
+    <nodeOperator value="satelliteMassLoss"/>
     <!-- Star formation -->
     <nodeOperator value="starFormationDisks"/>
     <nodeOperator value="starFormationSpheroids"/>
@@ -126,8 +130,6 @@
     <odeToleranceAbsolute value="0.01"/>
     <odeToleranceRelative value="0.01"/>
   </mergerTreeNodeEvolver>
-  <diskMassToleranceAbsolute value="1.0e-6"/>
-  <spheroidMassToleranceAbsolute value="1.0e-6"/>
   <mergerTreeEvolver value="standard">
     <timestepHostAbsolute value="1.0"/>
     <timestepHostRelative value="0.1"/>

@@ -57,7 +57,7 @@ module Node_Component_Satellite_Standard
   !!]
 
   ! Record of whether satellite bound mass is an inactive variable.
-  logical :: satelliteBoundMassIsInactive
+  logical :: inactiveBoundMass
 
 contains
 
@@ -66,23 +66,30 @@ contains
     <unitName>Node_Component_Satellite_Standard_Initialize</unitName>
   </nodeComponentInitializationTask>
   !!]
-  subroutine Node_Component_Satellite_Standard_Initialize(parameters_)
+  subroutine Node_Component_Satellite_Standard_Initialize(parameters)
     !!{
     Initializes the standard satellite orbit component module.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatelliteStandard
     use :: Input_Parameters, only : inputParameter                , inputParameters
     implicit none
-    type(inputParameters               ), intent(inout) :: parameters_
+    type(inputParameters               ), intent(inout) :: parameters
     type(nodeComponentSatelliteStandard)                :: satellite
-    
+    type(inputParameters               )                :: subParameters
+
     if (satellite%standardIsActive()) then
+       ! Find our parameters.
+       if (parameters%isPresent('componentSatellite')) then
+          subParameters=parameters%subParameters('componentSatellite')
+       else
+          subParameters=inputParameters(subParameters)
+       end if
        !![
        <inputParameter>
-         <name>satelliteBoundMassIsInactive</name>
+         <name>inactiveBoundMass</name>
          <defaultValue>.false.</defaultValue>
          <description>Specifies whether or not the bound mass variable of the standard satellite component is inactive (i.e. does not appear in any ODE being solved).</description>
-         <source>parameters_</source>
+         <source>subParameters</source>
        </inputParameter>
        !!]
     end if
@@ -108,7 +115,7 @@ contains
     ! Check if an standard satellite component exists.
     select type (satellite)
     class is (nodeComponentSatelliteStandard)
-       if (satelliteBoundMassIsInactive) call satellite%boundMassInactive()
+       if (inactiveBoundMass) call satellite%boundMassInactive()
     end select
     return
   end subroutine Node_Component_Satellite_Standard_Inactive

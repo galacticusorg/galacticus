@@ -73,7 +73,7 @@ module Node_Component_Disk_Very_Simple_Size
   !!]
 
   ! Parameters controlling the physical implementation.
-  double precision :: diskMassToleranceAbsolute
+  double precision :: toleranceAbsoluteMass
 
 contains
 
@@ -82,23 +82,30 @@ contains
    <unitName>Node_Component_Disk_Very_Simple_Size_Initialize</unitName>
   </nodeComponentInitializationTask>
   !!]
-  subroutine Node_Component_Disk_Very_Simple_Size_Initialize(parameters_)
+  subroutine Node_Component_Disk_Very_Simple_Size_Initialize(parameters)
     !!{
     Initializes the tree node exponential disk methods module.
     !!}
     use :: Galacticus_Nodes, only : defaultDiskComponent
     use :: Input_Parameters, only : inputParameter      , inputParameters
     implicit none
-    type(inputParameters), intent(inout) :: parameters_
+    type(inputParameters), intent(inout) :: parameters
+    type(inputParameters)                :: subParameters
 
     if (defaultDiskComponent%verySimpleSizeIsActive()) then
+       ! Find our parameters.
+       if (parameters%isPresent('componentDisk')) then
+          subParameters=parameters%subParameters('componentDisk')
+       else
+          subParameters=inputParameters(subParameters)
+       end if
        ! Read parameters controlling the physical implementation.
        !![
        <inputParameter>
-         <name>diskMassToleranceAbsolute</name>
+         <name>toleranceAbsoluteMass</name>
          <defaultValue>1.0d-6</defaultValue>
          <description>The mass tolerance used to judge whether the disk is physically plausible.</description>
-         <source>parameters_</source>
+         <source>subParameters</source>
        </inputParameter>
        !!]
     end if
@@ -110,7 +117,7 @@ contains
    <unitName>Node_Component_Disk_Very_Simple_Size_Thread_Initialize</unitName>
   </nodeComponentThreadInitializationTask>
   !!]
-  subroutine Node_Component_Disk_Very_Simple_Size_Thread_Initialize(parameters_)
+  subroutine Node_Component_Disk_Very_Simple_Size_Thread_Initialize(parameters)
     !!{
     Initializes the tree node very simple size disk module.
     !!}
@@ -120,11 +127,18 @@ contains
     use :: Mass_Distributions                       , only : massDistributionCylindrical
     use :: Node_Component_Disk_Very_Simple_Size_Data, only : diskMassDistribution
     implicit none
-    type(inputParameters), intent(inout) :: parameters_
+    type(inputParameters), intent(inout) :: parameters
+    type(inputParameters)                :: subParameters
 
     if (defaultDiskComponent%verySimpleSizeIsActive()) then
+       ! Find our parameters.
+       if (parameters%isPresent('componentDisk')) then
+          subParameters=parameters%subParameters('componentDisk')
+       else
+          subParameters=inputParameters(subParameters)
+       end if
        !![
-       <objectBuilder class="massDistribution" parameterName="diskMassDistribution" name="diskMassDistribution" source="parameters_" threadPrivate="yes">
+       <objectBuilder class="massDistribution" parameterName="diskMassDistribution" name="diskMassDistribution" source="subParameters" threadPrivate="yes">
         <default>
          <diskMassDistribution value="exponentialDisk">
           <dimensionless value="true"/>
@@ -197,7 +211,7 @@ contains
      disk => node%disk()
      select type (disk)
      class is (nodeComponentDiskVerySimpleSize)
-        if (disk%massStellar()+disk%massGas() < -diskMassToleranceAbsolute) node%isPhysicallyPlausible=.false.
+        if (disk%massStellar()+disk%massGas() < -toleranceAbsoluteMass) node%isPhysicallyPlausible=.false.
      end select
     return
   end subroutine Node_Component_Disk_Very_Simple_Size_Radius_Solver_Plausibility

@@ -67,7 +67,7 @@ module Node_Component_Black_Hole_Noncentral
   !$omp threadprivate(darkMatterHaloScale_,blackHoleBinaryRecoil_,blackHoleBinaryMerger_,blackHoleBinarySeparationGrowthRate_,galacticStructure_)
 
   ! Option specifying whether the triple black hole interaction should be used.
-  logical :: tripleBlackHoleInteraction
+  logical :: tripleInteraction
 
   ! Index of black hole instance about to merge.
   integer :: mergingInstance
@@ -84,20 +84,27 @@ contains
    <unitName>Node_Component_Black_Hole_Noncentral_Initialize</unitName>
   </nodeComponentInitializationTask>
   !!]
-  subroutine Node_Component_Black_Hole_Noncentral_Initialize(parameters_)
+  subroutine Node_Component_Black_Hole_Noncentral_Initialize(parameters)
     !!{
     Initializes the noncentral black hole component module.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type(inputParameters), intent(inout) :: parameters_
+    type(inputParameters), intent(inout) :: parameters
+    type(inputParameters)                :: subParameters
 
+    ! Find our parameters.
+    if (parameters%isPresent('componentBlackHole')) then
+       subParameters=parameters%subParameters('componentBlackHole')
+    else
+       subParameters=inputParameters(subParameters)
+    end if
     !![
     <inputParameter>
-      <name>tripleBlackHoleInteraction</name>
+      <name>tripleInteraction</name>
       <defaultValue>.false.</defaultValue>
       <description>Determines whether or not triple black hole interactions will be accounted for.</description>
-      <source>parameters_</source>
+      <source>subParameters</source>
     </inputParameter>
     !!]
     return
@@ -108,22 +115,29 @@ contains
    <unitName>Node_Component_Black_Hole_Noncentral_Thread_Initialize</unitName>
   </nodeComponentThreadInitializationTask>
   !!]
-  subroutine Node_Component_Black_Hole_Noncentral_Thread_Initialize(parameters_)
+  subroutine Node_Component_Black_Hole_Noncentral_Thread_Initialize(parameters)
     !!{
     Initializes the tree node random spin module.
     !!}
     use :: Galacticus_Nodes, only : defaultBlackHoleComponent
     use :: Input_Parameters, only : inputParameter           , inputParameters
     implicit none
-    type(inputParameters), intent(inout) :: parameters_
+    type(inputParameters), intent(inout) :: parameters
+    type(inputParameters)                :: subParameters
 
     if (defaultBlackHoleComponent%noncentralIsActive()) then
+       ! Find our parameters.
+       if (parameters%isPresent('componentBlackHole')) then
+          subParameters=parameters%subParameters('componentBlackHole')
+       else
+          subParameters=inputParameters(subParameters)
+       end if
        !![
-       <objectBuilder class="darkMatterHaloScale"                 name="darkMatterHaloScale_"                 source="parameters_"/>
-       <objectBuilder class="blackHoleBinaryRecoil"               name="blackHoleBinaryRecoil_"               source="parameters_"/>
-       <objectBuilder class="blackHoleBinaryMerger"               name="blackHoleBinaryMerger_"               source="parameters_"/>
-       <objectBuilder class="blackHoleBinarySeparationGrowthRate" name="blackHoleBinarySeparationGrowthRate_" source="parameters_"/>
-       <objectBuilder class="galacticStructure"                   name="galacticStructure_"                   source="parameters_"/>
+       <objectBuilder class="darkMatterHaloScale"                 name="darkMatterHaloScale_"                 source="subParameters"/>
+       <objectBuilder class="blackHoleBinaryRecoil"               name="blackHoleBinaryRecoil_"               source="subParameters"/>
+       <objectBuilder class="blackHoleBinaryMerger"               name="blackHoleBinaryMerger_"               source="subParameters"/>
+       <objectBuilder class="blackHoleBinarySeparationGrowthRate" name="blackHoleBinarySeparationGrowthRate_" source="subParameters"/>
+       <objectBuilder class="galacticStructure"                   name="galacticStructure_"                   source="subParameters"/>
        !!]
     end if
     return
@@ -226,7 +240,7 @@ contains
        ! three body interaction occurs using the radial condition derived in Hoffman and Loeb (2007).
        binaryRadiusFound=.false.
        binaryRadius     =huge(1.0d0)
-       if (tripleBlackHoleInteraction) then
+       if (tripleInteraction) then
           if (instanceCount >= 3 .and. blackHoleCentral%mass() > 0.0d0) then
              do iInstance=2,instanceCount
                 ! Get the black hole.

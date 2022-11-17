@@ -115,13 +115,13 @@ module Node_Component_Disk_Very_Simple
   !$omp threadprivate(cosmologyFunctions_,stellarPopulationProperties_,darkMatterHaloScale_,stellarFeedbackOutflows_,starFormationRateDisks_,darkMatterProfileDMO_,mergerMassMovements_)
 
   ! Record of whether to use the simple disk analytic solver.
-  logical                             :: diskVerySimpleUseAnalyticSolver
-  double precision                    :: diskVerySimpleAnalyticSolverPruneMassStars         , diskVerySimpleAnalyticSolverPruneMassGas, &
-       &                                 timePresentDay                              =-1.0d0
+  logical                             :: useAnalyticSolver
+  double precision                    :: pruneMassStars          , pruneMassGas     , &
+       &                                 timePresentDay   =-1.0d0
 
   ! Parameters controlling the physical implementation.
-  double precision                    :: diskVerySimpleMassScaleAbsolute
-  logical                             :: diskVerySimpleTrackAbundances                      , diskVerySimpleTrackLuminosities
+  double precision                    :: scaleAbsoluteMass
+  logical                             :: trackAbundances         , trackLuminosities
 
 contains
 
@@ -130,55 +130,62 @@ contains
    <unitName>Node_Component_Disk_Very_Simple_Initialize</unitName>
   </nodeComponentInitializationTask>
   !!]
-  subroutine Node_Component_Disk_Very_Simple_Initialize(parameters_)
+  subroutine Node_Component_Disk_Very_Simple_Initialize(parameters)
     !!{
     Initializes the tree node very simple disk component module.
     !!}
     use :: Galacticus_Nodes, only : defaultDiskComponent, nodeComponentDiskVerySimple
     use :: Input_Parameters, only : inputParameter      , inputParameters
     implicit none
-    type(inputParameters            ), intent(inout) :: parameters_
+    type(inputParameters            ), intent(inout) :: parameters
     type(nodeComponentDiskVerySimple)                :: diskVerySimpleComponent
+    type(inputParameters            )                :: subParameters
 
     ! Initialize the module if necessary.
     if (defaultDiskComponent%verySimpleIsActive()) then
+       ! Find our parameters.
+       if (parameters%isPresent('componentDisk')) then
+          subParameters=parameters%subParameters('componentDisk')
+       else
+          subParameters=inputParameters(subParameters)
+       end if
        ! Read parameters controlling the physical implementation.
        !![
        <inputParameter>
-         <name>diskVerySimpleMassScaleAbsolute</name>
+         <name>scaleAbsoluteMass</name>
          <defaultValue>100.0d0</defaultValue>
          <description>The absolute mass scale below which calculations in the very simple disk component are allowed to become inaccurate.</description>
-         <source>parameters_</source>
+         <source>parameters</source>
        </inputParameter>
        <inputParameter>
-         <name>diskVerySimpleTrackAbundances</name>
+         <name>trackAbundances</name>
          <defaultValue>.false.</defaultValue>
          <description>Specifies whether or not to track abundances in the very simple disk component.</description>
-         <source>parameters_</source>
+         <source>parameters</source>
        </inputParameter>
        <inputParameter>
-         <name>diskVerySimpleTrackLuminosities</name>
+         <name>trackLuminosities</name>
          <defaultValue>.false.</defaultValue>
          <description>Specifies whether or not to track stellar luminosities in the very simple disk component.</description>
-         <source>parameters_</source>
+         <source>parameters</source>
        </inputParameter>
        <inputParameter>
-         <name>diskVerySimpleUseAnalyticSolver</name>
+         <name>useAnalyticSolver</name>
          <defaultValue>.false.</defaultValue>
          <description>If true, employ an analytic ODE solver when evolving satellites.</description>
-         <source>parameters_</source>
+         <source>parameters</source>
        </inputParameter>
        <inputParameter>
-         <name>diskVerySimpleAnalyticSolverPruneMassGas</name>
+         <name>pruneMassGas</name>
          <defaultValue>0.0d0</defaultValue>
          <description>Gas mass below which the analytic solver will prune a galaxy.</description>
-         <source>parameters_</source>
+         <source>parameters</source>
        </inputParameter>
        <inputParameter>
-         <name>diskVerySimpleAnalyticSolverPruneMassStars</name>
+         <name>pruneMassStars</name>
          <defaultValue>0.0d0</defaultValue>
          <description>Stellar mass below which the analytic solver will prune a galaxy.</description>
-         <source>parameters_</source>
+         <source>parameters</source>
        </inputParameter>
        !!]
        ! Attach the cooling mass pipe from the hot halo component.
@@ -192,7 +199,7 @@ contains
    <unitName>Node_Component_Disk_Very_Simple_Thread_Initialize</unitName>
   </nodeComponentThreadInitializationTask>
   !!]
-  subroutine Node_Component_Disk_Very_Simple_Thread_Initialize(parameters_)
+  subroutine Node_Component_Disk_Very_Simple_Thread_Initialize(parameters)
     !!{
     Initializes the tree node very simple disk profile module.
     !!}
@@ -201,25 +208,32 @@ contains
     use :: Galacticus_Nodes, only : defaultDiskComponent
     use :: Input_Parameters, only : inputParameter          , inputParameters
      implicit none
-    type(inputParameters), intent(inout) :: parameters_
+    type(inputParameters), intent(inout) :: parameters
     type(dependencyRegEx), dimension(1)  :: dependencies
+    type(inputParameters)                :: subParameters
 
     if (defaultDiskComponent%verySimpleIsActive()) then
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
        call satelliteMergerEvent%attach(defaultDiskComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentDiskVerySimple',dependencies=dependencies)
        call postEvolveEvent     %attach(defaultDiskComponent,postEvolve     ,openMPThreadBindingAtLevel,label='nodeComponentDiskVerySimple'                          )
+       ! Find our parameters.
+       if (parameters%isPresent('componentDisk')) then
+          subParameters=parameters%subParameters('componentDisk')
+       else
+          subParameters=inputParameters(subParameters)
+       end if
        !![
-       <objectBuilder class="cosmologyFunctions"          name="cosmologyFunctions_"          source="parameters_"/>
-       <objectBuilder class="stellarPopulationProperties" name="stellarPopulationProperties_" source="parameters_"/>
-       <objectBuilder class="darkMatterHaloScale"         name="darkMatterHaloScale_"         source="parameters_"/>
-       <objectBuilder class="darkMatterProfileDMO"        name="darkMatterProfileDMO_"        source="parameters_"/>
-       <objectBuilder class="stellarFeedbackOutflows"     name="stellarFeedbackOutflows_"     source="parameters_"/>
-       <objectBuilder class="starFormationRateDisks"      name="starFormationRateDisks_"      source="parameters_"/>
-       <objectBuilder class="mergerMassMovements"         name="mergerMassMovements_"         source="parameters_"/>
+       <objectBuilder class="cosmologyFunctions"          name="cosmologyFunctions_"          source="subParameters"/>
+       <objectBuilder class="stellarPopulationProperties" name="stellarPopulationProperties_" source="subParameters"/>
+       <objectBuilder class="darkMatterHaloScale"         name="darkMatterHaloScale_"         source="subParameters"/>
+       <objectBuilder class="darkMatterProfileDMO"        name="darkMatterProfileDMO_"        source="subParameters"/>
+       <objectBuilder class="stellarFeedbackOutflows"     name="stellarFeedbackOutflows_"     source="subParameters"/>
+       <objectBuilder class="starFormationRateDisks"      name="starFormationRateDisks_"      source="subParameters"/>
+       <objectBuilder class="mergerMassMovements"         name="mergerMassMovements_"         source="subParameters"/>
        !!]
        ! If using the analytic solver, find the time at the present day.
        !$omp critical (Node_Component_Disk_Very_Simple_Thread_Initialize)
-       if (diskVerySimpleUseAnalyticSolver.and.timePresentDay < 0.0d0) timePresentDay=cosmologyFunctions_%cosmicTime(1.0d0)
+       if (useAnalyticSolver.and.timePresentDay < 0.0d0) timePresentDay=cosmologyFunctions_%cosmicTime(1.0d0)
        !$omp end critical (Node_Component_Disk_Very_Simple_Thread_Initialize)
     end if
     return
@@ -463,11 +477,11 @@ contains
     type            (stellarLuminosities   ), save                     :: luminositiesStellarRates
     !$omp threadprivate(rateAbundanceFuel,rateAbundanceStars,abundancesGasInitial,abundancesStellarInitial,yieldMassEffective,abundancesStellarFinal,abundancesGasFinal,abundancesOutflowed,luminositiesStellarRates)
 
-    if (diskVerySimpleUseAnalyticSolver) then
+    if (useAnalyticSolver) then
        disk => node%disk()
        if (node%isSatellite().and.disk%isInitialized()) then
           ! Luminosities can not be computed analytically.
-          if (diskVerySimpleTrackLuminosities) call Error_Report('analytic solver does not support stellar luminosity calculation'//{introspection:location})
+          if (trackLuminosities) call Error_Report('analytic solver does not support stellar luminosity calculation'//{introspection:location})
           ! Calculate analytic solution.
           timeStep          =timeEnd-timeStart
           massGasInitial          =disk%massGas          ()
@@ -488,12 +502,12 @@ contains
              ! Estimate asymptotic final stellar mass
              massStellarAsymptotic=massStellarInitial+massGasInitial*(timescaleFuel/timescaleStellar)
              ! Check if this galaxy can be removed because it will never be of sufficient mass to be interesting.
-             if     (                                                                        &
-                  &   massStellarAsymptotic     < diskVerySimpleAnalyticSolverPruneMassStars &
-                  &  .and.                                                                   &
-                  &   massGasInitial            < diskVerySimpleAnalyticSolverPruneMassGas   &
-                  &  .and.                                                                   &
-                  &   satellite%timeOfMerging() > timePresentDay                             &
+             if     (                                            &
+                  &   massStellarAsymptotic     < pruneMassStars &
+                  &  .and.                                       &
+                  &   massGasInitial            < pruneMassGas   &
+                  &  .and.                                       &
+                  &   satellite%timeOfMerging() > timePresentDay &
                   & ) then
                 ! Galaxy is too small to care about. Add gas and abundances which will outflow from this satellite to its future host halos.
                 nodeHost => node%parent
@@ -514,7 +528,7 @@ contains
                         &                            +hotHaloHost%outflowedMass() &
                         &                            +            massOutflowed   &
                         &                           )
-                   if (diskVerySimpleTrackAbundances) then
+                   if (trackAbundances) then
                       abundancesOutflowed=+(                                &
                            &                -(                              &
                            &                  +abundancesGasInitial         &
@@ -578,7 +592,7 @@ contains
                 call hotHalo%outflowedMassSet(massOutflowed   )
                 call disk   %massGasSet      (massGasFinal    )
                 call disk   %massStellarSet  (massStellarFinal)
-                if (diskVerySimpleTrackAbundances) then
+                if (trackAbundances) then
                    abundancesGasFinal    =+(                        &
                         &                   +abundancesGasInitial   &
                         &                   +yieldMassEffective     &
@@ -723,12 +737,12 @@ contains
     class is (nodeComponentDiskVerySimple)
        ! Set scale for gas and stellar mass.
        mass=disk%massGas()+disk%massStellar()
-       call disk%massGasScale    (max(mass,diskVerySimpleMassScaleAbsolute))
-       call disk%massStellarScale(max(mass,diskVerySimpleMassScaleAbsolute))
+       call disk%massGasScale    (max(mass,scaleAbsoluteMass))
+       call disk%massStellarScale(max(mass,scaleAbsoluteMass))
        ! Set scale for gas and stellar abundances.
        abundancesTotal=disk%abundancesGas()+disk%abundancesStellar()
-       call disk%abundancesGasScale    (max(abundancesTotal,unitAbundances*diskVerySimpleMassScaleAbsolute))
-       call disk%abundancesStellarScale(max(abundancesTotal,unitAbundances*diskVerySimpleMassScaleAbsolute))
+       call disk%abundancesGasScale    (max(abundancesTotal,unitAbundances*scaleAbsoluteMass))
+       call disk%abundancesStellarScale(max(abundancesTotal,unitAbundances*scaleAbsoluteMass))
        ! Set scales for stellar population properties and star formation histories.
        stellarPopulationHistoryScales=disk%stellarPropertiesHistory()
        call stellarPopulationProperties_%scales(disk%massStellar(),zeroAbundances,stellarPopulationHistoryScales)

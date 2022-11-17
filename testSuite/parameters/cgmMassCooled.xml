@@ -9,10 +9,14 @@
   <componentBasic value="standard"/>
   <componentBlackHole value="null"/>
   <componentDarkMatterProfile value="null"/>
-  <componentDisk value="standard"/>
+  <componentDisk value="standard">
+    <toleranceAbsoluteMass value="1.0e-6"/>
+  </componentDisk>
   <componentHotHalo value="standard"/>
   <componentSatellite value="standard"/>
-  <componentSpheroid value="null"/>
+  <componentSpheroid value="null">
+    <toleranceAbsoluteMass value="1.0e-6"/>
+  </componentSpheroid>
   <componentSpin value="null"/>
   <diskMassDistribution value="exponentialDisk">
     <dimensionless value="true"/>
@@ -77,7 +81,7 @@
     <nodeOperator value="DMOInterpolate"/>
     <!-- Satellite evolution -->
     <nodeOperator value="satelliteMergingTime"/>
-    <nodeOperator value="satelliteMassLoss"   />
+    <nodeOperator value="satelliteMassLoss"/>
     <!-- Gas cooling -->
     <nodeOperator value="massCooled"/>
   </nodeOperator>
@@ -87,8 +91,6 @@
     <odeToleranceAbsolute value="0.01"/>
     <odeToleranceRelative value="0.01"/>
   </mergerTreeNodeEvolver>
-  <diskMassToleranceAbsolute value="1.0e-6"/>
-  <spheroidMassToleranceAbsolute value="1.0e-6"/>
   <mergerTreeEvolver value="standard">
     <timestepHostAbsolute value="1.0"/>
     <timestepHostRelative value="0.1"/>

@@ -7,23 +7,43 @@
   <version>0.9.4</version>
   <!-- Component selection -->
   <componentBasic value="standard"/>
-  <componentBlackHole value="null"/>
+  <componentBlackHole value="null">
+    <massSeed value="100"/>
+    <heatsHotHalo value="true"/>
+    <efficiencyWind value="0.0024"/>
+    <efficiencyWindScalesWithEfficiencyRadiative value="true"/>
+    <bondiHoyleAccretionEnhancementHotHalo value="6.0"/>
+    <bondiHoyleAccretionEnhancementSpheroid value="5.0"/>
+    <bondiHoyleAccretionTemperatureSpheroid value="100"/>
+    <bondiHoyleAccretionHotModeOnly value="true"/>
+  </componentBlackHole>
   <componentDarkMatterProfile value="scale"/>
-  <componentDisk value="null"/>
+  <componentDisk value="null">
+    <toleranceAbsoluteMass value="1.0e-6"/>
+  </componentDisk>
   <diskMassDistribution value="null"/>
-  <componentHotHalo value="null"/>
+  <componentHotHalo value="null">
+    <fractionLossAngularMomentum value="0.3"/>
+    <starveSatellites value="false"/>
+    <efficiencyStrippingOutflow value="0.1"/>
+    <trackStrippedGas value="true"/>
+  </componentHotHalo>
   <componentSatellite value="orbiting"/>
-  <componentSpheroid value="null"/>
+  <componentSpheroid value="null">
+    <ratioAngularMomentumScaleRadius value="0.5"/>
+    <efficiencyEnergeticOutflow value="1.0e-2"/>
+    <toleranceAbsoluteMass value="1.0e-6"/>
+  </componentSpheroid>
   <spheroidMassDistribution value="null"/>
   <componentSpin value="null"/>
   <!-- Cosmological parameters and options -->
   <cosmologyFunctions value="matterLambda"/>
-  <cosmologyParameters value="simple"       >
-    <HubbleConstant  value="70.0"/>	<!-- Mao et al. 2015 -->
-    <OmegaMatter     value=" 0.286"/>	<!-- Mao et al. 2015 -->
+  <cosmologyParameters value="simple">
+    <HubbleConstant value="70.0"/>	<!-- Mao et al. 2015 -->
+    <OmegaMatter value=" 0.286"/>	<!-- Mao et al. 2015 -->
     <OmegaDarkEnergy value=" 0.714"/>	<!-- Mao et al. 2015 -->
-    <OmegaBaryon     value=" 0.0"    />	<!-- No baryons                    -->
-    <temperatureCMB  value=" 2.72548"/>
+    <OmegaBaryon value=" 0.0"/>	<!-- No baryons                    -->
+    <temperatureCMB value=" 2.72548"/>
   </cosmologyParameters>
   <!-- Power spectrum options -->
   <cosmologicalMassVariance value="filteredPower">
@@ -33,17 +53,17 @@
     <neutrinoNumberEffective value="3.046"/>
     <neutrinoMassSummed value="0.000"/>
     <cosmologyParameters value="simple">
-      <HubbleConstant  value="70.0"/> <!-- Mao et al. 2015 -->
-      <OmegaMatter     value=" 0.286"/> <!-- Mao et al. 2015 -->
+      <HubbleConstant value="70.0"/> <!-- Mao et al. 2015 -->
+      <OmegaMatter value=" 0.286"/> <!-- Mao et al. 2015 -->
       <OmegaDarkEnergy value=" 0.714"/> <!-- Mao et al. 2015 -->
-      <OmegaBaryon     value=" 0.047"/> <!-- Mao et al. 2015 -->
-      <temperatureCMB  value=" 2.72548"/>
+      <OmegaBaryon value=" 0.047"/> <!-- Mao et al. 2015 -->
+      <temperatureCMB value=" 2.72548"/>
     </cosmologyParameters>
   </transferFunction>
   <powerSpectrumPrimordial value="powerLaw">
-    <index               value="0.96"/> <!-- Mao et al. 2015 -->
+    <index value="0.96"/> <!-- Mao et al. 2015 -->
     <wavenumberReference value="1.0000"/>
-    <running             value="0.0000"/> <!-- Mao et al. 2015 -->
+    <running value="0.0000"/> <!-- Mao et al. 2015 -->
   </powerSpectrumPrimordial>
   <powerSpectrumPrimordialTransferred value="simple"/>
   <!-- Structure formation options -->
@@ -72,14 +92,14 @@
                <!-- Consider only halos existing in the last 2 Gyr -->
           <galacticFilter value="highPass">
             <nodePropertyExtractor value="time"/>
-            <threshold                   value="11.8"/>
+            <threshold value="11.8"/>
           </galacticFilter>
                 <!-- Consider only halos with a rank-2 child with a maximum circular velocity above 55 km/s -->
           <galacticFilter value="childNode">
             <childRank value="2"/>
             <galacticFilter value="highPass">
               <nodePropertyExtractor value="velocityMaximum"/>
-              <threshold                   value="55.0"           />
+              <threshold value="55.0"/>
             </galacticFilter>
           </galacticFilter>
         </galacticFilter>
@@ -93,13 +113,13 @@
               <!-- Consider only halos existing in the redshift range 1-2 -->
          <galacticFilter value="intervalPass">
            <nodePropertyExtractor value="redshift"/>
-           <thresholdLow                value="1.0"/>
-           <thresholdHigh               value="2.0"/>
+           <thresholdLow value="1.0"/>
+           <thresholdHigh value="2.0"/>
          </galacticFilter>
               <!--Consider only halos which undergo a merger in the mass ratio range 0.15-0.25  -->
          <galacticFilter value="mergerRatio">
-           <ratioLow                    value="0.15"/>
-           <ratioHigh                   value="0.25"/>
+           <ratioLow value="0.15"/>
+           <ratioHigh value="0.25"/>
          </galacticFilter>
         </galacticFilter>
       </mergerTreeFilter>
@@ -134,7 +154,7 @@
   </mergerTreeMassResolution>
   <!-- Mass resolution of subhalos -->
   <satelliteOrbitingDestructionMassIsFractional value="false"/>
-  <satelliteOrbitingDestructionMass             value="1.0e10"/>
+  <satelliteOrbitingDestructionMass value="1.0e10"/>
   <!-- Substructure hierarchy options -->
   <nodeMergers value="singleLevelHierarchy"/>
   <!-- Dark matter halo structure options -->
@@ -146,19 +166,19 @@
   <darkMatterProfileHeating value="tidal"/>
   <!-- Halo concentration  --> 
   <darkMatterProfileScaleRadius value="ludlow2016">
-    <C value="625.0" />
-    <f value="0.061" />
-    <timeFormationSeekDelta value="0.0" />
+    <C value="625.0"/>
+    <f value="0.061"/>
+    <timeFormationSeekDelta value="0.0"/>
     <darkMatterProfileScaleRadius value="concentration"/>
     <darkMatterProfileConcentration value="diemerKravtsov2014">
-      <alpha value="1.12" />
-      <beta value="1.69" />
-      <eta0 value="6.82" />
-      <eta1 value="1.42" />
-      <kappa value="0.69" />
-      <phi0 value="6.58" />
-      <phi1 value="1.37" />
-      <scatter value="0.16" />
+      <alpha value="1.12"/>
+      <beta value="1.69"/>
+      <eta0 value="6.82"/>
+      <eta1 value="1.42"/>
+      <kappa value="0.69"/>
+      <phi0 value="6.58"/>
+      <phi1 value="1.37"/>
+      <scatter value="0.16"/>
     </darkMatterProfileConcentration>
   </darkMatterProfileScaleRadius>
   <nodeOperator value="multi">
@@ -177,14 +197,14 @@
   <!-- Orbiting model of satellites -->
   <!-- Values taken from Pullen et al. 2014 -->
   <satelliteDynamicalFriction value="chandrasekhar1943">
-    <logarithmCoulomb value="1.53" />
+    <logarithmCoulomb value="1.53"/>
   </satelliteDynamicalFriction>
   <satelliteTidalHeatingRate value="gnedin1999">
-    <epsilon value="0.33" />
-    <gamma value="0.0" />
+    <epsilon value="0.33"/>
+    <gamma value="0.0"/>
   </satelliteTidalHeatingRate>
   <satelliteTidalStripping value="zentner2005">
-    <efficiency value="2.86" />
+    <efficiency value="2.86"/>
   </satelliteTidalStripping>
   <!-- Halo accretion options -->
   <accretionHalo value="simple">
@@ -197,7 +217,6 @@
   <hotHaloMassDistributionCoreRadius value="virialFraction">
     <coreRadiusOverVirialRadius value="0.3"/>
   </hotHaloMassDistributionCoreRadius>
-  <hotHaloAngularMomentumLossFraction value="0.3"/>
   <coolingSpecificAngularMomentum value="constantRotation">
     <sourceAngularMomentumSpecificMean value="hotGas"/>
     <sourceNormalizationRotation value="hotGas"/>
@@ -214,13 +233,10 @@
   <coolingTimeAvailable value="whiteFrenk1991">
     <ageFactor value="0"/>
   </coolingTimeAvailable>
-  <starveSatellites value="false"/>
   <!-- Hot halo ram pressure stripping options -->
   <hotHaloRamPressureStripping value="font2008"/>
   <hotHaloRamPressureForce value="font2008"/>
   <hotHaloRamPressureTimescale value="ramPressureAcceleration"/>
-  <hotHaloOutflowStrippingEfficiency value="0.1"/>
-  <hotHaloTrackStrippedGas value="true"/>
   <!-- Galaxy ram pressure stripping options -->
   <ramPressureStrippingDisks value="null"/>
   <ramPressureStrippingSpheroids value="null"/>
@@ -230,7 +246,6 @@
   <satelliteTidalField value="null"/>
   <!-- Galactic structure solver options -->
   <galacticStructureSolver value="simple"/>
-  <spheroidAngularMomentumAtScaleRadius value="0.5"/>
   <!-- Galactic disk dynamics options -->
   <galacticDynamicsBarInstability value="efstathiou1982">
   <stabilityThresholdGaseous value="0.7"/>
@@ -259,7 +274,6 @@
   </stellarPopulation>
   <!-- AGN feedback options -->
   <hotHaloExcessHeatDrivesOutflow value="true"/>
-  <blackHoleHeatsHotHalo value="true"/>
   <!-- Supernovae feedback options -->
   <starFormationFeedbackDisks value="powerLaw">
     <velocityCharacteristic value="250.0"/>
@@ -285,13 +299,6 @@
   </accretionDisks>
   <!-- Black hole options -->
   <blackHoleBinaryMergers value="rezzolla2008"/>
-  <blackHoleSeedMass value="100"/>
-  <blackHoleWindEfficiency value="0.0024"/>
-  <blackHoleWindEfficiencyScalesWithRadiativeEfficiency value="true"/>
-  <bondiHoyleAccretionEnhancementHotHalo value="6.0"/>
-  <bondiHoyleAccretionEnhancementSpheroid value="5.0"/>
-  <bondiHoyleAccretionTemperatureSpheroid value="100"/>
-  <bondiHoyleAccretionHotModeOnly value="true"/>
   <!-- Satellite orbit options -->
   <satelliteOrbitStoreOrbitalParameters value="true"/>
   <!-- Galaxy merger options -->
@@ -309,23 +316,20 @@
   </mergerMassMovements>
   <mergerRemnantSize value="null"/>
   <!-- Spheroid options -->
-  <spheroidEnergeticOutflowMassRate value="1.0e-2"/>
   <!-- Numerical tolerances -->
   <mergerTreeNodeEvolver value="standard">
-    <odeToleranceAbsolute value="0.01"  />
-    <odeToleranceRelative value="0.01"  />
-    <reuseODEStepSize value="false" />
+    <odeToleranceAbsolute value="0.01"/>
+    <odeToleranceRelative value="0.01"/>
+    <reuseODEStepSize value="false"/>
   </mergerTreeNodeEvolver>
-  <diskMassToleranceAbsolute value="1.0e-6"/>
-  <spheroidMassToleranceAbsolute value="1.0e-6"/>
-  <mergerTreeEvolver value="standard" >
+  <mergerTreeEvolver value="standard">
     <timestepHostAbsolute value="1.00"/>
     <timestepHostRelative value="0.10"/>
     <fractionTimestepSatelliteMinimum value="0.75"/>
     <backtrackToSatellites value="true"/>
   </mergerTreeEvolver>
   <mergerTreeEvolveTimestep value="multi">
-    <mergerTreeEvolveTimestep value="satellite"            >
+    <mergerTreeEvolveTimestep value="satellite">
       <timeOffsetMaximumAbsolute value="0.010"/>
       <timeOffsetMaximumRelative value="0.001"/>
     </mergerTreeEvolveTimestep>
@@ -356,22 +360,7 @@
       <virialDensityContrastDefinition value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
     </nodePropertyExtractor>
     <nodePropertyExtractor value="satelliteVirialOrbit">
-      <properties value="
-                         massHost
-                         specificReducedMass
-                         radius
-                         theta
-                         phi
-                         epsilon
-                         radiusPericenter
-                         radiusApocenter
-                         velocityRadial
-                         velocityTangential
-                         energy
-                         angularMomentum
-                         eccentricity
-                         semiMajorAxis
-                         "/>
+      <properties value="                          massHost                          specificReducedMass                          radius                          theta                          phi                          epsilon                          radiusPericenter                          radiusApocenter                          velocityRadial                          velocityTangential                          energy                          angularMomentum                          eccentricity                          semiMajorAxis                          "/>
     </nodePropertyExtractor>
   </nodePropertyExtractor>
   <outputFileName value="testSuite/outputs/regressions/ludlowScaleSetBeforeTreeInitialization.hdf5"/>

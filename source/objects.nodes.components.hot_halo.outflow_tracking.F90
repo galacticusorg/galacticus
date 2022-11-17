@@ -27,7 +27,8 @@ module Node_Component_Hot_Halo_Outflow_Tracking
   Implements an extension of the standard hot halo node component which tracks the metals arriving from
   outflows.
   !!}
-  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
+  use :: Dark_Matter_Halo_Scales           , only : darkMatterHaloScaleClass
+  use :: Hot_Halo_Outflows_Reincorporations, only : hotHaloOutflowReincorporationClass
   implicit none
   private
   public :: Node_Component_Hot_Halo_Outflow_Tracking_Rate_Compute     , Node_Component_Hot_Halo_Outflow_Tracking_Scale_Set          , &
@@ -67,8 +68,9 @@ module Node_Component_Hot_Halo_Outflow_Tracking
   !!]
 
   ! Objects used by this component.
-  class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
-  !$omp threadprivate(darkMatterHaloScale_)
+  class(darkMatterHaloScaleClass          ), pointer :: darkMatterHaloScale_
+  class(hotHaloOutflowReincorporationClass), pointer :: hotHaloOutflowReincorporation_
+  !$omp threadprivate(darkMatterHaloScale_,hotHaloOutflowReincorporation_)
 
 contains
 
@@ -77,18 +79,26 @@ contains
    <unitName>Node_Component_Hot_Halo_Outflow_Tracking_Thread_Initialize</unitName>
   </nodeComponentThreadInitializationTask>
   !!]
-  subroutine Node_Component_Hot_Halo_Outflow_Tracking_Thread_Initialize(parameters_)
+  subroutine Node_Component_Hot_Halo_Outflow_Tracking_Thread_Initialize(parameters)
     !!{
     Initializes the tree node very simple disk profile module.
     !!}
     use :: Galacticus_Nodes, only : defaultHotHaloComponent
     use :: Input_Parameters, only : inputParameter         , inputParameters
     implicit none
-    type(inputParameters), intent(inout) :: parameters_
+    type(inputParameters), intent(inout) :: parameters
+    type(inputParameters)                :: subParameters
 
     if (defaultHotHaloComponent%outflowTrackingIsActive()) then
+       ! Find our parameters.
+       if (parameters%isPresent('componentHotHalo')) then
+          subParameters=parameters%subParameters('componentHotHalo')
+       else
+          subParameters=inputParameters(subParameters)
+       end if
        !![
-       <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters_"/>
+       <objectBuilder class="darkMatterHaloScale"           name="darkMatterHaloScale_"           source="subParameters"/>
+       <objectBuilder class="hotHaloOutflowReincorporation" name="hotHaloOutflowReincorporation_" source="subParameters"/>
        !!]
     end if
     return
@@ -108,7 +118,8 @@ contains
 
     if (defaultHotHaloComponent%outflowTrackingIsActive()) then
        !![
-       <objectDestructor name="darkMatterHaloScale_"/>
+       <objectDestructor name="darkMatterHaloScale_"          />
+       <objectDestructor name="hotHaloOutflowReincorporation_"/>
        !!]
     end if
     return
@@ -123,17 +134,16 @@ contains
     !!{
     Compute the hot halo node mass rate of change.
     !!}
-    use :: Abundances_Structure                 , only : abundances              , operator(*)
-    use :: Galacticus_Nodes                     , only : defaultHotHaloComponent , interruptTask, nodeComponentHotHalo, nodeComponentHotHaloOutflowTracking, &
-          &                                              propertyInactive        , treeNode
-    use :: Node_Component_Hot_Halo_Standard_Data, only : hotHaloOutflowReturnRate
+    use :: Abundances_Structure, only : abundances              , operator(*)
+    use :: Galacticus_Nodes    , only : defaultHotHaloComponent, interruptTask, nodeComponentHotHalo, nodeComponentHotHaloOutflowTracking, &
+          &                             propertyInactive       , treeNode
     implicit none
     type            (treeNode                    ), intent(inout)          :: node
     logical                                       , intent(inout)          :: interrupt
     procedure       (interruptTask               ), intent(inout), pointer :: interruptProcedure
     integer                                       , intent(in   )          :: propertyType
     class           (nodeComponentHotHalo        )               , pointer :: hotHalo
-    double precision                                                       :: massReturnRate
+    double precision                                                       :: massReturnRate      , outflowedMass
     type            (abundances                  )                         :: abundancesReturnRate
     !$GLC attributes unused :: interrupt, interruptProcedure
 
@@ -147,10 +157,13 @@ contains
     select type (hotHalo)
     class is (nodeComponentHotHaloOutflowTracking)
        ! Add the rate of abundances return from the outflowed component.
-       massReturnRate      =hotHaloOutflowReturnRate*hotHalo%outflowedMass      ()/darkMatterHaloScale_%timescaleDynamical(node)
-       abundancesReturnRate=hotHaloOutflowReturnRate*hotHalo%outflowedAbundances()/darkMatterHaloScale_%timescaleDynamical(node)
-       call hotHalo%trackedOutflowMassRate      (      massReturnRate)
-       call hotHalo%trackedOutflowAbundancesRate(abundancesReturnRate)
+       outflowedMass =hotHalo                       %outflowedMass(    )
+       massReturnRate=hotHaloOutflowReincorporation_%rate         (node)
+       call    hotHalo%trackedOutflowMassRate      (      massReturnRate)
+       if (outflowedMass /= 0.0d0) then
+          abundancesReturnRate=hotHalo%outflowedAbundances()*massReturnRate/outflowedMass          
+          call hotHalo%trackedOutflowAbundancesRate(abundancesReturnRate)
+       end if
     end select
     return
   end subroutine Node_Component_Hot_Halo_Outflow_Tracking_Rate_Compute

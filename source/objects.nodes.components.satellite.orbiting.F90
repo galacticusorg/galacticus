@@ -112,7 +112,7 @@ module Node_Component_Satellite_Orbiting
 
   !![
   <enumeration>
-   <name>satelliteBoundMassInitializeType</name>
+   <name>initializationTypeMassBound</name>
    <description>Specify how to initialize the bound mass of a satellite halo.</description>
    <encodeFunction>yes</encodeFunction>
    <entry label="basicMass"      />
@@ -132,11 +132,11 @@ module Node_Component_Satellite_Orbiting
   !$omp threadprivate(darkMatterHaloScale_,virialOrbit_,darkMatterProfileDMO_,virialDensityContrast_,cosmologyParameters_,cosmologyFunctions_,galacticStructure_)
 
   ! Option controlling whether or not unbound virial orbits are acceptable.
-  logical                                                          , parameter :: acceptUnboundOrbits=.false.
+  logical                                                     , parameter :: acceptUnboundOrbits          =.false.
 
   ! Option controlling how to initialize the bound mass of satellite halos.
-  type            (enumerationSatelliteBoundMassInitializeTypeType)            :: satelliteBoundMassInitializeType
-  double precision                                                             :: satelliteMaximumRadiusOverVirialRadius      , satelliteDensityContrast
+  type            (enumerationInitializationTypeMassBoundType)            :: initializationTypeMassBound
+  double precision                                                        :: radiusMaximumOverRadiusVirial        , densityContrastMassBound
 
 contains
 
@@ -145,7 +145,7 @@ contains
    <unitName>Node_Component_Satellite_Orbiting_Initialize</unitName>
   </nodeComponentInitializationTask>
   !!]
-  subroutine Node_Component_Satellite_Orbiting_Initialize(parameters_)
+  subroutine Node_Component_Satellite_Orbiting_Initialize(parameters)
     !!{
     Initializes the orbiting satellite methods module.
     !!}
@@ -154,45 +154,51 @@ contains
     use :: ISO_Varying_String, only : char                     , var_str                       , varying_string
     use :: Input_Parameters  , only : inputParameter           , inputParameters
     implicit none
-    type(inputParameters               ), intent(inout) :: parameters_
+    type(inputParameters               ), intent(inout) :: parameters
     type(nodeComponentSatelliteOrbiting)                :: satellite
-    type(varying_string                )                :: satelliteBoundMassInitializeTypeText
+    type(varying_string                )                :: initializationTypeMassBoundText
+    type(inputParameters               )                :: subParameters
 
     ! Initialize the module if necessary.
     if (defaultSatelliteComponent%orbitingIsActive()) then
-       ! Create the spheroid mass distribution.
+       ! Find our parameters.
+       if (parameters%isPresent('componentSatellite')) then
+          subParameters=parameters%subParameters('componentSatellite')
+       else
+          subParameters=inputParameters(subParameters)
+       end if
        !![
        <inputParameter>
-         <name>satelliteBoundMassInitializeType</name>
+         <name>initializationTypeMassBound</name>
          <defaultValue>var_str('basicMass')</defaultValue>
          <description>Specify how to initialize the bound mass of a satellite halo. By default, the initial bound mass of a satellite halo is set to the node mass.</description>
-         <source>parameters_</source>
-         <variable>satelliteBoundMassInitializeTypeText</variable>
+         <source>subParameters</source>
+         <variable>initializationTypeMassBoundText</variable>
        </inputParameter>
        !!]
-       satelliteBoundMassInitializeType=enumerationSatelliteBoundMassInitializeTypeEncode(char(satelliteBoundMassInitializeTypeText),includesPrefix=.false.)
+       initializationTypeMassBound=enumerationInitializationTypeMassBoundEncode(char(initializationTypeMassBoundText),includesPrefix=.false.)
        !![
        <inputParameter>
-         <name>satelliteMaximumRadiusOverVirialRadius</name>
+         <name>radiusMaximumOverRadiusVirial</name>
          <defaultValue>1.0d0</defaultValue>
-         <description>The maximum radius of the satellite halo in units of its virial radius. If {\normalfont \ttfamily [satelliteBoundMassInitializeType]} is set to 'maximumRadius', this value will be used to compute the initial bound mass of the satellite halo assuming that its density profile is 0 beyond this maximum radius.</description>
-         <source>parameters_</source>
+         <description>The maximum radius of the satellite halo in units of its virial radius. If {\normalfont \ttfamily [initializationTypeMassBound]} is set to 'maximumRadius', this value will be used to compute the initial bound mass of the satellite halo assuming that its density profile is 0 beyond this maximum radius.</description>
+         <source>subParameters</source>
        </inputParameter>
        <inputParameter>
-         <name>satelliteDensityContrast</name>
+         <name>densityContrastMassBound</name>
          <defaultValue>200.0d0</defaultValue>
-         <description>The density contrast of the satellite halo. If {\normalfont \ttfamily [satelliteBoundMassInitializeType]} is set to 'densityContrast', this value will be used to compute the initial bound mass of the satellite halo.</description>
-         <source>parameters_</source>
+         <description>The density contrast of the satellite halo. If {\normalfont \ttfamily [initializationTypeMassBound]} is set to 'densityContrast', this value will be used to compute the initial bound mass of the satellite halo.</description>
+         <source>subParameters</source>
        </inputParameter>
        !!]
        ! Validate the parameters.
-       select case (satelliteBoundMassInitializeType%ID)
-       case (satelliteBoundMassInitializeTypeMaximumRadius  %ID)
-          if (satelliteMaximumRadiusOverVirialRadius <= 0.0d0) then
+       select case (initializationTypeMassBound%ID)
+       case (initializationTypeMassBoundMaximumRadius  %ID)
+          if (radiusMaximumOverRadiusVirial <= 0.0d0) then
              call Error_Report('specify a positive maximum radius for the satellite'//{introspection:location})
           end if
-       case (satelliteBoundMassInitializeTypeDensityContrast%ID)
-          if (satelliteDensityContrast               <= 0.0d0) then
+       case (initializationTypeMassBoundDensityContrast%ID)
+          if (densityContrastMassBound               <= 0.0d0) then
              call Error_Report('specify a positive density contrast for the satellite'//{introspection:location})
           end if
        case default
@@ -210,7 +216,7 @@ contains
    <unitName>Node_Component_Satellite_Orbiting_Thread_Initialize</unitName>
   </nodeComponentThreadInitializationTask>
   !!]
-  subroutine Node_Component_Satellite_Orbiting_Thread_Initialize(parameters_)
+  subroutine Node_Component_Satellite_Orbiting_Thread_Initialize(parameters)
     !!{
     Initializes the tree node orbiting satellite module.
     !!}
@@ -218,17 +224,24 @@ contains
     use :: Galacticus_Nodes, only : defaultSatelliteComponent
     use :: Input_Parameters, only : inputParameter           , inputParameters
     implicit none
-    type(inputParameters), intent(inout) :: parameters_
+    type(inputParameters), intent(inout) :: parameters
+    type(inputParameters)                :: subParameters
 
     if (defaultSatelliteComponent%orbitingIsActive()) then
+       ! Find our parameters.
+       if (parameters%isPresent('componentSatellite')) then
+          subParameters=parameters%subParameters('componentSatellite')
+       else
+          subParameters=inputParameters(subParameters)
+       end if
        !![
-       <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters_"/>
-       <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"   source="parameters_"/>
-       <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"  source="parameters_"/>
-       <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters_"/>
-       <objectBuilder class="darkMatterHaloScale"   name="darkMatterHaloScale_"   source="parameters_"/>
-       <objectBuilder class="virialOrbit"           name="virialOrbit_"           source="parameters_"/>
-       <objectBuilder class="galacticStructure"     name="galacticStructure_"     source="parameters_"/>
+       <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="subParameters"/>
+       <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"   source="subParameters"/>
+       <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"  source="subParameters"/>
+       <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="subParameters"/>
+       <objectBuilder class="darkMatterHaloScale"   name="darkMatterHaloScale_"   source="subParameters"/>
+       <objectBuilder class="virialOrbit"           name="virialOrbit_"           source="subParameters"/>
+       <objectBuilder class="galacticStructure"     name="galacticStructure_"     source="subParameters"/>
        !!]
        ! Check that the virial orbit class supports setting of angular coordinates.
        if (.not.virialOrbit_%isAngularlyResolved()) call Error_Report('"orbiting" satellite component requires a virialOrbit class which provides angularly-resolved orbits'//{introspection:location})
@@ -516,20 +529,20 @@ contains
 
     select type (satellite)
     class is (nodeComponentSatelliteOrbiting)
-       select case (satelliteBoundMassInitializeType%ID)
-       case (satelliteBoundMassInitializeTypeBasicMass      %ID)
+       select case (initializationTypeMassBound%ID)
+       case (initializationTypeMassBoundBasicMass      %ID)
           ! Do nothing. The bound mass of this satellite is set to the node mass by default.
-       case (satelliteBoundMassInitializeTypeMaximumRadius  %ID)
+       case (initializationTypeMassBoundMaximumRadius  %ID)
           ! Set the initial bound mass of this satellite by integrating the density profile up to a maximum radius.
           virialRadius =darkMatterHaloScale_%radiusVirial(node              )
-          maximumRadius=satelliteMaximumRadiusOverVirialRadius*virialRadius
+          maximumRadius=radiusMaximumOverRadiusVirial*virialRadius
           massSatellite=galacticStructure_  %massEnclosed(node,maximumRadius)
           call satellite%boundMassSet(massSatellite)
-       case (satelliteBoundMassInitializeTypeDensityContrast%ID)
+       case (initializationTypeMassBoundDensityContrast%ID)
           ! Set the initial bound mass of this satellite by assuming a specified density contrast.
           massSatellite=Dark_Matter_Profile_Mass_Definition(                                                 &
                &                                                                   node                    , &
-               &                                                                   satelliteDensityContrast, &
+               &                                                                   densityContrastMassBound, &
                &                                            cosmologyParameters_  =cosmologyParameters_    , &
                &                                            cosmologyFunctions_   =cosmologyFunctions_     , &
                &                                            darkMatterProfileDMO_ =darkMatterProfileDMO_   , &

@@ -65,7 +65,7 @@ module Node_Component_Hot_Halo_VS_Delayed
   !!]
 
   ! Options controlling the numerical implementation.
-  double precision                                               :: hotHaloVerySimpleDelayedMassScaleRelative
+  double precision                                               :: scaleRelativeMass
 
   ! Objects used by this component.
   class           (hotHaloOutflowReincorporationClass ), pointer :: hotHaloOutflowReincorporation_
@@ -78,28 +78,35 @@ contains
    <unitName>Node_Component_Hot_Halo_VS_Delayed_Initialize</unitName>
   </nodeComponentInitializationTask>
   !!]
-  subroutine Node_Component_Hot_Halo_VS_Delayed_Initialize(parameters_)
+  subroutine Node_Component_Hot_Halo_VS_Delayed_Initialize(parameters)
     !!{
     Initializes the very simple hot halo component module.
     !!}
     use :: Galacticus_Nodes, only : defaultHotHaloComponent, nodeComponentHotHaloVerySimpleDelayed
     use :: Input_Parameters, only : inputParameter         , inputParameters
     implicit none
-    type(inputParameters                      ), intent(inout) :: parameters_
+    type(inputParameters                      ), intent(inout) :: parameters
     type(nodeComponentHotHaloVerySimpleDelayed)                :: hotHalo
+    type(inputParameters                      )                :: subParameters
 
     !$omp critical (Node_Component_Hot_Halo_Very_Simple_Delayed_Initialize)
     if (defaultHotHaloComponent%verySimpleDelayedIsActive()) then
        ! Bind outflowing material pipes to the functions that will handle input of outflowing material to the hot halo.
        call hotHalo%      outflowingMassRateFunction(Node_Component_Hot_Halo_VS_Delayed_Outflowing_Mass_Rate      )
        call hotHalo%outflowingAbundancesRateFunction(Node_Component_Hot_Halo_VS_Delayed_Outflowing_Abundances_Rate)
+       ! Find our parameters.
+       if (parameters%isPresent('componentHotHalo')) then
+          subParameters=parameters%subParameters('componentHotHalo')
+       else
+          subParameters=inputParameters(subParameters)
+       end if
        ! Read parameters controlling the physical implementation.
        !![
        <inputParameter>
-         <name>hotHaloVerySimpleDelayedMassScaleRelative</name>
+         <name>scaleRelativeMass</name>
          <defaultValue>1.0d-2</defaultValue>
          <description>The mass scale, relative to the total mass of the node, below which calculations in the delayed very simple hot halo component are allowed to become inaccurate.</description>
-         <source>parameters_</source>
+         <source>subParameters</source>
        </inputParameter>
        !!]
     end if
@@ -112,7 +119,7 @@ contains
    <unitName>Node_Component_Hot_Halo_VS_Delayed_Thread_Initialize</unitName>
   </nodeComponentThreadInitializationTask>
   !!]
-  subroutine Node_Component_Hot_Halo_VS_Delayed_Thread_Initialize(parameters_)
+  subroutine Node_Component_Hot_Halo_VS_Delayed_Thread_Initialize(parameters)
     !!{
     Initializes the tree node very simple disk profile module.
     !!}
@@ -121,13 +128,19 @@ contains
     use :: Galacticus_Nodes, only : defaultHotHaloComponent
     use :: Input_Parameters, only : inputParameter         , inputParameters
     implicit none
-    type(inputParameters), intent(inout) :: parameters_
+    type(inputParameters), intent(inout) :: parameters
     type(dependencyRegEx), dimension(1)  :: dependencies
-    !$GLC attributes unused :: parameters_
+    type(inputParameters)                :: subParameters
 
     if (defaultHotHaloComponent%verySimpleDelayedIsActive()) then
+       ! Find our parameters.
+       if (parameters%isPresent('componentHotHalo')) then
+          subParameters=parameters%subParameters('componentHotHalo')
+       else
+          subParameters=inputParameters(subParameters)
+       end if
        !![
-       <objectBuilder class="hotHaloOutflowReincorporation" name="hotHaloOutflowReincorporation_" source="parameters_"/>
+       <objectBuilder class="hotHaloOutflowReincorporation" name="hotHaloOutflowReincorporation_" source="subParameters"/>
        !!]
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
        call nodePromotionEvent  %attach(defaultHotHaloComponent,nodePromotion  ,openMPThreadBindingAtLevel,label='nodeComponentHotHaloVerySimpleDelayed'                          )
@@ -276,8 +289,8 @@ contains
        ! Get virial properties.
        massVirial =  basic%mass ()
        ! Set the scale.
-       call hotHalo%outflowedMassScale      (               massVirial*hotHaloVerySimpleDelayedMassScaleRelative)
-       call hotHalo%outflowedAbundancesScale(unitAbundances*massVirial*hotHaloVerySimpleDelayedMassScaleRelative)
+       call hotHalo%outflowedMassScale      (               massVirial*scaleRelativeMass)
+       call hotHalo%outflowedAbundancesScale(unitAbundances*massVirial*scaleRelativeMass)
     end select
     return
   end subroutine Node_Component_Hot_Halo_VS_Delayed_Scale_Set

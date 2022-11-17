@@ -131,7 +131,7 @@ contains
    <unitName>Node_Component_Hot_Halo_Very_Simple_Thread_Initialize</unitName>
   </nodeComponentThreadInitializationTask>
   !!]
-  subroutine Node_Component_Hot_Halo_Very_Simple_Thread_Initialize(parameters_)
+  subroutine Node_Component_Hot_Halo_Very_Simple_Thread_Initialize(parameters)
     !!{
     Initializes the tree node very simple disk profile module.
     !!}
@@ -140,14 +140,21 @@ contains
     use :: Galacticus_Nodes, only : defaultHotHaloComponent
     use :: Input_Parameters, only : inputParameter         , inputParameters
     implicit none
-    type(inputParameters), intent(inout) :: parameters_
+    type(inputParameters), intent(inout) :: parameters
     type(dependencyRegEx), dimension(1)  :: dependencies
+    type(inputParameters)                :: subParameters
 
     if (defaultHotHaloComponent%verySimpleIsActive()) then
+       ! Find our parameters.
+       if (parameters%isPresent('componentHotHalo')) then
+          subParameters=parameters%subParameters('componentHotHalo')
+       else
+          subParameters=inputParameters(subParameters)
+       end if
        !![
-       <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters_"/>
-       <objectBuilder class="coolingRate"         name="coolingRate_"         source="parameters_"/>
-       <objectBuilder class="accretionHalo"       name="accretionHalo_"       source="parameters_"/>
+       <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="subParameters"/>
+       <objectBuilder class="coolingRate"         name="coolingRate_"         source="subParameters"/>
+       <objectBuilder class="accretionHalo"       name="accretionHalo_"       source="subParameters"/>
        !!]
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
        call nodePromotionEvent  %attach(defaultHotHaloComponent,nodePromotion  ,openMPThreadBindingAtLevel,label='nodeComponentHotHaloVerySimple'                          )

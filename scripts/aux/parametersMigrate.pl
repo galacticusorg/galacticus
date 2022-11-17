@@ -9,8 +9,9 @@ use XML::LibXML::PrettyPrint;
 use Data::Dumper;
 use Galacticus::Options;
 use List::ExtraUtils;
+use System::Redirect;
 
-# Update a Galacticus parameter file from one version to a later version.
+# Update a Galacticus parameter file from its last modified revision to the current revision.
 # Andrew Benson (13-September-2014)
 
 # Get arguments.
@@ -20,855 +21,24 @@ my $inputFileName  = $ARGV[0];
 my $outputFileName = $ARGV[1];
 my %options =
     (
-     inputVersion        => "0.9.4",
-     outputVersion       => "0.9.5",
-     validate            => "yes"  ,
-     prettyify           => "no"   ,
-     inputFormatVersion  => 1      ,
+     validate            => "yes",
+     prettyify           => "no" ,
      outputFormatVersion => 2
     );
 # Parse options.
 my %optionsDefined = &Galacticus::Options::Parse_Options(\@ARGV,\%options);
 
-# Define translations.
-my @translations =
-    (
-      {
-	 inputVersion  => "0.9.0",
-	 outputVersion => "0.9.1",
- 	 names         =>
-	 {
- 	     Omega_0 => "Omega_Matter",
-	 },
-	 values        =>
-	 {
-	     adafEnergyOption                      =>
-	     {
-		 "pure ADAF"                => "pureADAF"               ,
-	     },
-	     coolingFunctionMethods                =>
-	     {
-		 "atomic_CIE_Cloudy"        => "atomicCIECloudy"        ,
-		 "CIE_from_file"            => "cieFromFile"            ,
-	     },
-	     coolingSpecificAngularMomentumMethod  => 
-	     {
-		 "constant rotation"        => "constantRotation"       ,
-	     },
-	     coolingTimeAvailableMethod            => 
-	     {
-		 "White-Frenk"              => "White-Frenk1991"        ,
-	     },
-	     coolingRateMethod                     => 
-	     {
-		 "White + Frenk"            => "White-Frenk1991"        ,
-	     },
-	     cosmologyMethod                       =>
-	     {
-		 "matter + lambda"          => "matter-lambda"          ,
-	     },
-	     criticalOverdensityMethod             =>
-	     {
-		 "spherical top hat"        => "sphericalTopHat"        ,
-	     },
-	     darkMatterConcentrationMethod         =>
-	     {
-		 "Gao 2008"                 => "Gao2008"                ,
-	     },
-	     hotHaloCoolingFromNode                =>
-	     {
-		 "current node"             => "currentNode"            ,
-		 "formation node"           => "formationNode"
-	     },
-	     hotHaloDensityMethod                  =>
-	     {
-		 "cored isothermal"         => "coredIsothermal"
-	     },
-	     infallRadiusMethod                    =>
-	     {
-		 "cooling and freefall"     => "coolingAndFreefall"     ,
-	     },
-	     nodeMergersMethod                     => 
-	     {
-		 "single level hierarchy"   => "singleLevelHierarchy"   ,
-	     },
-	     powerSpectrumMethod                   => 
-	     {
-		 "power law"                => "powerLaw"               ,
-	     },
-	     satelliteMergingMethod                => 
-	     {
-		 "Lacey-Cole + Tormen"      => "Lacey-Cole+Tormen"      ,
-	     },
-	     starFormationHistoriesMethod          => 
-	     {
-		 "metallicity split"        => "metallicitySplit"       ,
-	     },
-	     starFormationHistoriesMethod          => 
-	     {
-		 "metallicity split"        => "metallicitySplit"       ,
-	     },
-	     starFormationFeedbackDisksMethod      => 
-	     {
-		 "power law"                => "powerLaw"               ,
-	     },
-	     starFormationFeedbackSpheroidsMethod  => 
-	     {
-		 "power law"                => "powerLaw"               ,
-	     },
-	     starFormationTimescaleDisksMethod     => 
-	     {
-		 "dynamical time"           => "dynamicalTime"          ,
-	     },
-	     starFormationTimescaleSpheroidsMethod => 
-	     {
-		 "dynamical time"           => "dynamicalTime"          ,
-	     },
-	     transferFunctionMethod                => 
-	     {
-		 "Eisenstein + Hu"          => "Eisenstein-Hu1999"      ,
-	     },
-	     treeBranchingMethod                   => 
-	     {
-		 "modified Press-Schechter" => "modifiedPress-Schechter",
-	     },
-	     virialDensityContrastMethod           =>
-	     {
-		 "spherical top hat"        => "sphericalTopHat"        ,
-	     },
-	 },
-      },
-      {
-	 inputVersion  => "0.9.1",
-	 outputVersion => "0.9.2",
- 	 names         =>
-	 {
- 	     treeNodeMethodSatelliteOrbit                => "treeNodeMethodSatellite",
-	 },
-	 values        =>
-	 {
- 	     treeNodeMethodSatellite              =>
-	     {
-		 "simple"                    => "standard"
-	     },
-	     treeNodeMethodSpheroid               =>
-	     {
-		 "Hernquist"                 => {
-		                                 value => "standard",
-						 new   => [
-						           {
-							    name  => "spheroidMassDistribution",
-							    value => "hernquist"
-						           }
-                                                          ]
-		                                },
-		 "sersic"                    => {
-		                                 value => "standard",
-						 new   => [
-						           {
-							    name  => "spheroidMassDistribution",
-							    value => "sersic"
-						           }
-                                                          ]
-		                                }
-	     },
-	 }
-     },
-     {
-	 inputVersion  => "0.9.2",
-	 outputVersion => "0.9.3",
-	 names         =>
-	 {
-	     accretionHalosMethod                        => "accretionHaloMethod"                             ,
-	     cosmologyMethod                             => "cosmologyFunctionsMethod"                        ,
-	     darkMatterConcentrationMethod               => "darkMatterProfileConcentrationMethod"            ,
-	     hotHaloCoredIsothermalCoreRadiiMethod       => "hotHaloColdModeCoredIsothermalCoreRadiiMethod"   ,
-	     hotHaloDensityMethod                        => "hotHaloMassDistributionMethod"                   ,
-	     ionizationStateFile                         => "chemicalStateFile"                               ,
-	     isothermalCoreRadiusOverScaleRadius         => "hotHaloCoreRadiusOverScaleRadius"                ,
-	     isothermalCoreRadiusOverVirialRadius        => "hotHaloCoreRadiusOverVirialRadius"               ,
-	     isothermalCoreRadiusOverVirialRadiusMaximum => "hotHaloCoreRadiusOverVirialRadiusMaximum"        ,
-	     mergerTreeBuildCole2000MassResolution       => "mergerTreeHaloMassResolution"                    ,
-	     nfw96ConcentrationC                         => "nfw1996ConcentrationC"                           ,
-	     satelliteMergingMethod                      => "satelliteMergingTimescalesMethod"                ,
-	     treeNodeMethodFormationTimes                => "treeNodeMethodFormationTime"                     ,
-	     luminosityFilterAbsoluteMagnitudeThresholds => "luminosityFilterAbsoluteMagnitudeThresholdMaxima"
-	 },
-	 values        =>
-         {
-	     cosmologyFunctionsMethod             =>
-	     {
-		 "matter-lambda"             => "matterLambda"                 ,
-		 "matter-darkEnergy"         => "matterDarkEnergy"             ,
-	     },
-	     darkMatterProfileConcentrationMethod =>
-	     {
-		 "Gao2008"                   => "gao2008"                      ,
-		 "Munoz-Cuartas2011"         => "munozCuartas2011"             ,
-		 "Prada2011"                 => "prada2011"                    ,
-		 "Zhao2009"                  => "zhao2009"
-	     },
-	     hotHaloMassDistributionMethod        =>
-	     {
-		 "coredIsothermal"           => "betaProfile"
-	     },
-	     satelliteMergingTimescalesMethod     => 
-	     {
-		 "BoylanKolchin2008"         => "boylanKolchin2008"            ,
-		 "Jiang2008"                 => "jiang2008"                    ,
-		 "Lacey-Cole"                => "laceyCole1993"                ,
-		 "Lacey-Cole+Tormen"         => "laceyCole1993Tormen"          ,
-		 "Wetzel-White2010"          => "wetzelWhite2010"
-	     },
-	     virialDensityContrastMethod          =>
-	     {
-		 "Bryan-Norman1998"          => "bryanNorman1998"              ,
-		 "sphericalTopHatDarkEnergy" => "sphericalCollapseMatterDE"    ,
-		 "sphericalTopHat"           => "sphericalCollapseMatterLambda",
-		 "Kitayama-Suto1996"         => "kitayamaSuto1996"
-	     },
-	     virialOrbitsMethod                   =>
-	     {
-		 "Benson2005"                => "benson2005"                   ,
-		 "Wetzel2010"                => "wetzel2010"
- 
-	     },
-	 }
-     },
-     {
-	 inputVersion  => "0.9.3",
-	 outputVersion => "0.9.4",
-	 names         =>
-	 {
-	     "hotHaloTemperatureMethod"                                              => "hotHaloTemperatureProfileMethod"                                                         ,
-	     "mergerTreeBuildMethod"                                                 => "mergerTreeBuilderMethod"                                                                 ,
-	     "darkMatterShapeMethod"                                                 => "darkMatterProfileShapeMethod"                                                            ,
-	     "H_0"                                                                   => "cosmologyParametersMethod--HubbleConstant"                                               ,
-	     "Omega_Matter"                                                          => "cosmologyParametersMethod--OmegaMatter"                                                  ,
-	     "Omega_DE"                                                              => "cosmologyParametersMethod--OmegaDarkEnergy"                                              ,
-	     "Omega_b"                                                               => "cosmologyParametersMethod--OmegaBaryon"                                                  ,
-	     "T_CMB"                                                                 => "cosmologyParametersMethod--temperatureCMB"                                               ,
-	     "effectiveNumberNeutrinos"                                              => "transferFunctionMethod--neutrinoNumberEffective"                                         ,
-	     "summedNeutrinoMasses"                                                  => "transferFunctionMethod--neutrinoMassSummed"                                              ,
-	     "transferFunctionWDMFreeStreamingLength"                                => "transferFunctionMethod--freeStreamingLength"                                             ,
-	     "transferFunctionWdmCutOffScale"                                        => "transferFunctionMethod--scaleCutOff"                                                     ,
-	     "transferFunctionWdmEpsilon"                                            => "transferFunctionMethod--epsilon"                                                         ,
-	     "transferFunctionWdmEta"                                                => "transferFunctionMethod--eta"                                                             ,
-	     "transferFunctionWdmNu"                                                 => "transferFunctionMethod--nu"                                                              ,
-	     "stellarPopulationSpectraFileForceZeroMetallicity"                      => "stellarPopulationSpectraMethod--forceZeroMetallicity"                                    ,
-	     "stellarPopulationSpectraForChabrierIMF"                                => "stellarPopulationSpectraMethod--fileNameForChabrierIMF"                                  ,
-	     "stellarPopulationSpectraForBaugh2005TopHeavyIMF"                       => "stellarPopulationSpectraMethod--fileNameForBaugh2005TopHeavyIMF"                         ,
-	     "stellarPopulationSpectraForKroupaIMF"                                  => "stellarPopulationSpectraMethod--fileNameForKroupaIMF"                                    ,
-	     "stellarPopulationSpectraForMiller-ScaloIMF"                            => "stellarPopulationSpectraMethod--fileNameForMiller-ScaloIMF"                              ,
-	     "stellarPopulationSpectraForSalpeterIMF"                                => "stellarPopulationSpectraMethod--fileNameForSalpeterIMF"                                  ,
-	     "stellarPopulationSpectraForScaloIMF"                                   => "stellarPopulationSpectraMethod--fileNameForScaloIMF"                                     ,
-	     "stellarPopulationSpectraForKennicuttIMF"                               => "stellarPopulationSpectraMethod--fileNameForKennicuttIMF"                                 ,
-	     "accretionDiskSpectraFileName"                                          => "accretionDiskSpectraMethod--fileName"                                                    ,
-	     "chemicalStateFile"                                                     => "chemicalStateMethod--fileName"                                                           ,
-	     "coolingFunctionMethods"                                                => "coolingFunctionMethod"                                                                   ,
-	     "powerSpectrumMethod"                                                   => "powerSpectrumPrimordialMethod"                                                           ,
-	     "powerSpectrumIndex"                                                    => "powerSpectrumPrimordialMethod--index"                                                    ,
-	     "powerSpectrumRunning"                                                  => "powerSpectrumPrimordialMethod--running"                                                  ,
-	     "powerSpectrumReferenceWavenumber"                                      => "powerSpectrumPrimordialMethod--wavenumberReference"                                      ,
-	     "mergerTreeBuildCole2000AccretionLimit"                                 => "mergerTreeBuilderMethod--accretionLimit"                                                 ,
-	     "mergerTreeBuildCole2000MergeProbability"                               => "mergerTreeBuilderMethod--mergeProbability"                                               ,
-	     "mergerTreeBuildCole2000HighestRedshift"                                => "mergerTreeBuilderMethod--redshiftMaximum"                                                ,
-	     "mergerTreeBuildCole2000FixedRandomSeeds"                               => "mergerTreeBuilderMethod--randomSeedsFixed"                                               ,
-	     "mergerTreeRegridTimes"                                                 => "mergerTreeOperatorMethod.regridTimes."                                                   ,
-	     "mergerTreeRegridDumpTrees"                                             => "mergerTreeOperatorMethod.regridTimes.--dumpTrees"                                        ,
-	     "mergerTreeRegridCount"                                                 => "mergerTreeOperatorMethod.regridTimes.--regridCount"                                      ,
-	     "mergerTreeRegridStartExpansionFactor"                                  => "mergerTreeOperatorMethod.regridTimes.--expansionFactorStart"                             ,
-	     "mergerTreeRegridEndExpansionFactor"                                    => "mergerTreeOperatorMethod.regridTimes.--expansionFactorEnd"                               ,
-	     "mergerTreeRegridSpacing"                                               => "mergerTreeOperatorMethod.regridTimes.--snapshotSpacing"                                  ,
-	     "mergerTreePruneBranches"                                               => "mergerTreeOperatorMethod.pruneByMass."                                                   ,
-	     "mergerTreePruningMassThreshold"                                        => "mergerTreeOperatorMethod.pruneByMass.--massThreshold"                                    ,
-	     "mergerTreePruneHierarchyAtDepth"                                       => "mergerTreeOperatorMethod.pruneHierarchy.--hierarchyDepth"                                ,
-	     "mergerTreePruneNonEssential"                                           => "mergerTreeOperatorMethod.pruneNonEssential"                                              ,
-	     "mergerTreePruningNonEssentialID"                                       => "mergerTreeOperatorMethod.pruneNonEssential.--essentialNodeID"                            ,
-	     "mergerTreePruningNonEssentialTime"                                     => "mergerTreeOperatorMethod.pruneNonEssential.--essentialNodeTime"                          ,
-	     "mergerTreeComputeConditionalMassFunction"                              => "mergerTreeOperatorMethod.conditionalMF."                                                 ,
-	     "mergerTreeComputeConditionalMassFunctionParentMassCount"               => "mergerTreeOperatorMethod.conditionalMF.--parentMassCount"                                ,
-	     "mergerTreeComputeConditionalMassFunctionParentMassMinimum"             => "mergerTreeOperatorMethod.conditionalMF.--parentMassMinimum"                              ,
-	     "mergerTreeComputeConditionalMassFunctionParentMassMaximum"             => "mergerTreeOperatorMethod.conditionalMF.--parentMassMaximum"                              ,
-	     "mergerTreeComputeConditionalMassFunctionMassRatioCount"                => "mergerTreeOperatorMethod.conditionalMF.--massRatioCount"                                 ,
-	     "mergerTreeComputeConditionalMassFunctionMassRatioMinimum"              => "mergerTreeOperatorMethod.conditionalMF.--massRatioMinimum"                               ,
-	     "mergerTreeComputeConditionalMassFunctionMassRatioMaximum"              => "mergerTreeOperatorMethod.conditionalMF.--massRatioMaximum"                               ,
-	     "mergerTreeComputeConditionalMassFunctionParentRedshifts"               => "mergerTreeOperatorMethod.conditionalMF.--parentRedshifts"                                ,
-	     "mergerTreeComputeConditionalMassFunctionProgenitorRedshifts"           => "mergerTreeOperatorMethod.conditionalMF.--progenitorRedshifts"                            ,
-	     "mergerTreeComputeConditionalMassFunctionPrimaryProgenitorDepth"        => "mergerTreeOperatorMethod.conditionalMF.--primaryProgenitorDepth"                         ,
-	     "mergerTreeConditionalMassFunctionFormationRateTimeFraction"            => "mergerTreeOperatorMethod.conditionalMF.--formationRateTimeFraction"                      ,
-	     "mergerTreeExportFileName"                                              => "mergerTreeOperatorMethod.export.--outputFileName"                                        ,
-	     "mergerTreeExportOutputFormat"                                          => "mergerTreeOperatorMethod.export.--exportFormat"                                          ,
-	     "warmDarkMatterCriticalOverdensityGX"                                   => "criticalDensityMethod.barkana2001WDM.--gX"                                               ,
-	     "warmDarkMatterCriticalOverdensityMX"                                   => "criticalDensityMethod.barkana2001WDM.--mX"                                               ,
-	     "warmDarkMatterCriticalOverdensityUseFittingFunction"                   => "criticalDensityMethod.barkana2001WDM.--useFittingFunction"                               ,
-	     "sigma_8"                                                               => "cosmologicalMassVarianceMethod.filteredPower.--sigma_8"                                  ,
-	     "mergerTreeExportOutputFormat"                                          => "mergerTreeOperatorMethod.write.--exportFormat"                                           ,
-	     "darkMatterHaloConcentrationCorrea2015AScaling"                         => "darkMatterProfileConcentrationMethod.correa2015.--A"                                     ,
-	     "darkMatterProfileConcentrationDiemerKravtsov2014Kappa"                 => "darkMatterProfileConcentrationMethod.diemerKravtsov2014.--kappa"                         ,
-	     "darkMatterProfileConcentrationDiemerKravtsov2014Phi0"                  => "darkMatterProfileConcentrationMethod.diemerKravtsov2014.--phi0"                          ,
-	     "darkMatterProfileConcentrationDiemerKravtsov2014Phi1"                  => "darkMatterProfileConcentrationMethod.diemerKravtsov2014.--phi1"                          ,
-	     "darkMatterProfileConcentrationDiemerKravtsov2014Eta0"                  => "darkMatterProfileConcentrationMethod.diemerKravtsov2014.--eta0"                          ,
-	     "darkMatterProfileConcentrationDiemerKravtsov2014Eta1"                  => "darkMatterProfileConcentrationMethod.diemerKravtsov2014.--eta1"                          ,
-	     "darkMatterProfileConcentrationDiemerKravtsov2014Alpha"                 => "darkMatterProfileConcentrationMethod.diemerKravtsov2014.--alpha"                         ,
-	     "darkMatterProfileConcentrationDiemerKravtsov2014Beta"                  => "darkMatterProfileConcentrationMethod.diemerKravtsov2014.--beta"                          ,
-	     "duttonMaccio2014FitType"                                               => "darkMatterProfileConcentrationMethod.duttonMaccio2014.--fitType"                         ,
-	     "klypin2015ConcentrationSample"                                         => "darkMatterProfileConcentrationMethod.klypin2015.--sample"                                ,
-	     "nfw1996ConcentrationF"                                                 => "darkMatterProfileConcentrationMethod.nfw1996.--f"                                        ,
-	     "nfw1996ConcentrationC"                                                 => "darkMatterProfileConcentrationMethod.nfw1996.--C"                                        ,
-	     "prada2011ConcentrationA"                                               => "darkMatterProfileConcentrationMethod.prada2011.--A"                                      ,
-	     "prada2011ConcentrationB"                                               => "darkMatterProfileConcentrationMethod.prada2011.--B"                                      ,
-	     "prada2011ConcentrationC"                                               => "darkMatterProfileConcentrationMethod.prada2011.--C"                                      ,
-	     "prada2011ConcentrationD"                                               => "darkMatterProfileConcentrationMethod.prada2011.--D"                                      ,
-	     "prada2011ConcentrationC0"                                              => "darkMatterProfileConcentrationMethod.prada2011.--C0"                                     ,
-	     "prada2011ConcentrationC1"                                              => "darkMatterProfileConcentrationMethod.prada2011.--C1"                                     ,
-	     "prada2011ConcentrationX0"                                              => "darkMatterProfileConcentrationMethod.prada2011.--X0"                                     ,
-	     "prada2011ConcentrationX1"                                              => "darkMatterProfileConcentrationMethod.prada2011.--X1"                                     ,
-	     "prada2011ConcentrationInverseSigma0"                                   => "darkMatterProfileConcentrationMethod.prada2011.--inverseSigma0"                          ,
-	     "prada2011ConcentrationInverseSigma1"                                   => "darkMatterProfileConcentrationMethod.prada2011.--inverseSigma1"                          ,
-	     "prada2011ConcentrationAlpha"                                           => "darkMatterProfileConcentrationMethod.prada2011.--alpha"                                  ,
-	     "prada2011ConcentrationBeta"                                            => "darkMatterProfileConcentrationMethod.prada2011.--beta"                                   ,
-	     "darkMatterProfileConcentrationCDMMethod"                               => "darkMatterProfileConcentrationMethod.wdm.--darkMatterProfileConcentrationMethod"         ,
-	     "mergerTreeBuildMassResolutionFixed"                                    => "mergerTreeMassResolutionMethod.fixed.--massResolution"                                   ,
-	     "mergerTreeBuildMassResolutionScaledMinimum"                            => "mergerTreeMassResolutionMethod.scaled.--massResolutionMinimum"                           ,
-	     "mergerTreeBuildMassResolutionScaledFraction"                           => "mergerTreeMassResolutionMethod.scaled.--massResolutionFractional"                        ,
-	     "powerSpectrumWindowFunctionSharpKSpaceNormalization"                   => "powerSpectrumWindowFunctionMethod.sharpKSpace.--normalization"                           ,
-	     "powerSpectrumWindowFunctionSharpKSpaceTopHatRadiiRatio"                => "powerSpectrumWindowFunctionMethod.topHatSharpKHybrid.--radiiRatio"                       ,
-	     "haloMassFunctionSimpleSystematicAlpha"                                 => "haloMassFunctionMethod.simpleSystematic.--alpha"                                         ,
-	     "haloMassFunctionSimpleSystematicBeta"                                  => "haloMassFunctionMethod.simpleSystematic.--beta"                                          ,
-	     "mergerTreeBuildMassResolutionFixed"                                    => "mergerTreeMassResolutionMethod.fixed.--massResolution"                                   ,
-	     "spinDistributionBett2007Lambda0"	                                     => "haloSpinDistributionMethod.bett2007.--lambda0"                                           ,
-	     "spinDistributionBett2007Alpha"	                                     => "haloSpinDistributionMethod.bett2007.--alpha"                                             ,
-	     "lognormalSpinDistributionMedian"                                       => "haloSpinDistributionMethod.logNormal.--median"                                           ,
-	     "lognormalSpinDistributionSigma"	                                     => "haloSpinDistributionMethod.logNormal.--sigma"                                            ,
-	     "deltaFunctionSpinDistributionSpin"	                             => "haloSpinDistributionMethod.deltaFunction.--spin"                                         ,
-	     "stellarMassFilterThreshold"                                            => "mergerTreeOutput--galacticFilterMethod.stellarMass.--massThreshold"                      ,
-	     "mergerTreeOutput"                                                      => "mergerTreeOutput--outputMergerTrees"                                                     ,
-	     "mergerTreeOutputReferences"                                            => "mergerTreeOutput--outputReferences"                                                      ,
-	     "mergerTreeAnalyses"                                                    => "mergerTreeOutput--analyses"                                                              ,
-	     "mergerTreeConstructMethod"                                             => "mergerTreeConstructorMethod"                                                             ,
-	     "mergerTreesBuildFixedThreadAssignment"                                 => "evolveForestsWorkShareMethod.cyclic."                                                    ,
-	     "mergerTreeBuildTreeMassesFile"                                         => "mergerTreeBuildMasses.readHDF5.--fileName"                                               ,
-	     "mergerTreeBuildHaloMassMinimum"                                        => "mergerTreeBuildMassesMethod.sampledDistributionUniform.--massTreeMinimum"                ,
-	     "mergerTreeBuildHaloMassMaximum"                                        => "mergerTreeBuildMassesMethod.sampledDistributionUniform.--massTreeMaximum"                ,
-	     "mergerTreeBuildTreesPerDecade"                                         => "mergerTreeBuildMassesMethod.sampledDistributionUniform.--treesPerDecade"                 ,
-	     "haloMassSampleModifierFixedMassHalosMass"                              => "mergerTreeBuildMassesMethod.fixedMass.--massTree"                                        , 
-	     "haloMassSampleModifierFixedMassHalosCount"                             => "mergerTreeBuildMassesMethod.fixedMass.--treeCount"                                       ,
-	     "haloMassSampleModifierFixedMassHalosRadius"                            => "mergerTreeBuildMassesMethod.fixedMass.--radiusTree"                                      ,
-	     "mergerTreeHaloMass"                                                    => "mergerTreeConstructorMethod.smoothAccretion.--massHalo"                                  ,
-	     "mergerTreeHaloMassResolution"                                          => "mergerTreeConstructorMethod.smoothAccretion.--massHaloResolution"                        ,
-	     "mergerTreeHaloMassDeclineFactor"                                       => "mergerTreeConstructorMethod.smoothAccretion.--massHaloDeclineFactor"                     ,
-	     "mergerTreeBaseRedshift"                                                => "mergerTreeConstructorMethod.smoothAccretion.--redshiftBase"                              ,
-	     "mergerTreeConstructFullySpecifiedFileName"                             => "mergerTreeConstructorMethod.fullySpecified.--fileName"                                   ,
-	     "mergerTreeStateStoreFile"                                              => "mergerTreeConstructorMethod.stateRestore.--fileName"                                     ,
-	     "mergerTreeReadFileName"                                                => "mergerTreeConstructorMethod.read.--fileNames"                                            ,
-	     "mergerTreeReadForestSizeMaximum"                                       => "mergerTreeConstructorMethod.read.--forestSizeMaximum"                                    ,
-	     "mergerTreeReadPresetMergerTimes"                                       => "mergerTreeConstructorMethod.read.--presetMergerTimes"                                    ,
-	     "mergerTreeReadPresetMergerNodes"                                       => "mergerTreeConstructorMethod.read.--presetMergerNodes"                                    ,
-	     "mergerTreeReadPresetSubhaloMasses"                                     => "mergerTreeConstructorMethod.read.--presetSubhaloMasses"                                  ,
-	     "mergerTreeReadSubhaloAngularMomentaMethod"                             => "mergerTreeConstructorMethod.read.--subhaloAngularMomentaMethod"                          ,
-	     "mergerTreeReadPresetSubhaloIndices"                                    => "mergerTreeConstructorMethod.read.--presetSubhaloIndices"                                 ,
-	     "mergerTreeReadPresetPositions"                                         => "mergerTreeConstructorMethod.read.--presetPositions"                                      ,
-	     "mergerTreeReadPresetScaleRadii"                                        => "mergerTreeConstructorMethod.read.--presetScaleRadii"                                     ,
-	     "mergerTreeReadPresetScaleRadiiFailureIsFatal"                          => "mergerTreeConstructorMethod.read.--scaleRadiiFailureIsFatal"                             ,
-	     "mergerTreeReadPresetScaleRadiiConcentrationMinimum"                    => "mergerTreeConstructorMethod.read.--presetScaleRadiiMinimumMass"                          ,
-	     "mergerTreeReadPresetScaleRadiiConcentrationMaximum"                    => "mergerTreeConstructorMethod.read.--presetScaleRadiiConcentrationMaximum"                 ,
-	     "mergerTreeReadPresetScaleRadiiMinimumMass"                             => "mergerTreeConstructorMethod.read.--presetScaleRadiiMinimumMass"                          ,
-	     "mergerTreeReadPresetUnphysicalSpins"                                   => "mergerTreeConstructorMethod.read.--presetUnphysicalSpins"                                ,
-	     "mergerTreeReadPresetSpins"                                             => "mergerTreeConstructorMethod.read.--presetSpins"                                          ,
-	     "mergerTreeReadPresetSpins3D"                                           => "mergerTreeConstructorMethod.read.--presetSpins3D"                                        ,
-	     "mergerTreeReadPresetOrbits"                                            => "mergerTreeConstructorMethod.read.--presetOrbits"                                         ,
-	     "mergerTreeReadPresetOrbitsSetAll"                                      => "mergerTreeConstructorMethod.read.--presetOrbitsSetAll"                                   ,
-	     "mergerTreeReadPresetOrbitsAssertAllSet"                                => "mergerTreeConstructorMethod.read.--presetOrbitsAssertAllSet"                             ,
-	     "mergerTreeReadPresetOrbitsBoundOnly"                                   => "mergerTreeConstructorMethod.read.--presetOrbitsBoundOnly"                                ,
-	     "mergerTreeReadPresetParticleCounts"                                    => "mergerTreeConstructorMethod.read.--presetParticleCounts"                                 ,
-	     "mergerTreeReadPresetVelocityMaxima"                                    => "mergerTreeConstructorMethod.read.--presetVelocityMaxima"                                 ,
-	     "mergerTreeReadPresetVelocityDispersions"                               => "mergerTreeConstructorMethod.read.--presetVelocityDispersions"                            ,
-	     "mergerTreeReadBeginAt"                                                 => "mergerTreeConstructorMethod.read.--beginAt"                                              ,
-	     "mergerTreeReadOutputTimeSnapTolerance"                                 => "mergerTreeConstructorMethod.read.--outputTimeSnapTolerance"                              ,
-	     "mergerTreeReadMissingHostsAreFatal"                                    => "mergerTreeConstructorMethod.read.--missingHostsAreFatal"                                 ,
-	     "mergerTreeReadTreeIndexToRootNodeIndex"                                => "mergerTreeConstructorMethod.read.--treeIndexToRootNodeIndex"                             ,
-	     "mergerTreeReadAllowBranchJumps"                                        => "mergerTreeConstructorMethod.read.--allowBranchJumps"                                     ,
-	     "mergerTreeReadAllowSubhaloPromotions"                                  => "mergerTreeConstructorMethod.read.--allowSubhaloPromotions"                               ,
-	     "mergerTreeReadSubresolutionMergingMethod"                              => "mergerTreeConstructorMethod.read.--satelliteMergingTimescalesMethod"                     ,
-	     "mergerTreeHaloMassFunctionSamplingMethod"                              => "mergerTreeBuildMassDistributionMethod"                                                   ,
-	     "starFormationSpheroidEfficiency"                                       => "starFormationTimescaleSpheroidsMethod.dynamicalTime.--efficiency"                        ,
-	     "starFormationSpheroidVelocityExponent"                                 => "starFormationTimescaleSpheroidsMethod.dynamicalTime.--exponentVelocity"                  ,
-	     "starFormationSpheroidMinimumTimescale"                                 => "starFormationTimescaleSpheroidsMethod.dynamicalTime.--timescaleMinimum"                  ,
-	     "starFormationTimescaleSpheroidsVelocityMaximumScalingTimescale"        => "starFormationTimescaleSpheroidsMethod.velocityMaxScaling.--timescale"                    ,
-	     "starFormationTimescaleSpheroidsVelocityMaximumScalingVelocityExponent" => "starFormationTimescaleSpheroidsMethod.velocityMaxScaling.--exponentVelocity"             ,
-	     "starFormationTimescaleSpheroidsVelocityMaximumScalingRedshiftExponent" => "starFormationTimescaleSpheroidsMethod.velocityMaxScaling.--exponentRedshift"             ,
-	     "starFormationDiskEfficiency"                                           => "starFormationTimescaleDisksMethod.dynamicalTime.--efficiency"                            ,
-	     "starFormationDiskVelocityExponent"                                     => "starFormationTimescaleDisksMethod.dynamicalTime.--exponentVelocity"                      ,
-	     "starFormationDiskMinimumTimescale"                                     => "starFormationTimescaleDisksMethod.dynamicalTime.--timescaleMinimum"                      ,
-	     "starFormationTimescaleDisksVelocityMaximumScalingTimescale"            => "starFormationTimescaleDisksMethod.velocityMaxScaling.--timescale"                        ,
-	     "starFormationTimescaleDisksVelocityMaximumScalingVelocityExponent"     => "starFormationTimescaleDisksMethod.velocityMaxScaling.--exponentVelocity"                 ,
-	     "starFormationTimescaleDisksVelocityMaximumScalingRedshiftExponent"     => "starFormationTimescaleDisksMethod.velocityMaxScaling.--exponentRedshift"                 ,
-	     "starFormationTimescaleDisksFixedTimescale"                             => "starFormationTimescaleDisksMethod.fixed.--timescale"                                     ,
-	     "starFormationTimescaleIntegratedSurfaceDensityTolerance"               => "starFormationTimescaleDisksMethod.intgrtdSurfaceDensity.--tolerance"                     ,
-	     "starFormationTimescaleDisksHaloScalingTimescale"                       => "starFormationTimescaleDisksMethod.haloScaling.--timescale"                               ,
-	     "starFormationTimescaleDisksHaloScalingVirialVelocityExponent"          => "starFormationTimescaleDisksMethod.haloScaling.--exponentVelocityVirial"                  ,
-	     "starFormationTimescaleDisksHaloScalingRedshiftExponent"                => "starFormationTimescaleDisksMethod.haloScaling.--exponentRedshift"                        ,
-	     "barInstabilityMethod"                                                  => "galacticDynamicsBarInstabilityMethod"                                                    ,
-	     "stabilityThresholdStellar"                                             => "galacticDynamicsBarInstabilityMethod.efstathiou1982.--stabilityThresholdStellar"         ,
-	     "stabilityThresholdGaseous"                                             => "galacticDynamicsBarInstabilityMethod.efstathiou1982.--stabilityThresholdGaseous"         ,
-	     "stabilityTimescaleMinimum"                                             => "galacticDynamicsBarInstabilityMethod.efstathiou1982.--timescaleMinimum"                  ,
-	     "harrassmentMassThreshold"                                              => "galacticDynamicsBarInstabilityMethod.efstathiou1982Tidal.--massThresholdHarrassment"     ,
-	     "tidalStrippingMassLossRateDisksMethod"                                 => "tidalStrippingDisksMethod"                                                               ,
-	     "tidalStrippingMassLossRateDiskSimpleFractionalRateMaximum"             => "tidalStrippingDisksMethod.simple.--rateFractionalMaximum"                                ,
-	     "tidalStrippingMassLossRateSpheroidsMethod"                             => "tidalStrippingSpheroidsMethod"                                                           ,
-	     "tidalStrippingMassLossRateSpheroidSimpleFractionalRateMaximum"         => "tidalStrippingSpheroidsMethod.simple.--rateFractionalMaximum"                            ,
-	     "ramPressureStrippingMassLossRateDisksMethod"                           => "ramPressureStrippingDisksMethod"                                                         ,
-	     "ramPressureStrippingMassLossRateDiskSimpleFractionalRateMaximum"       => "ramPressureStrippingDisksMethod.simple.--rateFractionalMaximum"                          ,
-	     "ramPressureStrippingMassLossRateSpheroidsMethod"                       => "ramPressureStrippingSpheroidsMethod"                                                     ,
-	     "ramPressureStrippingMassLossRateSpheroidSimpleFractionalRateMaximum"   => "ramPressureStrippingSpheroidsMethod.simple.--rateFractionalMaximum"                      ,
-	     "satellitesTidalFieldMethod"                                            => "satelliteTidalFieldMethod"                                                               ,
-	     "hotHaloColdModeCoredIsothermalCoreRadiiMethod"                         => "hotHaloColdModeCoreRadiiMethod"                                                          ,
-	     "coldModeIsothermalCoreRadiusOverVirialRadius"                          => "hotHaloColdModeCoreRadiiMethod.virialFraction.--coreRadiusOverVirialRadius"              ,
-	     "hotHaloRamPressureStrippingTimescaleMethod"                            => "hotHaloRamPressureTimescaleMethod"                                                       ,
-	     "ramPressureStrippingFormFactor"                                        => "hotHaloRamPressureStrippingMethod.font2008.--formFactor"                                 ,
-	     "starFormationFrequencyKMT09"                                           => "starFormationRateSurfaceDensityDisksMethod.krumholz2009.--frequencyStarFormation"        , 
-	     "molecularComplexClumpingFactorKMT09"                                   => "starFormationRateSurfaceDensityDisksMethod.krumholz2009.--clumpingFactorMolecularComplex", 
-	     "molecularFractionFastKMT09"                                            => "starFormationRateSurfaceDensityDisksMethod.krumholz2009.--molecularFractionFast"         , 
-	     "assumeMonotonicSurfaceDensityKMT09"                                    => "starFormationRateSurfaceDensityDisksMethod.krumholz2009.--assumeMonotonicSurfaceDensity" , 
-	     "accretionColdModeShockStabilityThreshold"                              => "accretionHaloMethod.coldMode.--thresholdStabilityShock"                                  ,
-	     "accretionColdModeShockStabilityTransitionWidth"                        => "accretionHaloMethod.coldMode.--widthTransitionStabilityShock"                            ,
-	     "accretionHalosSimpleNegativeAccretionAllowed"                          => "accretionHaloMethod.simple.--accretionNegativeAllowed"                                   ,
-	     "accretionHalosSimpleAccreteNewGrowthOnly"                              => "accretionHaloMethod.simple.--accretionNewGrowthOnly"                                     ,
-	     "reionizationSuppressionVelocity"                                       => "accretionHaloMethod.simple.--velocitySuppressionReionization"                            ,
-	     "reionizationSuppressionRedshift"                                       => "accretionHaloMethod.simple.--redshiftReionization"                                       ,
-	     "virialDensityContrastPercolationLinkingLength"                         => "virialDensityContrastMethod.percolation.--linkingLength"                                 ,
-	     "nodeMergersMethod"                                                     => "mergerTreeNodeMergerMethod"
-	 },
-	 values        =>
-	 {
-	     mergerTreeBuilderMethod        =>
-	     {
-		 "Cole2000"                  => "cole2000"
-	     },
-		   hotHaloRamPressureStrippingMethod =>
-	       {
-		   "Font2008" => "font2008"
-	       },  
-		   hotHaloRamPressureForceMethod =>
-	       {
-		   "Font2008" => "font2008"
-	       },  
-	      starFormationTimescaleDisksMethod =>
-	     {
-	      "integratedSurfaceDensity" => "intgrtdSurfaceDensity"
-	     },
-	     starFormationRateSurfaceDensityDisksMethod => 
-	     {
-		 "KMT09" => "krumholz2009"
-	     }, 
-	     starFormationExpulsiveFeedbackDisksMethod =>
-	     {
-		 "null" => "zero"
-             },
-	     starFormationExpulsiveFeedbackSpheroidsMethod =>
-	     {
-		 "null" => "zero"
-	     },
-	     hotHaloColdModeCoredIsothermalCoreRadiiMethod =>
-	     {
-		 "virialRadiusFraction" => "virialFraction"
-	     },
-	     barInstabilityMethod =>	 
-	     {
-		 "ELN"       => "efstathiou1982",
-		 "ELN+tidal" => "efstathiou1982Tidal",
-		 "null"      => "stable"
-	     },
-	     treeNodeMethodDisk      =>
-	     {
-		 "exponential"           => {
-		                             value => "standard",
-		                             new   => [
-				    	               {
-			                                name  => "diskMassDistribution",
-			                                value => "exponentialDisk"
-			                               }
-			                              ]
-		                            }
-	     },
-	     darkMatterProfileShapeMethod   =>
-	     {
-		 "Gao2008"                   => "gao2008"
-	     },
-	     transferFunctionMethod         =>
-	     {
-		 "null"                      => "identity"        ,
-		 "Eisenstein-Hu1999"         => "eisensteinHu1999"
-	     },
-	     stellarPopulationSpectraMethod =>
-	     {
-	         "Conroy-White-Gunn2009"     => "FSPS"
-             },
-	     haloSpinDistributionMethod =>
-	     {
-	         "Bett2007"                  => "bett2007"
-	     },
-	     criticalOverdensityMethod =>	     {
-		 "Kitayama-Suto1996"         => "kitayamaSuto1996"             ,
-		 "sphericalTopHat"           => "sphericalCollapseMatterLambda",
-		 "sphericalTopHatDarkEnergy" => "sphericalCollapseMatterDE"
-	     },
-	     mergerTreeImporterMethod        =>
-	     {
-	         "sussing"                   => "sussingASCII"
-	     },
-	     starFormationFeedbackDisksMethod =>    
-	     {
-		 "Creasey2012"               => "creasey2012"
-	     }
-	 }
-     },
-     {
-	 inputVersion  => "0.9.4",
-	 outputVersion => "0.9.5",
-	 names         =>
-	 {
-	     "atomicCollisionalIonizationMethod"                         => "atomicIonizationRateCollisionalMethod"                                                 ,
-	     "collisionalExcitationMethod"                               => "atomicExcitationRateCollisionalMethod"                                                 ,
-	     "chemicalReactionRateMethods"                               => "chemicalReactionRateMethod"                                                            ,
-	     "hydrogenNetworkFast"                                       => "chemicalReactionRateMethod.hydrogenNetwork.--fast"                                     ,
-	     "hydrogenNetworkCMBOnly"                                    => "chemicalReactionRateMethod.hydrogenNetwork.--radiationCMBOnly"                         ,
-	     "blackHoleBinaryInitialRadiiMethod"                         => "blackHoleBinaryInitialSeparationMethod"                                                ,
-	     "blackHoleInitialRadiusSpheroidRadiusRatio"                 => "blackHoleBinaryInitialSeparationMethod.spheroidRadiusFraction.--spheroidRadiusFraction",
-	     "stellarDensityChangeBinaryMotion"                          => "blackHoleInitialRadiusSpheroidRadiusRatio.standard.--stellarDensityChangeBinaryMotion" ,
-	     "blackHoleBinariesComputeVelocityDispersion"                => "blackHoleInitialRadiusSpheroidRadiusRatio.standard.--computeVelocityDispersion"        ,
-	     "supernovaeIaMethod"                                        => "supernovaeTypeIaMethod"                                                                ,
-	     "stellarTracksFile"                                         => "stellarTracksMethod.file.--fileName"                                                   ,
-	     "stellarPropertiesFile"                                     => "stellarAstrophysicsMethod.file.--fileName"                                             ,
-	     "satelliteMergingRemnantProgenitorPropertiesMethod"         => "mergerProgenitorPropertiesMethod"	          	     	     	     	     	    ,
-	     "satelliteMergingMassMovementsMethod" 	                 => "mergerMassMovementsMethod"                                                             ,
-	     "majorMergerMassRatio"                                      => "mergerMassMovementsMethod.simple.--massRatioMajorMerger"                               ,
-	     "burstMassRatio"                                            => "mergerMassMovementsMethod.baugh2005.--ratioMassBurst"                                  ,
-	     "burstCriticalGasFraction"                                  => "mergerMassMovementsMethod.baugh2005.--fractionGasCriticalBurst"                        ,
-	     "minorMergerGasMovesTo"                                     => "mergerMassMovementsMethod.simple.--destinationGasMinorMerger"                          ,
-	     "satelliteMergingRemnantSizeMethod"                         => "mergerRemnantSizeMethod"                                                               ,
-	     "mergerRemnantSizeOrbitalEnergy"                            => "mergerRemnantSizeMethod.cole2000.--energyOrbital"                                      ,
-	     "mergerRemnantRadiativeEfficiency"                          => "mergerRemnantSizeMethod.covington2008.--efficiencyRadiative"                           ,
-	     "imfSelectionMethod"                                        => "stellarPopulationSelectorMethod"                                                       ,
-	     "imfBaugh2005TopHeavyRecycledInstantaneous"                 => "stellarPopulationMethod.standard.--recycledFraction"                                   ,
-	     "imfBaugh2005TopHeavyYieldInstantaneous"                    => "stellarPopulationMethod.standard.--metalYield"                                         ,
-	     "imfBPASSRecycledInstantaneous"                             => "stellarPopulationMethod.standard.--recycledFraction"                                   ,
-	     "imfBPASSYieldInstantaneous"                                => "stellarPopulationMethod.standard.--metalYield"                                         ,
-	     "imfChabrierRecycledInstantaneous"                          => "stellarPopulationMethod.standard.--recycledFraction"                                   ,
-	     "imfChabrierYieldInstantaneous"                             => "stellarPopulationMethod.standard.--metalYield"                                         ,
-	     "imfKennicuttRecycledInstantaneous"                         => "stellarPopulationMethod.standard.--recycledFraction"                                   ,
-	     "imfKennicuttYieldInstantaneous"                            => "stellarPopulationMethod.standard.--metalYield"                                         ,
-	     "imfKroupaRecycledInstantaneous"                            => "stellarPopulationMethod.standard.--recycledFraction"                                   ,
-	     "imfKroupaYieldInstantaneous"                               => "stellarPopulationMethod.standard.--metalYield"                                         ,
-	     "imfMillerScaloRecycledInstantaneous"                       => "stellarPopulationMethod.standard.--recycledFraction"                                   ,
-	     "imfMillerScaloYieldInstantaneous"                          => "stellarPopulationMethod.standard.--metalYield"                                         ,
-	     "imfPiecewisePowerLawRecycledInstantaneous"                 => "stellarPopulationMethod.standard.--recycledFraction"                                   ,
-	     "imfPiecewisePowerLawYieldInstantaneous"                    => "stellarPopulationMethod.standard.--metalYield"                                         ,
-	     "imfSalpeterRecycledInstantaneous"                          => "stellarPopulationMethod.standard.--recycledFraction"                                   ,
-	     "imfSalpeterYieldInstantaneous"                             => "stellarPopulationMethod.standard.--metalYield"                                         ,
-	     "imfScaloRecycledInstantaneous"                             => "stellarPopulationMethod.standard.--recycledFraction"                                   ,
-	     "imfScaloYieldInstantaneous"                                => "stellarPopulationMethod.standard.--metalYield"                                         ,
-	     "imfChabrierMassUpper"                                      => "initialMassFunctionMethod.chabrier2001.--massUpper"                                    ,
-	     "imfChabrierMassLower"                                      => "initialMassFunctionMethod.chabrier2001.--massLower"                                    ,
-	     "imfChabrierMassTransition"                                 => "initialMassFunctionMethod.chabrier2001.--massTransition"                               ,
-	     "imfChabrierSigma"                                          => "initialMassFunctionMethod.chabrier2001.--sigma"                                        ,
-	     "imfChabrierExponent"                                       => "initialMassFunctionMethod.chabrier2001.--exponent"                                     ,
-	     "imfChabrierMass"                                           => "initialMassFunctionMethod.chabrier2001.--massCharacteristic"                           ,
-	     "imfPiecewisePowerLawMassPoints"                            => "initialMassFunctionMethod.piecewisePowerLaw.--mass"                                    ,
-	     "imfPiecewisePowerLawExponents"                             => "initialMassFunctionMethod.piecewisePowerLaw.--exponent"                                ,
-	     "starFormationImfInstantaneousApproximation"                => "stellarPopulationMethod.standard.--instantaneousRecyclingApproximation"                ,
-	     "starFormationImfInstantaneousApproximationMassLongLived"   => "stellarPopulationMethod.standard.--massLongLived"                                      ,
-	     "starFormationImfInstantaneousApproximationEffectiveAge"    => "stellarPopulationMethod.standard.--ageEffective"		                            ,
-	     "noninstantHistoryTimesCount"                               => "stellarPopulationPropertiesMethod.noninstantaneous.--countHistoryTimes"                ,
-	     "mergingTimescaleMultiplier"                                => "satelliteMergingTimescalesMethod--timescaleMultiplier"                                 ,
-	     "stellarPopulationSpectraRecentTimeLimit"                   => "stellarPopulationSpectraPostprocessorMethod.recent.--timeLimit"                        ,
-	     "stellarPopulationSpectraUnescapedTimescale"                => "stellarPopulationSpectraPostprocessorMethod.unescaped.--timescale"                     ,
-	     "galacticStructureRadiusSolverInitialRadiusMethod"          => "galacticStructureRadiiInitialMethod"                                                   ,
-	     "adiabaticContractionGnedinA"                               => "galacticStructureRadiiInitialMethod.gnedin2004.--A"                                    ,
-	     "adiabaticContractionGnedinOmega"                           => "galacticStructureRadiiInitialMethod.gnedin2004.--omega"                                ,
-#	     "darkMatterProfileMethod"                                   => "darkMatterProfileDMOMethod"                                                            ,
-	     "galacticStructureRadiiInitialMethod"                       => "darkMatterProfileMethod"                                                               ,
-	     "virialDensityContrastSphericalTopHatDarkEnergyFixEnergyAt" => "virialDensityContrastMethod.sphericalCollapseMatterDE.--energyFixedAt"                 ,
-	     "outputRedshifts"                                           => "outputTimesMethod.list.--redshifts"                                                    ,
-	     "outputTimes"                                               => "outputTimesMethod.list.--times"                                                        ,
-	     "mergeTargetTimeOffsetMaximumAbsolute"                      => "mergerTreeEvolveTimestepMethod.satellite.--timeOffsetMaximumAbsolute"                  ,
-	     "mergeTargetTimeOffsetMaximumRelative"                      => "mergerTreeEvolveTimestepMethod.satellite.--timeOffsetMaximumRelative"                  ,
-	     "timestepSimpleRelative"                                    => "mergerTreeEvolveTimestepMethod.simple.--timeStepRelative"                              ,
-	     "timestepSimpleAbsolute"                                    => "mergerTreeEvolveTimestepMethod.simple.--timeStepAbsolute"                              ,
-	     "timestepHistoryBegin"                                      => "mergerTreeEvolveTimestepMethod.history.--timeBegin"                                    ,
-	     "timestepHistoryEnd"                                        => "mergerTreeEvolveTimestepMethod.history.--timeEnd"                                      ,
-	     "timestepHistorySteps"                                      => "mergerTreeEvolveTimestepMethod.history.--historyCount"                                 ,
-	     "timestepRecordEvolutionBegin"                              => "mergerTreeEvolveTimestepMethod.recordEvolution.--timeBegin"                            ,
-	     "timestepRecordEvolutionEnd"                                => "mergerTreeEvolveTimestepMethod.recordEvolution.--timeEnd"                              ,
-	     "timestepRecordEvolutionSteps"                              => "mergerTreeEvolveTimestepMethod.recordEvolution.--countSteps"                           ,
-	     "igmPropertiesTimeCountPerDecade"                           => "universeOperatorMethod.intergalacticMediumStateEvolve.--timeCountPerDecade"            ,
-	     "igmPropertiesRedshiftMinimum"                              => "universeOperatorMethod.intergalacticMediumStateEvolve.--redshiftMinimum"               ,
-	     "igmPropertiesRedshiftMaximum"                              => "universeOperatorMethod.intergalacticMediumStateEvolve.--redshiftMaximum"               ,
-	     "darkMatterProfileScaleCorrectForConcentrationDefinition"   => "darkMatterProfileScaleRadiusMethod.concentration.--correctForConcentrationDefinition"  ,
-	     "allTreesExistAtFinalTime"                                  => "mergerTreeEvolverMethod.standard.--allTreesExistAtFinalTime"                           ,
-	     "mergerTreesDumpStructure"                                  => "mergerTreeEvolverMethod.standard.--dumpTreeStructure"                                  ,
-	     "timestepHostRelative"                                      => "mergerTreeEvolverMethod.standard.--timestepHostRelative"                               ,
-	     "timestepHostAbsolute"                                      => "mergerTreeEvolverMethod.standard.--timestepHostAbsolute"                               ,
-	     "mergerTreeOutput"                                          => "mergerTreeOutputterMethod"	                                                            ,
-	     "hotHaloOutflowReturnRate"                                  => "hotHaloOutflowReincorporationMethod.haloDynamicalTime.--multiplier"                    ,
-	     "adiabaticContractionIncludeBaryonGravity"                  => "equilibriumStructureIncludeBaryonGravity"                                              ,
-	     "adiabaticContractionUseFormationHalo"                      => "equilibriumStructureUseFormationHalo"                                                  ,
-	     "adiabaticContractionSolutionTolerance"                     => "equilibriumStructureSolutionTolerance"                                                 ,
-	     "galacticStructureRadiusSolverMethod"                       => "galacticStructureSolverMethod"                                                         ,
-	     "simpleRadiusSolverUseFormationHalo"                        => "galacticStructureRadiusSolverMethod.simple.--useFormationHalo"                         ,
-	     "galacticStructureRadiiFixedFactor"                         => "galacticStructureRadiusSolverMethod.fixed.--factor"                                    ,
-	     "galacticStructureRadiiFixedRadius"                         => "galacticStructureRadiusSolverMethod.fixed.--radiusFixed"                               ,
-	     "equilibriumStructureIncludeBaryonGravity"                  => "galacticStructureRadiusSolverMethod.equilibrium.--includeBaryonGravity"                ,
-	     "equilibriumStructureUseFormationHalo"                      => "galacticStructureRadiusSolverMethod.equilibrium.--useFormationHalo"                    ,
-	     "equilibriumStructureSolutionTolerance"                     => "galacticStructureRadiusSolverMethod.equilibrium.--solutionTolerance"                   ,
-	     "odeToleranceAbsolute"                                      => "mergerTreeNodeEvolverMethod.standard.--odeToleranceAbsolute"                           ,
-	     "odeToleranceRelative"                                      => "mergerTreeNodeEvolverMethod.standard.--odeToleranceRelative"                           ,
-	     "odeJacobianStepSizeRelative"                               => "mergerTreeNodeEvolverMethod.standard.--odeJacobianStepSizeRelative"                    ,
-	     "odeAlgorithm"                                              => "mergerTreeNodeEvolverMethod.standard.--odeAlgorithm"                                   ,
-	     "odeAlgorithmNonJacobian"                                   => "mergerTreeNodeEvolverMethod.standard.--odeAlgorithmNonJacobian"                        ,
-	     "odeLatentIntegratorOrder"                                  => "mergerTreeNodeEvolverMethod.standard.--odeLatentIntegratorOrder"                       ,
-	     "odeLatentIntegratorIntervalsMaximum"                       => "mergerTreeNodeEvolverMethod.standard.--odeLatentIntegratorIntervalsMaximum"            ,
-	     "profileOdeEvolver"                                         => "mergerTreeNodeEvolverMethod.standard.--profileOdeEvolver"                              ,
-	     "timePerTreeMethod"                                         => "metaTreeProcessingTimeMethod"                                                          ,
-	     "timePerTreeFitFileName"                                    => "metaTreeProcessingTimeMethod.file.--fileName"                                          ,
-	     "starFormationHistoriesMethod"                              => "starFormationHistoryMethod"                                                            ,
-	     "starFormationHistoryTimeStep"                              => "starFormationHistoryMethod--timeStep"                                                  ,
-	     "starFormationHistoryFineTimeStep"                          => "starFormationHistoryMethod--timeStepFine"                                              ,
-	     "starFormationHistoryFineTime"                              => "starFormationHistoryMethod--timeFine"                                                  ,
-	     "starFormationHistoryMetallicityBoundaries"                 => "starFormationHistoryMethod.metallicitySplit.--metallicityBoundaries"                   ,
-	     "starFormationHistoryMetallicityCount"                      => "starFormationHistoryMethod.metallicitySplit.--countMetallicities"                      ,
-	     "starFormationHistoryMetallicityMinimum"                    => "starFormationHistoryMethod.metallicitySplit.--metallicityMinimum"                      ,
-	     "starFormationHistoryMetallicityMaximum"                    => "starFormationHistoryMethod.metallicitySplit.--metallicityMaximum"
-	 },
-	 values        =>
-         {
-	     odeAlgorithm =>
-	     {
-		 "Runge-Kutta-Cash-Karp"      => "rungeKuttaCashKarp"     ,
-		 "Runge-Kutta-Secon-Order"    => "rungeKuttaSeconOrder"   ,
-		 "Runge-Kutta"                => "rungeKutta"             ,
-		 "Runge-Kutta-Fehlberg"       => "rungeKuttaFehlberg"     ,
-		 "Runge-Kutta-Prince-Dormand" => "rungeKuttaPrinceDormand",
-		 "multistepAdams"             => "multistepAdams"         ,
-		 "Bulirsch-Stoer"             => "bulirschStoer"          ,
-		 "BDF"                        => "bdf"
-	     },
-	     odeAlgorithmNonJacobian =>
-	     {
-		 "Runge-Kutta-Cash-Karp"      => "rungeKuttaCashKarp"     ,
-		 "Runge-Kutta-Secon-Order"    => "rungeKuttaSeconOrder"   ,
-		 "Runge-Kutta"                => "rungeKutta"             ,
-		 "Runge-Kutta-Fehlberg"       => "rungeKuttaFehlberg"     ,
-		 "Runge-Kutta-Prince-Dormand" => "rungeKuttaPrinceDormand",
-		 "multistepAdams"             => "multistepAdams"
-	     },
-	     atomicCollisionalIonizationMethod                =>
-	     {
-		 "Verner"            => "verner1996"
-	     },
-	     collisionalExcitationMethod                      => 
-	     {
-		 "ScholzWalters91  " => "scholzWalters91"
-	     },
-	     blackHoleBinaryInitialRadiiMethod                =>
-	     {
-		 "Volonteri2003"     => "volonteri2003"
-	     },    
-	     blackHoleBinarySeparationGrowthRateMethod        =>
-	     {
-		 "null"              => "zero"
-	     },
-	     blackHoleBinaryMergersMethod                     =>
-	     {
-		 "Rezzolla2008"      => "rezzolla2008"
-	     },
-	     mergerTreeConstructorMethod                      =>
-	     {
-		 "stateRestore"      => "stateRestored"
-	     },
-	     mergerTreeOutput =>
-	     {
-		 ""                  => "standard"
-	     },
-	     stellarSpectraDustAttenuationMethod              =>
-	     {
-		 "Calzetti2000"      => "calzetti2000"    ,
-		 "Cardelli1989"      => "cardelli1989"    ,
-		 "CharlotFall2000"   => "charlotFall2000" ,
-		 "Gordon2003"        => "gordon2003"      ,
-		 "WittGordon2000"    => "wittGorden2000"  ,
-		 "PrevotBouchet"     => "prevotBouchet"   ,
-		 "null"              => "zero"
-	     },
-	     supernovaeIaMethod                               =>
-	     {
-		 "Nagashima"         => "nagashima2005"
-	     },
-	     supernovaePopulationIIIMethod                    =>
-	     {
-		 "Heger-Woosley2002" => "hegerWoosley2002"
-	     },
-	     stellarWindsMethod                               =>
-	     {
-		 "Leitherer1992"     => "leitherer1992"
-	     },
-	     satelliteMergingMassMovementsMethod              =>
-	     {
-		 "Baugh2005"         => "baugh2005"
-	     },
-	     satelliteMergingRemnantSizeMethod                =>
-	     {
-		 "Cole2000"          => "cole2000"        ,
-		 "Covington2008"     => "covington2008"
-	     },
-	     galacticStructureRadiusSolverMethod              =>
-	     {
-		 "adiabatic"         => "equilibrium"
-	     },
-	     galacticStructureRadiusSolverInitialRadiusMethod =>
-	     {
-		 "adiabatic"         => "gnedin2004"
-	     },
-	     galacticStructureRadiiInitialMethod =>
-	     {
-		 "gnedin2004"        => "adiabaticGnedin2004",
-		 "static"            => "darkMatterOnly"
-	     },
-	     linearGrowthMethod                               =>
-	     {
-		 "simple"            => "collisionlessMatter"
-	     },
-		     criticalOverdensityMethod                =>
-	     {
-		 "sphericalCollapseMatterLambda" => "sphericalCollapseClsnlssMttrCsmlgclCnstnt",
-		 "sphericalCollapseMatterDE"     => "sphericalCollapseCllsnlssMttrDrkEnrgy"
-	     },
-	     virialDensityContrastMethod                      =>
-	     {
-		 "sphericalCollapseMatterLambda" => "sphericalCollapseClsnlssMttrCsmlgclCnstnt",
-		 "sphericalCollapseMatterDE"     => "sphericalCollapseCllsnlssMttrDrkEnrgy"
-	     },
-	     imfSelectionFixed                                =>
-	     {		
-		 "Baugh2005TopHeavy" => 
-		 {
-		     new   =>
-			 [
-			  {
-			      name  => "initialMassFunctionMethod",
-			      value => "baugh2005TopHeavy"
-			  }
-			 ]
-		 },
-		 "BPASS"             => 
-		 {
-		     new   =>
-			 [
-			  {
-			      name  => "initialMassFunctionMethod",
-			      value => "BPASS"
-			  }
-			 ]
-		 },
-		 "Chabrier"          => 
-		 {
-		     new   =>
-			 [
-			  {
-			      name  => "initialMassFunctionMethod",
-			      value => "chabrier2001"
-			  }
-			 ]
-		 },
-		 "Kennicutt"         => 
-		 {
-		     new   =>
-			 [
-			  {
-			      name  => "initialMassFunctionMethod",
-			      value => "kennicutt1983"
-			  }
-			 ]
-		 },
-		 "Kroupa"            => 
-		 {
-		     new   =>
-			 [
-			  {
-			      name  => "initialMassFunctionMethod",
-			      value => "kroupa2001"
-			  }
-			 ]
-		 },
-		 "MillerScalo"       => 
-		 {
-		     new   =>
-			 [
-			  {
-			      name  => "initialMassFunctionMethod",
-			      value => "millerScalo1979"
-			  }
-			 ]
-		 },
-		 "PiecewisePowerLaw" => 
-		 {
-		     new   =>
-			 [
-			  {
-			      name  => "initialMassFunctionMethod",
-			      value => "piecewisePowerLaw"
-			  }
-			 ]
-		 },
-		 "Salpeter"          => 
-		 {
-		     new   =>
-			 [
-			  {
-			      name  => "initialMassFunctionMethod",
-			      value => "salpeter1955"
-			  }
-			 ]
-		 },
-		 "Scalo"             => 
-		 {
-		     new   =>
-			 [
-			  {
-			      name  => "initialMassFunctionMethod",
-			      value => "scalo1986"
-			  }
-			 ]
-		 },
-	     },
-	 }	     
-     }
-    );
-     
-# Define known defaults.
-my %knownDefaults =
-    (
-     "cosmologyParametersMethod"            => "simple"          ,
-     "mergerTreeBuilderMethod"              => "cole2000"        ,
-     "cosmologicalMassVarianceMethod"       => "filteredPower"   ,
-     "cosmologyParametersMethod"            => "simple"          ,
-     "darkMatterProfileConcentrationMethod" => "gao2008"         ,
-     "powerSpectrumPrimordialMethod"        => "powerLaw"        ,
-     "haloMassFunctionMethod"               => "tinker2008"      ,
-     "mergerTreeOutput"                     => "true"            ,
-     "satelliteMergingTimescalesMethod"     => "jiang2008"       ,
-     "starFormationHistoryMethod"           => "metallicitySplit"
-  );
-
 # Parse the input file.
 my $parser     = XML::LibXML->new();
 my $input      = $parser->parse_file($inputFileName);
+my $root;
 my @parameterSets;
 if ( $input->findnodes('parameters') ) {
     @parameterSets = $input->findnodes('parameters');
+    $root          = $parameterSets[0];
 } elsif ( $input->findnodes('parameterGrid') ) {
     my $parameterGrid = $input->findnodes('parameterGrid')->[0];
+    $root             = $parameterGrid;
     if ( $parameterGrid->findnodes('parameters') ) {
 	@parameterSets = $parameterGrid->findnodes('parameters');
     } else {
@@ -877,6 +47,138 @@ if ( $input->findnodes('parameters') ) {
 } else {
     die('can not find parameters')
 }
+
+# Find the ancestry of the given file. We find the hash at which is was last modified, the current HEAD hash, and then find the
+# ancestry between them. We will then check each hash in the ancestry for parameter migrations.
+## Check if the file is under version control.
+&System::Redirect::tofile("git ls-files --error-unmatch ".$inputFileName,"/dev/null");
+my $isInGit = $? == 0;
+## Determine ancestry.
+## Find the current hash.
+my $hashHead;
+{
+    open(my $git,"git rev-parse HEAD|");
+    $hashHead = <$git>;
+    chomp($hashHead);
+}
+## Find last modified hash.
+my $hashLastModified;
+if ( $isInGit ) {
+    # File is in git index, use git to determine the last revision at which it was modified.
+    ## Find the hash at which the file was last modified.
+    {
+	open(my $git,"git log -n 1 --pretty=format:\%H -- ".$inputFileName."|");
+	$hashLastModified = <$git>;
+	chomp($hashLastModified);
+    }
+} else {
+    # Look for a last modification hash.
+    my $elementLastModified = $input->findnodes('lastModified')->[0];
+    if ( defined($elementLastModified) ) {
+	# A last modified element exists, extract the hash, and update.
+	$hashLastModified = $elementLastModified->textContent();
+	$elementLastModified->firstChild()->setData($hashHead);
+    } else {
+	# No last modified element exists. Set the last modified hash that immediately prior to the earliest one that this script
+	# is aware of, and add a last modified element.
+	$hashLastModified = "6eab8997cd73cb0a474228ade542d133890ad138^";
+	my $elementLastModifiedNode = $input->createElement("lastModified");
+	my $newLastModified         = $input->createTextNode($hashHead);
+	my $newBreak                = $input->createTextNode("\n  "   );
+	$elementLastModifiedNode->addChild($newLastModified);
+	$root->insertBefore($elementLastModifiedNode,$root->firstChild());
+	$root->insertBefore($newBreak               ,$root->firstChild());
+    }
+}
+## Find the ancestry.
+my @ancestry;
+{
+    open(my $git,"git rev-list --ancestry-path ".$hashLastModified."..".$hashHead."|");
+    while ( my $hash = <$git> ) {
+	chomp($hash);
+	push(@ancestry,$hash);
+    }
+}
+
+# Define translations.
+## These enumerate the parameter changes that occurred at each revision hash.
+my %translations =
+    (
+     "6eab8997cd73cb0a474228ade542d133890ad138" => {
+	 names => {
+	     "bondiHoyleAccretionEnhancementSpheroid"               => "componentBlackHole--bondiHoyleAccretionEnhancementSpheroid"     ,
+	     "bondiHoyleAccretionEnhancementHotHalo"                => "componentBlackHole--bondiHoyleAccretionEnhancementHotHalo"      ,
+	     "bondiHoyleAccretionHotModeOnly"                       => "componentBlackHole--bondiHoyleAccretionHotModeOnly"             ,
+	     "bondiHoyleAccretionTemperatureSpheroid"               => "componentBlackHole--bondiHoyleAccretionTemperatureSpheroid"     ,
+	     "blackHoleSeedMass"                                    => "componentBlackHole--massSeed"                                   ,
+             "tripleBlackHoleInteraction"                           => "componentBlackHole--tripleInteraction"                          ,
+	     "blackHoleToSpheroidStellarGrowthRatio"                => "componentBlackHole--growthRatioToStellarSpheroid"               ,
+	     "blackHoleHeatsHotHalo"                                => "componentBlackHole--heatsHotHalo"                               ,
+	     "blackHoleHeatingEfficiency"                           => "componentBlackHole--efficiencyHeating"                          ,
+	     "blackHoleRadioModeFeedbackEfficiency"                 => "componentBlackHole--efficiencyRadioMode"                        ,
+	     "blackHoleWindEfficiency"                              => "componentBlackHole--efficiencyWind"                             ,
+	     "blackHoleWindEfficiencyScalesWithRadiativeEfficiency" => "componentBlackHole--efficiencyWindScalesWithEfficiencyRadiative",
+	     "blackHoleOutputAccretion"                             => "componentBlackHole--outputAccretion"                            ,
+	     "blackHoleOutputData"                                  => "componentBlackHole--outputData"                                 ,
+	     "blackHoleOutputMergers"                               => "componentBlackHole--outputMergers"                              ,
+	     "spheroidEnergeticOutflowMassRate"                     => "componentSpheroid--efficiencyEnergeticOutflow"                  ,
+	     "spheroidMetallicityTolerance"                         => "componentSpheroid--toleranceRelativeMetallicity"                ,
+	     "spheroidMassToleranceAbsolute"                        => "componentSpheroid--toleranceAbsoluteMass"                       ,
+	     "spheroidLuminositiesStellarInactive"                  => "componentSpheroid--inactiveLuminositiesStellar"                 ,
+	     "spheroidAngularMomentumAtScaleRadius"                 => "componentSpheroid--ratioAngularMomentumScaleRadius"             ,
+	     "spheroidVerySimpleMassScaleAbsolute"                  => "componentSpheroid--scaleAbsoluteMass"                           ,
+	     "diskMassToleranceAbsolute"                            => "componentDisk--toleranceAbsoluteMass"                           ,
+	     "diskMetallicityTolerance"                             => "componentDisk--toleranceRelativeMetallicity"                    ,
+	     "diskStructureSolverRadius"                            => "componentDisk--radiusStructureSolver"                           ,
+	     "diskRadiusSolverCole2000Method"                       => "componentDisk--structureSolverUseCole2000Method"                ,
+	     "diskLuminositiesStellarInactive"                      => "componentDisk--inactiveLuminositiesStellar"                     ,
+	     "diskVerySimpleMassScaleAbsolute"                      => "componentDisk--scaleAbsoluteMass"                               ,
+	     "diskVerySimpleTrackAbundances"                        => "componentDisk--trackAbundances"                                 ,
+	     "diskVerySimpleTrackLuminosities"                      => "componentDisk--trackLuminosities"                               ,
+	     "diskVerySimpleUseAnalyticSolver"                      => "componentDisk--useAnalyticSolver"                               ,
+	     "diskVerySimpleAnalyticSolverPruneMassGas"             => "componentDisk--pruneMassGas"                                    ,
+	     "diskVerySimpleAnalyticSolverPruneMassStars"           => "componentDisk--pruneMassStars"                                  ,
+	     "hotHaloOutflowToColdMode"                             => "componentHotHalo--outflowToColdMode"                            ,
+	     "hotHaloVerySimpleDelayedMassScaleRelative"            => "componentHotHalo--scaleRelativeMass"                            ,
+	     "starveSatellites"                                     => "componentHotHalo--starveSatellites"                             ,
+	     "starveSatellitesOutflowed"                            => "componentHotHalo--starveSatellitesOutflowed"                    ,
+	     "hotHaloTrackStrippedGas"                              => "componentHotHalo--trackStrippedGas"                             ,
+	     "hotHaloOutflowReturnOnFormation"                      => "componentHotHalo--outflowReturnOnFormation"                     ,
+	     "hotHaloAngularMomentumAlwaysGrows"                    => "componentHotHalo--angularMomentumAlwaysGrows"                   ,
+	     "hotHaloCoolingFromNode"                               => "componentHotHalo--coolingFromNode"                              ,
+	     "hotHaloOutflowStrippingEfficiency"                    => "componentHotHalo--efficiencyStrippingOutflow"                   ,
+	     "hotHaloExpulsionRateMaximum"                          => "componentHotHalo--rateMaximumExpulsion"                         ,
+	     "hotHaloAngularMomentumLossFraction"                   => "componentHotHalo--fractionLossAngularMomentum"                  ,
+	     "hotHaloNodeMergerLimitBaryonFraction"                 => "componentHotHalo--fractionBaryonLimitInNodeMerger"              ,
+	     "satelliteBoundMassIsInactive"                         => "componentSatellite--inactiveBoundMass"                          ,
+	     "satelliteBoundMassInitializeType"                     => "componentSatellite--initializationTypeMassBound"                ,
+	     "satelliteMaximumRadiusOverVirialRadius"               => "componentSatellite--radiusMaximumOverRadiusVirial"              ,
+	     "satelliteDensityContrast"                             => "componentSatellite--densityContrastMassBound"                   ,
+	 },
+	 values => {
+	     "spheroidVerySimpleTrackAbundances"                    => {}                                                               ,
+	     "spheroidVerySimpleTrackLuminosities"                  => {}                                                               ,
+	 }
+     }
+    );
+     
+# Define known defaults.
+my %knownDefaults =
+    (
+     "componentBlackHole"             => "standard"        ,
+     "componentDisk"                  => "standard"        ,
+     "componentHotHalo"               => "standard"        ,
+     "componentSpheroid"              => "standard"        ,
+     "cosmologyParameters"            => "simple"          ,
+     "mergerTreeBuilder"              => "cole2000"        ,
+     "cosmologicalMassVariance"       => "filteredPower"   ,
+     "cosmologyParameters"            => "simple"          ,
+     "darkMatterProfileConcentration" => "gao2008"         ,
+     "powerSpectrumPrimordial"        => "powerLaw"        ,
+     "haloMassFunction"               => "tinker2008"      ,
+     "satelliteMergingTimescales"     => "jiang2008"       ,
+     "starFormationHistory"           => "metallicitySplit"
+  );
 
 # Write starting message.
 print "Translating file: ".$inputFileName."\n";
@@ -904,15 +206,9 @@ sub Translate {
     my $rootLevel     = shift();
     my $inputFileName = shift();
 
-    # Set initial input/output versions.
-    my $inputVersion  = $options{'inputVersion' };
-    my $outputVersion = $options{'outputVersion'};
-
     # Check for a version element.
     my $version    = $parameters->findnodes('version')->[0];
     if ( defined($version) ) {
-	$inputVersion = $version->textContent()
-	    unless ( exists($optionsDefined{'inputVersion'}) );
 	$version->firstChild()->setData("0.9.4");
     } elsif ( $rootLevel ) {
 	my $versionNode = $input->createElement ("version");
@@ -924,33 +220,12 @@ sub Translate {
     }
     
     # Determine output format version.
-    unless ( exists($options{'outputFormatVersion'}) ) {
-	$options{'outputFormatVersion'} = 1;
-	my @outputVersionSubstrings = split(/\./,$outputVersion);
-	$options{'outputFormatVersion'} = 2
-	    if (
-		$outputVersionSubstrings[0] >   0
-		||
-		(
-		 $outputVersionSubstrings[0] == 0
-		 &&    
-		 $outputVersionSubstrings[1] >  9
-		)
-		||
-		(
-		 $outputVersionSubstrings[0] == 0
-		 &&    
-		 $outputVersionSubstrings[1] == 9
-		 &&    
-		 $outputVersionSubstrings[2] >  3
-		)
-	    );
-    }
+    $options{'outputFormatVersion'} = 2
+	unless ( exists($options{'outputFormatVersion'}) );
     
     # Check for a format version element.
     my $formatVersion = $parameters->findnodes('formatVersion')->[0];
     if ( defined($formatVersion) ) {
-	$options{'inputFormatVersion'} = $formatVersion->textContent();
 	$formatVersion->firstChild()->setData($options{'outputFormatVersion'});
     } elsif ( $rootLevel ) {
 	my $formatVersionNode = $input->createElement ("formatVersion"                );
@@ -968,39 +243,25 @@ sub Translate {
 	    unless ( $? == 0 );
     }
     
-    # Iterate over translations.
-    foreach my $translation ( @translations ) {
-	# Skip irrelevant translation.
+    # Iterate over the revision ancestry.
+    foreach my $hashAncestor ( reverse(@ancestry) ) {
 	next
-	    unless ( $translation->{'inputVersion'} eq $inputVersion );
+	    unless ( exists($translations{$hashAncestor}) );
+	my $translation = $translations{$hashAncestor};
 	# Report.
-	print "Translating from v".$translation->{'inputVersion'}." to v".$translation->{'outputVersion'}."\n";
-	$inputVersion = $translation->{'outputVersion'};
+	print "Updating to revision ".$hashAncestor."\n";
 	# Find parameter nodes.
-	my @parameterNodes;
-	if ( $options{'inputFormatVersion'} <= 1 ) {
-	    @parameterNodes = $parameters->findnodes('parameter');
-	} else {
-	    @parameterNodes = map {( $_->exists('value') || $_->hasAttribute('value') ) ? $_ : ()} $parameters->findnodes('*');
-	}
+	my @parameterNodes = map {( $_->exists('value') || $_->hasAttribute('value') ) ? $_ : ()} $parameters->findnodes('*');
 	# Apply translations.
 	for my $parameter ( @parameterNodes ) {
 	    # Get name and value text elements.
-	    my $name;
-	    my $nameText;
+	    my $name     = $parameter;
+	    my $nameText = $name->nodeName();
 	    my @allValues;
-	    if ( $options{'inputFormatVersion'} <= 1 ) {
-		$name      = $parameter->findnodes('name' )->[0]->firstChild();
-		$nameText  = $name->textContent();
+	    if ( $parameter->exists('value') ) {
 		@allValues = $parameter->findnodes('value');
 	    } else {
-		$name     = $parameter;
-		$nameText = $name->nodeName();
-		if ( $parameter->exists('value') ) {
-		    @allValues = $parameter->findnodes('value');
-		} else {
-		    @allValues = $parameter;
-		}
+		@allValues = $parameter;
 	    }
 	    # Ignore parameters with no value - sometimes this is used as a placeholder.
 	    next
@@ -1008,20 +269,16 @@ sub Translate {
 	    # Translate names.
 	    if ( exists($translation->{'names'}->{$nameText}) ) {
 		print "   translate parameter name: ".$nameText." --> ".$translation->{'names'}->{$nameText}."\n";
-		if ( $options{'inputFormatVersion'} <= 1 ) {
-		    $name->setData    ($translation->{'names'}->{$nameText});
-		} else {
-		    my $leafName = $translation->{'names'}->{$nameText};
-		    my $valueTo;
-		    unless ( $translation->{'names'}->{$nameText} =~ m/\-\-/ ) {
-			if ( $leafName =~ m/(.*)\.(.*)\./ ) {
-			    $valueTo    = $2;
-			}
+		my $leafName = $translation->{'names'}->{$nameText};
+		my $valueTo;
+		unless ( $translation->{'names'}->{$nameText} =~ m/\-\-/ ) {
+		    if ( $leafName =~ m/(.*)\.(.*)\./ ) {
+			$valueTo    = $2;
 		    }
-		    $name->setNodeName($leafName);
-		    $name->setAttribute('value',$valueTo)
-			if ( $valueTo );
 		}
+		$name->setNodeName($leafName);
+		$name->setAttribute('value',$valueTo)
+		    if ( $valueTo );
 	    }
 	    # Translate values.
 	    foreach my $value ( @allValues ) {
@@ -1035,13 +292,7 @@ sub Translate {
 		    }
 		    $valuesText =~ s/^\s*//;
 		    $valuesText =~ s/\s*$//;
-		    my @values;
-		    if ( $translation->{'inputVersion'} eq "0.9.0" ) {
-			# For v0.9.0, we cannot split as method names were permitted to contain spaces.
-			push(@values,$valuesText);
-		    } else {
-			@values = split(/\s+/,$valuesText);
-		    }
+		    my @values = split(/\s+/,$valuesText);
 		    foreach my $thisValue ( @values ) {
 			if ( exists($translation->{'values'}->{$nameText}->{$thisValue}) ) {
 			    print "   translate parameter value: ".$nameText."\n";
@@ -1057,27 +308,10 @@ sub Translate {
 				if ( exists($newValue->{'new'}) ) {
 				    foreach my $newParameter ( &List::ExtraUtils::as_array($newValue->{'new'}) ) {
 					print "      add parameter: ".$newParameter->{'name'}." = ".$newParameter->{'value'}."\n";
-					if ( $options{'inputFormatVersion'} <= 1 ) {
-					    my $parameterNode = $input->createElement (                "parameter" );
-					    my $name          = $input->createElement (                "name"      );
-					    my $value         = $input->createElement (                "value"     );
-					    my $nameText      = $input->createTextNode($newParameter->{'name'     });
-					    my $valueText     = $input->createTextNode($newParameter->{'value'    });
-					    $name ->addChild($nameText );
-					    $value->addChild($valueText);
-					    $parameterNode->addChild($input->createTextNode("\n    "));
-					    $parameterNode->addChild($name  );
-					    $parameterNode->addChild($input->createTextNode("\n    "));
-					    $parameterNode->addChild($value );
-					    $parameterNode->addChild($input->createTextNode("\n  "));
-					    $parameters->insertAfter($parameterNode,$parameter);
-					    $parameters->insertAfter($input->createTextNode("\n  "),$parameter);
-					} else {
-					    my $parameterNode = $input->createElement($newParameter->{'name'});
-					    $parameterNode->setAttribute('value',$newParameter->{'value'});
-					    $parameters->insertAfter($parameterNode,$parameter);
-					    $parameters->insertAfter($input->createTextNode("\n  "),$parameter);
-					}
+					my $parameterNode = $input->createElement($newParameter->{'name'});
+					$parameterNode->setAttribute('value',$newParameter->{'value'});
+					$parameters->insertAfter($parameterNode,$parameter);
+					$parameters->insertAfter($input->createTextNode("\n  "),$parameter);
 				    }
 				}
 			    } else {
@@ -1102,50 +336,8 @@ sub Translate {
 		}
 	    }
 	}
-	# Finished if output version is reached.
-	last
-	    if ( $outputVersion eq $inputVersion );
     }
-    
-    # Handle transition from old to new.
-    if ( $options{'outputFormatVersion'} >= 2 && $options{'inputFormatVersion'} < 2) {
-	print "Converting to new format (v2)...\n";
-	for my $parameter ( $parameters->findnodes('parameter') ) {
-	    # Get name and value text elements.
-	    my $name   = $parameter->findnodes('name' )->[0]->firstChild();
-	    my @values = $parameter->findnodes('value');
-	    # Create the new node.
-	    my $parameterNode = $input->createElement($name->textContent());
-	    # Determine if we can use a value attribute or not.
-	    my $useAttribute = 1;
-	    $useAttribute = 0
-		if ( scalar(@values) > 1 );
-	    foreach my $valueNode ( @values ) {
-		$useAttribute = 0
-		    if ( $valueNode->findnodes('*') );
-	    }
-	    # Add values.
-	    foreach my $valueNode ( @values ) {
-		my $value  = $valueNode->firstChild();
-		# Find any subparameters.
-		my @subParameters = $valueNode->findnodes('*');
-		if ( $useAttribute ) {
-		    $parameterNode->setAttribute('value',$value->textContent());
-		} else {
-		    &Translate($valueNode,0,$inputFileName)
-			if ( @subParameters );
-		    $parameterNode->addChild($input->createTextNode("\n"));
-		    $parameterNode->addChild($valueNode);
-		}
-	    }
-	    $parameterNode->addChild($input->createTextNode("\n"))
-		unless ( $useAttribute );
-	    # Insert the new node.
-	    $parameters->insertAfter($parameterNode,$parameter);
-	    # Remove the old parameter.
-	    $parameters->removeChild($parameter);
-	}
-    }
+
     # Put subparameters into their host parameter.
     for my $parameter ( $parameters->getChildrenByTagName("*") ) {
 	if ( $parameter->nodeName() =~ m/(.+)\-\-(.+)/ ) {
