@@ -77,6 +77,7 @@ CODE
 	$code::defaultImplementation = $code::class->{'defaultImplementation'};
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
     ! Insert a function call to get the parameter controlling the choice of implementation for this class.
+    if (.not.parameters_%isPresent('component{ucfirst($class->{'name'})}')) call parameters_%addParameter('component{ucfirst($class->{'name'})}','{$defaultImplementation}')
     !![
     <inputParameter>
       <name>component{ucfirst($class->{'name'})}</name>

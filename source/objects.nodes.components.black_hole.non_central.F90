@@ -94,11 +94,7 @@ contains
     type(inputParameters)                :: subParameters
 
     ! Find our parameters.
-    if (parameters%isPresent('componentBlackHole')) then
-       subParameters=parameters%subParameters('componentBlackHole')
-    else
-       subParameters=inputParameters(parameters)
-    end if
+    subParameters=parameters%subParameters('componentBlackHole')
     !![
     <inputParameter>
       <name>tripleInteraction</name>
@@ -127,11 +123,7 @@ contains
 
     if (defaultBlackHoleComponent%noncentralIsActive()) then
        ! Find our parameters.
-       if (parameters%isPresent('componentBlackHole')) then
-          subParameters=parameters%subParameters('componentBlackHole')
-       else
-          subParameters=inputParameters(parameters)
-       end if
+       subParameters=parameters%subParameters('componentBlackHole')
        !![
        <objectBuilder class="darkMatterHaloScale"                 name="darkMatterHaloScale_"                 source="subParameters"/>
        <objectBuilder class="blackHoleBinaryRecoil"               name="blackHoleBinaryRecoil_"               source="subParameters"/>

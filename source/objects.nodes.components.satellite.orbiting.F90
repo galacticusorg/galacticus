@@ -162,11 +162,7 @@ contains
     ! Initialize the module if necessary.
     if (defaultSatelliteComponent%orbitingIsActive()) then
        ! Find our parameters.
-       if (parameters%isPresent('componentSatellite')) then
-          subParameters=parameters%subParameters('componentSatellite')
-       else
-          subParameters=inputParameters(parameters)
-       end if
+       subParameters=parameters%subParameters('componentSatellite')
        !![
        <inputParameter>
          <name>initializationTypeMassBound</name>
@@ -229,11 +225,7 @@ contains
 
     if (defaultSatelliteComponent%orbitingIsActive()) then
        ! Find our parameters.
-       if (parameters%isPresent('componentSatellite')) then
-          subParameters=parameters%subParameters('componentSatellite')
-       else
-          subParameters=inputParameters(parameters)
-       end if
+       subParameters=parameters%subParameters('componentSatellite')
        !![
        <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="subParameters"/>
        <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"   source="subParameters"/>

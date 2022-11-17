@@ -94,11 +94,7 @@ contains
 
     if (defaultDiskComponent%verySimpleSizeIsActive()) then
        ! Find our parameters.
-       if (parameters%isPresent('componentDisk')) then
-          subParameters=parameters%subParameters('componentDisk')
-       else
-          subParameters=inputParameters(parameters)
-       end if
+       subParameters=parameters%subParameters('componentDisk')
        ! Read parameters controlling the physical implementation.
        !![
        <inputParameter>
@@ -132,11 +128,7 @@ contains
 
     if (defaultDiskComponent%verySimpleSizeIsActive()) then
        ! Find our parameters.
-       if (parameters%isPresent('componentDisk')) then
-          subParameters=parameters%subParameters('componentDisk')
-       else
-          subParameters=inputParameters(parameters)
-       end if
+       subParameters=parameters%subParameters('componentDisk')
        !![
        <objectBuilder class="massDistribution" parameterName="diskMassDistribution" name="diskMassDistribution" source="subParameters" threadPrivate="yes">
         <default>

@@ -317,11 +317,7 @@ contains
        chemicalsCount =Chemicals_Property_Count ()
 
        ! Find our parameters.
-       if (parameters%isPresent('componentHotHalo')) then
-          subParameters=parameters%subParameters('componentHotHalo')
-       else
-          subParameters=inputParameters(parameters)
-       end if
+       subParameters=parameters%subParameters('componentHotHalo')
        ! Determine whether satellite nodes will be starved of gas.
        !![
        <inputParameter>
@@ -488,11 +484,7 @@ contains
     ! Check if this implementation is selected. Define the radiation component to include both the CMB and the intergalactic background if it is.
     if (defaultHotHaloComponent%standardIsActive()) then
        ! Find our parameters.
-       if (parameters%isPresent('componentHotHalo')) then
-          subParameters=parameters%subParameters('componentHotHalo')
-       else
-          subParameters=inputParameters(parameters)
-       end if
+       subParameters=parameters%subParameters('componentHotHalo')
        !![
        <objectBuilder class="cosmologyParameters"            name="cosmologyParameters_"            source="subParameters"/>
        <objectBuilder class="cosmologyFunctions"             name="cosmologyFunctions_"             source="subParameters"/>

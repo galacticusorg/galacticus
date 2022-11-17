@@ -95,11 +95,7 @@ contains
        call hotHalo%      outflowingMassRateFunction(Node_Component_Hot_Halo_VS_Delayed_Outflowing_Mass_Rate      )
        call hotHalo%outflowingAbundancesRateFunction(Node_Component_Hot_Halo_VS_Delayed_Outflowing_Abundances_Rate)
        ! Find our parameters.
-       if (parameters%isPresent('componentHotHalo')) then
-          subParameters=parameters%subParameters('componentHotHalo')
-       else
-          subParameters=inputParameters(parameters)
-       end if
+       subParameters=parameters%subParameters('componentHotHalo')
        ! Read parameters controlling the physical implementation.
        !![
        <inputParameter>
@@ -134,11 +130,7 @@ contains
 
     if (defaultHotHaloComponent%verySimpleDelayedIsActive()) then
        ! Find our parameters.
-       if (parameters%isPresent('componentHotHalo')) then
-          subParameters=parameters%subParameters('componentHotHalo')
-       else
-          subParameters=inputParameters(parameters)
-       end if
+       subParameters=parameters%subParameters('componentHotHalo')
        !![
        <objectBuilder class="hotHaloOutflowReincorporation" name="hotHaloOutflowReincorporation_" source="subParameters"/>
        !!]

@@ -106,11 +106,7 @@ contains
     ! Bind deferred functions.
     call blackHoleSimple%massSeedFunction(Node_Component_Black_Hole_Simple_Seed_Mass)
     ! Find our parameters.
-    if (parameters%isPresent('componentBlackHole')) then
-       subParameters=parameters%subParameters('componentBlackHole')
-    else
-       subParameters=inputParameters(parameters)
-    end if
+    subParameters=parameters%subParameters('componentBlackHole')
     ! Get the seed mass
     !![
     <inputParameter>
@@ -190,11 +186,7 @@ contains
 
     if (defaultBlackHoleComponent%simpleIsActive()) then
        ! Find our parameters.
-       if (parameters%isPresent('componentBlackHole')) then
-          subParameters=parameters%subParameters('componentBlackHole')
-       else
-          subParameters=inputParameters(parameters)
-       end if
+       subParameters=parameters%subParameters('componentBlackHole')
        !![
        <objectBuilder class="darkMatterHaloScale"        name="darkMatterHaloScale_"        source="subParameters"/>
        <objectBuilder class="coolingRadius"              name="coolingRadius_"              source="subParameters"/>

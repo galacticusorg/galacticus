@@ -122,11 +122,7 @@ contains
        ! Get numbers of abundance properties.
        abundancesCount=Abundances_Property_Count()
        ! Find our parameters.
-       if (parameters%isPresent('componentHotHalo')) then
-          subParameters=parameters%subParameters('componentHotHalo')
-       else
-          subParameters=inputParameters(parameters)
-       end if
+       subParameters=parameters%subParameters('componentHotHalo')
        ! Determine whether outflows go to the cold mode.
        !![
        <inputParameter>
@@ -166,11 +162,7 @@ contains
 
     if (defaultHotHaloComponent%coldModeIsActive()) then
        ! Find our parameters.
-       if (parameters%isPresent('componentHotHalo')) then
-          subParameters=parameters%subParameters('componentHotHalo')
-       else
-          subParameters=inputParameters(parameters)
-       end if
+       subParameters=parameters%subParameters('componentHotHalo')
        !![
        <objectBuilder class="cosmologyParameters"           name="cosmologyParameters_"           source="subParameters"/>
        <objectBuilder class="darkMatterHaloScale"           name="darkMatterHaloScale_"           source="subParameters"/>

@@ -223,11 +223,7 @@ contains
        call spheroidStandardComponent%                   createFunctionSet(Node_Component_Spheroid_Standard_Initializor                )
 
        ! Find our parameters.
-       if (parameters%isPresent('componentSpheroid')) then
-          subParameters=parameters%subParameters('componentSpheroid')
-       else
-          subParameters=inputParameters(parameters)
-       end if
+       subParameters=parameters%subParameters('componentSpheroid')
        ! Read parameters controlling the physical implementation.
        !![
        <inputParameter>
@@ -290,11 +286,7 @@ contains
        dependencies(2)=dependencyRegEx(dependencyDirectionAfter,'^nodeComponentDisk')
        call satelliteMergerEvent%attach(defaultSpheroidComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentSpheroidStandard',dependencies=dependencies)
        ! Find our parameters.
-       if (parameters%isPresent('componentSpheroid')) then
-          subParameters=parameters%subParameters('componentSpheroid')
-       else
-          subParameters=inputParameters(parameters)
-       end if
+       subParameters=parameters%subParameters('componentSpheroid')
        !![
        <objectBuilder class="stellarPopulationProperties"                                          name="stellarPopulationProperties_" source="subParameters"                    />
        <objectBuilder class="darkMatterHaloScale"                                                  name="darkMatterHaloScale_"         source="subParameters"                    />

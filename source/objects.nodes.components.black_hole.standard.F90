@@ -172,11 +172,7 @@ contains
     ! Bind deferred functions.
     call blackHoleStandardComponent%massSeedFunction(Node_Component_Black_Hole_Standard_Seed_Mass)
     ! Find our parameters.
-    if (parameters%isPresent('componentBlackHole')) then
-       subParameters=parameters%subParameters('componentBlackHole')
-    else
-       subParameters=inputParameters(parameters)
-    end if
+    subParameters=parameters%subParameters('componentBlackHole')
     ! Get the seed mass
     !![
     <inputParameter>
@@ -308,11 +304,7 @@ contains
        dependencies(1)=dependencyRegEx(dependencyDirectionBefore,'^remnantStructure:')
        call satelliteMergerEvent%attach(defaultBlackHoleComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentBlackHoleStandard',dependencies=dependencies)
        ! Find our parameters.
-       if (parameters%isPresent('componentBlackHole')) then
-          subParameters=parameters%subParameters('componentBlackHole')
-       else
-          subParameters=inputParameters(parameters)
-       end if
+       subParameters=parameters%subParameters('componentBlackHole')
        !![
        <objectBuilder class="cosmologyParameters"                 name="cosmologyParameters_"                 source="subParameters"/>
        <objectBuilder class="accretionDisks"                      name="accretionDisks_"                      source="subParameters"/>

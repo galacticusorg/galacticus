@@ -146,11 +146,7 @@ contains
 
     if (defaultHotHaloComponent%verySimpleIsActive()) then
        ! Find our parameters.
-       if (parameters%isPresent('componentHotHalo')) then
-          subParameters=parameters%subParameters('componentHotHalo')
-       else
-          subParameters=inputParameters(parameters)
-       end if
+       subParameters=parameters%subParameters('componentHotHalo')
        !![
        <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="subParameters"/>
        <objectBuilder class="coolingRate"         name="coolingRate_"         source="subParameters"/>

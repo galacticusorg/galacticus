@@ -144,11 +144,7 @@ contains
     ! Initialize the module if necessary.
     if (defaultDiskComponent%verySimpleIsActive()) then
        ! Find our parameters.
-       if (parameters%isPresent('componentDisk')) then
-          subParameters=parameters%subParameters('componentDisk')
-       else
-          subParameters=inputParameters(parameters)
-       end if
+       subParameters=parameters%subParameters('componentDisk')
        ! Read parameters controlling the physical implementation.
        !![
        <inputParameter>
@@ -217,11 +213,7 @@ contains
        call satelliteMergerEvent%attach(defaultDiskComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentDiskVerySimple',dependencies=dependencies)
        call postEvolveEvent     %attach(defaultDiskComponent,postEvolve     ,openMPThreadBindingAtLevel,label='nodeComponentDiskVerySimple'                          )
        ! Find our parameters.
-       if (parameters%isPresent('componentDisk')) then
-          subParameters=parameters%subParameters('componentDisk')
-       else
-          subParameters=inputParameters(parameters)
-       end if
+       subParameters=parameters%subParameters('componentDisk')
        !![
        <objectBuilder class="cosmologyFunctions"          name="cosmologyFunctions_"          source="subParameters"/>
        <objectBuilder class="stellarPopulationProperties" name="stellarPopulationProperties_" source="subParameters"/>

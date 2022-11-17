@@ -145,11 +145,7 @@ contains
     ! Initialize the module if necessary.
     if (defaultSpheroidComponent%verySimpleIsActive()) then
        ! Find our parameters.
-       if (parameters%isPresent('componentSpheroid')) then
-          subParameters=parameters%subParameters('componentSpheroid')
-       else
-          subParameters=inputParameters(parameters)
-       end if
+       subParameters=parameters%subParameters('componentSpheroid')
        ! Read parameters controlling the physical implementation.
        !![
        <inputParameter>
@@ -192,11 +188,7 @@ contains
        call postEvolveEvent     %attach(defaultSpheroidComponent,postEvolve     ,openMPThreadBindingAtLevel,label='nodeComponentSpheroidVerySimple'                          )
        call satelliteMergerEvent%attach(defaultSpheroidComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentSpheroidVerySimple',dependencies=dependencies)
        ! Find our parameters.
-       if (parameters%isPresent('componentSpheroid')) then
-          subParameters=parameters%subParameters('componentSpheroid')
-       else
-          subParameters=inputParameters(parameters)
-       end if
+       subParameters=parameters%subParameters('componentSpheroid')
        !![
        <objectBuilder class="stellarPopulationProperties" name="stellarPopulationProperties_" source="subParameters"/>
        <objectBuilder class="mergerMassMovements"         name="mergerMassMovements_"         source="subParameters"/>

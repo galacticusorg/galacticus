@@ -91,11 +91,7 @@ contains
 
     if (defaultHotHaloComponent%outflowTrackingIsActive()) then
        ! Find our parameters.
-       if (parameters%isPresent('componentHotHalo')) then
-          subParameters=parameters%subParameters('componentHotHalo')
-       else
-          subParameters=inputParameters(parameters)
-       end if
+       subParameters=parameters%subParameters('componentHotHalo')
        !![
        <objectBuilder class="darkMatterHaloScale"           name="darkMatterHaloScale_"           source="subParameters"/>
        <objectBuilder class="hotHaloOutflowReincorporation" name="hotHaloOutflowReincorporation_" source="subParameters"/>

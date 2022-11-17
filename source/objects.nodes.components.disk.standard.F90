@@ -230,11 +230,7 @@ contains
        ! Bind the Chandrasekhar integral function.
        call diskStandardComponent%chandrasekharIntegralFunction(Node_Component_Disk_Standard_Chandrasekhar_Integral)
        ! Find our parameters.
-       if (parameters%isPresent('componentDisk')) then
-          subParameters=parameters%subParameters('componentDisk')
-       else
-          subParameters=inputParameters(parameters)
-       end if
+       subParameters=parameters%subParameters('componentDisk')
        ! Read parameters controlling the physical implementation.
        !![
        <inputParameter>
@@ -307,11 +303,7 @@ contains
        call satelliteMergerEvent%attach(defaultDiskComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentDiskStandard',dependencies=dependencies)
        call postEvolveEvent     %attach(defaultDiskComponent,postEvolve     ,openMPThreadBindingAtLevel,label='nodeComponentDiskStandard'                          )
        ! Find our parameters.
-       if (parameters%isPresent('componentDisk')) then
-          subParameters=parameters%subParameters('componentDisk')
-       else
-          subParameters=inputParameters(parameters)
-       end if
+       subParameters=parameters%subParameters('componentDisk')
        !![
        <objectBuilder class="darkMatterHaloScale"                                                 name="darkMatterHaloScale_"         source="subParameters"                    />
        <objectBuilder class="stellarPopulationProperties"                                         name="stellarPopulationProperties_" source="subParameters"                    />

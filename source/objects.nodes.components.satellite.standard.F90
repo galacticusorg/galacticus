@@ -79,11 +79,7 @@ contains
 
     if (satellite%standardIsActive()) then
        ! Find our parameters.
-       if (parameters%isPresent('componentSatellite')) then
-          subParameters=parameters%subParameters('componentSatellite')
-       else
-          subParameters=inputParameters(parameters)
-       end if
+       subParameters=parameters%subParameters('componentSatellite')
        !![
        <inputParameter>
          <name>inactiveBoundMass</name>
