@@ -98,7 +98,7 @@ contains
        if (parameters%isPresent('componentHotHalo')) then
           subParameters=parameters%subParameters('componentHotHalo')
        else
-          subParameters=inputParameters(subParameters)
+          subParameters=inputParameters(parameters)
        end if
        ! Read parameters controlling the physical implementation.
        !![
@@ -137,7 +137,7 @@ contains
        if (parameters%isPresent('componentHotHalo')) then
           subParameters=parameters%subParameters('componentHotHalo')
        else
-          subParameters=inputParameters(subParameters)
+          subParameters=inputParameters(parameters)
        end if
        !![
        <objectBuilder class="hotHaloOutflowReincorporation" name="hotHaloOutflowReincorporation_" source="subParameters"/>

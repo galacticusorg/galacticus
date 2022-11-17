@@ -148,7 +148,7 @@ contains
        if (parameters%isPresent('componentSpheroid')) then
           subParameters=parameters%subParameters('componentSpheroid')
        else
-          subParameters=inputParameters(subParameters)
+          subParameters=inputParameters(parameters)
        end if
        ! Read parameters controlling the physical implementation.
        !![
@@ -195,7 +195,7 @@ contains
        if (parameters%isPresent('componentSpheroid')) then
           subParameters=parameters%subParameters('componentSpheroid')
        else
-          subParameters=inputParameters(subParameters)
+          subParameters=inputParameters(parameters)
        end if
        !![
        <objectBuilder class="stellarPopulationProperties" name="stellarPopulationProperties_" source="subParameters"/>

@@ -149,7 +149,7 @@ contains
        if (parameters%isPresent('componentHotHalo')) then
           subParameters=parameters%subParameters('componentHotHalo')
        else
-          subParameters=inputParameters(subParameters)
+          subParameters=inputParameters(parameters)
        end if
        !![
        <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="subParameters"/>

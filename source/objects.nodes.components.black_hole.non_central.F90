@@ -97,7 +97,7 @@ contains
     if (parameters%isPresent('componentBlackHole')) then
        subParameters=parameters%subParameters('componentBlackHole')
     else
-       subParameters=inputParameters(subParameters)
+       subParameters=inputParameters(parameters)
     end if
     !![
     <inputParameter>
@@ -130,7 +130,7 @@ contains
        if (parameters%isPresent('componentBlackHole')) then
           subParameters=parameters%subParameters('componentBlackHole')
        else
-          subParameters=inputParameters(subParameters)
+          subParameters=inputParameters(parameters)
        end if
        !![
        <objectBuilder class="darkMatterHaloScale"                 name="darkMatterHaloScale_"                 source="subParameters"/>

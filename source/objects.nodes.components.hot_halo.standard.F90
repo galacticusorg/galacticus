@@ -320,7 +320,7 @@ contains
        if (parameters%isPresent('componentHotHalo')) then
           subParameters=parameters%subParameters('componentHotHalo')
        else
-          subParameters=inputParameters(subParameters)
+          subParameters=inputParameters(parameters)
        end if
        ! Determine whether satellite nodes will be starved of gas.
        !![
@@ -491,7 +491,7 @@ contains
        if (parameters%isPresent('componentHotHalo')) then
           subParameters=parameters%subParameters('componentHotHalo')
        else
-          subParameters=inputParameters(subParameters)
+          subParameters=inputParameters(parameters)
        end if
        !![
        <objectBuilder class="cosmologyParameters"            name="cosmologyParameters_"            source="subParameters"/>

@@ -147,7 +147,7 @@ contains
        if (parameters%isPresent('componentDisk')) then
           subParameters=parameters%subParameters('componentDisk')
        else
-          subParameters=inputParameters(subParameters)
+          subParameters=inputParameters(parameters)
        end if
        ! Read parameters controlling the physical implementation.
        !![
@@ -220,7 +220,7 @@ contains
        if (parameters%isPresent('componentDisk')) then
           subParameters=parameters%subParameters('componentDisk')
        else
-          subParameters=inputParameters(subParameters)
+          subParameters=inputParameters(parameters)
        end if
        !![
        <objectBuilder class="cosmologyFunctions"          name="cosmologyFunctions_"          source="subParameters"/>

@@ -175,7 +175,7 @@ contains
     if (parameters%isPresent('componentBlackHole')) then
        subParameters=parameters%subParameters('componentBlackHole')
     else
-       subParameters=inputParameters(subParameters)
+       subParameters=inputParameters(parameters)
     end if
     ! Get the seed mass
     !![
@@ -311,7 +311,7 @@ contains
        if (parameters%isPresent('componentBlackHole')) then
           subParameters=parameters%subParameters('componentBlackHole')
        else
-          subParameters=inputParameters(subParameters)
+          subParameters=inputParameters(parameters)
        end if
        !![
        <objectBuilder class="cosmologyParameters"                 name="cosmologyParameters_"                 source="subParameters"/>

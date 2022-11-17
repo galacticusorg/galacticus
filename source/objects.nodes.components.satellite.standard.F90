@@ -82,7 +82,7 @@ contains
        if (parameters%isPresent('componentSatellite')) then
           subParameters=parameters%subParameters('componentSatellite')
        else
-          subParameters=inputParameters(subParameters)
+          subParameters=inputParameters(parameters)
        end if
        !![
        <inputParameter>
