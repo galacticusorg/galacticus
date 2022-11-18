@@ -147,12 +147,15 @@ sub checkLink {
 	&System::Redirect::tofile("curl ".$options." \"".$url."\"","curl.log");
 	$status = $? == 0 ? 1 : 0;
 	if ( ! $status ) {
+	    print "STATUS FAIL FOR ".$url."\n";
 	    # Check for known problems.
 	    open(my $logFile,"curl.log");
 	    while ( my $line = <$logFile> ) {
 		# Some servers do not correctly terminate their connections. Ignore such cases.
 		if ( $url =~ m/http:\/\/heasarc\.gsfc\.nasa\.gov\/xanadu\/xspec\// ) {
+		    print "LOG: ".$line."\n";
 		    if ( $line =~ m/error:0A000126:SSL routines::unexpected eof while reading, errno 0/ ) {
+			print "LOG: IGNORE\n";
 			$status = 1;
 			last;
 		    }
