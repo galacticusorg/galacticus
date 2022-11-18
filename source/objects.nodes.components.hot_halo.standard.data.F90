@@ -28,17 +28,16 @@ module Node_Component_Hot_Halo_Standard_Data
   public
 
   ! Return rate for outflows.
-  double precision            :: hotHaloOutflowReturnRate
-  logical                     :: hotHaloOutflowReturnOnFormation
+  logical                     :: outflowReturnOnFormation
   ! Controls on cooling.
-  double precision            :: hotHaloAngularMomentumLossFraction
+  double precision            :: fractionLossAngularMomentum
   ! Controls on accretion.
-  logical                     :: hotHaloNodeMergerLimitBaryonFraction  , hotHaloAngularMomentumAlwaysGrows
+  logical                     :: fractionBaryonLimitInNodeMerger  , angularMomentumAlwaysGrows
   ! Control for starvation of satellites.
   logical                     :: starveSatellites
   logical                     :: starveSatellitesOutflowed
   ! Controls from which halo cooling is computed.
-  integer                     :: hotHaloCoolingFromNode
+  integer                     :: coolingFromNode
   integer         , parameter :: currentNode                         =0, &
        &                         formationNode                       =1
   ! Tolerances.

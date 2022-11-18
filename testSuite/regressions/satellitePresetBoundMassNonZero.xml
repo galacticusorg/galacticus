@@ -28,7 +28,6 @@
     <running value="0.000"/>
   </powerSpectrumPrimordial>
   <stellarPopulationSpectra value="FSPS"/>
-  <diskMassToleranceAbsolute value="1.0e-6"/>
   <galacticDynamicsBarInstability value="stable"/>
   <mergerTreeBuildMasses value="sampledDistributionUniform">
     <treesPerDecade value="3200"/>
@@ -42,7 +41,6 @@
   <componentSpheroid value="standard"/>
   <componentBasic value="standard"/>
   <coolingFunction value="atomicCIECloudy"/>
-  <hotHaloAngularMomentumLossFraction value="0.0"/>
   <coolingTimeAvailable value="whiteFrenk1991">
     <ageFactor value="0"/>
   </coolingTimeAvailable>
@@ -69,7 +67,9 @@
     <timescaleMultiplier value="1.0"/>
   </satelliteMergingTimescales>
   <linearGrowth value="collisionlessMatter"/>
-  <componentDisk value="verySimple"/>
+  <componentDisk value="verySimple">
+    <toleranceAbsoluteMass value="1.0e-6"/>
+  </componentDisk>
   <mergerTreeBuilder value="cole2000">
     <accretionLimit value="0.1"/>
     <mergeProbability value="0.1"/>
@@ -77,7 +77,6 @@
   <mergerTreeMassResolution value="fixed">
     <massResolution value="5.0e9"/>
   </mergerTreeMassResolution>
-  <starveSatellites value="true"/>
   <hotHaloMassDistribution value="betaProfile"/>
   <mergerTreeEvolver value="standard">
     <allTreesExistAtFinalTime value="false"/>
@@ -124,15 +123,18 @@
   </coolingSpecificAngularMomentum>
 
   <initialMassFunction value="chabrier2001"/>
-  <componentHotHalo value="verySimple"/>
+  <componentHotHalo value="verySimple">
+    <fractionLossAngularMomentum value="0.0"/>
+    <starveSatellites value="true"/>
+  </componentHotHalo>
   <randomNumberGenerator value="GSL">
     <seed value="828"/>
   </randomNumberGenerator>
   <starFormationRateDisks value="timescale">
     <starFormationTimescale value="haloScaling">
-      <timescale              value="+1.0"/>
+      <timescale value="+1.0"/>
       <exponentVelocityVirial value="-3.0"/>
-      <exponentRedshift       value="+0.0"/>
+      <exponentRedshift value="+0.0"/>
     </starFormationTimescale>
   </starFormationRateDisks>
 

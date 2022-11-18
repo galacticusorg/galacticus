@@ -36,7 +36,7 @@ program Test_Concentrations
   use :: File_Utilities                      , only : Count_Lines_in_File
   use :: Functions_Global_Utilities          , only : Functions_Global_Set
   use :: Calculations_Resets                 , only : Calculations_Reset
-  use :: Galacticus_Nodes                    , only : nodeClassHierarchyInitialize            , nodeComponentBasic                                          , treeNode
+  use :: Galacticus_Nodes                    , only : nodeClassHierarchyInitialize            , nodeComponentBasic                                          , treeNode                                      , nodeClassHierarchyFinalize
   use :: Input_Paths                         , only : inputPath                               , pathTypeExec
   use :: ISO_Varying_String                  , only : assignment(=)                           , char                                                        , operator(//)                                  , operator(==)                               , &
           &                                           varying_string
@@ -421,6 +421,7 @@ program Test_Concentrations
      !!]
      call Node_Components_Thread_Uninitialize()
      call Node_Components_Uninitialize       ()
+     call nodeClassHierarchyFinalize         ()
   end do
   ! End unit tests.
   call Unit_Tests_End_Group()

@@ -27,14 +27,18 @@
   <evolveForestsWorkShare value="cyclic"/>
 
   <!-- Component selection -->
-  <componentBasic             value="standard"/>
-  <componentBlackHole         value="null"    />
-  <componentDarkMatterProfile value="scale"   />
-  <componentDisk              value="null"    />
-  <componentHotHalo           value="null"    />
-  <componentSatellite         value="orbiting"/>
-  <componentSpheroid          value="null"    />
-  <componentSpin              value="vector"  />
+  <componentBasic value="standard"/>
+  <componentBlackHole value="null"/>
+  <componentDarkMatterProfile value="scale"/>
+  <componentDisk value="null">
+    <toleranceAbsoluteMass value="1.0e-6"/>
+  </componentDisk>
+  <componentHotHalo value="null"/>
+  <componentSatellite value="orbiting"/>
+  <componentSpheroid value="null">
+    <toleranceAbsoluteMass value="1.0e-6"/>
+  </componentSpheroid>
+  <componentSpin value="vector"/>
 
   <!-- Dark matter properties -->
   <darkMatterParticle value="CDM"/>
@@ -254,9 +258,6 @@
   </nodeOperator>
   
   <!-- Numerical tolerances -->
-  <diskMassToleranceAbsolute     value="1.0e-6"  />
-  <spheroidMassToleranceAbsolute value="1.0e-6"  />
-
   <!-- Tree evolution -->
   <mergerTreeEvolver       value="standard" >
     <timestepHostAbsolute             value="1.00"/>
