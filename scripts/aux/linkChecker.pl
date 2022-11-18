@@ -149,11 +149,13 @@ sub checkLink {
 	if ( ! $status ) {
 	    print "STATUS FAIL FOR ".$url."\n";
 	    # Check for known problems.
+	    system("ls -l curl.log");
 	    open(my $logFile,"curl.log");
 	    while ( my $line = <$logFile> ) {
 		# Some servers do not correctly terminate their connections. Ignore such cases.
+		print "LOG: ".$line."\n";
 		if ( $url =~ m/http:\/\/heasarc\.gsfc\.nasa\.gov\/xanadu\/xspec\// ) {
-		    print "LOG: ".$line."\n";
+		    print "NASA\n";
 		    if ( $line =~ m/error:0A000126:SSL routines::unexpected eof while reading, errno 0/ ) {
 			print "LOG: IGNORE\n";
 			$status = 1;
