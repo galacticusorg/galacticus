@@ -144,10 +144,12 @@ sub checkLink {
 	$options .= " --http1.1"
 	    if ( $url =~ m/camb\.info/ );
 	sleep(1);
-	&System::Redirect::tofile("curl ".$options." \"".$url."\"","curl.log");
+	system("curl ".$options." \"".$url."\"");
 	$status = $? == 0 ? 1 : 0;
-	if ( ! $status ) {
+	unless ( $status ) {
 	    print "STATUS FAIL FOR ".$url."\n";
+	    $options =~ s/\-\-silent//;
+	    &System::Redirect::tofile("curl ".$options." \"".$url."\"","curl.log");
 	    # Check for known problems.
 	    system("ls -l curl.log");
 	    open(my $logFile,"curl.log");
@@ -165,10 +167,11 @@ sub checkLink {
 	    }
 	    close($logFile);
 	}
-	$options =~ s/\-\-silent//;
-	$options =~ s/\-\-fail//;
-	system("sleep 1; curl ".$options." \"".$url."\"")
-	    unless ( $status );
+	unless ( $status ) {
+	    $options =~ s/\-\-silent//;
+	    $options =~ s/\-\-fail//;
+	    system("sleep 1; curl ".$options." \"".$url."\"");
+	}
     }
     return $status;
 }
