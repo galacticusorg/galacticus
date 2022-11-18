@@ -137,7 +137,7 @@ sub checkLink {
 	    unless (
 		$url =~ m/^https:\/\/www\.drdobbs\.com\//
 		||
-		$url =~ m/^http:\/\/heasarc\.gsfc\.nasa\.gov\//;
+		$url =~ m/^http:\/\/heasarc\.gsfc\.nasa\.gov\//
 	    );
 	$options .= " --user-agent \"Mozilla\""
 	    if ( $url =~ m/sharepoint\.com/ );
