@@ -62,16 +62,16 @@ module Chemical_Structures
      ! Data methods.
      !![
      <methods>
-       <method description="Get a chemical from the database." method="retrieve" />
-       <method description="Write a chemical structure to a CML file." method="export" />
-       <method description="Return the charge of a chemical." method="charge" />
-       <method description="Return the mass of a chemical in atomic mass units." method="mass" />
+       <method description="Get a chemical from the database."                   method="retrieve"/>
+       <method description="Write a chemical structure to a CML file."           method="export"  />
+       <method description="Return the charge of a chemical."                    method="charge"  />
+       <method description="Return the mass of a chemical in atomic mass units." method="mass"    />
      </methods>
      !!]
-     procedure :: retrieve=>Chemical_Database_Get
-     procedure :: export  =>Chemical_Structure_Export
-     procedure :: charge  =>Chemical_Structure_Charge
-     procedure :: mass    =>Chemical_Structure_Mass
+     procedure :: retrieve => Chemical_Database_Get
+     procedure :: export   => Chemical_Structure_Export
+     procedure :: charge   => Chemical_Structure_Charge
+     procedure :: mass     => Chemical_Structure_Mass
   end type chemicalStructure
 
   ! Atoms (we include an electron here for convenience).
