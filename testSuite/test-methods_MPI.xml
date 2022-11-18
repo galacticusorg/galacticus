@@ -49,7 +49,9 @@
       <presetAngularMomenta value="false"/>
       <presetScaleRadii value="false"/>
       <hotHaloRamPressureStripping value="virialRadius" parameterLevel="top"/>
-      <hotHaloTrackStrippedGas value="false" parameterLevel="top"/>
+      <componentHotHalo value="standard" parameterLevel="top">
+	<trackStrippedGas value="false"/>
+      </componentHotHalo>
       <componentSatellite value="preset" parameterLevel="top"/>
       <componentPosition value="cartesian" parameterLevel="top"/>
       <mergerTreeEvolver value="standard" parameterLevel="top">

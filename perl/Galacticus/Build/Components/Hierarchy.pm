@@ -77,6 +77,7 @@ CODE
 	$code::defaultImplementation = $code::class->{'defaultImplementation'};
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
     ! Insert a function call to get the parameter controlling the choice of implementation for this class.
+    if (.not.parameters_%isPresent('component{ucfirst($class->{'name'})}')) call parameters_%addParameter('component{ucfirst($class->{'name'})}','{$defaultImplementation}')
     !![
     <inputParameter>
       <name>component{ucfirst($class->{'name'})}</name>
@@ -189,8 +190,12 @@ sub Hierarchy_Finalization {
     };
     # Generate the function code.
     $function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
-if (.not.hierarchyInitialized) return
-{join(" ",map {"deallocate(default".$_->{'name'}."Component)\n"} &List::ExtraUtils::hashList($build->{'componentClasses'}))}
+!$omp critical (Node_Class_Hierarchy_Initialize)
+if (hierarchyInitialized) then
+ hierarchyInitialized=.false.
+ {join(" ",map {"deallocate(default".$_->{'name'}."Component)\n"} &List::ExtraUtils::hashList($build->{'componentClasses'}))}
+end if
+!$omp end critical (Node_Class_Hierarchy_Initialize)
 CODE
     # Add the function to the functions list.
     push(
