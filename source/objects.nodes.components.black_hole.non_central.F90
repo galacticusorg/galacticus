@@ -178,8 +178,7 @@ contains
     integer                                 , intent(in   )          :: propertyType
     class           (nodeComponentBlackHole)               , pointer :: blackHoleBinary   , blackHoleCentral   , &
          &                                                              blackHole
-    integer                                                          :: iInstance         , instanceCount      , &
-         &                                                              mergingInstance
+    integer                                                          :: iInstance         , instanceCount
     double precision                                                 :: binaryRadius      , radialMigrationRate, &
          &                                                              radiusHardBinary
     logical                                                          :: binaryRadiusFound
@@ -193,6 +192,8 @@ contains
        blackHoleCentral => node%blackHole(instance=1)
        ! Do radial migration for non-central black holes.
        do iInstance=2,instanceCount
+          ! Get the black hole.
+          blackHole => node%blackHole(instance=iInstance)
           ! Compute the hard binary radius.
           radiusHardBinary= (                                                &
                &              gravitationalConstantGalacticus                &
