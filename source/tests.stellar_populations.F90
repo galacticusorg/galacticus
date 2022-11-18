@@ -32,6 +32,7 @@ program Test_Stellar_Populations
   use :: Input_Paths                               , only : inputPath                              , pathTypeDataStatic
   use :: ISO_Varying_String                        , only : char
   use :: Input_Parameters                          , only : inputParameters
+  use :: Galacticus_Nodes                          , only : nodeClassHierarchyInitialize
   use :: Node_Components                           , only : Node_Components_Initialize
   use :: Numerical_Constants_Astronomical          , only : metallicitySolar
   use :: Stellar_Astrophysics                      , only : stellarAstrophysics                    , stellarAstrophysicsFile
@@ -61,10 +62,11 @@ program Test_Stellar_Populations
 
   call displayVerbositySet(verbosityLevelWorking)
   parameters=inputParameters()
-  call Functions_Global_Set      (          )
-  call eventsHooksInitialize     (          )
-  call Node_Components_Initialize(parameters)
-  call abundances_%metallicitySet(metallicitySolar)
+  call Functions_Global_Set        (          )
+  call eventsHooksInitialize       (          )
+  call nodeClassHierarchyInitialize(parameters)
+  call Node_Components_Initialize  (parameters)
+  call abundances_%metallicitySet  (metallicitySolar)
   initialMassFunction_     =initialMassFunctionChabrier2001        (                                                                                                                                   &
        &                                                            massLower                          =+0.10d0                                                                                      , &
        &                                                            massTransition                     =+1.00d0                                                                                      , &

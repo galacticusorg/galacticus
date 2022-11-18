@@ -190,8 +190,12 @@ sub Hierarchy_Finalization {
     };
     # Generate the function code.
     $function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
-if (.not.hierarchyInitialized) return
-{join(" ",map {"deallocate(default".$_->{'name'}."Component)\n"} &List::ExtraUtils::hashList($build->{'componentClasses'}))}
+!$omp critical (Node_Class_Hierarchy_Initialize)
+if (hierarchyInitialized) then
+ hierarchyInitialized=.false.
+ {join(" ",map {"deallocate(default".$_->{'name'}."Component)\n"} &List::ExtraUtils::hashList($build->{'componentClasses'}))}
+end if
+!$omp end critical (Node_Class_Hierarchy_Initialize)
 CODE
     # Add the function to the functions list.
     push(
