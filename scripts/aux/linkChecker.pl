@@ -1,6 +1,8 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
+use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
+use System::Redirect;
 
 # Check for broken links in Galacticus documentation.
 # Andrew Benson (21-September-2020)
@@ -134,19 +136,30 @@ sub checkLink {
 	## --range 0-0 - this causes no bytes to actually be downloaded - this is disabled on some sites as it seems to break them.
 	my $options = "--silent --insecure --location --output /dev/null --fail --cipher 'DEFAULT:!DH'";
 	$options .= " --range 0-0"
-	    unless (
-		$url =~ m/^https:\/\/www\.drdobbs\.com\//
-		||
-		$url =~ m/^http:\/\/heasarc\.gsfc\.nasa\.gov\//
-	    );
+	    unless ( $url =~ m/^https:\/\/www\.drdobbs\.com\// );
 	$options .= " --user-agent \"Mozilla\""
 	    if ( $url =~ m/sharepoint\.com/ );
 	$options .= " --compressed"
 	    if ( $url =~ m/docs\.github\.com/ );
 	$options .= " --http1.1"
 	    if ( $url =~ m/camb\.info/ );
-	system("sleep 1; curl ".$options." \"".$url."\"");
-	$status = $? == 0 ? 1 : 0;	
+	sleep(1);
+	&System::Redirect::tofile("curl ".$options." \"".$url."\"","curl.log");
+	$status = $? == 0 ? 1 : 0;
+	if ( ! $status ) {
+	    # Check for known problems.
+	    open(my $logFile,"curl.log");
+	    while ( my $line = <$logFile> ) {
+		# Some servers do not correctly terminate their connections. Ignore such cases.
+		if ( $url =~ m/http:\/\/heasarc\.gsfc\.nasa\.gov\/xanadu\/xspec\// ) {
+		    if ( $line =~ m/error:0A000126:SSL routines::unexpected eof while reading, errno 0/ ) {
+			$status = 1;
+			last;
+		    }
+		}
+	    }
+	    close($logFile);
+	}
 	$options =~ s/\-\-silent//;
 	$options =~ s/\-\-fail//;
 	system("sleep 1; curl ".$options." \"".$url."\"")
