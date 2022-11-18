@@ -22,7 +22,7 @@ jobs:
       - name: Install tools
         run: |
           sudo apt -y update
-          sudo apt install -y python python-pypdf2 perl curl git
+          sudo apt install -y python python3-pypdf2 perl curl git
       - name: Check for broken links
         run: |
           cd $GALACTICUS_EXEC_PATH
