@@ -270,11 +270,11 @@ contains
     use :: Galacticus_Nodes                     , only : defaultSpheroidComponent
     use :: Input_Parameters                     , only : inputParameter                   , inputParameters
     use :: Mass_Distributions                   , only : massDistributionSymmetrySpherical
-    use :: Node_Component_Spheroid_Standard_Data, only : spheroidMassDistribution
+    use :: Node_Component_Spheroid_Standard_Data, only : massDistributionSpheroid
     implicit none
     type            (inputParameters), intent(inout) :: parameters
     logical                                          :: densityMoment2IsInfinite                   , densityMoment3IsInfinite
-    double precision                                 :: spheroidMassDistributionDensityMomentum2   , spheroidMassDistributionDensityMomentum3, &
+    double precision                                 :: massDistributionSpheroidDensityMomentum2   , massDistributionSpheroidDensityMomentum3, &
          &                                              ratioAngularMomentumScaleRadiusDefault
     type            (dependencyRegEx), dimension(2)  :: dependencies
     type            (inputParameters)                :: subParameters
@@ -293,31 +293,31 @@ contains
        <objectBuilder class="starFormationHistory"                                                 name="starFormationHistory_"        source="subParameters"                    />
        <objectBuilder class="mergerMassMovements"                                                  name="mergerMassMovements_"         source="subParameters"                    />
        <objectBuilder class="mergerRemnantSize"                                                    name="mergerRemnantSize_"           source="subParameters"                    />
-       <objectBuilder class="massDistribution"            parameterName="spheroidMassDistribution" name="spheroidMassDistribution"     source="subParameters" threadPrivate="yes" >
+       <objectBuilder class="massDistribution"            parameterName="massDistributionSpheroid" name="massDistributionSpheroid"     source="subParameters" threadPrivate="yes" >
         <default>
-         <spheroidMassDistribution value="hernquist">
+         <massDistributionSpheroid value="hernquist">
           <dimensionless value="true"/>
-         </spheroidMassDistribution>
+         </massDistributionSpheroid>
         </default>
        </objectBuilder>
        !!]
-       if (.not.spheroidMassDistribution%isDimensionless()                                     ) &
+       if (.not.massDistributionSpheroid%isDimensionless()                                     ) &
             & call Error_Report('spheroid mass distribution must be dimensionless'        //{introspection:location})
-       if (.not.spheroidMassDistribution%symmetry       () == massDistributionSymmetrySpherical) &
+       if (.not.massDistributionSpheroid%symmetry       () == massDistributionSymmetrySpherical) &
             & call Error_Report('spheroid mass distribution must be spherically symmetric'//{introspection:location})
        ! Determine the specific angular momentum at the scale radius in units of the mean specific angular
        ! momentum of the spheroid. This is equal to the ratio of the 2nd to 3rd radial moments of the density
        ! distribution (assuming a flat rotation curve).
-       spheroidMassDistributionDensityMomentum2=spheroidMassDistribution%densityRadialMoment(2.0d0,isInfinite=densityMoment2IsInfinite)
-       spheroidMassDistributionDensityMomentum3=spheroidMassDistribution%densityRadialMoment(3.0d0,isInfinite=densityMoment3IsInfinite)
+       massDistributionSpheroidDensityMomentum2=massDistributionSpheroid%densityRadialMoment(2.0d0,isInfinite=densityMoment2IsInfinite)
+       massDistributionSpheroidDensityMomentum3=massDistributionSpheroid%densityRadialMoment(3.0d0,isInfinite=densityMoment3IsInfinite)
        if (densityMoment2IsInfinite.or.densityMoment3IsInfinite) then
           ! One of the moments is infinte, so we can not compute the appropriate ratio. Simply assume a value
           ! of 0.5 as a default.
           ratioAngularMomentumScaleRadiusDefault=+0.5d0
        else
           ! Moments are well-defined, so compute their ratio.
-          ratioAngularMomentumScaleRadiusDefault=+spheroidMassDistributionDensityMomentum2 &
-               &                                      /spheroidMassDistributionDensityMomentum3
+          ratioAngularMomentumScaleRadiusDefault=+massDistributionSpheroidDensityMomentum2 &
+               &                                 /massDistributionSpheroidDensityMomentum3
        end if
        !$omp critical (spheroidStandardInitializeAngularMomentum)
        !![
@@ -345,7 +345,7 @@ contains
     !!}
     use :: Events_Hooks                         , only : postEvolveEvent         , satelliteMergerEvent
     use :: Galacticus_Nodes                     , only : defaultSpheroidComponent
-    use :: Node_Component_Spheroid_Standard_Data, only : spheroidMassDistribution
+    use :: Node_Component_Spheroid_Standard_Data, only : massDistributionSpheroid
     implicit none
 
     if (defaultSpheroidComponent%standardIsActive()) then
@@ -357,7 +357,7 @@ contains
        <objectDestructor name="starFormationHistory_"       />
        <objectDestructor name="mergerMassMovements_"        />
        <objectDestructor name="mergerRemnantSize_"          />
-       <objectDestructor name="spheroidMassDistribution"    />
+       <objectDestructor name="massDistributionSpheroid"    />
        !!]
     end if
     return
@@ -1547,7 +1547,7 @@ contains
     !!}
     use            :: Display                              , only : displayMessage          , verbosityLevelInfo
     use, intrinsic :: ISO_C_Binding                        , only : c_ptr                   , c_size_t
-    use            :: Node_Component_Spheroid_Standard_Data, only : spheroidMassDistribution
+    use            :: Node_Component_Spheroid_Standard_Data, only : massDistributionSpheroid
     implicit none
     integer          , intent(in   ) :: stateFile
     integer(c_size_t), intent(in   ) :: stateOperationID
@@ -1555,7 +1555,7 @@ contains
 
     call displayMessage('Storing state for: componentSpheroid -> standard',verbosity=verbosityLevelInfo)
     !![
-    <stateStore variables="spheroidMassDistribution stellarPopulationProperties_ darkMatterHaloScale_ starFormationHistory_ mergerMassMovements_ mergerRemnantSize_"/>
+    <stateStore variables="massDistributionSpheroid stellarPopulationProperties_ darkMatterHaloScale_ starFormationHistory_ mergerMassMovements_ mergerRemnantSize_"/>
     <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
      <description>Internal file I/O in gfortran can be non-thread safe.</description>
     </workaround>
@@ -1581,7 +1581,7 @@ contains
     !!}
     use            :: Display                              , only : displayMessage          , verbosityLevelInfo
     use, intrinsic :: ISO_C_Binding                        , only : c_ptr                   , c_size_t
-    use            :: Node_Component_Spheroid_Standard_Data, only : spheroidMassDistribution
+    use            :: Node_Component_Spheroid_Standard_Data, only : massDistributionSpheroid
     implicit none
     integer          , intent(in   ) :: stateFile
     integer(c_size_t), intent(in   ) :: stateOperationID
@@ -1589,7 +1589,7 @@ contains
 
     call displayMessage('Retrieving state for: componentSpheroid -> standard',verbosity=verbosityLevelInfo)
     !![
-    <stateRestore variables="spheroidMassDistribution stellarPopulationProperties_ darkMatterHaloScale_ starFormationHistory_ mergerMassMovements_ mergerRemnantSize_"/>
+    <stateRestore variables="massDistributionSpheroid stellarPopulationProperties_ darkMatterHaloScale_ starFormationHistory_ mergerMassMovements_ mergerRemnantSize_"/>
     !!]
 #ifdef THREADSAFEIO
     !$omp critical(gfortranInternalIO)

@@ -711,12 +711,15 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <spheroidMassDistribution value="hernquist">
-      <dimensionless value="true"/>
-    </spheroidMassDistribution>
-    <spheroidMassDistribution value="sersic">
-      <dimensionless value="true"/>
-    </spheroidMassDistribution>
+    <componentSpheroid value="standard">
+      <massDistributionSpheroid value="hernquist">
+	<dimensionless value="true"/>
+      </massDistributionSpheroid>
+      <massDistributionSpheroid value="sersic">
+	<dimensionless value="true"/>
+      </massDistributionSpheroid>
+    </componentSpheroid>
+
   </parameters>
   
   <!-- Black hole comopnents. -->
@@ -1378,10 +1381,11 @@
     <componentHotHalo value="null"/>
     <hotHaloMassDistribution value="null"/>
     <componentSatellite value="orbiting"/>
-    <componentSpheroid value="null"/>
-    <spheroidMassDistribution value="hernquist">
-      <dimensionless value="true"/>
-    </spheroidMassDistribution>
+    <componentSpheroid value="null">
+      <massDistributionSpheroid value="hernquist">
+	<dimensionless value="true"/>
+      </massDistributionSpheroid>
+    </componentSpheroid>
     <componentSpin value="scalar"/>
     <nodeOperator value="multi">
       <!-- Cosmological epoch -->

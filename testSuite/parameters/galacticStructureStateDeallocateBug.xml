@@ -19,6 +19,9 @@
   <componentDisk value="standard">
     <toleranceAbsoluteMass value="1.0e-6"/>
     <inactiveLuminositiesStellar value="true"/>
+    <massDistributionDisk value="exponentialDisk">
+      <dimensionless value="true"/>
+    </massDistributionDisk>
   </componentDisk>  
   <componentHotHalo value="coldMode">
     <fractionLossAngularMomentum value="0.0871188291891892"/>
@@ -32,10 +35,10 @@
     <efficiencyEnergeticOutflow value="1.0e-2"/>
     <toleranceAbsoluteMass value="1.0e-6"/>
     <inactiveLuminositiesStellar value="true"/>
+    <massDistributionSpheroid value="hernquist">
+      <dimensionless value="true"/>
+    </massDistributionSpheroid>
   </componentSpheroid>
-  <spheroidMassDistribution value="hernquist">
-    <dimensionless value="true"/>
-  </spheroidMassDistribution>
   <treeNodeMethodSpin3D value="vector"/>
   
   <!-- Cosmological parameters and options -->
@@ -256,9 +259,6 @@
   <satelliteTidalStripping value="zentner2005"/>
   
   <!-- Galactic structure options -->
-  <diskMassDistribution value="exponentialDisk">
-    <dimensionless value="true"/>
-  </diskMassDistribution>
   <galacticStructureSolver value="simple"/>
   <darkMatterProfile value="darkMatterOnly"/>
   <!-- Star formation rate options -->

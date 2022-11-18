@@ -11,6 +11,9 @@
   <componentDarkMatterProfile value="null"/>
   <componentDisk value="standard">
     <toleranceAbsoluteMass value="1.0e-6"/>
+    <massDistributionDisk value="exponentialDisk">
+      <dimensionless value="true"/>
+    </massDistributionDisk>
   </componentDisk>
   <componentHotHalo value="standard"/>
   <componentSatellite value="standard"/>
@@ -18,10 +21,6 @@
     <toleranceAbsoluteMass value="1.0e-6"/>
   </componentSpheroid>
   <componentSpin value="null"/>
-  <diskMassDistribution value="exponentialDisk">
-    <dimensionless value="true"/>
-  </diskMassDistribution>
-
   <!-- Cosmological parameters and options -->
   <cosmologyFunctions value="matterLambda"/>
   <cosmologyParameters value="simple">

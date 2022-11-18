@@ -28,11 +28,14 @@
   </componentBlackHole>
   <componentDarkMatterProfile value="scale"/>
   <componentDisk value="standard">
-  <toleranceAbsoluteMass value="1.0e-6"/>
+    <toleranceAbsoluteMass value="1.0e-6"/>
     <inactiveLuminositiesStellar value="true"/>
+    <massDistributionDisk value="exponentialDisk">
+      <dimensionless value="true"/>
+    </massDistributionDisk>
   </componentDisk>
   <componentHotHalo value="standard">
-  <fractionLossAngularMomentum value="0.95"/>
+    <fractionLossAngularMomentum value="0.95"/>
     <starveSatellites value="true"/>
     <efficiencyStrippingOutflow value="0.1"/>
     <trackStrippedGas value="false"/>
@@ -40,10 +43,13 @@
   <componentPosition value="cartesian"/>
   <componentSatellite value="standard"/>
   <componentSpheroid value="standard">
-  <ratioAngularMomentumScaleRadius value="0.0308857293856248"/>
+    <ratioAngularMomentumScaleRadius value="0.0308857293856248"/>
     <efficiencyEnergeticOutflow value="1.0e-2"/>
     <toleranceAbsoluteMass value="1.0e-6"/>
     <inactiveLuminositiesStellar value="true"/>
+    <massDistributionSpheroid value="hernquist">
+      <dimensionless value="true"/>
+    </massDistributionSpheroid>
   </componentSpheroid>
   <componentSpin value="scalar"/>
 
@@ -159,12 +165,6 @@
   <!-- Hot halo ram pressure stripping options -->
   <hotHaloRamPressureStripping value="virialRadius"/>
   <!-- Galactic structure options -->
-  <spheroidMassDistribution value="hernquist">
-    <dimensionless value="true"/>
-  </spheroidMassDistribution>
-  <diskMassDistribution value="exponentialDisk">
-    <dimensionless value="true"/>
-  </diskMassDistribution>
   <galacticStructureSolver value="simple"/>
   <darkMatterProfile value="darkMatterOnly"/>
   <!-- Star formation rate options -->

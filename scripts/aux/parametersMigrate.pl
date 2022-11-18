@@ -104,6 +104,12 @@ my @ancestry;
 ## These enumerate the parameter changes that occurred at each revision hash.
 my %translations =
     (
+     "0ab22d1b3959fc9242ee6314f3e199cd99600406" => {
+	 names => {
+	     "diskMassDistribution"                                 => "componentDisk--massDistributionDisk"                            ,
+	     "spheroidMassDistribution"                             => "componentSpheroid--massDistributionSpheroid"                    ,
+	 }
+     },
      "6eab8997cd73cb0a474228ade542d133890ad138" => {
 	 names => {
 	     "bondiHoyleAccretionEnhancementSpheroid"               => "componentBlackHole--bondiHoyleAccretionEnhancementSpheroid"     ,

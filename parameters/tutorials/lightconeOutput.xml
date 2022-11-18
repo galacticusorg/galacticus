@@ -24,6 +24,9 @@
   <componentDarkMatterProfile value="scale"    />
   <componentDisk              value="standard"  >
     <toleranceAbsoluteMass value="1.0e-6"/>
+    <massDistributionDisk value="exponentialDisk">
+      <dimensionless value="true"/>
+    </massDistributionDisk>
   </componentDisk>
   <componentHotHalo           value="standard"  >
     <fractionLossAngularMomentum value="0.3"/>
@@ -33,19 +36,16 @@
   </componentHotHalo>
   <componentSatellite         value="preset"   />
   <componentSpheroid          value="standard"  >
-    <ratioAngularMomentumScaleRadius value="0.5"   />
-    <efficiencyEnergeticOutflow      value="1.0e0" />
-    <toleranceAbsoluteMass           value="1.0e-6"/>
+    <ratioAngularMomentumScaleRadius value="0.5"/>
+    <efficiencyEnergeticOutflow value="1.0e0"/>
+    <toleranceAbsoluteMass value="1.0e-6"/>
+    <massDistributionSpheroid value="hernquist">
+      <dimensionless value="true"/>
+    </massDistributionSpheroid>
   </componentSpheroid>
   <componentSpin              value="vector"   />
   <componentPosition          value="cartesian"/>
-  <spheroidMassDistribution value="hernquist"      >
-    <dimensionless value="true"/>
-  </spheroidMassDistribution>
-  <diskMassDistribution     value="exponentialDisk">
-    <dimensionless value="true"/>
-  </diskMassDistribution>
-
+  
   <!-- Cosmological parameters and options               -->
   <!-- as parameters used in milli-Millennium simulation -->
   <cosmologyFunctions  value="matterLambda"/>

@@ -20,8 +20,8 @@
   <componentDarkMatterProfile value="scale"/>
   <componentDisk value="null">
     <toleranceAbsoluteMass value="1.0e-6"/>
+    <massDistributionDisk value="null"/>
   </componentDisk>
-  <diskMassDistribution value="null"/>
   <componentHotHalo value="null">
     <fractionLossAngularMomentum value="0.3"/>
     <starveSatellites value="false"/>
@@ -33,8 +33,8 @@
     <ratioAngularMomentumScaleRadius value="0.5"/>
     <efficiencyEnergeticOutflow value="1.0e-2"/>
     <toleranceAbsoluteMass value="1.0e-6"/>
+    <massDistributionSpheroid value="null"/>
   </componentSpheroid>
-  <spheroidMassDistribution value="null"/>
   <componentSpin value="null"/>
   <!-- Cosmological parameters and options -->
   <cosmologyFunctions value="matterLambda"/>

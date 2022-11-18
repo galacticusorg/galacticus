@@ -25,13 +25,16 @@
       <efficiencyWind value="0.0024"/>
       <efficiencyWindScalesWithEfficiencyRadiative value="true"/>
       <bondiHoyleAccretionEnhancementHotHalo value="6.0"/>
-    <bondiHoyleAccretionEnhancementSpheroid value="5.0"/>
-    <bondiHoyleAccretionTemperatureSpheroid value="100"/>
-    <bondiHoyleAccretionHotModeOnly value="true"/>
-  </componentBlackHole>
+      <bondiHoyleAccretionEnhancementSpheroid value="5.0"/>
+      <bondiHoyleAccretionTemperatureSpheroid value="100"/>
+      <bondiHoyleAccretionHotModeOnly value="true"/>
+    </componentBlackHole>
     <componentDarkMatterProfile value="scale"/>
     <componentDisk value="standard">
       <toleranceAbsoluteMass value="1.0e-6"/>
+      <massDistributionDisk value="exponentialDisk">
+	<dimensionless value="true"/>
+      </massDistributionDisk>
     </componentDisk>
     <componentHotHalo value="standard">
       <fractionBaryonLimitInNodeMerger value="true"/>
@@ -46,13 +49,10 @@
       <ratioAngularMomentumScaleRadius value="0.5"/>
       <efficiencyEnergeticOutflow value="1.0e-2"/>
       <toleranceAbsoluteMass value="1.0e-6"/>
+      <massDistributionSpheroid value="hernquist">
+	<dimensionless value="true"/>
+      </massDistributionSpheroid>
     </componentSpheroid>
-    <spheroidMassDistribution value="hernquist">
-      <dimensionless value="true"/>
-    </spheroidMassDistribution>
-    <diskMassDistribution value="exponentialDisk">
-      <dimensionless value="true"/>
-    </diskMassDistribution>
     <componentSpin value="scalar"/>
     <componentPosition value="null"/>
     

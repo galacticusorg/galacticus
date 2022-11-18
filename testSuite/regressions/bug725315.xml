@@ -117,10 +117,10 @@
   <componentSpheroid value="standard">
     <efficiencyEnergeticOutflow value="1"/>
     <toleranceAbsoluteMass value="1e-06"/>
+    <massDistributionSpheroid value="hernquist">
+      <dimensionless value="true"/>
+    </massDistributionSpheroid>
   </componentSpheroid>
-  <spheroidMassDistribution value="hernquist">
-    <dimensionless value="true"/>
-  </spheroidMassDistribution>
   <componentBasic value="standard"/>
   <darkMatterProfileScaleRadius value="concentrationLimiter">
     <concentrationMinimum value="  4.0"/>
@@ -138,11 +138,11 @@
   </hotHaloMassDistributionCoreRadius>
   <satelliteMergingTimescales value="jiang2008"/>
   <componentDisk value="standard">
-  <toleranceAbsoluteMass value="1e-06"/>
+    <toleranceAbsoluteMass value="1e-06"/>
+    <massDistributionDisk value="exponentialDisk">
+      <dimensionless value="true"/>
+    </massDistributionDisk>
   </componentDisk>
-  <diskMassDistribution value="exponentialDisk">
-    <dimensionless value="true"/>
-  </diskMassDistribution>
   <linearGrowth value="collisionlessMatter"/>
   <mergerTreeMassResolution value="fixed">
     <massResolution value="5.0e10"/>

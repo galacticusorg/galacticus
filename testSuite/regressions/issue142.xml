@@ -44,10 +44,10 @@
   <componentDarkMatterProfile value="scale"/>
   <componentDisk value="standard">
     <toleranceAbsoluteMass value="1.0e-6"/>
+    <massDistributionDisk value="exponentialDisk">
+      <dimensionless value="true"/>
+    </massDistributionDisk>
   </componentDisk>
-  <diskMassDistribution value="exponentialDisk">
-    <dimensionless value="true"/>
-  </diskMassDistribution>
   <componentHotHalo value="standard">
     <fractionLossAngularMomentum value="0.3"/>
     <starveSatellites value="false"/>

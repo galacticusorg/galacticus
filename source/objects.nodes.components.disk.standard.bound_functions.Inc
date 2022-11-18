@@ -48,11 +48,11 @@ double precision function Node_Component_Disk_Standard_Half_Mass_Radius(self)
   Return the half-mass radius of the standard disk.
   !!}
   use :: Error                            , only : Error_Report
-  use :: Node_Component_Disk_Standard_Data, only : diskMassDistribution
+  use :: Node_Component_Disk_Standard_Data, only : massDistributionDisk
   implicit none
   class(nodeComponentDiskStandard), intent(inout) :: self
 
-  Node_Component_Disk_Standard_Half_Mass_Radius=self%radius()*diskMassDistribution%radiusHalfMass()
+  Node_Component_Disk_Standard_Half_Mass_Radius=self%radius()*massDistributionDisk%radiusHalfMass()
   return
 end function Node_Component_Disk_Standard_Half_Mass_Radius
 
@@ -64,7 +64,7 @@ double precision function Node_Component_Disk_Standard_Enclosed_Mass(self,radius
           &                                        massTypeGalactic    , massTypeGaseous  , massTypeStellar             , radiusLarge            , &
           &                                        weightByLuminosity  , weightByMass     , enumerationComponentTypeType, enumerationMassTypeType, &
           &                                        enumerationWeightByType
-  use :: Node_Component_Disk_Standard_Data, only : diskMassDistribution
+  use :: Node_Component_Disk_Standard_Data, only : massDistributionDisk
   implicit none
   class           (nodeComponentDiskStandard   ), intent(inout) :: self
   type            (enumerationComponentTypeType), intent(in   ) :: componentType
@@ -107,7 +107,7 @@ double precision function Node_Component_Disk_Standard_Enclosed_Mass(self,radius
      fractionalRadius=radius/radiusDisk
      Node_Component_Disk_Standard_Enclosed_Mass=                         &
           & +Node_Component_Disk_Standard_Enclosed_Mass                  &
-          & *diskMassDistribution%massEnclosedBySphere(fractionalRadius)
+          & *massDistributionDisk%massEnclosedBySphere(fractionalRadius)
   end if
   return
 end function Node_Component_Disk_Standard_Enclosed_Mass
@@ -120,7 +120,7 @@ function Node_Component_Disk_Standard_Acceleration(self,positionCartesian,compon
   use :: Galactic_Structure_Options       , only : componentTypeAll    , componentTypeDisk  , massTypeAll                    , massTypeBaryonic            , &
        &                                           massTypeGalactic    , massTypeGaseous    , massTypeStellar                , enumerationComponentTypeType, &
        &                                           enumerationMassTypeType
-  use :: Node_Component_Disk_Standard_Data, only : diskMassDistribution
+  use :: Node_Component_Disk_Standard_Data, only : massDistributionDisk
   use :: Numerical_Constants_Astronomical , only : gigaYear            , megaParsec         , gravitationalConstantGalacticus
   use :: Numerical_Constants_Prefixes     , only : kilo
   implicit none
@@ -157,7 +157,7 @@ function Node_Component_Disk_Standard_Acceleration(self,positionCartesian,compon
          &                                  *gravitationalConstantGalacticus                         &
          &                                  *massTotal                                               &
          &                                  /self%radius()                                       **2 &
-         &                                  *diskMassDistribution%acceleration(positionScaleFree)
+         &                                  *massDistributionDisk%acceleration(positionScaleFree)
   return
 end function Node_Component_Disk_Standard_Acceleration
 
@@ -169,7 +169,7 @@ function Node_Component_Disk_Standard_Tidal_Tensor(self,positionCartesian,compon
   use :: Galactic_Structure_Options       , only : componentTypeAll               , componentTypeDisk  , massTypeAll    , massTypeBaryonic            , &
        &                                           massTypeGalactic               , massTypeGaseous    , massTypeStellar, enumerationComponentTypeType, &
        &                                           enumerationMassTypeType
-  use :: Node_Component_Disk_Standard_Data, only : diskMassDistribution
+  use :: Node_Component_Disk_Standard_Data, only : massDistributionDisk
   use :: Numerical_Constants_Astronomical , only : gravitationalConstantGalacticus
   use :: Tensors                          , only : tensorRank2Dimension3Symmetric , tensorNullR2D3Sym  , operator(*)
   implicit none
@@ -203,7 +203,7 @@ function Node_Component_Disk_Standard_Tidal_Tensor(self,positionCartesian,compon
   Node_Component_Disk_Standard_Tidal_Tensor=+gravitationalConstantGalacticus                        &
          &                                  *massTotal                                              &
          &                                  /self%radius()                                      **3 &
-         &                                  *diskMassDistribution%tidalTensor(positionScaleFree)
+         &                                  *massDistributionDisk%tidalTensor(positionScaleFree)
   return
 end function Node_Component_Disk_Standard_Tidal_Tensor
 
@@ -215,7 +215,7 @@ double precision function Node_Component_Disk_Standard_Density(self,positionSphe
   use :: Galactic_Structure_Options       , only : componentTypeAll    , componentTypeDisk           , massTypeAll            , massTypeBaryonic       , &
           &                                        massTypeGalactic    , massTypeGaseous             , massTypeStellar        , weightByLuminosity     , &
           &                                        weightByMass        , enumerationComponentTypeType, enumerationMassTypeType, enumerationWeightByType
-  use :: Node_Component_Disk_Standard_Data, only : diskMassDistribution
+  use :: Node_Component_Disk_Standard_Data, only : massDistributionDisk
   implicit none
   class           (nodeComponentDiskStandard   ), intent(inout) :: self
   type            (enumerationComponentTypeType), intent(in   ) :: componentType
@@ -254,7 +254,7 @@ double precision function Node_Component_Disk_Standard_Density(self,positionSphe
       position=[positionSpherical(1)/self%radius(),positionSpherical(2),positionSpherical(3)]
       Node_Component_Disk_Standard_Density=+Node_Component_Disk_Standard_Density      &
            &                               /self                %radius (        )**3 &
-           &                               *diskMassDistribution%density(position)
+           &                               *massDistributionDisk%density(position)
    end if
    return
 end function Node_Component_Disk_Standard_Density
@@ -266,7 +266,7 @@ double precision function Node_Component_Disk_Standard_Density_Spherical_Average
   use :: Galactic_Structure_Options       , only : componentTypeAll    , componentTypeDisk           , massTypeAll            , massTypeBaryonic       , &
           &                                        massTypeGalactic    , massTypeGaseous             , massTypeStellar        , weightByLuminosity     , &
           &                                        weightByMass        , enumerationComponentTypeType, enumerationMassTypeType, enumerationWeightByType
-  use :: Node_Component_Disk_Standard_Data, only : diskMassDistribution
+  use :: Node_Component_Disk_Standard_Data, only : massDistributionDisk
   implicit none
   class           (nodeComponentDiskStandard   ), intent(inout) :: self
   type            (enumerationComponentTypeType), intent(in   ) :: componentType
@@ -303,7 +303,7 @@ double precision function Node_Component_Disk_Standard_Density_Spherical_Average
      ! Compute the actual density.
       Node_Component_Disk_Standard_Density_Spherical_Average=+Node_Component_Disk_Standard_Density_Spherical_Average                &
            &                                                 /self                %radius                 (                    )**3 &
-           &                                                 *diskMassDistribution%densitySphericalAverage(radius/self%radius())
+           &                                                 *massDistributionDisk%densitySphericalAverage(radius/self%radius())
    end if
    return
  end function Node_Component_Disk_Standard_Density_Spherical_Average
@@ -315,7 +315,7 @@ double precision function Node_Component_Disk_Standard_Potential(self,radius,com
   use :: Coordinates                      , only : assignment(=)                  , coordinateCylindrical
   use :: Galactic_Structure_Options       , only : componentTypeAll               , componentTypeDisk           , radiusLarge            , weightByMass                     , &
           &                                        weightIndexNull                , enumerationComponentTypeType, enumerationMassTypeType, enumerationStructureErrorCodeType
-  use :: Node_Component_Disk_Standard_Data, only : diskMassDistribution
+  use :: Node_Component_Disk_Standard_Data, only : massDistributionDisk
   use :: Numerical_Constants_Astronomical , only : gravitationalConstantGalacticus
   implicit none
   class           (nodeComponentDiskStandard        ), intent(inout)           :: self
@@ -347,7 +347,7 @@ double precision function Node_Component_Disk_Standard_Potential(self,radius,com
      Node_Component_Disk_Standard_Potential=+gravitationalConstantGalacticus          &
           &                                 *componentMass                            &
           &                                 /self%radius()                            &
-          &                                 *diskMassDistribution%potential(position)
+          &                                 *massDistributionDisk%potential(position)
   end if
   return
 end function Node_Component_Disk_Standard_Potential
@@ -358,7 +358,7 @@ double precision function Node_Component_Disk_Standard_Rotation_Curve(self,radiu
   !!}
   use :: Galactic_Structure_Options       , only : radiusLarge                    , weightByMass, weightIndexNull, enumerationComponentTypeType, &
        &                                           enumerationMassTypeType
-  use :: Node_Component_Disk_Standard_Data, only : diskMassDistribution
+  use :: Node_Component_Disk_Standard_Data, only : massDistributionDisk
   use :: Numerical_Constants_Astronomical , only : gravitationalConstantGalacticus
   implicit none
   class           (nodeComponentDiskStandard   ), intent(inout) :: self
@@ -381,7 +381,7 @@ double precision function Node_Component_Disk_Standard_Rotation_Curve(self,radiu
           &                                            *componentMass                                  &
           &                                            /radiusDisk                                     &
           &                                           )                                                &
-          &                                      *diskMassDistribution%rotationCurve(fractionalRadius)
+          &                                      *massDistributionDisk%rotationCurve(fractionalRadius)
   end if
   return
 end function Node_Component_Disk_Standard_Rotation_Curve
@@ -392,7 +392,7 @@ double precision function Node_Component_Disk_Standard_Rotation_Curve_Gradient(s
   !!}
   use :: Galactic_Structure_Options       , only : radiusLarge                    , weightByMass, weightIndexNull, enumerationComponentTypeType, &
        &                                           enumerationMassTypeType
-  use :: Node_Component_Disk_Standard_Data, only : diskMassDistribution
+  use :: Node_Component_Disk_Standard_Data, only : massDistributionDisk
   use :: Numerical_Constants_Astronomical , only : gravitationalConstantGalacticus
   implicit none
   class           (nodeComponentDiskStandard   ), intent(inout) :: self
@@ -416,7 +416,7 @@ double precision function Node_Component_Disk_Standard_Rotation_Curve_Gradient(s
      Node_Component_Disk_Standard_Rotation_Curve_Gradient=+gravitationalConstantGalacticus                              &
           &                                               *componentMass                                                &
           &                                               /radiusDisk**2                                                &
-          &                                               *diskMassDistribution%rotationCurveGradient(fractionalRadius)
+          &                                               *massDistributionDisk%rotationCurveGradient(fractionalRadius)
   end if
   return
 end function Node_Component_Disk_Standard_Rotation_Curve_Gradient
@@ -429,7 +429,7 @@ double precision function Node_Component_Disk_Standard_Surface_Density(self,posi
   use :: Galactic_Structure_Options       , only : componentTypeAll                    , componentTypeDisk           , massTypeAll                       , massTypeBaryonic            , &
           &                                        massTypeGalactic                    , massTypeGaseous             , massTypeStellar                   , weightByLuminosity          , &
           &                                        weightByMass                        , enumerationComponentTypeType, enumerationMassTypeType           , enumerationWeightByType
-  use :: Node_Component_Disk_Standard_Data, only : Node_Component_Disk_Standard_Reset  , diskMassDistribution        , lastUniqueID                      , radiusScaleDisk             , &
+  use :: Node_Component_Disk_Standard_Data, only : Node_Component_Disk_Standard_Reset  , massDistributionDisk        , lastUniqueID                      , radiusScaleDisk             , &
           &                                        radiusScaleDiskComputed             , surfaceDensityCentralGas    , surfaceDensityCentralGasComputed  , surfaceDensityCentralStellar, &
           &                                        surfaceDensityCentralStellarComputed, surfaceDensityCentralTotal  , surfaceDensityCentralTotalComputed
   use :: Numerical_Constants_Math         , only : Pi
@@ -497,6 +497,6 @@ double precision function Node_Component_Disk_Standard_Surface_Density(self,posi
   call position%rSet(positionCylindrical(1)/radiusScaleDisk)
   Node_Component_Disk_Standard_Surface_Density=         &
        & +Node_Component_Disk_Standard_Surface_Density  &
-       & *diskMassDistribution%surfaceDensity(position)
+       & *massDistributionDisk%surfaceDensity(position)
   return
 end function Node_Component_Disk_Standard_Surface_Density

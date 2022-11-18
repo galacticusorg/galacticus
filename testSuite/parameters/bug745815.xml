@@ -165,6 +165,9 @@
   <componentDarkMatterProfile value="scale"/>
   <componentDisk value="standard">
     <toleranceAbsoluteMass value="1e-06"/>
+    <massDistributionDisk value="exponentialDisk">
+      <dimensionless value="true"/>
+    </massDistributionDisk>
   </componentDisk>
   <componentHotHalo value="standard">
     <starveSatellites value="true"/>
@@ -173,18 +176,14 @@
   <componentSpheroid value="standard">
     <efficiencyEnergeticOutflow value="1"/>
     <toleranceAbsoluteMass value="1e-06"/>
+    <massDistributionSpheroid value="hernquist">
+      <dimensionless value="true"/>
+    </massDistributionSpheroid>
   </componentSpheroid>
-  <spheroidMassDistribution value="hernquist">
-    <dimensionless value="true"/>
-  </spheroidMassDistribution>
   <componentSpin value="scalar"/>
   <verbosityLevel value="standard"/>
   <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
   <virialOrbit value="benson2005"/>
-
-  <diskMassDistribution value="exponentialDisk">
-    <dimensionless value="true"/>
-  </diskMassDistribution>
 
   <!-- Node evolution and physics -->
   <nodeOperator value="multi">

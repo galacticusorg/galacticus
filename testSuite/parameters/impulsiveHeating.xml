@@ -27,7 +27,11 @@
     <bondiHoyleAccretionHotModeOnly value="true"/>
   </componentBlackHole>
   <componentDarkMatterProfile value="scale"/>
-  <componentDisk value="standard"/>
+  <componentDisk value="standard">
+    <massDistributionDisk value="exponentialDisk">
+      <dimensionless value="true"/>
+    </massDistributionDisk>
+  </componentDisk>
   <componentHotHalo value="standard">
     <fractionLossAngularMomentum value="0.3"/>
     <starveSatellites value="false"/>
@@ -38,15 +42,11 @@
   <componentSpheroid value="standard">
     <ratioAngularMomentumScaleRadius value="0.5"/>
     <efficiencyEnergeticOutflow value="1.0e-2"/>
+    <massDistributionSpheroid value="hernquist">
+      <dimensionless value="true"/>
+    </massDistributionSpheroid>
   </componentSpheroid>
   <componentSpin value="vector"/>
-  <diskMassDistribution value="exponentialDisk">
-    <dimensionless value="true"/>
-  </diskMassDistribution>
-  <spheroidMassDistribution value="hernquist">
-    <dimensionless value="true"/>
-  </spheroidMassDistribution>
-
   <!-- Dark matter particle type -->
   <darkMatterParticle value="CDM"/>
 
