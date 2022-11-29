@@ -332,9 +332,6 @@ my @tasks =
 	      "haloMassFunctionBase_MilkyWay_WDM6.5_Halo113_z0.990.xml"             ,
 	      "haloMassFunctionBase_MilkyWay_WDM6.5_Halo113_z2.031.xml"             ,
 	      "haloMassFunctionBase_MilkyWay_WDM6.5_Halo113_z3.984.xml"             ,
-	      "haloMassFunctionBase_MilkyWay_WDM10_Halo004_z0.000.xml"              ,
-	      "haloMassFunctionBase_MilkyWay_WDM10_Halo023_z0.000.xml"              ,
-	      "haloMassFunctionBase_MilkyWay_WDM10_Halo113_z0.000.xml"              ,
 	      "haloMassFunctionBase_MilkyWay_WDM10_Halo416_z0.000.xml"              ,
 	      "haloMassFunctionBase_MilkyWay_Axion22_Halo416_z0.000.xml"            ,
 	      "haloMassFunctionBase_MilkyWay_Axion21_Halo416_z0.000.xml"            ,
@@ -844,9 +841,6 @@ my @tasks =
 	      "MilkyWay_WDM6.5_Halo113_z0.990"                                      ,
 	      "MilkyWay_WDM6.5_Halo113_z2.031"                                      ,
 	      "MilkyWay_WDM6.5_Halo113_z3.984"                                      ,
-	      "MilkyWay_WDM10_Halo004_z0.000"                                       ,
-	      "MilkyWay_WDM10_Halo023_z0.000"                                       ,
-	      "MilkyWay_WDM10_Halo113_z0.000"                                       ,
 	      "MilkyWay_WDM10_Halo416_z0.000"                                       ,
 	      "MilkyWay_Axion22_Halo416_z0.000"                                     ,
 	      "MilkyWay_Axion21_Halo416_z0.000"                                     ,
@@ -1158,7 +1152,7 @@ foreach my $task ( @tasks ) {
 	$base->{'outputFileName'}->{'value'} = $options{'outputDirectory'}."/".$task->{'label'}.$suffix.".hdf5";
     }
     if ( defined($config) ) {
-	$config->{'outputFileName' }                 ->{'value'} = $options{'outputDirectory'}."/".$task->{'label'}.".hdf5" ;
+	$config->{'outputFileName'           }                 ->{'value'} = $options{'outputDirectory'}."/".$task->{'label'}.".hdf5" ;
 	$config->{'posteriorSampleSimulation'}->{'logFileRoot'}->{'value'} = $options{'outputDirectory'}."/".$task->{'label'}."Chains";
 	my $i = -1;
 	# Set base file names in the config file.
