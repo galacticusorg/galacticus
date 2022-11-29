@@ -201,6 +201,8 @@ contains
     if (calculationResetEvent%isAttached(self,naozBarkana2007CalculationReset)) call calculationResetEvent%detach(self,naozBarkana2007CalculationReset)
     !![
     <objectDestructor name="self%intergalacticMediumFilteringMass_"/>
+    <objectDestructor name="self%darkMatterProfileDMO_"            />
+    <objectDestructor name="self%virialDensityContrast_"           />
     !!]
     return
   end subroutine naozBarkana2007Destructor

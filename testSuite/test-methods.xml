@@ -41,7 +41,7 @@
       <task value="powerSpectra"/>
     </task>
     <mergerTreeOutputter value="multi">
-      <mergerTreeOutputter value="standard"           />
+      <mergerTreeOutputter value="standard"/>
       <mergerTreeOutputter value="haloFourierProfiles"/>
     </mergerTreeOutputter>
     <nodePropertyExtract value="multi">
@@ -73,14 +73,14 @@
   	<nodeOperator value="darkMatterProfileScaleSet" iterable="no"/>
   	<nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
   	<!-- Halo shapes -->
-  	<nodeOperator value="darkMatterProfileShapeSet"         iterable="no"/>
+  	<nodeOperator value="darkMatterProfileShapeSet" iterable="no"/>
   	<nodeOperator value="darkMatterProfileShapeInterpolate" iterable="no"/>
   	<!-- Halo spins -->
   	<nodeOperator value="haloAngularMomentumRandom" iterable="no"/>
   	<nodeOperator value="haloAngularMomentumInterpolate" iterable="no"/>
 	<!-- Satellite evolution -->
 	<nodeOperator value="satelliteMergingTime" iterable="no"/>
-	<nodeOperator value="satelliteMassLoss" iterable="no"   />
+	<nodeOperator value="satelliteMassLoss" iterable="no"/>
   	<!-- Star formation -->
   	<nodeOperator value="starFormationDisks" iterable="no"/>
   	<nodeOperator value="starFormationSpheroids" iterable="no"/>
@@ -159,14 +159,14 @@
     <mergerTreeConstructor value="build">
       <redshiftBase value="0.0"/>
       <mergerTreeBuilder value="excursionSetSimulator">
-  	<redshiftMaximum value="12.0" />
+  	<redshiftMaximum value="12.0"/>
       </mergerTreeBuilder>
       <mergerTreeMassResolution value="fixed">
   	<massResolution value="1.0e9"/>
       </mergerTreeMassResolution>
       <mergerTreeBuildMasses value="fixedMass">
   	<massTree value="1.0e12"/>
-  	<treeCount  value="1"/>
+  	<treeCount value="1"/>
       </mergerTreeBuildMasses>
     </mergerTreeConstructor>
     <mergerTreeConstructor value="build">
@@ -179,12 +179,12 @@
       </mergerTreeMassResolution>
       <mergerTreeBuildMasses value="fixedMass">
   	<massTree value="1.0e12"/>
-  	<treeCount  value="1"/>
+  	<treeCount value="1"/>
       </mergerTreeBuildMasses>
       <mergerTreeBuildMasses value="fixedMass">
   	<massTree value="1.0e12"/>
   	<radiusTree value="300.0e-3"/>
-  	<treeCount  value="1"/>
+  	<treeCount value="1"/>
       </mergerTreeBuildMasses>
       <darkMatterHaloMassAccretionHistory value="wechsler2002" parameterLevel="top"/>
       <darkMatterHaloMassAccretionHistory value="zhao2009" parameterLevel="top"/>
@@ -230,7 +230,9 @@
       <fileNames value="testSuite/test-MergerTrees.hdf5"/>
       <nodeOperatorTreeInitializor value="darkMatterProfileScaleSet"/>
       <hotHaloRamPressureStripping value="virialRadius" parameterLevel="top"/>
-      <hotHaloTrackStrippedGas value="false" parameterLevel="top"/>
+      <componentHotHalo value="standard" parameterLevel="top">
+	<trackStrippedGas value="false"/>
+      </componentHotHalo>
       <presetOrbits value="true"/>
       <presetOrbitsBoundOnly value="true"/>
       <componentSatellite value="standard" parameterLevel="top">
@@ -238,13 +240,13 @@
     	<presetMergerNodes value="false" parameterLevel="-1"/>
       </componentSatellite>
       <componentSatellite value="preset" parameterLevel="top">
-    	<presetMergerTimes                             value="true"              parameterLevel="-1"/>
-    	<presetMergerNodes                             value="true"              parameterLevel="-1"/>
-    	<satelliteMergingTimescalesSubresolution value="zero"              parameterLevel="-1"/>
+    	<presetMergerTimes value="true" parameterLevel="-1"/>
+    	<presetMergerNodes value="true" parameterLevel="-1"/>
+    	<satelliteMergingTimescalesSubresolution value="zero" parameterLevel="-1"/>
     	<satelliteMergingTimescalesSubresolution value="boylanKolchin2008" parameterLevel="-1"/>
       </componentSatellite>
-      <componentPosition value="cartesian"          parameterLevel="top"/>
-      <componentPosition value="cartesian"          parameterLevel="top">
+      <componentPosition value="cartesian" parameterLevel="top"/>
+      <componentPosition value="cartesian" parameterLevel="top">
 	<nodeOperator value="multi" parameterLevel="top">
 	  <!-- Cosmological epoch -->
 	  <nodeOperator value="cosmicTime" iterable="no"/>
@@ -281,7 +283,7 @@
 	  <nodeOperator value="positionInterpolated" iterable="no"/>
 	</nodeOperator>
       </componentPosition>
-      <componentPosition value="cartesian"          parameterLevel="top">
+      <componentPosition value="cartesian" parameterLevel="top">
 	<nodeOperator value="multi" parameterLevel="top">
 	  <!-- Cosmological epoch -->
 	  <nodeOperator value="cosmicTime" iterable="no"/>
@@ -380,14 +382,14 @@
             <!-- Consider only halos existing in the last 2 Gyr -->
             <galacticFilter value="highPass" iterable="no">
               <nodePropertyExtractor value="time"/>
-              <threshold             value="11.8"/>
+              <threshold value="11.8"/>
             </galacticFilter>
             <!-- Consider only halos with a rank-2 child with a maximum circular velocity above 55 km/s -->
             <galacticFilter value="childNode" iterable="no">
               <childRank value="2"/>
               <galacticFilter value="highPass">
 		<nodePropertyExtractor value="velocityMaximum"/>
-		<threshold             value="55.0"           />
+		<threshold value="55.0"/>
               </galacticFilter>
             </galacticFilter>
           </galacticFilter>
@@ -401,13 +403,13 @@
             <!-- Consider only halos existing in the redshift range 1-2 -->
             <galacticFilter value="intervalPass" iterable="no">
               <nodePropertyExtractor value="redshift"/>
-              <thresholdLow          value="1.0"/>
-              <thresholdHigh         value="2.0"/>
+              <thresholdLow value="1.0"/>
+              <thresholdHigh value="2.0"/>
             </galacticFilter>
             <!--Consider only halos which undergo a merger in the mass ratio range 0.15-0.25  -->
             <galacticFilter value="mergerRatio" iterable="no">
-              <ratioLow              value="0.15"/>
-              <ratioHigh             value="0.25"/>
+              <ratioLow value="0.15"/>
+              <ratioHigh value="0.25"/>
             </galacticFilter>
           </galacticFilter>
 	</mergerTreeFilter>
@@ -624,17 +626,20 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
+    <componentBlackHole value="nonCentral"/>
     <blackHoleBinaryInitialSeparation value="spheroidRadiusFraction"/>
     <blackHoleBinaryInitialSeparation value="tidalRadius">
       <blackHoleBinaryRecoil value="zero" parameterLevel="top"/>
       <blackHoleBinaryRecoil value="campanelli2007" parameterLevel="top">
   	<blackHoleBinarySeparationGrowthRate value="zero" parameterLevel="top"/>
   	<blackHoleBinarySeparationGrowthRate value="standard" parameterLevel="top">
-  	  <tripleBlackHoleInteraction value="false" parameterLevel="top"/>
-  	  <tripleBlackHoleInteraction value="true" parameterLevel="top">
-  	    <blackHoleOutputMergers value="false" parameterLevel="top"/>
-  	    <blackHoleOutputMergers value="true" parameterLevel="top"/>
-  	  </tripleBlackHoleInteraction>
+	  <componentBlackHole value="nonCentral" parameterLevel="top">
+  	    <tripleInteraction value="false"/>
+  	    <tripleInteraction value="true">
+  	      <outputMergers value="false" parameterLevel="-1"/>
+  	      <outputMergers value="true" parameterLevel="-1"/>
+  	    </tripleInteraction>
+	  </componentBlackHole>
   	</blackHoleBinarySeparationGrowthRate>
       </blackHoleBinaryRecoil>
     </blackHoleBinaryInitialSeparation>
@@ -643,7 +648,10 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <blackHoleOutputData value="true"/>
+    <componentBlackHole value="standard">
+    <outputData value="true"/>
+  </componentBlackHole>
+
   </parameters>
 
   <!-- Cooling rate methods. -->
@@ -654,7 +662,9 @@
     <coolingRate value="cole2000">
       <coolingTimeAvailable value="whiteFrenk1991" parameterLevel="top"/>
       <coolingTimeAvailable value="formationTime" parameterLevel="top"/>
-      <hotHaloCoolingFromNode value="formationNode" parameterLevel="top"/>
+      <componentHotHalo value="standard" parameterLevel="top">
+	<coolingFromNode value="formationNode"/>
+      </componentHotHalo>
       <nodeOperator value="multi" parameterLevel="top">
   	<!-- Cosmological epoch -->
   	<nodeOperator value="cosmicTime" iterable="no"/>
@@ -668,7 +678,7 @@
   	<nodeOperator value="haloAngularMomentumInterpolate" iterable="no"/>
   	<!-- Satellite evolution -->
 	<nodeOperator value="satelliteMergingTime" iterable="no"/>
-	<nodeOperator value="satelliteMassLoss" iterable="no"   />
+	<nodeOperator value="satelliteMassLoss" iterable="no"/>
 	<!-- Star formation -->
   	<nodeOperator value="starFormationDisks" iterable="no"/>
   	<nodeOperator value="starFormationSpheroids" iterable="no"/>
@@ -701,12 +711,15 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <spheroidMassDistribution value="hernquist">
-      <dimensionless value="true"/>
-    </spheroidMassDistribution>
-    <spheroidMassDistribution value="sersic">
-      <dimensionless value="true"/>
-    </spheroidMassDistribution>
+    <componentSpheroid value="standard">
+      <massDistributionSpheroid value="hernquist">
+	<dimensionless value="true"/>
+      </massDistributionSpheroid>
+      <massDistributionSpheroid value="sersic">
+	<dimensionless value="true"/>
+      </massDistributionSpheroid>
+    </componentSpheroid>
+
   </parameters>
   
   <!-- Black hole comopnents. -->
@@ -738,7 +751,7 @@
   	<nodeOperator value="haloAngularMomentumInterpolate" iterable="no"/>
  	<!-- Satellite evolution -->
 	<nodeOperator value="satelliteMergingTime" iterable="no"/>
-	<nodeOperator value="satelliteMassLoss" iterable="no"   />
+	<nodeOperator value="satelliteMassLoss" iterable="no"/>
  	<!-- Star formation -->
   	<nodeOperator value="starFormationDisks" iterable="no"/>
   	<nodeOperator value="starFormationSpheroids" iterable="no"/>
@@ -785,7 +798,7 @@
   	<nodeOperator value="haloAngularMomentumInterpolate" iterable="no"/>
   	<!-- Satellite evolution -->
 	<nodeOperator value="satelliteMergingTime" iterable="no"/>
-	<nodeOperator value="satelliteMassLoss" iterable="no"   />
+	<nodeOperator value="satelliteMassLoss" iterable="no"/>
 	<!-- Star formation -->
   	<nodeOperator value="starFormationDisks" iterable="no"/>
   	<nodeOperator value="starFormationSpheroids" iterable="no"/>
@@ -906,7 +919,7 @@
     <version>0.9.4</version>
     <nodePropertyExtractor value="multi">
       <nodePropertyExtractor value="adiabaticRatioOrbitalDisk" iterable="no"/>
-      <nodePropertyExtractor value="timescaleBarInstability"   iterable="no"/>
+      <nodePropertyExtractor value="timescaleBarInstability" iterable="no"/>
     </nodePropertyExtractor>
   </parameters>
 
@@ -944,10 +957,10 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <nodePropertyExtractor value="multi">
-      <nodePropertyExtractor value="starFormationRate" >
-  	<component value="disk"    />
+      <nodePropertyExtractor value="starFormationRate">
+  	<component value="disk"/>
       </nodePropertyExtractor>
-      <nodePropertyExtractor value="starFormationRate" >
+      <nodePropertyExtractor value="starFormationRate">
   	<component value="spheroid"/>
       </nodePropertyExtractor>
     </nodePropertyExtractor>
@@ -1037,8 +1050,11 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <blackHoleWindEfficiencyScalesWithRadiativeEfficiency value="false"/>
-    <blackHoleWindEfficiencyScalesWithRadiativeEfficiency value="true"/>
+    <componentBlackHole value="standard">
+    <efficiencyWindScalesWithEfficiencyRadiative value="false"/>
+    <efficiencyWindScalesWithEfficiencyRadiative value="true"/>
+  </componentBlackHole>
+
   </parameters>
 
   <!-- Hot halo ram pressure forces -->
@@ -1068,7 +1084,7 @@
       <!-- DMO evolution -->
       <nodeOperator value="DMOInterpolate" iterable="no"/>
       <!-- Halo concentrations -->
-      <nodeOperator value="darkMatterProfileScaleSet"         iterable="no"/>
+      <nodeOperator value="darkMatterProfileScaleSet" iterable="no"/>
       <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
       <!-- Halo spins -->
       <nodeOperator value="haloAngularMomentumRandom" iterable="no">
@@ -1077,7 +1093,7 @@
       <nodeOperator value="haloAngularMomentumInterpolate" iterable="no"/>
       <!-- Satellite evolution -->
       <nodeOperator value="satelliteMergingTime" iterable="no"/>
-      <nodeOperator value="satelliteMassLoss" iterable="no"   />
+      <nodeOperator value="satelliteMassLoss" iterable="no"/>
       <!-- Star formation -->
       <nodeOperator value="starFormationDisks" iterable="no"/>
       <nodeOperator value="starFormationSpheroids" iterable="no"/>
@@ -1113,7 +1129,7 @@
       <!-- DMO evolution -->
       <nodeOperator value="DMOInterpolate" iterable="no"/>
       <!-- Halo concentrations -->
-      <nodeOperator value="darkMatterProfileScaleSet"         iterable="no"/>
+      <nodeOperator value="darkMatterProfileScaleSet" iterable="no"/>
       <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
       <!-- Halo spins -->
       <nodeOperator value="haloAngularMomentumRandom" iterable="no">
@@ -1121,7 +1137,7 @@
       </nodeOperator>
       <!-- Satellite evolution -->
       <nodeOperator value="satelliteMergingTime" iterable="no"/>
-      <nodeOperator value="satelliteMassLoss" iterable="no"   />
+      <nodeOperator value="satelliteMassLoss" iterable="no"/>
       <!-- Star formation -->
       <nodeOperator value="starFormationDisks" iterable="no"/>
       <nodeOperator value="starFormationSpheroids" iterable="no"/>
@@ -1159,7 +1175,7 @@
       <!-- DMO evolution -->
       <nodeOperator value="DMOInterpolate" iterable="no"/>
       <!-- Halo concentrations -->
-      <nodeOperator value="darkMatterProfileScaleSet"         iterable="no"/>
+      <nodeOperator value="darkMatterProfileScaleSet" iterable="no"/>
       <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
       <!-- Halo spins -->
       <nodeOperator value="haloAngularMomentumRandom" iterable="no">
@@ -1167,7 +1183,7 @@
       </nodeOperator>
       <!-- Satellite evolution -->
       <nodeOperator value="satelliteMergingTime" iterable="no"/>
-      <nodeOperator value="satelliteMassLoss" iterable="no"   />
+      <nodeOperator value="satelliteMassLoss" iterable="no"/>
       <!-- Star formation -->
       <nodeOperator value="starFormationDisks" iterable="no"/>
       <nodeOperator value="starFormationSpheroids" iterable="no"/>
@@ -1204,7 +1220,7 @@
       <!-- DMO evolution -->
       <nodeOperator value="DMOInterpolate" iterable="no"/>
       <!-- Halo concentrations -->
-      <nodeOperator value="darkMatterProfileScaleSet"         iterable="no"/>
+      <nodeOperator value="darkMatterProfileScaleSet" iterable="no"/>
       <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
       <!-- Halo spins -->
       <nodeOperator value="haloAngularMomentumRandom" iterable="no">
@@ -1212,7 +1228,7 @@
       </nodeOperator>
       <!-- Satellite evolution -->
       <nodeOperator value="satelliteMergingTime" iterable="no"/>
-      <nodeOperator value="satelliteMassLoss" iterable="no"   />
+      <nodeOperator value="satelliteMassLoss" iterable="no"/>
       <!-- Star formation -->
       <nodeOperator value="starFormationDisks" iterable="no"/>
       <nodeOperator value="starFormationSpheroids" iterable="no"/>
@@ -1365,30 +1381,31 @@
     <componentHotHalo value="null"/>
     <hotHaloMassDistribution value="null"/>
     <componentSatellite value="orbiting"/>
-    <componentSpheroid value="null"/>
-    <spheroidMassDistribution value="hernquist">
-      <dimensionless value="true"/>
-    </spheroidMassDistribution>
+    <componentSpheroid value="null">
+      <massDistributionSpheroid value="hernquist">
+	<dimensionless value="true"/>
+      </massDistributionSpheroid>
+    </componentSpheroid>
     <componentSpin value="scalar"/>
-    <nodeOperator value="multi" >
+    <nodeOperator value="multi">
       <!-- Cosmological epoch -->
       <nodeOperator value="cosmicTime" iterable="no"/>
       <!-- DMO evolution -->
       <nodeOperator value="DMOInterpolate" iterable="no"/>
-      <nodeOperator value="darkMatterProfileScaleSet"         iterable="no"/>
+      <nodeOperator value="darkMatterProfileScaleSet" iterable="no"/>
       <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
       <nodeOperator value="haloAngularMomentumRandom" iterable="no">
   	<factorReset value="2.0"/>
       </nodeOperator>
-      <nodeOperator value="satelliteOrbit"                    iterable="no"/>
-      <nodeOperator value="satelliteDynamicalFriction"        iterable="no"/>
-      <nodeOperator value="satelliteTidalMassLoss"            iterable="no"/>
-      <nodeOperator value="satelliteTidalHeating"             iterable="no"/>
-      <nodeOperator value="satelliteMergingRadiusTrigger"     iterable="no" >
-  	<radiusVirialFraction      value="0.01"/>
+      <nodeOperator value="satelliteOrbit" iterable="no"/>
+      <nodeOperator value="satelliteDynamicalFriction" iterable="no"/>
+      <nodeOperator value="satelliteTidalMassLoss" iterable="no"/>
+      <nodeOperator value="satelliteTidalHeating" iterable="no"/>
+      <nodeOperator value="satelliteMergingRadiusTrigger" iterable="no">
+  	<radiusVirialFraction value="0.01"/>
       </nodeOperator>
-      <nodeOperator value="satelliteDestructionMassThreshold" iterable="no" >
-  	<massDestruction           value="0.00"/>
+      <nodeOperator value="satelliteDestructionMassThreshold" iterable="no">
+  	<massDestruction value="0.00"/>
   	<massDestructionFractional value="0.01"/>
       </nodeOperator>
     </nodeOperator>
@@ -1434,11 +1451,11 @@
     </mergerTreeBranchingProbability>
     <mergerTreeNodeMerger value="singleLevelHierarchy"/>
     <mergerTreeEvolveTimestep value="multi">
-      <mergerTreeEvolveTimestep value="simple"               iterable="no" >
-  	<timeStepAbsolute          value="1.000"/>
-  	<timeStepRelative          value="0.100"/>
+      <mergerTreeEvolveTimestep value="simple" iterable="no">
+  	<timeStepAbsolute value="1.000"/>
+  	<timeStepRelative value="0.100"/>
       </mergerTreeEvolveTimestep>
-      <mergerTreeEvolveTimestep value="satellite"            iterable="no" >
+      <mergerTreeEvolveTimestep value="satellite" iterable="no">
   	<timeOffsetMaximumAbsolute value="0.010"/>
   	<timeOffsetMaximumRelative value="0.001"/>
       </mergerTreeEvolveTimestep>
@@ -1547,12 +1564,12 @@
     <!-- Node evolution and physics -->
     <nodeOperator value="multi">
       <!-- Cosmological epoch -->
-      <nodeOperator value="cosmicTime"     iterable="no"/>
+      <nodeOperator value="cosmicTime" iterable="no"/>
       <!-- DMO evolution -->
       <nodeOperator value="DMOInterpolate" iterable="no"/>
       <!-- Satellite evolution -->
       <nodeOperator value="satelliteMergingTime" iterable="no"/>
-      <nodeOperator value="satelliteMassLoss" iterable="no"   />
+      <nodeOperator value="satelliteMassLoss" iterable="no"/>
     </nodeOperator>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
@@ -1601,12 +1618,12 @@
     <!-- Node evolution and physics -->
     <nodeOperator value="multi">
       <!-- Cosmological epoch -->
-      <nodeOperator value="cosmicTime"     iterable="no"/>
+      <nodeOperator value="cosmicTime" iterable="no"/>
       <!-- DMO evolution -->
       <nodeOperator value="DMOInterpolate" iterable="no"/>
       <!-- Satellite evolution -->
       <nodeOperator value="satelliteMergingTime" iterable="no"/>
-      <nodeOperator value="satelliteMassLoss" iterable="no"   />
+      <nodeOperator value="satelliteMassLoss" iterable="no"/>
     </nodeOperator>
     <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
@@ -1658,12 +1675,12 @@
     <!-- Node evolution and physics -->
     <nodeOperator value="multi">
       <!-- Cosmological epoch -->
-      <nodeOperator value="cosmicTime"     iterable="no"/>
+      <nodeOperator value="cosmicTime" iterable="no"/>
       <!-- DMO evolution -->
       <nodeOperator value="DMOInterpolate" iterable="no"/>
       <!-- Satellite evolution -->
       <nodeOperator value="satelliteMergingTime" iterable="no"/>
-      <nodeOperator value="satelliteMassLoss" iterable="no"   />
+      <nodeOperator value="satelliteMassLoss" iterable="no"/>
     </nodeOperator>
     <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
@@ -1704,12 +1721,12 @@
     <!-- Node evolution and physics -->
     <nodeOperator value="multi">
       <!-- Cosmological epoch -->
-      <nodeOperator value="cosmicTime"     iterable="no"/>
+      <nodeOperator value="cosmicTime" iterable="no"/>
       <!-- DMO evolution -->
       <nodeOperator value="DMOInterpolate" iterable="no"/>
       <!-- Satellite evolution -->
       <nodeOperator value="satelliteMergingTime" iterable="no"/>
-      <nodeOperator value="satelliteMassLoss" iterable="no"   />
+      <nodeOperator value="satelliteMassLoss" iterable="no"/>
     </nodeOperator>
     <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
@@ -1753,12 +1770,12 @@
     <!-- Node evolution and physics -->
     <nodeOperator value="multi">
       <!-- Cosmological epoch -->
-      <nodeOperator value="cosmicTime"     iterable="no"/>
+      <nodeOperator value="cosmicTime" iterable="no"/>
       <!-- DMO evolution -->
       <nodeOperator value="DMOInterpolate" iterable="no"/>
       <!-- Satellite evolution -->
       <nodeOperator value="satelliteMergingTime" iterable="no"/>
-      <nodeOperator value="satelliteMassLoss" iterable="no"   />
+      <nodeOperator value="satelliteMassLoss" iterable="no"/>
     </nodeOperator>
     <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
@@ -1801,12 +1818,12 @@
     <!-- Node evolution and physics -->
     <nodeOperator value="multi">
       <!-- Cosmological epoch -->
-      <nodeOperator value="cosmicTime"     iterable="no"/>
+      <nodeOperator value="cosmicTime" iterable="no"/>
       <!-- DMO evolution -->
       <nodeOperator value="DMOInterpolate" iterable="no"/>
       <!-- Satellite evolution -->
       <nodeOperator value="satelliteMergingTime" iterable="no"/>
-      <nodeOperator value="satelliteMassLoss" iterable="no"   />
+      <nodeOperator value="satelliteMassLoss" iterable="no"/>
     </nodeOperator>
     <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
@@ -1849,12 +1866,12 @@
     <!-- Node evolution and physics -->
     <nodeOperator value="multi">
       <!-- Cosmological epoch -->
-      <nodeOperator value="cosmicTime"     iterable="no"/>
+      <nodeOperator value="cosmicTime" iterable="no"/>
       <!-- DMO evolution -->
       <nodeOperator value="DMOInterpolate" iterable="no"/>
       <!-- Satellite evolution -->
       <nodeOperator value="satelliteMergingTime" iterable="no"/>
-      <nodeOperator value="satelliteMassLoss" iterable="no"   />
+      <nodeOperator value="satelliteMassLoss" iterable="no"/>
     </nodeOperator>
     <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
@@ -1897,12 +1914,12 @@
     <!-- Node evolution and physics -->
     <nodeOperator value="multi">
       <!-- Cosmological epoch -->
-      <nodeOperator value="cosmicTime"     iterable="no"/>
+      <nodeOperator value="cosmicTime" iterable="no"/>
       <!-- DMO evolution -->
       <nodeOperator value="DMOInterpolate" iterable="no"/>
       <!-- Satellite evolution -->
       <nodeOperator value="satelliteMergingTime" iterable="no"/>
-      <nodeOperator value="satelliteMassLoss" iterable="no"   />
+      <nodeOperator value="satelliteMassLoss" iterable="no"/>
     </nodeOperator>
     <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
@@ -1951,12 +1968,12 @@
     <!-- Node evolution and physics -->
     <nodeOperator value="multi">
       <!-- Cosmological epoch -->
-      <nodeOperator value="cosmicTime"     iterable="no"/>
+      <nodeOperator value="cosmicTime" iterable="no"/>
       <!-- DMO evolution -->
       <nodeOperator value="DMOInterpolate" iterable="no"/>
       <!-- Satellite evolution -->
       <nodeOperator value="satelliteMergingTime" iterable="no"/>
-      <nodeOperator value="satelliteMassLoss" iterable="no"   />
+      <nodeOperator value="satelliteMassLoss" iterable="no"/>
     </nodeOperator>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
@@ -1998,12 +2015,12 @@
     <!-- Node evolution and physics -->
     <nodeOperator value="multi">
       <!-- Cosmological epoch -->
-      <nodeOperator value="cosmicTime"     iterable="no"/>
+      <nodeOperator value="cosmicTime" iterable="no"/>
       <!-- DMO evolution -->
       <nodeOperator value="DMOInterpolate" iterable="no"/>
       <!-- Satellite evolution -->
       <nodeOperator value="satelliteMergingTime" iterable="no"/>
-      <nodeOperator value="satelliteMassLoss" iterable="no"   />
+      <nodeOperator value="satelliteMassLoss" iterable="no"/>
     </nodeOperator>
     <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
@@ -2062,12 +2079,12 @@
     <!-- Node evolution and physics -->
     <nodeOperator value="multi">
       <!-- Cosmological epoch -->
-      <nodeOperator value="cosmicTime"     iterable="no"/>
+      <nodeOperator value="cosmicTime" iterable="no"/>
       <!-- DMO evolution -->
       <nodeOperator value="DMOInterpolate" iterable="no"/>
       <!-- Satellite evolution -->
       <nodeOperator value="satelliteMergingTime" iterable="no"/>
-      <nodeOperator value="satelliteMassLoss" iterable="no"   />
+      <nodeOperator value="satelliteMassLoss" iterable="no"/>
     </nodeOperator>
     <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
@@ -2122,12 +2139,12 @@
     <!-- Node evolution and physics -->
     <nodeOperator value="multi">
       <!-- Cosmological epoch -->
-      <nodeOperator value="cosmicTime"     iterable="no"/>
+      <nodeOperator value="cosmicTime" iterable="no"/>
       <!-- DMO evolution -->
       <nodeOperator value="DMOInterpolate" iterable="no"/>
       <!-- Satellite evolution -->
       <nodeOperator value="satelliteMergingTime" iterable="no"/>
-      <nodeOperator value="satelliteMassLoss" iterable="no"   />
+      <nodeOperator value="satelliteMassLoss" iterable="no"/>
     </nodeOperator>
     <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
@@ -2192,7 +2209,7 @@
       <nodeOperator value="hierarchy" iterable="no"/>
       <!-- Satellite evolution -->
       <nodeOperator value="satelliteMergingTime" iterable="no"/>
-      <nodeOperator value="satelliteMassLoss" iterable="no"   />
+      <nodeOperator value="satelliteMassLoss" iterable="no"/>
     </nodeOperator>
     <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
@@ -2213,15 +2230,15 @@
     <version>0.9.4</version>
     <nodeOperator value="multi">
       <!-- Cosmological epoch -->
-      <nodeOperator value="cosmicTime"                        iterable="no"/>
+      <nodeOperator value="cosmicTime" iterable="no"/>
       <!-- DMO evolution -->
-      <nodeOperator value="DMOInterpolate"                    iterable="no"/>
+      <nodeOperator value="DMOInterpolate" iterable="no"/>
       <!-- Halo concentrations -->
-      <nodeOperator value="darkMatterProfileScaleSet"         iterable="no"/>
+      <nodeOperator value="darkMatterProfileScaleSet" iterable="no"/>
       <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
       <!-- Satellite evolution -->
       <nodeOperator value="satelliteMergingTime" iterable="no"/>
-      <nodeOperator value="satelliteMassLoss" iterable="no"   />
+      <nodeOperator value="satelliteMassLoss" iterable="no"/>
     </nodeOperator>
     <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
@@ -2363,7 +2380,7 @@
     </mergerTreeEvolver>
 
     <mergerTreeEvolveTimestep value="multi">
-      <mergerTreeEvolveTimestep value="simple"    iterable="no" >
+      <mergerTreeEvolveTimestep value="simple" iterable="no">
   	<timeStepAbsolute value="10.00"/>
   	<timeStepRelative value="10.00"/>
       </mergerTreeEvolveTimestep>
@@ -2406,8 +2423,8 @@
     <outputTimes value="list">
       <redshifts value="0.0 1.0"/>
     </outputTimes>
-    <luminosityFilter   value="LSST_g   LSST_i   LSST_r   LSST_u   LSST_y   LSST_z   LSST_g   LSST_i   LSST_r   LSST_u   LSST_y   LSST_z"/>
-    <luminosityType     value="observed observed observed observed observed observed rest     rest     rest     rest     rest     rest  "/>
+    <luminosityFilter value="LSST_g   LSST_i   LSST_r   LSST_u   LSST_y   LSST_z   LSST_g   LSST_i   LSST_r   LSST_u   LSST_y   LSST_z"/>
+    <luminosityType value="observed observed observed observed observed observed rest     rest     rest     rest     rest     rest  "/>
     <luminosityRedshift value="all      all      all      all      all      all      all      all      all      all      all      all   "/>
   </parameters>
 
@@ -2429,7 +2446,7 @@
       <nodeOperator value="haloAngularMomentumInterpolate" iterable="no"/>
       <!-- Satellite evolution -->
       <nodeOperator value="satelliteMergingTime" iterable="no"/>
-      <nodeOperator value="satelliteMassLoss" iterable="no"   />
+      <nodeOperator value="satelliteMassLoss" iterable="no"/>
       <!-- Star formation -->
       <nodeOperator value="starFormationDisks" iterable="no"/>
       <nodeOperator value="starFormationSpheroids" iterable="no"/>

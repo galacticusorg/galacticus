@@ -43,10 +43,6 @@
   <mergerTreeMassResolution value="fixed">
     <massResolution value="1.0e6"/>
   </mergerTreeMassResolution>
-  
-  <!-- Numerical tolerances -->
-  <diskMassToleranceAbsolute     value="1.0e-6"  />
-  <spheroidMassToleranceAbsolute value="1.0e-6"  />
 
   <!-- Output options -->
   <outputFileName value="testSuite/outputs/validate_darkMatterOnlySubHalos.hdf5"/>

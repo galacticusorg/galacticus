@@ -9,10 +9,14 @@
   <componentBasic value="standard"/>
   <componentBlackHole value="null"/>
   <componentDarkMatterProfile value="null"/>
-  <componentDisk value="null"/>
+  <componentDisk value="null">
+    <toleranceAbsoluteMass value="1.0e-6"/>
+  </componentDisk>
   <componentHotHalo value="null"/>
   <componentSatellite value="standard"/>
-  <componentSpheroid value="null"/>
+  <componentSpheroid value="null">
+    <toleranceAbsoluteMass value="1.0e-6"/>
+  </componentSpheroid>
   <componentSpin value="null"/>
 
   <!-- Cosmological parameters and options -->
@@ -92,7 +96,7 @@
     <nodeOperator value="massHostMaximum"/>
     <!-- Satellite evolution -->
     <nodeOperator value="satelliteMergingTime"/>
-    <nodeOperator value="satelliteMassLoss"   />
+    <nodeOperator value="satelliteMassLoss"/>
   </nodeOperator>
   
   <!-- Numerical tolerances -->
@@ -100,8 +104,6 @@
     <odeToleranceAbsolute value="0.01"/>
     <odeToleranceRelative value="0.01"/>
   </mergerTreeNodeEvolver>
-  <diskMassToleranceAbsolute value="1.0e-6"/>
-  <spheroidMassToleranceAbsolute value="1.0e-6"/>
   <mergerTreeEvolver value="standard">
     <timestepHostAbsolute value="1.0"/>
     <timestepHostRelative value="0.1"/>

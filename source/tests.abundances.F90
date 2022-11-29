@@ -25,13 +25,14 @@ program Test_Abundances
   !!{
   Test abundances objects.
   !!}
-  use :: Abundances_Structure      , only : abundances                , max
-  use :: Display                   , only : displayVerbositySet       , verbosityLevelStandard
+  use :: Abundances_Structure      , only : abundances                  , max
+  use :: Display                   , only : displayVerbositySet         , verbosityLevelStandard
   use :: Functions_Global_Utilities, only : Functions_Global_Set
-  use :: ISO_Varying_String        , only : assignment(=)             , varying_string
+  use :: ISO_Varying_String        , only : assignment(=)               , varying_string
   use :: Input_Parameters          , only : inputParameters
+  use :: Galacticus_Nodes          , only : nodeClassHierarchyInitialize
   use :: Node_Components           , only : Node_Components_Initialize
-  use :: Unit_Tests                , only : Assert                    , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Unit_Tests                , only : Assert                      , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type            (varying_string )               :: parameterFile
   type            (abundances     )               :: abundances1    , abundances2, abundances3
@@ -46,8 +47,9 @@ program Test_Abundances
   ! Read in controlling parameters.
   parameterFile='testSuite/parameters/abundances/testAbundances.xml'
   parameters=inputParameters(parameterFile)
-  call Functions_Global_Set      (          )
-  call Node_Components_Initialize(parameters)
+  call Functions_Global_Set        (          )
+  call nodeClassHierarchyInitialize(parameters)
+  call Node_Components_Initialize  (parameters)
 
   ! Initialize abundances.
   call abundances1%deserialize([1.0d0,2.0d0,3.0d0,4.0d0,5.0d0])

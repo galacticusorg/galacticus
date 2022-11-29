@@ -1156,6 +1156,11 @@ CODE
 		        while ( $node && ( $node->{'type'} ne "type" || ( ! exists($node->{'name'}) || $node->{'name'} ne $class->{'name'} ) ) );
 		    last
 			unless ( $node );
+		    # Handle linked lists.
+		    (my $linkedListCode, my $linkedListResetCode, my $linkedListFinalizeCode) = &deepCopyLinkedList($nonAbstractClass,$linkedListVariables,$linkedListResetVariables,$linkedListFinalizeVariables,$debugging);
+		    $assignments          .= $linkedListCode;
+		    $deepCopyResetCode    .= $linkedListResetCode;
+		    $deepCopyFinalizeCode .= $linkedListFinalizeCode;
 		    # Search the node for declarations.
 		    my @ignore = exists($class->{'deepCopy'}->{'ignore'}) ? split(/\s*,\s*/,$class->{'deepCopy'}->{'ignore'}->{'variables'}) : ();
 		    $node = $node->{'firstChild'};
@@ -1248,11 +1253,6 @@ CODE
 					    foreach ( @{$declaration->{'variables'}} );
 					$assignments .= "!\$ call hdf5Access%unset()\n";
 				}
-				# Handle linked lists.
-				(my $linkedListCode, my $linkedListResetCode, my $linkedListFinalizeCode) = &deepCopyLinkedList($nonAbstractClass,$linkedListVariables,$linkedListResetVariables,$linkedListFinalizeVariables,$debugging);
-				$assignments          .= $linkedListCode;
-				$deepCopyResetCode    .= $linkedListResetCode;
-				$deepCopyFinalizeCode .= $linkedListFinalizeCode;
 				# Deep copy of non-(class,pointer) functionClass objects.
 				if ( exists($class->{'deepCopy'}->{'functionClass'}) ) {
 				    foreach my $object ( @{$declaration->{'variables'}} ) {

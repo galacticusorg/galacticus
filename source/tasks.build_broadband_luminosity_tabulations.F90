@@ -59,6 +59,7 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameters
     use :: Node_Components , only : Node_Components_Initialize
+    use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize
     implicit none
     type (taskBuildBroadbandLuminosityTabulations    )                         :: self
     type (inputParameters                            ), intent(inout), target  :: parameters
@@ -71,7 +72,8 @@ contains
     do while (associated(parametersRoot%parent))
        parametersRoot => parametersRoot%parent
     end do
-    call Node_Components_Initialize(parametersRoot)
+    call nodeClassHierarchyInitialize(parametersRoot)
+    call Node_Components_Initialize  (parametersRoot)
     self%nodeComponentsInitialized=.true.
     !![
     <objectBuilder class="stellarPopulationBroadBandLuminosities" name="stellarPopulationBroadBandLuminosities_" source="parameters"/>

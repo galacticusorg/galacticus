@@ -46,9 +46,9 @@ module Node_Component_Disk_Standard_Data
   !$omp threadprivate(radiusScaleDisk)
 
   ! The mass distribution object.
-  class           (massDistributionClass      ), pointer :: diskMassDistribution_
-  class           (massDistributionCylindrical), pointer :: diskMassDistribution
-  !$omp threadprivate(diskMassDistribution_,diskMassDistribution)
+  class           (massDistributionClass      ), pointer :: massDistributionDisk_
+  class           (massDistributionCylindrical), pointer :: massDistributionDisk
+  !$omp threadprivate(massDistributionDisk_,massDistributionDisk)
 
 contains
 

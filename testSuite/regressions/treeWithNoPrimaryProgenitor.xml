@@ -83,7 +83,9 @@
   </cosmologicalMassVariance>
 
   <hotHaloRamPressureStripping value="virialRadius"/>
-  <hotHaloTrackStrippedGas value="false"/>
+  <componentHotHalo value="standard">
+    <trackStrippedGas value="false"/>
+  </componentHotHalo>
 
   <!-- Halo scale radii and concentrations -->
   <darkMatterProfileScaleRadius value="concentrationLimiter">
@@ -99,7 +101,7 @@
     <!-- DMO evolution -->
     <nodeOperator value="DMOInterpolate"/>
     <!-- Halo concentrations -->
-    <nodeOperator value="darkMatterProfileScaleSet"        />
+    <nodeOperator value="darkMatterProfileScaleSet"/>
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
     <!-- Halo spins -->
     <nodeOperator value="haloAngularMomentumRandom">

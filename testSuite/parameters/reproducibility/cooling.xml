@@ -10,17 +10,18 @@
   <componentHotHalo value="standard"/>
   <componentBlackHole value="null"/>
   <componentDarkMatterProfile value="null"/>
-  <componentDisk value="null"/>
+  <componentDisk value="null">
+    <massDistributionDisk value="exponentialDisk">
+      <dimensionless value="true"/>
+    </massDistributionDisk>
+  </componentDisk>
   <componentSatellite value="null"/>
-  <componentSpheroid value="null"/>
+  <componentSpheroid value="null">
+    <massDistributionSpheroid value="hernquist">
+      <dimensionless value="true"/>
+    </massDistributionSpheroid>
+  </componentSpheroid>
   <componentSpin value="null"/>
-  <diskMassDistribution value="exponentialDisk">
-    <dimensionless value="true"/>
-  </diskMassDistribution>
-  <spheroidMassDistribution value="hernquist">
-    <dimensionless value="true"/>
-  </spheroidMassDistribution>
-
   <!-- Cosmological parameters and options -->
   <cosmologyFunctions value="matterLambda"/>
   <cosmologyParameters value="simple">
@@ -112,7 +113,7 @@
     <nodeOperator value="DMOInterpolate"/>
     <!-- Satellite evolution -->
     <nodeOperator value="satelliteMergingTime"/>
-    <nodeOperator value="satelliteMassLoss"   />
+    <nodeOperator value="satelliteMassLoss"/>
     <!-- Star formation -->
     <nodeOperator value="starFormationDisks"/>
     <nodeOperator value="starFormationSpheroids"/>
