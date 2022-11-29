@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1668806891090,
+  "lastUpdate": 1669721040177,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
@@ -4132,6 +4132,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 6.30543912211942,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "380311c81f358602f5bfc449c3a59549db810f16",
+          "message": "Merge pull request #335 from galacticusorg/satelliteDistanceMinimum\n\nAdd a `nodeOperator` and `nodePropertyExtractor` to track the minimum distance of approach of a satellite to the center of its host halo",
+          "timestamp": "2022-11-28T21:33:33-08:00",
+          "tree_id": "7cb9bf93ba71ef9efadac4301d6ea1f0d00b8053",
+          "url": "https://github.com/galacticusorg/galacticus/commit/380311c81f358602f5bfc449c3a59549db810f16"
+        },
+        "date": 1669721039194,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 185.571,
+            "unit": "seconds",
+            "range": 0.30274229965706
           }
         ]
       }
