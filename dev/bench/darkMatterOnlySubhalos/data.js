@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1669721035902,
+  "lastUpdate": 1669721044719,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
@@ -5033,6 +5033,45 @@ window.BENCHMARK_DATA = {
             "value": 64.678,
             "unit": "seconds",
             "range": 0.17965411211561
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "380311c81f358602f5bfc449c3a59549db810f16",
+          "message": "Merge pull request #335 from galacticusorg/satelliteDistanceMinimum\n\nAdd a `nodeOperator` and `nodePropertyExtractor` to track the minimum distance of approach of a satellite to the center of its host halo",
+          "timestamp": "2022-11-28T21:33:33-08:00",
+          "tree_id": "7cb9bf93ba71ef9efadac4301d6ea1f0d00b8053",
+          "url": "https://github.com/galacticusorg/galacticus/commit/380311c81f358602f5bfc449c3a59549db810f16"
+        },
+        "date": 1669721043431,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 57.4771891211537,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 26.0053889680488,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 26391.8664916722,
+            "unit": "-logℒ"
           }
         ]
       }
