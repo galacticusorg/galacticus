@@ -200,16 +200,17 @@ contains
     return
   end function farahiMidpointBrownianBridgeConstructorParameters
 
-  function farahiMidpointBrownianBridgeConstructorInternal(varianceConstrained,criticalOverdensityConstrained,fractionalTimeStep,fileName,varianceNumberPerUnitProbability,varianceNumberPerUnit,varianceNumberPerDecade,timeNumberPerDecade,varianceIsUnlimited,cosmologyFunctions_,excursionSetBarrier_,cosmologicalMassVariance_,criticalOverdensity_,linearGrowth_,excursionSetFirstCrossing_) result(self)
+  function farahiMidpointBrownianBridgeConstructorInternal(varianceConstrained,criticalOverdensityConstrained,fractionalTimeStep,fileName,varianceNumberPerUnitProbability,varianceNumberPerUnit,varianceNumberPerDecade,varianceNumberPerDecadeNonCrossing,timeNumberPerDecade,varianceIsUnlimited,cosmologyFunctions_,excursionSetBarrier_,cosmologicalMassVariance_,criticalOverdensity_,linearGrowth_,excursionSetFirstCrossing_) result(self)
     !!{
     Internal constructor for the Farahi-midpoint excursion set class first crossing class.
     !!}
     implicit none
     type            (excursionSetFirstCrossingFarahiMidpointBrownianBridge)                        :: self
-    double precision                                                       , intent(in   )         :: varianceConstrained             , criticalOverdensityConstrained, &
+    double precision                                                       , intent(in   )         :: varianceConstrained               , criticalOverdensityConstrained, &
          &                                                                                            fractionalTimeStep
-    integer                                                                , intent(in   )         :: varianceNumberPerUnitProbability, varianceNumberPerUnit         , &
-         &                                                                                            timeNumberPerDecade             , varianceNumberPerDecade
+    integer                                                                , intent(in   )         :: varianceNumberPerUnitProbability  , varianceNumberPerUnit         , &
+         &                                                                                            timeNumberPerDecade               , varianceNumberPerDecade       , &
+         &                                                                                            varianceNumberPerDecadeNonCrossing
     logical                                                                , intent(in   )         :: varianceIsUnlimited
     type            (varying_string                                       ), intent(in   )         :: fileName
     class           (cosmologyFunctionsClass                              ), intent(in   ), target :: cosmologyFunctions_
@@ -223,7 +224,7 @@ contains
     <constructorAssign variables="varianceConstrained, criticalOverdensityConstrained, *criticalOverdensity_, *linearGrowth_, *excursionSetFirstCrossing_"/>
     !!]
     
-    self%excursionSetFirstCrossingFarahiMidpoint=excursionSetFirstCrossingFarahiMidpoint(fractionalTimeStep,fileName,varianceNumberPerUnitProbability,varianceNumberPerUnit,varianceNumberPerDecade,timeNumberPerDecade,varianceIsUnlimited,cosmologyFunctions_,excursionSetBarrier_,cosmologicalMassVariance_)
+    self%excursionSetFirstCrossingFarahiMidpoint=excursionSetFirstCrossingFarahiMidpoint(fractionalTimeStep,fileName,varianceNumberPerUnitProbability,varianceNumberPerUnit,varianceNumberPerDecade,varianceNumberPerDecadeNonCrossing,timeNumberPerDecade,varianceIsUnlimited,cosmologyFunctions_,excursionSetBarrier_,cosmologicalMassVariance_)
     ! Find mass and time corresponding to the constraint point.
     timePresent             =self%cosmologyFunctions_      %cosmicTime                 (expansionFactor    =1.0d0                                                                          )
     self%massConstrained    =self%cosmologicalMassVariance_%mass                       (time               =timePresent                        ,rootVariance=sqrt(self%varianceConstrained))
