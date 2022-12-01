@@ -489,11 +489,7 @@ contains
        ! Make sure that the transfer function is non-negative.
        transferFunctions=abs(transferFunctions)
        ! Remove temporary files.
-       command="rm -f "                    // &
-            &   parameterFile         //" "// &
-            &  "axionCamb_params.ini" //" "
-       call File_Remove(parameterFile         )
-       call File_Remove("axionCamb_params.ini")
+       call File_Remove(parameterFile)
        do i=1,countRedshiftsUnique
           call File_Remove('axionCamb_transfer_'   //trim(adjustl(redshiftLabelsCombined(i)))//'.dat')
           call File_Remove('axionCamb_matterpower_'//trim(adjustl(redshiftLabelsCombined(i)))//'.dat')

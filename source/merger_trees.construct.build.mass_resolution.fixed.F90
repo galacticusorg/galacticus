@@ -49,13 +49,13 @@
 
 contains
 
-  function fixedConstructorParameters(parameters)
+  function fixedConstructorParameters(parameters) result(self)
     !!{
     Constructor for the {\normalfont \ttfamily fixed} merger tree building mass resolution class which reads parameters from a
     provided parameter list.
     !!}
     implicit none
-    type(mergerTreeMassResolutionFixed)                :: fixedConstructorParameters
+    type(mergerTreeMassResolutionFixed)                :: self
     type(inputParameters              ), intent(inout) :: parameters
 
     ! Check and read parameters.
@@ -63,7 +63,7 @@ contains
     <inputParameter>
       <name>massResolution</name>
       <source>parameters</source>
-      <variable>fixedConstructorParameters%massResolution</variable>
+      <variable>self%massResolution</variable>
       <defaultValue>5.0d9</defaultValue>
       <description>The mass resolution to use when building merger trees.</description>
     </inputParameter>
@@ -72,15 +72,17 @@ contains
     return
   end function fixedConstructorParameters
 
-  function fixedConstructorInternal(massResolution)
+  function fixedConstructorInternal(massResolution) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily fixed} merger tree building mass resolution class.
     !!}
     implicit none
-    type            (mergerTreeMassResolutionFixed)                :: fixedConstructorInternal
+    type            (mergerTreeMassResolutionFixed)                :: self
     double precision                               , intent(in   ) :: massResolution
-
-    fixedConstructorInternal%massResolution=massResolution
+    !![
+    <constructorAssign variables="massResolution"/>
+    !!]
+    
     return
   end function fixedConstructorInternal
 

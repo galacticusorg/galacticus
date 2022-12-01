@@ -63,12 +63,12 @@
 
 contains
 
-  function fileConstructorParameters(parameters)
+  function fileConstructorParameters(parameters) result(self)
     !!{
     Constructor for the {\normalfont \ttfamily file} accretion disk spectra class which takes a parameter set as input.
     !!}
     implicit none
-    type(accretionDiskSpectraFile)                :: fileConstructorParameters
+    type(accretionDiskSpectraFile)                :: self
     type(inputParameters         ), intent(inout) :: parameters
     type(varying_string          )                :: fileName
 
@@ -79,14 +79,14 @@ contains
       <description>The name of a file from which to read tabulated spectra of accretion disks.</description>
     </inputParameter>
     !!]
-    fileConstructorParameters=fileConstructorInternal(char(fileName))
+    self=accretionDiskSpectraFile(char(fileName))
     !![
     <inputParametersValidate source="parameters"/>
     !!]
     return
   end function fileConstructorParameters
 
-  function fileConstructorInternal(fileName)
+  function fileConstructorInternal(fileName) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily file} accretion disk spectra class.
     !!}
@@ -94,7 +94,7 @@ contains
     use :: Error           , only : Component_List           , Error_Report
     use :: Galacticus_Nodes, only : defaultBlackHoleComponent
     implicit none
-    type     (accretionDiskSpectraFile)                :: fileConstructorInternal
+    type     (accretionDiskSpectraFile)                :: self
     character(len=*                   ), intent(in   ) :: fileName
 
     ! Ensure that the required methods are supported.
@@ -116,8 +116,8 @@ contains
             &  {introspection:location}                                                                                                &
             & )
     ! Load the file.
-    fileConstructorInternal%fileName=fileName
-    call fileConstructorInternal%loadFile(fileName)
+    self%fileName=fileName
+    call self%loadFile(fileName)
     return
   end function fileConstructorInternal
 

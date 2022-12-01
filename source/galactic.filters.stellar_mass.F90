@@ -49,13 +49,13 @@ Contains a module which implements a galactic high-pass filter for total stellar
 
 contains
 
-  function stellarMassConstructorParameters(parameters)
+  function stellarMassConstructorParameters(parameters) result(self)
     !!{
     Constructor for the ``stellarMass'' galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type(galacticFilterStellarMass)                :: stellarMassConstructorParameters
+    type(galacticFilterStellarMass)                :: self
     type(inputParameters          ), intent(inout) :: parameters
 
     ! Check and read parameters.
@@ -63,7 +63,7 @@ contains
     <inputParameter>
       <name>massThreshold</name>
       <source>parameters</source>
-      <variable>stellarMassConstructorParameters%massThreshold</variable>
+      <variable>self%massThreshold</variable>
       <description>The parameter $M_0$ (in units of $M_\odot$) appearing in the stellar mass threshold for the stellar mass galactic filter class.</description>
     </inputParameter>
     <inputParametersValidate source="parameters"/>
@@ -71,16 +71,17 @@ contains
     return
   end function stellarMassConstructorParameters
 
-  function stellarMassConstructorInternal(massThreshold)
+  function stellarMassConstructorInternal(massThreshold) result(self)
     !!{
     Internal constructor for the ``stellarMass'' galactic filter class.
     !!}
     implicit none
-    type            (galacticFilterStellarMass)                :: stellarMassConstructorInternal
+    type            (galacticFilterStellarMass)                :: self
     double precision                           , intent(in   ) :: massThreshold
     !![
     <constructorAssign variables="massThreshold"/>
     !!]
+    
     return
   end function stellarMassConstructorInternal
 

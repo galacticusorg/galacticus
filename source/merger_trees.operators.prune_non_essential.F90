@@ -56,25 +56,25 @@
 
 contains
 
-  function pruneNonEssentialConstructorParameters(parameters)
+  function pruneNonEssentialConstructorParameters(parameters) result(self)
     !!{
     Constructor for the prune-non-essential merger tree operator class which takes a parameter set as input.
     !!}
     implicit none
-    type   (mergerTreeOperatorPruneNonEssential)                :: pruneNonEssentialConstructorParameters
+    type   (mergerTreeOperatorPruneNonEssential)                :: self
     type   (inputParameters                    ), intent(inout) :: parameters
 
     !![
     <inputParameter>
       <name>essentialNodeID</name>
       <source>parameters</source>
-      <variable>pruneNonEssentialConstructorParameters%essentialNodeID</variable>
+      <variable>self%essentialNodeID</variable>
       <description>ID of the essential node to avoid pruning.</description>
     </inputParameter>
     <inputParameter>
       <name>essentialNodeTime</name>
       <source>parameters</source>
-      <variable>pruneNonEssentialConstructorParameters%essentialNodeTime</variable>
+      <variable>self%essentialNodeTime</variable>
       <description>Time of the essential node to avoid pruning.</description>
     </inputParameter>
     <inputParametersValidate source="parameters"/>
@@ -82,17 +82,18 @@ contains
     return
   end function pruneNonEssentialConstructorParameters
 
-  function pruneNonEssentialConstructorInternal(essentialNodeID,essentialNodeTime)
+  function pruneNonEssentialConstructorInternal(essentialNodeID,essentialNodeTime) result(self)
     !!{
     Internal constructor for the prune-non-essential merger tree operator class.
     !!}
     implicit none
-    type            (mergerTreeOperatorPruneNonEssential)                :: pruneNonEssentialConstructorInternal
+    type            (mergerTreeOperatorPruneNonEssential)                :: self
     integer                                              , intent(in   ) :: essentialNodeID
     double precision                                     , intent(in   ) :: essentialNodeTime
-
-    pruneNonEssentialConstructorInternal%essentialNodeID  =essentialNodeID
-    pruneNonEssentialConstructorInternal%essentialNodeTime=essentialNodeTime
+    !![
+    <constructorAssign variables="essentialNodeID, essentialNodeTime"/>
+    !!]
+    
    return
   end function pruneNonEssentialConstructorInternal
 

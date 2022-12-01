@@ -45,16 +45,16 @@ Contains a module which implements a cold dark matter particle class.
 
 contains
 
-  function CDMConstructorParameters(parameters)
+  function CDMConstructorParameters(parameters) result(self)
     !!{
     Constructor for the ``{\normalfont \ttfamily CDM}'' dark matter particle class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(darkMatterParticleCDM)                :: CDMConstructorParameters
+    type(darkMatterParticleCDM)                :: self
     type(inputParameters      ), intent(inout) :: parameters
 
-    CDMConstructorParameters=darkMatterParticleCDM()
+    self=darkMatterParticleCDM()
     !![
     <inputParametersValidate source="parameters"/>
     !!]

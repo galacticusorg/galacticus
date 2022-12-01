@@ -40,10 +40,10 @@
      A transfer function class which utilizes the AxionCAMB code to compute transfer functions.
      !!}
      private
-     logical                                            :: initialized
-     double precision                                   :: wavenumberMaximum
-     logical                                            :: wavenumberMaximumReached
-     integer                                            :: axionCambCountPerDecade
+     logical          :: initialized
+     double precision :: wavenumberMaximum
+     logical          :: wavenumberMaximumReached
+     integer          :: axionCambCountPerDecade
    contains
      !![
      <methods>

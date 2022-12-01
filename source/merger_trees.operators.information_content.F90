@@ -62,40 +62,40 @@
 
 contains
 
-  function informationContentConstructorParameters(parameters)
+  function informationContentConstructorParameters(parameters) result(self)
     !!{
     Constructor for the information content merger tree operator class which takes a parameter set as input.
     !!}
     implicit none
-    type   (mergerTreeOperatorInformationContent)                :: informationContentConstructorParameters
+    type   (mergerTreeOperatorInformationContent)                :: self
     type   (inputParameters                     ), intent(inout) :: parameters
 
     !![
     <inputParameter>
       <name>outputGroupName</name>
       <source>parameters</source>
-      <variable>informationContentConstructorParameters%outputGroupName</variable>
+      <variable>self%outputGroupName</variable>
       <defaultValue>var_str('treeInformationContent')</defaultValue>
       <description>The name of an \gls{hdf5} group to which tree information content should be written.</description>
     </inputParameter>
     !!]
-    informationContentConstructorParameters%treeCount=0_c_size_t
+    self%treeCount=0_c_size_t
     !![
     <inputParametersValidate source="parameters"/>
     !!]
     return
   end function informationContentConstructorParameters
 
-  function informationContentConstructorInternal(outputGroupName)
+  function informationContentConstructorInternal(outputGroupName) result(self)
     !!{
     Internal constructor for the information content merger tree operator class.
     !!}
     implicit none
-    type(mergerTreeOperatorInformationContent)                :: informationContentConstructorInternal
+    type(mergerTreeOperatorInformationContent)                :: self
     type(varying_string                      ), intent(in   ) :: outputGroupName
 
-    informationContentConstructorInternal%outputGroupName=outputGroupName
-    informationContentConstructorInternal%treeCount      =0_c_size_t
+    self%outputGroupName=outputGroupName
+    self%treeCount      =0_c_size_t
    return
   end function informationContentConstructorInternal
 

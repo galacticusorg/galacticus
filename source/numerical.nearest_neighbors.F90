@@ -120,7 +120,7 @@ module Nearest_Neighbors
 
 contains
 
-  function nearestNeighborsConstructor(points)
+  function nearestNeighborsConstructor(points) result(self)
     !!{
     Constructs a nearest neighor search object.
     !!}
@@ -128,14 +128,14 @@ contains
     use :: Error, only : Error_Report
 #endif
     implicit none
-    type            (nearestNeighbors)                                :: nearestNeighborsConstructor
+    type            (nearestNeighbors)                                :: self
     double precision                  , intent(in   ), dimension(:,:) :: points
 
 #ifdef ANNAVAIL
-    nearestNeighborsConstructor%ANNkd_tree=nearestNeighborsConstructorC(size(points,dim=1),size(points,dim=2),points)
+    self%ANNkd_tree=nearestNeighborsConstructorC(size(points,dim=1),size(points,dim=2),points)
 #else
     !$GLC attributes unused :: points
-    nearestNeighborsConstructor%ANNkd_tree=C_Null_Ptr
+    self%ANNkd_tree=C_Null_Ptr
     call Error_Report('ANN library is required but was not found'//{introspection:location})
 #endif
     return

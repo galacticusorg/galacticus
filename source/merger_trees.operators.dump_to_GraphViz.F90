@@ -56,13 +56,13 @@ Contains a module which implements a dump to \gls{graphviz} operator on merger t
 
 contains
 
-  function dumpToGraphVizConstructorParameters(parameters)
+  function dumpToGraphVizConstructorParameters(parameters) result(self)
     !!{
     Constructor for the dump-to-\gls{graphviz} merger tree operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type(mergerTreeOperatorDumpToGraphViz)                :: dumpToGraphVizConstructorParameters
+    type(mergerTreeOperatorDumpToGraphViz)                :: self
     type(inputParameters                 ), intent(inout) :: parameters
 
     !![
@@ -70,35 +70,35 @@ contains
       <name>path</name>
       <defaultValue>var_str('.')</defaultValue>
       <source>parameters</source>
-      <variable>dumpToGraphVizConstructorParameters%path</variable>
+      <variable>self%path</variable>
       <description>Specifies the directory to which merger tree structure should be dumped.</description>
     </inputParameter>
     <inputParameter>
       <name>massMinimum</name>
       <defaultValue>0.0d0</defaultValue>
       <source>parameters</source>
-      <variable>dumpToGraphVizConstructorParameters%massMinimum</variable>
+      <variable>self%massMinimum</variable>
       <description>Specifies the minimum root mass for which merger tree structure should be dumped.</description>
     </inputParameter>
     <inputParameter>
       <name>massMaximum</name>
       <defaultValue>huge(0.0d0)</defaultValue>
       <source>parameters</source>
-      <variable>dumpToGraphVizConstructorParameters%massMaximum</variable>
+      <variable>self%massMaximum</variable>
       <description>Specifies the minimum root mass for which merger tree structure should be dumped.</description>
     </inputParameter>
     <inputParameter>
       <name>scaleNodesByLogMass</name>
       <defaultValue>.true.</defaultValue>
       <source>parameters</source>
-      <variable>dumpToGraphVizConstructorParameters%scaleNodesByLogMass</variable>
+      <variable>self%scaleNodesByLogMass</variable>
       <description>Specifies whether or not node sizes should be scaled by the logarithm of their mass.</description>
     </inputParameter>
     <inputParameter>
       <name>edgeLengthsToTimes</name>
       <defaultValue>.true.</defaultValue>
       <source>parameters</source>
-      <variable>dumpToGraphVizConstructorParameters%edgeLengthsToTimes</variable>
+      <variable>self%edgeLengthsToTimes</variable>
       <description>Specifies whether or not the lengths of edges in the graph should be scaled to time differences between nodes.</description>
     </inputParameter>
     <inputParametersValidate source="parameters"/>
@@ -106,18 +106,18 @@ contains
     return
   end function dumpToGraphVizConstructorParameters
 
-  function dumpToGraphVizConstructorInternal(path,massMinimum,massMaximum)
+  function dumpToGraphVizConstructorInternal(path,massMinimum,massMaximum) result(self)
     !!{
     Internal constructor for the dump-to-\gls{graphviz} merger tree operator class.
     !!}
     implicit none
-    type            (mergerTreeOperatorDumpToGraphViz)                :: dumpToGraphVizConstructorInternal
+    type            (mergerTreeOperatorDumpToGraphViz)                :: self
     type            (varying_string                  ), intent(in   ) :: path
     double precision                                  , intent(in   ) :: massMinimum                      , massMaximum
-
-    dumpToGraphVizConstructorInternal%path       =path
-    dumpToGraphVizConstructorInternal%massMinimum=massMinimum
-    dumpToGraphVizConstructorInternal%massMaximum=massMaximum
+    !![
+    <constructorAssign variables="path, massMinimum, massMaximum"/>
+    !!]
+    
     return
   end function dumpToGraphVizConstructorInternal
 

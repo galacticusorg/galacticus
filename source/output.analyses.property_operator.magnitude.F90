@@ -44,16 +44,16 @@ Contains a module which implements an output analysis property operator class wh
 
 contains
 
-  function magnitudeConstructorParameters(parameters)
+  function magnitudeConstructorParameters(parameters) result(self)
     !!{
     Constructor for the ``magnitude'' output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(outputAnalysisPropertyOperatorMagnitude)                :: magnitudeConstructorParameters
+    type(outputAnalysisPropertyOperatorMagnitude)                :: self
     type(inputParameters                        ), intent(inout) :: parameters
 
-    magnitudeConstructorParameters=outputAnalysisPropertyOperatorMagnitude()
+    self=outputAnalysisPropertyOperatorMagnitude()
     !![
     <inputParametersValidate source="parameters"/>
     !!]

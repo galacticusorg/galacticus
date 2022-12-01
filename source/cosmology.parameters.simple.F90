@@ -54,21 +54,21 @@
 
 contains
 
-  function simpleConstructorParameters(parameters)
+  function simpleConstructorParameters(parameters) result(self)
     !!{
     Constructor for the simple cosmological parameters class which takes a parameter set as input.
     !!}
     use :: Display, only : displayMagenta, displayReset
     use :: Error  , only : Warn
     implicit none
-    type(cosmologyParametersSimple)                :: simpleConstructorParameters
+    type(cosmologyParametersSimple)                :: self
     type(inputParameters          ), intent(inout) :: parameters
 
     !![
     <inputParameter>
       <name>OmegaMatter</name>
       <source>parameters</source>
-      <variable>simpleConstructorParameters%OmegaMatterValue</variable>
+      <variable>self%OmegaMatterValue</variable>
       <defaultValue>0.3153d0</defaultValue>
       <defaultSource>(\citealt{planck_collaboration_planck_2018}; TT,TE,EE$+$lowE$+$lensing)</defaultSource>
       <description>The density of matter in the Universe in units of the critical density.</description>
@@ -76,7 +76,7 @@ contains
     <inputParameter>
       <name>OmegaBaryon</name>
       <source>parameters</source>
-      <variable>simpleConstructorParameters%OmegaBaryonValue</variable>
+      <variable>self%OmegaBaryonValue</variable>
       <defaultValue>0.04930d0</defaultValue>
       <defaultSource>(\citealt{planck_collaboration_planck_2018}; TT,TE,EE$+$lowE$+$lensing)</defaultSource>
       <description>The density of baryons in the Universe in units of the critical density.</description>
@@ -84,7 +84,7 @@ contains
     <inputParameter>
       <name>OmegaDarkEnergy</name>
       <source>parameters</source>
-      <variable>simpleConstructorParameters%OmegaDarkEnergyValue</variable>
+      <variable>self%OmegaDarkEnergyValue</variable>
       <defaultValue>0.6847d0</defaultValue>
       <defaultSource>(\citealt{planck_collaboration_planck_2018}; TT,TE,EE$+$lowE$+$lensing)</defaultSource>
       <description>The density of dark energy in the Universe in units of the critical density.</description>
@@ -92,7 +92,7 @@ contains
     <inputParameter>
       <name>temperatureCMB</name>
       <source>parameters</source>
-      <variable>simpleConstructorParameters%temperatureCMBValue</variable>
+      <variable>self%temperatureCMBValue</variable>
       <defaultValue>2.72548d0</defaultValue>
       <defaultSource>\citep{fixsen_temperature_2009}</defaultSource>
       <description>The present day temperature of the \gls{cmb} in units of Kelvin.</description>
@@ -100,36 +100,36 @@ contains
     <inputParameter>
       <name>HubbleConstant</name>
       <source>parameters</source>
-      <variable>simpleConstructorParameters%HubbleConstantValue</variable>
+      <variable>self%HubbleConstantValue</variable>
       <defaultValue>67.36d0</defaultValue>
       <defaultSource>(\citealt{planck_collaboration_planck_2018}; TT,TE,EE$+$lowE$+$lensing)</defaultSource>
       <description>The present day value of the Hubble parameter in units of km/s/Mpc.</description>
     </inputParameter>
     !!]
     ! Validate the input.
-    if (simpleConstructorParameters%HubbleConstantValue <= 0.0d0)                                                                                    &
-         & call Warn(displayMagenta()//"WARNING:"//displayReset()//" [cosmologyParametersSimple::simpleConstructorParameters]: H_0 ≤ 0 - are you sure this is what you wanted? "//{introspection:location})
+    if (self%HubbleConstantValue <= 0.0d0)                                                                                                       &
+         & call Warn(displayMagenta()//"WARNING:"//displayReset()//" H₀ ≤ 0 - are you sure this is what you wanted? "//{introspection:location})
     !![
     <inputParametersValidate source="parameters"/>
     !!]
     return
   end function simpleConstructorParameters
 
-  function simpleConstructorInternal(OmegaMatter,OmegaBaryon,OmegaDarkEnergy,temperatureCMB,HubbleConstant)
+  function simpleConstructorInternal(OmegaMatter,OmegaBaryon,OmegaDarkEnergy,temperatureCMB,HubbleConstant) result(self)
     !!{
     Internal constructor for the simple cosmological parameters class.
     !!}
     implicit none
-    type            (cosmologyParametersSimple)                :: simpleConstructorInternal
-    double precision                           , intent(in   ) :: HubbleConstant   , OmegaBaryon, &
-         &                                                        OmegaDarkEnergy  , OmegaMatter, &
+    type            (cosmologyParametersSimple)                :: self
+    double precision                           , intent(in   ) :: HubbleConstant , OmegaBaryon, &
+         &                                                        OmegaDarkEnergy, OmegaMatter, &
          &                                                        temperatureCMB
 
-    simpleConstructorInternal%OmegaMatterValue    =OmegaMatter
-    simpleConstructorInternal%OmegaBaryonValue    =OmegaBaryon
-    simpleConstructorInternal%OmegaDarkEnergyValue=OmegaDarkEnergy
-    simpleConstructorInternal%temperatureCMBValue =temperatureCMB
-    simpleConstructorInternal%HubbleConstantValue =HubbleConstant
+    self%OmegaMatterValue    =OmegaMatter
+    self%OmegaBaryonValue    =OmegaBaryon
+    self%OmegaDarkEnergyValue=OmegaDarkEnergy
+    self%temperatureCMBValue =temperatureCMB
+    self%HubbleConstantValue =HubbleConstant
     return
   end function simpleConstructorInternal
 

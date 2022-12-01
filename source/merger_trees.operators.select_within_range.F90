@@ -46,13 +46,13 @@ Contains a module which implements a select-within-range operator on the base no
 
 contains
 
-  function selectWithinRangeConstructorParameters(parameters)
+  function selectWithinRangeConstructorParameters(parameters) result(self)
     !!{
     Constructor for the select-within-range merger tree operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type(mergerTreeOperatorSelectWithinRange)                :: selectWithinRangeConstructorParameters
+    type(mergerTreeOperatorSelectWithinRange)                :: self
     type(inputParameters                    ), intent(inout) :: parameters
 
     !![
@@ -60,14 +60,14 @@ contains
       <name>baseMassMinimum</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <variable>selectWithinRangeConstructorParameters%baseMassMinimum</variable>
+      <variable>self%baseMassMinimum</variable>
       <description>Base node mass below which trees should be ignored.</description>
     </inputParameter>
     <inputParameter>
       <name>baseMassMaximum</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <variable>selectWithinRangeConstructorParameters%baseMassMaximum</variable>
+      <variable>self%baseMassMaximum</variable>
       <description>Base node mass above which trees should be ignored.</description>
     </inputParameter>
     <inputParametersValidate source="parameters"/>
@@ -75,16 +75,17 @@ contains
     return
   end function selectWithinRangeConstructorParameters
 
-  function selectWithinRangeConstructorInternal(baseMassMinimum,baseMassMaximum)
+  function selectWithinRangeConstructorInternal(baseMassMinimum,baseMassMaximum) result(self)
     !!{
     Internal constructor for the select-within-range merger tree operator class.
     !!}
     implicit none
-    type            (mergerTreeOperatorSelectWithinRange)                :: selectWithinRangeConstructorInternal
-    double precision                                     , intent(in   ) :: baseMassMinimum                         , baseMassMaximum
-
-    selectWithinRangeConstructorInternal%baseMassMinimum=baseMassMinimum
-    selectWithinRangeConstructorInternal%baseMassMaximum=baseMassMaximum
+    type            (mergerTreeOperatorSelectWithinRange)                :: self
+    double precision                                     , intent(in   ) :: baseMassMinimum, baseMassMaximum
+    !![
+    <constructorAssign variables="baseMassMinimum, baseMassMaximum"/>
+    !!]
+ 
     return
   end function selectWithinRangeConstructorInternal
 
