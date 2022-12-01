@@ -72,7 +72,7 @@ contains
     type(nodePropertyExtractorIndexBranchTip) :: self
 
     !![
-    <addMetaProperty component="basic" name="nodeIndexBranchTip" type="integer" id="self%indexBranchTipID" isCreator="no"/>
+    <addMetaProperty component="basic" name="nodeIndexBranchTip" type="longInteger" id="self%indexBranchTipID" isCreator="no"/>
     !!]
     return
   end function indexBranchTipConstructorInternal
@@ -91,8 +91,8 @@ contains
     class           (nodeComponentBasic                 )               , pointer  :: basic
     !$GLC attributes unused :: instance, time
 
-    basic                 => node %basic                      (                     )
-    indexBranchTipExtract =  basic%integerRank0MetaPropertyGet(self%indexBranchTipID)
+    basic                 => node %basic                          (                     )
+    indexBranchTipExtract =  basic%longIntegerRank0MetaPropertyGet(self%indexBranchTipID)
     return
   end function indexBranchTipExtract
 
