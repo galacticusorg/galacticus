@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1669721049105,
+  "lastUpdate": 1669876305135,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
@@ -4216,6 +4216,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 11.0722562418528,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c4e8e9541952d9b1e4b05d9c3fb2155e0bf4aa99",
+          "message": "Merge pull request #336 from galacticusorg/krumholz2009Fix\n\nCatch disks with tiny gas densities",
+          "timestamp": "2022-11-30T19:59:12-08:00",
+          "tree_id": "68a6fc00f9fd673fd464341b7230db190d006249",
+          "url": "https://github.com/galacticusorg/galacticus/commit/c4e8e9541952d9b1e4b05d9c3fb2155e0bf4aa99"
+        },
+        "date": 1669876303953,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 262.986,
+            "unit": "seconds",
+            "range": 0.204108794518558
           }
         ]
       }
