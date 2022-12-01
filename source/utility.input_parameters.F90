@@ -298,7 +298,7 @@ contains
             &              )
     else
        self=inputParameters(                                                 &
-            &               xmlString                                      , &
+            &               char(xmlString)                                , &
             &               allowedParameterNames                          , &
             &               outputParametersGroup                          , &
             &               noOutput                                         &
@@ -306,28 +306,6 @@ contains
     end if
     return
   end function inputParametersConstructorVarStr
-
-  function inputParametersConstructorFileVarStr(fileName,allowedParameterNames,outputParametersGroup,noOutput) result(self)
-    !!{
-    Constructor for the {\normalfont \ttfamily inputParameters} class from an XML file
-    specified as a variable length string.
-    !!}
-    use :: ISO_Varying_String, only : char
-    implicit none
-    type     (inputParameters)                                           :: self
-    type     (varying_string    )              , intent(in   )           :: fileName
-    character(len=*             ), dimension(:), intent(in   ), optional :: allowedParameterNames
-    type     (hdf5Object        ), target      , intent(in   ), optional :: outputParametersGroup
-    logical                                    , intent(in   ), optional :: noOutput
-
-    self=inputParameters(                       &
-         &               char(fileName)       , &
-         &               allowedParameterNames, &
-         &               outputParametersGroup, &
-         &               noOutput               &
-         &              )
-    return
-  end function inputParametersConstructorFileVarStr
 
   function inputParametersConstructorFileChar(fileName,allowedParameterNames,outputParametersGroup,noOutput) result(self)
     !!{
