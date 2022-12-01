@@ -22,7 +22,6 @@
       <sigmaRatioLow          value="+0.07458 +0.09040 +0.06981"/>
     </virialOrbit>
   </virialOrbit>
-  <satelliteOrbitStoreOrbitalParameters value="true"/>
  
   <!-- Orbiting model of satellites -->
   <!-- Values are taken from Yang et al. (2021; https://ui.adsabs.harvard.edu/abs/2020MNRAS.498.3902Y) using results for gamma=2.5

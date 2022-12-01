@@ -22,7 +22,7 @@
   !!}
 
   type, public :: multiProcessList
-     class(nodeOperatorClass), pointer :: process_
+     class(nodeOperatorClass), pointer :: process_ => null()
      type (multiProcessList ), pointer :: next     => null()
   end type multiProcessList
 
@@ -107,7 +107,7 @@ contains
     type(multiProcessList ), pointer                :: process_
 
     self    %processes => processes
-    process_          => processes
+    process_           => processes
     do while (associated(process_))
        !![
        <referenceCountIncrement owner="process_" object="process_"/>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Output version and build information for Galacticus -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+  <task value="report"/>
+</parameters>

@@ -28,7 +28,7 @@
      !!{
      Type used to maintain a list of pointers to parameters to be modified.
      !!}
-     type   (inputParameter), pointer :: parameter_
+     type   (inputParameter), pointer :: parameter_   => null()
      integer                          :: indexElement
      type   (varying_string)          :: definition
      logical                          :: resolved
@@ -118,7 +118,7 @@ contains
           parameterCount=String_Count_Words(char(modelParametersInactive_(i)%modelParameter_%name()),"::")
           allocate(parameterNames(parameterCount))
           call String_Split_Words(parameterNames,char(modelParametersInactive_(i)%modelParameter_%name()),"::")
-          parameters_=self%parametersModel
+          parameters_=inputParameters(self%parametersModel)
           do j=1,parameterCount
              instance    =1
              indexElement=0
@@ -140,7 +140,7 @@ contains
              else
                 ! This is an intermediate parameter, get the appropriate sub-parameters.
                 subParameters_                                =  parameters_   %subParameters(char(parameterNames(j)),requireValue=.false.,copyInstance=instance)
-                parameters_                                   =  subParameters_
+                parameters_                                   =  inputParameters(subParameters_)
              end if
           end do
           deallocate(parameterNames)

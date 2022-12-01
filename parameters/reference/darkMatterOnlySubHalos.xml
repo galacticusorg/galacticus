@@ -30,10 +30,6 @@
     <massResolution value="1.0e8"/>
   </mergerTreeMassResolution>
 
-  <!-- Numerical tolerances -->
-  <diskMassToleranceAbsolute     value="1.0e-6"/>
-  <spheroidMassToleranceAbsolute value="1.0e-6"/>
-
   <!-- Output options -->
   <outputFileName value="darkMatterOnlySubHalos.hdf5"/>
   <mergerTreeOutputter value="standard">

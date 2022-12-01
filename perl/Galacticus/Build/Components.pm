@@ -312,7 +312,7 @@ sub interfacesSerialize {
 	    fill_in_string(<<'CODE', PACKAGE => 'Galacticus::Build::Components::CodeGeneration')."\n";
 ! {$interface->{'comment'}}
 abstract interface
-  {$interface->{'intrinsic'} eq "void" ? "subroutine" : $interface->{'intrinsic'}." function"} {$interface->{'name'}}({join(",",&Function_Arguments($interface->{'data'}))})
+  {$interface->{'intrinsic'} eq "void" ? "subroutine" : (exists($interface->{'result'}) && $interface->{'result'} eq "yes" ? "" : $interface->{'intrinsic'})." function"} {$interface->{'name'}}({join(",",&Function_Arguments($interface->{'data'}))})
     {&Importables($interface->{'data'}) ? "import ".join(", ",&Importables($interface->{'data'})) : ""}
 {&Fortran::Utils::Format_Variable_Definitions($interface->{'data'}, indent => 4)}
   end {$interface->{'intrinsic'} eq "void" ? "subroutine" : "function"} {$interface->{'name'}}

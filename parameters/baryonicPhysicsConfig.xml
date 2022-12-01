@@ -14,23 +14,23 @@
   <outputFileName value="baryonicPhysicsConstrained.hdf5"/>
 
   <posteriorSampleLikelihood value="galaxyPopulation">
-    <baseParametersFileName   value="base.xml"            />
+    <baseParametersFileName value="base.xml"/>
     <failedParametersFileName value="failedParameters.xml"/>
-    <randomize                value="false"               />
-    <evolveForestsVerbosity   value="0"                   />
+    <randomize value="false"/>
+    <evolveForestsVerbosity value="0"/>
   </posteriorSampleLikelihood>
 
   <!-- Particle swarm optimization -->
   <posteriorSampleSimulation value="particleSwarm">
-    <stepsMaximum                    value="1000000"/>
-    <logFlushCount                   value="      1"/>
-    <reportCount                     value="1000"   />
-    <logFileRoot                     value="chains" />
-    <inertiaWeight                   value="0.720"  />
-    <accelerationCoefficientPersonal value="1.193"  />
-    <accelerationCoefficientGlobal   value="1.193"  />
-    <velocityCoefficient             value="0.500"  />
-    <velocityCoefficientInitial      value="0.100"  />
+    <stepsMaximum value="1000000"/>
+    <logFlushCount value="      1"/>
+    <reportCount value="1000"/>
+    <logFileRoot value="chains"/>
+    <inertiaWeight value="0.720"/>
+    <accelerationCoefficientPersonal value="1.193"/>
+    <accelerationCoefficientGlobal value="1.193"/>
+    <velocityCoefficient value="0.500"/>
+    <velocityCoefficientInitial value="0.100"/>
 
     <posteriorSampleStateInitialize value="parameterFile">
       <fileName value="start.xml"/>
@@ -46,7 +46,7 @@
 
      <!-- Hot halo -->
      <modelParameter value="active">
-       <name value="hotHaloAngularMomentumLossFraction"/>
+       <name value="componentHotHalo::fractionLossAngularMomentum"/>
        <distributionFunction1DPrior value="logUniform">
 	 <limitLower value="0.01"/>
 	 <limitUpper value="0.95"/>
@@ -294,7 +294,7 @@
      
      <!-- Black hole -->
      <modelParameter value="active">
-       <name value="blackHoleToSpheroidStellarGrowthRatio"/>
+       <name value="componentBlackHole::growthRatioToStellarSpheroid"/>
        <distributionFunction1DPrior value="logUniform">
 	 <limitLower value="1.0e-1"/>
 	 <limitUpper value="1.0e+2"/>
@@ -306,7 +306,7 @@
        </distributionFunction1DPerturber>
      </modelParameter>
      <modelParameter value="active">
-       <name value="blackHoleEfficiency"/>
+       <name value="componentBlackHole::efficiency"/>
        <distributionFunction1DPrior value="logUniform">
 	 <limitLower value="1.0e-4"/>
 	 <limitUpper value="1.0e-2"/>
@@ -318,7 +318,7 @@
        </distributionFunction1DPerturber>
      </modelParameter>
      <modelParameter value="active">
-       <name value="blackHoleJetFraction"/>
+       <name value="componentBlackHole::fractionJet"/>
        <distributionFunction1DPrior value="logUniform">
 	 <limitLower value="1.0e-4"/>
 	 <limitUpper value="1.0"/>
@@ -330,12 +330,12 @@
        </distributionFunction1DPerturber>
      </modelParameter>
      <modelParameter value="derived">
-       <name value="blackHoleWindEfficiency"/>
-       <definition value="%[blackHoleEfficiency]*(1.0-%[blackHoleJetFraction])"/>
+       <name value="componentBlackHole::efficiencyWind"/>
+       <definition value="%[componentBlackHole::efficiency]*(1.0-%[componentBlackHole::fractionJet])"/>
      </modelParameter>
      <modelParameter value="derived">
-       <name value="blackHoleHeatingEfficiency"/>
-       <definition value="%[blackHoleEfficiency]*%[blackHoleJetFraction]"/>
+       <name value="componentBlackHole::efficiencyHeating"/>
+       <definition value="%[componentBlackHole::efficiency]*%[componentBlackHole::fractionJet]"/>
      </modelParameter>
      
      <!-- Yield and recycled fraction -->
@@ -445,30 +445,30 @@
      <!-- ALFALFA HI mass systematics -->
      <modelParameter value="active">
        <name value="alfalfaMassSystematics0"/>
-       <distributionFunction1DPrior     value="normal"  >
+       <distributionFunction1DPrior value="normal">
          <limitLower value="-0.5000+0"/>
          <limitUpper value="+0.5000+0"/>
-         <mean       value="+0.000e+0"/>
-         <variance   value="+0.100e+0"/>
+         <mean value="+0.000e+0"/>
+         <variance value="+0.100e+0"/>
        </distributionFunction1DPrior>
-       <operatorUnaryMapper             value="identity"/>
-       <distributionFunction1DPerturber value="cauchy"   >
-         <median value="0.0"   />
-         <scale  value="1.0e-12"/>
+       <operatorUnaryMapper value="identity"/>
+       <distributionFunction1DPerturber value="cauchy">
+         <median value="0.0"/>
+         <scale value="1.0e-12"/>
        </distributionFunction1DPerturber>
      </modelParameter>
      <modelParameter value="active">
        <name value="alfalfaMassSystematics1"/>
-       <distributionFunction1DPrior     value="normal"  >
+       <distributionFunction1DPrior value="normal">
          <limitLower value="-0.050e+0"/>
          <limitUpper value="+0.050e+0"/>
-         <mean       value="+0.000e+0"/>
-         <variance   value="+1.000e-2"/>
+         <mean value="+0.000e+0"/>
+         <variance value="+1.000e-2"/>
        </distributionFunction1DPrior>
-       <operatorUnaryMapper             value="identity"/>
-       <distributionFunction1DPerturber value="cauchy"   >
-         <median value="0.0"   />
-         <scale  value="1.0e-12"/>
+       <operatorUnaryMapper value="identity"/>
+       <distributionFunction1DPerturber value="cauchy">
+         <median value="0.0"/>
+         <scale value="1.0e-12"/>
        </distributionFunction1DPerturber>
      </modelParameter>
      <!-- Apply to ALFALFA HI mass function -->
@@ -484,30 +484,30 @@
      <!-- ULTRAVISTA stellar mass systematics -->
      <modelParameter value="active">
        <name value="ultravistaStellarMassSystematics0"/>
-       <distributionFunction1DPrior     value="normal"  >
+       <distributionFunction1DPrior value="normal">
          <limitLower value="-0.5000+0"/>
          <limitUpper value="+0.5000+0"/>
-         <mean       value="+0.000e+0"/>
-         <variance   value="+0.100e+0"/>
+         <mean value="+0.000e+0"/>
+         <variance value="+0.100e+0"/>
        </distributionFunction1DPrior>
-       <operatorUnaryMapper             value="identity"/>
-       <distributionFunction1DPerturber value="cauchy"   >
-         <median value="0.0"   />
-         <scale  value="1.0e-12"/>
+       <operatorUnaryMapper value="identity"/>
+       <distributionFunction1DPerturber value="cauchy">
+         <median value="0.0"/>
+         <scale value="1.0e-12"/>
        </distributionFunction1DPerturber>
      </modelParameter>
      <modelParameter value="active">
        <name value="ultravistaStellarMassSystematics1"/>
-       <distributionFunction1DPrior     value="normal"  >
+       <distributionFunction1DPrior value="normal">
          <limitLower value="-0.050e+0"/>
          <limitUpper value="+0.050e+0"/>
-         <mean       value="+0.000e+0"/>
-         <variance   value="+1.000e-2"/>
+         <mean value="+0.000e+0"/>
+         <variance value="+1.000e-2"/>
        </distributionFunction1DPrior>
-       <operatorUnaryMapper             value="identity"/>
-       <distributionFunction1DPerturber value="cauchy"   >
-         <median value="0.0"   />
-         <scale  value="1.0e-12"/>
+       <operatorUnaryMapper value="identity"/>
+       <distributionFunction1DPerturber value="cauchy">
+         <median value="0.0"/>
+         <scale value="1.0e-12"/>
        </distributionFunction1DPerturber>
      </modelParameter>
      <!-- Apply to ULTRAVISTA stellar mass function -->
@@ -525,74 +525,74 @@
      <!-- Model (plus priors) are from Benson equation 10 of Benson (2019; MNRAS; 482; 1062) -->
      <modelParameter value="active">
        <name value="outputAnalysis::outputAnalysis[0]::massFunctionIncompleteness::slope"/>
-       <distributionFunction1DPrior     value="normal"  >
+       <distributionFunction1DPrior value="normal">
          <limitLower value="-1.9500"/>
          <limitUpper value="-0.4500"/>
-         <mean       value="-1.2000"/>
-         <variance   value="+0.0225"/>
+         <mean value="-1.2000"/>
+         <variance value="+0.0225"/>
        </distributionFunction1DPrior>
-       <operatorUnaryMapper             value="identity"/>
-       <distributionFunction1DPerturber value="cauchy"   >
-         <median value="0.0"   />
-         <scale  value="1.0e-12"/>
+       <operatorUnaryMapper value="identity"/>
+       <distributionFunction1DPerturber value="cauchy">
+         <median value="0.0"/>
+         <scale value="1.0e-12"/>
        </distributionFunction1DPerturber>
      </modelParameter>
      <modelParameter value="active">
        <name value="outputAnalysis::outputAnalysis[0]::massFunctionIncompleteness::offset"/>
-       <distributionFunction1DPrior     value="normal"  >
+       <distributionFunction1DPrior value="normal">
          <limitLower value="+23.300"/>
          <limitUpper value="+25.300"/>
-         <mean       value="+24.300"/>
-         <variance   value=" +0.045"/>
+         <mean value="+24.300"/>
+         <variance value=" +0.045"/>
        </distributionFunction1DPrior>
-       <operatorUnaryMapper             value="identity"/>
-       <distributionFunction1DPerturber value="cauchy"   >
-         <median value="0.0"   />
-         <scale  value="1.0e-12"/>
+       <operatorUnaryMapper value="identity"/>
+       <distributionFunction1DPerturber value="cauchy">
+         <median value="0.0"/>
+         <scale value="1.0e-12"/>
        </distributionFunction1DPerturber>
      </modelParameter>
      <modelParameter value="active">
        <name value="outputAnalysis::outputAnalysis[0]::massFunctionIncompleteness::scatter"/>
-       <distributionFunction1DPrior     value="normal"  >
+       <distributionFunction1DPrior value="normal">
          <limitLower value="+0.60000"/>
          <limitUpper value="+1.10000"/>
-         <mean       value="+0.85000"/>
-         <variance   value="+0.00255"/>
+         <mean value="+0.85000"/>
+         <variance value="+0.00255"/>
        </distributionFunction1DPrior>
-       <operatorUnaryMapper             value="identity"/>
-       <distributionFunction1DPerturber value="cauchy"   >
-         <median value="0.0"   />
-         <scale  value="1.0e-12"/>
+       <operatorUnaryMapper value="identity"/>
+       <distributionFunction1DPerturber value="cauchy">
+         <median value="0.0"/>
+         <scale value="1.0e-12"/>
        </distributionFunction1DPerturber>
      </modelParameter>
 
      <!-- GAMA stellar mass systematics -->
      <modelParameter value="active">
        <name value="gamaStellarMassSystematics0"/>
-       <distributionFunction1DPrior     value="normal"  >
+       <distributionFunction1DPrior value="normal">
          <limitLower value="-0.3500+0"/>
          <limitUpper value="+0.3500+0"/>
-         <mean       value="+0.000e+0"/>
-         <variance   value="+2.500e-3"/>
+         <mean value="+0.000e+0"/>
+         <variance value="+2.500e-3"/>
        </distributionFunction1DPrior>
-       <operatorUnaryMapper             value="identity"/>
-       <distributionFunction1DPerturber value="cauchy"   >
-         <median value="0.0"   />
-         <scale  value="1.0e-12"/>
+       <operatorUnaryMapper value="identity"/>
+       <distributionFunction1DPerturber value="cauchy">
+         <median value="0.0"/>
+         <scale value="1.0e-12"/>
        </distributionFunction1DPerturber>
      </modelParameter>
      <modelParameter value="active">
        <name value="gamaStellarMassSystematics1"/>
-       <distributionFunction1DPrior     value="normal"  >
+       <distributionFunction1DPrior value="normal">
          <limitLower value="-0.100e+0"/>
          <limitUpper value="+0.100e+0"/>
-         <mean       value="+0.000e+0"/>
-         <variance   value="+3.250e-3"/>
+         <mean value="+0.000e+0"/>
+         <variance value="+3.250e-3"/>
        </distributionFunction1DPrior>
-       <operatorUnaryMapper             value="identity"/>
-       <distributionFunction1DPerturber value="cauchy"   >
-         <median value="0.0"   />
-         <scale  value="1.0e-12"/>
+       <operatorUnaryMapper value="identity"/>
+       <distributionFunction1DPerturber value="cauchy">
+         <median value="0.0"/>
+         <scale value="1.0e-12"/>
        </distributionFunction1DPerturber>
      </modelParameter>
      <!-- Apply to GAMA stellar mass function -->
@@ -617,28 +617,28 @@
      <!-- Morphology ratio cut -->
      <modelParameter value="active">
        <name value="ratioEarlyType"/>
-       <distributionFunction1DPrior     value="normal"  >
+       <distributionFunction1DPrior value="normal">
          <limitLower value="+0.0000+0"/>
          <limitUpper value="+1.0000+0"/>
-         <mean       value="+0.500e+0"/>
-         <variance   value="+1.000e-2"/>
+         <mean value="+0.500e+0"/>
+         <variance value="+1.000e-2"/>
        </distributionFunction1DPrior>
-       <operatorUnaryMapper             value="identity"/>
-       <distributionFunction1DPerturber value="cauchy"   >
-         <median value="0.0"   />
-         <scale  value="1.0e-12"/>
+       <operatorUnaryMapper value="identity"/>
+       <distributionFunction1DPerturber value="cauchy">
+         <median value="0.0"/>
+         <scale value="1.0e-12"/>
        </distributionFunction1DPerturber>
      </modelParameter>
      <modelParameter value="active">
        <name value="outputAnalysis::outputAnalysis[7]::ratioEarlyTypeError"/>
-       <distributionFunction1DPrior     value="uniform"  >
+       <distributionFunction1DPrior value="uniform">
          <limitLower value="+0.0000+0"/>
          <limitUpper value="+1.0000+0"/>
        </distributionFunction1DPrior>
-       <operatorUnaryMapper             value="identity"/>
-       <distributionFunction1DPerturber value="cauchy"   >
-         <median value="0.0"   />
-         <scale  value="1.0e-12"/>
+       <operatorUnaryMapper value="identity"/>
+       <distributionFunction1DPerturber value="cauchy">
+         <median value="0.0"/>
+         <scale value="1.0e-12"/>
        </distributionFunction1DPerturber>
      </modelParameter>
       <modelParameter value="derived">
@@ -665,30 +665,30 @@
      <!-- SDSS stellar mass systematics -->
      <modelParameter value="active">
        <name value="sdssStellarMassSystematics0"/>
-       <distributionFunction1DPrior     value="normal"  >
+       <distributionFunction1DPrior value="normal">
          <limitLower value="-0.2500+0"/>
          <limitUpper value="+0.2500+0"/>
-         <mean       value="+0.000e+0"/>
-         <variance   value="+2.500e-3"/>
+         <mean value="+0.000e+0"/>
+         <variance value="+2.500e-3"/>
        </distributionFunction1DPrior>
-       <operatorUnaryMapper             value="identity"/>
-       <distributionFunction1DPerturber value="cauchy"   >
-         <median value="0.0"   />
-         <scale  value="1.0e-12"/>
+       <operatorUnaryMapper value="identity"/>
+       <distributionFunction1DPerturber value="cauchy">
+         <median value="0.0"/>
+         <scale value="1.0e-12"/>
        </distributionFunction1DPerturber>
      </modelParameter>
      <modelParameter value="active">
        <name value="sdssStellarMassSystematics1"/>
-       <distributionFunction1DPrior     value="normal"  >
+       <distributionFunction1DPrior value="normal">
          <limitLower value="-0.100e+0"/>
          <limitUpper value="+0.100e+0"/>
-         <mean       value="+0.000e+0"/>
-         <variance   value="+3.250e-3"/>
+         <mean value="+0.000e+0"/>
+         <variance value="+3.250e-3"/>
        </distributionFunction1DPrior>
-       <operatorUnaryMapper             value="identity"/>
-       <distributionFunction1DPerturber value="cauchy"   >
-         <median value="0.0"   />
-         <scale  value="1.0e-12"/>
+       <operatorUnaryMapper value="identity"/>
+       <distributionFunction1DPerturber value="cauchy">
+         <median value="0.0"/>
+         <scale value="1.0e-12"/>
        </distributionFunction1DPerturber>
      </modelParameter>
      <!-- Apply to SHMR relations -->
@@ -737,30 +737,30 @@
      <!-- SDSS magnitude systematics -->
      <modelParameter value="active">
        <name value="sdssMagnitudeSystematics0"/>
-       <distributionFunction1DPrior     value="normal"  >
+       <distributionFunction1DPrior value="normal">
          <limitLower value="-0.2500+0"/>
          <limitUpper value="+0.2500+0"/>
-         <mean       value="+0.000e+0"/>
-         <variance   value="+2.500e-3"/>
+         <mean value="+0.000e+0"/>
+         <variance value="+2.500e-3"/>
        </distributionFunction1DPrior>
-       <operatorUnaryMapper             value="identity"/>
-       <distributionFunction1DPerturber value="cauchy"   >
-         <median value="0.0"   />
-         <scale  value="1.0e-12"/>
+       <operatorUnaryMapper value="identity"/>
+       <distributionFunction1DPerturber value="cauchy">
+         <median value="0.0"/>
+         <scale value="1.0e-12"/>
        </distributionFunction1DPerturber>
      </modelParameter>
      <modelParameter value="active">
        <name value="sdssMagnitudeSystematics1"/>
-       <distributionFunction1DPrior     value="normal"  >
+       <distributionFunction1DPrior value="normal">
          <limitLower value="-0.100e+0"/>
          <limitUpper value="+0.100e+0"/>
-         <mean       value="+0.000e+0"/>
-         <variance   value="+3.250e-3"/>
+         <mean value="+0.000e+0"/>
+         <variance value="+3.250e-3"/>
        </distributionFunction1DPrior>
-       <operatorUnaryMapper             value="identity"/>
-       <distributionFunction1DPerturber value="cauchy"   >
-         <median value="0.0"   />
-         <scale  value="1.0e-12"/>
+       <operatorUnaryMapper value="identity"/>
+       <distributionFunction1DPerturber value="cauchy">
+         <median value="0.0"/>
+         <scale value="1.0e-12"/>
        </distributionFunction1DPerturber>
      </modelParameter>
      <!-- Apply to g-band luminosity function -->
@@ -785,30 +785,30 @@
      <!-- Emission line systematics -->
      <modelParameter value="active">
        <name value="emissionLineLuminositySystematics0"/>
-       <distributionFunction1DPrior     value="normal"  >
+       <distributionFunction1DPrior value="normal">
          <limitLower value="-0.2500+0"/>
          <limitUpper value="+0.2500+0"/>
-         <mean       value="+0.000e+0"/>
-         <variance   value="+2.500e-3"/>
+         <mean value="+0.000e+0"/>
+         <variance value="+2.500e-3"/>
        </distributionFunction1DPrior>
-       <operatorUnaryMapper             value="identity"/>
-       <distributionFunction1DPerturber value="cauchy"   >
-         <median value="0.0"   />
-         <scale  value="1.0e-12"/>
+       <operatorUnaryMapper value="identity"/>
+       <distributionFunction1DPerturber value="cauchy">
+         <median value="0.0"/>
+         <scale value="1.0e-12"/>
        </distributionFunction1DPerturber>
      </modelParameter>
      <modelParameter value="active">
        <name value="emissionLineLuminositySystematics1"/>
-       <distributionFunction1DPrior     value="normal"  >
+       <distributionFunction1DPrior value="normal">
          <limitLower value="-0.100e+0"/>
          <limitUpper value="+0.100e+0"/>
-         <mean       value="+0.000e+0"/>
-         <variance   value="+3.250e-3"/>
+         <mean value="+0.000e+0"/>
+         <variance value="+3.250e-3"/>
        </distributionFunction1DPrior>
-       <operatorUnaryMapper             value="identity"/>
-       <distributionFunction1DPerturber value="cauchy"   >
-         <median value="0.0"   />
-         <scale  value="1.0e-12"/>
+       <operatorUnaryMapper value="identity"/>
+       <distributionFunction1DPerturber value="cauchy">
+         <median value="0.0"/>
+         <scale value="1.0e-12"/>
        </distributionFunction1DPerturber>
      </modelParameter>
      <!-- Apply to SDSS luminosity function -->
@@ -833,46 +833,46 @@
      <!-- Metallicity systematics, e.g. Peeples and Shankar (http://adsabs.harvard.edu/abs/2011MNRAS.417.2962P) -->
      <modelParameter value="active">
        <name value="outputAnalysis::outputAnalysis[16]::metallicitySystematicErrorPolynomialCoefficient"/>
-       <distributionFunction1DPrior     value="normal"  >
+       <distributionFunction1DPrior value="normal">
          <limitLower value="-1.00"/>
          <limitUpper value="+1.00"/>
-         <mean       value="+0.00"/>
-         <variance   value="+0.03"/>
+         <mean value="+0.00"/>
+         <variance value="+0.03"/>
        </distributionFunction1DPrior>
-       <operatorUnaryMapper             value="identity"/>
-       <distributionFunction1DPerturber value="cauchy"   >
-         <median value="0.0"   />
-         <scale  value="1.0e-12"/>
+       <operatorUnaryMapper value="identity"/>
+       <distributionFunction1DPerturber value="cauchy">
+         <median value="0.0"/>
+         <scale value="1.0e-12"/>
        </distributionFunction1DPerturber>
      </modelParameter>
      
      <!-- Black hole-bulge relation stellar mass systematics -->
      <modelParameter value="active">
        <name value="outputAnalysis::outputAnalysis[17]::systematicErrorPolynomialCoefficient{0}"/>
-       <distributionFunction1DPrior     value="normal"  >
+       <distributionFunction1DPrior value="normal">
          <limitLower value="-0.2500+0"/>
          <limitUpper value="+0.2500+0"/>
-         <mean       value="+0.000e+0"/>
-         <variance   value="+2.500e-3"/>
+         <mean value="+0.000e+0"/>
+         <variance value="+2.500e-3"/>
        </distributionFunction1DPrior>
-       <operatorUnaryMapper             value="identity"/>
-       <distributionFunction1DPerturber value="cauchy"   >
-         <median value="0.0"   />
-         <scale  value="1.0e-12"/>
+       <operatorUnaryMapper value="identity"/>
+       <distributionFunction1DPerturber value="cauchy">
+         <median value="0.0"/>
+         <scale value="1.0e-12"/>
        </distributionFunction1DPerturber>
      </modelParameter>
      <modelParameter value="active">
        <name value="outputAnalysis::outputAnalysis[17]::systematicErrorPolynomialCoefficient{1}"/>
-       <distributionFunction1DPrior     value="normal"  >
+       <distributionFunction1DPrior value="normal">
          <limitLower value="-0.100e+0"/>
          <limitUpper value="+0.100e+0"/>
-         <mean       value="+0.000e+0"/>
-         <variance   value="+3.250e-3"/>
+         <mean value="+0.000e+0"/>
+         <variance value="+3.250e-3"/>
        </distributionFunction1DPrior>
-       <operatorUnaryMapper             value="identity"/>
-       <distributionFunction1DPerturber value="cauchy"   >
-         <median value="0.0"   />
-         <scale  value="1.0e-12"/>
+       <operatorUnaryMapper value="identity"/>
+       <distributionFunction1DPerturber value="cauchy">
+         <median value="0.0"/>
+         <scale value="1.0e-12"/>
        </distributionFunction1DPerturber>
      </modelParameter>
      
@@ -880,95 +880,45 @@
 
   <!-- Random seed -->
   <randomNumberGenerator value="GSL">
-    <seed          value="219" />
+    <seed value="219"/>
     <mpiRankOffset value="true"/>
   </randomNumberGenerator>
   
   <!-- Tree node component selection -->
-  <componentBasic             value="standard" />
-  <componentBlackHole         value="simple"   />
-  <componentDarkMatterProfile value="scale"    />
-  <componentDisk              value="standard" />
-  <componentHotHalo           value="standard" />
-  <componentPosition          value="cartesian"/>
-  <componentSatellite         value="standard" />
-  <componentSpheroid          value="standard" />
-  <componentSpin              value="scalar"   />
+  <componentBasic value="standard"/>
+  <componentBlackHole value="simple"/>
+  <componentDarkMatterProfile value="scale"/>
+  <componentDisk value="standard"/>
+  <componentHotHalo value="standard"/>
+  <componentPosition value="cartesian"/>
+  <componentSatellite value="standard"/>
+  <componentSpheroid value="standard"/>
+  <componentSpin value="scalar"/>
 
   <!-- Elements -->
-  <elementsToTrack    value="O"    />
+  <elementsToTrack value="O"/>
 
   <!-- Luminosity calculations -->
-  <luminosityFilter        value=
-  			  "
-  			   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g
-  			   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r
-  			   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g
-  			   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r
-  			   Lyc             Lyc             Lyc             Lyc             Lyc              Lyc             Lyc             Lyc
-  			   HeliumContinuum HeliumContinuum HeliumContinuum HeliumContinuum HeliumContinuum  HeliumContinuum HeliumContinuum HeliumContinuum
-  			   OxygenContinuum OxygenContinuum OxygenContinuum OxygenContinuum OxygenContinuum  OxygenContinuum OxygenContinuum OxygenContinuum
-  			   "
-  			  />
+  <luminosityFilter value="         SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g         SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r         SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g         SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r         Lyc             Lyc             Lyc             Lyc             Lyc              Lyc             Lyc             Lyc         HeliumContinuum HeliumContinuum HeliumContinuum HeliumContinuum HeliumContinuum  HeliumContinuum HeliumContinuum HeliumContinuum         OxygenContinuum OxygenContinuum OxygenContinuum OxygenContinuum OxygenContinuum  OxygenContinuum OxygenContinuum OxygenContinuum         "/>
   
-  <luminosityType          value=
-  			  "
-  			   observed observed observed observed observed observed observed observed observed observed observed
-  			   observed observed observed observed observed observed observed observed observed observed observed
-  			   observed observed observed observed observed observed observed observed observed observed observed
-  			   observed observed observed observed observed observed observed observed observed observed observed
-  			   rest     rest     rest     rest     rest     rest     rest     rest
-  			   rest     rest     rest     rest     rest     rest     rest     rest
-  			   rest     rest     rest     rest     rest     rest     rest     rest
-  			   "
-  			  />
+  <luminosityType value="         observed observed observed observed observed observed observed observed observed observed observed         observed observed observed observed observed observed observed observed observed observed observed         observed observed observed observed observed observed observed observed observed observed observed         observed observed observed observed observed observed observed observed observed observed observed         rest     rest     rest     rest     rest     rest     rest     rest         rest     rest     rest     rest     rest     rest     rest     rest         rest     rest     rest     rest     rest     rest     rest     rest         "/>
   
-  <luminosityRedshift      value=
-  			  "
-  			   0.02     0.04     0.06     0.08     0.10     0.12     0.14     0.16     0.18     0.20     0.24
-  			   0.02     0.04     0.06     0.08     0.10     0.12     0.14     0.16     0.18     0.20     0.24
-  			   0.02     0.04     0.06     0.08     0.10     0.12     0.14     0.16     0.18     0.20     0.24
-  			   0.02     0.04     0.06     0.08     0.10     0.12     0.14     0.16     0.18     0.20     0.24
-  			   0.02     0.04     0.06     0.08     0.10     0.40     0.86     2.20
-  			   0.02     0.04     0.06     0.08     0.10     0.40     0.86     2.20
-  			   0.02     0.04     0.06     0.08     0.10     0.40     0.86     2.20
-  			   "
-  			  />
+  <luminosityRedshift value="         0.02     0.04     0.06     0.08     0.10     0.12     0.14     0.16     0.18     0.20     0.24         0.02     0.04     0.06     0.08     0.10     0.12     0.14     0.16     0.18     0.20     0.24         0.02     0.04     0.06     0.08     0.10     0.12     0.14     0.16     0.18     0.20     0.24         0.02     0.04     0.06     0.08     0.10     0.12     0.14     0.16     0.18     0.20     0.24         0.02     0.04     0.06     0.08     0.10     0.40     0.86     2.20         0.02     0.04     0.06     0.08     0.10     0.40     0.86     2.20         0.02     0.04     0.06     0.08     0.10     0.40     0.86     2.20         "/>
 
   
-  <luminosityBandRedshift  value=
-  			  "
-  			   0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10
-  			   0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10
-  			   0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10
-  			   0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10
-  			   0.02     0.04     0.06     0.08     0.10     0.40     0.86     2.20
-  			   0.02     0.04     0.06     0.08     0.10     0.40     0.86     2.20
-  			   0.02     0.04     0.06     0.08     0.10     0.40     0.86     2.20
-  			   "
-  			  />
-  <luminosityPostprocessSet value=
-  			  "
-  			   default  default  default  default  default  default  default  default  default  default  default
-  			   default  default  default  default  default  default  default  default  default  default  default
-  			   recent   recent   recent   recent   recent   recent   recent   recent   recent   recent   recent
-  			   recent   recent   recent   recent   recent   recent   recent   recent   recent   recent   recent
-  			   default  default  default  default  default  default  default  default
-  			   default  default  default  default  default  default  default  default
-  			   default  default  default  default  default  default  default  default
-  			   "
-  			  />
-  <stellarPopulationSpectraPostprocessorBuilder value="lookup"          >
-    <names         value="default recent"/>
-    <stellarPopulationSpectraPostprocessor      value="inoue2014"      />
-    <stellarPopulationSpectraPostprocessor      value="sequence"        >
+  <luminosityBandRedshift value="         0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10         0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10         0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10         0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10         0.02     0.04     0.06     0.08     0.10     0.40     0.86     2.20         0.02     0.04     0.06     0.08     0.10     0.40     0.86     2.20         0.02     0.04     0.06     0.08     0.10     0.40     0.86     2.20         "/>
+  <luminosityPostprocessSet value="         default  default  default  default  default  default  default  default  default  default  default         default  default  default  default  default  default  default  default  default  default  default         recent   recent   recent   recent   recent   recent   recent   recent   recent   recent   recent         recent   recent   recent   recent   recent   recent   recent   recent   recent   recent   recent         default  default  default  default  default  default  default  default         default  default  default  default  default  default  default  default         default  default  default  default  default  default  default  default         "/>
+  <stellarPopulationSpectraPostprocessorBuilder value="lookup">
+    <names value="default recent"/>
+    <stellarPopulationSpectraPostprocessor value="inoue2014"/>
+    <stellarPopulationSpectraPostprocessor value="sequence">
       <!-- Spectra postprocessing chain to compute light from recently formed populations -->
-      <stellarPopulationSpectraPostprocessor    value="inoue2014"      />
-      <stellarPopulationSpectraPostprocessor    value="recent"          >
-  	<timeLimit value="1.0e-2"        /> <!-- t_{BC} of Charlot & Fall (2000; ApJ, 539, 718)-->
+      <stellarPopulationSpectraPostprocessor value="inoue2014"/>
+      <stellarPopulationSpectraPostprocessor value="recent">
+  	<timeLimit value="1.0e-2"/> <!-- t_{BC} of Charlot & Fall (2000; ApJ, 539, 718)-->
       </stellarPopulationSpectraPostprocessor>
     </stellarPopulationSpectraPostprocessor>
   </stellarPopulationSpectraPostprocessorBuilder>
-  <stellarSpectraDustAttenuation                value="charlotFall2000"/>
+  <stellarSpectraDustAttenuation value="charlotFall2000"/>
 
 </parameters>

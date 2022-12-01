@@ -331,8 +331,8 @@ contains
     !!{
     Construct the set of tree masses to be built.
     !!}
-    use :: Error            , only : Error_Report
-    use :: Sorting          , only : sortIndex
+    use :: Error  , only : Error_Report
+    use :: Sorting, only : sortIndex
     implicit none
     class  (mergerTreeConstructorBuild), intent(inout) :: self
     integer(c_size_t                  )                :: iTreeFirst, iTreeLast
