@@ -2349,7 +2349,8 @@
       <toleranceResolutionParent value="2.0e-2"/>
     </mergerTreeBuilder>
     <mergerTreeBranchingProbability value="gnrlzdPrssSchchtr">
-      <massMinimum value="1.0e5"/>
+      <massMinimum     value="1.0e5"/>
+      <smoothAccretion value="false"/>
     </mergerTreeBranchingProbability>
     <mergerTreeBranchingProbabilityModifier value="parkinson2008">
       <G0 value="+0.57"/>
