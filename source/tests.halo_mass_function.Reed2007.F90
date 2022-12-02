@@ -81,12 +81,12 @@ program Tests_Halo_Mass_Function_Reed2007
   <referenceConstruct object="cosmologyParameters_"               >
    <constructor>
     cosmologyParametersSimple                                    (                                                                                                     &amp;
-     &amp;                                                        OmegaMatter                        = 0.238d0                                                       , &amp;
-     &amp;                                                        OmegaBaryon                        = 0.000d0                                                       , &amp;
-     &amp;                                                        OmegaDarkEnergy                    = 0.762d0                                                       , &amp;
-     &amp;                                                        temperatureCMB                     = 2.700d0                                                       , &amp;
-     &amp;                                                        HubbleConstant                     =70.000d0                                                         &amp;
-     &amp;                                                       )
+     &amp;                                                        OmegaMatter                        = 0.23800d0                                                     , &amp;
+     &amp;                                                        OmegaBaryon                        = 0.00000d0                                                     , &amp;
+     &amp;                                                        OmegaDarkEnergy                    = 0.76200d0                                                     , &amp;
+     &amp;                                                        temperatureCMB                     = 2.72548d0                                                     , &amp;
+     &amp;                                                        HubbleConstant                     =70.00000d0                                                       &amp;
+    &amp;                                                       )
    </constructor>
   </referenceConstruct>
   <referenceConstruct object="cosmologyFunctions_"                >
