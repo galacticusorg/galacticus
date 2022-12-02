@@ -24,9 +24,6 @@
   !![
   <mergerTreeImporter name="mergerTreeImporterSussingASCII">
    <description>
-  !!]
-
-  !![
     A merger tree importer class for ``Sussing Merger Trees'' ASCII format merger tree files \citep{srisawat_sussing_2013},
     along with \gls{ahf} format halo catalogs. A descriptor file must be specified via the {\normalfont \ttfamily
     [mergerTreeReadFileName]} parameter. This descriptor file should have the following format:
@@ -96,13 +93,19 @@
      A merger tree importer class for ``Sussing Merger Trees'' ASCII format merger tree files \citep{srisawat_sussing_2013}.
      !!}
      private
-     logical                                    :: convertToBinary           , binaryFormatOld, &
-          &                                        forestReverseSnapshotOrder, useForestFile
-     integer                                    :: forestFirst               , forestLast
-     type   (varying_string          )          :: forestFile
+     logical                 :: convertToBinary           , binaryFormatOld, &
+          &                     forestReverseSnapshotOrder, useForestFile
+     integer                 :: forestFirst               , forestLast
+     type   (varying_string) :: forestFile
    contains
-     procedure :: open => sussingASCIIOpen
-     procedure :: load => sussingASCIILoad
+     !![
+     <methods>
+       <method method="initialize" description="Initialize the object after construction."/>
+     </methods>
+     !!]
+     procedure :: initialize => sussingASCIIInitialize
+     procedure :: open       => sussingASCIIOpen
+     procedure :: load       => sussingASCIILoad
   end type mergerTreeImporterSussingASCII
 
   interface mergerTreeImporterSussingASCII
@@ -180,11 +183,11 @@ contains
       <source>parameters</source>
     </inputParameter>
     !!]
-    self%useForestFile            =self%forestFile /= "none"
     self%mergerTreeImporterSussing=mergerTreeImporterSussing(parameters)
     !![
     <inputParametersValidate source="parameters"/>
     !!]
+    call self%initialize()
     return
   end function sussingASCIIConstructorParameters
 
@@ -212,10 +215,21 @@ contains
     <constructorAssign variables="convertToBinary,binaryFormatOld,forestFile,forestFirst,forestLast,forestReverseSnapshotOrder,*cosmologyParameters_,*randomNumberGenerator_"/>
     !!]
 
-    self%useForestFile            =self%forestFile /= "none"
     self%mergerTreeImporterSussing=mergerTreeImporterSussing(fatalMismatches,fatalNonTreeNode,subvolumeCount,subvolumeBuffer,subvolumeIndex,badValue,badValueTest,treeSampleRate,massOption,cosmologyParameters_,cosmologyFunctions_,randomNumberGenerator_)
+    call self%initialize()
     return
   end function sussingASCIIConstructorInternal
+
+  subroutine sussingASCIIInitialize(self)
+    !!{
+    Initialize the object after construction.
+    !!}
+    implicit none
+    class(mergerTreeImporterSussingASCII), intent(inout) :: self
+
+    self%useForestFile=self%forestFile /= "none"
+    return
+  end subroutine sussingASCIIInitialize
 
   subroutine sussingASCIIOpen(self,fileName)
     !!{

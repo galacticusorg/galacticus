@@ -31,8 +31,8 @@
      A simple cosmological parameters class.
      !!}
      private
-     double precision :: HubbleConstantValue, OmegaBaryonValue   , OmegaDarkEnergyValue, &
-          &              OmegaMatterValue   , temperatureCMBValue
+     double precision :: HubbleConstant_, OmegaBaryon_   , OmegaDarkEnergy_, &
+          &              OmegaMatter_   , temperatureCMB_
    contains
      procedure :: OmegaMatter     => simpleOmegaMatter
      procedure :: OmegaDarkEnergy => simpleOmegaDarkEnergy
@@ -61,14 +61,16 @@ contains
     use :: Display, only : displayMagenta, displayReset
     use :: Error  , only : Warn
     implicit none
-    type(cosmologyParametersSimple)                :: self
-    type(inputParameters          ), intent(inout) :: parameters
+    type            (cosmologyParametersSimple)                :: self
+    type            (inputParameters          ), intent(inout) :: parameters
+    double precision                                           :: HubbleConstant , OmegaBaryon, &
+         &                                                        OmegaDarkEnergy, OmegaMatter, &
+         &                                                        temperatureCMB
 
     !![
     <inputParameter>
       <name>OmegaMatter</name>
       <source>parameters</source>
-      <variable>self%OmegaMatterValue</variable>
       <defaultValue>0.3153d0</defaultValue>
       <defaultSource>(\citealt{planck_collaboration_planck_2018}; TT,TE,EE$+$lowE$+$lensing)</defaultSource>
       <description>The density of matter in the Universe in units of the critical density.</description>
@@ -76,7 +78,6 @@ contains
     <inputParameter>
       <name>OmegaBaryon</name>
       <source>parameters</source>
-      <variable>self%OmegaBaryonValue</variable>
       <defaultValue>0.04930d0</defaultValue>
       <defaultSource>(\citealt{planck_collaboration_planck_2018}; TT,TE,EE$+$lowE$+$lensing)</defaultSource>
       <description>The density of baryons in the Universe in units of the critical density.</description>
@@ -84,7 +85,6 @@ contains
     <inputParameter>
       <name>OmegaDarkEnergy</name>
       <source>parameters</source>
-      <variable>self%OmegaDarkEnergyValue</variable>
       <defaultValue>0.6847d0</defaultValue>
       <defaultSource>(\citealt{planck_collaboration_planck_2018}; TT,TE,EE$+$lowE$+$lensing)</defaultSource>
       <description>The density of dark energy in the Universe in units of the critical density.</description>
@@ -92,7 +92,6 @@ contains
     <inputParameter>
       <name>temperatureCMB</name>
       <source>parameters</source>
-      <variable>self%temperatureCMBValue</variable>
       <defaultValue>2.72548d0</defaultValue>
       <defaultSource>\citep{fixsen_temperature_2009}</defaultSource>
       <description>The present day temperature of the \gls{cmb} in units of Kelvin.</description>
@@ -100,15 +99,15 @@ contains
     <inputParameter>
       <name>HubbleConstant</name>
       <source>parameters</source>
-      <variable>self%HubbleConstantValue</variable>
       <defaultValue>67.36d0</defaultValue>
       <defaultSource>(\citealt{planck_collaboration_planck_2018}; TT,TE,EE$+$lowE$+$lensing)</defaultSource>
       <description>The present day value of the Hubble parameter in units of km/s/Mpc.</description>
     </inputParameter>
     !!]
     ! Validate the input.
-    if (self%HubbleConstantValue <= 0.0d0)                                                                                                       &
+    if (self%HubbleConstant_ <= 0.0d0)                                                                                                       &
          & call Warn(displayMagenta()//"WARNING:"//displayReset()//" H₀ ≤ 0 - are you sure this is what you wanted? "//{introspection:location})
+    self=cosmologyParametersSimple(OmegaMatter,OmegaBaryon,OmegaDarkEnergy,temperatureCMB,HubbleConstant)
     !![
     <inputParametersValidate source="parameters"/>
     !!]
@@ -124,12 +123,12 @@ contains
     double precision                           , intent(in   ) :: HubbleConstant , OmegaBaryon, &
          &                                                        OmegaDarkEnergy, OmegaMatter, &
          &                                                        temperatureCMB
-
-    self%OmegaMatterValue    =OmegaMatter
-    self%OmegaBaryonValue    =OmegaBaryon
-    self%OmegaDarkEnergyValue=OmegaDarkEnergy
-    self%temperatureCMBValue =temperatureCMB
-    self%HubbleConstantValue =HubbleConstant
+    
+    self%HubbleConstant_ =HubbleConstant
+    self%OmegaBaryon_    =OmegaBaryon
+    self%OmegaDarkEnergy_=OmegaDarkEnergy
+    self%OmegaMatter_    =OmegaMatter
+    self%temperatureCMB_ =temperatureCMB
     return
   end function simpleConstructorInternal
 
@@ -140,7 +139,7 @@ contains
     implicit none
     class(cosmologyParametersSimple), intent(inout) :: self
 
-    simpleOmegaMatter=self%OmegaMatterValue
+    simpleOmegaMatter=self%OmegaMatter_
     return
   end function simpleOmegaMatter
 
@@ -151,7 +150,7 @@ contains
     implicit none
     class(cosmologyParametersSimple), intent(inout) :: self
 
-    simpleOmegaBaryon=self%OmegaBaryonValue
+    simpleOmegaBaryon=self%OmegaBaryon_
     return
   end function simpleOmegaBaryon
 
@@ -162,7 +161,7 @@ contains
     implicit none
     class(cosmologyParametersSimple), intent(inout) :: self
 
-    simpleOmegaDarkEnergy=self%OmegaDarkEnergyValue
+    simpleOmegaDarkEnergy=self%OmegaDarkEnergy_
     return
   end function simpleOmegaDarkEnergy
 
@@ -204,7 +203,7 @@ contains
     implicit none
     class(cosmologyParametersSimple), intent(inout) :: self
 
-    simpleTemperatureCMB=self%temperatureCMBValue
+    simpleTemperatureCMB=self%temperatureCMB_
     return
   end function simpleTemperatureCMB
 
@@ -225,14 +224,14 @@ contains
     
     select case (units_%ID)
     case (hubbleUnitsStandard%ID)
-       simpleHubbleConstant=+self%HubbleConstantValue
+       simpleHubbleConstant=+self%HubbleConstant_
     case (hubbleUnitsTime    %ID)
-       simpleHubbleConstant=+self%HubbleConstantValue         &
+       simpleHubbleConstant=+self%HubbleConstant_             &
             &                    *gigaYear                    &
             &                    *kilo                        &
             &                    /megaParsec
     case (hubbleUnitsLittleH %ID)
-       simpleHubbleConstant=+self%HubbleConstantValue         &
+       simpleHubbleConstant=+self%HubbleConstant_             &
             &                    /HubbleConstantNormalization
     case default
        simpleHubbleConstant=0.0d0

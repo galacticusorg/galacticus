@@ -66,12 +66,14 @@
    contains
      !![
      <methods>
-       <method description="Reset memoized calculations." method="calculationReset" />
-       <method description="Returns the total accretion rate from the \gls{igm} onto a halo (including dark matter)." method="chemicalMasses" />
-       <method description="Returns the total accretion rate from the \gls{igm} onto a halo (including dark matter)." method="coldModeFraction" />
+       <method description="Initialize after construction."                                                           method="initialize"      />
+       <method description="Reset memoized calculations."                                                             method="calculationReset"/>
+       <method description="Returns the total accretion rate from the \gls{igm} onto a halo (including dark matter)." method="chemicalMasses"  />
+       <method description="Returns the total accretion rate from the \gls{igm} onto a halo (including dark matter)." method="coldModeFraction"/>
      </methods>
      !!]
      final     ::                              coldModeDestructor
+     procedure :: initialize                => coldModeInitialize
      procedure :: autoHook                  => coldModeAutoHook
      procedure :: calculationReset          => coldModeCalculationReset
      procedure :: accretionRate             => coldModeAccretionRate
@@ -128,8 +130,7 @@ contains
     <objectBuilder class="coolingFunction" name="self%coolingFunction_" source="parameters"/>
     <inputParametersValidate source="parameters"/>
     !!]
-    self%coldFractionComputed=.false.
-    self%lastUniqueID        =-1_kind_int8
+    call self%initialize()
     return
   end function coldModeConstructorParameters
 
@@ -154,10 +155,21 @@ contains
     !!]
 
     self%accretionHaloSimple=accretionHaloSimple(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_)
+    call self%initialize()
+    return
+  end function coldModeConstructorInternal
+
+  subroutine coldModeInitialize(self)
+    !!{
+    Initialize the object after construction.
+    !!}
+    implicit none
+    class(accretionHaloColdMode), intent(inout) :: self
+
     self%coldFractionComputed=.false.
     self%lastUniqueID        =-1_kind_int8
     return
-  end function coldModeConstructorInternal
+  end subroutine coldModeInitialize
 
   subroutine coldModeAutoHook(self)
     !!{

@@ -55,17 +55,19 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type(galacticFilterISMMass)                :: self
-    type(inputParameters      ), intent(inout) :: parameters
-
-    ! Check and read parameters.
+    type            (galacticFilterISMMass)                :: self
+    type            (inputParameters      ), intent(inout) :: parameters
+    double precision                                       :: massThreshold
+    
     !![
     <inputParameter>
       <name>massThreshold</name>
       <source>parameters</source>
-      <variable>self%massThreshold</variable>
       <description>The parameter $M_0$ (in units of $M_\odot$) appearing in the ISM mass threshold for the ISM mass galactic filter class.</description>
     </inputParameter>
+    !!]
+    self=galacticFilterISMMass(massThreshold)
+    !![
     <inputParametersValidate source="parameters"/>
     !!]
     return

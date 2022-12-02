@@ -61,19 +61,21 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type(haloSpinDistributionDeltaFunction)                :: self
-    type(inputParameters                  ), intent(inout) :: parameters
+    type            (haloSpinDistributionDeltaFunction)                :: self
+    type            (inputParameters                  ), intent(inout) :: parameters
+    double precision                                                   :: spin
 
-    ! Check and read parameters.
     !![
     <inputParameter>
       <name>spin</name>
       <source>parameters</source>
-      <variable>self%spin</variable>
       <defaultValue>0.03687d0</defaultValue>
       <defaultSource>\citep{bett_spin_2007}</defaultSource>
       <description>The fixed value of spin in a $\delta$-function spin distribution.</description>
     </inputParameter>
+    !!]
+    self=haloSpinDistributionDeltaFunction(spin)
+    !![
     <inputParametersValidate source="parameters"/>
     !!]
     return

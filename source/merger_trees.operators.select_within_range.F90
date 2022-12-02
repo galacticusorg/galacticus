@@ -52,24 +52,26 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type(mergerTreeOperatorSelectWithinRange)                :: self
-    type(inputParameters                    ), intent(inout) :: parameters
-
+    type            (mergerTreeOperatorSelectWithinRange)                :: self
+    type            (inputParameters                    ), intent(inout) :: parameters
+    double precision                                                     :: baseMassMinimum, baseMassMaximum
+    
     !![
     <inputParameter>
       <name>baseMassMinimum</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <variable>self%baseMassMinimum</variable>
       <description>Base node mass below which trees should be ignored.</description>
     </inputParameter>
     <inputParameter>
       <name>baseMassMaximum</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <variable>self%baseMassMaximum</variable>
       <description>Base node mass above which trees should be ignored.</description>
     </inputParameter>
+    !!]
+    self=mergerTreeOperatorSelectWithinRange(baseMassMinimum,baseMassMaximum)
+    !![
     <inputParametersValidate source="parameters"/>
     !!]
     return

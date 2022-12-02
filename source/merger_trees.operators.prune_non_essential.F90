@@ -61,22 +61,25 @@ contains
     Constructor for the prune-non-essential merger tree operator class which takes a parameter set as input.
     !!}
     implicit none
-    type   (mergerTreeOperatorPruneNonEssential)                :: self
-    type   (inputParameters                    ), intent(inout) :: parameters
+    type            (mergerTreeOperatorPruneNonEssential)                :: self
+    type            (inputParameters                    ), intent(inout) :: parameters
+    integer                                                              :: essentialNodeID
+    double precision                                                     :: essentialNodeTime
 
     !![
     <inputParameter>
       <name>essentialNodeID</name>
       <source>parameters</source>
-      <variable>self%essentialNodeID</variable>
       <description>ID of the essential node to avoid pruning.</description>
     </inputParameter>
     <inputParameter>
       <name>essentialNodeTime</name>
       <source>parameters</source>
-      <variable>self%essentialNodeTime</variable>
       <description>Time of the essential node to avoid pruning.</description>
     </inputParameter>
+    !!]
+    self=mergerTreeOperatorPruneNonEssential(essentialNodeID,essentialNodeTime)
+    !![
     <inputParametersValidate source="parameters"/>
     !!]
     return

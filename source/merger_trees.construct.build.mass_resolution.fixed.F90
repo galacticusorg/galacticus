@@ -55,18 +55,20 @@ contains
     provided parameter list.
     !!}
     implicit none
-    type(mergerTreeMassResolutionFixed)                :: self
-    type(inputParameters              ), intent(inout) :: parameters
+    type            (mergerTreeMassResolutionFixed)                :: self
+    type            (inputParameters              ), intent(inout) :: parameters
+    double precision                                               :: massResolution
 
-    ! Check and read parameters.
     !![
     <inputParameter>
       <name>massResolution</name>
       <source>parameters</source>
-      <variable>self%massResolution</variable>
       <defaultValue>5.0d9</defaultValue>
       <description>The mass resolution to use when building merger trees.</description>
     </inputParameter>
+    !!]
+    self=mergerTreeMassResolutionFixed(massResolution)
+    !![
     <inputParametersValidate source="parameters"/>
     !!]
     return

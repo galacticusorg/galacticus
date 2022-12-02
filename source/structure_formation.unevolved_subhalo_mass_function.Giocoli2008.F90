@@ -56,15 +56,14 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type(unevolvedSubhaloMassFunctionGiocoli2008)                :: self
-    type(inputParameters                        ), intent(inout) :: parameters
+    type            (unevolvedSubhaloMassFunctionGiocoli2008)                :: self
+    type            (inputParameters                        ), intent(inout) :: parameters
+    double precision                                                         :: normalization, exponent
 
-    ! Check and read parameters.
     !![
     <inputParameter>
       <name>normalization</name>
       <source>parameters</source>
-      <variable>self%normalization</variable>
       <defaultValue>0.21d0</defaultValue>
       <defaultSource>\cite{giocoli_population_2008}</defaultSource>
       <description>The parameter $N_0$ in the \cite{giocoli_population_2008} unevolved subhalo mass function fit.</description>
@@ -72,11 +71,13 @@ contains
     <inputParameter>
       <name>exponent</name>
       <source>parameters</source>
-      <variable>self%exponent</variable>
       <defaultValue>0.8d0</defaultValue>
       <defaultSource>\cite{giocoli_population_2008}</defaultSource>
       <description>The parameter $\alpha$ in the \cite{giocoli_population_2008} unevolved subhalo mass function fit.</description>
     </inputParameter>
+    !!]
+    self=unevolvedSubhaloMassFunctionGiocoli2008(normalization,exponent)
+    !![
     <inputParametersValidate source="parameters"/>
     !!]
    return
