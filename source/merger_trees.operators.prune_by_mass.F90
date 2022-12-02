@@ -51,13 +51,13 @@ Contains a module which implements a pruning-by-mass operator on merger trees.
 
 contains
 
-  function pruneByMassConstructorParameters(parameters)
+  function pruneByMassConstructorParameters(parameters) result(self)
     !!{
     Constructor for the prune-by-mass merger tree operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type(mergerTreeOperatorPruneByMass)                :: pruneByMassConstructorParameters
+    type(mergerTreeOperatorPruneByMass)                :: self
     type(inputParameters              ), intent(inout) :: parameters
 
     !![
@@ -65,14 +65,14 @@ contains
       <name>massThreshold</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <variable>pruneByMassConstructorParameters%massThreshold</variable>
+      <variable>self%massThreshold</variable>
       <description>Threshold mass below which merger tree branches should be pruned.</description>
     </inputParameter>
     <inputParameter>
       <name>preservePrimaryProgenitor</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <variable>pruneByMassConstructorParameters%preservePrimaryProgenitor</variable>
+      <variable>self%preservePrimaryProgenitor</variable>
       <description>If true, primary progenitor status is preserved even if the primary progenitor is pruned from the tree.</description>
     </inputParameter>
     <inputParametersValidate source="parameters"/>
@@ -80,17 +80,18 @@ contains
     return
   end function pruneByMassConstructorParameters
 
-  function pruneByMassConstructorInternal(massThreshold,preservePrimaryProgenitor)
+  function pruneByMassConstructorInternal(massThreshold,preservePrimaryProgenitor) result(self)
     !!{
     Internal constructor for the prune-by-mass merger tree operator class.
     !!}
     implicit none
-    type            (mergerTreeOperatorPruneByMass)                :: pruneByMassConstructorInternal
+    type            (mergerTreeOperatorPruneByMass)                :: self
     double precision                               , intent(in   ) :: massThreshold
     logical                                        , intent(in   ) :: preservePrimaryProgenitor
+    !![
+    <constructorAssign variables="massThreshold, preservePrimaryProgenitor"/>
+    !!]
 
-    pruneByMassConstructorInternal%massThreshold            =massThreshold
-    pruneByMassConstructorInternal%preservePrimaryProgenitor=preservePrimaryProgenitor
     return
   end function pruneByMassConstructorInternal
 

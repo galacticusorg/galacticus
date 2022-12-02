@@ -92,15 +92,15 @@ module Regular_Expressions
 
 contains
 
-  function Regular_Expression_Constructor(regularExpression)
+  function Regular_Expression_Constructor(regularExpression) result(self)
     !!{
     Constructor for {\normalfont \ttfamily regEx} objects.
     !!}
     implicit none
-    type     (regEx)                :: Regular_Expression_Constructor
+    type     (regEx)                :: self
     character(len=*), intent(in   ) :: regularExpression
 
-    Regular_Expression_Constructor%r=Regular_Expression_Construct_C(trim(regularExpression)//char(0))
+    self%r=Regular_Expression_Construct_C(trim(regularExpression)//char(0))
     return
   end function Regular_Expression_Constructor
 

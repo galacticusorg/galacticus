@@ -39,7 +39,6 @@
      private
      double precision :: spin
    contains
-     final     ::                 deltaFunctionDestructor
      procedure :: sample       => deltaFunctionSample
      procedure :: distribution => deltaFunctionDistribution
   end type haloSpinDistributionDeltaFunction
@@ -55,14 +54,14 @@
 
 contains
 
-  function deltaFunctionConstructorParameters(parameters)
+  function deltaFunctionConstructorParameters(parameters) result(self)
     !!{
     Constructor for the {\normalfont \ttfamily deltaFunction} dark matter halo spin
     distribution class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type(haloSpinDistributionDeltaFunction)                :: deltaFunctionConstructorParameters
+    type(haloSpinDistributionDeltaFunction)                :: self
     type(inputParameters                  ), intent(inout) :: parameters
 
     ! Check and read parameters.
@@ -70,7 +69,7 @@ contains
     <inputParameter>
       <name>spin</name>
       <source>parameters</source>
-      <variable>deltaFunctionConstructorParameters%spin</variable>
+      <variable>self%spin</variable>
       <defaultValue>0.03687d0</defaultValue>
       <defaultSource>\citep{bett_spin_2007}</defaultSource>
       <description>The fixed value of spin in a $\delta$-function spin distribution.</description>
@@ -80,31 +79,20 @@ contains
     return
   end function deltaFunctionConstructorParameters
 
-  function deltaFunctionConstructorInternal(spin)
+  function deltaFunctionConstructorInternal(spin) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily deltaFunction} dark matter halo spin
     distribution class.
     !!}
     implicit none
-    type(haloSpinDistributionDeltaFunction) :: deltaFunctionConstructorInternal
-    double precision, intent(in   ) :: spin
-
-    deltaFunctionConstructorInternal%spin=spin
+    type            (haloSpinDistributionDeltaFunction)                :: self
+    double precision                                   , intent(in   ) :: spin
+    !![
+    <constructorAssign variables="spin"/>
+    !!]
+    
     return
   end function deltaFunctionConstructorInternal
-
-  subroutine deltaFunctionDestructor(self)
-    !!{
-    Destructor for the {\normalfont \ttfamily deltaFunction} dark matter halo spin
-    distribution class.
-    !!}
-    implicit none
-    type(haloSpinDistributionDeltaFunction), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    ! Nothing to do.
-    return
-  end subroutine deltaFunctionDestructor
 
   double precision function deltaFunctionSample(self,node)
     !!{

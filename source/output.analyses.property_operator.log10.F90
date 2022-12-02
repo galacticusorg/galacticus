@@ -44,16 +44,16 @@ Contains a module which implements an log10 output analysis property operator cl
 
 contains
 
-  function log10ConstructorParameters(parameters)
+  function log10ConstructorParameters(parameters) result(self)
     !!{
     Constructor for the ``log10'' output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(outputAnalysisPropertyOperatorLog10)                :: log10ConstructorParameters
+    type(outputAnalysisPropertyOperatorLog10)                :: self
     type(inputParameters                    ), intent(inout) :: parameters
 
-    log10ConstructorParameters=outputAnalysisPropertyOperatorLog10()
+    self=outputAnalysisPropertyOperatorLog10()
     !![
     <inputParametersValidate source="parameters"/>
     !!]

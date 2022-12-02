@@ -237,33 +237,33 @@ module Input_Parameters
 
 contains
 
-  function inputParametersConstructorNull()
+  function inputParametersConstructorNull() result(self)
     !!{
     Constructor for the {\normalfont \ttfamily inputParameters} class creating a null instance.
     !!}
     use :: FoX_dom, only : createDocument, getDocumentElement, getImplementation, setLiveNodeLists
     implicit none
-    type(inputParameters) :: inputParametersConstructorNull
+    type(inputParameters) :: self
 
-    allocate(inputParametersConstructorNull%warnedDefaults)
-    allocate(inputParametersConstructorNull%lock          )
-    inputParametersConstructorNull%document       => createDocument    (                                  &
-         &                                                              getImplementation()             , &
-         &                                                              qualifiedName      ="parameters", &
-         &                                                              docType            =null()        &
-         &                                                             )
-    inputParametersConstructorNull%rootNode       => getDocumentElement(inputParametersConstructorNull%document)
-    inputParametersConstructorNull%parameters     => null              (                                       )
-    inputParametersConstructorNull%warnedDefaults =  integerHash       (                                       )
-    inputParametersConstructorNull%lock           =  ompLock           (                                       )
-    inputParametersConstructorNull%isNull         = .true.
+    allocate(self%warnedDefaults)
+    allocate(self%lock          )
+    self%document       => createDocument    (                                  &
+         &                                    getImplementation()             , &
+         &                                    qualifiedName      ="parameters", &
+         &                                    docType            =null()        &
+         &                                   )
+    self%rootNode       => getDocumentElement(self%document)
+    self%parameters     => null              (             )
+    self%warnedDefaults =  integerHash       (             )
+    self%lock           =  ompLock           (             )
+    self%isNull         = .true.
     !$omp critical (FoX_DOM_Access)
-    call setLiveNodeLists(inputParametersConstructorNull%document,.false.)
+    call setLiveNodeLists(self%document,.false.)
     !$omp end critical (FoX_DOM_Access)
    return
   end function inputParametersConstructorNull
 
-  function inputParametersConstructorVarStr(xmlString,allowedParameterNames,outputParametersGroup,noOutput)
+  function inputParametersConstructorVarStr(xmlString,allowedParameterNames,outputParametersGroup,noOutput) result(self)
     !!{
     Constructor for the {\normalfont \ttfamily inputParameters} class from an XML file
     specified as a variable length string.
@@ -274,7 +274,7 @@ contains
     use :: FoX_dom           , only : node
     use :: ISO_Varying_String, only : char, extract, operator(==)
     implicit none
-    type     (inputParameters)                                           :: inputParametersConstructorVarStr
+    type     (inputParameters)                                           :: self
     type     (varying_string    )              , intent(in   )           :: xmlString
     character(len=*             ), dimension(:), intent(in   ), optional :: allowedParameterNames
     type     (hdf5Object        ), target      , intent(in   ), optional :: outputParametersGroup
@@ -287,49 +287,27 @@ contains
        !$omp critical (FoX_DOM_Access)
        parameterNode => parseString(char(xmlString))
        !$omp end critical (FoX_DOM_Access)
-       inputParametersConstructorVarStr=inputParametersConstructorNode      (                                                 &
-            &                                                                XML_Get_First_Element_By_Tag_Name(               &
-            &                                                                                                  parameterNode, &
-            &                                                                                                  'parameters'   &
-            &                                                                                                 )             , &
-            &                                                                allowedParameterNames                          , &
-            &                                                                outputParametersGroup                          , &
-            &                                                                noOutput                                         &
-            &                                                               )
+       self=inputParameters(                                                 &
+            &               XML_Get_First_Element_By_Tag_Name(               &
+            &                                                 parameterNode, &
+            &                                                 'parameters'   &
+            &                                                )             , &
+            &               allowedParameterNames                          , &
+            &               outputParametersGroup                          , &
+            &               noOutput                                         &
+            &              )
     else
-       inputParametersConstructorVarStr=inputParametersConstructorFileVarStr(                                                 &
-            &                                                                xmlString                                      , &
-            &                                                                allowedParameterNames                          , &
-            &                                                                outputParametersGroup                          , &
-            &                                                                noOutput                                         &
-            &                                                               )
+       self=inputParameters(                                                 &
+            &               char(xmlString)                                , &
+            &               allowedParameterNames                          , &
+            &               outputParametersGroup                          , &
+            &               noOutput                                         &
+            &              )
     end if
     return
   end function inputParametersConstructorVarStr
 
-  function inputParametersConstructorFileVarStr(fileName,allowedParameterNames,outputParametersGroup,noOutput)
-    !!{
-    Constructor for the {\normalfont \ttfamily inputParameters} class from an XML file
-    specified as a variable length string.
-    !!}
-    use :: ISO_Varying_String, only : char
-    implicit none
-    type     (inputParameters)                                           :: inputParametersConstructorFileVarStr
-    type     (varying_string    )              , intent(in   )           :: fileName
-    character(len=*             ), dimension(:), intent(in   ), optional :: allowedParameterNames
-    type     (hdf5Object        ), target      , intent(in   ), optional :: outputParametersGroup
-    logical                                    , intent(in   ), optional :: noOutput
-
-    inputParametersConstructorFileVarStr=inputParametersConstructorFileChar(                       &
-         &                                                                  char(fileName)       , &
-         &                                                                  allowedParameterNames, &
-         &                                                                  outputParametersGroup, &
-         &                                                                  noOutput               &
-         &                                                                 )
-    return
-  end function inputParametersConstructorFileVarStr
-
-  function inputParametersConstructorFileChar(fileName,allowedParameterNames,outputParametersGroup,noOutput)
+  function inputParametersConstructorFileChar(fileName,allowedParameterNames,outputParametersGroup,noOutput) result(self)
     !!{
     Constructor for the {\normalfont \ttfamily inputParameters} class from an XML file
     specified as a character variable.
@@ -339,7 +317,7 @@ contains
     use :: Error         , only : Error_Report
     use :: IO_XML        , only : XML_Get_First_Element_By_Tag_Name, XML_Parse
     implicit none
-    type     (inputParameters)                                        :: inputParametersConstructorFileChar
+    type     (inputParameters)                                        :: self
     character(len=*          )              , intent(in   )           :: fileName
     character(len=*          ), dimension(:), intent(in   ), optional :: allowedParameterNames
     type     (hdf5Object     ), target      , intent(in   ), optional :: outputParametersGroup
@@ -360,43 +338,43 @@ contains
        end if
     end if
     !$omp end critical (FoX_DOM_Access)
-    inputParametersConstructorFileChar=inputParametersConstructorNode(                                                 &
-         &                                                            XML_Get_First_Element_By_Tag_Name(               &
-         &                                                                                              parameterNode, &
-         &                                                                                              'parameters'   &
-         &                                                                                             )             , &
-         &                                                            allowedParameterNames                          , &
-         &                                                            outputParametersGroup                          , &
-         &                                                            noOutput                                         &
-         &                                                           )
+    self=inputParameters(                                                 &
+         &               XML_Get_First_Element_By_Tag_Name(               &
+         &                                                 parameterNode, &
+         &                                                 'parameters'   &
+         &                                                )             , &
+         &               allowedParameterNames                          , &
+         &               outputParametersGroup                          , &
+         &               noOutput                                         &
+         &              )
     return
   end function inputParametersConstructorFileChar
 
-  function inputParametersConstructorCopy(parameters)
+  function inputParametersConstructorCopy(parameters) result(self)
     !!{
     Constructor for the {\normalfont \ttfamily inputParameters} class from an existing parameters object.
     !!}
     implicit none
-    type (inputParameters)                :: inputParametersConstructorCopy
+    type (inputParameters)                :: self
     type (inputParameters), intent(in   ) :: parameters
 
-    inputParametersConstructorCopy            =  inputParameters(parameters%rootNode  ,noOutput=.true.,noBuild=.true.)
-    inputParametersConstructorCopy%parameters =>                 parameters%parameters
-    inputParametersConstructorCopy%parent     =>                 parameters%parent
+    self            =  inputParameters(parameters%rootNode  ,noOutput=.true.,noBuild=.true.)
+    self%parameters =>                 parameters%parameters
+    self%parent     =>                 parameters%parent
     if (allocated(parameters%warnedDefaults)) then
-       if (allocated(inputParametersConstructorCopy%warnedDefaults)) deallocate(inputParametersConstructorCopy%warnedDefaults)
-       allocate(inputParametersConstructorCopy%warnedDefaults)
-       inputParametersConstructorCopy%warnedDefaults=parameters%warnedDefaults
+       if (allocated(self%warnedDefaults)) deallocate(self%warnedDefaults)
+       allocate(self%warnedDefaults)
+       self%warnedDefaults=parameters%warnedDefaults
     end if
     if (associated(parameters%lock)) then
-       deallocate(inputParametersConstructorCopy%lock)
-       allocate(inputParametersConstructorCopy%lock)
-       inputParametersConstructorCopy%lock=ompLock()
+       deallocate(self%lock)
+       allocate  (self%lock)
+       self%lock=ompLock()
     end if
     return
   end function inputParametersConstructorCopy
 
-  function inputParametersConstructorNode(parametersNode,allowedParameterNames,outputParametersGroup,noOutput,noBuild)
+  function inputParametersConstructorNode(parametersNode,allowedParameterNames,outputParametersGroup,noOutput,noBuild) result(self)
     !!{
     Constructor for the {\normalfont \ttfamily inputParameters} class from an FoX node.
     !!}
@@ -411,7 +389,7 @@ contains
     use :: IO_HDF5           , only : ioHDF5AccessInitialize
     use :: HDF5_Access       , only : hdf5Access
     implicit none
-    type     (inputParameters)                                        :: inputParametersConstructorNode
+    type     (inputParameters)                                        :: self
     type     (node           ), pointer     , intent(in   )           :: parametersNode
     character(len=*          ), dimension(:), intent(in   ), optional :: allowedParameterNames
     type     (hdf5Object     ), target      , intent(in   ), optional :: outputParametersGroup
@@ -427,53 +405,53 @@ contains
     !!]
 #include "os.inc"
 
-    allocate(inputParametersConstructorNode%warnedDefaults)
-    allocate(inputParametersConstructorNode%lock          )
-    inputParametersConstructorNode%isNull         =  .false.
-    inputParametersConstructorNode%document       => getOwnerDocument(parametersNode)
-    inputParametersConstructorNode%rootNode       =>                  parametersNode
-    inputParametersConstructorNode%parent         => null            (              )
-    inputParametersConstructorNode%warnedDefaults =  integerHash     (              )
-    inputParametersConstructorNode%lock           =  ompLock         (              )
+    allocate(self%warnedDefaults)
+    allocate(self%lock          )
+    self%isNull         =  .false.
+    self%document       => getOwnerDocument(parametersNode)
+    self%rootNode       =>                  parametersNode
+    self%parent         => null            (              )
+    self%warnedDefaults =  integerHash     (              )
+    self%lock           =  ompLock         (              )
     !$omp critical (FoX_DOM_Access)
-    call setLiveNodeLists(inputParametersConstructorNode%document,.false.)
+    call setLiveNodeLists(self%document,.false.)
     if (.not.noBuild_) then
-       allocate(inputParametersConstructorNode%parameters)
-       inputParametersConstructorNode%parameters%content    => null()
-       inputParametersConstructorNode%parameters%parent     => null()
-       inputParametersConstructorNode%parameters%firstChild => null()
-       inputParametersConstructorNode%parameters%sibling    => null()
-       inputParametersConstructorNode%parameters%referenced => null()
-       call inputParametersConstructorNode%buildTree        (inputParametersConstructorNode%parameters,parametersNode)
-       call inputParametersConstructorNode%resolveReferences(                                                        )
+       allocate(self%parameters)
+       self%parameters%content    => null()
+       self%parameters%parent     => null()
+       self%parameters%firstChild => null()
+       self%parameters%sibling    => null()
+       self%parameters%referenced => null()
+       call self%buildTree        (self%parameters,parametersNode)
+       call self%resolveReferences(                              )
     end if
     !$omp end critical (FoX_DOM_Access)
     ! Set a pointer to HDF5 object to which to write parameters.
     if (present(outputParametersGroup)) then
        !$ call hdf5Access%  set()
-       inputParametersConstructorNode%outputParameters         =outputParametersGroup%openGroup('Parameters')
-       inputParametersConstructorNode%outputParametersCopied   =.false.
-       inputParametersConstructorNode%outputParametersTemporary=.false.
+       self%outputParameters         =outputParametersGroup%openGroup('Parameters')
+       self%outputParametersCopied   =.false.
+       self%outputParametersTemporary=.false.
        !$ call hdf5Access%unset()
     else if (.not.noOutput_) then
        ! The HDF5 access lock may not yet have been initialized. Ensure it is before using it.
        call ioHDF5AccessInitialize()
        !$ call hdf5Access%  set()
-       call inputParametersConstructorNode%outputParametersContainer%openFile(                                      &
-            &                                                                 char(                                 &
-            &                                                                      File_Name_Temporary(             &
-            &                                                                                          'glcTmpPar', &
+       call self%outputParametersContainer%openFile(                                      &
+            &                                       char(                                 &
+            &                                            File_Name_Temporary(             &
+            &                                                                'glcTmpPar', &
 #ifdef __APPLE__
-            &                                                                                          '/tmp'       &
+            &                                                                '/tmp'       &
 #else
-            &                                                                                          '/dev/shm'   &
+            &                                                                '/dev/shm'   &
 #endif
-            &                                                                                         )             &
-            &                                                                      )                                &
-            &                                                                )
-       inputParametersConstructorNode%outputParameters         =inputParametersConstructorNode%outputParametersContainer%openGroup('Parameters')
-       inputParametersConstructorNode%outputParametersCopied   =.false.
-       inputParametersConstructorNode%outputParametersTemporary=.true.
+            &                                                               )             &
+            &                                            )                                &
+            &                                      )
+       self%outputParameters         =self%outputParametersContainer%openGroup('Parameters')
+       self%outputParametersCopied   =.false.
+       self%outputParametersTemporary=.true.
        !$ call hdf5Access%unset()
     end if
     ! Get allowed parameter names.
@@ -502,8 +480,8 @@ contains
     if (.not.allocated(allowedParameterNamesCombined)) allocate(allowedParameterNamesCombined(0))
     ! Check for version information.
     !$omp critical (FoX_DOM_Access)
-    if (XML_Path_Exists(inputParametersConstructorNode%rootNode,"version")) then
-       versionElement => XML_Get_First_Element_By_Tag_Name(inputParametersConstructorNode%rootNode,"version")
+    if (XML_Path_Exists(self%rootNode,"version")) then
+       versionElement => XML_Get_First_Element_By_Tag_Name(self%rootNode,"version")
        versionLabel=getTextContent(versionElement)
        if (String_Strip(versionLabel) /= "0.9.4") then
           message=displayGreen()//"HELP:"//displayReset()                           // &
@@ -518,7 +496,7 @@ contains
     end if
     !$omp end critical (FoX_DOM_Access)
     ! Check parameters.
-    call inputParametersConstructorNode%checkParameters(allowedParameterNamesCombined)
+    call self%checkParameters(allowedParameterNamesCombined)
     return
   end function inputParametersConstructorNode
 
@@ -1689,14 +1667,14 @@ contains
     return
   end subroutine inputParametersValueNode{Type¦label}
 
-  function inputParameterListConstructor()
+  function inputParameterListConstructor() result(self)
     !!{
     Construct an {\normalfont \ttfamily inputParameterList} object.
     !!}
     implicit none
-    type(inputParameterList) :: inputParameterListConstructor
+    type(inputParameterList) :: self
 
-    inputParameterListConstructor%count=0
+    self%count=0
     return
   end function inputParameterListConstructor
 

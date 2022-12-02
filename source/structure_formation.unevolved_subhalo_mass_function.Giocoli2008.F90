@@ -50,13 +50,13 @@ Contains a module which implements a \cite{giocoli_population_2008} unevolved da
 
 contains
 
-  function giocoli2008ConstructorParameters(parameters)
+  function giocoli2008ConstructorParameters(parameters) result(self)
     !!{
     Constructor for the {\normalfont \ttfamily giocoli2008} halo mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type(unevolvedSubhaloMassFunctionGiocoli2008)                :: giocoli2008ConstructorParameters
+    type(unevolvedSubhaloMassFunctionGiocoli2008)                :: self
     type(inputParameters                        ), intent(inout) :: parameters
 
     ! Check and read parameters.
@@ -64,7 +64,7 @@ contains
     <inputParameter>
       <name>normalization</name>
       <source>parameters</source>
-      <variable>giocoli2008ConstructorParameters%normalization</variable>
+      <variable>self%normalization</variable>
       <defaultValue>0.21d0</defaultValue>
       <defaultSource>\cite{giocoli_population_2008}</defaultSource>
       <description>The parameter $N_0$ in the \cite{giocoli_population_2008} unevolved subhalo mass function fit.</description>
@@ -72,7 +72,7 @@ contains
     <inputParameter>
       <name>exponent</name>
       <source>parameters</source>
-      <variable>giocoli2008ConstructorParameters%exponent</variable>
+      <variable>self%exponent</variable>
       <defaultValue>0.8d0</defaultValue>
       <defaultSource>\cite{giocoli_population_2008}</defaultSource>
       <description>The parameter $\alpha$ in the \cite{giocoli_population_2008} unevolved subhalo mass function fit.</description>
@@ -82,16 +82,17 @@ contains
    return
   end function giocoli2008ConstructorParameters
 
-  function giocoli2008ConstructorInternal(normalization,exponent)
+  function giocoli2008ConstructorInternal(normalization,exponent) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily giocoli2008} halo mass function class.
     !!}
     implicit none
-    type            (unevolvedSubhaloMassFunctionGiocoli2008)                :: giocoli2008ConstructorInternal
-    double precision                                         , intent(in   ) :: normalization                 , exponent
+    type            (unevolvedSubhaloMassFunctionGiocoli2008)                :: self
+    double precision                                         , intent(in   ) :: normalization, exponent
+    !![
+    <constructorAssign variables="normalization, exponent"/>
+    !!]
 
-    giocoli2008ConstructorInternal%normalization=normalization
-    giocoli2008ConstructorInternal%exponent     =exponent
     return
   end function giocoli2008ConstructorInternal
 

@@ -263,22 +263,22 @@ module Galacticus_Nodes
 
   !
   ! Functions for treeNode class.
-  function Tree_Node_Constructor(index,hostTree)
+  function Tree_Node_Constructor(index,hostTree) result(self)
     !!{
     Return a pointer to a newly created and initialized {\normalfont \ttfamily treeNode}.
     !!}
     use :: Error, only : Error_Report
     implicit none
-    type   (treeNode      ), pointer                         :: Tree_Node_Constructor
+    type   (treeNode      ), pointer                         :: self
     integer(kind=kind_int8), intent(in   ), optional         :: index
     type   (mergerTree    ), intent(in   ), optional, target :: hostTree
     integer                                                  :: allocErr
 
     ! Allocate the object.
-    allocate(Tree_Node_Constructor,stat=allocErr)
+    allocate(self,stat=allocErr)
     if (allocErr/=0) call Error_Report('unable to allocate node'//{introspection:location})
     ! Initialize the node.
-    call Tree_Node_Constructor%initialize(index,hostTree)
+    call self%initialize(index,hostTree)
     return
   end function Tree_Node_Constructor
 
