@@ -77,7 +77,7 @@ Implements a merger tree branching probability class using a generalized Press-S
      double precision                                                       :: resolutionSigma                                     , massResolutionPrevious
      ! Accuracy parameter to ensure that steps in critical overdensity do not become too large.
      double precision                                                       :: deltaStepMaximum
-     ! The maximum sigma that we expect to find.
+     ! The maximum σ that we expect to find.
      double precision                                                       :: sigmaMaximum
      ! Record of whether we have tested the excursion set routines.
      logical                                                                :: excursionSetsTested
@@ -274,7 +274,7 @@ contains
     character       (len=26                                         )                        :: label
     !$GLC attributes unused :: randomNumberGenerator_
 
-    ! Ensure excursion set calculations have sufficient range in sigma.
+    ! Ensure excursion set calculations have sufficient range in σ.
     call self%excursionSetTest(node)
     ! Initialize global variables.
     generalizedPressSchechterSelf => self
@@ -387,7 +387,7 @@ contains
     double precision                                                                         :: massMaximum   , massMinimum
 
     call self%excursionSetTest(node)
-    ! Get sigma and delta_critical for the parent halo.
+    ! Get σ and δ_critical for the parent halo.
     if (haloMass > 2.0d0*massResolution) then
        call self%computeCommonFactors(node,haloMass,deltaCritical,time)
        massMinimum                          =             massResolution
@@ -430,7 +430,7 @@ contains
     type            (varying_string                                 )                        :: message
 
     call self%excursionSetTest(node)
-    ! Get sigma and delta_critical for the parent halo.
+    ! Get σ and δ_critical for the parent halo.
     call self%computeCommonFactors(node,haloMass,deltaCritical,time)
     ! If requested, compute the rate of smooth accretion.
     if (self%smoothAccretion) then

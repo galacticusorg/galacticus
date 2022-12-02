@@ -177,7 +177,7 @@ contains
     opticalDepth=0.0d0
     ! Line absorption.
     do i=2,40
-       ! Lyman-alpha forest.
+       ! Lyman-α forest.
        wavelengthLymanLine=lymanSeriesLimitWavelengthHydrogen/(1.0d0-1.0d0/dble(i**2))
        wavelengthScaled   =wavelength*(1.0d0+redshift)/wavelengthLymanLine
        if (wavelengthScaled < 1.0d0+redshiftZero .or. wavelengthScaled > 1.0d0+redshift) cycle
@@ -199,7 +199,7 @@ contains
     wavelengthObservedLymanContinuum=wavelength*(1.0d0+redshift)/lymanSeriesLimitWavelengthHydrogen
     ! Add continuum absorption is wavelength is sufficiently short.
     if (wavelengthObservedLymanContinuum < 1.0d0+redshift) then
-       ! Lyman-alpha forest continuum absorption.
+       ! Lyman-α forest continuum absorption.
        if      (redshift < 1.2d0) then
           if      (wavelengthObservedLymanContinuum < 1.0d0+redshift)                                         &
                & opticalDepth=+opticalDepth                                                                   &

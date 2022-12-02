@@ -276,7 +276,7 @@ contains
             & -gradientGradientMassLogarithmicProbabilityCriticalMass
        ! Compute the mass the halo would have under the friends-of-friends algorithm, given infinite resolution. This correction
        ! utilizes the percolation theory-motivated results of More et al. (2011; their equation B11). The minus sign below arises
-       ! because More et al. define their alpha as the negative logarithmic slope of the halo density. We do not allow the
+       ! because More et al. define their α as the negative logarithmic slope of the halo density. We do not allow the
        ! correction factor to exceed some maximum value (set to unity above) since this would correspond to halos far below the
        ! resolution limit of the simulation and so is not realistic.
        correctionFactor=min(                                                                                    &

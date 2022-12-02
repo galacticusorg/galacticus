@@ -120,7 +120,7 @@ contains
     theta=acos(2.0d0*   blackHole1%hostNode%hostTree%randomNumberGenerator_%uniformSample()-1.0d0)
     ! Compute the mass ratio of the two black holes.
     q=blackHole1%mass()/blackHole2%mass()
-    ! Compute alpha (and components), the angular momentum of the black hole per unit mass. This is equal to the spin scalar
+    ! Compute α (and components), the angular momentum of the black hole per unit mass. This is equal to the spin scalar
     ! (since we don't track the direction of spin).
     alpha1Orthogonal=0.0d0
     alpha1Parallel  =blackHole1%spin()

@@ -485,7 +485,7 @@ contains
          &                 -numericalLimitEpsilon &
          &                )                       &
          &               *radiusTurnaround
-    ! Share the epsilon parameter.
+    ! Share the ε parameter.
     cllsnlssMttCsmlgclCnstntAmplitudePerturbation=epsilonPerturbation
     ! Integrate the perturbation equation from size zero to maximum size to get the time to maximum expansion.
     integrator_   = integrator           (cllsnlssMttCsmlgclCnstntPerturbationIntegrand,toleranceRelative   =1.0d-6,hasSingularities=.true.)
@@ -595,7 +595,7 @@ contains
        ! Get the current expansion factor.
        cllsnlssMttCsmlgclCnstntTime           =times(iTime)
        expansionFactor=self%cosmologyFunctions_%expansionFactor(cllsnlssMttCsmlgclCnstntTime)
-       ! Determine the largest (i.e. least negative) value of epsilonPerturbation for which a perturbation can collapse.
+       ! Determine the largest (i.e. least negative) value of ε for which a perturbation can collapse.
        if (self%cosmologyFunctions_%omegaDarkEnergyEpochal(expansionFactor=expansionFactor) > 0.0d0) then
           epsilonPerturbationMaximum=-(                                                                                     &
                &                       +27.0d0                                                                              &
@@ -606,13 +606,13 @@ contains
        else
           epsilonPerturbationMaximum=-1.0d-6
        end if
-       ! Estimate a suitably negative minimum value for epsilon.
+       ! Estimate a suitably negative minimum value for ε.
        epsilonPerturbationMinimum=-10.0d0
        ! Compute cosmological parametrers at this epoch.
        cllsnlssMttCsmlgclCnstntOmegaMatterEpochal    =self%cosmologyFunctions_%omegaMatterEpochal    (expansionFactor=expansionFactor)
        cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal=self%cosmologyFunctions_%omegaDarkEnergyEpochal(expansionFactor=expansionFactor)
        cllsnlssMttCsmlgclCnstntHubbleTimeEpochal     =self%cosmologyFunctions_%expansionRate         (                expansionFactor)
-       ! Find the value of epsilon for which the perturbation just collapses at this time.
+       ! Find the value of ε for which the perturbation just collapses at this time.
        if (.not.finderPerturbationConstructed) then
           finderPerturbation=rootFinder(                                                                                &
                &                        rootFunction                 =cllsnlssMttCsmlgclCnstntPerturbationCollapseRoot, &
@@ -627,7 +627,7 @@ contains
           finderPerturbationConstructed=.true.
        end if
        epsilonPerturbationCollapsed=finderPerturbation%find(rootRange=[epsilonPerturbationMinimum,epsilonPerturbationMaximum])
-       ! For non-collapsed regions, epsilon will be greater then that for a collapsed perturbation. Step through values until
+       ! For non-collapsed regions, ε will be greater then that for a collapsed perturbation. Step through values until
        ! sufficiently low non-linear overdensity is reached.
        integrator_        =integrator(cllsnlssMttCsmlgclCnstntPerturbationIntegrand,toleranceRelative=1.0d-6,hasSingularities =.true.)
        epsilonPerturbation=epsilonPerturbationCollapsed
@@ -635,7 +635,7 @@ contains
        do while (.true.)
           i                  =i                  +1
           epsilonPerturbation=epsilonPerturbation+1.0d-2*abs(epsilonPerturbationCollapsed)
-          ! Share the epsilon parameter.
+          ! Share the ε parameter.
           cllsnlssMttCsmlgclCnstntAmplitudePerturbation=epsilonPerturbation
           ! For collapsing perturbations, find the time of maximum radius.
           if (epsilonPerturbation > epsilonPerturbationMaximum) then

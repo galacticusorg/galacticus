@@ -184,7 +184,7 @@ contains
          &   .and.                                    &
          &    Values_Agree(gamma,0.5d0,absTol=1.0d-6) &
          &  ) then
-       ! The "gamma=1/2 NFW" profile.
+       ! The "γ=1/2 NFW" profile.
        self%specialCase=specialCaseGamma0_5NFW
     else if (                                         &
          &    Values_Agree(alpha,1.0d0,absTol=1.0d-6) &
@@ -193,7 +193,7 @@ contains
          &   .and.                                    &
          &    Values_Agree(gamma,1.5d0,absTol=1.0d-6) &
          &  ) then
-       ! The "gamma=3/2 NFW" profile.
+       ! The "γ=3/2 NFW" profile.
        self%specialCase=specialCaseGamma1_5NFW
     else
        ! Use general solutions.

@@ -146,7 +146,7 @@ program Tests_Cosmic_Age
    </constructor>
   </referenceConstruct>
   !!]
-  ! Compute the time of maximum expansion for the Universe. In this simple, OmegaM=10, OmegaDE=0 Universe this is analytically
+  ! Compute the time of maximum expansion for the Universe. In this simple, Ωₘ=10, Ω_DE=0 Universe this is analytically
   ! calculable and equals:
   timeTurnaround=(5.0d0/27.0d0)*Pi/cosmologyParametersClosed%HubbleConstant(hubbleUnitsTime)
   ! Evaluate ages for matter + cosmological constant universes.

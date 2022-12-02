@@ -76,7 +76,7 @@
      double precision              , allocatable, dimension(:  )   :: radialVelocityDispersionTableAlpha            , radialVelocityDispersionTableRadius
      double precision              , allocatable, dimension(:,:)   :: radialVelocityDispersionTable
      type            (interpolator), allocatable                   :: radialVelocityDispersionTableAlphaInterpolator, radialVelocityDispersionTableRadiusInterpolator
-     ! Tables for energy as a function of concentration and alpha.
+     ! Tables for energy as a function of concentration and α.
      double precision                                              :: energyTableConcentrationMinimum
      double precision                                              :: energyTableConcentrationMaximum
      double precision                                              :: energyTableAlphaMinimum
@@ -86,7 +86,7 @@
      double precision              , allocatable, dimension(:  )   :: energyTableAlpha                              , energyTableConcentration
      double precision              , allocatable, dimension(:,:)   :: energyTable
      type            (interpolator), allocatable                   :: energyTableAlphaInterpolator                  , energyTableConcentrationInterpolator
-     ! Tables for specific Fourier transform of density profile as a function of alpha and radius.
+     ! Tables for specific Fourier transform of density profile as a function of α and radius.
      double precision                                              :: fourierProfileTableConcentrationMinimum
 
      double precision                                              :: fourierProfileTableConcentrationMaximum
@@ -562,7 +562,7 @@ contains
        ! Ensure table is sufficiently extensive.
        call self%radialVelocityDispersionTabulate(radiusOverScaleRadius,alpha)
        ! Interpolate to get the radial velocity dispersion.
-       ! Get interpolating factors in alpha.
+       ! Get interpolating factors in α.
        call self%radialVelocityDispersionTableAlphaInterpolator%linearFactors(alpha,jAlpha(0),hAlpha)
        jAlpha(1)=jAlpha(0)+1
        einastoRadialVelocityDispersion=0.0d0
@@ -673,7 +673,7 @@ contains
     ! Ensure the table exists and is sufficiently tabulated.
     call self%radiusFromSpecificAngularMomentumTableMake(alpha,specificAngularMomentumScaleFree)
 
-    ! Get interpolating factors in alpha.
+    ! Get interpolating factors in α.
     call self%angularMomentumTableAlphaInterpolator%linearFactors(alpha,jAlpha(0),hAlpha)
     jAlpha(1)=jAlpha(0)+1
 
@@ -710,7 +710,7 @@ contains
        ! Check for uninitialized table.
        if (.not.self%angularMomentumTableInitialized) then
           makeTable=.true.
-          ! Check for alpha out of range.
+          ! Check for α out of range.
        else if (alphaRequired < self%angularMomentumTableAlpha(1) .or. alphaRequired >&
             & self%angularMomentumTableAlpha(self%angularMomentumTableAlphaCount)) then
           makeTable=.true.
@@ -741,7 +741,7 @@ contains
           allocate(self%angularMomentumTableAlpha (self%angularMomentumTableAlphaCount))
           allocate(self%angularMomentumTableRadius(self%angularMomentumTableRadiusCount                                    ))
           allocate(self%angularMomentumTable      (self%angularMomentumTableRadiusCount,self%angularMomentumTableAlphaCount))
-          ! Create ranges of alpha and radius.
+          ! Create ranges of α and radius.
           self%angularMomentumTableAlpha =Make_Range(self%angularMomentumTableAlphaMinimum ,self%angularMomentumTableAlphaMaximum,  &
                &                                     self%angularMomentumTableAlphaCount   ,rangeType=rangeTypeLinear     )
           self%angularMomentumTableRadius=Make_Range(self%angularMomentumTableRadiusMinimum,self%angularMomentumTableRadiusMaximum, &
@@ -830,7 +830,7 @@ contains
     ! Ensure the table exists and is sufficiently tabulated.
     call self%energyTableMake(virialRadiusOverScaleRadius,alpha)
 
-    ! Get interpolating factors in alpha.
+    ! Get interpolating factors in α.
     call self%energyTableAlphaInterpolator%linearFactors(alpha,jAlpha(0),hAlpha)
     jAlpha(1)=jAlpha(0)+1
 
@@ -873,7 +873,7 @@ contains
     makeTable=.false.
     ! Check for uninitialized table.
     if (.not.self%energyTableInitialized) makeTable=.true.
-    ! Check for alpha out of range.
+    ! Check for α out of range.
     if (alphaRequired < self%energyTableAlphaMinimum .or. alphaRequired > self%energyTableAlphaMaximum) then
        makeTable=.true.
        ! Compute the range of tabulation and number of points to use.
@@ -901,7 +901,7 @@ contains
        allocate(self%energyTableAlpha        (self%energyTableAlphaCount))
        allocate(self%energyTableConcentration(self%energyTableConcentrationCount                           ))
        allocate(self%energyTable             (self%energyTableConcentrationCount,self%energyTableAlphaCount))
-       ! Create ranges of alpha and concentration.
+       ! Create ranges of α and concentration.
        self%energyTableAlpha        =Make_Range(self%energyTableAlphaMinimum        ,self%energyTableAlphaMaximum        , &
             &                                   self%energyTableAlphaCount          ,rangeType=rangeTypeLinear     )
        self%energyTableConcentration=Make_Range(self%energyTableConcentrationMinimum,self%energyTableConcentrationMaximum, &
@@ -1101,7 +1101,7 @@ contains
     ! Ensure the table exists and is sufficiently tabulated.
     call self%fourierProfileTableMake(wavenumberScaleFree,virialRadiusOverScaleRadius,alpha)
 
-    ! Get interpolating factors in alpha.
+    ! Get interpolating factors in α.
     call self%fourierProfileTableAlphaInterpolator%linearFactors(alpha,jAlpha(0),hAlpha)
     jAlpha(1)=jAlpha(0)+1
 
@@ -1151,7 +1151,7 @@ contains
     makeTable=.false.
     ! Check for uninitialized table.
     if (.not.self%fourierProfileTableInitialized) makeTable=.true.
-    ! Check for alpha out of range.
+    ! Check for α out of range.
     if (alphaRequired         < self%fourierProfileTableAlphaMinimum         .or. alphaRequired         > self%fourierProfileTableAlphaMaximum        ) then
        makeTable=.true.
        ! Compute the range of tabulation and number of points to use.
@@ -1190,7 +1190,7 @@ contains
        allocate(self%fourierProfileTableConcentration(self%fourierProfileTableConcentrationCount                                   ))
        allocate(self%fourierProfileTableWavenumber   (self%fourierProfileTableWavenumberCount                                                                              ))
        allocate(self%fourierProfileTable             (self%fourierProfileTableWavenumberCount,self%fourierProfileTableConcentrationCount,self%fourierProfileTableAlphaCount))
-       ! Create ranges of alpha and wavenumber.
+       ! Create ranges of α and wavenumber.
        self%fourierProfileTableAlpha        =Make_Range(self%fourierProfileTableAlphaMinimum        ,self%fourierProfileTableAlphaMaximum        , &
             &                                           self%fourierProfileTableAlphaCount          ,rangeType=rangeTypeLinear     )
        self%fourierProfileTableConcentration=Make_Range(self%fourierProfileTableConcentrationMinimum,self%fourierProfileTableConcentrationMaximum, &
@@ -1330,7 +1330,7 @@ contains
     call self%freefallTabulate(freefallTimeScaleFree,alpha)
 
     ! Interpolate to get the freefall radius.
-    ! Get interpolating factors in alpha.
+    ! Get interpolating factors in α.
     call self%freefallRadiusTableAlphaInterpolator%linearFactors(alpha,jAlpha(0),hAlpha)
     jAlpha(1)=jAlpha(0)+1
 
@@ -1400,7 +1400,7 @@ contains
     call self%freefallTabulate(freefallTimeScaleFree,alpha)
 
     ! Interpolate to get the freefall radius.
-    ! Get interpolating factors in alpha.
+    ! Get interpolating factors in α.
     call self%freefallRadiusTableAlphaInterpolator%linearFactors(alpha,jAlpha(0),hAlpha)
     jAlpha(1)=jAlpha(0)+1
 
@@ -1444,7 +1444,7 @@ contains
        self%freefallTimeMaximum=self%freefallTimeScaleFree(self%freefallRadiusTableRadiusMaximum,alphaRequired)
        retabulate=.true.
     end do
-    ! Check for alpha out of range.
+    ! Check for α out of range.
     if (alphaRequired < self%freefallRadiusTableAlphaMinimum .or. alphaRequired > self%freefallRadiusTableAlphaMaximum) then
        retabulate=.true.
        ! Compute the range of tabulation.
@@ -1466,10 +1466,10 @@ contains
        allocate(self%freefallRadiusTableAlpha (self%freefallRadiusTableAlphaCount))
        allocate(self%freefallRadiusTableRadius(self%freefallRadiusTableRadiusCount                                   ))
        allocate(self%freefallRadiusTable      (self%freefallRadiusTableRadiusCount,self%freefallRadiusTableAlphaCount))
-       ! Create a range of radii and alpha.
+       ! Create a range of radii and α.
        self%freefallRadiusTableAlpha =Make_Range(self%freefallRadiusTableAlphaMinimum ,self%freefallRadiusTableAlphaMaximum ,self%freefallRadiusTableAlphaCount ,rangeType=rangeTypeLinear     )
        self%freefallRadiusTableRadius=Make_Range(self%freefallRadiusTableRadiusMinimum,self%freefallRadiusTableRadiusMaximum,self%freefallRadiusTableRadiusCount,rangeType=rangeTypeLogarithmic)
-       ! Loop over radii and alpha and populate tables.
+       ! Loop over radii and α and populate tables.
        do iAlpha=1,self%freefallRadiusTableAlphaCount
           alpha=self%freefallRadiusTableAlpha(iAlpha)
           do iRadius=1,self%freefallRadiusTableRadiusCount
@@ -1491,7 +1491,7 @@ contains
        do iAlpha=1,self%freefallRadiusTableAlphaCount
           self%freefallRadiusTableRadiusInterpolator(iAlpha)=interpolator(self%freefallRadiusTable     (:,iAlpha))
        end do
-       ! Store the minimum and maximum tabulated freefall times across all alpha values.
+       ! Store the minimum and maximum tabulated freefall times across all α values.
        self%freefallTimeMinimum=maxval(self%freefallRadiusTable(                                  1,:))
        self%freefallTimeMaximum=minval(self%freefallRadiusTable(self%freefallRadiusTableRadiusCount,:))
        ! Display a message.
@@ -1645,7 +1645,7 @@ contains
        end do
     end if
     if (present(alphaRequired)) then
-       ! Check for alpha out of range.
+       ! Check for α out of range.
        if (alphaRequired < self%radialVelocityDispersionAlphaMinimum .or. alphaRequired > self%radialVelocityDispersionAlphaMaximum) then
           retabulate=.true.
           ! Compute the range of tabulation.
@@ -1671,10 +1671,10 @@ contains
        allocate(self%radialVelocityDispersionTableAlpha (self%radialVelocityDispersionTableAlphaCount))
        allocate(self%radialVelocityDispersionTableRadius(self%radialVelocityDispersionTableRadiusCount                                             ))
        allocate(self%radialVelocityDispersionTable      (self%radialVelocityDispersionTableRadiusCount,self%radialVelocityDispersionTableAlphaCount))
-       ! Create a range of radii and alpha.
+       ! Create a range of radii and α.
        self%radialVelocityDispersionTableAlpha =Make_Range(self%radialVelocityDispersionAlphaMinimum ,self%radialVelocityDispersionAlphaMaximum ,self%radialVelocityDispersionTableAlphaCount ,rangeType=rangeTypeLinear     )
        self%radialVelocityDispersionTableRadius=Make_Range(self%radialVelocityDispersionRadiusMinimum,self%radialVelocityDispersionRadiusMaximum,self%radialVelocityDispersionTableRadiusCount,rangeType=rangeTypeLogarithmic)
-       ! Loop over radii and alpha and populate tables.
+       ! Loop over radii and α and populate tables.
        do iAlpha=1,self%radialVelocityDispersionTableAlphaCount
           alpha=self%radialVelocityDispersionTableAlpha(iAlpha)
           do iRadius=1,self%radialVelocityDispersionTableRadiusCount

@@ -142,7 +142,7 @@ contains
     <constructorAssign variables="beta, densityNormalization, coreRadius"/>
     !!]
 
-    ! Check for special case of beta=2/3.
+    ! Check for special case of β=2/3.
     self%betaIsTwoThirds=Values_Agree(self%beta,2.0d0/3.0d0,relTol=1.0d-3)
     ! Determine if profile is dimensionless.
     self%dimensionless=.false.
@@ -290,7 +290,7 @@ contains
 
     fractionalRadius=radius/self%coreRadius
     if (self%betaIsTwoThirds) then
-       ! Solution for special case of beta=2/3.
+       ! Solution for special case of β=2/3.
        if (fractionalRadius < radiusTiny) then
           ! Use a series solution.
           betaProfileMassEnclosedBySphere= &

@@ -503,11 +503,11 @@ contains
          ! Decode the units.
          select case (trim(unitWork))
          case ('Msun')
-            decodeUnits=importerUnits(.true.,massSolar ,-1, 0) ! Assume h^-1.
+            decodeUnits=importerUnits(.true.,massSolar ,-1, 0) ! Assume h⁻¹.
          case ('km/s')
             decodeUnits=importerUnits(.true.,kilo      , 0, 0) ! Assume physical.
          case ('kpc' )
-            decodeUnits=importerUnits(.true.,kiloParsec,-1,+1) ! Assume h^-1 and comoving.
+            decodeUnits=importerUnits(.true.,kiloParsec,-1,+1) ! Assume h⁻¹ and comoving.
          case default
             call Error_Report('unknown unit specifier'//{introspection:location})
          end select

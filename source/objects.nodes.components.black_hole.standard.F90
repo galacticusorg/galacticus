@@ -680,7 +680,7 @@ contains
     type            (treeNode              )               , pointer :: node
     class           (nodeComponentSpheroid )               , pointer :: spheroid
     class           (nodeComponentHotHalo  )               , pointer :: hotHalo
-    double precision                        , parameter              :: gasDensityMinimum   =1.0d0                              ! Lowest gas density to consider when computing accretion rates onto black hole (in units of M_Solar/Mpc^3).
+    double precision                        , parameter              :: gasDensityMinimum   =1.0d0                              ! Lowest gas density to consider when computing accretion rates onto black hole (in units of M☉/Mpc³).
     double precision                                                 :: accretionRadius           , accretionRateMaximum    , &
          &                                                              massBlackHole             , gasDensity              , &
          &                                                              hotHaloTemperature        , hotModeFraction         , &

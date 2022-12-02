@@ -545,7 +545,7 @@ contains
                &          /velocityPreShock     **3
           ! Compute the cold fraction using the model from eqn. (2) of Benson & Bower (2011). The original form doesn't allow the
           ! cold fraction to go to zero in high mass halos, since "shockStability" can never be less than zero. This form is
-          ! basically the equivalent functional form, but defined in terms of ln(epsilon) rather than epsilon.
+          ! basically the equivalent functional form, but defined in terms of ln(ε) rather than ε.
           if (shockStability <= 0.0d0) then
              self%coldFractionStored=+0.0d0
           else

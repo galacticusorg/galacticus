@@ -39,12 +39,12 @@ module Numerical_Constants_Physical
   <gslConstant variable="gravitationalConstant" gslSymbol="GSL_CONST_MKSA_GRAVITATIONAL_CONSTANT" gslHeader="gsl_const_mksa"/>
   !!]
 
-  ! Stefan-Boltzmann constant (in units of J/s/M^2/K^4).
+  ! Stefan-Boltzmann constant (in units of J/s/m²/K⁴).
   !![
   <gslConstant variable="stefanBoltzmannConstant" gslSymbol="GSL_CONST_MKSA_STEFAN_BOLTZMANN_CONSTANT" gslHeader="gsl_const_mksa"/>
   !!]
 
-  ! Radiation constant (in units of J/m^3/K^4).
+  ! Radiation constant (in units of J/m³/K⁴).
   double precision, parameter :: radiationConstant              =4.0d0*stefanBoltzmannConstant/speedLight
 
   ! Boltzmann's constant (in units of J/K).
@@ -52,7 +52,7 @@ module Numerical_Constants_Physical
   <gslConstant variable="boltzmannsConstant" gslSymbol="GSL_CONST_MKSA_BOLTZMANN" gslHeader="gsl_const_mksa"/>
   !!]
 
-  ! Thomson cross section (in units of m^2).
+  ! Thomson cross section (in units of m²).
   !![
   <gslConstant variable="thomsonCrossSection" gslSymbol="GSL_CONST_MKSA_THOMSON_CROSS_SECTION" gslHeader="gsl_const_mksa"/>
   !!]

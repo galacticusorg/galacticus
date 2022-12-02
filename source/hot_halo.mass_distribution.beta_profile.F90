@@ -91,7 +91,7 @@ contains
     if (.not.initialized) then
        !$omp critical(betaProfileInitialized)
        if (.not.initialized) then
-          ! Check that required propert is gettable.
+          ! Check that required property is gettable.
           if     (                                                                                            &
                &  .not.(                                                                                      &
                &         defaultHotHaloComponent%       massIsGettable()                                      &

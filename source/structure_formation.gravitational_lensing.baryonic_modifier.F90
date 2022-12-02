@@ -152,7 +152,7 @@ contains
        self%renormalization        =1.0d0
        return
     end if
-    ! Check for delta-function magnification PDF.
+    ! Check for δ-function magnification PDF.
     if (self%gravitationalLensing_%magnificationCDF(1.0d0,redshift,scaleSource) >= 1.0d0) then
        self%transitionMagnification=1.0d0
        self%renormalization        =1.0d0
