@@ -57,24 +57,27 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type(mergerTreeOperatorPruneByMass)                :: self
-    type(inputParameters              ), intent(inout) :: parameters
+    type            (mergerTreeOperatorPruneByMass)                :: self
+    type            (inputParameters              ), intent(inout) :: parameters
+    double precision                                               :: massThreshold
+    logical                                                        :: preservePrimaryProgenitor
 
     !![
     <inputParameter>
       <name>massThreshold</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <variable>self%massThreshold</variable>
       <description>Threshold mass below which merger tree branches should be pruned.</description>
     </inputParameter>
     <inputParameter>
       <name>preservePrimaryProgenitor</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <variable>self%preservePrimaryProgenitor</variable>
       <description>If true, primary progenitor status is preserved even if the primary progenitor is pruned from the tree.</description>
     </inputParameter>
+    !!]
+    self=mergerTreeOperatorPruneByMass(massThreshold,preservePrimaryProgenitor)
+    !![
     <inputParametersValidate source="parameters"/>
     !!]
     return

@@ -42,7 +42,6 @@
      double precision                                            :: a                             , b, &
           &                                                         c
      type            (enumerationExcursionSetRemapType)          :: applyTo
-     type            (varying_string                  )          :: applyToText
    contains
      final     ::                    remapShethMoTormenDestructor
      procedure :: barrier         => remapShethMoTormenBarrier
@@ -70,7 +69,7 @@ contains
     class           (excursionSetBarrierClass             ), pointer       :: excursionSetBarrier_
     double precision                                                       :: a                   , b, &
          &                                                                    c
-    type            (enumerationExcursionSetRemapType     )                :: applyTo
+    type            (varying_string                       )                :: applyTo
     
     ! Check and read parameters.
     !![
@@ -98,14 +97,12 @@ contains
     <inputParameter>
       <name>applyTo</name>
       <source>parameters</source>
-      <variable>self%applyToText</variable>
       <defaultValue>var_str('nonRates')</defaultValue>
       <description>Specifies whether rescaling is to be applied to the barrier when used for rate calculation, for other calculations, or both.</description>
     </inputParameter>
     <objectBuilder class="excursionSetBarrier" name="excursionSetBarrier_" source="parameters"/>
     !!]
-    applyTo=enumerationExcursionSetRemapEncode(self%applyToText,includesPrefix=.false.)
-    self   =excursionSetBarrierRemapShethMoTormen(a,b,c,applyTo,excursionSetBarrier_)
+    self=excursionSetBarrierRemapShethMoTormen(a,b,c,enumerationExcursionSetRemapEncode(applyTo,includesPrefix=.false.),excursionSetBarrier_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="excursionSetBarrier_"/>
@@ -129,7 +126,6 @@ contains
     !!]
 
     if (.not.enumerationExcursionSetRemapIsValid(applyTo)) call Error_Report('applyTo is invalid'//{introspection:location})
-    self%applyToText=enumerationExcursionSetRemapDecode(applyTo,includePrefix=.false.)
     return
   end function remapShethMoTormenConstructorInternal
 
@@ -143,7 +139,6 @@ contains
     !![
     <objectDestructor name="self%excursionSetBarrier_"/>
     !!]
-    call self%applyToText%destroy()
     return
   end subroutine remapShethMoTormenDestructor
 

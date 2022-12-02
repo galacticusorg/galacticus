@@ -85,6 +85,7 @@
      </methods>
      !!]
      final     ::                              naozBarkana2007Destructor
+     procedure :: initialize                => naozBarkana2007Initialize
      procedure :: autoHook                  => naozBarkana2007AutoHook
      procedure :: calculationReset          => naozBarkana2007CalculationReset
      procedure :: branchHasBaryons          => naozBarkana2007BranchHasBaryons
@@ -144,6 +145,7 @@ contains
     <objectBuilder class="virialDensityContrast"            name="self%virialDensityContrast_"            source="parameters"/>
     <inputParametersValidate source="parameters"/>
     !!]
+    call self%initialize()
     return
   end function naozBarkana2007ConstructorParameters
 
@@ -172,11 +174,22 @@ contains
     !!]
 
     self%accretionHaloSimple=accretionHaloSimple(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_)
+    call self%initialize()
+    return
+  end function naozBarkana2007ConstructorInternal
+
+  subroutine naozBarkana2007Initialize(self)
+    !!{
+    Initialize the object after construction.
+    !!}
+    implicit none
+    class(accretionHaloNaozBarkana2007), intent(inout) :: self
+
     self%filteredFractionComputed    =.false.
     self%filteredFractionRateComputed=.false.
     self%lastUniqueID                =-huge(0_c_size_t)
     return
-  end function naozBarkana2007ConstructorInternal
+  end subroutine naozBarkana2007Initialize
 
   subroutine naozBarkana2007AutoHook(self)
     !!{

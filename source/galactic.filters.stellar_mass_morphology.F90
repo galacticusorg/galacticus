@@ -56,17 +56,18 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type(galacticFilterStellarMassMorphology)                :: self
-    type(inputParameters                    ), intent(inout) :: parameters
-
-    ! Check and read parameters.
+    type            (galacticFilterStellarMassMorphology)                :: self
+    type            (inputParameters                    ), intent(inout) :: parameters
+    double precision                                                     :: spheroidToTotalRatioThreshold
     !![
     <inputParameter>
       <name>spheroidToTotalRatioThreshold</name>
       <source>parameters</source>
-      <variable>self%spheroidToTotalRatioThreshold</variable>
       <description>The parameter $R_0$ appearing in the stellar mass-weight morphology threshold for the stellar mass-weighted morphology galactic filter class.</description>
     </inputParameter>
+    !!]
+    self=galacticFilterStellarMassMorphology(spheroidToTotalRatioThreshold)
+    !![
     <inputParametersValidate source="parameters"/>
     !!]
     return
