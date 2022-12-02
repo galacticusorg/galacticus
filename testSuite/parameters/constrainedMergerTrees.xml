@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Generate a sample of constrained merger trees: -->
+<!--  (M0,z0) = (10^14,0.0)                         -->
+<!--  (M1,z1) = (10^12,8.0)                         -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+
+  <verbosityLevel value="working"/>
+
+  <!-- Random number generation -->
+  <randomNumberGenerator value="GSL">
+    <seed value="8124"/>
+  </randomNumberGenerator>
+
+  <!-- Component selection -->
+  <componentBasic value="standard"/>
+  <componentBlackHole value="null"/>
+  <componentDarkMatterProfile value="scale"/>
+  <componentDisk value="null"/>
+  <componentHotHalo value="null"/>
+  <componentSatellite value="orbiting"/>
+  <componentSpheroid value="null"/>
+  <componentSpin value="null"/>
+
+  <!-- Cosmological parameters and options -->
+  <cosmologyFunctions value="matterLambda"/>
+  <cosmologyParameters value="simple">
+    <HubbleConstant value="70.0"/>
+    <!-- Mao et al. 2015 -->
+    <OmegaMatter value=" 0.286"/>
+    <!-- Mao et al. 2015 -->
+    <OmegaDarkEnergy value=" 0.714"/>
+    <!-- Mao et al. 2015 -->
+    <OmegaBaryon value=" 0.0"/>
+    <!-- No baryons      -->
+    <temperatureCMB value=" 2.72548"/>
+  </cosmologyParameters>
+
+  <!-- Power spectrum options -->
+  <cosmologicalMassVariance value="filteredPower">
+    <sigma_8 value="0.82"/>
+    <!-- Mao et al. 2015 -->
+  </cosmologicalMassVariance>
+
+  <transferFunction value="eisensteinHu1999">
+    <neutrinoNumberEffective value="3.046"/>
+    <neutrinoMassSummed value="0.000"/>
+    <cosmologyParameters value="simple">
+      <HubbleConstant value="70.0"/>
+      <!-- Mao et al. 2015 -->
+      <OmegaMatter value=" 0.286"/>
+      <!-- Mao et al. 2015 -->
+      <OmegaDarkEnergy value=" 0.714"/>
+      <!-- Mao et al. 2015 -->
+      <OmegaBaryon value=" 0.047"/>
+      <!-- No baryons      -->
+      <temperatureCMB value=" 2.72548"/>
+    </cosmologyParameters>
+  </transferFunction>
+  <powerSpectrumPrimordial value="powerLaw">
+    <index value="0.96"/>
+    <!-- Mao et al. 2015 -->
+    <wavenumberReference value="1.0000"/>
+    <running value="0.0000"/>
+    <!-- Mao et al. 2015 -->
+  </powerSpectrumPrimordial>
+  <powerSpectrumPrimordialTransferred value="simple"/>
+
+  <!-- Structure formation options -->
+  <linearGrowth value="collisionlessMatter"/>
+ 
+  <haloMassFunction value="pressSchechter"/>
+
+  <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+
+  <!-- Barrier remapping  -->
+  <excursionSetBarrier value="remapScale">
+    <factor value="1.1965"/>
+    <applyTo value="nonRates"/>
+    <excursionSetBarrier value="remapShethMoTormen">
+      <a value="0.707"/>
+      <b value="0.500"/>
+      <c value="0.600"/>
+      <applyTo value="nonRates"/>
+      <excursionSetBarrier value="criticalOverdensity"/>
+    </excursionSetBarrier>
+  </excursionSetBarrier>
+
+  <task value="evolveForests"/>
+
+  <!-- Merger tree building options -->
+  <mergerTreeConstructor value="build">
+  </mergerTreeConstructor>
+
+  <mergerTreeBuilder value="cole2000">
+    <accretionLimit   value=" 0.1"/>
+    <mergeProbability value=" 0.1"/>
+    <redshiftMaximum  value="15.0"/>
+    <mergerTreeBuildController value="constrained">
+      <massConstrained     value="1.0e12"/>
+      <redshiftConstrained value="8.0"   />
+      <constructionOption value="constrainedAndMainBranchOnly"/>
+      <mergerTreeBranchingProbabilityConstrained value="gnrlzdPrssSchchtr">
+        <distributionFunctionLowerHalfOnly value="false"/>
+        <excursionSetFirstCrossing value="farahiMidpointBrownianBridge">
+          <massConstrained                value="=[mergerTreeBuilder::mergerTreeBuildController::massConstrained]"    />
+          <redshiftConstrained            value="=[mergerTreeBuilder::mergerTreeBuildController::redshiftConstrained]"/>
+          <fileName                       value="auto"                                                                />
+          <varianceNumberPerDecade value="100"  />
+          <varianceNumberPerUnit   value=" 25"  />
+          <timeNumberPerDecade     value=" 25"  />
+          <varianceIsUnlimited     value="false"/>
+          <excursionSetFirstCrossing idRef="excursionUnconstrained"/>
+        </excursionSetFirstCrossing>
+      </mergerTreeBranchingProbabilityConstrained>
+      <mergerTreeBranchingProbabilityUnconstrained value="gnrlzdPrssSchchtr">
+        <distributionFunctionLowerHalfOnly value="false"/>
+        <excursionSetFirstCrossing value="farahiMidpoint" id="excursionUnconstrained">
+          <fileName                value="auto"/>
+          <varianceNumberPerDecade value="100" />
+          <varianceNumberPerUnit   value=" 25" />
+          <timeNumberPerDecade     value=" 25" />
+          <varianceIsUnlimited     value="true"/>
+        </excursionSetFirstCrossing>
+      </mergerTreeBranchingProbabilityUnconstrained>
+      <mergerTreeBranchingProbabilityModifier value="PCHPlus">
+        <G0     value="+1.14"/>
+        <gamma1 value="-0.33"/>
+        <gamma2 value="+0.06"/>
+        <gamma3 value="+0.65"/>
+      </mergerTreeBranchingProbabilityModifier>
+    </mergerTreeBuildController>
+  </mergerTreeBuilder>
+
+  <mergerTreeBuildMasses value="fixedMass">
+    <massTree  value="1.0e14"/>
+    <treeCount value="32"    />
+  </mergerTreeBuildMasses>
+
+  <mergerTreeMassResolution value="fixed">
+    <massResolution value="1.0e10"/>
+  </mergerTreeMassResolution>
+
+  <!-- Substructure hierarchy options -->
+  <mergerTreeNodeMerger value="multiLevelHierarchy"/>
+
+  <!-- Dark matter halo structure options -->
+  <darkMatterProfile value="darkMatterOnly"/>
+  <darkMatterProfileDMO value="heated">
+    <darkMatterProfileDMO value="NFW"/>
+    <nonAnalyticSolver value="numerical"/>
+    <velocityDispersionApproximate value="false"/>
+    <toleranceRelativeVelocityDispersion value="1.0e-5"/>
+  </darkMatterProfileDMO>
+  <darkMatterProfileHeating value="tidal"/>
+
+  <!-- Halo concentration  -->
+  <darkMatterProfileScaleRadius value="concentrationLimiter">
+    <concentrationMinimum value="  2.0"/>
+    <concentrationMaximum value="100.0"/>
+    <darkMatterProfileScaleRadius value="concentration">
+      <correctForConcentrationDefinition value="true"/>
+    </darkMatterProfileScaleRadius>
+  </darkMatterProfileScaleRadius>
+  <darkMatterProfileConcentration value="diemerJoyce2019">
+    <scatter value="0.16"/>
+  </darkMatterProfileConcentration>
+
+  <haloSpinDistribution value="bett2007">
+    <alpha value="2.509"/>
+    <lambda0 value="0.04326"/>
+  </haloSpinDistribution>
+
+  <!-- Satellite orbit options -->
+  <satelliteOrbitStoreOrbitalParameters value="true"/>
+
+  <!-- Galaxy merger options -->
+  <virialOrbit value="isotropic">
+    <virialOrbit value="fixed">
+      <velocityTangential value="+0.842"/>
+      <velocityRadial value="-0.856"/>
+      <virialDensityContrastDefinition value="fixed">
+        <densityContrastValue value="200.0"/>
+        <densityType value="critical"/>
+      </virialDensityContrastDefinition>
+    </virialOrbit>
+  </virialOrbit>
+  <mergerRemnantSize value="null"/>
+  <hotHaloMassDistribution value="null"/>
+
+  <!-- Orbiting model of satellites -->
+  <!-- Values taken from Yang et al. 2020 -->
+  <satelliteDynamicalFriction value="chandrasekhar1943">
+    <logarithmCoulomb value="1.53" />
+  </satelliteDynamicalFriction>
+  <satelliteTidalHeatingRate value="gnedin1999">
+    <epsilon value="0.33" />
+    <gamma value="0.0" />
+  </satelliteTidalHeatingRate>
+  <satelliteTidalStripping value="zentner2005">
+    <efficiency value="2.86" />
+  </satelliteTidalStripping>
+
+  <!-- Node evolution and physics -->
+  <nodeOperator value="multi">
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
+    <!-- Halo concentrations -->
+    <nodeOperator value="darkMatterProfileScaleSet"/>
+    <nodeOperator value="darkMatterProfileScaleInterpolate"/>
+    <!-- Subhalo hierarchy -->
+    <nodeOperator value="subsubhaloPromotion"/>
+  </nodeOperator>
+
+  <!-- Numerical tolerances -->
+  <mergerTreeNodeEvolver value="standard">
+    <odeToleranceAbsolute value="0.01"/>
+    <odeToleranceRelative value="0.01"/>
+    <reuseODEStepSize value="false"/>
+  </mergerTreeNodeEvolver>
+
+  <mergerTreeEvolver value="standard">
+    <timestepHostAbsolute value="1.0"/>
+    <timestepHostRelative value="0.1"/>
+    <fractionTimestepSatelliteMinimum value="0.75"/>
+    <backtrackToSatellites value="true"/>
+  </mergerTreeEvolver>
+
+  <mergerTreeEvolveTimestep value="multi">
+    <mergerTreeEvolveTimestep value="simple">
+      <timeStepAbsolute value="1.000"/>
+      <timeStepRelative value="0.100"/>
+    </mergerTreeEvolveTimestep>
+    <mergerTreeEvolveTimestep value="satellite">
+      <timeOffsetMaximumAbsolute value="0.010"/>
+      <timeOffsetMaximumRelative value="0.001"/>
+    </mergerTreeEvolveTimestep>
+    <mergerTreeEvolveTimestep value="satelliteDestruction"/>
+  </mergerTreeEvolveTimestep>
+
+  <!-- Output options -->
+  <mergerTreeOutputter value="standard">
+    <outputReferences value="false"/>
+    <galacticFilter value="haloIsolated"/>
+  </mergerTreeOutputter>
+  <nodePropertyExtractor value="multi">
+    <nodePropertyExtractor value="nodeIndices"/>
+    <nodePropertyExtractor value="mainBranchStatus"/>
+    <nodePropertyExtractor value="peakHeight"/>
+    <nodePropertyExtractor value="constrainedStatus"/>
+  </nodePropertyExtractor>
+
+  <outputFileName value="testSuite/outputs/constrainedMergerTrees.hdf5"/>
+
+  <!-- Merger trees -->
+  <mergerTreeOperator value="outputStructure">
+    <nodePropertyExtractor value="multi">
+      <nodePropertyExtractor value="nodeIndices"      />
+      <nodePropertyExtractor value="mainBranchStatus" />
+      <nodePropertyExtractor value="constrainedStatus"/>
+      <nodePropertyExtractor value="time"             />
+      <nodePropertyExtractor value="redshift"         />
+      <nodePropertyExtractor value="massBasic"        />
+      <nodePropertyExtractor value="peakHeight"       />
+    </nodePropertyExtractor>
+  </mergerTreeOperator>
+
+  <outputTimes value="list">
+    <redshifts>
+      <value>0.0</value>
+    </redshifts>
+  </outputTimes>
+  
+</parameters>
