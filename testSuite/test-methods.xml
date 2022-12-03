@@ -2303,7 +2303,7 @@
       </excursionSetBarrier>
     </excursionSetBarrier>
     <excursionSetFirstCrossing value="farahi">
-      <timeStepFractional value="0.01"/>
+      <fractionalTimeStep value="0.01"/>
       <fileName value="auto"/>
       <varianceNumberPerUnitProbability value="100"/>
       <varianceNumberPerUnit value="20"/>
