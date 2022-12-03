@@ -46,9 +46,9 @@ module Stellar_Feedback
   </functionClass>
   !!]
 
-  ! Canonical value of the total energy input from a single stellar population of $1 M_\odot$ after infinite time. All feedback
+  ! Canonical value of the total energy input from a single stellar population of 1 M☉ after infinite time. All feedback
   ! calculations which don't specifically use the energy input should be scaled to this value if they want to have the correct
-  ! time and IMF dependencies. Value was computed for a Salpeter IMF. Units are MSolar (km/s)^2.
+  ! time and IMF dependencies. Value was computed for a Salpeter IMF. Units are M☉ (km/s)².
   double precision, parameter, public :: feedbackEnergyInputAtInfinityCanonical=4.517d5
 
 end module Stellar_Feedback

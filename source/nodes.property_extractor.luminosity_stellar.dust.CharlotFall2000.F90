@@ -254,7 +254,7 @@ contains
     luminositiesStellar            =                          spheroid           %luminositiesStellar(                             )
     luminositySpheroid             =                          luminositiesStellar%luminosity         (self%luminosityIndex      (i))
     luminositySpheroidRecent       =                          luminositiesStellar%luminosity         (self%luminosityRecentIndex(i))
-    ! Compute surface densities of metals in units of Msun/pc^2.
+    ! Compute surface densities of metals in units of Msun/pc².
     if (disk%radius() > 0.0d0) then
        densitySurfaceMetalsDisk    =+metallicityDisk     &
             &                            * disk    %massGas() &

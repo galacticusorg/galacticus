@@ -73,10 +73,10 @@ program XRay_Absorption_ISM_Wilms2000
   metallicity          =Make_Range(metallicityMinimum,metallicityMaximum,metallicityCount,rangeType=rangeTypeLogarithmic)
 
   ! Specify values of the parameters to be passed to the dotbvabs function. The default values from Wilms et al. (2000) are used.
-  parameters( 1   )=1.000d0 ! Hydrogen column density (units of 1e22 cm^-2).
+  parameters( 1   )=1.000d0 ! Hydrogen column density (units of 10²² cm⁻²).
   parameters( 2   )=1.000d0 ! Helium abundance relative to Milky Way ISM.
   parameters(19   )=0.200d0 ! Fraction of hydrogen in molecular form.
-  parameters(20   )=1.000d0 ! Density of dust (units of g/cm^3).
+  parameters(20   )=1.000d0 ! Density of dust (units of g/cm³).
   parameters(21   )=0.025d0 ! Minimum thickness of dust.
   parameters(22   )=0.250d0 ! Maximum thickness of dust.
   parameters(23   )=3.500d0 ! Power-law index of dust distribution.

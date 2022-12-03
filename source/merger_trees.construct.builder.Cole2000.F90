@@ -414,7 +414,7 @@ contains
              ! Flag that the branch is done.
              branchIsDone=.true.
           else
-             ! Find branching probability rate per unit deltaW.
+             ! Find branching probability rate per unit δw.
              branchingProbabilityRate=+mergerTreeBranchingProbability_%probabilityBound     (branchMassCurrent,branchDeltaCriticalCurrent,time,massResolution,mergerTreeBranchingBoundUpper,node) &
                   &                   *rootVarianceGrowthFactor
              ! Find accretion rate.
@@ -689,7 +689,7 @@ contains
     basic => tree%nodeBase%basic()
     call basic%timeSet(timeNodeBase)
     ! Check for mis-ordering of the base node and its child node(s). This can happen because we force the time of the base node to
-    ! be precisely the base time, but for other nodes the time is computed by inverting the w(t)=delta_crit(t)/D(t)
+    ! be precisely the base time, but for other nodes the time is computed by inverting the w(t)=δ_crit(t)/D(t)
     ! relation. Numerical inaccuracies in the inversion can lead to small mis-ordering in the tree times.
     if (associated(tree%nodeBase%firstChild)) then
        basicChild => tree%nodeBase%firstChild%basic()

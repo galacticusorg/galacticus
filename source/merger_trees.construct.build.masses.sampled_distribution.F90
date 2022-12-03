@@ -50,6 +50,7 @@
 
   interface mergerTreeBuildMassesSampledDistribution
      module procedure sampledDistributionConstructorParameters
+     module procedure sampledDistributionConstructorInternal
   end interface mergerTreeBuildMassesSampledDistribution
 
 contains
@@ -59,39 +60,57 @@ contains
     Constructor for the {\normalfont \ttfamily sampledDistribution} merger tree masses class which takes a parameter set as
     input.
     !!}
-    use :: Display         , only : displayMessage, verbosityLevelWarn
-    use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type(mergerTreeBuildMassesSampledDistribution)                :: self
-    type(inputParameters                         ), intent(inout) :: parameters
-
+    type            (mergerTreeBuildMassesSampledDistribution)                :: self
+    type            (inputParameters                         ), intent(inout) :: parameters
+    class           (mergerTreeBuildMassDistributionClass    ), pointer       :: mergerTreeBuildMassDistribution_
+    double precision                                                          :: massTreeMinimum                 , massTreeMaximum, &
+         &                                                                       treesPerDecade
+    
     !![
     <inputParameter>
       <name>massTreeMinimum</name>
-      <variable>self%massTreeMinimum</variable>
       <defaultValue>1.0d10</defaultValue>
       <description>The minimum mass of merger tree base halos to consider when sampled masses from a distribution, in units of $M_\odot$.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>massTreeMaximum</name>
-      <variable>self%massTreeMaximum</variable>
       <defaultValue>1.0d15</defaultValue>
       <description>The maximum mass of merger tree base halos to consider when sampled masses from a distribution, in units of $M_\odot$.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>treesPerDecade</name>
-      <variable>self%treesPerDecade</variable>
       <defaultValue>10.0d0</defaultValue>
       <description>The number of merger trees masses to sample per decade of base halo mass.</description>
       <source>parameters</source>
     </inputParameter>
-    <objectBuilder class="mergerTreeBuildMassDistribution" name="self%mergerTreeBuildMassDistribution_" source="parameters"/>
+    <objectBuilder class="mergerTreeBuildMassDistribution" name="mergerTreeBuildMassDistribution_" source="parameters"/>
+    !!]
+    self=mergerTreeBuildMassesSampledDistribution(massTreeMinimum,massTreeMaximum,treesPerDecade,mergerTreeBuildMassDistribution_)
+    !![
     <inputParametersValidate source="parameters"/>
     !!]
-    ! Validate input.
+    return
+  end function sampledDistributionConstructorParameters
+
+  function sampledDistributionConstructorInternal(massTreeMinimum,massTreeMaximum,treesPerDecade,mergerTreeBuildMassDistribution_) result(self)
+    !!{
+    Internal constructor for the {\normalfont \ttfamily sampledDistribution} merger tree masses class.
+    !!}
+    use :: Display, only : displayMessage, verbosityLevelWarn
+    use :: Error  , only : Error_Report
+    implicit none
+    type            (mergerTreeBuildMassesSampledDistribution)                        :: self
+    class           (mergerTreeBuildMassDistributionClass    ), intent(in   ), target :: mergerTreeBuildMassDistribution_
+    double precision                                          , intent(in   )         :: massTreeMinimum                 , massTreeMaximum, &
+         &                                                                               treesPerDecade
+    !![
+    <constructorAssign variables="massTreeMinimum, massTreeMaximum, treesPerDecade, *mergerTreeBuildMassDistribution_"/>
+    !!]
+    
     if (self%massTreeMaximum >= 1.0d16              )                                               &
          & call displayMessage(                                                                     &
          &                     '[massHaloMaximum] > 10¹⁶ - this seems very large and may lead '//   &
@@ -104,7 +123,7 @@ contains
          &                     {introspection:location}                                             &
          &                    )
     return
-  end function sampledDistributionConstructorParameters
+  end function sampledDistributionConstructorInternal
 
   subroutine sampledDistributionDestructor(self)
     !!{

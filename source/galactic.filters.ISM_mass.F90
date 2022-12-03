@@ -49,38 +49,41 @@ Contains a module which implements a galactic high-pass filter for total ISM mas
 
 contains
 
-  function ismMassConstructorParameters(parameters)
+  function ismMassConstructorParameters(parameters) result(self)
     !!{
     Constructor for the ``ismMass'' galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type(galacticFilterISMMass)                :: ismMassConstructorParameters
-    type(inputParameters      ), intent(inout) :: parameters
-
-    ! Check and read parameters.
+    type            (galacticFilterISMMass)                :: self
+    type            (inputParameters      ), intent(inout) :: parameters
+    double precision                                       :: massThreshold
+    
     !![
     <inputParameter>
       <name>massThreshold</name>
       <source>parameters</source>
-      <variable>ismMassConstructorParameters%massThreshold</variable>
       <description>The parameter $M_0$ (in units of $M_\odot$) appearing in the ISM mass threshold for the ISM mass galactic filter class.</description>
     </inputParameter>
+    !!]
+    self=galacticFilterISMMass(massThreshold)
+    !![
     <inputParametersValidate source="parameters"/>
     !!]
     return
   end function ismMassConstructorParameters
 
-  function ismMassConstructorInternal(massThreshold)
+  function ismMassConstructorInternal(massThreshold) result(self)
     !!{
     Internal constructor for the ``ismMass'' galactic filter class.
     !!}
     implicit none
-    type            (galacticFilterISMMass)                :: ismMassConstructorInternal
+    type            (galacticFilterISMMass)                :: self
     double precision                       , intent(in   ) :: massThreshold
     !![
     <constructorAssign variables="massThreshold"/>
     !!]
+    
     return
   end function ismMassConstructorInternal
 

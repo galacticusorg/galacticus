@@ -86,7 +86,7 @@ program Tests_Halo_Mass_Function_Reed2007
      &amp;                                                        OmegaDarkEnergy                    = 0.76200d0                                                     , &amp;
      &amp;                                                        temperatureCMB                     = 2.72548d0                                                     , &amp;
      &amp;                                                        HubbleConstant                     =70.00000d0                                                       &amp;
-    &amp;                                                       )
+     &amp;                                                       )
    </constructor>
   </referenceConstruct>
   <referenceConstruct object="cosmologyFunctions_"                >

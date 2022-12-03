@@ -844,11 +844,11 @@ contains
     logical                                                , intent(inout) :: forceAcceptance
 
     if (self%recomputeCount > 0 .and. mod(self%posteriorSampleState_%count(),self%recomputeCount) == 0) then
-       ! Every self%recomputeCount steps, set gamma=0 and force likelihood to be recomputed in the current state.
+       ! Every self%recomputeCount steps, set γ=0 and force likelihood to be recomputed in the current state.
        differentialEvolutionStepSize=0.0d0
        forceAcceptance              =.true.
     else if (mod(self%posteriorSampleState_%count(),self%stateSwapCount) == 0) then
-       ! Every self%stateSwapCount steps, set gamma=1 to allow interchange of chains.
+       ! Every self%stateSwapCount steps, set γ=1 to allow interchange of chains.
        differentialEvolutionStepSize=1.0d0
     else
        ! Otherwise, use the step-size algorithm.

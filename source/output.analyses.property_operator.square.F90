@@ -44,16 +44,16 @@ Contains a module which implements a square output analysis property operator cl
 
 contains
 
-  function squareConstructorParameters(parameters)
+  function squareConstructorParameters(parameters) result(self)
     !!{
     Constructor for the ``square'' output analysis property operateor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(outputAnalysisPropertyOperatorSquare)                :: squareConstructorParameters
+    type(outputAnalysisPropertyOperatorSquare)                :: self
     type(inputParameters                     ), intent(inout) :: parameters
 
-    squareConstructorParameters=outputAnalysisPropertyOperatorSquare()
+    self=outputAnalysisPropertyOperatorSquare()
     !![
     <inputParametersValidate source="parameters"/>
     !!]

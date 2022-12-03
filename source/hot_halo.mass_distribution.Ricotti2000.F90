@@ -141,7 +141,7 @@ contains
        end if
        !$omp end critical(ricotti2000Initialized)
     end if
-    ! Set the value of beta. This is arbitrary as it will be computed as needed, but avoids compiler complaints that this
+    ! Set the value of β. This is arbitrary as it will be computed as needed, but avoids compiler complaints that this
     ! constructor is not initialized
     self%beta=-1.0d0
     return

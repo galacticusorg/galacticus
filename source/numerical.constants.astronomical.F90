@@ -82,7 +82,7 @@ module Numerical_Constants_Astronomical
 
   ! AB magnitude system:
   ! The AB magnitude system is defined such that:
-  !   m = -2.5log10(F_nu/[ergs/s/cm^2/Hz])-48.57
+  !   m = -2.5log₁₀(F_nu/[ergs/s/cm²/Hz])-48.57
   ! Computing the flux at 10pc gives us the zero point for the absolute magnitude scale (units of W/Hz).
   double precision, parameter :: offsetAB                          =48.57d0
   double precision, parameter :: luminosityZeroPointAB             =(10.0d0**(-offsetAB/2.5d0))*4.0d0*Pi*((10.0d0*parsec*hecto)**2)*ergs

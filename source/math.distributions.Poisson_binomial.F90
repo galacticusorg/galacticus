@@ -133,7 +133,7 @@ contains
     double precision, intent(in   ), dimension(:) :: p
     double precision                              :: mean, variance
 
-    ! Mean number of pairs can be found from the mean (mu) and variance (sigma^2): <k(k-1)> = sigma^2 + mu^2 - mu.
+    ! Mean number of pairs can be found from the mean (μ) and variance (σ²): ⟨k(k-1)⟩ = σ² + μ² - μ.
     mean    =Poisson_Binomial_Distribution_Mean    (p)
     variance=Poisson_Binomial_Distribution_Variance(p)
     Poisson_Binomial_Distribution_Mean_Pairs=variance+mean**2-mean

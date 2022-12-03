@@ -81,7 +81,7 @@ Implements a merger tree branching probability class using a generalized Press-S
      double precision                                                       :: parentTimePrevious
      ! Accuracy parameter to ensure that steps in critical overdensity do not become too large.
      double precision                                                       :: deltaStepMaximum
-     ! The maximum sigma that we expect to find.
+     ! The maximum σ that we expect to find.
      double precision                                                       :: sigmaMaximum                                        , sigmaMaximumSquared
      ! Record of whether we have tested the excursion set routines.
      logical                                                                :: excursionSetsTested
@@ -389,7 +389,7 @@ contains
     double precision                                                                         :: massMaximum   , massMinimum, &
          &                                                                                      normalization
     
-    ! Get sigma and delta_critical for the parent halo.
+    ! Get σ and δ_critical for the parent halo.
     call self%computeCommonFactors(node,haloMass,deltaCritical,time)
     massMinimum=massResolution
     if (self%distributionFunctionLowerHalfOnly) then
@@ -427,7 +427,7 @@ contains
     integer                                                                                  :: errorStatus
     type            (varying_string                                 )                        :: message
 
-    ! Get sigma and delta_critical for the parent halo.
+    ! Get σ and δ_critical for the parent halo.
     call self%computeCommonFactors(node,haloMass,deltaCritical,time)
     ! Update the root-variances corresponding to the mass resolution and the minimum subresolution halo if the mass resolution
     ! or the time of parent halo changes.

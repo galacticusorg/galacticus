@@ -44,16 +44,16 @@ Contains a module which implements an anti-$\log_{10}()$ output analysis propert
 
 contains
 
-  function antiLog10ConstructorParameters(parameters)
+  function antiLog10ConstructorParameters(parameters) result(self)
     !!{
     Constructor for the ``antiLog10'' output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(outputAnalysisPropertyOperatorAntiLog10)                :: antiLog10ConstructorParameters
+    type(outputAnalysisPropertyOperatorAntiLog10)                :: self
     type(inputParameters                        ), intent(inout) :: parameters
 
-    antiLog10ConstructorParameters=outputAnalysisPropertyOperatorAntiLog10()
+    self=outputAnalysisPropertyOperatorAntiLog10()
     !![
     <inputParametersValidate source="parameters"/>
     !!]

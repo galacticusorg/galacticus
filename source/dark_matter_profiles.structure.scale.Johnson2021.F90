@@ -275,7 +275,7 @@ contains
        call darkMatterProfileUnresolved%scaleSet           (                      radiusScaleUnresolved )
        ! Compute a correction factor to the orbital energy which takes into account the mass dependence of the 1/(1+m/M)ᵅ
        ! term that is applied to the orbital energy. Averaging this over a power-law mass function gives the result
-       ! below. In the case that α=0 the result is identically 1 - in this case we avoid computing beta functions.
+       ! below. In the case that α=0 the result is identically 1 - in this case we avoid computing β functions.
        massRatio                       =+basicUnresolved%mass()                                               &
             &                           /basicChild     %mass()
        a                               =+2.0d0                                                                &

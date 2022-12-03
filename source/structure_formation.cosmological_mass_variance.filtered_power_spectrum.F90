@@ -614,7 +614,7 @@ contains
        k    =1
        hTime=0.0d0
     end if
-    ! If sigma exceeds the highest value tabulated, simply return the lowest tabulated mass.
+    ! If σ exceeds the highest value tabulated, simply return the lowest tabulated mass.
     if (rootVarianceActual > self%rootVarianceTable(k)%y(1)) then
        filteredPowerMass=self%rootVarianceTable(k)%x(1)
     else
@@ -628,7 +628,7 @@ contains
              interpolantTime=      hTime
           end if
           if (interpolantTime == 0.0d0) cycle
-          ! Find the largest mass corresponding to this sigma.
+          ! Find the largest mass corresponding to this σ.
           iBoundLeft =1
           iBoundRight=size(self%rootVarianceUniqueTable(j)%rootVariance)
           do while (iBoundLeft+1 < iBoundRight)

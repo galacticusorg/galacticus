@@ -171,7 +171,7 @@ contains
        !$ call self%lock%setRead()
        ! Construct the distribution.
        call self%lensingDistributionConstruct(redshift,scaleSource)
-       ! Approximate a delta function for small redshifts.
+       ! Approximate a δ-function for small redshifts.
        if (self%convergenceVariance < takahashi2011ConvergenceVarianceSmall) then
           if (magnification == 1.0d0) then
              takahashi2011MagnificationPDF=0.0d0
@@ -210,7 +210,7 @@ contains
        !$ call self%lock%setRead()
        ! Construct the distribution.
        call self%lensingDistributionConstruct(redshift,scaleSource)
-       ! Approximate a delta function for small redshifts.
+       ! Approximate a δ-function for small redshifts.
        if (self%convergenceVariance < takahashi2011ConvergenceVarianceSmall) then
           if (magnification < 1.0d0) then
              takahashi2011MagnificationCDF=0.0d0
@@ -386,7 +386,7 @@ contains
     if (.not.self%tableInitialized) then
        !$ call self%lock%setWrite(haveReadLock=.true.)
        if (.not.self%tableInitialized) then
-          ! Determine the parameters, A_kappa and omega_kappa, of the convergence distribution (eq. 8
+          ! Determine the parameters, A_κ and ω_κ, of the convergence distribution (eq. 8
           ! of Takahashi et al.). To do this, we use a look-up table of precomputed values.
           ! Check if a precomputed file exists.
           if (File_Exists(inputPath(pathTypeDataDynamic)//"largeScaleStructure/gravitationalLensingConvergenceTakahashi2011.hdf5")) then
@@ -411,7 +411,7 @@ contains
                   &            rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative         , &
                   &            rangeExpandType              =rangeExpandMultiplicative               &
                   &           )
-             ! Construct a range of omega_kappa values.
+             ! Construct a range of ω_κ values.
              tableOmegaKappa=Make_Range(                      &
                   &                     omegaKappaMinimum   , &
                   &                     omegaKappaMaximum   , &
@@ -421,12 +421,12 @@ contains
              allocate(tableAKappa             (omegaKappaCount))
              allocate(tableNKappa             (omegaKappaCount))
              allocate(tableConvergenceVariance(omegaKappaCount))
-             ! Iterate over values of omega_k
+             ! Iterate over values of ω_κ.
              integratorMoment0=integrator(convergenceDistributionMoment0Integrand,toleranceRelative=1.0d-4)
              integratorMoment1=integrator(convergenceDistributionMoment1Integrand,toleranceRelative=1.0d-4)
              integratorMoment2=integrator(convergenceDistributionMoment2Integrand,toleranceRelative=1.0d-4)
              do i=1,omegaKappaCount
-                ! Set omega_kappa parameter.
+                ! Set ω_κ parameter.
                 self%omegaConvergence                    =tableOmegaKappa(i)
                 ! Set convergence scale to unity for table building. This implies a minimum convegence of -1.
                 self%convergenceScale                    =+1.0d0

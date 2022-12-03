@@ -46,16 +46,16 @@ Contains a module which implements an ISM mass output analysis property extracto
 
 contains
 
-  function indicesTreeConstructorParameters(parameters)
+  function indicesTreeConstructorParameters(parameters) result(self)
     !!{
     Constructor for the {\normalfont \ttfamily indicesTree} node property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(nodePropertyExtractorIndicesTree)                :: indicesTreeConstructorParameters
+    type(nodePropertyExtractorIndicesTree)                :: self
     type(inputParameters                 ), intent(inout) :: parameters
 
-    indicesTreeConstructorParameters=nodePropertyExtractorIndicesTree()
+    self=nodePropertyExtractorIndicesTree()
     !![
     <inputParametersValidate source="parameters"/>
     !!]

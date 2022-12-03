@@ -54,12 +54,12 @@
 
 contains
 
-  function pruneHierarchyConstructorParameters(parameters)
+  function pruneHierarchyConstructorParameters(parameters) result(self)
     !!{
     Constructor for the prune-hierarchy merger tree operator class which takes a parameter set as input.
     !!}
     implicit none
-    type   (mergerTreeOperatorPruneHierarchy)                :: pruneHierarchyConstructorParameters
+    type   (mergerTreeOperatorPruneHierarchy)                :: self
     type   (inputParameters                 ), intent(inout) :: parameters
     integer                                                  :: hierarchyDepth
 
@@ -71,24 +71,24 @@ contains
       <description>The depth in the substructure hierarchy at which to prune a tree.</description>
     </inputParameter>
     !!]
-    pruneHierarchyConstructorParameters=pruneHierarchyConstructorInternal(hierarchyDepth)
+    self=mergerTreeOperatorPruneHierarchy(hierarchyDepth)
     !![
     <inputParametersValidate source="parameters"/>
     !!]
     return
   end function pruneHierarchyConstructorParameters
 
-  function pruneHierarchyConstructorInternal(hierarchyDepth)
+  function pruneHierarchyConstructorInternal(hierarchyDepth) result(self)
     !!{
     Internal constructor for the prune-hierarchy merger tree operator class.
     !!}
     use :: Error, only : Error_Report
     implicit none
-    type   (mergerTreeOperatorPruneHierarchy)                :: pruneHierarchyConstructorInternal
+    type   (mergerTreeOperatorPruneHierarchy)                :: self
     integer                                  , intent(in   ) :: hierarchyDepth
 
     if (hierarchyDepth < 1) call Error_Report('[hierarchyDepth] > 0 is required'//{introspection:location})
-    pruneHierarchyConstructorInternal%hierarchyDepth=hierarchyDepth
+    self%hierarchyDepth=hierarchyDepth
     return
   end function pruneHierarchyConstructorInternal
 
