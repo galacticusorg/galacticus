@@ -99,6 +99,7 @@ Implements a merger tree branching probability class using a generalized Press-S
      !![
      <methods>
        <method description="Compute common factors needed for the calculations." method="computeCommonFactors"/>
+       <method description="Compute common factors needed for the calculations." method="excursionSetTest"    />
      </methods>
      !!]
      final     ::                          generalizedPressSchechterDestructor
@@ -108,6 +109,7 @@ Implements a merger tree branching probability class using a generalized Press-S
      procedure :: massBranch            => generalizedPressSchechterMassBranch
      procedure :: stepMaximum           => generalizedPressSchechterStepMaximum
      procedure :: computeCommonFactors  => generalizedPressSchechterComputeCommonFactors
+     procedure :: excursionSetTest      => generalizedPressSchechterExcursionSetTest
   end type mergerTreeBranchingProbabilityGnrlzdPrssSchchtr
 
   interface mergerTreeBranchingProbabilityGnrlzdPrssSchchtr
@@ -248,6 +250,28 @@ contains
     return
   end subroutine generalizedPressSchechterDestructor
 
+  subroutine generalizedPressSchechterExcursionSetTest(self,node)
+    !!{
+    Make a call to excursion set routines with the maximum $\sigma$ that we will use to ensure that they can handle it.
+    !!}
+    implicit none
+    class           (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr), intent(inout) :: self
+    type            (treeNode                                       ), intent(inout) :: node
+    double precision                                                                 :: presentTime    , testResult, &
+         &                                                                              varianceMaximum
+
+    if (.not.self%excursionSetsTested) then
+       if (self%massMinimum > 0.0d0) then
+          presentTime      =self%cosmologyFunctions_      %cosmicTime  (1.0d0                                                 )
+          self%sigmaMaximum=self%cosmologicalMassVariance_%rootVariance(self%massMinimum                     ,presentTime     )
+          varianceMaximum  =self%sigmaMaximum**2
+          testResult       =self%excursionSetFirstCrossing_%rate       (0.5d0*varianceMaximum,varianceMaximum,presentTime,node)
+       end if
+       self%excursionSetsTested=.true.
+    end if
+    return
+  end subroutine generalizedPressSchechterExcursionSetTest
+
   double precision function generalizedPressSchechterMassBranch(self,haloMass,deltaCritical,time,massResolution,probabilityFraction,randomNumberGenerator_,node)
     !!{
     Determine the mass of one of the halos to which the given halo branches, given the branching probability, {\normalfont
@@ -271,6 +295,8 @@ contains
     double precision                                                                         :: massUpper
     !$GLC attributes unused :: randomNumberGenerator_
 
+    ! Ensure excursion set calculations have sufficient range in σ.
+    call self%excursionSetTest(node)
     ! Initialize global variables.
     self_                       => self
     self%probabilityMinimumMass =  massResolution
@@ -389,6 +415,8 @@ contains
     double precision                                                                         :: massMaximum   , massMinimum, &
          &                                                                                      normalization
     
+    ! Ensure excursion set calculations have sufficient range in σ.
+    call self%excursionSetTest(node)
     ! Get σ and δ_critical for the parent halo.
     call self%computeCommonFactors(node,haloMass,deltaCritical,time)
     massMinimum=massResolution
@@ -427,6 +455,8 @@ contains
     integer                                                                                  :: errorStatus
     type            (varying_string                                 )                        :: message
 
+    ! Ensure excursion set calculations have sufficient range in σ.
+    call self%excursionSetTest(node)
     ! Get σ and δ_critical for the parent halo.
     call self%computeCommonFactors(node,haloMass,deltaCritical,time)
     ! Update the root-variances corresponding to the mass resolution and the minimum subresolution halo if the mass resolution
