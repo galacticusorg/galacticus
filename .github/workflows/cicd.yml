@@ -6294,7 +6294,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/datasets/dynamic
-          key: regressions-Cole2000-${{ github.run_id }}
+          key: constrained-merger-trees-${{ github.run_id }}
           restore-keys: |
             constrained-merger-trees
       - name: "Set environmental variables"
