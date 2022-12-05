@@ -44,7 +44,7 @@
      class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
      class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_       => null()
      class           (haloEnvironmentClass         ), pointer :: haloEnvironment_          => null()
-     double precision                                         :: massBackground
+     double precision                                         :: massBackground                     , factorMassEnvironment
    contains
      !![
      <methods>
@@ -77,20 +77,27 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type (cosmologicalMassVariancePeakBackgroundSplit)                :: self
-    type (inputParameters                            ), intent(inout) :: parameters
-    class(haloEnvironmentClass                       ), pointer       :: haloEnvironment_
-    class(cosmologicalMassVarianceClass              ), pointer       :: cosmologicalMassVariance_
-    class(cosmologyParametersClass                   ), pointer       :: cosmologyParameters_
-    class(cosmologyFunctionsClass                    ), pointer       :: cosmologyFunctions_
+    type            (cosmologicalMassVariancePeakBackgroundSplit)                :: self
+    type            (inputParameters                            ), intent(inout) :: parameters
+    class           (haloEnvironmentClass                       ), pointer       :: haloEnvironment_
+    class           (cosmologicalMassVarianceClass              ), pointer       :: cosmologicalMassVariance_
+    class           (cosmologyParametersClass                   ), pointer       :: cosmologyParameters_
+    class           (cosmologyFunctionsClass                    ), pointer       :: cosmologyFunctions_
+    double precision                                                             :: factorMassEnvironment
 
     !![
+    <inputParameter>
+      <name>factorMassEnvironment</name>
+      <defaultValue>1.0d0</defaultValue>
+      <description>The background variance is computed as $\sigma(\alpha M_\mathrm{env})^2$ where $M_\mathrm{env}$ is the environment mass and $\alpha=${\normalfont \ttfamily [factorMassEnvironment]}.</description>
+      <source>parameters</source>
+    </inputParameter>
     <objectBuilder class="haloEnvironment"          name="haloEnvironment_"          source="parameters"/>
     <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
     <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
     !!]
-    self=cosmologicalMassVariancePeakBackgroundSplit(haloEnvironment_,cosmologicalMassVariance_,cosmologyParameters_,cosmologyFunctions_)
+    self=cosmologicalMassVariancePeakBackgroundSplit(factorMassEnvironment,haloEnvironment_,cosmologicalMassVariance_,cosmologyParameters_,cosmologyFunctions_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="haloEnvironment_"         />
@@ -101,22 +108,24 @@ contains
     return
   end function variancePeakBackgroundSplitConstructorParameters
 
-  function variancePeakBackgroundSplitConstructorInternal(haloEnvironment_,cosmologicalMassVariance_,cosmologyParameters_,cosmologyFunctions_) result(self)
+  function variancePeakBackgroundSplitConstructorInternal(factorMassEnvironment,haloEnvironment_,cosmologicalMassVariance_,cosmologyParameters_,cosmologyFunctions_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily peakBackgroundSplit} linear growth class.
     !!}
     implicit none
-    type (cosmologicalMassVariancePeakBackgroundSplit)                        :: self
-    class(haloEnvironmentClass                       ), intent(in   ), target :: haloEnvironment_
-    class(cosmologicalMassVarianceClass              ), intent(in   ), target :: cosmologicalMassVariance_
-    class(cosmologyParametersClass                   ), intent(in   ), target :: cosmologyParameters_
-    class(cosmologyFunctionsClass                    ), intent(in   ), target :: cosmologyFunctions_
+    type            (cosmologicalMassVariancePeakBackgroundSplit)                        :: self
+    class           (haloEnvironmentClass                       ), intent(in   ), target :: haloEnvironment_
+    class           (cosmologicalMassVarianceClass              ), intent(in   ), target :: cosmologicalMassVariance_
+    class           (cosmologyParametersClass                   ), intent(in   ), target :: cosmologyParameters_
+    class           (cosmologyFunctionsClass                    ), intent(in   ), target :: cosmologyFunctions_
+    double precision                                             , intent(in   )         :: factorMassEnvironment
     !![
-    <constructorAssign variables="*haloEnvironment_, *cosmologicalMassVariance_, *cosmologyParameters_, *cosmologyFunctions_"/>
+    <constructorAssign variables="factorMassEnvironment, *haloEnvironment_, *cosmologicalMassVariance_, *cosmologyParameters_, *cosmologyFunctions_"/>
     !!]
 
     ! Evaluate and store the mass of the background.
-    self%massBackground=self%haloEnvironment_%environmentMass()
+    self%massBackground=+                      factorMassEnvironment   &
+         &              *self%haloEnvironment_%environmentMass      ()
     return
   end function variancePeakBackgroundSplitConstructorInternal
 

@@ -24,6 +24,7 @@
     <beta value="=[haloMassFunctionParameters::beta]"/>
   </powerSpectrumWindowFunction>
   <cosmologicalMassVariance value="peakBackgroundSplit">
+    <factorMassEnvironment value="=[haloMassFunctionParameters::alpha]"/>
     <cosmologicalMassVariance value="filteredPower">
       <sigma_8                value="0.820" />
       <tolerance              value="4.0e-4"/>
