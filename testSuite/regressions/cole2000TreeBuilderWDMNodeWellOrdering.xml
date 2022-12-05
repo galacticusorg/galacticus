@@ -91,7 +91,9 @@
     </excursionSetBarrier>
   </excursionSetBarrier>
   <excursionSetFirstCrossing value="farahiMidpoint">
-    <fractionalTimeStep value="0.01"/>
+    <varianceNumberPerUnit   value=" 30   "/>
+    <varianceNumberPerDecade value="250   "/>
+    <fractionalTimeStep      value="  0.01"/>
     <fileName value="%DATADYNAMICPATH%/largeScaleStructure/excursionSets/excursionSetsWdmMx1.5Gx1.5.hdf5"/>
   </excursionSetFirstCrossing>
 
