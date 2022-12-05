@@ -282,7 +282,7 @@ contains
     return
   end function zhangHuiRate
 
-  double precision function zhangHuiRateNonCrossing(self,variance,varianceMaximum,time,node)
+  double precision function zhangHuiRateNonCrossing(self,variance,massMinimum,time,node)
     !!{
     Return the rate for excursion set non-crossing. This method is not implemented.
     !!}
@@ -290,9 +290,9 @@ contains
     implicit none
     class           (excursionSetFirstCrossingZhangHui), intent(inout) :: self
     double precision                                   , intent(in   ) :: time           , variance, &
-         &                                                                varianceMaximum
+         &                                                                massMinimum
     type            (treeNode                         ), intent(inout) :: node
-    !$GLC attributes unused :: self, time, variance, varianceMaximum, node
+    !$GLC attributes unused :: self, time, variance, massMinimum, node
 
     zhangHuiRateNonCrossing=0.0d0
     call Error_Report('barrier non-crossing rates are not implemented for this method [too slow]'//{introspection:location})

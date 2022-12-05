@@ -84,7 +84,7 @@ Implements a merger tree branching probability class using a generalized Press-S
      ! Accuracy parameter to ensure that steps in critical overdensity do not become too large.
      double precision                                                       :: deltaStepMaximum
      ! The maximum σ that we expect to find.
-     double precision                                                       :: sigmaMaximum                                        , sigmaMaximumSquared
+     double precision                                                       :: sigmaMaximum
      ! Record of whether we have tested the excursion set routines.
      logical                                                                :: excursionSetsTested
      ! Control for inclusion of smooth accretion rates.
@@ -219,7 +219,6 @@ contains
     self%parentTimePrevious                         =-1.0d0
     self%timeNow                                    =self%cosmologyFunctions_      %cosmicTime  (                      1.0d0  )
     self%sigmaMaximum                               =self%cosmologicalMassVariance_%rootVariance(self%massMinimum,self%timeNow)
-    self%sigmaMaximumSquared                        =self%sigmaMaximum**2
     self%finder                                     =rootFinder(                                                                           &
          &                                                      rootFunction     =generalizedPressSchechterMassBranchRoot                , &
          &                                                      toleranceAbsolute=toleranceAbsolute                                      , &
@@ -468,15 +467,14 @@ contains
        self%massResolutionPrevious=massResolution
        if (self%parentTime /= self%parentTimePrevious) then
           self%sigmaMaximum       =self%cosmologicalMassVariance_%rootVariance(self%massMinimum   ,self%parentTime)
-          self%sigmaMaximumSquared=self%sigmaMaximum**2
           self%parentTimePrevious =self%parentTime
        end if
     end if
     ! If requested, compute the rate of smooth accretion.
     if (self%smoothAccretion) then
-       generalizedPressSchechterFractionSubresolution=+abs(self%parentDTimeDDeltaCritical)                                                                                                                   &
-            &                                         *    self%excursionSetFirstCrossing_             %rateNonCrossing(              self%parentSigmaSquared,self%sigmaMaximumSquared,self%parentTime,node) &
-            &                                         *    self%mergerTreeBranchingProbabilityModifier_%rateModifier   (node,haloMass,self%parentSigma       ,self%sigmaMaximum       ,self%parentTime     )
+       generalizedPressSchechterFractionSubresolution=+abs(self%parentDTimeDDeltaCritical)                                                                                                            &
+            &                                         *    self%excursionSetFirstCrossing_             %rateNonCrossing(              self%parentSigmaSquared,self%massMinimum ,self%parentTime,node) &
+            &                                         *    self%mergerTreeBranchingProbabilityModifier_%rateModifier   (node,haloMass,self%parentSigma       ,self%sigmaMaximum,self%parentTime     )
     else
        generalizedPressSchechterFractionSubresolution=0.0d0
     end if

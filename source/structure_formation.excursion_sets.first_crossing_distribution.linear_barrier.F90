@@ -214,24 +214,24 @@ contains
 
   end function linearBarrierRate
 
-  double precision function linearBarrierRateNonCrossing(self,variance,varianceMaximum,time,node)
+  double precision function linearBarrierRateNonCrossing(self,variance,massMinimum,time,node)
     !!{
-    Return the rate for excursion set non-crossing assuming a linearBarrier barrier.
+    Return the rate for excursion set non-crossing assuming a linear barrier.
     !!}
     use :: Error_Functions, only : Error_Function
     implicit none
     class           (excursionSetFirstCrossingLinearBarrier), intent(inout) :: self
     double precision                                        , intent(in   ) :: time                           , variance                    , &
-         &                                                                     varianceMaximum
+         &                                                                     massMinimum
     type            (treeNode                              ), intent(inout) :: node
-    double precision                                                        :: massMinimum                    , timeProgenitor              , &
+    double precision                                                        :: varianceMaximum                , timeProgenitor              , &
          &                                                                     growthFactorEffective          , barrierEffectiveZeroVariance, &
          &                                                                     barrierEffectiveMaximumVariance, barrierEffectiveGradient    , &
          &                                                                     varianceDifference
 
+    varianceMaximum=self%cosmologicalMassVariance_%rootVariance(massMinimum,time)**2
     if (variance < varianceMaximum) then
        timeProgenitor                 =+time*(1.0d0-self%fractionalTimeStep)
-       massMinimum                    =+self%cosmologicalMassVariance_%mass        (sqrt(varianceMaximum),time          )
        growthFactorEffective          =+self%cosmologicalMassVariance_%rootVariance(         massMinimum ,time          ) &
             &                          /self%cosmologicalMassVariance_%rootVariance(         massMinimum ,timeProgenitor)
        barrierEffectiveZeroVariance   =+self%excursionSetBarrier_%barrier        (variance       ,timeProgenitor,node,rateCompute=.false.)*growthFactorEffective &

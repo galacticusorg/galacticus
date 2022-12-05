@@ -193,8 +193,7 @@ Contains a module which implements a excursion set first crossing statistics cla
      double precision                               , allocatable, dimension(:,:  ) :: nonCrossingRate
      double precision                               , allocatable, dimension(:    ) :: timeRate                                   , varianceProgenitorRate                    , &
           &                                                                            varianceCurrentRate                        , varianceCurrentRateNonCrossing
-     logical                                                                        :: tableInitializedRate             =  .false., retabulateRateNonCrossing                 , &
-          &                                                                            tableInitializedNonCrossingRate  =  .false.
+     logical                                                                        :: tableInitializedRate             =  .false., retabulateRateNonCrossing
      type            (interpolator                 ), allocatable                   :: interpolatorTimeRate                       , interpolatorVarianceRate                  , &
           &                                                                            interpolatorVarianceCurrentRate            , interpolatorVarianceCurrentRateNonCrossing
      ! File name used to store tabulations.
@@ -354,21 +353,20 @@ contains
     <constructorAssign variables="fractionalTimeStep, fileName, varianceNumberPerUnitProbability, varianceNumberPerUnit, varianceNumberPerDecade, varianceNumberPerDecadeNonCrossing, timeNumberPerDecade, varianceIsUnlimited, *cosmologyFunctions_, *excursionSetBarrier_, *cosmologicalMassVariance_"/>
     !!]
 
-    self%tableInitialized               =.false.
-    self%tableInitializedRate           =.false.
-    self%tableInitializedNonCrossingRate=.false.
-    self%retabulateRateNonCrossing      =.false.
-    self%timeMaximum                    =-huge(0.0d0)
-    self%timeMinimum                    =+huge(0.0d0)
-    self%varianceMaximum                =      0.0d0
-    self%timeMaximumRate                =-huge(0.0d0)
-    self%timeMinimumRate                =+huge(0.0d0)
-    self%varianceMaximumRate            =-huge(0.0d0)
-    self%massMinimumRateNonCrossing     =      0.0d0
-    self%timePreviousRate               =-huge(0.0d0)
-    self%variancePreviousRate           =-huge(0.0d0)
-    self%useFile                        =(self%fileName /= 'none')
-    self%fileNameInitialized            =.not.self%useFile
+    self%tableInitialized          =.false.
+    self%tableInitializedRate      =.false.
+    self%retabulateRateNonCrossing =.false.
+    self%timeMaximum               =-huge(0.0d0)
+    self%timeMinimum               =+huge(0.0d0)
+    self%varianceMaximum           =      0.0d0
+    self%timeMaximumRate           =-huge(0.0d0)
+    self%timeMinimumRate           =+huge(0.0d0)
+    self%varianceMaximumRate       =-huge(0.0d0)
+    self%massMinimumRateNonCrossing=      0.0d0
+    self%timePreviousRate          =-huge(0.0d0)
+    self%variancePreviousRate      =-huge(0.0d0)
+    self%useFile                   =(self%fileName /= 'none')
+    self%fileNameInitialized       =.not.self%useFile
     return
   end function farahiConstructorInternal
 
@@ -773,14 +771,14 @@ contains
     return
   end function farahiRateInterpolate
 
-  double precision function farahiRateNonCrossing(self,variance,varianceMaximum,time,node)
+  double precision function farahiRateNonCrossing(self,variance,massMinimum,time,node)
     !!{
     Return the rate for excursion set non-crossing.
     !!}
     implicit none
     class           (excursionSetFirstCrossingFarahi), intent(inout) :: self
-    double precision                                 , intent(in   ) :: time           , variance, &
-         &                                                              varianceMaximum
+    double precision                                 , intent(in   ) :: time       , variance, &
+         &                                                              massMinimum
     type            (treeNode                       ), intent(inout) :: node
 
     ! Note that this solver follows the convention used through Galacticus that σ(M) grows following linear theory. That is:
@@ -793,44 +791,34 @@ contains
     ! This differs from standard treatments of the excursion set problem in which typically the root-variance, σ(M), is evaluated
     ! at z=0, and the critical overdensity for collapse is replaced with δ_c(t)/D(t). Mathematically these two approaches are
     ! equivalent, but it can be important to keep these distinctions in mind.
-
-    farahiRateNonCrossing=self%rateNonCrossingInterpolate(variance,varianceMaximum,time,node)
+    farahiRateNonCrossing=self%rateNonCrossingInterpolate(variance,massMinimum,time,node)
     return
   end function farahiRateNonCrossing
 
-  double precision function farahiRateNonCrossingInterpolate(self,variance,varianceMaximum,time,node)
+  double precision function farahiRateNonCrossingInterpolate(self,variance,massMinimum,time,node)
     !!{
     Interpolate the rate for excursion set non-crossing.
     !!}
     use :: Numerical_Comparison, only : Values_Differ
     implicit none
     class           (excursionSetFirstCrossingFarahi), intent(inout)  :: self
-    double precision                                 , intent(in   )  :: time                             , variance , &
-         &                                                               varianceMaximum
+    double precision                                 , intent(in   )  :: time                           , variance , &
+         &                                                               massMinimum
     type            (treeNode                       ), intent(inout)  :: node
-    double precision                                                  :: massMinimumRateNonCrossing
-    double precision                                 , parameter      :: toleranceRelativeMass     =2.5d-3
+    double precision                                 , parameter      :: toleranceRelativeMass   =2.5d-3
     double precision                                 , dimension(0:1) :: hVarianceRateNonCrossing
+    double precision                                                  :: varianceMaximum
     integer         (c_size_t                       )                 :: iVarianceRateNonCrossing
-    integer                                                           :: jTime                            , jVariance
+    integer                                                           :: jTime                          , jVariance
 
     ! If the minimum mass used in computing non-crossing rates changes, retabulate non-crossing rates. This should only happen if
-    ! the growth rate of σ(M) is mass dependent. We must also retabulate if non-crossing rates have no yet been tabulated.
-    massMinimumRateNonCrossing=self%cosmologicalMassVariance_%mass(sqrt(varianceMaximum),time)
-    if     (                                                                                                                                 &
-         &   .not.self%tableInitializedNonCrossingRate                                                                                       &
-         &  .or.                                                                                                                             &
-         &   (                                                                                                                               &
-         &                   self%cosmologicalMassVariance_%growthIsMassDependent()                                                          &
-         &    .and.                                                                                                                          &
-         &     Values_Differ(self%massMinimumRateNonCrossing                       ,massMinimumRateNonCrossing,relTol=toleranceRelativeMass) &
-         &   )                                                                                                                               &
-         & ) then
-       self%tableInitializedNonCrossingRate=.true.
-       self%retabulateRateNonCrossing      =.true.
-       self%massMinimumRateNonCrossing     =massMinimumRateNonCrossing
+    ! the growth rate of <CF><83>(M) is mass dependent. We must also retabulate if non-crossing rates have no yet been tabulated.
+    if (Values_Differ(self%massMinimumRateNonCrossing,massMinimum,relTol=toleranceRelativeMass)) then
+       self%retabulateRateNonCrossing =.true.
+       self%massMinimumRateNonCrossing=massMinimum
     end if
     ! Ensure that the rate is tabulated.
+    varianceMaximum=self%cosmologicalMassVariance_%rootVariance(massMinimum,time)**2
     call self%rateTabulate(varianceMaximum,time,node)
     ! Get interpolation in time.
     if (time /= self%timePreviousRate) then
