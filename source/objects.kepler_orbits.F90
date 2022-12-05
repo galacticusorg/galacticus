@@ -592,7 +592,7 @@ contains
     class           (keplerOrbit), intent(inout) :: orbit
     double precision             , intent(in   ) :: epsilon
 
-    ! Set the epsilon and flag that is set.
+    ! Set ε and flag that is set.
     orbit%epsilonValue=epsilon
     orbit%epsilonIsSet=.true.
     return

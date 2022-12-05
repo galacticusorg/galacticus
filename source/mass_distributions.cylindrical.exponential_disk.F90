@@ -999,7 +999,7 @@ contains
        allocate(self%tidalTensorCross           (countRadii,countRadii))
        self%accelerationRadii  =Make_Range(radiusMinimum,radiusMaximum,countRadii,rangeTypeLogarithmic)
        self%accelerationHeights=Make_Range(radiusMinimum,radiusMaximum,countRadii,rangeTypeLogarithmic)
-       ! Compute the vertical inverse scale-height. Note that our definition of beta differs slightly from that of Kuijken & Gilmore
+       ! Compute the vertical inverse scale-height. Note that our definition of β differs slightly from that of Kuijken & Gilmore
        ! (1989). They assume a density profile in the vertical direction of the form:
        !
        !  ρ(z) = sech^ξ(βz/ξ)

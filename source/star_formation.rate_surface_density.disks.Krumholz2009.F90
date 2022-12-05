@@ -327,9 +327,10 @@ contains
     class           (starFormationRateSurfaceDensityDisksKrumholz2009), intent(inout) :: self
     type            (treeNode                                        ), intent(inout) :: node
     double precision                                                  , intent(in   ) :: radius
-    double precision                                                                  :: surfaceDensityFactor, molecularFraction             , &
-         &                                                                               s                   , sigmaMolecularComplex         , &
-         &                                                                               surfaceDensityGas   , surfaceDensityGasDimensionless
+    double precision                                                  , parameter     :: surfaceDensityGasTiny=1.0d-100
+    double precision                                                                  :: surfaceDensityFactor          , molecularFraction             , &
+         &                                                                               s                             , sigmaMolecularComplex         , &
+         &                                                                               surfaceDensityGas             , surfaceDensityGasDimensionless
     
     ! Compute factors.
     call self%computeFactors(node)
@@ -349,7 +350,7 @@ contains
        ! Get surface density and related quantities.
        call self%surfaceDensityFactors(node,radius,surfaceDensityGas,surfaceDensityGasDimensionless)
        ! Check for non-positive gas mass.
-       if (surfaceDensityGas <= 0.0d0) then
+       if (surfaceDensityGas <= surfaceDensityGasTiny) then
           krumholz2009Rate=0.0d0
        else
           ! Compute the molecular fraction.

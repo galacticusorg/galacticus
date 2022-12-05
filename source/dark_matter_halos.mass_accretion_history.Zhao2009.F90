@@ -160,9 +160,9 @@ contains
     ! Trap cases where the mass occurs in the future.
     if (mass > baseMass) call Error_Report('specified mass is in the future'//{introspection:location})
     ! Calculate quantities which remain fixed through the ODE.
-    ! Get sigma(M) and its logarithmic derivative.
+    ! Get σ(M) and its logarithmic derivative.
     call self%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(baseMass,baseTime,sigmaObserved,dSigmadMassLogarithmicObserved)
-    ! Compute sigma proxy.
+    ! Compute σ proxy.
     sObserved=sigmaObserved*10.0d0**dSigmadMassLogarithmicObserved ! Equation 8 from Zhao et al. (2009).
     ! Compute critical overdensities for collapse.
     deltaCriticalObserved=self%criticalOverdensity_%value(time=baseTime,mass=baseMass)
@@ -200,9 +200,9 @@ contains
          growthRateODEs=GSL_Success
          return
       end if
-      ! Get sigma(M) and its logarithmic derivative.
+      ! Get σ(M) and its logarithmic derivative.
       call self%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(mass,nowTime(1),sigmaNow,dSigmadMassLogarithmicNow)
-      ! Compute sigma proxy.
+      ! Compute σ proxy.
       sNow               =+sigmaNow                                                                                                                                          &
            &              *10.0d0**dSigmadMassLogarithmicNow                                                                                                                 &
            &              /                                                                  self%linearGrowth_      %value                               ( time=nowTime(1))   ! Equation 8 from Zhao et al. (2009).

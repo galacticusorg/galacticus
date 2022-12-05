@@ -36,8 +36,8 @@ module IO_IRATE
      A class for interacting with \gls{irate} format files.
      !!}
      type (varying_string          )          :: fileName
-     class(cosmologyFunctionsClass ), pointer :: cosmologyFunctions_
-     class(cosmologyParametersClass), pointer :: cosmologyParameters_
+     class(cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
+     class(cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
    contains
      !![
      <methods>
@@ -65,20 +65,20 @@ module IO_IRATE
 
 contains
 
-  function irateConstructor(fileName,cosmologyParameters_,cosmologyFunctions_)
+  function irateConstructor(fileName,cosmologyParameters_,cosmologyFunctions_) result(self)
     !!{
     Constructor for \gls{irate} file interface class.
     !!}
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
-    type     (irate                   )                        :: irateConstructor
+    type     (irate                   )                        :: self
     character(len=*                   ), intent(in   )         :: fileName
     class    (cosmologyFunctionsClass ), intent(in   ), target :: cosmologyFunctions_
     class    (cosmologyParametersClass), intent(in   ), target :: cosmologyParameters_
 
-    irateConstructor%cosmologyParameters_ => cosmologyParameters_
-    irateConstructor%cosmologyFunctions_  => cosmologyFunctions_
-    irateConstructor%fileName             =  trim(fileName)
+    self%cosmologyParameters_ => cosmologyParameters_
+    self%cosmologyFunctions_  => cosmologyFunctions_
+    self%fileName             =  trim(fileName)
     return
   end function irateConstructor
 

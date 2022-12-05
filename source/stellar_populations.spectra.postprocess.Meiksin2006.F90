@@ -98,7 +98,7 @@ contains
        forall (iLine=3:9)
           redshiftLymanLines(iLine)=wavelengthObservedLymanContinuum*(1.0d0-1.0d0/dble(iLine**2))-1.0d0
        end forall
-       ! Evaluate optical depths relative to Lyman-alpha.
+       ! Evaluate optical depths relative to Lyman-α.
        opticalDepthLymanLines(2)=1.0d0 ! By definition.
        if (redshiftLymanLines(3) < 3.0d0) then
           opticalDepthLymanLines(3)=0.348d0*(0.25d0*(1.0+redshiftLymanLines(3)))**0.3333d0
@@ -122,7 +122,7 @@ contains
        forall (iLine=10:31)
           opticalDepthLymanLines(iLine)=opticalDepthLymanLines(9)*720.0d0/dble(iLine)/dble(iLine**2-1)
        end forall
-       ! Scale optical depths by Lyman-alpha optical depth.
+       ! Scale optical depths by Lyman-α optical depth.
        if (redshift <= 4.0d0) then
           forall (iLine=2:31)
              opticalDepthLymanLines(iLine)=opticalDepthLymanLines(iLine)*0.00211d0*(wavelengthObservedLymanContinuum*(1.0d0-1.0d0/dble(iLine**2)))**3.70d0

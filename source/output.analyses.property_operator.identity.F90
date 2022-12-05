@@ -44,16 +44,16 @@ Contains a module which implements an identity output analysis property operator
 
 contains
 
-  function identityConstructorParameters(parameters)
+  function identityConstructorParameters(parameters) result(self)
     !!{
     Constructor for the ``identity'' output analysis property operateor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(outputAnalysisPropertyOperatorIdentity)                :: identityConstructorParameters
+    type(outputAnalysisPropertyOperatorIdentity)                :: self
     type(inputParameters                       ), intent(inout) :: parameters
 
-    identityConstructorParameters=outputAnalysisPropertyOperatorIdentity()
+    self=outputAnalysisPropertyOperatorIdentity()
     !![
     <inputParametersValidate source="parameters"/>
     !!]

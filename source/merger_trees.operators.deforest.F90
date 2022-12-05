@@ -44,16 +44,16 @@ Contains a module which implements a deforestation operator on merger trees (i.e
 
 contains
 
-  function deforestConstructorParameters(parameters)
+  function deforestConstructorParameters(parameters) result(self)
     !!{
     Constructor for the deforestation merger tree operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(mergerTreeOperatorDeforest)                :: deforestConstructorParameters
+    type(mergerTreeOperatorDeforest)                :: self
     type(inputParameters           ), intent(inout) :: parameters
 
-    deforestConstructorParameters=mergerTreeOperatorDeforest()
+    self=mergerTreeOperatorDeforest()
     !![
     <inputParametersValidate source="parameters"/>
     !!]

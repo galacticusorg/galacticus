@@ -155,7 +155,7 @@ contains
     if (self%atomicIonizationPotential_%potential(atomicNumber,electronNumber) == 0.0d0) then
        vanHoof2014Total=0.0d0
     else
-       ! Evaluate the gamma parameter.
+       ! Evaluate the γ parameter.
        gammaSquared=+dble(                &
             &             +atomicNumber   &
             &             -electronNumber &

@@ -286,7 +286,7 @@ contains
           ! Check dark energy equation of state is within acceptable range.
           if (cllsnlssMttrDarkEnergyCosmologyFunctions_%equationOfStateDarkEnergy(time=cllsnlssMttCsmlgclCnstntTime) >= -1.0d0/3.0d0) &
                & call Error_Report('ω<-⅓ required'//{introspection:location})
-          ! Find the value of epsilon for which the perturbation just collapses at this time.
+          ! Find the value of ε for which the perturbation just collapses at this time.
           if (.not.finderPerturbationConstructed) then
              finderPerturbationInitial=rootFinder(                                                                 &
                   &                               rootFunction     =baryonsDarkMatterDarkEnergyRadiusPerturbation, &

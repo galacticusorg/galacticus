@@ -115,10 +115,10 @@
   ! Parameters for low-density limit cooling function.
   double precision, dimension(0:4), parameter :: molecularHydrogenGalliPallaLowDensityLimitCoefficient=[-103.0000d0,+97.59000d0,-48.05000d+0,+10.8000d0,-0.9032d0]
 
-  ! Parameters for H_2^+ - e^- cooling function.
+  ! Parameters for H₂⁺ - e⁻ cooling function.
   double precision, dimension(0:2), parameter :: molecularHydrogenGalliPallaH2PlusElectronCoefficient =[ -33.3299d0, +5.56465d0, -4.67461d-1                     ]
 
-  ! Parameters for H_2^+ - H cooling function.
+  ! Parameters for H₂⁺ - H cooling function.
   double precision, dimension(0:2), parameter :: molecularHydrogenGalliPallaH2PlusHCoefficient        =[ -35.2804d0, +5.86234d0, -5.12276d-1                     ]
 
 contains

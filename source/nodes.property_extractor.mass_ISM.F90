@@ -53,20 +53,20 @@ Contains a module which implements an ISM mass output analysis property extracto
 
 contains
 
-  function massISMConstructorParameters(parameters)
+  function massISMConstructorParameters(parameters) result(self)
     !!{
     Constructor for the ``massISM'' output analysis property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type (nodePropertyExtractorMassISM)                :: massISMConstructorParameters
+    type (nodePropertyExtractorMassISM)                :: self
     type (inputParameters             ), intent(inout) :: parameters
     class(galacticStructureClass      ), pointer       :: galacticStructure_
 
     !![
     <objectBuilder class="galacticStructure" name="galacticStructure_" source="parameters"/>
     !!]
-    massISMConstructorParameters=nodePropertyExtractorMassISM(galacticStructure_)
+    self=nodePropertyExtractorMassISM(galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="galacticStructure_"/>

@@ -48,16 +48,16 @@ Contains a module which implements a black hole mass output analysis property ex
 
 contains
 
-  function massBlackHoleConstructorParameters(parameters)
+  function massBlackHoleConstructorParameters(parameters) result(self)
     !!{
     Constructor for the ``massBlackHole'' output analysis property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(nodePropertyExtractorMassBlackHole)                :: massBlackHoleConstructorParameters
+    type(nodePropertyExtractorMassBlackHole)                :: self
     type(inputParameters                   ), intent(inout) :: parameters
 
-    massBlackHoleConstructorParameters=nodePropertyExtractorMassBlackHole()
+    self=nodePropertyExtractorMassBlackHole()
     !![
     <inputParametersValidate source="parameters"/>
     !!]

@@ -49,38 +49,41 @@ Contains a module which implements a galactic high-pass filter for the default `
 
 contains
 
-  function basicMassConstructorParameters(parameters)
+  function basicMassConstructorParameters(parameters) result(self)
     !!{
     Constructor for the ``basicMass'' galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type(galacticFilterBasicMass)                :: basicMassConstructorParameters
-    type(inputParameters        ), intent(inout) :: parameters
+    type            (galacticFilterBasicMass)                :: self
+    type            (inputParameters        ), intent(inout) :: parameters
+    double precision                                         :: massThreshold
 
-    ! Check and read parameters.
     !![
     <inputParameter>
       <name>massThreshold</name>
       <source>parameters</source>
-      <variable>basicMassConstructorParameters%massThreshold</variable>
       <description>The parameter $M_0$ (in units of $M_\odot$) appearing in the basic mass threshold for the basic mass galactic filter class.</description>
     </inputParameter>
+    !!]
+    self=galacticFilterBasicMass(massThreshold)
+    !![
     <inputParametersValidate source="parameters"/>
     !!]
     return
   end function basicMassConstructorParameters
 
-  function basicMassConstructorInternal(massThreshold)
+  function basicMassConstructorInternal(massThreshold) result(self)
     !!{
     Internal constructor for the ``basicMass'' galactic filter class.
     !!}
     implicit none
-    type            (galacticFilterBasicMass)                :: basicMassConstructorInternal
+    type            (galacticFilterBasicMass)                :: self
     double precision                         , intent(in   ) :: massThreshold
     !![
     <constructorAssign variables="massThreshold"/>
     !!]
+    
     return
   end function basicMassConstructorInternal
 

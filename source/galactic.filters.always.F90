@@ -44,16 +44,16 @@ Contains a module which implements a galactic filter which always passes.
 
 contains
 
-  function alwaysConstructorParameters(parameters)
+  function alwaysConstructorParameters(parameters) result(self)
     !!{
     Constructor for the ``always'' galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(galacticFilterAlways)                :: alwaysConstructorParameters
+    type(galacticFilterAlways)                :: self
     type(inputParameters     ), intent(inout) :: parameters
 
-    alwaysConstructorParameters=galacticFilterAlways()
+    self=galacticFilterAlways()
     !![
     <inputParametersValidate source="parameters"/>
     !!]

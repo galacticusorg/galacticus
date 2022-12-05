@@ -776,7 +776,7 @@ contains
             &                  )                                     &
             &                  /  (massLittleH/massReference)**gamma
     case (klypin2015FittingFunctionEqn25%ID)
-       ! Find sigma.
+       ! Find σ(M).
        sigma         =self%cosmologicalMassVariance_%rootVariance(basic%mass(),self%cosmologyFunctions_%cosmicTime(1.0d0))
        ! Evaluate fitting function parameters.
        a0            =self%fitParameters%interpolate(redshift,table=1)

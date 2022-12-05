@@ -207,7 +207,7 @@ contains
     ! intervals on this we need to find confidence intervals of the binomial distribution probability, p. Here we follow the
     ! Clopper-Pearson interval method
     ! (https://en.wikipedia.org/wiki/Binomial_proportion_confidence_interval#Clopper–Pearson_interval) which determines the
-    ! confidence interval using the beta distribution.
+    ! confidence interval using the β distribution.
     allocate(     functionValueTarget     (binCount         ))
     allocate(self%functionErrorLowerTarget(binCount         ))
     allocate(self%functionErrorUpperTarget(binCount         ))
@@ -450,8 +450,8 @@ contains
     ! Compute the log-likelihood. This assumes that the number of early types in each bin follows a binomial distribution. We do
     ! not account for the variance in the model expectation here - doing so would require evaluating the likelihood of the
     ! binomial distribution compounded with the distribution of the model mean. The distribution of the model mean could be
-    ! described by a beta distribution (since it too should follow a binomial [or maybe Poisson-binomial] distribution), and then
-    ! the compound distribution is the beta-binomial distribution. However, providing the model mean is determined with high
+    ! described by a β distribution (since it too should follow a binomial [or maybe Poisson-binomial] distribution), and then
+    ! the compound distribution is the β-binomial distribution. However, providing the model mean is determined with high
     ! precision, neglecting the distribution of the model mean here shouldn't matter.
     morphologicalFractionGAMAMoffett2016LogLikelihood=0.0d0
     do i=1,size(self%countAllTarget)

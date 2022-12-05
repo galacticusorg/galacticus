@@ -43,16 +43,16 @@ Contains a module which implements a null operator on merger trees.
 
 contains
 
-  function nullConstructorParameters(parameters)
+  function nullConstructorParameters(parameters) result(self)
     !!{
     Constructor for the null merger tree operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(mergerTreeOperatorNull)                :: nullConstructorParameters
+    type(mergerTreeOperatorNull)                :: self
     type(inputParameters       ), intent(inout) :: parameters
 
-    nullConstructorParameters=mergerTreeOperatorNull()
+    self=mergerTreeOperatorNull()
     !![
     <inputParametersValidate source="parameters"/>
     !!]
