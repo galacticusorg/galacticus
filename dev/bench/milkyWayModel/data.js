@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1670032558375,
+  "lastUpdate": 1670322845917,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
@@ -4468,6 +4468,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 11.2705584376751,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5ea7873f6a3a1ef08f67d114710b77cca7d9529b",
+          "message": "Merge pull request #338 from galacticusorg/constrainedTrees\n\nAdd functionality for building constrained merger trees",
+          "timestamp": "2022-12-05T20:54:55-08:00",
+          "tree_id": "5c8098f5f07ea2fb1ff6f841dfb6033304849fc3",
+          "url": "https://github.com/galacticusorg/galacticus/commit/5ea7873f6a3a1ef08f67d114710b77cca7d9529b"
+        },
+        "date": 1670322844624,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 183.63,
+            "unit": "seconds",
+            "range": 0.189425447074571
           }
         ]
       }
