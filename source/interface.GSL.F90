@@ -155,6 +155,8 @@ module Interface_GSL
   <gslConstant variable="GSL_ENoProg"  gslSymbol="GSL_ENOPROG"  gslHeader="gsl_errno" type="integer"/>
   <gslConstant variable="GSL_Continue" gslSymbol="GSL_CONTINUE" gslHeader="gsl_errno" type="integer"/>
   <gslConstant variable="GSL_EBadFunc" gslSymbol="GSL_EBADFUNC" gslHeader="gsl_errno" type="integer"/>
+  <gslConstant variable="GSL_EBadTol"  gslSymbol="GSL_EBADTOL"  gslHeader="gsl_errno" type="integer"/>
+  <gslConstant variable="GSL_ETol"     gslSymbol="GSL_ETOL"     gslHeader="gsl_errno" type="integer"/>
   !!]
 
   ! Precision modes.

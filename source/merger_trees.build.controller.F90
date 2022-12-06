@@ -25,8 +25,9 @@ module Merger_Tree_Build_Controllers
   !!{
   Provides controller objects for building merger trees.
   !!}
-  use :: Galacticus_Nodes   , only : treeNode
-  use :: Merger_Tree_Walkers, only : mergerTreeWalkerClass
+  use :: Galacticus_Nodes     , only : treeNode
+  use :: Merger_Tree_Walkers  , only : mergerTreeWalkerClass
+  use :: Merger_Tree_Branching, only : mergerTreeBranchingProbabilityClass
   private
 
   !![
@@ -41,6 +42,43 @@ module Merger_Tree_Build_Controllers
     <pass>yes</pass>
     <argument>type (treeNode             ), intent(inout), pointer :: node       </argument>
     <argument>class(mergerTreeWalkerClass), intent(inout)          :: treeWalker_</argument>
+   </method>
+   <method name="timeMaximum" >
+    <description>Return the maximum ``time'' (using the usual $w$ variable for merger tree building) allowed for this node.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>type            (treeNode), intent(inout) :: node                                 </argument>
+    <argument>double precision          , intent(in   ) :: massBranch, criticalOverdensityBranch</argument>
+    <code>
+      !$GLC attributes unused :: self, node, massBranch, criticalOverdensityBranch
+      ! No limit to time by default.
+      mergerTreeBuildControllerTimeMaximum=huge(0.0d0)
+    </code>
+   </method>   
+   <method name="controlTimeMaximum" >
+    <description>Control the behavior of a tree build when the maximum time for a node is reached.</description>
+    <type>logical</type>
+    <pass>yes</pass>
+    <argument>type            (treeNode ), intent(inout), target :: node                                 </argument>
+    <argument>double precision           , intent(in   )         :: massBranch, criticalOverdensityBranch</argument>
+   <argument> integer         (kind_int8), intent(inout)         :: nodeIndex                            </argument>
+    <code>
+      !$GLC attributes unused :: self, node, massBranch, criticalOverdensityBranch
+      mergerTreeBuildControllerControlTimeMaximum=.true.
+    </code>
+   </method>
+   <method name="branchingProbabilityObject" >
+    <description>Return a branching probability object to use in tree building.</description>
+    <type>class(mergerTreeBranchingProbabilityClass)</type>
+    <pass>yes</pass>
+    <argument>type(treeNode), intent(inout) :: node</argument>
+   </method>
+   <method name="nodesInserted" >
+    <description>Alert the controller when new nodes are inserted into the tree.</description>
+    <type>void</type>
+    <pass>yes</pass>
+    <argument>type(treeNode), intent(inout)           :: nodeCurrent    , nodeProgenitor1</argument>
+    <argument>type(treeNode), intent(inout), optional :: nodeProgenitor2</argument>
    </method>
   </functionClass>
   !!]

@@ -243,6 +243,7 @@ program Tests_Halo_Mass_Function_Environmental_Average
   <referenceConstruct object="excursionSetFirstCrossing_"           >
    <constructor>
      excursionSetFirstCrossingLinearBarrier                     (                                                                           &amp;
+      &amp;                                                      fractionalTimeStep                 =0.01d0                               , &amp;
       &amp;                                                      excursionSetBarrier_               =excursionSetBarrier_                 , &amp;
       &amp;                                                      cosmologicalMassVariance_          =cosmologicalMassVariance_              &amp;
       &amp;                                                     )
@@ -251,6 +252,7 @@ program Tests_Halo_Mass_Function_Environmental_Average
   <referenceConstruct object="excursionSetFirstCrossingConditioned_">
    <constructor>
      excursionSetFirstCrossingLinearBarrier                     (                                                                           &amp;
+      &amp;                                                      fractionalTimeStep                 =0.01d0                               , &amp;
       &amp;                                                      excursionSetBarrier_               =excursionSetBarrierConditioned_      , &amp;
       &amp;                                                      cosmologicalMassVariance_          =cosmologicalMassVarianceConditioned_   &amp;
       &amp;                                                     )

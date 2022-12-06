@@ -42,6 +42,18 @@ module Merger_Tree_Operators
      return
     </code>
    </method>
+   <method name="operatePreInitialization" >
+    <description>Perform an operation on the merger tree prior to initialization.</description>
+    <type>void</type>
+    <pass>yes</pass>
+    <selfTarget>yes</selfTarget>
+    <argument>type(mergerTree), intent(inout), target :: tree</argument>
+    <code>
+     !$GLC attributes unused :: self, tree
+     ! Nothing to do.
+     return
+    </code>
+   </method>
    <method name="operatePreEvolution" >
     <description>Perform an operation on the merger tree prior to evolution.</description>
     <type>void</type>

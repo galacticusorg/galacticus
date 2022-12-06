@@ -26,6 +26,7 @@ program Tests_Sigma
   use :: Cosmology_Parameters                , only : cosmologyParametersSimple               , hubbleUnitsLittleH
   use :: Dark_Matter_Particles               , only : darkMatterParticleCDM
   use :: Display                             , only : displayVerbositySet                     , verbosityLevelStandard
+  use :: Error                               , only : Error_Handler_Register
   use :: Linear_Growth                       , only : linearGrowthCollisionlessMatter
   use :: Numerical_Constants_Math            , only : Pi
   use :: Numerical_Ranges                    , only : Make_Range                              , rangeTypeLogarithmic
@@ -54,6 +55,8 @@ program Tests_Sigma
   double precision                                                                 :: mass8                                        , radius8                                        , &
        &                                                                              sigma8
 
+  ! Initialize error handling.
+  call Error_Handler_Register()
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
   ! Begin unit tests.

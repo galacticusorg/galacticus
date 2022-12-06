@@ -93,7 +93,7 @@
      ! Variables controlling merger tree accuracy.
      double precision                                                     :: accretionLimit                                    , timeEarliest             , &
           &                                                                  mergeProbability                                  , timeNow                  , &
-          &                                                                  redshiftMaximum
+          &                                                                  redshiftMaximum                                   , toleranceTimeEarliest
      ! Random number sequence variables
      logical                                                              :: branchIntervalStep
      ! Interval distribution.
@@ -140,7 +140,7 @@ contains
     class           (mergerTreeBuildControllerClass     ), pointer       :: mergerTreeBuildController_
     double precision                                                     :: mergeProbability               , accretionLimit         , &
          &                                                                  redshiftMaximum                , toleranceResolutionSelf, &
-         &                                                                  toleranceResolutionParent
+         &                                                                  toleranceResolutionParent      , toleranceTimeEarliest
     logical                                                              :: branchIntervalStep
 
     ! Check and read parameters.
@@ -162,6 +162,12 @@ contains
       <source>parameters</source>
       <defaultValue>1.0d5</defaultValue>
       <description>The highest redshift to which merger trees will be built in the \cite{cole_hierarchical_2000} method.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>toleranceTimeEarliest</name>
+      <source>parameters</source>
+      <defaultValue>2.0d-6</defaultValue>
+      <description>The fractional tolerance used to judge if a branch is at the earliest allowed time in the tree.</description>
     </inputParameter>
     <inputParameter>
       <name>branchIntervalStep</name>
@@ -192,6 +198,7 @@ contains
          &                                                                                                           mergeProbability                 , &
          &                                                                                                           accretionLimit                   , &
          &                            cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftMaximum                )), &
+         &                                                                                                           toleranceTimeEarliest            , &
          &                                                                                                           branchIntervalStep               , &
          &                                                                                                           toleranceResolutionSelf          , &
          &                                                                                                           toleranceResolutionParent        , &
@@ -214,7 +221,7 @@ contains
     return
   end function cole2000ConstructorParameters
 
-  function cole2000ConstructorInternal(mergeProbability,accretionLimit,timeEarliest,branchIntervalStep,toleranceResolutionSelf,toleranceResolutionParent,mergerTreeBranchingProbability_,mergerTreeMassResolution_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,mergerTreeBuildController_) result(self)
+  function cole2000ConstructorInternal(mergeProbability,accretionLimit,timeEarliest,toleranceTimeEarliest,branchIntervalStep,toleranceResolutionSelf,toleranceResolutionParent,mergerTreeBranchingProbability_,mergerTreeMassResolution_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,mergerTreeBuildController_) result(self)
     !!{
     Internal constructor for the \cite{cole_hierarchical_2000} merger tree building class.
     !!}
@@ -223,7 +230,7 @@ contains
     type            (mergerTreeBuilderCole2000          )                        :: self
     double precision                                     , intent(in   )         :: mergeProbability               , accretionLimit         , &
          &                                                                          timeEarliest                   , toleranceResolutionSelf, &
-         &                                                                          toleranceResolutionParent
+         &                                                                          toleranceResolutionParent      , toleranceTimeEarliest
     logical                                              , intent(in   )         :: branchIntervalStep
     class           (mergerTreeBranchingProbabilityClass), intent(in   ), target :: mergerTreeBranchingProbability_
     class           (mergerTreeMassResolutionClass      ), intent(in   ), target :: mergerTreeMassResolution_
@@ -232,7 +239,7 @@ contains
     class           (cosmologicalMassVarianceClass      ), intent(in   ), target :: cosmologicalMassVariance_
     class           (mergerTreeBuildControllerClass     ), intent(in   ), target :: mergerTreeBuildController_
     !![
-    <constructorAssign variables="mergeProbability, accretionLimit, timeEarliest, branchIntervalStep, toleranceResolutionSelf, toleranceResolutionParent, *mergerTreeBranchingProbability_, *mergerTreeMassResolution_, *cosmologyFunctions_, *criticalOverdensity_, *cosmologicalMassVariance_, *mergerTreeBuildController_"/>
+    <constructorAssign variables="mergeProbability, accretionLimit, timeEarliest, toleranceTimeEarliest, branchIntervalStep, toleranceResolutionSelf, toleranceResolutionParent, *mergerTreeBranchingProbability_, *mergerTreeMassResolution_, *cosmologyFunctions_, *criticalOverdensity_, *cosmologicalMassVariance_, *mergerTreeBuildController_"/>
     !!]
 
     ! Store maximum redshift.
@@ -270,7 +277,8 @@ contains
     !!{
     Build a merger tree.
     !!}
-    use :: Display                 , only : displayReset                 , displayMagenta
+    use :: Display                 , only : displayReset                 , displayMagenta                  , displayGreen, displayYellow, &
+         &                                  displayBlue
     use :: Error                   , only : Error_Report                 , Warn
     use :: Galacticus_Nodes        , only : mergerTree                   , nodeComponentBasic              , treeNode
     use :: ISO_Varying_String      , only : varying_string
@@ -279,30 +287,33 @@ contains
     use :: Merger_Tree_Walkers     , only : mergerTreeWalkerIsolatedNodes, mergerTreeWalkerTreeConstruction
     use :: Numerical_Comparison    , only : Values_Agree
     implicit none
-    class           (mergerTreeBuilderCole2000       ), intent(inout)         :: self
-    type            (mergerTree                      ), intent(inout), target :: tree
-    type            (treeNode                        ), pointer               :: nodeNew1                     , nodeNew2                   , node                      , &
-         &                                                                       nodeChild
-    class           (nodeComponentBasic              ), pointer               :: basicNew1                    , basicNew2                  , basic                     , &
-         &                                                                       basicParent                  , basicChild
-    double precision                                  , parameter             :: toleranceTimeEarliest =2.0d-6
-    double precision                                  , parameter             :: toleranceDeltaCritical=1.0d-6
-    double precision                                  , parameter             :: toleranceTime         =1.0d-6
-    type            (mergerTreeWalkerTreeConstruction)                        :: treeWalkerConstruction
-    type            (mergerTreeWalkerIsolatedNodes   )                        :: treeWalkerIsolated
-    integer         (kind=kind_int8                  )                        :: nodeIndex
-    double precision                                                          :: accretionFraction            , timeNodeBase               , branchingProbability      , &
-         &                                                                       collapseTime                 , deltaCritical              , deltaCritical1            , &
-         &                                                                       deltaCritical2               , deltaW                     , nodeMass1                 , &
-         &                                                                       nodeMass2                    , deltaCriticalEarliest      , uniformRandom             , &
-         &                                                                       massResolution               , accretionFractionCumulative, branchMassCurrent         , &
-         &                                                                       branchDeltaCriticalCurrent   , branchingInterval          , branchingIntervalScaleFree, &
-         &                                                                       branchingProbabilityRate     , deltaWAccretionLimit       , deltaWEarliestTime        , &
-         &                                                                       collapseTimeTruncate         , rootVarianceGrowthFactor   , time
-    logical                                                                   :: doBranch                     , branchIsDone               , snapAccretionFraction     , &
-         &                                                                       snapEarliestTime
-    type            (varying_string                  )                        :: message
-    character       (len=20                          )                        :: label
+    class           (mergerTreeBuilderCole2000          ), intent(inout)         :: self
+    type            (mergerTree                         ), intent(inout), target :: tree
+    type            (treeNode                           ), pointer               :: nodeNew1                              , nodeNew2                   , node                      , &
+         &                                                                          nodeChild
+    class           (nodeComponentBasic                 ), pointer               :: basicNew1                             , basicNew2                  , basic                     , &
+         &                                                                          basicParent                           , basicChild
+    class           (mergerTreeBranchingProbabilityClass), pointer               :: mergerTreeBranchingProbability_
+    double precision                                     , parameter             :: toleranceDeltaCritical         =1.0d-6
+    double precision                                     , parameter             :: toleranceTime                  =1.0d-6
+    integer                                              , parameter             :: limitNoProgress                =10000
+    type            (mergerTreeWalkerTreeConstruction   )                        :: treeWalkerConstruction
+    type            (mergerTreeWalkerIsolatedNodes      )                        :: treeWalkerIsolated
+    integer         (kind=kind_int8                     )                        :: nodeIndex
+    integer                                                                      :: countNoProgress
+    double precision                                                             :: accretionFraction                     , timeNodeBase               , branchingProbability      , &
+         &                                                                          collapseTime                          , deltaCritical              , deltaCritical1            , &
+         &                                                                          deltaCritical2                        , deltaW                     , nodeMass1                 , &
+         &                                                                          nodeMass2                             , deltaCriticalEarliest      , uniformRandom             , &
+         &                                                                          massResolution                        , accretionFractionCumulative, branchMassCurrent         , &
+         &                                                                          branchDeltaCriticalCurrent            , branchingInterval          , branchingIntervalScaleFree, &
+         &                                                                          branchingProbabilityRate              , deltaWAccretionLimit       , deltaWEarliestTime        , &
+         &                                                                          collapseTimeTruncate                  , rootVarianceGrowthFactor   , time                      , &
+         &                                                                          deltaWController                      , branchDeltaCriticalPrevious, branchMassPrevious
+    logical                                                                      :: doBranch                              , branchIsDone               , snapAccretionFraction     , &
+         &                                                                          snapEarliestTime                      , controlLimited
+    type            (varying_string                     )                        :: message
+    character       (len=20                             )                        :: label
 
     ! Begin construction.
     nodeIndex =  1               ! Initialize the node index counter to unity.
@@ -344,15 +355,43 @@ contains
        branchDeltaCriticalCurrent  =  basic%time ()
        ! Evolve the branch until mass falls below the resolution limit, the earliest time is reached, or the branch ends.
        branchIsDone                =  .false.
+       countNoProgress             =  0
+       branchDeltaCriticalPrevious =  -huge(0.0d0)
+       branchMassPrevious          =  -huge(0.0d0)
        do while (.not.branchIsDone)
+          ! Get the branching probability object to use for this step.
+          mergerTreeBranchingProbability_ => self%mergerTreeBuildController_%branchingProbabilityObject(node)
           ! Get the growth factor in the root variance at the mass of the current branch.
           time                    =+self%criticalOverdensity_     %timeOfCollapse(criticalOverdensity=     branchDeltaCriticalCurrent,mass=branchMassCurrent,node=node)
           rootVarianceGrowthFactor=+self%cosmologicalMassVariance_%rootVariance  (time               =     time                      ,mass=branchMassCurrent          ) &
                &                   /self%cosmologicalMassVariance_%rootVariance  (time               =self%timeNow                   ,mass=branchMassCurrent          )
-          if     (                                                                      &
-               &   branchMassCurrent <= massResolution                                  &
-               &  .or.                                                                  &
-               &   time              <  self%timeEarliest*(1.0d0+toleranceTimeEarliest) &
+          ! Check for progress.
+          if (branchDeltaCriticalCurrent == branchDeltaCriticalPrevious .and. branchMassCurrent == branchMassPrevious) then
+             countNoProgress            =countNoProgress+1
+          else
+             countNoProgress            =0
+             branchDeltaCriticalPrevious=branchDeltaCriticalCurrent
+             branchMassPrevious         =branchMassCurrent
+          end if
+          if (countNoProgress >= limitNoProgress) then
+             message='branch is making no progress'
+             if (time < self%timeEarliest*1.01d0) then
+                write (label,'(e12.6)') self%toleranceTimeEarliest
+                message=message                                                                                        //char(10)// &
+                     &  displayGreen()//'   HELP:'//displayReset()//' branch is within 1% of the imposed earliest time'//char(10)// &
+                     &                  '          - this may be a tolerance issue'                                    //char(10)// &
+                     &                  '          - try increasing the value of the tolerance parameter, currently:'  //char(10)// &
+                     &                  '             <'//displayBlue()//'toleranceTimeEarliest'//displayReset()//' '            // &
+                     & displayYellow()//'value'//displayReset()//'='//displayGreen()//'"'//trim(adjustl(label))//'"'             // &
+                     & displayReset ()//'/>'
+             end if
+             call Error_Report(message//{introspection:location})
+          end if
+          ! Process the branch.
+          if     (                                                                           &
+               &   branchMassCurrent <= massResolution                                       &
+               &  .or.                                                                       &
+               &   time              <  self%timeEarliest*(1.0d0+self%toleranceTimeEarliest) &
                & ) then
              ! Branch should be terminated. If we have any accumulated accretion, terminate the branch with a final node.
              if (accretionFractionCumulative > 0.0d0) then
@@ -376,10 +415,10 @@ contains
              branchIsDone=.true.
           else
              ! Find branching probability rate per unit δw.
-             branchingProbabilityRate=+self%mergerTreeBranchingProbability_%probabilityBound     (branchMassCurrent,branchDeltaCriticalCurrent,time,massResolution,mergerTreeBranchingBoundUpper,node) &
+             branchingProbabilityRate=+mergerTreeBranchingProbability_%probabilityBound     (branchMassCurrent,branchDeltaCriticalCurrent,time,massResolution,mergerTreeBranchingBoundUpper,node) &
                   &                   *rootVarianceGrowthFactor
              ! Find accretion rate.
-             accretionFraction       =+self%mergerTreeBranchingProbability_%fractionSubresolution(branchMassCurrent,branchDeltaCriticalCurrent,time,massResolution                              ,node) &
+             accretionFraction       =+mergerTreeBranchingProbability_%fractionSubresolution(branchMassCurrent,branchDeltaCriticalCurrent,time,massResolution                              ,node) &
                   &                   *rootVarianceGrowthFactor
              ! A negative accretion fraction indicates that the node is so close to the resolution limit that
              ! an accretion rate cannot be determined (given available numerical accuracy). In such cases we
@@ -417,7 +456,7 @@ contains
              else
                 ! Finding maximum allowed step in w. Limit based on branching rate only if we are using the original Cole et
                 ! al. (2000) algorithm.
-                deltaW               =self%mergerTreeBranchingProbability_%stepMaximum(branchMassCurrent,branchDeltaCriticalCurrent,time,massResolution)/rootVarianceGrowthFactor
+                deltaW               =mergerTreeBranchingProbability_%stepMaximum(branchMassCurrent,branchDeltaCriticalCurrent,time,massResolution)/rootVarianceGrowthFactor
                 snapAccretionFraction=.false.
                 if (accretionFraction > 0.0d0) then
                    deltaWAccretionLimit=(self%accretionLimit-accretionFractionCumulative)/accretionFraction
@@ -452,6 +491,17 @@ contains
                 else
                    snapEarliestTime     =.false.
                 end if
+                ! Limit the timestep according to the build controller.
+                deltaWController=+self%mergerTreeBuildController_%timeMaximum(node,branchMassCurrent,branchDeltaCriticalCurrent) &
+                     &           -branchDeltaCriticalCurrent
+                if (deltaWController < deltaW) then
+                   deltaW               =deltaWController
+                   controlLimited       =.true.
+                   snapAccretionFraction=.false.
+                   snapEarliestTime     =.false.
+                else
+                   controlLimited       =.false.
+                end if
                 ! Scale values to the determined timestep.
                 branchingProbability       =0.0d0
                 if (.not.self%branchIntervalStep)                           &
@@ -467,6 +517,7 @@ contains
                    deltaW                     =deltaW              *0.5d0
                    snapAccretionFraction      =.false.
                    snapEarliestTime           =.false.
+                   controlLimited             =.false.
                 end do
                 ! Decide if a branching occurs.
                 if (self%branchIntervalStep) then
@@ -481,9 +532,9 @@ contains
                       ! Based on the upper bound on the rate, check if branching occurs before the maximum allowed timestep.
                       if (branchingInterval < deltaW) then
                          ! It does, so recheck using the actual branching rate.
-                         branchingProbabilityRate=+self%mergerTreeBranchingProbability_%probability(branchMassCurrent,branchDeltaCriticalCurrent,time,massResolution,node) &
+                         branchingProbabilityRate=+mergerTreeBranchingProbability_%probability(branchMassCurrent,branchDeltaCriticalCurrent,time,massResolution,node) &
                               &                   *rootVarianceGrowthFactor
-                         branchingInterval       =+branchingIntervalScaleFree                                                                                              &
+                         branchingInterval       =+branchingIntervalScaleFree                                                                                         &
                               &                   /branchingProbabilityRate
                          doBranch                =(branchingInterval <= deltaW)
                          if (doBranch) then
@@ -492,6 +543,7 @@ contains
                             deltaW               =branchingInterval
                             snapAccretionFraction=.false.
                             snapEarliestTime     =.false.
+                            controlLimited       =.false.
                             ! Draw a random deviate and scale by the branching rate - this will be used to choose the branch mass.
                             uniformRandom       =tree%randomNumberGenerator_%uniformSample()       
                             branchingProbability=uniformRandom*branchingProbabilityRate
@@ -508,14 +560,14 @@ contains
                       uniformRandom=tree%randomNumberGenerator_%uniformSample()
                       doBranch=(uniformRandom <= branchingProbability)
                       if (doBranch) then
-                         branchingProbability   =+self%mergerTreeBranchingProbability_%probabilityBound(branchMassCurrent,branchDeltaCriticalCurrent,time,massResolution,mergerTreeBranchingBoundLower,node) &
-                              &                  *deltaW                                                                                                                                                     &
+                         branchingProbability   =+mergerTreeBranchingProbability_%probabilityBound(branchMassCurrent,branchDeltaCriticalCurrent,time,massResolution,mergerTreeBranchingBoundLower,node) &
+                              &                  *deltaW                                                                                                                                                &
                               &                  *rootVarianceGrowthFactor
                          if (uniformRandom <= branchingProbability) then
                             doBranch=.true.
                          else
-                            branchingProbability=+self%mergerTreeBranchingProbability_%probability     (branchMassCurrent,branchDeltaCriticalCurrent,time,massResolution                              ,node) &
-                                 &               *deltaW                                                                                                                                                     &
+                            branchingProbability=+mergerTreeBranchingProbability_%probability     (branchMassCurrent,branchDeltaCriticalCurrent,time,massResolution                              ,node) &
+                                 &               *deltaW                                                                                                                                                &
                                  &               *rootVarianceGrowthFactor
                             doBranch=(uniformRandom <= branchingProbability)
                          end if
@@ -548,7 +600,7 @@ contains
                    nodeNew1      => treeNode(nodeIndex,tree)
                    basicNew1     => nodeNew1%basic(autoCreate=.true.)
                    ! Compute mass of one of the new nodes.
-                   nodeMass1     =  self%mergerTreeBranchingProbability_%massBranch(branchMassCurrent,branchDeltaCriticalCurrent,time,massResolution,branchingProbability/rootVarianceGrowthFactor,tree%randomNumberGenerator_,node)
+                   nodeMass1     =  mergerTreeBranchingProbability_%massBranch(branchMassCurrent,branchDeltaCriticalCurrent,time,massResolution,branchingProbability/rootVarianceGrowthFactor,tree%randomNumberGenerator_,node)
                    nodeMass2     =  basic%mass()-nodeMass1
                    nodeMass1=nodeMass1*(1.0d0-accretionFractionCumulative)
                    nodeMass2=nodeMass2*(1.0d0-accretionFractionCumulative)
@@ -558,26 +610,38 @@ contains
                    if (snapEarliestTime.and.Values_Agree(deltaCritical1,deltaCritical,relTol=toleranceDeltaCritical)) deltaCritical1=deltaCritical
                    call basicNew1%massSet(nodeMass1     )
                    call basicNew1%timeSet(deltaCritical1)
-                   ! Create second progenitor.
-                   nodeIndex=nodeIndex+1
-                   nodeNew2  => treeNode(nodeIndex,tree)
-                   basicNew2 => nodeNew2%basic(autoCreate=.true.)
-                   ! Compute the critical overdensity of the second new node.
-                   deltaCritical2=self%criticalOverdensityUpdate(deltaCritical,branchMassCurrent,nodeMass2,nodeNew2)
-                   ! If we are to snap halos to the earliest time, and the computed deltaCritical is sufficiently close to that time, snap it.
-                   if (snapEarliestTime.and.Values_Agree(deltaCritical2,deltaCritical,relTol=toleranceDeltaCritical)) deltaCritical2=deltaCritical
-                   call basicNew2%massSet(nodeMass2     )
-                   call basicNew2%timeSet(deltaCritical2)
-                   ! Create links from old to new nodes and vice-versa. (Ensure that the first child node is the more massive progenitor.)
-                   if (nodeMass2 > nodeMass1) then
-                      node    %firstChild => nodeNew2
-                      nodeNew2%sibling    => nodeNew1
+                   ! Create second progenitor if it would be above the mass resolution.
+                   if (nodeMass2 > massResolution) then
+                      nodeIndex=nodeIndex+1
+                      nodeNew2  => treeNode(nodeIndex,tree)
+                      basicNew2 => nodeNew2%basic(autoCreate=.true.)
+                      ! Compute the critical overdensity of the second new node.
+                      deltaCritical2=self%criticalOverdensityUpdate(deltaCritical,branchMassCurrent,nodeMass2,nodeNew2)
+                      ! If we are to snap halos to the earliest time, and the computed deltaCritical is sufficiently close to that time, snap it.
+                      if (snapEarliestTime.and.Values_Agree(deltaCritical2,deltaCritical,relTol=toleranceDeltaCritical)) deltaCritical2=deltaCritical
+                      call basicNew2%massSet(nodeMass2     )
+                      call basicNew2%timeSet(deltaCritical2)
+                      ! Inform the build controller of these new nodes.
+                      call self%mergerTreeBuildController_%nodesInserted(node,nodeNew1,nodeNew2)
+                      ! Create links from old to new nodes and vice-versa. (Ensure that the first child node is the more massive progenitor.)
+                      if (nodeMass2 > nodeMass1) then
+                         node    %firstChild => nodeNew2
+                         nodeNew2%sibling    => nodeNew1
+                      else
+                         node    %firstChild => nodeNew1
+                         nodeNew1%sibling    => nodeNew2
+                      end if
+                      nodeNew1%parent        => node
+                      nodeNew2%parent        => node
                    else
+                      ! Second branch would be subresolution - do not create it.
+                      ! Inform the build controller of the new node.
+                      call self%mergerTreeBuildController_%nodesInserted(node,nodeNew1)
+                      ! Create links from old to new nodes and vice-versa.
                       node    %firstChild => nodeNew1
-                      nodeNew1%sibling    => nodeNew2
+                      nodeNew1%sibling    => null()
+                      nodeNew1%parent     => node
                    end if
-                   nodeNew1%parent        => node
-                   nodeNew2%parent        => node
                    branchIsDone           =  .true.
                 case (.false.)
                    ! No branching occurs - create one progenitor.
@@ -591,6 +655,8 @@ contains
                       deltaCritical1=self%criticalOverdensityUpdate(deltaCritical,branchMassCurrent,nodeMass1,nodeNew1)
                       call basicNew1%massSet(nodeMass1     )
                       call basicNew1%timeSet(deltaCritical1)
+                      ! Inform the build controller of this new node.
+                      call self%mergerTreeBuildController_%nodesInserted(node,nodeNew1)
                       ! Create links from old to new node and vice-versa.
                       node    %firstChild => nodeNew1
                       nodeNew1%parent     => node
@@ -605,6 +671,8 @@ contains
                       branchMassCurrent         =nodeMass1
                    end if
                 end select
+                ! If the timestep was limited by the build controller, allow the build controller to respond.
+                if (controlLimited) branchIsDone=.not.self%mergerTreeBuildController_%controlTimeMaximum(node,branchMassCurrent,branchDeltaCriticalCurrent,nodeIndex)
              end if
           end if
        end do
