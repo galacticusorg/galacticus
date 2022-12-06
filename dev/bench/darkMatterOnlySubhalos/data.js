@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1670032553605,
+  "lastUpdate": 1670322841091,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
@@ -5279,6 +5279,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 26209.4879648531,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5ea7873f6a3a1ef08f67d114710b77cca7d9529b",
+          "message": "Merge pull request #338 from galacticusorg/constrainedTrees\n\nAdd functionality for building constrained merger trees",
+          "timestamp": "2022-12-05T20:54:55-08:00",
+          "tree_id": "5c8098f5f07ea2fb1ff6f841dfb6033304849fc3",
+          "url": "https://github.com/galacticusorg/galacticus/commit/5ea7873f6a3a1ef08f67d114710b77cca7d9529b"
+        },
+        "date": 1670322839671,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 63.607,
+            "unit": "seconds",
+            "range": 0.123134479330149
           }
         ]
       }
