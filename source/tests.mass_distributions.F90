@@ -25,39 +25,45 @@ program Test_Mass_Distributions
   !!{
   Tests mass distributions.
   !!}
-  use :: Coordinates             , only : assignment(=)              , coordinateSpherical
-  use :: Display                 , only : displayVerbositySet        , verbosityLevelStandard
+  use :: Coordinates             , only : assignment(=)                    , coordinateSpherical                , coordinateCartesian
+  use :: Display                 , only : displayVerbositySet              , verbosityLevelStandard
   use :: Error_Functions         , only : Error_Function
   use :: Error                   , only : Error_Report
   use :: Events_Hooks            , only : eventsHooksInitialize
-  use :: Linear_Algebra          , only : assignment(=)              , vector
-  use :: Mass_Distributions      , only : massDistributionBetaProfile, massDistributionClass , massDistributionExponentialDisk, massDistributionGaussianEllipsoid, &
-          &                               massDistributionHernquist  , massDistributionSersic, massDistributionSpherical
+  use :: Linear_Algebra          , only : assignment(=)                    , vector
+  use :: Mass_Distributions      , only : massDistributionBetaProfile      , massDistributionClass              , massDistributionExponentialDisk        , massDistributionGaussianEllipsoid, &
+       &                                  massDistributionHernquist        , massDistributionSersic             , massDistributionSpherical              , massDistributionComposite        , &
+       &                                  massDistributionList             , massDistributionSymmetryCylindrical, enumerationMassDistributionSymmetryType, massDistributionSphericalScaler  , &
+       &                                  massDistributionCylindricalScaler, massDistributionCylindrical
   use :: Numerical_Constants_Math, only : Pi
   use :: Tensors                 , only : assignment(=)
-  use :: Unit_Tests              , only : Assert                     , Unit_Tests_Begin_Group, Unit_Tests_End_Group           , Unit_Tests_Finish
+  use :: Unit_Tests              , only : Assert                           , Unit_Tests_Begin_Group             , Unit_Tests_End_Group                   , Unit_Tests_Finish
   implicit none
-  class           (massDistributionClass)                             , allocatable :: massDistribution_                                                                                               , massDistributionRotated
-  integer                                , parameter                                :: sersicTableCount             =8
-  double precision                       , dimension(sersicTableCount)              :: sersicTableRadius            =[1.0000d-06,1.0000d-5,1.0000d-4,1.0000d-3,1.0000d-2,1.0000d-1,1.0000d+0,1.0000d+1]
+  class           (massDistributionClass                  )                             , allocatable :: massDistribution_                                                                                               , massDistributionRotated       , &
+       &                                                                                                 massDistributionDisk                                                                                            , massDistributionSpheroid
+  type            (massDistributionList                   )                             , pointer     :: massDistributions
+  integer                                                  , parameter                                :: sersicTableCount             =8
+  double precision                                         , dimension(sersicTableCount)              :: sersicTableRadius            =[1.0000d-06,1.0000d-5,1.0000d-4,1.0000d-3,1.0000d-2,1.0000d-1,1.0000d+0,1.0000d+1]
   ! Mass targets for Sersic profile from Mazure & Capelato (2001).
-  double precision                       , dimension(sersicTableCount)              :: sersicTableMassTarget        =[1.4730d-11,2.1130d-9,2.5959d-7,2.4545d-5,1.4961d-3,4.4102d-2,4.1536d-1,9.4308d-1]
+  double precision                                         , dimension(sersicTableCount)              :: sersicTableMassTarget        =[1.4730d-11,2.1130d-9,2.5959d-7,2.4545d-5,1.4961d-3,4.4102d-2,4.1536d-1,9.4308d-1]
   ! Density targets for Sersic profile from Mazure & Capelato (2001).
-  double precision                       , dimension(sersicTableCount)              :: sersicTableDensityTarget     =[2.5553d+06,3.5797d+5,4.2189d+4,3.7044d+3,1.9679d+2,4.4047d+0,2.1943d-2,7.8166d-6]
+  double precision                                         , dimension(sersicTableCount)              :: sersicTableDensityTarget     =[2.5553d+06,3.5797d+5,4.2189d+4,3.7044d+3,1.9679d+2,4.4047d+0,2.1943d-2,7.8166d-6]
   ! Potential targets for Sersic profile from Young (1976).
-  double precision                       , dimension(sersicTableCount)              :: sersicTablePotentialTarget   =[1.0000d+00,9.9993d-1,9.9908d-1,9.9027d-1,9.2671d-1,6.7129d-1,2.4945d-1,3.7383d-2]
-  double precision                       , dimension(sersicTableCount)              :: sersicTableDensity                                                                                              , sersicTableMass               , &
-       &                                                                               sersicTablePotential
-  type            (coordinateSpherical  )                                           :: position                                                                                                        , positionZero
-  integer                                                                           :: i
-  double precision                                                                  :: radiusInProjection                                                                                              , radius                        , &
-       &                                                                               rotationCurveGradientAnalytic                                                                                   , rotationCurveGradientNumerical, &
-       &                                                                               massFraction
-  double precision                       , parameter                                :: epsilonFiniteDifference      =0.01d0
-  character       (len=4                )                                           :: label
-  double precision                       , dimension(3,3)                           :: tidalTensorComponents                                                                                           , tidalTensorSphericalComponents
-  double precision                       , dimension(3  )                           :: acceleration
-  type            (vector               ), dimension(:  )             , allocatable :: axes
+  double precision                                         , dimension(sersicTableCount)              :: sersicTablePotentialTarget   =[1.0000d+00,9.9993d-1,9.9908d-1,9.9027d-1,9.2671d-1,6.7129d-1,2.4945d-1,3.7383d-2]
+  double precision                                         , dimension(sersicTableCount)              :: sersicTableDensity                                                                                              , sersicTableMass               , &
+       &                                                                                                 sersicTablePotential
+  type            (coordinateSpherical                    )                                           :: position                                                                                                        , positionZero
+  type            (coordinateCartesian                    )                                           :: positionCartesian
+  type            (enumerationMassDistributionSymmetryType)                                           :: symmetry_
+  integer                                                                                             :: i
+  double precision                                                                                    :: radiusInProjection                                                                                              , radius                        , &
+       &                                                                                                 rotationCurveGradientAnalytic                                                                                   , rotationCurveGradientNumerical, &
+       &                                                                                                 massFraction
+  double precision                                         , parameter                                :: epsilonFiniteDifference      =0.01d0
+  character       (len=4                                  )                                           :: label
+  double precision                                         , dimension(3,3)                           :: tidalTensorComponents                                                                                           , tidalTensorSphericalComponents
+  double precision                                         , dimension(3  )                           :: acceleration
+  type            (vector                                 ), dimension(:  )             , allocatable :: axes
   
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -360,8 +366,75 @@ program Test_Mass_Distributions
   end select
   deallocate(massDistribution_)
   call Unit_Tests_End_Group()
+  ! Composite profile.
+  call Unit_Tests_Begin_Group("Composite profile (Hernquist + Exponential disk)")
+  allocate(                                   massDistributions                       )
+  allocate(                                   massDistributions%next                  )
+  allocate(massDistributionHernquist       :: massDistributions     %massDistribution_)
+  allocate(massDistributionExponentialDisk :: massDistributions%next%massDistribution_)
+  select type (massDistribution_ => massDistributions     %massDistribution_)
+  type is (massDistributionHernquist      )
+     massDistribution_=massDistributionHernquist      (mass=9.0d09,scaleLength=0.7d-3                   )
+  end select
+  select type (massDistribution_ => massDistributions%next%massDistribution_)
+  type is (massDistributionExponentialDisk)
+     massDistribution_=massDistributionExponentialDisk(mass=5.7d10,scaleRadius=2.9d-3,scaleHeight=0.3d-3)
+  end select
+  allocate(massDistributionComposite :: massDistribution_)
+  select type (massDistribution_)
+  type is (massDistributionComposite)
+     massDistribution_=massDistributionComposite(massDistributions)
+  end select
+  symmetry_=massDistribution_%symmetry()
+  call Assert("Maximal symmetry [cylindrical]",symmetry_        %ID                        ,massDistributionSymmetryCylindrical%ID              )
+  positionCartesian=[1.0d-3,0.0d0,0.0d0]
+  call Assert("Density at (x,y,z)=(1,0,0) kpc",massDistribution_%density(positionCartesian),1.47756308872d18                      ,relTol=1.0d-6)
+  nullify   (massDistributions)
+  deallocate(massDistribution_)
+  call Unit_Tests_End_Group()
+  ! Composite profile with scaled components.
+  call Unit_Tests_Begin_Group("Composite profile (Hernquist + Exponential disk; scaled)")
+  allocate(massDistributionExponentialDisk   :: massDistributionDisk                    )
+  allocate(massDistributionHernquist         :: massDistributionSpheroid                )
+  allocate(                                     massDistributions                       )
+  allocate(                                     massDistributions%next                  )
+  allocate(massDistributionSphericalScaler   :: massDistributions     %massDistribution_)
+  allocate(massDistributionCylindricalScaler :: massDistributions%next%massDistribution_)
+  select type (massDistribution_ => massDistributionSpheroid                )
+  type is (massDistributionHernquist        )
+     massDistribution_   =massDistributionHernquist        (                                                           dimensionless    =.true.                  )
+  end select
+  select type (massDistribution_ => massDistributionDisk                    )
+  type is (massDistributionExponentialDisk  )
+     massDistribution_   =massDistributionExponentialDisk  (scaleHeight        =0.3d-3/2.9d-3                         ,dimensionless    =.true.                  )
+  end select
+  select type (massDistribution_ => massDistributions     %massDistribution_)
+  type is (massDistributionSphericalScaler                  )
+     select type (massDistributionSpheroid)
+     class is (massDistributionSpherical  )
+        massDistribution_=massDistributionSphericalScaler  (factorScalingLength=0.7d-3       ,factorScalingMass=9.0d09,massDistribution_=massDistributionSpheroid)
+     end select
+  end select
+  select type (massDistribution_ => massDistributions%next%massDistribution_)
+  type is (massDistributionCylindricalScaler)
+     select type (massDistributionDisk    )
+     class is (massDistributionCylindrical)
+        massDistribution_=massDistributionCylindricalScaler(factorScalingLength=2.9d-3       ,factorScalingMass=5.7d10,massDistribution_=massDistributionDisk    )
+     end select
+  end select
+  allocate(massDistributionComposite :: massDistribution_)
+  select type (massDistribution_)
+  type is (massDistributionComposite)
+     massDistribution_=massDistributionComposite(massDistributions)
+  end select
+  symmetry_=massDistribution_%symmetry()
+  call Assert("Maximal symmetry [cylindrical]",symmetry_        %ID                        ,massDistributionSymmetryCylindrical%ID              )
+  positionCartesian=[1.0d-3,0.0d0,0.0d0]
+  call Assert("Density at (x,y,z)=(1,0,0) kpc",massDistribution_%density(positionCartesian),1.47756308872d18                      ,relTol=1.0d-6)
+  nullify   (massDistributions)
+  deallocate(massDistribution_)
+  call Unit_Tests_End_Group()
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish()
-
 end program Test_Mass_Distributions
