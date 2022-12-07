@@ -55,6 +55,7 @@
      procedure :: acceleration                      => cylindricalScalerAcceleration
      procedure :: tidalTensor                       => cylindricalScalerTidalTensor
      procedure :: positionSample                    => cylindricalScalerPositionSample
+     procedure :: isDimensionless                   => cylindricalScalerIsDimensionless
   end type massDistributionCylindricalScaler
 
   interface massDistributionCylindricalScaler
@@ -133,6 +134,17 @@ contains
     !!]
     return
   end subroutine cylindricalScalerDestructor
+
+  logical function cylindricalScalerIsDimensionless(self)
+    !!{
+    Return the dimensional status.
+    !!}
+    implicit none
+    class(massDistributionCylindricalScaler), intent(inout) :: self
+
+    cylindricalScalerIsDimensionless=.false.
+    return
+  end function cylindricalScalerIsDimensionless
 
   double precision function cylindricalScalerDensity(self,coordinates)
     !!{

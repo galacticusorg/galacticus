@@ -51,6 +51,7 @@
      procedure :: tidalTensor           => sphericalScalerTidalTensor
      procedure :: radiusEnclosingMass   => sphericalScalerRadiusEnclosingMass
      procedure :: positionSample        => sphericalScalerPositionSample
+     procedure :: isDimensionless       => sphericalScalerIsDimensionless
   end type massDistributionSphericalScaler
 
   interface massDistributionSphericalScaler
@@ -129,6 +130,17 @@ contains
     !!]
     return
   end subroutine sphericalScalerDestructor
+
+  logical function sphericalScalerIsDimensionless(self)
+    !!{
+    Return the dimensional status.
+    !!}
+    implicit none
+    class(massDistributionSphericalScaler), intent(inout) :: self
+
+    sphericalScalerIsDimensionless=.false.
+    return
+  end function sphericalScalerIsDimensionless
 
   double precision function sphericalScalerDensity(self,coordinates)
     !!{
