@@ -258,7 +258,7 @@ module Hot_Halo_Mass_Distributions
     double precision                              , parameter                   :: XvMaximum                                    =10.0d0
     double precision                                                            :: radius                                              , velocity         , &
          &                                                                         density                                             , xV
-    !$GLC attributes unused :: radiusHalfMass
+    !$GLC attributes unused :: radiusHalfMass, nodeSatellite
     
     radius                                      = sqrt(sum(positionCartesian**2))
     velocity                                    = sqrt(sum(velocityCartesian**2))
