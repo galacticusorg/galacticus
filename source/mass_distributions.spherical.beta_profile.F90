@@ -38,6 +38,7 @@
      procedure :: density               => betaProfileDensity
      procedure :: densityGradientRadial => betaProfileDensityGradientRadial
      procedure :: densityRadialMoment   => betaProfileDensityRadialMoment
+     procedure :: densitySquareIntegral => betaProfileDensitySquareIntegral
      procedure :: massEnclosedBySphere  => betaProfileMassEnclosedBySphere
      procedure :: potential             => betaProfilePotential
      procedure :: descriptor            => betaProfileDescriptor
@@ -444,9 +445,13 @@ contains
     integer                                                                :: specialCaseMoment
 
     ! Determine if special case solutions can be used.
-    specialCaseMoment=0
+    specialCaseMoment=-huge(0)
     if (self%betaIsTwoThirds) then
-       if      (Values_Agree(moment,2.0d0,absTol=1.0d-6)) then
+       if      (Values_Agree(moment,0.0d0,absTol=1.0d-6)) then
+          specialCaseMoment=0
+       else if (Values_Agree(moment,1.0d0,absTol=1.0d-6)) then
+          specialCaseMoment=1
+       else if (Values_Agree(moment,2.0d0,absTol=1.0d-6)) then
           specialCaseMoment=2
        else if (Values_Agree(moment,3.0d0,absTol=1.0d-6)) then
           specialCaseMoment=3
@@ -455,8 +460,8 @@ contains
     if (present(isInfinite)) isInfinite=.false.
     if (present(radiusMaximum)) then
        fractionalRadiusMaximum=radiusMaximum/self%coreRadius
-       if (specialCaseMoment /= 0) then
-          ! Special case for 2ⁿᵈ and 3ʳᵈ moments of a β=2/3 distribution.
+       if (specialCaseMoment /= -huge(0)) then
+          ! Special case for 0ᵗʰ, 1ˢᵗ, 2ⁿᵈ, and 3ʳᵈ moments of a β=2/3 distribution.
           betaProfileDensityRadialMoment=                    &
                & +radialMomentTwoThirds(specialCaseMoment,fractionalRadiusMaximum)
        else
@@ -479,13 +484,13 @@ contains
        fractionalRadiusMinimum=0.0d0
     end if
     if (specialCaseMoment /= 0) then
-       ! Special case for 2ⁿᵈ and 3ʳᵈ moments of a β=2/3 distribution.
-       betaProfileDensityRadialMoment=                    &
-            & +betaProfileDensityRadialMoment             &
+       ! Special case for 0ᵗʰ, 1ˢᵗ, 2ⁿᵈ, and 3ʳᵈ moments of a β=2/3 distribution.
+       betaProfileDensityRadialMoment=                                          &
+            & +betaProfileDensityRadialMoment                                   &
             & -radialMomentTwoThirds(specialCaseMoment,fractionalRadiusMinimum)
     else
-       betaProfileDensityRadialMoment=                   &
-            & +betaProfileDensityRadialMoment            &
+       betaProfileDensityRadialMoment=                                         &
+            & +betaProfileDensityRadialMoment                                  &
             & -fractionalRadiusMinimum**(moment+1.0d0)                         &
             & *Hypergeometric_2F1     (                                        &
             &                          [(moment+1.0d0)/2.0d0,1.5d0*self%beta], &
@@ -495,10 +500,10 @@ contains
             & /                         (moment+1.0d0)
     end if
     ! Convert to dimensionful units.
-    betaProfileDensityRadialMoment         &
-         & =betaProfileDensityRadialMoment &
-         & *self%densityNormalization                            &
-         & *self%coreRadius          **moment
+    betaProfileDensityRadialMoment                         &
+         & =betaProfileDensityRadialMoment                 &
+         & *self%densityNormalization                      &
+         & *self%coreRadius               **(1.0d0+moment)
     return
 
   contains
@@ -518,7 +523,13 @@ contains
          radialMomentTwoThirds=0.0d0
       else
          ! For non-zero radius, compute the moment.
-         if      (moment == 2) then
+         if      (moment == 0) then
+            ! 0ᵗʰ moment.
+            radialMomentTwoThirds=atan(x)
+         else if (moment == 1) then
+            ! 1ˢᵗ moment.
+            radialMomentTwoThirds=0.5d0*log(1.0d0+x**2)
+         else if (moment == 2) then
             ! 2ⁿᵈ moment.
             if (x /= self%momentRadial2XPrevious) then
                self%momentRadial2XPrevious=x
@@ -562,6 +573,71 @@ contains
 
   end function betaProfileDensityRadialMoment
 
+  double precision function betaProfileDensitySquareIntegral(self,radiusMinimum,radiusMaximum,isInfinite)
+    !!{
+    Computes the integral of the square of the density in a $\beta$-profile mass distribution.
+    !!}
+    use :: Gamma_Functions         , only : Gamma_Function
+    use :: Hypergeometric_Functions, only : Hypergeometric_2F1
+    use :: Numerical_Constants_Math, only : Pi
+    implicit none
+    class           (massDistributionBetaProfile), intent(inout)           :: self
+    double precision                             , intent(in   ), optional :: radiusMinimum          , radiusMaximum
+    logical                                      , intent(  out), optional :: isInfinite
+    double precision                                                       :: fractionalRadiusMinimum, fractionalRadiusMaximum
+
+    if (present(isInfinite)) isInfinite=.false.
+    betaProfileDensitySquareIntegral=0.0d0
+    ! Determine if the special case solution can be used.
+    if (self%betaIsTwoThirds) then
+       ! Compute the integral for the case β=2/3.
+       if (present(radiusMinimum)) then
+          fractionalRadiusMinimum=+     radiusMinimum &
+               &                  /self%coreRadius
+          betaProfileDensitySquareIntegral=+betaProfileDensitySquareIntegral-4.0d0*Pi*(atan(fractionalRadiusMinimum)/2.0d0-fractionalRadiusMinimum/2.0d0/(1.0d0+fractionalRadiusMinimum**2))
+       else
+          betaProfileDensitySquareIntegral=+betaProfileDensitySquareIntegral+0.0d0
+       end if
+       if (present(radiusMaximum)) then
+          fractionalRadiusMaximum=+     radiusMaximum &
+               &                  /self%coreRadius
+          betaProfileDensitySquareIntegral=betaProfileDensitySquareIntegral+4.0d0*Pi*(atan(fractionalRadiusMaximum)/2.0d0-fractionalRadiusMaximum/2.0d0/(1.0d0+fractionalRadiusMaximum**2))
+       else
+          betaProfileDensitySquareIntegral=betaProfileDensitySquareIntegral+Pi**2
+       end if
+    else
+       ! Compute the integral for the general case.
+       if (present(radiusMinimum)) then
+          fractionalRadiusMinimum=+     radiusMinimum &
+               &                  /self%coreRadius
+          betaProfileDensitySquareIntegral=+betaProfileDensitySquareIntegral-4.0d0*Pi/3.0d0*fractionalRadiusMinimum**3*Hypergeometric_2F1([1.5d0,3.0d0*self%beta],[2.5d0],-fractionalRadiusMinimum**2)
+       else
+          betaProfileDensitySquareIntegral=+betaProfileDensitySquareIntegral+0.0d0
+       end if
+       if (present(radiusMaximum)) then
+          fractionalRadiusMaximum=+     radiusMaximum &
+               &                  /self%coreRadius
+          betaProfileDensitySquareIntegral=+betaProfileDensitySquareIntegral+4.0d0*Pi/3.0d0*fractionalRadiusMaximum**3*Hypergeometric_2F1([1.5d0,3.0d0*self%beta],[2.5d0],-fractionalRadiusMaximum**2)
+       else
+          if (self%beta > 2.0d0/3.0d0) then
+             betaProfileDensitySquareIntegral=+betaProfileDensitySquareIntegral+Pi**1.5d0*Gamma_Function(-1.5d0+3.0d0*self%beta)/Gamma_Function(3.0d0*self%beta)
+          else
+             if (present(isInfinite)) then
+                isInfinite=.true.
+                return
+             else
+                call Error_Report('integral diverges'//{introspection:location})
+             end if
+          end if
+       end if
+    end if
+    ! Convert to dimensionful units.
+    betaProfileDensitySquareIntegral=+betaProfileDensitySquareIntegral    &
+         &                           *self%densityNormalization       **2 &
+         &                           *self%coreRadius                 **3
+    return
+  end function betaProfileDensitySquareIntegral
+  
   subroutine betaProfileDescriptor(self,descriptor,includeClass)
     !!{
     Return an input parameter list descriptor which could be used to recreate this object.

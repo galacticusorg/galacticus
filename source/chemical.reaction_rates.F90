@@ -45,6 +45,7 @@ module Chemical_Reaction_Rates
     <selfTarget>yes</selfTarget>
     <argument>double precision                     , intent(in   ) :: lengthColumn   , temperature</argument>
     <argument>type            (chemicalAbundances ), intent(in   ) :: chemicalDensity             </argument>
+    <argument>double precision                     , intent(in   ) :: factorClumping              </argument>
     <argument>class           (radiationFieldClass), intent(inout) :: radiation                   </argument>
     <argument>type            (chemicalAbundances ), intent(inout) :: chemicalRates               </argument>
     <argument>type            (treeNode           ), intent(inout) :: node                        </argument>

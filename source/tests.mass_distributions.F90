@@ -133,18 +133,42 @@ program Test_Mass_Distributions
   class is (massDistributionSpherical)
      position    =[1.0d0,0.0d0,0.0d0]
      positionZero=[0.0d0,0.0d0,0.0d0]
-     call Assert(                                                        &
-          &      "Mass within scale radius"                            , &
-          &      +massDistribution_%massEnclosedBySphere(1.0d0       ), &
-          &      +(4.0d0-Pi)*Pi                                        , &
-          &      absTol=1.0d-6                                           &
+     call Assert(                                                              &
+          &      "Mass within scale radius"                                  , &
+          &      +massDistribution_%massEnclosedBySphere (1.0d0             ), &
+          &      +(4.0d0-Pi)*Pi                                              , &
+          &      absTol=1.0d-6                                                 &
           &     )
-     call Assert(                                                        &
-          &      "Potential at scale radius"                           , &
-          &      +massDistribution_%potential           (position    )  &
-          &      -massDistribution_%potential           (positionZero), &
-          &      +Pi*(Pi+log(4.0d0)-4.0d0)                             , &
-          &      absTol=1.0d-6                                           &
+     call Assert(                                                              &
+          &      "Potential at scale radius"                                 , &
+          &      +massDistribution_%potential            (position          )  &
+          &      -massDistribution_%potential            (positionZero      ), &
+          &      +Pi*(Pi+log(4.0d0)-4.0d0)                                   , &
+          &      absTol=1.0d-6                                                 &
+          &     )
+     call Assert(                                                              &
+          &      "Radial moment, m=1"                                        , &
+          &      +massDistribution_%densityRadialMoment  (1.0d0,0.0d0,1.0d0) , &
+          &      +0.3465735902799727d0                                       , &
+          &      absTol=1.0d-6                                                 &
+          &     )
+     call Assert(                                                              &
+          &      "Radial moment, m=2"                                        , &
+          &      +massDistribution_%densityRadialMoment  (2.0d0,0.0d0,1.0d0) , &
+          &      +0.2146018366025517d0                                       , &
+          &      absTol=1.0d-6                                                 &
+          &     )
+     call Assert(                                                              &
+          &      "Radial moment, m=3"                                        , &
+          &      +massDistribution_%densityRadialMoment  (3.0d0,0.0d0,1.0d0) , &
+          &      +0.1534264097200273d0                                       , &
+          &      absTol=1.0d-6                                                 &
+          &     )
+     call Assert(                                                              &
+          &      "Square integral"                                           , &
+          &      +massDistribution_%densitySquareIntegral(      0.0d0,1.0d0) , &
+          &      +1.793209546954886d0                                        , &
+          &      absTol=1.0d-6                                                 &
           &     )
   end select
   ! Ensure that a dimensionful profile produces the correct mass inside of its outer radius.

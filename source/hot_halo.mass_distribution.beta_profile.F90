@@ -53,13 +53,14 @@ An implementation of the hot halo mass distribution class for $\beta$-profile di
        <method description="Initialize the $\beta$-profile density hot halo mass distribution for the given {\normalfont \ttfamily node}." method="initialize" />
      </methods>
      !!]
-     final     ::                          betaProfileDestructor
-     procedure :: initialize            => betaProfileInitialize
-     procedure :: density               => betaProfileDensity
-     procedure :: densityLogSlope       => betaProfileDensityLogSlope
-     procedure :: enclosedMass          => betaProfileEnclosedMass
-     procedure :: radialMoment          => betaProfileRadialMoment
-     procedure :: rotationNormalization => betaProfileRotationNormalization
+     final     ::                           betaProfileDestructor
+     procedure :: initialize             => betaProfileInitialize
+     procedure :: density                => betaProfileDensity
+     procedure :: densityLogSlope        => betaProfileDensityLogSlope
+     procedure :: enclosedMass           => betaProfileEnclosedMass
+     procedure :: radialMoment           => betaProfileRadialMoment
+     procedure :: densitySquaredIntegral => betaProfileDensitySquaredIntegral
+     procedure :: rotationNormalization  => betaProfileRotationNormalization
   end type hotHaloMassDistributionBetaProfile
 
   interface hotHaloMassDistributionBetaProfile
@@ -270,6 +271,32 @@ contains
          &                      )
     return
   end function betaProfileRadialMoment
+
+  double precision function betaProfileDensitySquaredIntegral(self,node,radius)
+    !!{
+    Return the integral of the square of the density profile of the hot halo to the given {\normalfont \ttfamily radius}.
+    !!}
+    use :: Galacticus_Nodes, only : nodeComponentHotHalo, treeNode
+    implicit none
+    class           (hotHaloMassDistributionBetaProfile), intent(inout) :: self
+    type            (treeNode                          ), intent(inout) :: node
+    double precision                                    , intent(in   ) :: radius
+    class           (nodeComponentHotHalo              ), pointer       :: hotHalo
+
+    call self%initialize(node)
+    hotHalo                => node%hotHalo()
+    betaProfileDensitySquaredIntegral=                                      &
+         & self%                                                            &
+         &  distribution%                                                   &
+         &   densitySquareIntegral(                                         &
+         &                         radiusMinimum=0.0d0                    , &
+         &                         radiusMaximum=min(                       &
+         &                                           radius               , &
+         &                                           hotHalo%outerRadius()  &
+         &                                          )                       &
+         &                         )
+    return
+  end function betaProfileDensitySquaredIntegral
 
   double precision function betaProfileRotationNormalization(self,node)
     !!{
