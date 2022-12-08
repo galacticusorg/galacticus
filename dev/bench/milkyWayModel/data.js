@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1670444828214,
+  "lastUpdate": 1670521162726,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
@@ -4636,6 +4636,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 3.0218737042497,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "93588f314d5a73a1ae63a5bf908ffe0d7d1acefe",
+          "message": "Merge pull request #341 from galacticusorg/h2Clumping\n\nAccount for hot halo density profile in molecular hydrogen calculations",
+          "timestamp": "2022-12-08T05:45:42-08:00",
+          "tree_id": "9ba658a1a08a5d54d49e1eb5284880b78fb206c3",
+          "url": "https://github.com/galacticusorg/galacticus/commit/93588f314d5a73a1ae63a5bf908ffe0d7d1acefe"
+        },
+        "date": 1670521161664,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 265.072,
+            "unit": "seconds",
+            "range": 0.310653504728486
           }
         ]
       }
