@@ -212,7 +212,7 @@ contains
     return
   end subroutine hydrogenNetworkDestructor
 
-  subroutine hydrogenNetworkRates(self,lengthColumn,temperature,chemicalDensity,radiation,chemicalRates,node)
+  subroutine hydrogenNetworkRates(self,lengthColumn,temperature,chemicalDensity,factorClumping,radiation,chemicalRates,node)
     !!{
     Compute rates of change of chemical abundances due to reactions involving chemical hydrogen species.
     !!}
@@ -221,7 +221,8 @@ contains
     implicit none
     class           (chemicalReactionRateHydrogenNetwork), intent(inout), target :: self
     type            (chemicalAbundances                 ), intent(in   )         :: chemicalDensity
-    double precision                                     , intent(in   )         :: temperature    , lengthColumn
+    double precision                                     , intent(in   )         :: temperature    , lengthColumn   , &
+         &                                                                          factorClumping
     class           (radiationFieldClass                ), intent(inout)         :: radiation
     type            (chemicalAbundances                 ), intent(inout)         :: chemicalRates
     type            (treeNode                           ), intent(inout)         :: node
@@ -231,7 +232,8 @@ contains
     call chemicalRates%reset()
     ! Determine the atomic hydrogen anion density to use.
     if (self%fast) then
-       ! For the fast network, assume the hydrogen anion is always at equilibrium density. (Following eqn. 24 of Abel et al. 1997.)
+       ! For the fast network, assume the hydrogen anion is always at equilibrium density. (Following eqn. 24 of Abel et
+       ! al. 1997.) No need to account for clumping factors here as all processes are proportional to density squared.
        creationTerm   =+hydrogenNetworkH_Electron_to_Hminus_Photon_RateCoefficient   (temperature)*chemicalDensity%abundance(self%atomicHydrogenIndex      ) &
             &                                                                                     *chemicalDensity%abundance(self%electronIndex            )
        destructionTerm=+hydrogenNetworkH_Hminus_to_H2_Electron_RateCoefficient       (temperature)*chemicalDensity%abundance(self%atomicHydrogenIndex      ) &
@@ -252,32 +254,32 @@ contains
     end if
     ! Compute rates. References after each call refer to the rate coefficient in Tegmark et al. (1997) and the equation number in
     ! Abel et al. (1997) respectively.
-    call self%rateH_Electron_to_Hplus_2Electron  (             temperature,radiation,chemicalDensity,chemicalRates     ) !    ;  1
-    call self%rateHplus_Electron_to_H_Photon     (             temperature,radiation,chemicalDensity,chemicalRates     ) ! k_1;  2
-    call self%rateH_Electron_to_Hminus_Photon    (             temperature,radiation,chemicalDensity,chemicalRates     ) ! k_2;  7
-    call self%rateH_Hminus_to_H2_Electron        (             temperature,radiation,chemicalDensity,chemicalRates     ) ! k_3;  8
-    call self%rateH_Hplus_to_H2plus_Photon       (             temperature,radiation,chemicalDensity,chemicalRates     ) ! k_5;  9
-    call self%rateH2plus_H_to_H2_Hplus           (             temperature,radiation,chemicalDensity,chemicalRates     ) ! k_6; 10
-    call self%rateH2_Hplus_to_H2plus_H           (             temperature,radiation,chemicalDensity,chemicalRates     ) !    ; 11
-    call self%rateH2_Electron_to_2H_Electron     (             temperature,radiation,chemicalDensity,chemicalRates     ) !    ; 12
-    call self%rateH2_H_to_3H                     (             temperature,radiation,chemicalDensity,chemicalRates     ) !    ; 13
-    call self%rateHminus_Electron_to_H_2Electron (             temperature,radiation,chemicalDensity,chemicalRates     ) !    ; 14
-    call self%rateHminus_H_to_2H_Electron        (             temperature,radiation,chemicalDensity,chemicalRates     ) !    ; 15
-    call self%rateHminus_Hplus_to_2H             (             temperature,radiation,chemicalDensity,chemicalRates     ) !    ; 16
-    call self%rateHminus_Hplus_to_H2plus_Electron(             temperature,radiation,chemicalDensity,chemicalRates     ) !    ; 17
-    call self%rateH2plus_Electron_to_2H          (             temperature,radiation,chemicalDensity,chemicalRates     ) !    ; 18
-    call self%rateH2plus_Hminus_to_H2_H          (             temperature,radiation,chemicalDensity,chemicalRates     ) !    ; 19
-    call self%rateH_Gamma_to_Hplus_Electron      (             temperature,radiation,chemicalDensity,chemicalRates,node) !    ; 20
-    call self%rateHminus_Gamma_to_H_Electron     (             temperature,radiation,chemicalDensity,chemicalRates,node) ! k_4; 23
-    call self%rateH2_Gamma_to_H2plus_Electron    (             temperature,radiation,chemicalDensity,chemicalRates,node) !    ; 24
-    call self%rateH2plus_Gamma_to_H_Hplus        (             temperature,radiation,chemicalDensity,chemicalRates,node) ! k_7; 25
-    call self%rateH2plus_Gamma_to_2Hplus_Electron(             temperature,radiation,chemicalDensity,chemicalRates,node) !    ; 26
-    call self%rateH2_Gamma_to_H2star_to_2H       (lengthColumn,temperature,radiation,chemicalDensity,chemicalRates,node) !    ; 27
-    call self%rateH2_Gamma_to_2H                 (             temperature,radiation,chemicalDensity,chemicalRates,node) !    ; 28
+    call self%rateH_Electron_to_Hplus_2Electron  (             temperature,radiation,chemicalDensity,factorClumping,chemicalRates     ) !    ;  1
+    call self%rateHplus_Electron_to_H_Photon     (             temperature,radiation,chemicalDensity,factorClumping,chemicalRates     ) ! k_1;  2
+    call self%rateH_Electron_to_Hminus_Photon    (             temperature,radiation,chemicalDensity,factorClumping,chemicalRates     ) ! k_2;  7
+    call self%rateH_Hminus_to_H2_Electron        (             temperature,radiation,chemicalDensity,factorClumping,chemicalRates     ) ! k_3;  8
+    call self%rateH_Hplus_to_H2plus_Photon       (             temperature,radiation,chemicalDensity,factorClumping,chemicalRates     ) ! k_5;  9
+    call self%rateH2plus_H_to_H2_Hplus           (             temperature,radiation,chemicalDensity,factorClumping,chemicalRates     ) ! k_6; 10
+    call self%rateH2_Hplus_to_H2plus_H           (             temperature,radiation,chemicalDensity,factorClumping,chemicalRates     ) !    ; 11
+    call self%rateH2_Electron_to_2H_Electron     (             temperature,radiation,chemicalDensity,factorClumping,chemicalRates     ) !    ; 12
+    call self%rateH2_H_to_3H                     (             temperature,radiation,chemicalDensity,factorClumping,chemicalRates     ) !    ; 13
+    call self%rateHminus_Electron_to_H_2Electron (             temperature,radiation,chemicalDensity,factorClumping,chemicalRates     ) !    ; 14
+    call self%rateHminus_H_to_2H_Electron        (             temperature,radiation,chemicalDensity,factorClumping,chemicalRates     ) !    ; 15
+    call self%rateHminus_Hplus_to_2H             (             temperature,radiation,chemicalDensity,factorClumping,chemicalRates     ) !    ; 16
+    call self%rateHminus_Hplus_to_H2plus_Electron(             temperature,radiation,chemicalDensity,factorClumping,chemicalRates     ) !    ; 17
+    call self%rateH2plus_Electron_to_2H          (             temperature,radiation,chemicalDensity,factorClumping,chemicalRates     ) !    ; 18
+    call self%rateH2plus_Hminus_to_H2_H          (             temperature,radiation,chemicalDensity,factorClumping,chemicalRates     ) !    ; 19
+    call self%rateH_Gamma_to_Hplus_Electron      (             temperature,radiation,chemicalDensity               ,chemicalRates,node) !    ; 20
+    call self%rateHminus_Gamma_to_H_Electron     (             temperature,radiation,chemicalDensity               ,chemicalRates,node) ! k_4; 23
+    call self%rateH2_Gamma_to_H2plus_Electron    (             temperature,radiation,chemicalDensity               ,chemicalRates,node) !    ; 24
+    call self%rateH2plus_Gamma_to_H_Hplus        (             temperature,radiation,chemicalDensity               ,chemicalRates,node) ! k_7; 25
+    call self%rateH2plus_Gamma_to_2Hplus_Electron(             temperature,radiation,chemicalDensity               ,chemicalRates,node) !    ; 26
+    call self%rateH2_Gamma_to_H2star_to_2H       (lengthColumn,temperature,radiation,chemicalDensity               ,chemicalRates,node) !    ; 27
+    call self%rateH2_Gamma_to_2H                 (             temperature,radiation,chemicalDensity               ,chemicalRates,node) !    ; 28
     return
   end subroutine hydrogenNetworkRates
 
-  subroutine hydrogenNetworkRateH_Electron_to_Hplus_2Electron(self,temperature,radiation,chemicalDensity,chemicalRates)
+  subroutine hydrogenNetworkRateH_Electron_to_Hplus_2Electron(self,temperature,radiation,chemicalDensity,factorClumping,chemicalRates)
     !!{
     Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H} + \hbox{e}^- \rightarrow \hbox{H}^+ + 2\hbox{e}^-$.
     !!}
@@ -285,7 +287,7 @@ contains
     use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
-    double precision                                     , intent(in   ) :: temperature
+    double precision                                     , intent(in   ) :: temperature                              , factorClumping
     class           (radiationFieldClass                ), intent(inout) :: radiation
     type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
     type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
@@ -315,7 +317,7 @@ contains
        ! Get the rate coefficient.
        rateCoefficient=self%atomicIonizationRateCollisional_%rate(1,1,temperature)
        ! Compute the rate.
-       rate           =rateCoefficient*chemicalDensity%abundance(electronChemicalIndex)*chemicalDensity%abundance(atomicHydrogenChemicalIndex)
+       rate           =rateCoefficient*chemicalDensity%abundance(electronChemicalIndex)*chemicalDensity%abundance(atomicHydrogenChemicalIndex)*factorClumping
        ! Record rate.
        call   chemicalRates%abundanceSet(atomicHydrogenCationChemicalIndex, &
             & chemicalRates%abundance   (atomicHydrogenCationChemicalIndex) &
@@ -330,7 +332,7 @@ contains
     return
   end subroutine hydrogenNetworkRateH_Electron_to_Hplus_2Electron
 
-  subroutine hydrogenNetworkRateHplus_Electron_to_H_Photon(self,temperature,radiation,chemicalDensity,chemicalRates)
+  subroutine hydrogenNetworkRateHplus_Electron_to_H_Photon(self,temperature,radiation,chemicalDensity,factorClumping,chemicalRates)
     !!{
     Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}^+ + \hbox{e}^- \rightarrow \hbox{H} + \gamma$.
     !!}
@@ -338,7 +340,7 @@ contains
     use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
-    double precision                                     , intent(in   ) :: temperature
+    double precision                                     , intent(in   ) :: temperature                              , factorClumping
     class           (radiationFieldClass                ), intent(inout) :: radiation
     type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
     type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
@@ -368,7 +370,7 @@ contains
        ! Get the rate coefficient.
        rateCoefficient=self%atomicRecombinationRateRadiative_%rate(1,1,temperature)
        ! Compute the rate.
-       rate=rateCoefficient*chemicalDensity%abundance(electronChemicalIndex)*chemicalDensity%abundance(atomicHydrogenCationChemicalIndex)
+       rate=rateCoefficient*chemicalDensity%abundance(electronChemicalIndex)*chemicalDensity%abundance(atomicHydrogenCationChemicalIndex)*factorClumping
        ! Record rate.
        call   chemicalRates%abundanceSet(atomicHydrogenCationChemicalIndex, &
             & chemicalRates%abundance   (atomicHydrogenCationChemicalIndex) &
@@ -383,7 +385,7 @@ contains
     return
   end subroutine hydrogenNetworkRateHplus_Electron_to_H_Photon
 
-  subroutine hydrogenNetworkRateH_Electron_to_Hminus_Photon(self,temperature,radiation,chemicalDensity,chemicalRates)
+  subroutine hydrogenNetworkRateH_Electron_to_Hminus_Photon(self,temperature,radiation,chemicalDensity,factorClumping,chemicalRates)
     !!{
     Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H} + \hbox{e}^- \rightarrow \hbox{H}^- + \gamma$.
     !!}
@@ -391,7 +393,7 @@ contains
     use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
-    double precision                                     , intent(in   ) :: temperature
+    double precision                                     , intent(in   ) :: temperature                             , factorClumping
     class           (radiationFieldClass                ), intent(inout) :: radiation
     type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
     type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
@@ -423,7 +425,7 @@ contains
        ! Get the rate coefficient.
        rateCoefficient=hydrogenNetworkH_Electron_to_Hminus_Photon_RateCoefficient(temperature)
        ! Compute the rate.
-       rate=rateCoefficient*chemicalDensity%abundance(electronChemicalIndex)*chemicalDensity%abundance(atomicHydrogenChemicalIndex)
+       rate=rateCoefficient*chemicalDensity%abundance(electronChemicalIndex)*chemicalDensity%abundance(atomicHydrogenChemicalIndex)*factorClumping
        ! Record rate.
        call   chemicalRates%abundanceSet(atomicHydrogenAnionChemicalIndex, &
             & chemicalRates%abundance   (atomicHydrogenAnionChemicalIndex) &
@@ -468,7 +470,7 @@ contains
     return
   end function hydrogenNetworkH_Electron_to_Hminus_Photon_RateCoefficient
 
-  subroutine hydrogenNetworkRateH_Hminus_to_H2_Electron(self,temperature,radiation,chemicalDensity,chemicalRates)
+  subroutine hydrogenNetworkRateH_Hminus_to_H2_Electron(self,temperature,radiation,chemicalDensity,factorClumping,chemicalRates)
     !!{
     Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H} + \hbox{H}^- \rightarrow \hbox{H}_2 + \hbox{e}^-$.
     !!}
@@ -476,7 +478,7 @@ contains
     use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
-    double precision                                     , intent(in   ) :: temperature
+    double precision                                     , intent(in   ) :: temperature                             , factorClumping
     class           (radiationFieldClass                ), intent(inout) :: radiation
     type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
     type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
@@ -511,7 +513,7 @@ contains
        ! Get the rate coefficient.
        rateCoefficient=hydrogenNetworkH_Hminus_to_H2_Electron_RateCoefficient(temperature)
        ! Compute the rate.
-       rate=rateCoefficient*chemicalDensity%abundance(atomicHydrogenChemicalIndex)*self%densityAtomicHydrogenAnion
+       rate=rateCoefficient*chemicalDensity%abundance(atomicHydrogenChemicalIndex)*self%densityAtomicHydrogenAnion*factorClumping
        ! Record rate.
        if (.not.self%fast) &
             & call  chemicalRates%abundanceSet(atomicHydrogenAnionChemicalIndex, &
@@ -563,7 +565,7 @@ contains
     return
   end function hydrogenNetworkH_Hminus_to_H2_Electron_RateCoefficient
 
-  subroutine hydrogenNetworkRateH_Hplus_to_H2plus_Photon(self,temperature,radiation,chemicalDensity,chemicalRates)
+  subroutine hydrogenNetworkRateH_Hplus_to_H2plus_Photon(self,temperature,radiation,chemicalDensity,factorClumping,chemicalRates)
     !!{
     Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H} + \hbox{H}^+ \rightarrow \hbox{H}_2^+ + \gamma$.
     !!}
@@ -573,7 +575,7 @@ contains
     use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
-    double precision                                     , intent(in   ) :: temperature
+    double precision                                     , intent(in   ) :: temperature                                , factorClumping
     class           (radiationFieldClass                ), intent(inout) :: radiation
     type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
     type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
@@ -612,7 +614,7 @@ contains
           rateCoefficient=5.810d-16*((0.20651d0*temperatureElectronVolts)**(-0.2891d0*log(0.20651d0*temperatureElectronVolts)))
        end if
        ! Compute the rate.
-       rate=rateCoefficient*chemicalDensity%abundance(atomicHydrogenChemicalIndex)*chemicalDensity%abundance(atomicHydrogenCationChemicalIndex)
+       rate=rateCoefficient*chemicalDensity%abundance(atomicHydrogenChemicalIndex)*chemicalDensity%abundance(atomicHydrogenCationChemicalIndex)*factorClumping
        ! Record rate.
        call   chemicalRates%abundanceSet(atomicHydrogenChemicalIndex        , &
             & chemicalRates%abundance   (atomicHydrogenChemicalIndex        ) &
@@ -627,7 +629,7 @@ contains
     return
   end subroutine hydrogenNetworkRateH_Hplus_to_H2plus_Photon
 
-  subroutine hydrogenNetworkRateH2plus_H_to_H2_Hplus(self,temperature,radiation,chemicalDensity,chemicalRates)
+  subroutine hydrogenNetworkRateH2plus_H_to_H2_Hplus(self,temperature,radiation,chemicalDensity,factorClumping,chemicalRates)
     !!{
     Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \hbox{H} \rightarrow \hbox{H}_2 + \hbox{H}^+$.
     !!}
@@ -635,7 +637,7 @@ contains
     use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
-    double precision                                     , intent(in   ) :: temperature
+    double precision                                     , intent(in   ) :: temperature                                , factorClumping
     class           (radiationFieldClass                ), intent(inout) :: radiation
     type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
     type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
@@ -668,7 +670,7 @@ contains
     ! Do calculation if this reaction is active.
     if (reactionActive) then
        ! Compute the rate.
-       rate=rateCoefficient*chemicalDensity%abundance(chemicalHydrogenCationChemicalIndex)*chemicalDensity%abundance(atomicHydrogenChemicalIndex)
+       rate=rateCoefficient*chemicalDensity%abundance(chemicalHydrogenCationChemicalIndex)*chemicalDensity%abundance(atomicHydrogenChemicalIndex)*factorClumping
        ! Record rate.
        call   chemicalRates%abundanceSet(chemicalHydrogenCationChemicalIndex, &
             & chemicalRates%abundance   (chemicalHydrogenCationChemicalIndex) &
@@ -686,7 +688,7 @@ contains
     return
   end subroutine hydrogenNetworkRateH2plus_H_to_H2_Hplus
 
-  subroutine hydrogenNetworkRateH2_Hplus_to_H2plus_H(self,temperature,radiation,chemicalDensity,chemicalRates)
+  subroutine hydrogenNetworkRateH2_Hplus_to_H2plus_H(self,temperature,radiation,chemicalDensity,factorClumping,chemicalRates)
     !!{
     Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2 + \hbox{H}^+ \rightarrow \hbox{H}_2^+ + \hbox{H}$.
     !!}
@@ -696,7 +698,7 @@ contains
     use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
-    double precision                                     , intent(in   ) :: temperature
+    double precision                                     , intent(in   ) :: temperature                                , factorClumping
     class           (radiationFieldClass                ), intent(inout) :: radiation
     type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
     type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
@@ -748,7 +750,7 @@ contains
                &                     )
        end if
        ! Compute rate.
-       rate=rateCoefficient*chemicalDensity%abundance(chemicalHydrogenChemicalIndex)*chemicalDensity%abundance(atomicHydrogenCationChemicalIndex)
+       rate=rateCoefficient*chemicalDensity%abundance(chemicalHydrogenChemicalIndex)*chemicalDensity%abundance(atomicHydrogenCationChemicalIndex)*factorClumping
        ! Record rate.
        call   chemicalRates%abundanceSet(chemicalHydrogenChemicalIndex      , &
             & chemicalRates%abundance   (chemicalHydrogenChemicalIndex      ) &
@@ -766,7 +768,7 @@ contains
     return
   end subroutine hydrogenNetworkRateH2_Hplus_to_H2plus_H
 
-  subroutine hydrogenNetworkRateH2_Electron_to_2H_Electron(self,temperature,radiation,chemicalDensity,chemicalRates)
+  subroutine hydrogenNetworkRateH2_Electron_to_2H_Electron(self,temperature,radiation,chemicalDensity,factorClumping,chemicalRates)
     !!{
     Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2 + \hbox{e}^- \rightarrow 2\hbox{H} + \hbox{e}^-$.
     !!}
@@ -774,7 +776,7 @@ contains
     use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
-    double precision                                     , intent(in   ) :: temperature
+    double precision                                     , intent(in   ) :: temperature                        , factorClumping
     class           (radiationFieldClass                ), intent(inout) :: radiation
     type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
     type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
@@ -808,7 +810,7 @@ contains
           rateCoefficient=5.6d-11*sqrt(temperature)*exp(-102124.0d0/temperature)
        end if
        ! Compute rate.
-       rate=rateCoefficient*chemicalDensity%abundance(chemicalHydrogenChemicalIndex)*chemicalDensity%abundance(electronChemicalIndex)
+       rate=rateCoefficient*chemicalDensity%abundance(chemicalHydrogenChemicalIndex)*chemicalDensity%abundance(electronChemicalIndex)*factorClumping
        ! Record rate.
        call   chemicalRates%abundanceSet(chemicalHydrogenChemicalIndex, &
             & chemicalRates%abundance   (chemicalHydrogenChemicalIndex) &
@@ -820,7 +822,7 @@ contains
     return
   end subroutine hydrogenNetworkRateH2_Electron_to_2H_Electron
 
-  subroutine hydrogenNetworkRateH2_H_to_3H(self,temperature,radiation,chemicalDensity,chemicalRates)
+  subroutine hydrogenNetworkRateH2_H_to_3H(self,temperature,radiation,chemicalDensity,factorClumping,chemicalRates)
     !!{
     Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2 + \hbox{H} \rightarrow 3\hbox{H}$.
     !!}
@@ -830,7 +832,7 @@ contains
     use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
-    double precision                                     , intent(in   ) :: temperature
+    double precision                                     , intent(in   ) :: temperature                        , factorClumping
     class           (radiationFieldClass                ), intent(inout) :: radiation
     type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
     type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
@@ -869,7 +871,7 @@ contains
           rateCoefficient=1.067d-10*(temperatureElectronVolts**2.012d0)*exp(-(4.463d0/temperatureElectronVolts)*((1.0d0+0.2472d0*temperatureElectronVolts)**3.512d0))
        end if
        ! Compute rate.
-       rate=rateCoefficient*chemicalDensity%abundance(chemicalHydrogenChemicalIndex)*chemicalDensity%abundance(atomicHydrogenChemicalIndex)
+       rate=rateCoefficient*chemicalDensity%abundance(chemicalHydrogenChemicalIndex)*chemicalDensity%abundance(atomicHydrogenChemicalIndex)*factorClumping
        ! Record rate.
        call   chemicalRates%abundanceSet(chemicalHydrogenChemicalIndex, &
             & chemicalRates%abundance   (chemicalHydrogenChemicalIndex) &
@@ -881,7 +883,7 @@ contains
     return
   end subroutine hydrogenNetworkRateH2_H_to_3H
 
-  subroutine hydrogenNetworkRateHminus_Electron_to_H_2Electron(self,temperature,radiation,chemicalDensity,chemicalRates)
+  subroutine hydrogenNetworkRateHminus_Electron_to_H_2Electron(self,temperature,radiation,chemicalDensity,factorClumping,chemicalRates)
     !!{
     Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^- + \hbox{e}^- \rightarrow \hbox{H} + 2 \hbox{e}^-$.
     !!}
@@ -889,7 +891,7 @@ contains
     use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
-    double precision                                     , intent(in   ) :: temperature
+    double precision                                     , intent(in   ) :: temperature                             , factorClumping
     class           (radiationFieldClass                ), intent(inout) :: radiation
     type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
     type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
@@ -921,7 +923,7 @@ contains
        ! Get rate coefficient.
        rateCoefficient=hydrogenNetworkHminus_Electron_to_H_2Electron_RateCoefficient(temperature)
        ! Compute rate.
-       rate=rateCoefficient*chemicalDensity%abundance(atomicHydrogenAnionChemicalIndex)*chemicalDensity%abundance(electronChemicalIndex)
+       rate=rateCoefficient*chemicalDensity%abundance(atomicHydrogenAnionChemicalIndex)*chemicalDensity%abundance(electronChemicalIndex)*factorClumping
        ! Record rate.
        call   chemicalRates%abundanceSet(atomicHydrogenAnionChemicalIndex, &
             & chemicalRates%abundance   (atomicHydrogenAnionChemicalIndex) &
@@ -965,7 +967,7 @@ contains
     return
   end function hydrogenNetworkHminus_Electron_to_H_2Electron_RateCoefficient
 
-  subroutine hydrogenNetworkRateHminus_H_to_2H_Electron(self,temperature,radiation,chemicalDensity,chemicalRates)
+  subroutine hydrogenNetworkRateHminus_H_to_2H_Electron(self,temperature,radiation,chemicalDensity,factorClumping,chemicalRates)
     !!{
     Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}^- + \hbox{H} \rightarrow 2 \hbox{H} + \hbox{e}^-$.
     !!}
@@ -975,7 +977,7 @@ contains
     use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
-    double precision                                     , intent(in   ) :: temperature
+    double precision                                     , intent(in   ) :: temperature                               , factorClumping
     class           (radiationFieldClass                ), intent(inout) :: radiation
     type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
     type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
@@ -1026,7 +1028,7 @@ contains
           rateCoefficient=2.5634d-9*(temperatureElectronVolts**1.78186d0)
        end if
        ! Compute rate.
-       rate=rateCoefficient*chemicalDensity%abundance(atomicHydrogenAnionChemicalIndex)*chemicalDensity%abundance(atomicHydrogenChemicalIndex)
+       rate=rateCoefficient*chemicalDensity%abundance(atomicHydrogenAnionChemicalIndex)*chemicalDensity%abundance(atomicHydrogenChemicalIndex)*factorClumping
        ! Record rate.
        call   chemicalRates%abundanceSet(atomicHydrogenAnionChemicalIndex, &
             & chemicalRates%abundance   (atomicHydrogenAnionChemicalIndex) &
@@ -1041,7 +1043,7 @@ contains
     return
   end subroutine hydrogenNetworkRateHminus_H_to_2H_Electron
 
-  subroutine hydrogenNetworkRateHminus_Hplus_to_2H(self,temperature,radiation,chemicalDensity,chemicalRates)
+  subroutine hydrogenNetworkRateHminus_Hplus_to_2H(self,temperature,radiation,chemicalDensity,factorClumping,chemicalRates)
     !!{
     Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \hbox{H} \rightarrow \hbox{H}_2 + \hbox{H}^+$.
     !!}
@@ -1049,7 +1051,7 @@ contains
     use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
-    double precision                                     , intent(in   ) :: temperature
+    double precision                                     , intent(in   ) :: temperature                             , factorClumping
     class           (radiationFieldClass                ), intent(inout) :: radiation
     type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
     type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
@@ -1081,7 +1083,7 @@ contains
        ! Get the rate coefficient.
        rateCoefficient=hydrogenNetworkHminus_Hplus_to_2H_RateCoefficient(temperature)
        ! Compute rate.
-       rate=rateCoefficient*chemicalDensity%abundance(atomicHydrogenCationChemicalIndex)*chemicalDensity%abundance(atomicHydrogenAnionChemicalIndex)
+       rate=rateCoefficient*chemicalDensity%abundance(atomicHydrogenCationChemicalIndex)*chemicalDensity%abundance(atomicHydrogenAnionChemicalIndex)*factorClumping
        ! Record rate.
        call   chemicalRates%abundanceSet(atomicHydrogenAnionChemicalIndex , &
             & chemicalRates%abundance   (atomicHydrogenAnionChemicalIndex ) &
@@ -1107,7 +1109,7 @@ contains
     return
   end function hydrogenNetworkHminus_Hplus_to_2H_RateCoefficient
 
-  subroutine hydrogenNetworkRateHminus_Hplus_to_H2plus_Electron(self,temperature,radiation,chemicalDensity,chemicalRates)
+  subroutine hydrogenNetworkRateHminus_Hplus_to_H2plus_Electron(self,temperature,radiation,chemicalDensity,factorClumping,chemicalRates)
     !!{
     Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}^- + \hbox{H}^+ \rightarrow \hbox{H}_2^+ + \hbox{e}^-$.
     !!}
@@ -1117,7 +1119,7 @@ contains
     use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
-    double precision                                     , intent(in   ) :: temperature
+    double precision                                     , intent(in   ) :: temperature                                , factorClumping
     class           (radiationFieldClass                ), intent(inout) :: radiation
     type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
     type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
@@ -1163,7 +1165,8 @@ contains
        ! Compute rate.
        rate   =+rateCoefficient                                              &
             &  *chemicalDensity%abundance(atomicHydrogenAnionChemicalIndex ) &
-            &  *chemicalDensity%abundance(atomicHydrogenCationChemicalIndex)
+            &  *chemicalDensity%abundance(atomicHydrogenCationChemicalIndex) &
+            &  *factorClumping
        ! Record rate.
        call   chemicalRates%abundanceSet(atomicHydrogenAnionChemicalIndex   , &
             & chemicalRates%abundance   (atomicHydrogenAnionChemicalIndex   ) &
@@ -1181,7 +1184,7 @@ contains
     return
   end subroutine hydrogenNetworkRateHminus_Hplus_to_H2plus_Electron
 
-  subroutine hydrogenNetworkRateH2plus_Electron_to_2H(self,temperature,radiation,chemicalDensity,chemicalRates)
+  subroutine hydrogenNetworkRateH2plus_Electron_to_2H(self,temperature,radiation,chemicalDensity,factorClumping,chemicalRates)
     !!{
     Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \hbox{e}^- \rightarrow 2\hbox{H}$.
     !!}
@@ -1189,7 +1192,7 @@ contains
     use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
-    double precision                                     , intent(in   ) :: temperature
+    double precision                                     , intent(in   ) :: temperature                        , factorClumping
     class           (radiationFieldClass                ), intent(inout) :: radiation
     type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
     type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
@@ -1224,7 +1227,7 @@ contains
           rateCoefficient=1.32d-6/(temperature**0.76d0)
        end if
        ! Compute rate.
-       rate=rateCoefficient*chemicalDensity%abundance(chemicalHydrogenCationChemicalIndex)*chemicalDensity%abundance(electronChemicalIndex)
+       rate=rateCoefficient*chemicalDensity%abundance(chemicalHydrogenCationChemicalIndex)*chemicalDensity%abundance(electronChemicalIndex)*factorClumping
        ! Record rate.
        call   chemicalRates%abundanceSet(chemicalHydrogenCationChemicalIndex, &
             & chemicalRates%abundance   (chemicalHydrogenCationChemicalIndex) &
@@ -1239,7 +1242,7 @@ contains
     return
   end subroutine hydrogenNetworkRateH2plus_Electron_to_2H
 
-  subroutine hydrogenNetworkRateH2plus_Hminus_to_H2_H(self,temperature,radiation,chemicalDensity,chemicalRates)
+  subroutine hydrogenNetworkRateH2plus_Hminus_to_H2_H(self,temperature,radiation,chemicalDensity,factorClumping,chemicalRates)
     !!{
     Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \hbox{H}^- \rightarrow \hbox{H}_2 + \hbox{H}$.
     !!}
@@ -1247,7 +1250,7 @@ contains
     use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
-    double precision                                     , intent(in   ) :: temperature
+    double precision                                     , intent(in   ) :: temperature                                , factorClumping
     class           (radiationFieldClass                ), intent(inout) :: radiation
     type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
     type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
@@ -1281,8 +1284,10 @@ contains
        ! Compute rate coefficient.
        rateCoefficient=5.0d-7*sqrt(100.0d0/temperature)
        ! Compute rate.
-       rate=rateCoefficient*chemicalDensity%abundance(chemicalHydrogenCationChemicalIndex)&
-            &*chemicalDensity%abundance(atomicHydrogenAnionChemicalIndex)
+       rate   =+rateCoefficient                                                &
+            &  *chemicalDensity%abundance(chemicalHydrogenCationChemicalIndex) &
+            &  *chemicalDensity%abundance(atomicHydrogenAnionChemicalIndex   ) &
+            &  *factorClumping
        ! Record rate.
        call   chemicalRates%abundanceSet(chemicalHydrogenCationChemicalIndex, &
             & chemicalRates%abundance   (chemicalHydrogenCationChemicalIndex) &

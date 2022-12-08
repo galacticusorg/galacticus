@@ -40,7 +40,7 @@
   
   <!-- Intergalactic background radiation -->
   <radiationFieldIntergalacticBackground value="intergalacticBackgroundFile">
-    <fileName value="%DATASTATICPATH%/radiation/Cosmic_Background_Radiation_Haardt_Madau_2012_Quasars_Galaxies.xml"/>
+    <fileName value="%DATASTATICPATH%/radiation/Cosmic_Background_Radiation_FG20.xml"/>
   </radiationFieldIntergalacticBackground>
 
   <!-- Halo accretion options -->
