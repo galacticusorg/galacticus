@@ -223,11 +223,15 @@ contains
     double precision                                      , intent(  out) :: fraction
     double precision                                                      :: sigma, vEsc
     sigma = self%darkMatterProfileDMO_%radialVelocityDispersion(node, radius)
-    vEsc = +2.0d0 * (-self%darkMatterProfileDMO_%potential(node, radius) + self%darkMatterProfileDMO_%potential(node, +1.0d3 * self%darkMatterHaloScale_%radiusVirial(node))) !! Check sign
-    nonCentralChi = distributionFunction1DNonCentralChi(       &
-                  & (self%massSplitting_/(speedLight/kilo))**2 &
-                  & / sigma**2)
-    fraction = 1 - nonCentralChi%cumulative(vEsc / sigma**2)
+    if (sigma > 0.0d0) then
+      vEsc = +2.0d0 * (self%darkMatterProfileDMO_%potential(node, radius) - self%darkMatterProfileDMO_%potential(node, +1.0d3 * self%darkMatterHaloScale_%radiusVirial(node))) !! Check sign
+      nonCentralChi = distributionFunction1DNonCentralChi(       &
+                    & (self%massSplitting_/(speedLight/kilo))**2 &
+                    & / sigma**2)
+      fraction = +1.0d0 - nonCentralChi%cumulative(vEsc / sigma**2)
+    else
+      fraction = +1.0d0
+    end if
     return
   end subroutine decayingEscapeFraction
 

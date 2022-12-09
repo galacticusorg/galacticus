@@ -25,8 +25,8 @@
   
   <darkMatterParticle value="decayingDarkMatter">
     <darkMatterParticle value="CDM" />
-    <massSplitting value="0.0001" />
-    <lifetime value="20" />
+    <massSplitting value="0.0002" />
+    <lifetime value="10" />
     <heating value="true" />
     <massLoss value="true" />
     <gamma value="1.0" />
@@ -66,7 +66,7 @@
     <darkMatterProfileDMO value="heatedMonotonic">
       <darkMatterProfileDMO value="NFW" />
       <nonAnalyticSolver value="numerical" />
-      <toleranceRelativeVelocityDispersionMaximum value="0.1"/>
+      <toleranceRelativeVelocityDispersionMaximum value="0.1" />
     </darkMatterProfileDMO>
   </darkMatterProfileDMO>
 
@@ -104,14 +104,14 @@
   
   
   
-  <outputFileName value="results/testv2.hdf5" />
+  <outputFileName value="results/T10MS0002HtrueMLtrueHM1.0e10v2.hdf5" />
   <mergerTreeOutputter value="standard">
     <outputReferences value="false" />
   </mergerTreeOutputter>  
   <outputTimes value="uniformSpacingInTime">
     <timeMinimum value="0.001" />
-    <timeMaximum value="10.001" />
-    <countTimes value="21" />
+    <timeMaximum value="14.001" />
+    <countTimes value="15" />
   </outputTimes>
   <nodePropertyExtractor value="multi">
     <nodePropertyExtractor value="nodeIndices" />

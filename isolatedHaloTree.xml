@@ -6,8 +6,8 @@
     <firstSatellite>-1</firstSatellite>
     <sibling>-1</sibling>
     <basic>
-      <time>10.001</time>
-      <mass>1.0e12</mass>
+      <time>14.001</time>
+      <mass>1.0e10</mass>
     </basic>
   </node>
   <node>
@@ -17,7 +17,7 @@
     <sibling>-1</sibling>
     <basic>
       <time>0.001</time>
-      <mass>1.0e12</mass>
+      <mass>1.0e10</mass>
     </basic>
   </node>
 </tree>

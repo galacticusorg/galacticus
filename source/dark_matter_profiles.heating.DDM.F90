@@ -59,8 +59,8 @@ contains
     use :: Input_Parameters, only : inputParameters
     implicit none
     type            (darkMatterProfileHeatingDDM), target        :: self
-    type            (inputParameters              ), intent(inout) :: parameters
-    double precision                                               :: lifetime  , massSplitting
+    type            (inputParameters            ), intent(inout) :: parameters
+    double precision                                             :: lifetime  , massSplitting
          
     !![
     <inputParameter>
