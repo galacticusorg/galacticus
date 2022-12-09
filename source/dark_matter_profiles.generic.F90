@@ -275,8 +275,14 @@ contains
        call self%solverUnset(   )
        ! Build the interpolator.
        if (allocated(self%genericEnclosedMass)) deallocate(self%genericEnclosedMass)
-       allocate(self%genericEnclosedMass)
-       self%genericEnclosedMass=interpolator(log(radii),log(masses),interpolationType=gsl_interp_linear,extrapolationType=extrapolationTypeExtrapolate)
+       if (all(masses > 0.0d0)) then
+          allocate(self%genericEnclosedMass)
+          self%genericEnclosedMass=interpolator(log(radii),log(masses),interpolationType=gsl_interp_linear,extrapolationType=extrapolationTypeExtrapolate)
+       else if (all(masses == 0.0d0)) then
+          ! This is a fully-destroyed profile - we leave the mass profile unallocated to indicate this.
+       else
+          call Error_Report('unphysical mass profile'//{introspection:location})
+       end if
        ! Store the current results for future re-use.
        if (allocated(self%genericEnclosedMassRadius)) deallocate(self%genericEnclosedMassRadius)
        if (allocated(self%genericEnclosedMassMass  )) deallocate(self%genericEnclosedMassMass  )
@@ -288,10 +294,15 @@ contains
        self%genericEnclosedMassRadiusMaximum=radiusMaximum
     end if
     ! Interpolate in the table to find the mass difference.
-    genericEnclosedMassDifferenceNumerical       =+exp(self%genericEnclosedMass                   %interpolate(log(radiusUpper)))
-    if (radiusLower > 0.0d0)                                                                                                      &
-         & genericEnclosedMassDifferenceNumerical=+         genericEnclosedMassDifferenceNumerical                                &
-         &                                        +exp(self%genericEnclosedMass                   %interpolate(log(radiusLower)))
+    if (allocated(self%genericEnclosedMass)) then
+       genericEnclosedMassDifferenceNumerical       =+exp(self%genericEnclosedMass                   %interpolate(log(radiusUpper)))
+       if (radiusLower > 0.0d0)                                                                                                      &
+            & genericEnclosedMassDifferenceNumerical=+         genericEnclosedMassDifferenceNumerical                                &
+            &                                        +exp(self%genericEnclosedMass                   %interpolate(log(radiusLower)))
+    else
+       ! Fully-destroyed profile.
+       genericEnclosedMassDifferenceNumerical=0.0d0
+    end if
     return
   end function genericEnclosedMassDifferenceNumerical
   
@@ -1074,38 +1085,48 @@ contains
     ! close to zero at a few points throughout the halo (which it will be for an isothermal profile), and return the circular
     ! velocity at the virial radius if so. Otherwise solve for the radius corresponding to the maximum circular velocity.
     basic => node%basic()
-    if     (                                                                                                        &
-         &   Values_Agree(                                                                                          &
-         &                       +rootCircularVelocityMaximum(1.0d+0*self%darkMatterHaloScale_%radiusVirial(node)), &
-         &                       +0.0d0                                                                           , &
-         &                absTol=+toleranceRelative                                                                 &
-         &                       *basic%mass                 (                                                   )  &
-         &                )                                                                                         &
-         &  .and.                                                                                                   &
-         &   Values_Agree(                                                                                          &
-         &                       +rootCircularVelocityMaximum(3.0d-1*self%darkMatterHaloScale_%radiusVirial(node)), &
-         &                       +0.0d0                                                                           , &
-         &                absTol=+toleranceRelative                                                                 &
-         &                       *basic%mass                 (                                                   )  &
-         &                )                                                                                         &
-         &  .and.                                                                                                   &
-         &   Values_Agree(                                                                                          &
-         &                       +rootCircularVelocityMaximum(1.0d-1*self%darkMatterHaloScale_%radiusVirial(node)), &
-         &                       +0.0d0                                                                           , &
-         &                absTol=+toleranceRelative                                                                 &
-         &                       *basic%mass                 (                                                   )  &
-         &                )                                                                                         &
-         &  .and.                                                                                                   &
-         &   Values_Agree(                                                                                          &
-         &                       +rootCircularVelocityMaximum(3.0d-2*self%darkMatterHaloScale_%radiusVirial(node)), &
-         &                       +0.0d0                                                                           , &
-         &                absTol=+toleranceRelative                                                                 &
-         &                       *basic%mass                 (                                                   )  &
-         &                )                                                                                         &
+    if     (                                                                                                                                    &
+         &   Values_Agree(                                                                                                                      &
+         &                       +rootCircularVelocityMaximum                       (     1.0d+0*self%darkMatterHaloScale_%radiusVirial(node)), &
+         &                       +0.0d0                                                                                                       , &
+         &                absTol=+toleranceRelative                                                                                             &
+         &                       *basic%mass                                        (                                                        )  &
+         &                )                                                                                                                     &
+         &  .and.                                                                                                                               &
+         &   Values_Agree(                                                                                                                      &
+         &                       +rootCircularVelocityMaximum                       (     3.0d-1*self%darkMatterHaloScale_%radiusVirial(node)), &
+         &                       +0.0d0                                                                                                       , &
+         &                absTol=+toleranceRelative                                                                                             &
+         &                       *basic%mass                                        (                                                        )  &
+         &                )                                                                                                                     &
+         &  .and.                                                                                                                               &
+         &   Values_Agree(                                                                                                                      &
+         &                       +rootCircularVelocityMaximum                       (     1.0d-1*self%darkMatterHaloScale_%radiusVirial(node)), &
+         &                       +0.0d0                                                                                                       , &
+         &                absTol=+toleranceRelative                                                                                             &
+         &                       *basic%mass                                        (                                                        )  &
+         &                )                                                                                                                     &
+         &  .and.                                                                                                                               &
+         &   Values_Agree(                                                                                                                      &
+         &                       +rootCircularVelocityMaximum                       (     3.0d-2*self%darkMatterHaloScale_%radiusVirial(node)), &
+         &                       +0.0d0                                                                                                       , &
+         &                absTol=+toleranceRelative                                                                                             &
+         &                       *basic%mass                                        (                                                        )  &
+         &                )                                                                                                                     &
          & ) then
-       genericRadiusCircularVelocityMaximumNumerical=                      self%darkMatterHaloScale_%radiusVirial(node)
+       genericRadiusCircularVelocityMaximumNumerical=                                            self%darkMatterHaloScale_%radiusVirial(node)
+    else if (                                                                                                                                   &
+         &   Values_Agree(                                                                                                                      &
+         &                      +self                     %circularVelocityNumerical(node,1.0d+0*self%darkMatterHaloScale_%radiusVirial(node)), &
+         &                      +0.0d0                                                                                                        , &
+         &               absTol=+toleranceRelative                                                                                              &
+         &                      *self%darkMatterHaloScale_%velocityVirial           (node                                                    )  &
+         &               )                                                                                                                      &
+         & ) then
+       ! Profile has close to zero velocity - assume a destroyed profile and simply return the virial radius.
+       genericRadiusCircularVelocityMaximumNumerical=                                            self%darkMatterHaloScale_%radiusVirial(node)
     else
-       genericRadiusCircularVelocityMaximumNumerical=finder%find(rootGuess=self%darkMatterHaloScale_%radiusVirial(node))
+       genericRadiusCircularVelocityMaximumNumerical=finder%find(rootGuess=                      self%darkMatterHaloScale_%radiusVirial(node))
     end if
     call self%solverUnset(   )
     return
