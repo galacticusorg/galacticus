@@ -17,13 +17,40 @@
   
   <!-- Component selection -->
   <componentBasic value="standard"/>
-  <componentBlackHole value="simple"/>
+  <componentBlackHole value="simple">
+    <massSeed value="100.0"/>
+    <growthRatioToStellarSpheroid value="1.36151389582815"/>
+    <heatsHotHalo value="true"/>
+    <efficiency value="0.00361121531459326"/>
+    <fractionJet value="0.0436415271218433"/>
+    <efficiencyHeating value="0.000157598951094638"/>
+    <efficiencyWind value="0.00345361636349862"/>
+  </componentBlackHole>
   <componentDarkMatterProfile value="scale"/>
-  <componentDisk value="standard"/>
-  <componentHotHalo value="standard"/>
+  <componentDisk value="standard">
+    <toleranceAbsoluteMass value="1.0e-6"/>
+    <inactiveLuminositiesStellar value="true"/>
+    <massDistributionDisk value="exponentialDisk">
+      <dimensionless value="true"/>
+    </massDistributionDisk>
+  </componentDisk>
+  <componentHotHalo value="standard">
+    <fractionLossAngularMomentum value="0.95"/>
+    <starveSatellites value="true"/>
+    <efficiencyStrippingOutflow value="0.1"/>
+    <trackStrippedGas value="false"/>
+  </componentHotHalo>
   <componentPosition value="cartesian"/>
   <componentSatellite value="standard"/>
-  <componentSpheroid value="standard"/>
+  <componentSpheroid value="standard">
+    <ratioAngularMomentumScaleRadius value="0.0308857293856248"/>
+    <efficiencyEnergeticOutflow value="1.0e-2"/>
+    <toleranceAbsoluteMass value="1.0e-6"/>
+    <inactiveLuminositiesStellar value="true"/>
+    <massDistributionSpheroid value="hernquist">
+      <dimensionless value="true"/>
+    </massDistributionSpheroid>
+  </componentSpheroid>
   <componentSpin value="scalar"/>
 
   <!-- Cosmological parameters and options -->
@@ -135,25 +162,11 @@
   <coolingTimeAvailable value="whiteFrenk1991">
     <ageFactor value="0.835280449340279"/>
   </coolingTimeAvailable>
-  <hotHaloAngularMomentumLossFraction value="0.95"/>
-  <starveSatellites value="true"/>
-
   <!-- Hot halo ram pressure stripping options -->
   <hotHaloRamPressureStripping value="virialRadius"/>
-  <hotHaloOutflowStrippingEfficiency value="0.1"/>
-  <hotHaloTrackStrippedGas value="false"/>
-
   <!-- Galactic structure options -->
-  <spheroidMassDistribution value="hernquist">
-    <dimensionless value="true"/>
-  </spheroidMassDistribution>
-  <diskMassDistribution value="exponentialDisk">
-    <dimensionless value="true"/>
-  </diskMassDistribution>
   <galacticStructureSolver value="simple"/>
   <darkMatterProfile value="darkMatterOnly"/>
-  <spheroidAngularMomentumAtScaleRadius value="0.0308857293856248"/>
-
   <!-- Star formation rate options -->
   <starFormationRateDisks value="timescale">
     <starFormationTimescale value="dynamicalTime">
@@ -184,16 +197,8 @@
 
   <!-- AGN feedback options -->
   <hotHaloExcessHeatDrivesOutflow value="true"/>
-  <blackHoleHeatsHotHalo value="true"/>
-
   <!-- Black hole options -->
-  <blackHoleSeedMass value="100"/>
-  <blackHoleToSpheroidStellarGrowthRatio value="1.36151389582815"/>
-  <blackHoleHeatingEfficiency value="0.000157598951094638"/>
-  <blackHoleWindEfficiency value="0.00345361636349862"/>
   <blackHoleBinaryMerger value="rezzolla2008"/>
-  <blackHoleEfficiency value="0.00361121531459326"/>
-  <blackHoleJetFraction value="0.0436415271218433"/>
 
   <!-- Galaxy merger options -->
   <virialOrbit value="li2020"/>
@@ -213,8 +218,6 @@
   </mergerRemnantSize>
 
   <!-- Spheroid options -->
-  <spheroidEnergeticOutflowMassRate value="1.0e-2"/>
-
   <!-- Node evolution and physics -->
   <nodeOperator value="multi">
     <!-- Star formation options -->
@@ -251,7 +254,7 @@
       </galacticDynamicsBarInstability>
     </nodeOperator>
     <!-- Halo concentrations -->
-    <nodeOperator value="darkMatterProfileScaleSet"        />
+    <nodeOperator value="darkMatterProfileScaleSet"/>
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
     <!-- Halo spins -->
     <nodeOperator value="haloAngularMomentumRandomWalk">
@@ -264,7 +267,7 @@
     <nodeOperator value="DMOInterpolate"/>
     <!-- Satellite evolution -->
     <nodeOperator value="satelliteMergingTime"/>
-    <nodeOperator value="satelliteMassLoss"   />
+    <nodeOperator value="satelliteMassLoss"/>
     <!-- Positions for subhalos -->
     <nodeOperator value="positionTraceDarkMatter"/>
   </nodeOperator>
@@ -296,11 +299,6 @@
       <timeOffsetMaximumRelative value="0.001"/>
     </mergerTreeEvolveTimestep>
   </mergerTreeEvolveTimestep>
-  <diskMassToleranceAbsolute value="1.0e-6"/>
-  <spheroidMassToleranceAbsolute value="1.0e-6"/>
-  <diskLuminositiesStellarInactive value="true"/>
-  <spheroidLuminositiesStellarInactive value="true"/>
-
   <!-- Output options -->
   <mergerTreeOutputter value="analyzer"/>
   <outputTimes value="list">

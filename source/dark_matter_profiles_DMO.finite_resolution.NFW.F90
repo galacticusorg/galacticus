@@ -1326,7 +1326,7 @@ contains
           integrator_=integrator(jeansEquationIntegrand,toleranceRelative=1.0d-2)
           initialized=.true.
        end if
-       ! Loop over radii and alpha and populate tables.
+       ! Loop over radii and α and populate tables.
        self_       => self
        radiusOuter =  max(10.0d0*self%velocityDispersionRadialRadiusMaximum,1000.0d0)
        do iRadiusCore=1,self%velocityDispersionRadialTableRadiusCoreCount

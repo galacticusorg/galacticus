@@ -44,16 +44,16 @@ Contains a module which implements a merger tree filter which always passes.
 
 contains
 
-  function alwaysConstructorParameters(parameters)
+  function alwaysConstructorParameters(parameters) result(self)
     !!{
     Constructor for the ``always'' merger tree filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(mergerTreeFilterAlways)                :: alwaysConstructorParameters
+    type(mergerTreeFilterAlways)                :: self
     type(inputParameters       ), intent(inout) :: parameters
 
-    alwaysConstructorParameters=mergerTreeFilterAlways()
+    self=mergerTreeFilterAlways()
     !![
     <inputParametersValidate source="parameters"/>
     !!]

@@ -67,8 +67,16 @@
   <componentBasic value="standard"/>
   <componentBlackHole value="null"/>
   <componentDarkMatterProfile value="scale"/>
-  <componentDisk value="verySimpleSize"/>
-  <componentHotHalo value="verySimpleDelayed"/>
+  <componentDisk value="verySimpleSize">
+    <toleranceAbsoluteMass value="1.0e-6"/>
+    <scaleAbsoluteMass value="1.0e6"/>
+    <pruneMassGas value="1.0e6"/>
+    <pruneMassStars value="1.0e6"/>
+    <useAnalyticSolver value="true"/>
+  </componentDisk>
+  <componentHotHalo value="verySimpleDelayed">
+    <scaleRelativeMass value="1.0"/>
+  </componentHotHalo>
   <componentSatellite value="mergeTime"/>
   <componentSpheroid value="null"/>
   <componentSpin value="scalar"/>
@@ -226,9 +234,6 @@
     <odeToleranceRelative value="0.1"/>
   </mergerTreeNodeEvolver>
 
-  <diskMassToleranceAbsolute value="1.0e-6"/>
-  <diskVerySimpleMassScaleAbsolute value="1.0e6"/>
-  <hotHaloVerySimpleDelayedMassScaleRelative value="1.0"/>
   <mergerTreeEvolver value="standard">
     <timestepHostAbsolute value="1.0"/>
     <timestepHostRelative value="0.01"/>
@@ -241,10 +246,6 @@
     </mergerTreeEvolveTimestep>
     <mergerTreeEvolveTimestep value="satellite"/>
   </mergerTreeEvolveTimestep>
-  <diskVerySimpleAnalyticSolverPruneMassGas value="1.0e6"/>
-  <diskVerySimpleAnalyticSolverPruneMassStars value="1.0e6"/>
-  <diskVerySimpleUseAnalyticSolver value="true"/>
-
   <!-- Node evolution and physics -->
   <nodeOperator value="multi">
     <!-- Cosmological epoch -->
@@ -255,7 +256,7 @@
       <virialDensityContrast value="bryanNorman1998"/>
     </nodeOperator>
     <!-- Halo concentrations -->
-    <nodeOperator value="darkMatterProfileScaleSet"        />
+    <nodeOperator value="darkMatterProfileScaleSet"/>
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
     <!-- Halo spins -->
     <nodeOperator value="haloAngularMomentumRandom">

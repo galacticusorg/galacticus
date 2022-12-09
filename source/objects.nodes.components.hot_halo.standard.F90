@@ -244,22 +244,21 @@ module Node_Component_Hot_Halo_Standard
   class(coolingInfallRadiusClass           ), pointer :: coolingInfallRadius_
   class(hotHaloMassDistributionClass       ), pointer :: hotHaloMassDistribution_
   class(accretionHaloClass                 ), pointer :: accretionHalo_
-  class(chemicalReactionRateClass          ), pointer :: chemicalReactionRate_
   class(hotHaloRamPressureStrippingClass   ), pointer :: hotHaloRamPressureStripping_
   class(hotHaloRamPressureTimescaleClass   ), pointer :: hotHaloRamPressureTimescale_
   class(hotHaloOutflowReincorporationClass ), pointer :: hotHaloOutflowReincorporation_
   class(chemicalStateClass                 ), pointer :: chemicalState_
   class(coolingRateClass                   ), pointer :: coolingRate_
   class(cosmologyParametersClass           ), pointer :: cosmologyParameters_
-  class(galacticStructureClass             ), pointer :: galacticStructure_ => null()
-  !$omp threadprivate(cosmologyFunctions_,darkMatterHaloScale_,coolingSpecificAngularMomentum_,coolingInfallRadius_,hotHaloMassDistribution_,accretionHalo_,chemicalReactionRate_,chemicalState_,hotHaloRamPressureStripping_,hotHaloRamPressureTimescale_,coolingRate_,cosmologyParameters_,hotHaloOutflowReincorporation_,galacticStructure_)
+  class(galacticStructureClass             ), pointer :: galacticStructure_
+  !$omp threadprivate(cosmologyFunctions_,darkMatterHaloScale_,coolingSpecificAngularMomentum_,coolingInfallRadius_,hotHaloMassDistribution_,accretionHalo_,chemicalState_,hotHaloRamPressureStripping_,hotHaloRamPressureTimescale_,coolingRate_,cosmologyParameters_,hotHaloOutflowReincorporation_,galacticStructure_)
 
   ! Internal count of abundances and chemicals.
   integer                                                             :: abundancesCount                            , chemicalsCount
 
   ! Configuration variables.
   logical                                                             :: hotHaloExcessHeatDrivesOutflow
-  double precision                                                    :: hotHaloExpulsionRateMaximum                , hotHaloOutflowStrippingEfficiency
+  double precision                                                    :: rateMaximumExpulsion                       , efficiencyStrippingOutflow
 
   ! Quantities stored to avoid repeated computation.
   integer         (kind=kind_int8                        )            :: uniqueIDPrevious
@@ -276,7 +275,7 @@ module Node_Component_Hot_Halo_Standard
   !$omp threadprivate(radiation,radiationCosmicMicrowaveBackground,radiationIntergalacticBackground,radiationFieldList_)
 
   ! Tracked properties control.
-  logical                                                             :: hotHaloTrackStrippedGas
+  logical                                                             :: trackStrippedGas
 
   ! Parameters controlling absolute tolerance scales.
   double precision                                        , parameter :: scaleMassRelative                 =1.0d-3
@@ -289,23 +288,24 @@ contains
    <unitName>Node_Component_Hot_Halo_Standard_Initialize</unitName>
   </nodeComponentInitializationTask>
   !!]
-  subroutine Node_Component_Hot_Halo_Standard_Initialize(parameters_)
+  subroutine Node_Component_Hot_Halo_Standard_Initialize(parameters)
     !!{
     Initializes the standard hot halo component module.
     !!}
-    use :: Abundances_Structure                 , only : Abundances_Property_Count           , abundances
+    use :: Abundances_Structure                 , only : Abundances_Property_Count      , abundances
     use :: Chemical_Abundances_Structure        , only : Chemicals_Property_Count
     use :: Error                                , only : Error_Report
-    use :: Galacticus_Nodes                     , only : defaultHotHaloComponent             , nodeComponentHotHaloStandard
-    use :: ISO_Varying_String                   , only : var_str                             , varying_string                 , char
-    use :: Input_Parameters                     , only : inputParameter                      , inputParameters
-    use :: Node_Component_Hot_Halo_Standard_Data, only : currentNode                         , formationNode                  , hotHaloAngularMomentumLossFraction, hotHaloCoolingFromNode   , &
-         &                                               hotHaloNodeMergerLimitBaryonFraction, hotHaloOutflowReturnOnFormation, starveSatellites                  , starveSatellitesOutflowed, &
-         &                                               hotHaloAngularMomentumAlwaysGrows
+    use :: Galacticus_Nodes                     , only : defaultHotHaloComponent        , nodeComponentHotHaloStandard
+    use :: ISO_Varying_String                   , only : var_str                        , varying_string              , char
+    use :: Input_Parameters                     , only : inputParameter                 , inputParameters
+    use :: Node_Component_Hot_Halo_Standard_Data, only : currentNode                    , formationNode               , fractionLossAngularMomentum, coolingFromNode          , &
+         &                                               fractionBaryonLimitInNodeMerger, outflowReturnOnFormation    , starveSatellites           , starveSatellitesOutflowed, &
+         &                                               angularMomentumAlwaysGrows
     implicit none
-    type(inputParameters             ), intent(inout) :: parameters_
+    type(inputParameters             ), intent(inout) :: parameters
     type(varying_string              )                :: hotHaloCoolingFromText
     type(nodeComponentHotHaloStandard)                :: hotHalo
+    type(inputParameters             )                :: subParameters
 
     ! Initialize the module if necessary.
     !$omp critical (Node_Component_Hot_Halo_Standard_Initialize)
@@ -315,13 +315,15 @@ contains
        abundancesCount=Abundances_Property_Count()
        chemicalsCount =Chemicals_Property_Count ()
 
+       ! Find our parameters.
+       subParameters=parameters%subParameters('componentHotHalo')
        ! Determine whether satellite nodes will be starved of gas.
        !![
        <inputParameter>
          <name>starveSatellites</name>
          <defaultValue>.false.</defaultValue>
          <description>Specifies whether or not the hot halo should be removed (``starved'') when a node becomes a satellite.</description>
-         <source>parameters_</source>
+         <source>subParameters</source>
        </inputParameter>
        !!]
 
@@ -330,27 +332,27 @@ contains
          <name>starveSatellitesOutflowed</name>
          <defaultValue>.false.</defaultValue>
          <description>Specifies whether or not the outflowed hot halo should be removed (``starved'') when a node becomes a satellite.</description>
-         <source>parameters_</source>
+         <source>subParameters</source>
        </inputParameter>
        !!]
 
        ! Determine whether stripped material should be tracked.
        !![
        <inputParameter>
-         <name>hotHaloTrackStrippedGas</name>
+         <name>trackStrippedGas</name>
          <defaultValue>.true.</defaultValue>
          <description>Specifies whether or not gas stripped from the hot halo should be tracked.</description>
-         <source>parameters_</source>
+         <source>subParameters</source>
        </inputParameter>
        !!]
 
        ! Determine whether outflowed gas should be restored to the hot reservoir on halo formation events.
        !![
        <inputParameter>
-         <name>hotHaloOutflowReturnOnFormation</name>
+         <name>outflowReturnOnFormation</name>
          <defaultValue>.false.</defaultValue>
          <description>Specifies whether or not outflowed gas should be returned to the hot reservoir on halo formation events.</description>
-         <source>parameters_</source>
+         <source>subParameters</source>
        </inputParameter>
        !!]
 
@@ -358,31 +360,31 @@ contains
        ! of computing the hot halo angular momentum.
        !![
        <inputParameter>
-         <name>hotHaloAngularMomentumAlwaysGrows</name>
+         <name>angularMomentumAlwaysGrows</name>
          <defaultValue>.false.</defaultValue>
          <description>Specifies whether or not negative rates of accretion of angular momentum into the hot halo will be treated as positive
             for the purposes of computing the hot halo angular momentum.</description>
-         <source>parameters_</source>
+         <source>subParameters</source>
        </inputParameter>
        !!]
 
        ! Determine whether the angular momentum of cooling gas should be computed from the "current node" or the "formation node".
        !![
        <inputParameter>
-         <name>hotHaloCoolingFromNode</name>
+         <name>coolingFromNode</name>
          <defaultValue>var_str('currentNode')</defaultValue>
          <description>Specifies whether the angular momentum of cooling gas should be computed from the ``current node'' or the ``formation node''.</description>
-         <source>parameters_</source>
+         <source>subParameters</source>
          <variable>hotHaloCoolingFromText</variable>
        </inputParameter>
        !!]
        select case (char(hotHaloCoolingFromText))
        case ("currentNode"  )
-          hotHaloCoolingFromNode=currentNode
+          coolingFromNode=currentNode
        case ("formationNode")
-          hotHaloCoolingFromNode=formationNode
+          coolingFromNode=formationNode
        case default
-          call Error_Report('hotHaloCoolingFromNode must be one of "currentNode" or "formationNode"'//{introspection:location})
+          call Error_Report('coolingFromNode must be one of "currentNode" or "formationNode"'//{introspection:location})
        end select
 
        ! Determine whether excess heating of the halo will drive an outflow.
@@ -391,50 +393,50 @@ contains
          <name>hotHaloExcessHeatDrivesOutflow</name>
          <defaultValue>.true.</defaultValue>
          <description>Specifies whether heating of the halo in excess of its cooling rate will drive an outflow from the halo.</description>
-         <source>parameters_</source>
+         <source>subParameters</source>
        </inputParameter>
        !!]
 
        ! Get efficiency with which outflowing gas is stripped from the hot halo.
        !![
        <inputParameter>
-         <name>hotHaloOutflowStrippingEfficiency</name>
+         <name>efficiencyStrippingOutflow</name>
          <defaultValue>0.1d0</defaultValue>
          <description>Specifies the efficiency with which outflowing gas is stripped from the hot halo, following the prescription of \citeauthor{font_colours_2008}~(\citeyear{font_colours_2008}; i.e. this is the parameter $\epsilon_\mathrm{strip}$ in their eqn.~6).</description>
-         <source>parameters_</source>
+         <source>subParameters</source>
        </inputParameter>
        !!]
 
        ! Get the maximum rate (in units of halo inverse dynamical time) at which gas can be expelled from the halo.
        !![
        <inputParameter>
-         <name>hotHaloExpulsionRateMaximum</name>
+         <name>rateMaximumExpulsion</name>
          <defaultValue>1.0d0</defaultValue>
          <description>Specifies the maximum rate at which mass can be expelled from the hot halo in units of the inverse halo dynamical time.</description>
-         <source>parameters_</source>
+         <source>subParameters</source>
        </inputParameter>
        !!]
 
        ! Get fraction of angular momentum that is lost during cooling/infall.
        !![
        <inputParameter>
-         <name>hotHaloAngularMomentumLossFraction</name>
+         <name>fractionLossAngularMomentum</name>
          <defaultValue>0.3d0</defaultValue>
          <description>Specifies the fraction of angular momentum that is lost from cooling/infalling gas.</description>
-         <source>parameters_</source>
+         <source>subParameters</source>
        </inputParameter>
        !!]
 
        ! Get option controlling limiting of baryon fraction during node mergers.
        !![
        <inputParameter>
-         <name>hotHaloNodeMergerLimitBaryonFraction</name>
+         <name>fractionBaryonLimitInNodeMerger</name>
          <defaultValue>.false.</defaultValue>
          <description>Controls whether the hot gas content of nodes should be limited to not exceed the universal baryon fraction at node
            merger events. If set to {\normalfont \ttfamily true}, hot gas (and angular momentum, abundances, and chemicals proportionally) will be
            removed from the merged halo to the unaccreted gas reservoir to limit the baryonic mass to the universal baryon
            fraction where possible.</description>
-         <source>parameters_</source>
+         <source>subParameters</source>
        </inputParameter>
        !!]
        ! Bind the outer radius get function.
@@ -463,7 +465,7 @@ contains
    <unitName>Node_Component_Hot_Halo_Standard_Thread_Initialize</unitName>
   </nodeComponentThreadInitializationTask>
   !!]
-  subroutine Node_Component_Hot_Halo_Standard_Thread_Initialize(parameters_)
+  subroutine Node_Component_Hot_Halo_Standard_Thread_Initialize(parameters)
     !!{
     Initializes the tree node hot halo methods module.
     !!}
@@ -474,26 +476,28 @@ contains
     use :: Input_Parameters, only : inputParameter                       , inputParameters
     use :: Radiation_Fields, only : radiationFieldIntergalacticBackground
     implicit none
-    type(inputParameters), intent(inout) :: parameters_
+    type(inputParameters), intent(inout) :: parameters
     type(dependencyRegEx), dimension(1)  :: dependencies
+    type(inputParameters)                :: subParameters
 
     ! Check if this implementation is selected. Define the radiation component to include both the CMB and the intergalactic background if it is.
     if (defaultHotHaloComponent%standardIsActive()) then
+       ! Find our parameters.
+       subParameters=parameters%subParameters('componentHotHalo')
        !![
-       <objectBuilder class="cosmologyParameters"            name="cosmologyParameters_"            source="parameters_"/>
-       <objectBuilder class="cosmologyFunctions"             name="cosmologyFunctions_"             source="parameters_"/>
-       <objectBuilder class="darkMatterHaloScale"            name="darkMatterHaloScale_"            source="parameters_"/>
-       <objectBuilder class="coolingSpecificAngularMomentum" name="coolingSpecificAngularMomentum_" source="parameters_"/>
-       <objectBuilder class="coolingInfallRadius"            name="coolingInfallRadius_"            source="parameters_"/>
-       <objectBuilder class="hotHaloMassDistribution"        name="hotHaloMassDistribution_"        source="parameters_"/>
-       <objectBuilder class="accretionHalo"                  name="accretionHalo_"                  source="parameters_"/>
-       <objectBuilder class="chemicalReactionRate"           name="chemicalReactionRate_"           source="parameters_"/>
-       <objectBuilder class="chemicalState"                  name="chemicalState_"                  source="parameters_"/>
-       <objectBuilder class="hotHaloRamPressureStripping"    name="hotHaloRamPressureStripping_"    source="parameters_"/>
-       <objectBuilder class="hotHaloRamPressureTimescale"    name="hotHaloRamPressureTimescale_"    source="parameters_"/>
-       <objectBuilder class="hotHaloOutflowReincorporation"  name="hotHaloOutflowReincorporation_"  source="parameters_"/>
-       <objectBuilder class="coolingRate"                    name="coolingRate_"                    source="parameters_"/>
-       <objectBuilder class="galacticStructure"              name="galacticStructure_"              source="parameters_"/>
+       <objectBuilder class="cosmologyParameters"            name="cosmologyParameters_"            source="subParameters"/>
+       <objectBuilder class="cosmologyFunctions"             name="cosmologyFunctions_"             source="subParameters"/>
+       <objectBuilder class="darkMatterHaloScale"            name="darkMatterHaloScale_"            source="subParameters"/>
+       <objectBuilder class="coolingSpecificAngularMomentum" name="coolingSpecificAngularMomentum_" source="subParameters"/>
+       <objectBuilder class="coolingInfallRadius"            name="coolingInfallRadius_"            source="subParameters"/>
+       <objectBuilder class="hotHaloMassDistribution"        name="hotHaloMassDistribution_"        source="subParameters"/>
+       <objectBuilder class="accretionHalo"                  name="accretionHalo_"                  source="subParameters"/>
+       <objectBuilder class="chemicalState"                  name="chemicalState_"                  source="subParameters"/>
+       <objectBuilder class="hotHaloRamPressureStripping"    name="hotHaloRamPressureStripping_"    source="subParameters"/>
+       <objectBuilder class="hotHaloRamPressureTimescale"    name="hotHaloRamPressureTimescale_"    source="subParameters"/>
+       <objectBuilder class="hotHaloOutflowReincorporation"  name="hotHaloOutflowReincorporation_"  source="subParameters"/>
+       <objectBuilder class="coolingRate"                    name="coolingRate_"                    source="subParameters"/>
+       <objectBuilder class="galacticStructure"              name="galacticStructure_"              source="subParameters"/>
        !!]
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
        call nodePromotionEvent  %attach(defaultHotHaloComponent,nodePromotion  ,openMPThreadBindingAtLevel,label='nodeComponentHotHaloStandard'                          )
@@ -506,9 +510,9 @@ contains
        <referenceConstruct object="radiationCosmicMicrowaveBackground" constructor="radiationFieldCosmicMicrowaveBackground(cosmologyFunctions_)"/>
        !!]
        radiationFieldList_%radiationField_ => radiationCosmicMicrowaveBackground
-       if (parameters_%isPresent('radiationFieldIntergalacticBackground')) then
+       if (parameters%isPresent('radiationFieldIntergalacticBackground')) then
           !![
-          <objectBuilder class="radiationField" name="radiationIntergalacticBackground" parameterName="radiationFieldIntergalacticBackground" source="parameters_"/>
+          <objectBuilder class="radiationField" name="radiationIntergalacticBackground" parameterName="radiationFieldIntergalacticBackground" source="parameters"/>
           !!]
           select type (radiationIntergalacticBackground)
           class is (radiationFieldIntergalacticBackground)
@@ -551,7 +555,6 @@ contains
        <objectDestructor name="coolingInfallRadius_"              />
        <objectDestructor name="hotHaloMassDistribution_"          />
        <objectDestructor name="accretionHalo_"                    />
-       <objectDestructor name="chemicalReactionRate_"             />
        <objectDestructor name="chemicalState_"                    />
        <objectDestructor name="hotHaloRamPressureStripping_"      />
        <objectDestructor name="hotHaloRamPressureTimescale_"      />
@@ -756,7 +759,7 @@ contains
           end select
        end if
        ! Check if stripped mass is being tracked.
-       if (hotHaloTrackStrippedGas) then
+       if (trackStrippedGas) then
           hotHalo => node%hotHalo()
           select type (hotHalo)
           class is (nodeComponentHotHaloStandard)
@@ -899,7 +902,7 @@ contains
     use :: Chemical_Abundances_Structure        , only : chemicalAbundances, operator(*)
     use :: Error                                , only : Error_Report
     use :: Galacticus_Nodes                     , only : interruptTask     , nodeComponentHotHalo, nodeComponentHotHaloStandard      , treeNode
-    use :: Node_Component_Hot_Halo_Standard_Data, only : currentNode       , formationNode       , hotHaloAngularMomentumLossFraction, hotHaloCoolingFromNode
+    use :: Node_Component_Hot_Halo_Standard_Data, only : currentNode       , formationNode       , fractionLossAngularMomentum, coolingFromNode
     implicit none
     type            (treeNode                ), intent(inout)          , target  :: node
     double precision                          , intent(in   )                    :: massRate
@@ -926,14 +929,14 @@ contains
           if (hotHalo%hotHaloCoolingMassRateIsAttached()) &
                & call hotHalo%hotHaloCoolingMassRate(+massRate,interrupt,interruptProcedure)
           ! Find the node to use for cooling calculations.
-          select case (hotHaloCoolingFromNode)
+          select case (coolingFromNode)
           case (currentNode  )
              nodeCooling => node
           case (formationNode)
              nodeCooling => node%formationNode
           case default
              nodeCooling => null()
-             call Error_Report('unknown "hotHaloCoolingFromNode" - this should not happen'//{introspection:location})
+             call Error_Report('unknown "coolingFromNode" - this should not happen'//{introspection:location})
           end select
           infallRadius              =coolingInfallRadius_%radius(node)
           angularMomentumCoolingRate=massRate*coolingSpecificAngularMomentum_%angularMomentumSpecific(nodeCooling,infallRadius)
@@ -953,7 +956,7 @@ contains
           call    hotHalo%angularMomentumRate       (     -angularMomentumCoolingRate                                                                                  )
           ! Pipe the cooling rate to which ever component claimed it.
           if (hotHalo%hotHaloCoolingAngularMomentumRateIsAttached()) &
-               & call hotHalo%hotHaloCoolingAngularMomentumRate(sign(+angularMomentumCoolingRate*(1.0d0-hotHaloAngularMomentumLossFraction),massRate),interrupt,interruptProcedure)
+               & call hotHalo%hotHaloCoolingAngularMomentumRate(sign(+angularMomentumCoolingRate*(1.0d0-fractionLossAngularMomentum),massRate),interrupt,interruptProcedure)
           ! Get the rate of change of abundances.
           hotHaloCooling => nodeCooling%hotHalo()
           abundancesCoolingRate=hotHaloCooling%abundances()
@@ -992,7 +995,7 @@ contains
     if (massRate /= 0.0d0 .and. hotHalo%mass() > 0.0d0) then
        ! Limit the mass expulsion rate to a fraction of the halo dynamical timescale.
        node => hotHalo%hostNode
-       massRateLimited=min(massRate,hotHaloExpulsionRateMaximum*hotHalo%mass()/darkMatterHaloScale_%timescaleDynamical(node))
+       massRateLimited=min(massRate,rateMaximumExpulsion*hotHalo%mass()/darkMatterHaloScale_%timescaleDynamical(node))
        ! Get the rate of change of abundances, chemicals, and angular momentum.
        abundancesRates    =hotHalo%abundances     ()*massRateLimited/hotHalo%mass()
        angularMomentumRate=hotHalo%angularMomentum()*massRateLimited/hotHalo%mass()
@@ -1003,7 +1006,7 @@ contains
        call hotHalo%angularMomentumRate(-angularMomentumRate)
        call hotHalo%      chemicalsRate(-     chemicalsRates)
        ! If this node is a satellite and stripped gas is being tracked, move mass and abundances to the stripped reservoir.
-       if (node%isSatellite().and.hotHaloTrackStrippedGas) then
+       if (node%isSatellite().and.trackStrippedGas) then
           call hotHalo%      strippedMassRate(+massRateLimited)
           call hotHalo%strippedAbundancesRate(+abundancesRates)
           call hotHalo% strippedChemicalsRate(+ chemicalsRates)
@@ -1042,9 +1045,9 @@ contains
     massOuter   =hotHaloMassDistribution_%enclosedMass(node,radiusOuter )
     massVirial  =hotHaloMassDistribution_%enclosedMass(node,radiusVirial)
     if (massVirial > 0.0d0) then
-       Node_Component_Hot_Halo_Standard_Outflow_Stripped_Fraction=hotHaloOutflowStrippingEfficiency*(1.0d0-massOuter/massVirial)
+       Node_Component_Hot_Halo_Standard_Outflow_Stripped_Fraction=efficiencyStrippingOutflow*(1.0d0-massOuter/massVirial)
     else
-       Node_Component_Hot_Halo_Standard_Outflow_Stripped_Fraction=hotHaloOutflowStrippingEfficiency
+       Node_Component_Hot_Halo_Standard_Outflow_Stripped_Fraction=efficiencyStrippingOutflow
     end if
     return
   end function Node_Component_Hot_Halo_Standard_Outflow_Stripped_Fraction
@@ -1081,7 +1084,7 @@ contains
     class is (nodeComponentHotHaloStandard)
        ! Get the host node.
        node => self%host()
-       if (node%isSatellite().and.hotHaloTrackStrippedGas) then
+       if (node%isSatellite().and.trackStrippedGas) then
           strippedOutflowFraction=Node_Component_Hot_Halo_Standard_Outflow_Stripped_Fraction(node,self)
           call self% strippedMassRate(rate*       strippedOutflowFraction )
        else
@@ -1116,7 +1119,7 @@ contains
           call chemicalDensities%numberToMass(chemicalMasses)
           chemicalMassesRates=chemicalMasses*rate*hydrogenByMass/numberDensityHydrogen/atomicMassHydrogen
           ! Compute the rate at which chemicals are returned to the hot reservoir.
-          if (hotHaloTrackStrippedGas) &
+          if (trackStrippedGas) &
                &  call self% strippedChemicalsRate(chemicalMassesRates*       strippedOutflowFraction ,interrupt,interruptProcedure)
           call         self%outflowedChemicalsRate(chemicalMassesRates*(1.0d0-strippedOutflowFraction),interrupt,interruptProcedure)
        end if
@@ -1129,7 +1132,7 @@ contains
     Accept outflowing gas angular momentum from a galaxy and deposit it into the outflowed reservoir.
     !!}
     use :: Galacticus_Nodes                     , only : interruptTask                     , nodeComponentHotHalo, nodeComponentHotHaloStandard, treeNode
-    use :: Node_Component_Hot_Halo_Standard_Data, only : hotHaloAngularMomentumLossFraction
+    use :: Node_Component_Hot_Halo_Standard_Data, only : fractionLossAngularMomentum
     implicit none
     class           (nodeComponentHotHalo), intent(inout)                    :: self
     double precision                      , intent(in   )                    :: rate
@@ -1143,12 +1146,12 @@ contains
     class is (nodeComponentHotHaloStandard)
        ! Get the host node.
        node => self%host()
-       if (node%isSatellite().and.hotHaloTrackStrippedGas) then
+       if (node%isSatellite().and.trackStrippedGas) then
           strippedOutflowFraction=Node_Component_Hot_Halo_Standard_Outflow_Stripped_Fraction(node,self)
        else
           strippedOutflowFraction=0.0d0
        end if
-       call    self%outflowedAngularMomentumRate(rate*(1.0d0-strippedOutflowFraction)/(1.0d0-hotHaloAngularMomentumLossFraction))
+       call    self%outflowedAngularMomentumRate(rate*(1.0d0-strippedOutflowFraction)/(1.0d0-fractionLossAngularMomentum))
     end select
     return
   end subroutine Node_Component_Hot_Halo_Standard_Outflowing_Ang_Mom_Rate
@@ -1172,7 +1175,7 @@ contains
     class is (nodeComponentHotHaloStandard)
        ! Get the host node.
        node => self%host()
-       if (node%isSatellite().and.hotHaloTrackStrippedGas) then
+       if (node%isSatellite().and.trackStrippedGas) then
           strippedOutflowFraction=Node_Component_Hot_Halo_Standard_Outflow_Stripped_Fraction(node,self)
           call    self%strippedAbundancesRate(rate*       strippedOutflowFraction )
        else
@@ -1223,7 +1226,7 @@ contains
     use :: Accretion_Halos                      , only : accretionModeHot                     , accretionModeTotal
     use :: Galacticus_Nodes                     , only : defaultHotHaloComponent              , interruptTask                    , nodeComponentBasic, nodeComponentHotHalo, &
           &                                              nodeComponentHotHaloStandard         , propertyInactive                 , treeNode          , nodeComponentSpin
-    use :: Node_Component_Hot_Halo_Standard_Data, only : outerRadiusOverVirialRadiusMinimum   , hotHaloAngularMomentumAlwaysGrows
+    use :: Node_Component_Hot_Halo_Standard_Data, only : outerRadiusOverVirialRadiusMinimum   , angularMomentumAlwaysGrows
     use :: Numerical_Constants_Math             , only : Pi
     implicit none
     type            (treeNode            ), intent(inout)          :: node
@@ -1274,7 +1277,7 @@ contains
           angularMomentumAccretionRate =  +spin %angularMomentumGrowthRate() &
                &                          *      rateAccretionMass           &
                &                          /basic%accretionRate            ()
-          if (hotHaloAngularMomentumAlwaysGrows) angularMomentumAccretionRate=abs(angularMomentumAccretionRate)
+          if (angularMomentumAlwaysGrows) angularMomentumAccretionRate=abs(angularMomentumAccretionRate)
           call hotHalo%angularMomentumRate(angularMomentumAccretionRate,interrupt,interruptProcedure)
        end if
        ! Next block of tasks occur only if chemicals are being tracked.
@@ -1304,7 +1307,7 @@ contains
                 massLossRate        =4.0d0*Pi*densityAtOuterRadius*outerRadius**2*outerRadiusGrowthRate
                 call hotHalo%outerRadiusRate(+outerRadiusGrowthRate,interrupt,interruptProcedure)
                 call hotHalo%   massSinkRate(+         massLossRate,interrupt,interruptProcedure)
-                if (hotHaloTrackStrippedGas) call Node_Component_Hot_Halo_Standard_Strip_Gas_Rate(node,-massLossRate,interrupt,interruptProcedure)
+                if (trackStrippedGas) call Node_Component_Hot_Halo_Standard_Strip_Gas_Rate(node,-massLossRate,interrupt,interruptProcedure)
              end if
           else
              ! For isolated halos, the outer radius should grow with the virial radius.
@@ -1527,7 +1530,7 @@ contains
        call    hotHalo%         angularMomentumScale(                       massVirial*radiusVirial*velocityVirial   *scaleMassRelative  )
        call    hotHalo%outflowedAngularMomentumScale(                       massVirial*radiusVirial*velocityVirial   *scaleMassRelative  )
        call    hotHalo%             outerRadiusScale(                                  radiusVirial                  *scaleRadiusRelative)
-       if (hotHaloTrackStrippedGas) then
+       if (trackStrippedGas) then
           call hotHalo%            strippedMassScale(                       massVirial                               *scaleMassRelative  )
           call hotHalo%      strippedAbundancesScale(unitAbundances        *massVirial                               *scaleMassRelative  )
           call hotHalo%       strippedChemicalsScale(unitChemicalAbundances*massVirial                               *scaleMassRelative  )
@@ -1620,7 +1623,7 @@ contains
     use :: Galacticus_Nodes                     , only : nodeComponentBasic                  , nodeComponentHotHalo   , nodeComponentHotHaloStandard, nodeComponentSpin, &
           &                                              treeNode                            , defaultHotHaloComponent
     use :: Error                                , only : Error_Report 
-    use :: Node_Component_Hot_Halo_Standard_Data, only : hotHaloNodeMergerLimitBaryonFraction, starveSatellites       , starveSatellitesOutflowed
+    use :: Node_Component_Hot_Halo_Standard_Data, only : fractionBaryonLimitInNodeMerger, starveSatellites       , starveSatellitesOutflowed
     implicit none
     type            (treeNode            ), intent(inout) :: node
     type            (treeNode            ), pointer       :: nodeParent
@@ -1797,7 +1800,7 @@ contains
                &                                           )
           ! Check if the baryon fraction in the parent hot halo exceeds the universal value. If it does, mitigate this by moving
           ! some of the mass to the failed accretion reservoir.
-          if (hotHaloNodeMergerLimitBaryonFraction) then
+          if (fractionBaryonLimitInNodeMerger) then
              ! Get the default cosmology.
              baryonicMassMaximum=parentBasic%mass()*cosmologyParameters_%OmegaBaryon()/cosmologyParameters_%OmegaMatter()
              baryonicMassCurrent=galacticStructure_%massEnclosed(nodeParent,radiusLarge,massType=massTypeBaryonic,componentType =componentTypeAll)
@@ -2097,7 +2100,7 @@ contains
     use :: Chemical_Abundances_Structure        , only : chemicalAbundances                   , zeroChemicalAbundances
     use :: Chemical_Reaction_Rates_Utilities    , only : Chemicals_Mass_To_Density_Conversion
     use :: Galacticus_Nodes                     , only : nodeComponentBasic                   , nodeComponentHotHalo  , nodeComponentHotHaloStandard, treeNode
-    use :: Node_Component_Hot_Halo_Standard_Data, only : hotHaloOutflowReturnOnFormation
+    use :: Node_Component_Hot_Halo_Standard_Data, only : outflowReturnOnFormation
     use :: Numerical_Constants_Atomic           , only : atomicMassHydrogen
     use :: Radiation_Fields                     , only : radiationFieldIntergalacticBackground
     implicit none
@@ -2111,7 +2114,7 @@ contains
          &                                                   numberDensityHydrogen, temperature
 
     ! Return immediately if return of outflowed gas on formation events is not requested.
-    if (.not.hotHaloOutflowReturnOnFormation) return
+    if (.not.outflowReturnOnFormation) return
 
     ! Get the hot halo component.
     hotHalo => node%hotHalo()
@@ -2199,7 +2202,7 @@ contains
 
     call displayMessage('Storing state for: componentHotHalo -> standard',verbosity=verbosityLevelInfo)
     !![
-    <stateStore variables="cosmologyFunctions_ darkMatterHaloScale_ coolingSpecificAngularMomentum_ coolingInfallRadius_ hotHaloMassDistribution_ accretionHalo_ chemicalReactionRate_ chemicalState_ hotHaloRamPressureStripping_ hotHaloRamPressureTimescale_ coolingRate_ cosmologyParameters_ hotHaloOutflowReincorporation_ galacticStructure_"/>
+    <stateStore variables="cosmologyFunctions_ darkMatterHaloScale_ coolingSpecificAngularMomentum_ coolingInfallRadius_ hotHaloMassDistribution_ accretionHalo_ chemicalState_ hotHaloRamPressureStripping_ hotHaloRamPressureTimescale_ coolingRate_ cosmologyParameters_ hotHaloOutflowReincorporation_ galacticStructure_"/>
     !!]
     return
   end subroutine Node_Component_Hot_Halo_Standard_State_Store
@@ -2222,7 +2225,7 @@ contains
 
     call displayMessage('Retrieving state for: componentHotHalo -> standard',verbosity=verbosityLevelInfo)
     !![
-    <stateRestore variables="cosmologyFunctions_ darkMatterHaloScale_ coolingSpecificAngularMomentum_ coolingInfallRadius_ hotHaloMassDistribution_ accretionHalo_ chemicalReactionRate_ chemicalState_ hotHaloRamPressureStripping_ hotHaloRamPressureTimescale_ coolingRate_ cosmologyParameters_ hotHaloOutflowReincorporation_ galacticStructure_"/>
+    <stateRestore variables="cosmologyFunctions_ darkMatterHaloScale_ coolingSpecificAngularMomentum_ coolingInfallRadius_ hotHaloMassDistribution_ accretionHalo_ chemicalState_ hotHaloRamPressureStripping_ hotHaloRamPressureTimescale_ coolingRate_ cosmologyParameters_ hotHaloOutflowReincorporation_ galacticStructure_"/>
     !!]
     return
   end subroutine Node_Component_Hot_Halo_Standard_State_Restore

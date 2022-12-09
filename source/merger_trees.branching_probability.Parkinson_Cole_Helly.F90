@@ -114,7 +114,7 @@ Implements a merger tree branching probability class using the algorithm of \cit
   ! Branching probability integrand integration tolerance.
   double precision                                                  , parameter :: parkinsonColeHellyIntegrandToleranceRelative=1.0d-3
 
-  ! Limit on alpha for use in effective gamma parameters.
+  ! Limit on α for use in effective γ parameters.
   double precision                                                  , parameter :: parkinsonColeHellyAlphaMinimum              =5.0d-3
 
 contains
@@ -281,11 +281,11 @@ contains
       implicit none
       logical :: reject
 
-      ! Get parent and half-mass sigmas and alphas.
+      ! Get parent and half-mass σ and α.
       self%timeParent        =self%criticalOverdensity_     %timeOfCollapse(criticalOverdensity=     deltaCritical,mass=haloMass,node=node)
       self%sigmaParentSquared=self%cosmologicalMassVariance_%rootVariance  (time               =self%timeParent   ,mass=haloMass          )**2
       call self%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(0.5d0*haloMass,self%timeParent,halfMassSigma,halfMassAlpha)
-      ! Compute parameters beta, mu, and B.
+      ! Compute parameters β, μ, and B.
       massFractionResolution=+massResolution                               &
            &                 /haloMass
       halfMassV             =+self%V(0.5d0,haloMass)
@@ -484,7 +484,7 @@ contains
     double precision                                                                  :: parentHalfMassSigma       , parentSigma
     !$GLC attributes unused :: deltaCritical, time
 
-    ! Get sigma and delta_critical for the parent halo.
+    ! Get σ and δ_critical for the parent halo.
     if (haloMass > 2.0d0*massResolution) then
        parentSigma                  =+self%cosmologicalMassVariance_%rootVariance(      haloMass,self%timeParent)
        parentHalfMassSigma          =+self%cosmologicalMassVariance_%rootVariance(0.5d0*haloMass,self%timeParent)
@@ -553,7 +553,7 @@ contains
        self%haloMassPrevious       =  haloMass
        self%deltaCriticalPrevious  =  deltaCritical
        self%massResolutionPrevious =  massResolution
-       ! Get sigma and delta_critical for the parent halo.
+       ! Get σ and δ_critical for the parent halo.
        if (haloMass > 2.0d0*massResolution) then
           call self%computeCommonFactors(deltaCritical,time,haloMass,node)
           massMinimum             =+           massResolution
@@ -675,26 +675,26 @@ contains
     integer                                                                                   :: iBound
     !$GLC attributes unused :: node
 
-    ! Get sigma and delta_critical for the parent halo.
+    ! Get σ and δ_critical for the parent halo.
     if (haloMass > 2.0d0*massResolution) then
        call self%computeCommonFactors(deltaCritical,time,haloMass,node)
        call self%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(massResolution,self%timeParent,self%resolutionSigma,self%resolutionAlpha)
        if (massResolution /= self%massResolutionTabulated .or. self%cosmologicalMassVariance_%growthIsMassDependent()) then
-          ! Resolution changed - recompute sigma and alpha at resolution limit. Also reset the hypergeometric factor tables since
+          ! Resolution changed - recompute σ and α at resolution limit. Also reset the hypergeometric factor tables since
           ! these depend on resolution.
           self%upperBoundHypergeometricInitialized=.false.
        end if
        resolutionSigmaOverParentSigma=self%resolutionSigma/self%sigmaParent
        ! Estimate probability.
        if (resolutionSigmaOverParentSigma > 1.0d0) then
-          ! Compute relevant sigmas and alphas.
+          ! Compute relevant σ and α.
           call self%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(0.5d0*self%massHaloParent,self%timeParent,halfParentSigma,halfParentAlpha)
           ! Iterative over available bounds.
           parkinsonColeHellyProbabilityBound=0.0d0
           do iBound=1,2
              ! Determine if CDM assumptions can be used. Do this only is these have been explicitly allowed, if this is our first
-             ! pass through the bounds evaluation, and if both alphas are sufficiently large. (This last condition is required
-             ! since we raise quantities to the power of 1/alpha which can cause problems for very small alpha.)
+             ! pass through the bounds evaluation, and if both αs are sufficiently large. (This last condition is required
+             ! since we raise quantities to the power of 1/α which can cause problems for very small α.)
              usingCDMAssumptions= self%cdmAssumptions                                         &
                   &              .and.                                                        &
                   &               iBound                    == 1                              &
@@ -702,7 +702,7 @@ contains
                   &               abs(self%resolutionAlpha) >  parkinsonColeHellyAlphaMinimum &
                   &              .and.                                                        &
                   &               abs(     halfParentAlpha) >  parkinsonColeHellyAlphaMinimum
-             ! Compute the effective value of gamma.
+             ! Compute the effective value of γ.
              gammaEffective=self%gamma1
              if (usingCDMAssumptions) then
                 select case (bound%ID)
@@ -881,7 +881,7 @@ contains
          &                                                                                       resolutionSigma
     !$GLC attributes unused :: node
 
-    ! Get sigma and delta_critical for the parent halo.
+    ! Get σ and δ_critical for the parent halo.
     call self%computeCommonFactors(deltaCritical,time,haloMass,node)
     resolutionSigma               =self%cosmologicalMassVariance_%rootVariance(massResolution,self%timeParent)
     resolutionSigmaOverParentSigma=resolutionSigma/self%sigmaParent
@@ -1051,10 +1051,10 @@ contains
        massCount=int(log10(massMaximum/massMinimum)*dble(massCountPerDecade))+1
        if (.not.self%upperBoundHypergeometricInitialized) call self%upperBoundHypergeometric%destroy()
        call self%upperBoundHypergeometric%create(massMinimum,massMaximum,massCount,1,extrapolationType=spread(extrapolationTypeAbort,1,2))
-       ! Evaluate sigma and alpha at the mass resolution.
+       ! Evaluate σ and α at the mass resolution.
        call self%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(massResolution,self%timeParent,resolutionMassSigma,resolutionMassAlpha)
        do i=1,massCount
-          ! Evaluate sigmas and alpha.
+          ! Evaluate σ and α.
           call           self%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(0.5d0*self%upperBoundHypergeometric%x(i),self%timeParent,halfMassSigma,halfMassAlpha)
           massSigma     =self%cosmologicalMassVariance_%rootVariance                      (      self%upperBoundHypergeometric%x(i),self%timeParent                            )
           gammaEffective=self%gamma1-1.0d0/halfMassAlpha

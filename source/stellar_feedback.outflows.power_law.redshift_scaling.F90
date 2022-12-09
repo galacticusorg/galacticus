@@ -71,7 +71,6 @@ contains
     self%stellarFeedbackOutflowsPowerLaw=stellarFeedbackOutflowsPowerLaw(parameters)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="self%cosmologyFunctions_"/>
     !!]
     return
   end function powerLawRedshiftScalingConstructorParameters

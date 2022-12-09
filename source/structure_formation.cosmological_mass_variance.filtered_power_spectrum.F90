@@ -614,7 +614,7 @@ contains
        k    =1
        hTime=0.0d0
     end if
-    ! If sigma exceeds the highest value tabulated, simply return the lowest tabulated mass.
+    ! If σ exceeds the highest value tabulated, simply return the lowest tabulated mass.
     if (rootVarianceActual > self%rootVarianceTable(k)%y(1)) then
        filteredPowerMass=self%rootVarianceTable(k)%x(1)
     else
@@ -628,7 +628,7 @@ contains
              interpolantTime=      hTime
           end if
           if (interpolantTime == 0.0d0) cycle
-          ! Find the largest mass corresponding to this sigma.
+          ! Find the largest mass corresponding to this σ.
           iBoundLeft =1
           iBoundRight=size(self%rootVarianceUniqueTable(j)%rootVariance)
           do while (iBoundLeft+1 < iBoundRight)
@@ -906,6 +906,7 @@ contains
       !!{
       Compute the root-variance of mass in spheres enclosing the given {\normalfont \ttfamily mass} from the power spectrum.
       !!}
+      use :: Interface_GSL           , only : GSL_EBadTol      , GSL_ETol
       use :: Numerical_Constants_Math, only : Pi
       use :: Numerical_Integration   , only : GSL_Integ_Gauss15, integrator
       implicit none
@@ -915,6 +916,7 @@ contains
       double precision                            :: topHatRadius           , wavenumberMaximum     , &
            &                                         wavenumberMinimum      , integrandLow          , &
            &                                         integrandMedium        , integrandHigh
+      integer                                     :: status
       type            (integrator)                :: integrator_            , integratorLogarithmic_
 
       filteredPowerTime=time_
@@ -1002,9 +1004,9 @@ contains
                  &          /2.0d0                                                        &
                  &          /Pi**2
          else if (wavenumberMaximum > wavenumberBAO) then
-            integrandLow =   integrator_%integrate(wavenumberMinimum,wavenumberBAO    )
-            integrandHigh=   integrator_%integrate(wavenumberBAO    ,wavenumberMaximum)
-            if (integrandHigh <= 0.0d0) then
+            integrandLow =   integrator_%integrate(wavenumberMinimum,wavenumberBAO                  )
+            integrandHigh=   integrator_%integrate(wavenumberBAO    ,wavenumberMaximum,status=status)
+            if (status == GSL_EBadTol .or. status == GSL_ETol) then
                ! If there is no power in the high wavenumber integral this may be because the upper limit is large and the power
                ! is confined to small wavenumbers near the lower limit. This can happen, for example, if attempting to compute
                ! σ(M) for mass scales far below the cut off for power spectra with a small-scale cut off. In such cases attempt to

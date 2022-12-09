@@ -27,7 +27,7 @@ module Coordinates
   !!}
   implicit none
   private
-  public :: assignment(=)
+  public :: assignment(=), operator(*)
 
   ! Define assignment interfaces.
   interface assignment(=)
@@ -56,6 +56,10 @@ module Coordinates
      procedure                                      :: rCylindrical      => Coordinates_Radius_Cylindrical
      procedure                                      :: rSpherical        => Coordinates_Radius_Spherical
      procedure(rSphericalSquaredTemplate), deferred :: rSphericalSquared
+     procedure(scalarMultiplyTemplate   ), deferred :: scalarMultiply
+     procedure(scalarDivideTemplate     ), deferred :: scalarDivide
+     generic                                        :: operator(*)       => scalarMultiply
+     generic                                        :: operator(/)       => scalarDivide
   end type coordinate
 
   type, public, extends(coordinate) :: coordinateCartesian
@@ -82,6 +86,8 @@ module Coordinates
      procedure :: ySet              => Coordinates_Cartesian_Set_Y
      procedure :: zSet              => Coordinates_Cartesian_Set_Z
      procedure :: rSphericalSquared => Coordinates_Cartesian_R_Spherical_Squared
+     procedure :: scalarMultiply    => Coordinates_Cartesian_Scalar_Multiply
+     procedure :: scalarDivide      => Coordinates_Cartesian_Scalar_Divide
   end type coordinateCartesian
 
   type, public, extends(coordinate) :: coordinateSpherical
@@ -91,12 +97,12 @@ module Coordinates
    contains
      !![
      <methods>
-       <method description="Get the $r$-coordinate." method="r" />
-       <method description="Get the $\theta$-coordinate." method="theta" />
-       <method description="Get the $\phi$-coordinate." method="phi" />
-       <method description="set the $r$-coordinate." method="rSet" />
-       <method description="set the $\theta$-coordinate." method="thetaSet" />
-       <method description="set the $\phi$-coordinate." method="phiSet" />
+       <method description="Get the $r$-coordinate."      method="r"       />
+       <method description="Get the $\theta$-coordinate." method="theta"   />
+       <method description="Get the $\phi$-coordinate."   method="phi"     />
+       <method description="set the $r$-coordinate."      method="rSet"    />
+       <method description="set the $\theta$-coordinate." method="thetaSet"/>
+       <method description="set the $\phi$-coordinate."   method="phiSet"  />
      </methods>
      !!]
      procedure :: toCartesian       => Coordinates_Spherical_To_Cartesian
@@ -109,6 +115,8 @@ module Coordinates
      procedure :: phiSet            => Coordinates_Spherical_Set_Phi
      procedure :: rSpherical        => Coordinates_Spherical_R_Spherical
      procedure :: rSphericalSquared => Coordinates_Spherical_R_Spherical_Squared
+     procedure :: scalarMultiply    => Coordinates_Spherical_Scalar_Multiply
+     procedure :: scalarDivide      => Coordinates_Spherical_Scalar_Divide
   end type coordinateSpherical
 
   type, public, extends(coordinate) :: coordinateCylindrical
@@ -118,12 +126,12 @@ module Coordinates
    contains
      !![
      <methods>
-       <method description="Get the $r$-coordinate." method="r" />
-       <method description="Get the $\phi$-coordinate." method="phi" />
-       <method description="Get the $z$-coordinate." method="z" />
-       <method description="set the $r$-coordinate." method="rSet" />
-       <method description="set the $\phi$-coordinate." method="phiSet" />
-       <method description="set the $z$-coordinate." method="zSet" />
+       <method description="Get the $r$-coordinate."    method="r"     />
+       <method description="Get the $\phi$-coordinate." method="phi"   />
+       <method description="Get the $z$-coordinate."    method="z"     />
+       <method description="set the $r$-coordinate."    method="rSet"  />
+       <method description="set the $\phi$-coordinate." method="phiSet"/>
+       <method description="set the $z$-coordinate."    method="zSet"  />
      </methods>
      !!]
      procedure :: toCartesian       => Coordinates_Cylindrical_To_Cartesian
@@ -135,6 +143,8 @@ module Coordinates
      procedure :: phiSet            => Coordinates_Cylindrical_Set_Phi
      procedure :: zSet              => Coordinates_Cylindrical_Set_Z
      procedure :: rSphericalSquared => Coordinates_Cylindrical_R_Spherical_Squared
+     procedure :: scalarMultiply    => Coordinates_Cylindrical_Scalar_Multiply
+     procedure :: scalarDivide      => Coordinates_Cylindrical_Scalar_Divide
   end type coordinateCylindrical
 
   abstract interface
@@ -144,6 +154,29 @@ module Coordinates
      end function rSphericalSquaredTemplate
   end interface
   
+  abstract interface
+     function scalarMultiplyTemplate(self,multiplier)
+       import coordinate
+       class           (coordinate), allocatable   :: scalarMultiplyTemplate
+       class           (coordinate), intent(in   ) :: self
+       double precision            , intent(in   ) :: multiplier
+     end function scalarMultiplyTemplate
+  end interface
+  
+  abstract interface
+     function scalarDivideTemplate(self,divisor)
+       import coordinate
+       class           (coordinate), allocatable   :: scalarDivideTemplate
+       class           (coordinate), intent(in   ) :: self
+       double precision            , intent(in   ) :: divisor
+     end function scalarDivideTemplate
+  end interface
+  
+  ! Interface to multiplication operators with coordinate objects as their second argument.
+  interface operator(*)
+     module procedure Coordinates_Scalar_Multiply_Switched
+  end interface operator(*)
+
 contains
 
   subroutine Coordinates_Null_From(self,x)
@@ -313,6 +346,36 @@ contains
     return
   end subroutine Coordinates_Cartesian_Set_Z
 
+  function Coordinates_Cartesian_Scalar_Multiply(self,multiplier) result(scaled)
+    !!{
+    Multiply a Cartesian {\normalfont \ttfamily coordinate} object by a scalar.
+    !!}
+    implicit none
+    class           (coordinate         ), allocatable   :: scaled
+    class           (coordinateCartesian), intent(in   ) :: self
+    double precision                     , intent(in   ) :: multiplier
+
+    allocate(scaled,mold=self)
+    scaled%position=+self%position   &
+         &          *     multiplier
+    return
+  end function Coordinates_Cartesian_Scalar_Multiply
+
+  function Coordinates_Cartesian_Scalar_Divide(self,divisor) result(scaled)
+    !!{
+    Divide a Cartesian {\normalfont \ttfamily coordinate} object by a scalar.
+    !!}
+    implicit none
+    class           (coordinate         ), allocatable   :: scaled
+    class           (coordinateCartesian), intent(in   ) :: self
+    double precision                     , intent(in   ) :: divisor
+
+    allocate(scaled,mold=self)
+    scaled%position=+self%position &
+         &          /     divisor
+    return
+  end function Coordinates_Cartesian_Scalar_Divide
+
   double precision function Coordinates_Cartesian_R_Spherical_Squared(self)
     !!{
     Return the squared spherical radius, $r^2$ of a Cartesian {\normalfont \ttfamily coordinate} object.
@@ -461,6 +524,38 @@ contains
     return
   end function Coordinates_Spherical_R_Spherical_Squared
 
+  function Coordinates_Spherical_Scalar_Multiply(self,multiplier) result(scaled)
+    !!{
+    Multiply a spherical {\normalfont \ttfamily coordinate} object by a scalar.
+    !!}
+    implicit none
+    class           (coordinate         ), allocatable   :: scaled
+    class           (coordinateSpherical), intent(in   ) :: self
+    double precision                     , intent(in   ) :: multiplier
+
+    allocate(scaled,mold=self)
+    scaled%position   =+self  %position
+    scaled%position(1)=+scaled%position(1) &
+         &             *multiplier
+    return
+  end function Coordinates_Spherical_Scalar_Multiply
+
+  function Coordinates_Spherical_Scalar_Divide(self,divisor) result(scaled)
+    !!{
+    Dvidei a spherical {\normalfont \ttfamily coordinate} object by a scalar.
+    !!}
+    implicit none
+    class           (coordinate         ), allocatable   :: scaled
+    class           (coordinateSpherical), intent(in   ) :: self
+    double precision                     , intent(in   ) :: divisor
+
+    allocate(scaled,mold=self)
+    scaled%position   =+self  %position
+    scaled%position(1)=+scaled%position(1) &
+         &             /divisor
+    return
+  end function Coordinates_Spherical_Scalar_Divide
+
   ! Cylindrical coordinate object.
   subroutine Coordinates_Cylindrical_From_Cartesian(self,x)
     !!{
@@ -580,6 +675,42 @@ contains
     return
   end function Coordinates_Cylindrical_R_Spherical_Squared
 
+  function Coordinates_Cylindrical_Scalar_Multiply(self,multiplier) result(scaled)
+    !!{
+    Multiply a cylindrical {\normalfont \ttfamily coordinate} object by a scalar.
+    !!}
+    implicit none
+    class           (coordinate           ), allocatable   :: scaled
+    class           (coordinateCylindrical), intent(in   ) :: self
+    double precision                       , intent(in   ) :: multiplier
+
+    allocate(scaled,mold=self)
+    scaled%position   =+self  %position
+    scaled%position(1)=+scaled%position(1) &
+         &             *multiplier
+    scaled%position(3)=+scaled%position(3) &
+         &             *multiplier
+    return
+  end function Coordinates_Cylindrical_Scalar_Multiply
+
+  function Coordinates_Cylindrical_Scalar_Divide(self,divisor) result(scaled)
+    !!{
+    Divide a cylindrical {\normalfont \ttfamily coordinate} object by a scalar.
+    !!}
+    implicit none
+    class           (coordinate           ), allocatable   :: scaled
+    class           (coordinateCylindrical), intent(in   ) :: self
+    double precision                       , intent(in   ) :: divisor
+
+    allocate(scaled,mold=self)
+    scaled%position   =+self  %position
+    scaled%position(1)=+scaled%position(1) &
+         &             /divisor
+    scaled%position(3)=+scaled%position(3) &
+         &             /divisor
+    return
+  end function Coordinates_Cylindrical_Scalar_Divide
+
   ! General functions.
   double precision function Coordinates_Radius_Cylindrical(self)
     implicit none
@@ -605,5 +736,19 @@ contains
     Coordinates_Radius_Spherical=sqrt(self%rSphericalSquared())
     return
   end function Coordinates_Radius_Spherical
+
+  function Coordinates_Scalar_Multiply_Switched(multiplier,self) result(scaled)
+    !!{
+    Multiply a Cartesian {\normalfont \ttfamily coordinate} object by a scalar.
+    !!}
+    implicit none
+    class            (coordinate), allocatable                :: scaled
+    class           (coordinate), intent(in   ) :: self
+    double precision                     , intent(in   ) :: multiplier
+
+    allocate(scaled,mold=self)
+    scaled=self*multiplier
+    return
+  end function Coordinates_Scalar_Multiply_Switched
 
 end module Coordinates

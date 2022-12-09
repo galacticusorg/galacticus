@@ -65,11 +65,18 @@ module Hot_Halo_Mass_Distributions
     <argument>double precision          , intent(in   )         :: radius</argument>
    </method>
    <method name="radialMoment" >
-    <description>Return the density of the hot halo at the given {\normalfont \ttfamily radius}.</description>
+    <description>Return the specified radial{\normalfont \ttfamily moment} of the density of the hot halo at the given {\normalfont \ttfamily radius}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type            (treeNode), intent(inout) :: node</argument>
     <argument>double precision          , intent(in   ) :: moment, radius</argument>
+   </method>
+   <method name="densitySquaredIntegral" >
+    <description>Return the integral of the square of the density of the hot halo from zero to the given {\normalfont \ttfamily radius}.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>type            (treeNode), intent(inout) :: node</argument>
+    <argument>double precision          , intent(in   ) :: radius</argument>
    </method>
    <method name="rotationNormalization" >
     <description>Returns the relation between specific angular momentum and rotation velocity (assuming a rotation velocity that is constant in radius) for {\normalfont \ttfamily node}. Specifically, the normalization, $A$, returned is such that $V_\mathrm{rot} = A J/M$.</description>
@@ -240,7 +247,7 @@ module Hot_Halo_Mass_Distributions
    <unitName>hotHaloMassDistributionChandrasekharIntegral</unitName>
   </chandrasekharIntegralTask>
   !!]
-  function hotHaloMassDistributionChandrasekharIntegral(node,positionCartesian,velocityCartesian,componentType,massType)
+  function hotHaloMassDistributionChandrasekharIntegral(node,nodeSatellite,positionCartesian,velocityCartesian,componentType,massType)
     !!{
     Computes the Chandrasekhar integral due to the hot halo.
     !!}
@@ -250,7 +257,7 @@ module Hot_Halo_Mass_Distributions
     use :: Numerical_Constants_Math  , only : Pi
     implicit none
     double precision                                             , dimension(3) :: hotHaloMassDistributionChandrasekharIntegral
-    type            (treeNode                    ), intent(inout)               :: node
+    type            (treeNode                    ), intent(inout)               :: node                                                , nodeSatellite
     type            (enumerationComponentTypeType), intent(in   )               :: componentType
     type            (enumerationMassTypeType     ), intent(in   )               :: massType
     double precision                              , intent(in   ), dimension(3) :: positionCartesian                                   , velocityCartesian
@@ -258,12 +265,13 @@ module Hot_Halo_Mass_Distributions
     double precision                              , parameter                   :: XvMaximum                                    =10.0d0
     double precision                                                            :: radius                                              , velocity         , &
          &                                                                         density                                             , xV
-
+    !$GLC attributes unused :: radiusHalfMass, nodeSatellite
+    
     radius                                      = sqrt(sum(positionCartesian**2))
     velocity                                    = sqrt(sum(velocityCartesian**2))
     positionSpherical                           = [radius,0.0d0,0.0d0]
     density                                     = hotHaloMassDistributionDensity(node,positionSpherical,componentType,massType,weightByMass,weightIndexNull)
-    xV                                          =+velocity                                                                   &
+    xV                                          =+velocity                                                                       &
          &                                       /Ideal_Gas_Sound_Speed(hotHaloTemperatureProfile_%temperature(node,radius)) &
          &                                       /sqrt(2.0d0)
     hotHaloMassDistributionChandrasekharIntegral=-density              &

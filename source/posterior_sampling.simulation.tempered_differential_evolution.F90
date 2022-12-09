@@ -345,11 +345,11 @@ contains
     double precision                                                               :: gammaBoostFactor
 
     if (self%recomputeCount > 0 .and. mod(self%posteriorSampleState_%count(),self%recomputeCount) == 0) then
-       ! Every self%recomputeCount steps, set gamma=0 and force likelihood to be recomputed in the current state.
+       ! Every self%recomputeCount steps, set γ=0 and force likelihood to be recomputed in the current state.
        temperedDifferentialEvolutionStepSize=0.0d0
        forceAcceptance                      =.true.
     else if (mod(self%posteriorSampleState_%count(),self%stateSwapCount) == 0 .and. self%level() == 0) then
-       ! Every self%stateSwapCount steps, set gamma=1 to allow interchange of chains.
+       ! Every self%stateSwapCount steps, set γ=1 to allow interchange of chains.
        temperedDifferentialEvolutionStepSize=1.0d0
     else
        gammaBoostFactor=self%temperature()**self%posteriorSampleDffrntlEvltnPrpslSzTmpExp_%exponent(self%temperedStates,self%temperatures,self%posteriorSampleState_,self%posteriorSampleConvergence_)

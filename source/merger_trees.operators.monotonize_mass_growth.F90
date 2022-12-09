@@ -49,17 +49,17 @@
 
 contains
 
-  function monotonizeMassGrowthConstructorParameters(parameters)
+  function monotonizeMassGrowthConstructorParameters(parameters) result(self)
     !!{
     Constructor for the mass growth monotonizing merger tree operator class which takes a
     parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(mergerTreeOperatorMonotonizeMassGrowth)                :: monotonizeMassGrowthConstructorParameters
+    type(mergerTreeOperatorMonotonizeMassGrowth)                :: self
     type(inputParameters                       ), intent(inout) :: parameters
 
-    monotonizeMassGrowthConstructorParameters=mergerTreeOperatorMonotonizeMassGrowth()
+    self=mergerTreeOperatorMonotonizeMassGrowth()
     !![
     <inputParametersValidate source="parameters"/>
     !!]

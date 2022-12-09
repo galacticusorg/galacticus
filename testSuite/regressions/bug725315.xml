@@ -38,7 +38,7 @@
     <!-- DMO evolution -->
     <nodeOperator value="DMOInterpolate"/>
     <!-- Halo concentrations -->
-    <nodeOperator value="darkMatterProfileScaleSet"        />
+    <nodeOperator value="darkMatterProfileScaleSet"/>
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
     <!-- Halo spins -->
     <nodeOperator value="haloAngularMomentumRandom">
@@ -47,7 +47,7 @@
     <nodeOperator value="haloAngularMomentumInterpolate"/>
     <!-- Satellite evolution -->
     <nodeOperator value="satelliteMergingTime"/>
-    <nodeOperator value="satelliteMassLoss"   />
+    <nodeOperator value="satelliteMassLoss"/>
     <!-- Star formation -->
     <nodeOperator value="starFormationDisks"/>
     <nodeOperator value="starFormationSpheroids"/>
@@ -83,7 +83,6 @@
     <sigma_8 value="0.807"/>
   </cosmologicalMassVariance>
 
-  <bondiHoyleAccretionTemperatureSpheroid value="100"/>
   <darkMatterProfileDMO value="NFW"/>
   <coolingTimeAvailable value="whiteFrenk1991">
     <ageFactor value="0"/>
@@ -94,7 +93,6 @@
     <wavenumberReference value="1.000"/>
     <running value="0.000"/>
   </powerSpectrumPrimordial>
-  <diskMassToleranceAbsolute value="1e-06"/>
   <haloSpinDistribution value="bett2007">
     <alpha value="2.509"/>
     <lambda0 value="0.04326"/>
@@ -109,13 +107,20 @@
   </mergerTreeBuildMasses>
   <cosmologyFunctions value="matterLambda"/>
   <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
-  <bondiHoyleAccretionEnhancementHotHalo value="1"/>
-  <blackHoleWindEfficiency value="0.001"/>
-  <componentBlackHole value="standard"/>
-  <componentSpheroid value="standard"/>
-  <spheroidMassDistribution value="hernquist">
-    <dimensionless value="true"/>
-  </spheroidMassDistribution>
+  <componentBlackHole value="standard">
+    <massSeed value="100"/>
+    <efficiencyWind value="0.001"/>
+    <bondiHoyleAccretionTemperatureSpheroid value="100"/>
+    <bondiHoyleAccretionEnhancementHotHalo value="1"/>
+    <bondiHoyleAccretionEnhancementSpheroid value="1"/>
+  </componentBlackHole>
+  <componentSpheroid value="standard">
+    <efficiencyEnergeticOutflow value="1"/>
+    <toleranceAbsoluteMass value="1e-06"/>
+    <massDistributionSpheroid value="hernquist">
+      <dimensionless value="true"/>
+    </massDistributionSpheroid>
+  </componentSpheroid>
   <componentBasic value="standard"/>
   <darkMatterProfileScaleRadius value="concentrationLimiter">
     <concentrationMinimum value="  4.0"/>
@@ -132,19 +137,18 @@
     <coreRadiusOverVirialRadius value="0.1"/>
   </hotHaloMassDistributionCoreRadius>
   <satelliteMergingTimescales value="jiang2008"/>
-  <componentDisk value="standard"/>
-  <diskMassDistribution value="exponentialDisk">
-    <dimensionless value="true"/>
-  </diskMassDistribution>
+  <componentDisk value="standard">
+    <toleranceAbsoluteMass value="1e-06"/>
+    <massDistributionDisk value="exponentialDisk">
+      <dimensionless value="true"/>
+    </massDistributionDisk>
+  </componentDisk>
   <linearGrowth value="collisionlessMatter"/>
   <mergerTreeMassResolution value="fixed">
     <massResolution value="5.0e10"/>
   </mergerTreeMassResolution>
   <darkMatterProfileConcentration value="gao2008"/>
-  <spheroidEnergeticOutflowMassRate value="1"/>
-  <starveSatellites value="true"/>
   <hotHaloMassDistribution value="betaProfile"/>
-  <spheroidMassToleranceAbsolute value="1e-06"/>
   <hotHaloTemperatureProfile value="virial"/>
   <verbosityLevel value="standard"/>
   <stellarPopulation value="standard">
@@ -181,7 +185,6 @@
     <countMetallicities value="0"/>
     <timeStep value="1.0"/>
   </starFormationHistory>
-  <bondiHoyleAccretionEnhancementSpheroid value="1"/>
   <mergerRemnantSize value="cole2000">
     <energyOrbital value="1"/>
   </mergerRemnantSize>
@@ -195,7 +198,6 @@
     <gamma2 value="-0.01"/>
     <accuracyFirstOrder value="+0.10"/>
   </mergerTreeBranchingProbability>
-  <blackHoleSeedMass value="100"/>
   <stellarPopulationSelector value="fixed"/>
   <stellarPopulationProperties value="noninstantaneous">
     <countHistoryTimes value="10"/>
@@ -205,7 +207,9 @@
   <stateFileRoot value="galacticusDebug"/>
 
   <initialMassFunction value="salpeter1955"/>
-  <componentHotHalo value="standard"/>
+  <componentHotHalo value="standard">
+  <starveSatellites value="true"/>
+  </componentHotHalo>
   <accretionHalo value="simple">
     <redshiftReionization value="9"/>
     <velocitySuppressionReionization value="30.0"/>

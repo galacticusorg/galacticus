@@ -116,10 +116,11 @@ contains
     integer                                     , intent(in   )          :: propertyType
     type            (treeNode                  ), pointer                :: nodeHost
     class           (nodeComponentSatellite    )               , pointer :: satellite
-    double precision                            , dimension(3)           :: position         , velocity             , &
+    double precision                            , dimension(3)           :: position              , velocity                   , &
          &                                                                  acceleration
-    double precision                                                     :: massEnclosedHost , massEnclosedSatellite, &
-         &                                                                  radius
+    double precision                            , parameter              :: massRatioMinimum=0.0d0, massRatioMaximum     =1.0d3
+    double precision                                                     :: massEnclosedHost      , massEnclosedSatellite      , &
+         &                                                                  radius                , massRatio
     !$GLC attributes unused :: interrupt, functionInterrupt, propertyType
 
     if (.not.node%isSatellite()) return
@@ -135,20 +136,27 @@ contains
          &                      *velocity   &
          &                     )
     if (radius <= 0.0d0) return ! If radius is non-positive, assume no acceleration.
-    massEnclosedSatellite=self%galacticStructure_%massEnclosed(node    ,radius  )
-    massEnclosedHost     =self%galacticStructure_%massEnclosed(nodeHost,radius  )
-    acceleration         =self%galacticStructure_%acceleration(nodeHost,position)
+    massEnclosedSatellite=max(0.0d0,self%galacticStructure_%massEnclosed(node    ,radius  ))
+    massEnclosedHost     =          self%galacticStructure_%massEnclosed(nodeHost,radius  )
+    acceleration         =          self%galacticStructure_%acceleration(nodeHost,position)
     ! Include a factor (1+m_{sat}/m_{host})=m_{sat}/µ (where µ is the reduced mass) to convert from the two-body problem of
     ! satellite and host orbitting their common center of mass to the equivalent one-body problem (since we're solving for the
     ! motion of the satellite relative to the center of the host which is held fixed).
     if (massEnclosedHost > 0.0d0) then
-       call satellite%velocityRate(                         &
-            &                      +acceleration            &
-            &                      *(                       &
-            &                        +1.0d0                 &
-            &                        +massEnclosedSatellite &
-            &                        /massEnclosedHost      &
-            &                      )                        &
+       massRatio=min(                            &
+            &            +massRatioMaximum     , &
+            &        max(                        &
+            &            +massRatioMinimum     , &
+            &            +massEnclosedSatellite  &
+            &            /massEnclosedHost       &
+            &           )                        &
+            &       )
+       call satellite%velocityRate(              &
+            &                      +acceleration &
+            &                      *(            &
+            &                        +1.0d0      &
+            &                        +massRatio  &
+            &                      )             &
             &                     )
     else
        ! Enclosed mass is zero - this is acceptable only if the acceleration is zero.

@@ -20,17 +20,44 @@
 !+    Contributions to this file made by: Andrew Benson, Christoph Behrens, Xiaolong Du.
 
 !!{
-Contains a module which implements a excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}, but using a midpoint method to perform the integrations \citep{du_substructure_2017}.
+Implements an excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}, but using a midpoint
+method to perform the integrations \citep{du_substructure_2017}.
 !!}
 
   !![
   <excursionSetFirstCrossing name="excursionSetFirstCrossingFarahiMidpoint">
-   <description>An excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}, but using a midpoint method to perform the integrations \citep{du_substructure_2017}.</description>
+    <description>
+      An excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}, but using a midpoint method
+      to perform the integrations \citep{du_substructure_2017}.
+
+      Specifically, in the method used by \cite{benson_dark_2012} the integral equation for $f(S)$ (see
+      equation~\ref{eq:OldExcursionMethod}) is solved using the trapezoidal rule (see \refClass{excursionSetFirstCrossingFarahi}
+      for complete details):
+      \begin{equation}
+       \int_0^{S_j} f(\tilde{S})K(S_j,\tilde{S}) \mathrm{d}\tilde{S} = \sum_{j=0}^{i-1} \frac{f(S_j)K(S_i,S_j)+f(S_{j+1})K(S_i,S_{j+1})}{2} \Delta S_j,
+     \end{equation}
+     where
+     \begin{equation}
+       K(S_i,\tilde{S}) = \hbox{erf}\left\{\frac{\Delta \delta [B(S_i), B(\tilde{S}), S_i, \tilde{S}]}{\sqrt{2 \Delta S[S_i,\tilde{S}]}}\right\},
+     \end{equation}
+     is the kernel of the integral equation for $f(S)$ which is being solved.
+
+     The method used in this class increases the precision of the solver by replacing the trapezoidal integration rule in the
+     above with a mid-point integration rule:
+     \begin{equation}
+       \int_0^{S_j} f(\tilde{S})K(S_j,\tilde{S}) \mathrm{d}\tilde{S} = \sum_{j=0}^{i-1} f(S_{j+1/2})K(S_i,S_{j+1/2}) \Delta S_j,
+      \end{equation}
+      such that the first crossing distribution at $S_{i-1/2}$ is given by
+      \begin{equation}
+       f(S_{i-1/2}) = \frac{1}{K(S_i,S_{i-1/2})\Delta S_{i-1/2}} \left( \hbox{erfc}\left\{ \frac{\Delta \delta [B(S_i),B(S_1),S_i,S_1]}{\sqrt{2 \Delta S[S_i,S_1]}} \right\} - \sum_{j=0}^{i-2} f(S_{j+1/2} K(S_i,S_{j+1/2}) \Delta S_j) \right).
+      \end{equation}
+    </description>
   </excursionSetFirstCrossing>
   !!]
   type, extends(excursionSetFirstCrossingFarahi) :: excursionSetFirstCrossingFarahiMidpoint
      !!{
-     An excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}, but using a midpoint method to perform the integrations \citep{du_substructure_2017}.
+     An excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}, but using a midpoint method
+     to perform the integrations \citep{du_substructure_2017}.
      !!}
      private
    contains
@@ -64,21 +91,23 @@ contains
     return
   end function farahiMidpointConstructorParameters
 
-  function farahiMidpointConstructorInternal(timeStepFractional,fileName,varianceNumberPerUnitProbability,varianceNumberPerUnit,varianceNumberPerDecade,timeNumberPerDecade,cosmologyFunctions_,excursionSetBarrier_,cosmologicalMassVariance_) result(self)
+  function farahiMidpointConstructorInternal(fractionalTimeStep,fileName,varianceNumberPerUnitProbability,varianceNumberPerUnit,varianceNumberPerDecade,varianceNumberPerDecadeNonCrossing,timeNumberPerDecade,varianceIsUnlimited,cosmologyFunctions_,excursionSetBarrier_,cosmologicalMassVariance_) result(self)
     !!{
     Internal constructor for the Farahi-midpoint excursion set class first crossing class.
     !!}
     implicit none
     type            (excursionSetFirstCrossingFarahiMidpoint)                        :: self
-    double precision                                         , intent(in   )         :: timeStepFractional
-    integer                                                  , intent(in   )         :: varianceNumberPerUnitProbability, varianceNumberPerUnit  , &
-         &                                                                              timeNumberPerDecade             , varianceNumberPerDecade
+    double precision                                         , intent(in   )         :: fractionalTimeStep
+    integer                                                  , intent(in   )         :: varianceNumberPerUnitProbability  , varianceNumberPerUnit  , &
+         &                                                                              timeNumberPerDecade               , varianceNumberPerDecade, &
+         &                                                                              varianceNumberPerDecadeNonCrossing
+    logical                                                  , intent(in   )         :: varianceIsUnlimited
     type            (varying_string                         ), intent(in   )         :: fileName
     class           (cosmologyFunctionsClass                ), intent(in   ), target :: cosmologyFunctions_
     class           (excursionSetBarrierClass               ), intent(in   ), target :: excursionSetBarrier_
     class           (cosmologicalMassVarianceClass          ), intent(in   ), target :: cosmologicalMassVariance_
 
-    self%excursionSetFirstCrossingFarahi=excursionSetFirstCrossingFarahi(timeStepFractional,fileName,varianceNumberPerUnitProbability,varianceNumberPerUnit,varianceNumberPerDecade,timeNumberPerDecade,cosmologyFunctions_,excursionSetBarrier_,cosmologicalMassVariance_)
+    self%excursionSetFirstCrossingFarahi=excursionSetFirstCrossingFarahi(fractionalTimeStep,fileName,varianceNumberPerUnitProbability,varianceNumberPerUnit,varianceNumberPerDecade,varianceNumberPerDecadeNonCrossing,timeNumberPerDecade,varianceIsUnlimited,cosmologyFunctions_,excursionSetBarrier_,cosmologicalMassVariance_)
     return
   end function farahiMidpointConstructorInternal
 
@@ -90,35 +119,59 @@ contains
           &                          displayUnindent             , verbosityLevelWorking
     use :: Error_Functions  , only : Error_Function_Complementary
     use :: File_Utilities   , only : File_Lock                   , File_Unlock          , lockDescriptor
+    use :: Kind_Numbers     , only : kind_dble                   , kind_quad
     use :: MPI_Utilities    , only : mpiBarrier                  , mpiSelf
     use :: Numerical_Ranges , only : Make_Range                  , rangeTypeLinear      , rangeTypeLogarithmic
     implicit none
     class           (excursionSetFirstCrossingFarahiMidpoint), intent(inout)                 :: self
-    double precision                                         , intent(in   )                 :: variance                     , time
+    double precision                                         , intent(in   )                 :: variance                       , time
     type            (treeNode                               ), intent(inout)                 :: node
-    double precision                                                        , dimension(0:1) :: hTime                        , hVariance
-    double precision                                         , parameter                     :: varianceTableTolerance=1.0d-6
-    double precision                                         , allocatable  , dimension( : ) :: varianceMidTable             , barrierTable  , &
-         &                                                                                      barrierMidTable
+    double precision                                                        , dimension(0:1) :: hTime                          , hVariance
+    double precision                                         , parameter                     :: varianceTolerance       =1.0d-6
+    double precision                                         , allocatable  , dimension( : ) :: varianceMidpoint               , barrier         , &
+         &                                                                                      barrierMidpoint
     double precision                                                                         :: barrierTest
     class           (excursionSetBarrierClass               ), pointer                       :: excursionSetBarrier_
+    class           (cosmologicalMassVarianceClass          ), pointer                       :: cosmologicalMassVariance_
     logical                                                                                  :: makeTable
-    integer         (c_size_t                               )                                :: iTime                        , iVariance     , &
-         &                                                                                      loopCount                    , loopCountTotal, &
-         &                                                                                      i                            , j             , &
-         &                                                                                      jTime                        , jVariance
-    double precision                                                                         :: sigma1f
+    integer         (c_size_t                               )                                :: iTime                          , iVariance       , &
+         &                                                                                      loopCount                      , loopCountTotal  , &
+         &                                                                                      i                              , j               , &
+         &                                                                                      jTime                          , jVariance
+    double precision                                                                         :: probabilityCrossingPrior
     double precision                                                                         :: integralKernel
+    real            (kind_quad                              )                                :: offsetEffective                , varianceResidual
     character       (len =9                                 )                                :: label
     type            (varying_string                         )                                :: message
     type            (lockDescriptor                         )                                :: fileLock
+    
+    ! Note that this solver follows the convention used through Galacticus that σ(M) grows following linear theory. That is:
+    !
+    !  • the root-variance of the density field smoothed on a mass scale M is a function of time, σ(M,t) = σ(M,t₀) D(t)/D(t₀),
+    !    where D(t) is the linear growth factor (which may also be scale-dependent);
+    !  • the critical overdensity for collapse does not include a factor of the linear growth factor, i.e. δ_c ≅ 1.686 at all
+    !    epochs (varying only due to the weak dependence on the epoch-dependent cosmological parameters).
+    !
+    ! This differs from standard treatments of the excursion set problem in which typically the root-variance, σ(M), is evaluated
+    ! at z=0, and the critical overdensity for collapse is replaced with δ_c(t)/D(t). Mathematically these two approaches are
+    ! equivalent, but it can be important to keep these distinctions in mind.
+
+    ! In this function the following translations between internal variable names and math symbols are used:
+    !
+    !  Sᵢ                 = self%variance                (i      )
+    !  B(Sᵢ)              =      barrier                 (i      )
+    !  f(Sᵢ,t)            = self%firstCrossingProbability(i,iTime)
+    !  Δδ[t,S₁,S₂,δ₁,δ₂] = self%offsetEffective         (self%time(iTime),0,S1,S2,0,barrier1,barrier2)
+    !  ΔS[t,S₁,S₂]       = self%varianceResidual        (self%time(iTime),0,S1,S2                    )
+    
+    ! The suffix "Midpoint" refers to a quantity computed at the midpoint between two tabulated points.
 
     ! Read tables from file if possible.
     do i=1,2
-       makeTable=.not.self%tableInitialized.or.(variance > self%varianceMaximum*(1.0d0+varianceTableTolerance)).or.(time < self%timeMinimum).or.(time > self%timeMaximum)
+       makeTable=.not.self%tableInitialized.or.(variance > self%varianceMaximum*(1.0d0+varianceTolerance)).or.(time < self%timeMinimum).or.(time > self%timeMaximum)
        if (i == 1 .and. self%useFile .and. makeTable) then
           call self%fileNameInitialize()
-          call File_Lock(char(self%fileName),fileLock)
+          call File_Lock(char(self%fileName),fileLock,lockIsShared=.true.)
           call self%fileRead()
           call File_Unlock(fileLock)
        else
@@ -136,14 +189,14 @@ contains
           call self%fileRead()
           call File_Unlock(fileLock)
        end if
-       makeTable=.not.self%tableInitialized.or.(variance > self%varianceMaximum*(1.0d0+varianceTableTolerance)).or.(time < self%timeMinimum).or.(time > self%timeMaximum)
+       makeTable=.not.self%tableInitialized.or.(variance > self%varianceMaximum*(1.0d0+varianceTolerance)).or.(time < self%timeMinimum).or.(time > self%timeMaximum)
        if (makeTable) then
           ! Construct the table of variance on which we will solve for the first crossing distribution.
-          if (allocated(self%varianceTable                )) deallocate(self%varianceTable                )
-          if (allocated(self%timeTable                    )) deallocate(self%timeTable                    )
-          if (allocated(self%firstCrossingProbabilityTable)) deallocate(self%firstCrossingProbabilityTable)
-          self%varianceMaximum   =max(self%varianceMaximum,variance)
-          self%varianceTableCount=int(self%varianceMaximum*dble(self%varianceNumberPerUnitProbability))
+          if (allocated(self%variance                )) deallocate(self%variance                )
+          if (allocated(self%time                    )) deallocate(self%time                    )
+          if (allocated(self%firstCrossingProbability)) deallocate(self%firstCrossingProbability)
+          self%varianceMaximum=max(self%varianceMaximum,variance)
+          self%countVariance  =int(self%varianceMaximum*dble(self%varianceNumberPerUnitProbability))
           if (self%tableInitialized) then
              self%timeMinimum=min(self%timeMinimum,time/10.0d0**(2.0d0/dble(self%timeNumberPerDecade)))
              self%timeMaximum=max(self%timeMaximum,time*10.0d0**(2.0d0/dble(self%timeNumberPerDecade)))
@@ -151,18 +204,19 @@ contains
              self%timeMinimum=                     time/10.0d0**(2.0d0/dble(self%timeNumberPerDecade))
              self%timeMaximum=                     time*10.0d0**(2.0d0/dble(self%timeNumberPerDecade))
           end if
-          self%timeTableCount=max(2,int(log10(self%timeMaximum/self%timeMinimum)*dble(self%timeNumberPerDecade))+1)
-          allocate(self%varianceTable                (0:self%varianceTableCount                    ))
-          allocate(self%timeTable                    (                          self%timeTableCount))
-          allocate(self%firstCrossingProbabilityTable(0:self%varianceTableCount,self%timeTableCount))
-          allocate(     varianceMidTable             (0:self%varianceTableCount                    ))
-          self%timeTable        =Make_Range(self%timeMinimum,self%timeMaximum    ,self%timeTableCount      ,rangeType=rangeTypeLogarithmic)
-          self%varianceTable    =Make_Range(0.0d0           ,self%varianceMaximum,self%varianceTableCount+1,rangeType=rangeTypeLinear     )
-          self%varianceTableStep=self%varianceTable(1)-self%varianceTable(0)
+          self%countTime=max(2,int(log10(self%timeMaximum/self%timeMinimum)*dble(self%timeNumberPerDecade))+1)
+          allocate(self%variance                (0:self%countVariance               ))
+          allocate(self%time                    (                     self%countTime))
+          allocate(self%firstCrossingProbability(0:self%countVariance,self%countTime))
+          allocate(     varianceMidpoint        (0:self%countVariance               ))
+          self%time        =Make_Range(self%timeMinimum,self%timeMaximum    ,self%countTime      ,rangeType=rangeTypeLogarithmic)
+          self%variance    =Make_Range(0.0d0           ,self%varianceMaximum,self%countVariance+1,rangeType=rangeTypeLinear     )
+          self%varianceStep=+self%variance(1) &
+               &            -self%variance(0)
           ! Compute the variance at the mid-points.
-          varianceMidTable(0)=0.0d0
-          forall(i=1:self%varianceTableCount)
-             varianceMidTable(i)=(self%varianceTable(i-1)+self%varianceTable(i))/2.0d0
+          varianceMidpoint(0)=0.0d0
+          forall(i=1:self%countVariance)
+             varianceMidpoint(i)=(self%variance(i-1)+self%variance(i))/2.0d0
           end forall
           ! Loop through the table and solve for the first crossing distribution.
 #ifdef USEMPI
@@ -184,57 +238,66 @@ contains
 #endif
 #ifdef USEMPI
           if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
-             loopCountTotal=(int(self%timeTableCount,kind=c_size_t)/int(mpiSelf%count(),kind=c_size_t)+1_c_size_t)*(int(self%varianceTableCount-1,kind=c_size_t)*int(self%varianceTableCount,kind=c_size_t))/2_c_size_t
+             loopCountTotal=(int(self%countTime,kind=c_size_t)/int(mpiSelf%count(),kind=c_size_t)+1_c_size_t)*(int(self%countVariance-1,kind=c_size_t)*int(self%countVariance,kind=c_size_t))/2_c_size_t
           else
 #endif
-             loopCountTotal= int(self%timeTableCount,kind=c_size_t)                                               *(int(self%varianceTableCount-1,kind=c_size_t)*int(self%varianceTableCount,kind=c_size_t))/2_c_size_t
+             loopCountTotal= int(self%countTime,kind=c_size_t)                                               *(int(self%countVariance-1,kind=c_size_t)*int(self%countVariance,kind=c_size_t))/2_c_size_t
 #ifdef USEMPI
           end if
 #endif
           loopCount=0
 #ifdef USEMPI
-          if (self%coordinatedMPI_) self%firstCrossingProbabilityTable=0.0d0
+          if (self%coordinatedMPI_) self%firstCrossingProbability=0.0d0
 #endif
           ! Make a call to the barrier function at maximum variance for the minimum and maximum times so that the barrier function
           ! is initialized and covers the whole range we are intereseted in.
           barrierTest=self%excursionSetBarrier_%barrier(self%varianceMaximum,self%timeMinimum,node,rateCompute=.false.)
           barrierTest=self%excursionSetBarrier_%barrier(self%varianceMaximum,self%timeMaximum,node,rateCompute=.false.)
-          !$omp parallel private(iTime,i,j,sigma1f,integralKernel,excursionSetBarrier_,barrierTable,barrierMidTable) if (.not.mpiSelf%isActive() .or. .not.self%coordinatedMPI_)
-          allocate(excursionSetBarrier_,mold=self%excursionSetBarrier_)
+          ! Enter an OpenMP parallel region. Each parallel thread will solve for the first crossing distribution at a different epoch.
+          !$omp parallel private(iTime,i,j,probabilityCrossingPrior,integralKernel,excursionSetBarrier_,cosmologicalMassVariance_,barrier,barrierMidpoint,offsetEffective,varianceResidual) if (.not.mpiSelf%isActive() .or. .not.self%coordinatedMPI_)
+          allocate(excursionSetBarrier_     ,mold=self%excursionSetBarrier_     )
+          allocate(cosmologicalMassVariance_,mold=self%cosmologicalMassVariance_)
           !$omp critical(excursionSetsSolverFarahiMidpointDeepCopy)
           !![
-          <deepCopyReset variables="self%excursionSetBarrier_"/>
-	  <deepCopy source="self%excursionSetBarrier_" destination="excursionSetBarrier_"/>
-	  <deepCopyFinalize variables="excursionSetBarrier_"/>
+          <deepCopyReset variables="self%excursionSetBarrier_ self%cosmologicalMassVariance_"/>
+          <deepCopy source="self%excursionSetBarrier_"      destination="excursionSetBarrier_"     />
+          <deepCopy source="self%cosmologicalMassVariance_" destination="cosmologicalMassVariance_"/>
+          <deepCopyFinalize variables="excursionSetBarrier_ cosmologicalMassVariance_"/>
 	  !!]
           !$omp end critical(excursionSetsSolverFarahiMidpointDeepCopy)
-          allocate(barrierTable   (0:self%varianceTableCount))
-          allocate(barrierMidTable(0:self%varianceTableCount))
+          allocate(barrier        (0:self%countVariance))
+          allocate(barrierMidpoint(0:self%countVariance))
           !$omp do schedule(dynamic)
-          do iTime=1,self%timeTableCount
+          do iTime=1,self%countTime
 #ifdef USEMPI
              if (self%coordinatedMPI_ .and. mod(iTime-1,mpiSelf%count()) /= mpiSelf%rank()) cycle
 #endif
              ! Construct the barrier table.
-             do i=0,self%varianceTableCount
-                barrierTable   (i)=excursionSetBarrier_%barrier(self%varianceTable   (i),self%timeTable(iTime),node,rateCompute=.false.)
-                barrierMidTable(i)=excursionSetBarrier_%barrier(     varianceMidTable(i),self%timeTable(iTime),node,rateCompute=.false.)
+             do i=0,self%countVariance
+                barrier        (i)=excursionSetBarrier_%barrier(self%variance        (i),self%time(iTime),node,rateCompute=.false.)
+                barrierMidpoint(i)=excursionSetBarrier_%barrier(     varianceMidpoint(i),self%time(iTime),node,rateCompute=.false.)
              end do
-             self%firstCrossingProbabilityTable(0,iTime)= 0.0d0
-             integralKernel                             = Error_Function_Complementary(                                                         &
-                  &                                                                    +(                                                       &
-                  &                                                                      +barrierTable   (1)                                    &
-                  &                                                                      -barrierMidTable(1)                                    &
-                  &                                                                     )                                                       &
-                  &                                                                    /sqrt(2.0d0*(self%varianceTable(1)-varianceMidTable(1))) &
-                  &                                                                   )
-             self%firstCrossingProbabilityTable(1,iTime)= Error_Function_Complementary(                                   &
-                  &                                                                    +barrierTable(1)                   &
-                  &                                                                    /sqrt(2.0d0*self%varianceTable(1)) &
-                  &                                                                   )                                   &
-                  &                                      /self%varianceTableStep                                          &
-                  &                                      /integralKernel
-             do i=2,self%varianceTableCount
+             ! Find the first crossing distribution at the first grid point.
+             offsetEffective                       =+self%offsetEffective (self%time(iTime),0.0_kind_quad,real(self%variance(1),kind_quad),real(varianceMidpoint(1),kind_quad),0.0_kind_quad,real(barrier(1),kind_quad),real(barrierMidpoint(1),kind_quad),cosmologicalMassVariance_)
+             varianceResidual                      =+self%varianceResidual(self%time(iTime),0.0_kind_quad,real(self%variance(1),kind_quad),real(varianceMidpoint(1),kind_quad)                                                                            ,cosmologicalMassVariance_)
+             self%firstCrossingProbability(0,iTime)=+0.0d0
+             integralKernel                        =+real(                                                                    &
+                  &                                       Error_Function_Complementary(                                       &
+                  &                                                                    +offsetEffective                       &
+                  &                                                                    /sqrt(2.0_kind_quad*varianceResidual)  &
+                  &                                                                   )                                     , &
+                  &                                        kind=kind_dble                                                     &
+                  &                                       )
+             offsetEffective                       =+self%offsetEffective (self%time(iTime),0.0_kind_quad,real(self%variance(1),kind_quad),0.0_kind_quad                      ,0.0_kind_quad,real(barrier(1),kind_quad),0.0_kind_quad                      ,cosmologicalMassVariance_)
+             varianceResidual                      =+self%varianceResidual(self%time(iTime),0.0_kind_quad,real(self%variance(1),kind_quad),0.0_kind_quad                                                                                                   ,cosmologicalMassVariance_)
+             self%firstCrossingProbability(1,iTime)=+Error_Function_Complementary(                                   &
+                  &                                                               +barrier(1)                        &
+                  &                                                               /sqrt(2.0d0*self%variance(1)) &
+                  &                                                              )                                   &
+                  &                                 /self%varianceStep                                               &
+                  &                                 /integralKernel
+             ! Iterate over remaining variance grid points and solve for the first crossing rate.
+             do i=2,self%countVariance
 #ifdef USEMPI
                 if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
 #endif
@@ -243,58 +306,70 @@ contains
                 end if
 #endif
                 !$omp atomic
-                loopCount=loopCount+(i-1)
-                sigma1f  =0.0d0
+                loopCount               =loopCount+(i-1)
+                ! Iterate over smaller variances, accumulating their contribution to the first crossing rate at the current variance.
+                probabilityCrossingPrior=0.0d0
                 do j=1,i-1
-                   sigma1f=+sigma1f                                                                               &
-                        &  +self%firstCrossingProbabilityTable(j,iTime)                                           &
-                        &  *Error_Function_Complementary(                                                         &
-                        &                                +(                                                       &
-                        &                                  +barrierTable   (i)                                    &
-                        &                                  -barrierMidTable(j)                                    &
-                        &                                 )                                                       &
-                        &                                /sqrt(2.0d0*(self%varianceTable(i)-varianceMidTable(j))) &
-                        &                               )
+                   offsetEffective         =+self%offsetEffective (self%time(iTime),0.0_kind_quad,real(self%variance(i),kind_quad),real(varianceMidpoint(j),kind_quad),0.0_kind_quad,real(barrier(i),kind_quad),real(barrierMidpoint(j),kind_quad),cosmologicalMassVariance_)
+                   varianceResidual        =+self%varianceResidual(self%time(iTime),0.0_kind_quad,real(self%variance(i),kind_quad),real(varianceMidpoint(j),kind_quad)                                                                            ,cosmologicalMassVariance_)
+                   probabilityCrossingPrior=+probabilityCrossingPrior                                                &
+                        &                   +self%firstCrossingProbability(j,iTime)                                  &
+                        &                   *real(                                                                   &
+                        &                        Error_Function_Complementary(                                       &
+                        &                                                     +offsetEffective                       &
+                        &                                                     /sqrt(2.0_kind_quad*varianceResidual)  &
+                        &                                                    )                                     , &
+                        &                         kind=kind_dble                                                     &
+                        &                        )
                 end do
-                integralKernel=Error_Function_Complementary(                                                         &
-                     &                                      +(                                                       &
-                     &                                        +barrierTable   (i)                                    &
-                     &                                        -barrierMidTable(i)                                    &
-                     &                                       )                                                       &
-                     &                                      /sqrt(2.0d0*(self%varianceTable(i)-varianceMidTable(i))) &
-                     &                                     )
+                ! Compute the resulting first crossing distribution.
+                offsetEffective =+self%offsetEffective (self%time(iTime),0.0_kind_quad,real(self%variance(i),kind_quad),real(varianceMidpoint(i),kind_quad),0.0_kind_quad,real(barrier(i),kind_quad),real(barrierMidpoint(i),kind_quad),cosmologicalMassVariance_)
+                varianceResidual=+self%varianceResidual(self%time(iTime),0.0_kind_quad,real(self%variance(i),kind_quad),real(varianceMidpoint(i),kind_quad)                                                                            ,cosmologicalMassVariance_)
+                integralKernel  =+real(                                                                   &
+                        &             Error_Function_Complementary(                                       &
+                        &                                          +offsetEffective                       &
+                        &                                          /sqrt(2.0_kind_quad*varianceResidual)  &
+                        &                                         )                                     , &
+                        &              kind=kind_dble                                                     &
+                        &             )
                 if (integralKernel==0.0d0) then
-                   self%firstCrossingProbabilityTable(i,iTime)=0.0d0
+                   self%firstCrossingProbability(i,iTime)=0.0d0
                 else
-                   self%firstCrossingProbabilityTable(i,iTime)=max(                                                                            &
-                        &                                          +0.0d0,                                                                     &
-                        &                                          +(                                                                          &
-                        &                                            +Error_Function_Complementary(                                            &
-                        &                                                                          +barrierTable(i)                            &
-                        &                                                                          /sqrt(2.0d0*self%varianceTable(i))          &
-                        &                                                                         )                                            &
-                        &                                            /self%varianceTableStep                                                   &
-                        &                                            -sigma1f                                                                  &
-                        &                                           )                                                                          &
-                        &                                          /integralKernel                                                             &
-                        &                                         )
+                   offsetEffective                       =+self%offsetEffective (self%time(iTime),0.0_kind_quad,real(self%variance(i),kind_quad),0.0_kind_quad,0.0_kind_quad,real(barrier(i),kind_quad),0.0_kind_quad,cosmologicalMassVariance_)
+                   varianceResidual                      =+self%varianceResidual(self%time(iTime),0.0_kind_quad,real(self%variance(i),kind_quad),0.0_kind_quad                                                        ,cosmologicalMassVariance_)
+                   self%firstCrossingProbability(i,iTime)=+max(                                                                            &
+                        &                                      +0.0d0,                                                                     &
+                        &                                      +(                                                                          &
+                        &                                        +real(                                                                    &
+                        &                                              Error_Function_Complementary(                                       &
+                        &                                                                           +offsetEffective                       &
+                        &                                                                           /sqrt(2.0_kind_quad*varianceResidual)  &
+                        &                                                                          )                                     , &
+                        &                                              kind=kind_dble                                                      &
+                        &                                             )                                                                    &
+                        &                                        /self%varianceStep                                                        &
+                        &                                        -probabilityCrossingPrior                                                 &
+                        &                                       )                                                                          &
+                        &                                      /integralKernel                                                             &
+                        &                                     )
                 end if
              end do
              ! Force the probability at maximum variance to zero.
-             self%firstCrossingProbabilityTable(self%varianceTableCount,iTime)=0.0d0
+             self%firstCrossingProbability(self%countVariance,iTime)=0.0d0
           end do
           !$omp end do
           !![
-          <objectDestructor name="excursionSetBarrier_"/>
+          <objectDestructor name="excursionSetBarrier_"     />
+          <objectDestructor name="cosmologicalMassVariance_"/>
 	  !!]
-          deallocate(barrierTable   )
-          deallocate(barrierMidTable)
+          deallocate(barrier        )
+          deallocate(barrierMidPoint)
           !$omp end parallel
           ! Update the variance table to reflect the variances at the midpoints. Note that the first crossing probability is computed
           ! at the mid-points. The last element of the variance table is unchanged to ensure that its value equals
           ! varianceMaximum. This will not affect the result becasue the probability at maximum variance is set to zero anyway.
-          self%varianceTable(1:self%varianceTableCount-1)=varianceMidTable(1:self%varianceTableCount-1)
-          deallocate(varianceMidTable)
+          self%variance(1:self%countVariance-1)=varianceMidpoint(1:self%countVariance-1)
+          deallocate(varianceMidpoint)
 #ifdef USEMPI
           if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
 #endif
@@ -304,7 +379,7 @@ contains
           end if
           if (self%coordinatedMPI_) then
              call mpiBarrier()
-             self%firstCrossingProbabilityTable=mpiSelf%sum(self%firstCrossingProbabilityTable)
+             self%firstCrossingProbability=mpiSelf%sum(self%firstCrossingProbability)
           end if
 #endif
           ! Build the interpolators.
@@ -312,8 +387,8 @@ contains
           if (allocated(self%interpolatorTime    )) deallocate(self%interpolatorTime    )
           allocate(self%interpolatorVariance)
           allocate(self%interpolatorTime    )
-          self%interpolatorVariance=interpolator(self%varianceTable)
-          self%interpolatorTime    =interpolator(self%timeTable    )
+          self%interpolatorVariance=interpolator(self%variance)
+          self%interpolatorTime    =interpolator(self%time    )
           ! Record that the table is now built.
           self%tableInitialized=.true.
           ! Write the table to file if possible.
@@ -338,10 +413,10 @@ contains
     farahiMidpointProbability=0.0d0
     do jTime=0,1
        do jVariance=0,1
-          farahiMidpointProbability=+farahiMidpointProbability                                             &
-               &                    +hTime                             (                            jTime) &
-               &                    *hVariance                         (            jVariance            ) &
-               &                    *self%firstCrossingProbabilityTable(iVariance-1+jVariance,iTime+jTime)
+          farahiMidpointProbability=+farahiMidpointProbability                                        &
+               &                    +hTime                        (                            jTime) &
+               &                    *hVariance                    (            jVariance            ) &
+               &                    *self%firstCrossingProbability(iVariance-1+jVariance,iTime+jTime)
        end do
     end do
     return
@@ -366,11 +441,11 @@ contains
     double precision                                         , parameter                       :: varianceMinimumDefault    =1.0d-2
     double precision                                         , parameter                       :: varianceTolerance         =1.0d-6
     double precision                                         , parameter                       :: massLarge                 =1.0d16
-    real            (kind=kind_quad                         ), allocatable  , dimension(:    ) :: firstCrossingTableRateQuad                   , varianceTableRateBaseQuad, &
-         &                                                                                        varianceTableRateQuad                        , varianceMidTableRateQuad , &
-         &                                                                                        barrierTableRateQuad                         , barrierMidTableRateQuad
-    double precision                                         , allocatable  , dimension(:,:  ) :: nonCrossingTableRate
-    double precision                                         , allocatable  , dimension(:,:,:) :: firstCrossingTableRate
+    real            (kind=kind_quad                         ), allocatable  , dimension(:    ) :: firstCrossingRateQuad                        , varianceCurrentRateQuad , &
+         &                                                                                        varianceProgenitorRateQuad                   , varianceMidpointRateQuad, &
+         &                                                                                        barrierRateQuad                              , barrierMidpointRateQuad
+    double precision                                         , allocatable  , dimension(:,:  ) :: nonCrossingRate
+    double precision                                         , allocatable  , dimension(:,:,:) :: firstCrossingRate
     double precision                                                                           :: barrierRateTest
     class           (excursionSetBarrierClass               ), pointer                         :: excursionSetBarrier_
     class           (cosmologicalMassVarianceClass          ), pointer                         :: cosmologicalMassVariance_
@@ -381,23 +456,59 @@ contains
 #endif
     logical                                                                                    :: makeTable
     integer         (c_size_t                               )                                  :: loopCount                                    , loopCountTotal
-    integer                                                                                    :: i                                            , iTime                    , &
-         &                                                                                        iVariance                                    , j                        , &
-         &                                                                                        countNewLower                                , countNewUpper            , &
-         &                                                                                        timeTableCountNew
-    double precision                                                                           :: timeProgenitor                               , varianceMinimumRate      , &
-         &                                                                                        massProgenitor                               , timeMinimumRate          , &
-         &                                                                                        timeMaximumRate
+    integer                                                                                    :: i                                            , iTime                   , &
+         &                                                                                        iVariance                                    , j                       , &
+         &                                                                                        countNewLower                                , countNewUpper           , &
+         &                                                                                        countTimeNew                                 , iCompute                , &
+         &                                                                                        countVarianceCurrentRate
+    double precision                                                                           :: timeProgenitor                               , varianceMinimumRate     , &
+         &                                                                                        massProgenitor                               , timeMinimumRate         , &
+         &                                                                                        timeMaximumRate                              , varianceMaximumRateLimit
     character       (len=64                                 )                                  :: label
-    type            (varying_string                         )                                  :: message
+    type            (varying_string                         )                                  :: message                                      , reasonRemake
     type            (lockDescriptor                         )                                  :: fileLock
-    real            (kind=kind_quad                         )                                  :: crossingFraction                             , effectiveBarrierInitial  , &
-         &                                                                                        sigma1f                                      , varianceTableStepRate    , &
-         &                                                                                        barrier                                      , integralKernelRate       , &
-         &                                                                                        growthFactorEffective                        , erfcArgumentNumerator    , &
-         &                                                                                        erfcArgumentDenominator                      , erfcValue                , &
-         &                                                                                        crossingFractionNew
+    real            (kind=kind_quad                         )                                  :: crossingFraction                             , effectiveBarrierInitial , &
+         &                                                                                        probabilityCrossingPrior                     , varianceStepRate        , &
+         &                                                                                        barrier                                      , integralKernelRate      , &
+         &                                                                                        growthFactorEffective                        , erfcArgumentNumerator   , &
+         &                                                                                        erfcArgumentDenominator                      , erfcValue               , &
+         &                                                                                        crossingFractionNew                          , varianceResidual        , &
+         &                                                                                        offsetEffective
     logical                                                                                    :: varianceMaximumChanged
+    
+    ! Note that this solver follows the convention used through Galacticus that σ(M) grows following linear theory. That is:
+    !
+    !  • the root-variance of the density field smoothed on a mass scale M is a function of time, σ(M,t) = σ(M,t₀) D(t)/D(t₀),
+    !    where D(t) is the linear growth factor (which may also be scale-dependent);
+    !  • the critical overdensity for collapse does not include a factor of the linear growth factor, i.e. δ_c ≅ 1.686 at all
+    !    epochs (varying only due to the weak dependence on the epoch-dependent cosmological parameters).
+    !
+    ! This differs from standard treatments of the excursion set problem in which typically the root-variance, σ(M), is evaluated
+    ! at z=0, and the critical overdensity for collapse is replaced with δ_c(t)/D(t). Mathematically these two approaches are
+    ! equivalent, but it can be important to keep these distinctions in mind.
+
+    ! In this function the following translations between internal variable names and math symbols are used:
+    !
+    !   S₁                = varianceCurrent
+    !   S̃                = varianceProgenitor  +varianceCurrent
+    !   S                 = varianceIntermediate+varianceCurrent
+    !   B(Sᵢ)              = barrier(i)
+    !   f(Sᵢ,t)            = self%firstCrossingProbability(i,iTime)
+    !   Δδ[t,S₁,S₂,δ₁,δ₂] = self%offsetEffective         (self%time(iTime),0,S1,S2,0,barrier1,barrier2)
+    !   ΔS[t,S₁,S₂]       = self%varianceResidual        (self%time(iTime),0,S1,S2                    )
+
+    ! Note that the variables "varianceIntermediate" and "varianceProgenitor" are defined to be the variances in excess of S₁ - which is why they
+    ! appear with "varianceCurrent" added to them in the above.
+    !
+    ! This function is used in the calculation of the distribution of δ at some S for trajectories originating from (S₁,δ₁) and
+    ! which did not cross the barrier at any intermediate variance. As such suffixes in variable names have the following
+    ! meanings:
+    !
+    !   "Current"      - refers to the current halo being considered for branching, i.e. the halo existing at point (S₁,δ₁);
+    !   "Progenitor"   - refers to the potential progenitor halo being considered, i.e. the halo corresponding to some variance S > S₁;
+    !   "Intermediate" - refers to the intermediate variance, S̃ (with S₁ < S̃ < S);
+    !   "Quad"         - refers to a quantity computed in quad-precision;
+    !   "Midpoint"     - refers to a quantity computed at the midpoint between two tabulated points.
 
     ! Determine if we need to make the table.
     !
@@ -408,7 +519,7 @@ contains
        makeTable=.not.self%tableInitializedRate.or.(varianceProgenitor > self%varianceMaximumRate*(1.0d0+varianceTolerance)).or.(time < self%timeMinimumRate).or.(time > self%timeMaximumRate)
        if (i == 1 .and. self%useFile .and. makeTable) then
           call self%fileNameInitialize()
-          call File_Lock(char(self%fileName),fileLock)
+          call File_Lock(char(self%fileName),fileLock,lockIsShared=.true.)
           call self%fileRead()
           call File_Unlock(fileLock)
        else
@@ -418,7 +529,7 @@ contains
 #ifdef USEMPI
     if (self%coordinatedMPI_) call mpiBarrier()
 #endif
-    if (makeTable) then
+    if (makeTable.or.self%retabulateRateNonCrossing) then
        !$omp critical(farahiMidpointRateTabulate)
        ! Attempt to read the file again now that we are within the critical section. If another thread made the file while we were waiting we may be able to skip building the table.
        if (self%useFile) then
@@ -427,147 +538,172 @@ contains
           call File_Unlock(fileLock)
        end if
        makeTable=.not.self%tableInitializedRate.or.(varianceProgenitor > self%varianceMaximumRate*(1.0d0+varianceTolerance)).or.(time < self%timeMinimumRate).or.(time > self%timeMaximumRate)
-       if (makeTable) then
+       if (makeTable.or.self%retabulateRateNonCrossing) then
+          ! Determine reason(s) for the remake.
+          reasonRemake=''
+          if (.not.self%tableInitializedRate) then
+             reasonRemake=reasonRemake//' table does not exist;'
+          else
+             if (varianceProgenitor > self%varianceMaximumRate*(1.0d0+varianceTolerance)) reasonRemake=reasonRemake//' progenitor variance exceeds previous maximum; '
+             if (time               < self%timeMinimumRate                              ) reasonRemake=reasonRemake//' time exceeds previous minimum; '
+             if (time               > self%timeMaximumRate                              ) reasonRemake=reasonRemake//' time exceeds previous minimum; '
+             if (                     self%retabulateRateNonCrossing                    ) reasonRemake=reasonRemake//' non-crossing rates need to be retabulated;'
+          end if
           ! Construct or expand the range of times to tabulate.
           countNewLower=0
           countNewUpper=0
-          if (self%tableInitializedRate) then
-             varianceMaximumChanged=varianceProgenitor > self%varianceMaximumRate
-             timeMinimumRate=min(time/10.0d0**(2.0d0/dble(self%timeNumberPerDecade)),self%timeMinimumRate)
-             timeMaximumRate=max(time*10.0d0**(2.0d0/dble(self%timeNumberPerDecade)),self%timeMaximumRate)
-             ! Determine how many points the table must be extended by in each direction to span the new required range.
-             if (self%timeMinimumRate > timeMinimumRate) countNewLower=int(+log10(self%timeMinimumRate/timeMinimumRate)*dble(self%timeNumberPerDecade)+1.0d0)
-             if (self%timeMaximumRate < timeMaximumRate) countNewUpper=int(-log10(self%timeMaximumRate/timeMaximumRate)*dble(self%timeNumberPerDecade)+1.0d0)
-             self%timeTableCountRate=self%timeTableCountRate+countNewLower+countNewUpper
-             ! Adjust the limits of the table by an integer number of steps.
-             self%timeMinimumRate=self%timeMinimumRate/10.0d0**(dble(countNewLower)/dble(self%timeNumberPerDecade))
-             self%timeMaximumRate=self%timeMaximumRate*10.0d0**(dble(countNewUpper)/dble(self%timeNumberPerDecade))
+          if (makeTable) then
+             if (self%tableInitializedRate) then
+                varianceMaximumChanged=varianceProgenitor > self%varianceMaximumRate
+                timeMinimumRate=min(time/10.0d0**(2.0d0/dble(self%timeNumberPerDecade)),self%timeMinimumRate)
+                timeMaximumRate=max(time*10.0d0**(2.0d0/dble(self%timeNumberPerDecade)),self%timeMaximumRate)
+                ! Determine how many points the table must be extended by in each direction to span the new required range.
+                if (self%timeMinimumRate > timeMinimumRate) countNewLower=int(+log10(self%timeMinimumRate/timeMinimumRate)*dble(self%timeNumberPerDecade)+1.0d0)
+                if (self%timeMaximumRate < timeMaximumRate) countNewUpper=int(-log10(self%timeMaximumRate/timeMaximumRate)*dble(self%timeNumberPerDecade)+1.0d0)
+                self%countTimeRate=self%countTimeRate+countNewLower+countNewUpper
+                ! Adjust the limits of the table by an integer number of steps.
+                self%timeMinimumRate=self%timeMinimumRate/10.0d0**(dble(countNewLower)/dble(self%timeNumberPerDecade))
+                self%timeMaximumRate=self%timeMaximumRate*10.0d0**(dble(countNewUpper)/dble(self%timeNumberPerDecade))
+             else
+                varianceMaximumChanged=.true.
+                self%timeMinimumRate  =time/10.0d0**(2.0d0/dble(self%timeNumberPerDecade))
+                self%timeMaximumRate  =time*10.0d0**(2.0d0/dble(self%timeNumberPerDecade))
+                self%countTimeRate    =max(int(log10(self%timeMaximumRate/self%timeMinimumRate)*dble(self%timeNumberPerDecade))+2,2)
+                ! Ensure the maximum of the table is precisely an integer number of steps above the minimum.
+                self%timeMaximumRate   =self%timeMinimumRate*10.0d0**(dble(self%countTimeRate-1)/dble(self%timeNumberPerDecade))
+             end if
+             ! Set the default minimum variance.
+             varianceMinimumRate=varianceMinimumDefault
+             ! Next reduce the variance if necessary such that the typical amplitude of fluctuations is less (by a factor of 10) than
+             ! the effective barrier height at zero variance for the minimum and maximum times that we must consider. We use some
+             ! suitably large mass to estimate the growth of fluctuations on large scales (since we can't assume infinitely large
+             ! scales).
+             allocate(excursionSetBarrier_     ,mold=self%excursionSetBarrier_     )
+             allocate(cosmologicalMassVariance_,mold=self%cosmologicalMassVariance_)
+             !$omp critical(excursionSetsSolverFarahiMidpointDeepCopy)
+             !![
+             <deepCopyReset variables="self%excursionSetBarrier_ self%cosmologicalMassVariance_"/>
+             <deepCopy source="self%excursionSetBarrier_"      destination="excursionSetBarrier_"     />
+             <deepCopy source="self%cosmologicalMassVariance_" destination="cosmologicalMassVariance_"/>
+             <deepCopyFinalize variables="excursionSetBarrier_ cosmologicalMassVariance_"/>
+             !!]
+             !$omp end critical(excursionSetsSolverFarahiMidpointDeepCopy)
+             growthFactorEffective=+cosmologicalMassVariance_%rootVariance(massLarge,self%timeMaximumRate                                ) &
+                  &                /cosmologicalMassVariance_%rootVariance(massLarge,self%timeMaximumRate*(1.0d0-self%fractionalTimeStep))
+             varianceMinimumRate  =min(                                                                                                                      &
+                  &                    +varianceMinimumRate                                                                                                , &
+                  &                    +1.0d-2                                                                                                               &
+                  &                    *(                                                                                                                    &
+                  &                      +excursionSetBarrier_%barrier(+0.0d0,self%timeMaximumRate*(1.0d0-self%fractionalTimeStep),node,rateCompute=.true.)  &
+                  &                      *dble(growthFactorEffective)                                                                                        &
+                  &                      -excursionSetBarrier_%barrier(+0.0d0,self%timeMaximumRate                                ,node,rateCompute=.true.)  &
+                  &                     )**2                                                                                                                 &
+                  &                   )
+             !![
+             <objectDestructor name="excursionSetBarrier_"     />
+             <objectDestructor name="cosmologicalMassVariance_"/>
+             !!]
+             self%varianceMaximumRate=self%varianceLimit(varianceProgenitor)
+             self%countVarianceProgenitorRate        =int(log10(self%varianceMaximumRate/varianceMinimumRate)*dble(self%varianceNumberPerDecade           ))+1
+             self%countVarianceCurrentRate           =int(self%varianceMaximumRate*dble(self%varianceNumberPerUnit))
+             self%countVarianceCurrentRateNonCrossing=int(log10(self%varianceMaximumRate/varianceMinimumRate)*dble(self%varianceNumberPerDecadeNonCrossing))+1
           else
-             varianceMaximumChanged =.true.
-             self%timeMinimumRate   =time/10.0d0**(2.0d0/dble(self%timeNumberPerDecade))
-             self%timeMaximumRate   =time*10.0d0**(2.0d0/dble(self%timeNumberPerDecade))
-             self%timeTableCountRate=max(int(log10(self%timeMaximumRate/self%timeMinimumRate)*dble(self%timeNumberPerDecade))+2,2)
-             ! Ensure the maximum of the table is precisely an integer number of steps above the minimum.
-             self%timeMaximumRate   =self%timeMinimumRate*10.0d0**(dble(self%timeTableCountRate-1)/dble(self%timeNumberPerDecade))
+             varianceMaximumChanged=.false.
+             ! The progenitor variance table stores the values at the mid-points, thus a factor of two is added.
+             varianceMinimumRate   =2.0d0*self%varianceProgenitorRate(1)
           end if
-          ! Set the default minimum variance.
-          varianceMinimumRate       =varianceMinimumDefault
-          ! Next reduce the variance if necessary such that the typical amplitude of fluctuations is less (by a factor of 10) than
-          ! the effective barrier height at zero variance for the minimum and maximum times that we must consider. We use some
-          ! suitably large mass to estimate the growth of fluctuations on large scales (since we can't assume infinitely large
-          ! scales).
-          allocate(excursionSetBarrier_     ,mold=self%excursionSetBarrier_     )
-          allocate(cosmologicalMassVariance_,mold=self%cosmologicalMassVariance_)
-          !$omp critical(excursionSetsSolverFarahiMidpointDeepCopy)
-          !![
-          <deepCopyReset variables="self%excursionSetBarrier_ self%cosmologicalMassVariance_"/>
-          <deepCopy source="self%excursionSetBarrier_"      destination="excursionSetBarrier_"     />
-          <deepCopy source="self%cosmologicalMassVariance_" destination="cosmologicalMassVariance_"/>
-          <deepCopyFinalize variables="excursionSetBarrier_ cosmologicalMassVariance_"/>
-          !!]
-          !$omp end critical(excursionSetsSolverFarahiMidpointDeepCopy)
-          growthFactorEffective          =+cosmologicalMassVariance_%rootVariance(massLarge,self%timeMaximumRate                                ) &
-               &                          /cosmologicalMassVariance_%rootVariance(massLarge,self%timeMaximumRate*(1.0d0-self%timeStepFractional))
-          varianceMinimumRate            =min(                                                                                                                      &
-               &                              +varianceMinimumRate                                                                                                , &
-               &                              +1.0d-2                                                                                                               &
-               &                              *(                                                                                                                    &
-               &                                +excursionSetBarrier_%barrier(+0.0d0,self%timeMaximumRate*(1.0d0-self%timeStepFractional),node,rateCompute=.true.)  &
-               &                                *dble(growthFactorEffective)                                                                                        &
-               &                                -excursionSetBarrier_%barrier(+0.0d0,self%timeMaximumRate                                ,node,rateCompute=.true.)  &
-               &                               )**2                                                                                                                 &
-               &                             )
-          !![
-          <objectDestructor name="excursionSetBarrier_"     />
-          <objectDestructor name="cosmologicalMassVariance_"/>
-          !!]
-          self%varianceMaximumRate       =max(self%varianceMaximumRate,varianceProgenitor)
-          self%varianceTableCountRate    =int(log10(self%varianceMaximumRate/varianceMinimumRate)*dble(self%varianceNumberPerDecade))+1
-          self%varianceTableCountRateBase=int(self%varianceMaximumRate*dble(self%varianceNumberPerUnit))
           ! Store copies of the current tables if these will be used later.
-          if (.not.varianceMaximumChanged) then
-             call move_alloc(self%firstCrossingTableRate,firstCrossingTableRate)
-             call move_alloc(self%nonCrossingTableRate  ,nonCrossingTableRate  )
+          if (.not.varianceMaximumChanged.and.     makeTable                     ) then
+             call move_alloc(self%firstCrossingRate,firstCrossingRate)
           else
-             allocate(firstCrossingTableRate(0,0,0))
-             allocate(nonCrossingTableRate  (0,0  ))
+             allocate(firstCrossingRate(0,0,0))
           end if
-          if (allocated(self%varianceTableRate     )) deallocate(self%varianceTableRate     )
-          if (allocated(self%varianceTableRateBase )) deallocate(self%varianceTableRateBase )
-          if (allocated(self%timeTableRate         )) deallocate(self%timeTableRate         )
-          if (allocated(self%firstCrossingTableRate)) deallocate(self%firstCrossingTableRate)
-          if (allocated(self%nonCrossingTableRate  )) deallocate(self%nonCrossingTableRate  )
-          allocate(self%varianceTableRate     (0:self%varianceTableCountRate                                                          ))
-          allocate(self%varianceTableRateBase (                              0:self%varianceTableCountRateBase                        ))
-          allocate(self%timeTableRate         (                                                                self%timeTableCountRate))
-          allocate(self%firstCrossingTableRate(0:self%varianceTableCountRate,0:self%varianceTableCountRateBase,self%timeTableCountRate))
-          allocate(self%nonCrossingTableRate  (                              0:self%varianceTableCountRateBase,self%timeTableCountRate))
-          ! If only times have changed then pre-populate the tables with results previously computed.
-          if (.not.varianceMaximumChanged) then
-             self%firstCrossingTableRate(:,:,countNewLower+1:countNewLower+size(firstCrossingTableRate,dim=3))=firstCrossingTableRate
-             self%  nonCrossingTableRate(  :,countNewLower+1:countNewLower+size(  nonCrossingTableRate,dim=2))=  nonCrossingTableRate
+          if (.not.varianceMaximumChanged.and..not.self%retabulateRateNonCrossing) then
+             call move_alloc(self%nonCrossingRate  ,nonCrossingRate  )
+          else
+             allocate(  nonCrossingRate(  0,0))
           end if
-          deallocate(firstCrossingTableRate)
-          deallocate(  nonCrossingTableRate)
+          if (makeTable) then
+             if (allocated(self%firstCrossingRate)) deallocate(self%firstCrossingRate)
+             allocate(self%firstCrossingRate(0:self%countVarianceProgenitorRate,0:self%countVarianceCurrentRate,self%countTimeRate))
+          end if
+          if (allocated(self%varianceProgenitorRate        )) deallocate(self%varianceProgenitorRate        )
+          if (allocated(self%varianceCurrentRate           )) deallocate(self%varianceCurrentRate           )
+          if (allocated(self%varianceCurrentRateNonCrossing)) deallocate(self%varianceCurrentRateNonCrossing)
+          if (allocated(self%timeRate                      )) deallocate(self%timeRate                      )
+          if (allocated(self%nonCrossingRate               )) deallocate(self%nonCrossingRate               )
+          allocate(self%varianceProgenitorRate        (0:self%countVarianceProgenitorRate                                                              ))
+          allocate(self%varianceCurrentRate           (                                   0:self%countVarianceCurrentRate                              ))
+          allocate(self%varianceCurrentRateNonCrossing(                                   0:self%countVarianceCurrentRateNonCrossing                   ))
+          allocate(self%timeRate                      (                                                                              self%countTimeRate))
+          allocate(self%nonCrossingRate               (                                   0:self%countVarianceCurrentRateNonCrossing,self%countTimeRate))
           ! For the variance table, the zeroth point is always zero, higher points are distributed uniformly in variance.
-          self%varianceTableRate    (0                                )=0.0d0
-          self%varianceTableRate    (1:self%varianceTableCountRate    )=self%varianceRange(varianceMinimumRate,self%varianceMaximumRate,self%varianceTableCountRate      ,exponent =1.0d0          )
-          self%varianceTableRateBase(0:self%varianceTableCountRateBase)=Make_Range        (0.0d0              ,self%varianceMaximumRate,self%varianceTableCountRateBase+1,rangeType=rangeTypeLinear)
-          ! Allocate temporary arrays used in quad-precision solver for barrier crossing rates.
-          allocate(varianceTableRateQuad     (0:self%varianceTableCountRate    ))
-          varianceTableRateQuad    =self%varianceTableRate
-          allocate(varianceTableRateBaseQuad (0:self%varianceTableCountRateBase))
-          varianceTableRateBaseQuad=self%varianceTableRateBase
+          self%varianceProgenitorRate        (0                                         )=0.0d0
+          self%varianceProgenitorRate        (1:self%countVarianceProgenitorRate        )=self%varianceRange(varianceMinimumRate ,self%varianceMaximumRate,self%countVarianceProgenitorRate          ,exponent =1.0d0               )
+          self%varianceCurrentRate           (0:self%countVarianceCurrentRate           )=Make_Range        (0.0d0               ,self%varianceMaximumRate,self%countVarianceCurrentRate           +1,rangeType=rangeTypeLinear     )
+          self%varianceCurrentRateNonCrossing(0                                         )=0.0d0
+          self%varianceCurrentRateNonCrossing(1:self%countVarianceCurrentRateNonCrossing)=self%varianceRange(varianceMinimumRate ,self%varianceMaximumRate,self%countVarianceCurrentRateNonCrossing  ,exponent =1.0d0               )
           ! The time table is logarithmically distributed in time.
-          self%timeTableRate=Make_Range(self%timeMinimumRate,self%timeMaximumRate,self%timeTableCountRate,rangeType=rangeTypeLogarithmic)
+          self%timeRate                                                                  =Make_Range        (self%timeMinimumRate,self%timeMaximumRate    ,self%countTimeRate                        ,rangeType=rangeTypeLogarithmic)
+          ! Allocate temporary arrays used in quad-precision solver for barrier crossing rates.
+          allocate(varianceProgenitorRateQuad(0:self%countVarianceProgenitorRate))
+          varianceProgenitorRateQuad=self%varianceProgenitorRate
           ! Compute the variance at the mid-points.
-          allocate(varianceMidTableRateQuad(0:self%varianceTableCountRate))
-          varianceMidTableRateQuad(0)=0.0_kind_quad
-          forall(i=1:self%varianceTableCountRate)
-             varianceMidTableRateQuad(i)=(varianceTableRateQuad(i-1)+varianceTableRateQuad(i))/2.0_kind_quad
+          allocate(varianceMidpointRateQuad(0:self%countVarianceProgenitorRate))
+          varianceMidpointRateQuad(0)=0.0_kind_quad
+          forall(i=1:self%countVarianceProgenitorRate)
+             varianceMidpointRateQuad(i)=(varianceProgenitorRateQuad(i-1)+varianceProgenitorRateQuad(i))/2.0_kind_quad
           end forall
           ! Loop through the table and solve for the first crossing distribution.
 #ifdef USEMPI
           if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
 #endif
              call displayIndent("solving for excursion set barrier crossing rates",verbosityLevelWorking)
-             message="    time: "
-             write (label,'(f6.3)') self%timeMinimumRate
-             message=message//label//" to "
-             write (label,'(f6.3)') self%timeMaximumRate
-             message=message//label
+             message="reason(s):"//reasonRemake
              call displayMessage(message,verbosityLevelWorking)
-             message="variance: "
+             message="     time: "
+             write (label,'(f6.3)') self%timeMinimumRate
+             message=message//trim(label)//" to "
+             write (label,'(f6.3)') self%timeMaximumRate
+             message=message//trim(label)
+             call displayMessage(message,verbosityLevelWorking)
+             message=" variance: "
              write (label,'(f9.3)') self%varianceMaximumRate
-             message=message//label
+             message=message//trim(label)
              call displayMessage(message,verbosityLevelWorking)
 #ifdef USEMPI
           end if
 #endif
-          timeTableCountNew=self%timeTableCountRate
-          if (.not.varianceMaximumChanged) timeTableCountNew=countNewLower+countNewUpper
+          countTimeNew=self%countTimeRate
+          if (.not.varianceMaximumChanged.and..not.self%retabulateRateNonCrossing) countTimeNew=countNewLower+countNewUpper
+          loopCountTotal   = int(countTimeNew,kind=c_size_t)*int(self%countVarianceCurrentRateNonCrossing+1,kind=c_size_t)
+          if (makeTable) then
+             countTimeNew=self%countTimeRate
+             if (.not.varianceMaximumChanged) countTimeNew=countNewLower+countNewUpper
+             loopCountTotal=+loopCountTotal                                                                                &
+                  &         +int(countTimeNew,kind=c_size_t)*int(self%countVarianceCurrentRate           +1,kind=c_size_t)
+          end if
 #ifdef USEMPI
           if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
-             loopCountTotal=int(timeTableCountNew,kind=c_size_t)*int(self%varianceTableCountRateBase+1,kind=c_size_t)/int(mpiSelf%count(),kind=c_size_t)+1_c_size_t
-          else
-#endif
-             loopCountTotal=int(timeTableCountNew,kind=c_size_t)*int(self%varianceTableCountRateBase+1,kind=c_size_t)
-#ifdef USEMPI
+             loopCountTotal=loopCountTotal/int(mpiSelf%count(),kind=c_size_t)+1_c_size_t
           end if
 #endif
           loopCount=0
 #ifdef USEMPI
           if (self%coordinatedMPI_) then
-             self%firstCrossingTableRate=0.0d0
-             self%nonCrossingTableRate  =0.0d0
+             if (makeTable) then
+                self%firstCrossingRate=0.0d0
+             end if
+             self%nonCrossingRate=0.0d0
           end if
           taskCount=-1
 #endif
           ! Make a call to the barrier function at maximum variance for the minimum and maximum times so that the barrier function
           ! is initialized and covers the whole range we are intereseted in.
-          barrierRateTest=self%excursionSetBarrier_%barrier(self%varianceMaximumRate,self%timeMinimumRate*(1.0d0-self%timeStepFractional),node,rateCompute=.true.)
+          barrierRateTest=self%excursionSetBarrier_%barrier(self%varianceMaximumRate,self%timeMinimumRate*(1.0d0-self%fractionalTimeStep),node,rateCompute=.true.)
           barrierRateTest=self%excursionSetBarrier_%barrier(self%varianceMaximumRate,self%timeMaximumRate                                ,node,rateCompute=.true.)
-          !$omp parallel private(iTime,timeProgenitor,iVariance,varianceTableStepRate,i,j,sigma1f,integralKernelRate,crossingFraction,crossingFractionNew,barrier,effectiveBarrierInitial,firstCrossingTableRateQuad,excursionSetBarrier_,cosmologicalMassVariance_,barrierTableRateQuad,barrierMidTableRateQuad,massProgenitor,growthFactorEffective,message,label) if (.not.mpiSelf%isActive() .or. .not.self%coordinatedMPI_)
+          ! Enter an OpenMP parallel region. Each parallel thread will solve for the first crossing rate at a different epoch.
+          !$omp parallel private(iTime,timeProgenitor,iVariance,varianceStepRate,i,j,iCompute,probabilityCrossingPrior,integralKernelRate,crossingFraction,crossingFractionNew,barrier,effectiveBarrierInitial,firstCrossingRateQuad,excursionSetBarrier_,cosmologicalMassVariance_,barrierRateQuad,barrierMidpointRateQuad,varianceCurrentRateQuad,massProgenitor,growthFactorEffective,offsetEffective,varianceResidual,erfcArgumentNumerator,erfcArgumentDenominator,erfcValue,message,label,varianceMaximumRateLimit) if (.not.mpiSelf%isActive() .or. .not.self%coordinatedMPI_)
           allocate(excursionSetBarrier_     ,mold=self%excursionSetBarrier_     )
           allocate(cosmologicalMassVariance_,mold=self%cosmologicalMassVariance_)
           !$omp critical(excursionSetsSolverFarahiMidpointDeepCopy)
@@ -578,247 +714,315 @@ contains
           <deepCopyFinalize variables="excursionSetBarrier_ cosmologicalMassVariance_"/>
           !!]
           !$omp end critical(excursionSetsSolverFarahiMidpointDeepCopy)
-          allocate(barrierTableRateQuad   (self%varianceTableCountRate))
-          allocate(barrierMidTableRateQuad(self%varianceTableCountRate))
-          do iTime=1,self%timeTableCountRate
-             ! Skip if this time was already computed.
-             if (.not.varianceMaximumChanged.and.(iTime > countNewLower .and. self%timeTableCountRate+1-iTime > countNewUpper)) cycle
-             ! Allocate workspace table.
-             if (.not.allocated(firstCrossingTableRateQuad)) allocate(firstCrossingTableRateQuad(0:self%varianceTableCountRate))
-             ! Compute a suitable progenitor time.
-             timeProgenitor=self%timeTableRate(iTime)*(1.0d0-self%timeStepFractional)
-             ! Loop through the starting variances.
-             !$omp do schedule(dynamic)
-             do iVariance=0,self%varianceTableCountRateBase
-#ifdef USEMPI
-                taskCount=taskCount+1
-                if (self%coordinatedMPI_ .and. mod(taskCount,mpiSelf%count()) /= mpiSelf%rank()) cycle
-#endif
-#ifdef USEMPI
-                if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
-#endif
-                   call displayCounter(int(100.0d0*dble(loopCount)/dble(loopCountTotal)),loopCount==0,verbosityLevelWorking)
-#ifdef USEMPI
-                end if
-#endif
-                !$omp atomic
-                loopCount=loopCount+1_c_size_t
-                ! Construct the barrier table.
-                do i=1,self%varianceTableCountRate
-                   massProgenitor            =+cosmologicalMassVariance_%mass        (real(sqrt(+varianceTableRateQuad   (i)+varianceTableRateBaseQuad(iVariance)),kind=8),self%timeTableRate(iTime)                        )
-                   growthFactorEffective     =+cosmologicalMassVariance_%rootVariance(           massProgenitor                                                           ,self%timeTableRate(iTime)                        ) &
-                        &                     /cosmologicalMassVariance_%rootVariance(           massProgenitor                                                           ,     timeProgenitor                              )
-                   barrierTableRateQuad   (i)=+excursionSetBarrier_     %barrier     (real(     +varianceTableRateQuad   (i)+varianceTableRateBaseQuad(iVariance) ,kind=8),     timeProgenitor      ,node,rateCompute=.true.) &
-                        &                     *growthFactorEffective
-                   massProgenitor            =+cosmologicalMassVariance_%mass        (real(sqrt(+varianceMidTableRateQuad(i)+varianceTableRateBaseQuad(iVariance)),kind=8),self%timeTableRate(iTime)                        )
-                   growthFactorEffective     =+cosmologicalMassVariance_%rootVariance(           massProgenitor                                                           ,self%timeTableRate(iTime)                        ) &
-                        &                     /cosmologicalMassVariance_%rootVariance(           massProgenitor                                                           ,     timeProgenitor                              )
-                   barrierMidTableRateQuad(i)=+excursionSetBarrier_     %barrier     (real(     +varianceMidTableRateQuad(i)+varianceTableRateBaseQuad(iVariance),kind=8 ),     timeProgenitor      ,node,rateCompute=.true.) &
-                        &                     *growthFactorEffective
-                end do
-                ! For zero variance, the rate is initialized to zero.
-                firstCrossingTableRateQuad(0)=0.0_kind_quad
-                ! Compute the step in variance across this first grid cell.
-                varianceTableStepRate=varianceTableRateQuad(1)-varianceTableRateQuad(0)
-                ! Compute the barrier for the descendent.
-                barrier=real(excursionSetBarrier_%barrier(real(varianceTableRateBaseQuad(iVariance),kind=8),self%timeTableRate(iTime),node,rateCompute=.true.),kind=kind_quad)
-                ! Compute the first crossing distribution at the first grid cell.
-                if (varianceTableRateQuad(1)+varianceTableRateBaseQuad(iVariance) > self%varianceMaximumRate) then
-                   firstCrossingTableRateQuad(1)= 0.0_kind_quad
+          allocate(barrierRateQuad        (self%countVarianceProgenitorRate))
+          allocate(barrierMidpointRateQuad(self%countVarianceProgenitorRate))
+          ! In the first run, first crossing rates are computed. In the second run, non-crossing rates are computed at different
+          ! grid points.
+          do iCompute=1,2
+             if (iCompute == 1) then
+                if (.not.makeTable) cycle
+                countVarianceCurrentRate=self%countVarianceCurrentRate
+                allocate(varianceCurrentRateQuad(0:self%countVarianceCurrentRate           ))
+                varianceCurrentRateQuad =self%varianceCurrentRate
+             else
+                countVarianceCurrentRate=self%countVarianceCurrentRateNonCrossing
+                if (allocated(varianceCurrentRateQuad)) deallocate(varianceCurrentRateQuad)
+                allocate(varianceCurrentRateQuad(0:self%countVarianceCurrentRateNonCrossing))
+             end if
+             do iTime=1,self%countTimeRate
+                ! Skip if this time was already computed.
+                if (iCompute == 1) then
+                   if (.not.varianceMaximumChanged                                        .and.(iTime > countNewLower .and. self%countTimeRate+1-iTime > countNewUpper)) cycle
+                   varianceMaximumRateLimit=self%varianceMaximumRate
                 else
-                   integralKernelRate           = Error_Function_Complementary(                                                                            &
-                        &                                                      +(                                                                          &
-                        &                                                        +(barrierTableRateQuad   (1)-barrier)                                     &
-                        &                                                        -(barrierMidTableRateQuad(1)-barrier)                                     &
-                        &                                                       )                                                                          &
-                        &                                                      /sqrt(2.0_kind_quad*(varianceTableRateQuad(1)-varianceMidTableRateQuad(1))) &
-                        &                                                     )
-                   ! If the integral kernel is zero (to machine precision) then simply assume no crossing rate.
-                   if (integralKernelRate <= 0.0d0) then
-                      firstCrossingTableRateQuad=0.0d0
-                      cycle
-                   end if
-                   firstCrossingTableRateQuad(1)= Error_Function_Complementary(                                              &
-                        &                                                      +(barrierTableRateQuad(1)-barrier)            &
-                        &                                                      /sqrt(2.0_kind_quad*varianceTableRateQuad(1)) &
-                        &                                                     )                                              &
-                        &                        /varianceTableStepRate                                                      &
-                        &                        /integralKernelRate
-                end if
-                varianceTableStepRate=+varianceTableRateQuad     (1) &
-                     &                -varianceTableRateQuad     (0)
-                crossingFraction     =+firstCrossingTableRateQuad(1) &
-                     &                *varianceTableStepRate
-                do i=2,self%varianceTableCountRate
-                   if (varianceTableRateQuad(i)+varianceTableRateBaseQuad(iVariance) > self%varianceMaximumRate) then
-                      firstCrossingTableRateQuad(i)=0.0_kind_quad
+                   if (.not.varianceMaximumChanged.and..not.self%retabulateRateNonCrossing.and.(iTime > countNewLower .and. self%countTimeRate+1-iTime > countNewUpper)) cycle
+                   if (self%massMinimumRateNonCrossing > 0.0d0) then
+                      varianceMaximumRateLimit=cosmologicalMassVariance_%rootVariance(self%massMinimumRateNonCrossing,self%timeRate(iTime))**2
                    else
-                      effectiveBarrierInitial=+barrierTableRateQuad(i)-barrier
-                      integralKernelRate=Error_Function_Complementary(                                                                            &
-                           &                                          +(                                                                          &
-                           &                                            +effectiveBarrierInitial                                                  &
-                           &                                            -barrierMidTableRateQuad(i)                                               &
-                           &                                            +barrier                                                                  &
-                           &                                           )                                                                          &
-                           &                                          /sqrt(2.0_kind_quad*(varianceTableRateQuad(i)-varianceMidTableRateQuad(i))) &
-                           &                                         )
-                      if (integralKernelRate==0.0_kind_quad) then
-                         firstCrossingTableRateQuad(i)=0.0_kind_quad
-                      else
-                         sigma1f=+0.0_kind_quad
-                         do j=1,i-1
-                            erfcArgumentNumerator=+effectiveBarrierInitial    &
-                                 &                -barrierMidTableRateQuad(j) &
-                                 &                +barrier
-                            if (erfcArgumentNumerator == 0.0_kind_quad .or. exponent(erfcArgumentNumerator)-exponent(erfcArgumentDenominator) > maxExponent(0.0_kind_quad)) then
-                               erfcValue=1.0_kind_quad
-                            else
-                               erfcArgumentDenominator=sqrt(2.0_kind_quad*(varianceTableRateQuad(i)-varianceMidTableRateQuad(j)))
-                               erfcValue=Error_Function_Complementary(erfcArgumentNumerator/erfcArgumentDenominator)
-                            end if
-                            if (erfcValue > 0.0_kind_quad) then
-                               varianceTableStepRate=varianceTableRateQuad(j)-varianceTableRateQuad(j-1)
-                               sigma1f=+sigma1f                       &
-                                    &  +firstCrossingTableRateQuad(j) &
-                                    &  *varianceTableStepRate         &
-                                    &  *erfcValue
-                            end if
-                         end do
-                         varianceTableStepRate=varianceTableRateQuad(i)-varianceTableRateQuad(i-1)
-                         firstCrossingTableRateQuad(i)=+Error_Function_Complementary(                                              &
-                              &                                                      +effectiveBarrierInitial                      &
-                              &                                                      /sqrt(2.0_kind_quad*varianceTableRateQuad(i)) &
-                              &                                                     )                                              &
-                              &                        -sigma1f
-                         if     (                                                                                                                                   &
-                              &   firstCrossingTableRateQuad(i)                                                                        > 0.0d0                      &
-                              &  .and.                                                                                                                              &
-                              &   integralKernelRate                                                                                   > 0.0d0                      &
-                              &  .and.                                                                                                                              &
-                              &   exponent(firstCrossingTableRateQuad(i))-exponent(varianceTableStepRate)-exponent(integralKernelRate) < maxExponent(0.0_kind_quad) &
-                              & ) then
-                            firstCrossingTableRateQuad(i)=+firstCrossingTableRateQuad(i) &
-                                 &                        /varianceTableStepRate         &
-                                 &                        /integralKernelRate
-                         else
-                            firstCrossingTableRateQuad(i)=0.0d0
-                         end if
-                         ! Accumulate the crossing fraction for use in the following check.
-                         varianceTableStepRate=+varianceTableRateQuad     (i  ) &
-                              &                -varianceTableRateQuad     (i-1)
-                         crossingFractionNew  =+crossingFraction                &
-                              &                +firstCrossingTableRateQuad(i  ) &
-                              &                *varianceTableStepRate
-                         ! Remove unphysical values. Force the crossing rate at points close to maximum variance, or where most
-                         ! trajectories have already crossed the barrier to zero if its value is one order of magnitude larger
-                         ! than the value at previous point.
-                         if     (                                                                                                                                    &
-                              &  (                                                                                                                                   &
-                              &    varianceTableRateQuad    (i)+varianceTableRateBaseQuad(iVariance) > self%varianceMaximumRate-10.0_kind_quad*varianceTableStepRate &
-                              &   .or.                                                                                                                               &
-                              &    crossingFractionNew                                               > (1.0_kind_quad-nonCrossingFractionTiny)                       &
-                              &   )                                                                                                                                  &
-                              &  .and.                                                                                                                               &
-                              &  (                                                                                                                                   &
-                              &   firstCrossingTableRateQuad(i)                                      > 10.0_kind_quad*firstCrossingTableRateQuad(i-1)                &
-                              &   .or.                                                                                                                               &
-                              &   firstCrossingTableRateQuad(i)                                      >                firstCrossingRateHuge                          &
-                              &   .or.                                                                                                                               &
-                              &   firstCrossingTableRateQuad(i)                                      <  0.0_kind_quad                                                &
-                              &   )                                                                                                                                  &
-                              & )                                                                                                                                    &
-                              & firstCrossingTableRateQuad(i)=0.0_kind_quad
-                         if (abs(firstCrossingTableRateQuad(i)) > firstCrossingRateHuge .and. displayVerbosity() >= verbosityLevelWarn) then
-                            message=         displayMagenta()//"WARNING:"//displayReset()//" unphysical solution for crossing rate:"//char(10)
-                            write (label,'(e15.6," (",e15.6,")")') crossingFraction,crossingFractionNew
-                            message=message//"    crossing fraction = "//trim(label)//char(10)
-                            write (label,'(e15.6)') firstCrossingTableRateQuad(i)
-                            message=message//"  first crossing rate = "//trim(label)//char(10)
-                            write (label,'(i8)'   ) iTime
-                            message=message//"           index time = "//trim(label)//char(10)
-                            write (label,'(i8)'   ) iVariance
-                            message=message//"       index variance = "//trim(label)//char(10)
-                            write (label,'(i8)'   ) i
-                            message=message//"                index = "//trim(label)
-                            call displayMessage(message,verbosityLevelWarn)
-                         end if
-                         crossingFraction     =+crossingFractionNew
+                      varianceMaximumRateLimit=self%varianceMaximumRate
+                   end if
+                   ! For computing non-crossing rates, the resutls are tabulated with respect to $S_{\rm max}-S$ so that interpolation
+                   ! is more accurate when $S$ approaches $S_{\rm max}$.
+                   do iVariance=0,countVarianceCurrentRate
+                      varianceCurrentRateQuad(iVariance)=max(varianceMaximumRateLimit-self%varianceCurrentRateNonCrossing(iVariance),0.0d0)
+                   end do
+                end if
+                ! Allocate workspace table.
+                if (.not.allocated(firstCrossingRateQuad)) allocate(firstCrossingRateQuad(0:self%countVarianceProgenitorRate))
+                ! Compute a suitable progenitor time.
+                timeProgenitor=self%timeRate(iTime)*(1.0d0-self%fractionalTimeStep)
+                ! Iteratve over variances of the current halo.
+                !$omp do schedule(dynamic)
+                do iVariance=0,countVarianceCurrentRate
+#ifdef USEMPI
+                   taskCount=taskCount+1
+                   if (self%coordinatedMPI_ .and. mod(taskCount,mpiSelf%count()) /= mpiSelf%rank()) cycle
+#endif
+#ifdef USEMPI
+                   if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
+#endif
+                      call displayCounter(int(100.0d0*dble(loopCount)/dble(loopCountTotal)),loopCount==0,verbosityLevelWorking)
+#ifdef USEMPI
+                   end if
+#endif
+                   !$omp atomic
+                   loopCount=loopCount+1_c_size_t
+                   ! Construct the barrier table as a function of the progenitor variance.
+                   do i=1,self%countVarianceProgenitorRate
+                      massProgenitor            =+cosmologicalMassVariance_%mass        (real(sqrt(+varianceProgenitorRateQuad(i)+varianceCurrentRateQuad(iVariance)),kind=8),self%timeRate      (iTime)                        )
+                      growthFactorEffective     =+cosmologicalMassVariance_%rootVariance(           massProgenitor                                                           ,self%timeRate      (iTime)                        ) &
+                           &                     /cosmologicalMassVariance_%rootVariance(           massProgenitor                                                           ,     timeProgenitor                               )
+                      barrierRateQuad        (i)=+excursionSetBarrier_     %barrier     (real(     +varianceProgenitorRateQuad(i)+varianceCurrentRateQuad(iVariance) ,kind=8),     timeProgenitor       ,node,rateCompute=.true.) &
+                           &                     *growthFactorEffective
+                      massProgenitor            =+cosmologicalMassVariance_%mass        (real(sqrt(+varianceMidpointRateQuad  (i)+varianceCurrentRateQuad(iVariance)),kind=8),self%timeRate      (iTime)                        )
+                      growthFactorEffective     =+cosmologicalMassVariance_%rootVariance(           massProgenitor                                                           ,self%timeRate      (iTime)                        ) &
+                           &                     /cosmologicalMassVariance_%rootVariance(           massProgenitor                                                           ,     timeProgenitor                               )
+                      barrierMidpointRateQuad(i)=+excursionSetBarrier_     %barrier     (real(     +varianceMidpointRateQuad  (i)+varianceCurrentRateQuad(iVariance),kind=8 ),     timeProgenitor       ,node,rateCompute=.true.) &
+                           &                     *growthFactorEffective
+                   end do
+                   ! For zero variance, the rate is initialized to zero.
+                   firstCrossingRateQuad(0)=0.0_kind_quad
+                   ! Compute the step in variance across this first grid point.
+                   varianceStepRate=varianceProgenitorRateQuad(1)-varianceProgenitorRateQuad(0)
+                   ! Compute the barrier for the descendent.
+                   barrier=real(excursionSetBarrier_%barrier(real(varianceCurrentRateQuad(iVariance),kind=8),self%timeRate(iTime),node,rateCompute=.true.),kind=kind_quad)
+                   ! Compute the first crossing distribution at the first grid point.
+                   if (varianceProgenitorRateQuad(1)+varianceCurrentRateQuad(iVariance) >= varianceMaximumRateLimit) then
+                      firstCrossingRateQuad(1)= 0.0_kind_quad
+                   else
+                      offsetEffective              =self%offsetEffective (self%timeRate(iTime),varianceCurrentRateQuad(iVariance),varianceProgenitorRateQuad(1),varianceMidpointRateQuad(1),0.0_kind_quad,barrierRateQuad(1),barrierMidpointRateQuad(1),cosmologicalMassVariance_)
+                      varianceResidual             =self%varianceResidual(self%timeRate(iTime),varianceCurrentRateQuad(iVariance),varianceProgenitorRateQuad(1),varianceMidpointRateQuad(1)                                                            ,cosmologicalMassVariance_)
+                      integralKernelRate           =Error_Function_Complementary(                                      &
+                           &                                                     +offsetEffective                      &
+                           &                                                     /sqrt(2.0_kind_quad*varianceResidual) &
+                           &                                                    )
+                      ! If the integral kernel is zero (to machine precision) then simply assume no crossing rate.
+                      if (integralKernelRate <= 0.0d0) then
+                         firstCrossingRateQuad=0.0d0
+                         cycle
                       end if
+                      ! Compute the first crossing rate at the first grid point.
+                      offsetEffective         =+self%offsetEffective (self%timeRate(iTime),varianceCurrentRateQuad(iVariance),varianceProgenitorRateQuad(1),0.0_kind_quad,0.0_kind_quad,barrierRateQuad(1),barrier,cosmologicalMassVariance_)
+                      varianceResidual        =+self%varianceResidual(self%timeRate(iTime),varianceCurrentRateQuad(iVariance),varianceProgenitorRateQuad(1),0.0_kind_quad                                         ,cosmologicalMassVariance_)
+                      firstCrossingRateQuad(1)=+Error_Function_Complementary(                                      &
+                           &                                                 +offsetEffective                      &
+                           &                                                 /sqrt(2.0_kind_quad*varianceResidual) &
+                           &                                                )                                      &
+                           &                   /varianceStepRate                                                   &
+                           &                   /integralKernelRate
+                   end if
+                   varianceStepRate=+varianceProgenitorRateQuad(1) &
+                        &           -varianceProgenitorRateQuad(0)
+                   crossingFraction=+firstCrossingRateQuad     (1) &
+                        &           *varianceStepRate
+                   ! Iterate over remaining progenitor variances.
+                   do i=2,self%countVarianceProgenitorRate
+                      if (varianceProgenitorRateQuad(i)+varianceCurrentRateQuad(iVariance) >= varianceMaximumRateLimit) then
+                         firstCrossingRateQuad(i)=0.0_kind_quad
+                      else
+                         effectiveBarrierInitial=+barrierRateQuad(i) &
+                              &                  -barrier
+                         offsetEffective        =+self%offsetEffective (self%timeRate(iTime),varianceCurrentRateQuad(iVariance),varianceProgenitorRateQuad(i),varianceMidpointRateQuad(i),barrier,effectiveBarrierInitial,barrierMidpointRateQuad(i)-barrier,cosmologicalMassVariance_)
+                         varianceResidual       =+self%varianceResidual(self%timeRate(iTime),varianceCurrentRateQuad(iVariance),varianceProgenitorRateQuad(i),varianceMidpointRateQuad(i)                                                                   ,cosmologicalMassVariance_)
+                         if      (varianceResidual <  0.0_kind_quad) then
+                            integralKernelRate=0.0_kind_quad
+                         else if (varianceResidual == 0.0_kind_quad) then                         
+                            ! Zero residual variance - the first crossing rate is either 0 or 1, depending on the sign of the offset.
+                            if (offsetEffective > 0.0_kind_quad) then
+                               integralKernelRate=0.0_kind_quad
+                            else
+                               integralKernelRate=1.0_kind_quad
+                            end if
+                         else
+                            integralKernelRate=Error_Function_Complementary(                                      &
+                                 &                                          +offsetEffective                      &
+                                 &                                          /sqrt(2.0_kind_quad*varianceResidual) &
+                                 &                                         )
+                         end if
+                         if (integralKernelRate == 0.0_kind_quad) then
+                            firstCrossingRateQuad(i)=0.0_kind_quad
+                         else
+                            ! Iterate over all smaller variances, computing the contribution from trajectories that crossed the barrier at those variances.
+                            probabilityCrossingPrior=+0.0_kind_quad
+                            do j=1,i-1
+                               offsetEffective        =self%offsetEffective (self%timeRate(iTime),varianceCurrentRateQuad(iVariance),varianceProgenitorRateQuad(i),varianceMidpointRateQuad(j),barrier,effectiveBarrierInitial,barrierMidpointRateQuad(j)-barrier,cosmologicalMassVariance_)
+                               varianceResidual       =self%varianceResidual(self%timeRate(iTime),varianceCurrentRateQuad(iVariance),varianceProgenitorRateQuad(i),varianceMidpointRateQuad(j)                                                                   ,cosmologicalMassVariance_)
+                               erfcArgumentNumerator  =offsetEffective
+                               erfcArgumentDenominator=sqrt(2.0_kind_quad*varianceResidual)
+                               if (erfcArgumentNumerator == 0.0_kind_quad .or. exponent(erfcArgumentNumerator)-exponent(erfcArgumentDenominator) > maxExponent(0.0_kind_quad)) then
+                                  erfcValue=1.0_kind_quad
+                               else
+                                  erfcValue              =Error_Function_Complementary(erfcArgumentNumerator/erfcArgumentDenominator)
+                               end if
+                               if (erfcValue > 0.0_kind_quad) then
+                                  varianceStepRate        =+varianceProgenitorRateQuad(j  ) &
+                                       &                   -varianceProgenitorRateQuad(j-1)
+                                  probabilityCrossingPrior=+probabilityCrossingPrior        &
+                                       &                   +firstCrossingRateQuad     (j  ) &
+                                       &                   *varianceStepRate                &
+                                       &                   *erfcValue
+                               end if
+                            end do
+                            varianceStepRate        =+varianceProgenitorRateQuad(i  ) &
+                                 &                   -varianceProgenitorRateQuad(i-1)
+                            offsetEffective         =+self%offsetEffective (self%timeRate(iTime),varianceCurrentRateQuad(iVariance),varianceProgenitorRateQuad(i),0.0_kind_quad,barrier,effectiveBarrierInitial,0.0_kind_quad,cosmologicalMassVariance_)
+                            varianceResidual        =+self%varianceResidual(self%timeRate(iTime),varianceCurrentRateQuad(iVariance),varianceProgenitorRateQuad(i),0.0_kind_quad                                              ,cosmologicalMassVariance_)
+                            firstCrossingRateQuad(i)=+Error_Function_Complementary(                                      &
+                                 &                                                 +offsetEffective                      &
+                                 &                                                 /sqrt(2.0_kind_quad*varianceResidual) &
+                                 &                                                )                                      &
+                                 &                   -probabilityCrossingPrior
+                            if     (                                                                                                                         &
+                                 &   firstCrossingRateQuad(i)                                                                   > 0.0d0                      &
+                                 &  .and.                                                                                                                    &
+                                 &   integralKernelRate                                                                         > 0.0d0                      &
+                                 &  .and.                                                                                                                    &
+                                 &   exponent(firstCrossingRateQuad(i))-exponent(varianceStepRate)-exponent(integralKernelRate) < maxExponent(0.0_kind_quad) &
+                                 & ) then
+                               firstCrossingRateQuad(i)=+firstCrossingRateQuad(i) &
+                                    &                   /varianceStepRate         &
+                                    &                   /integralKernelRate
+                            else
+                               firstCrossingRateQuad(i)=0.0d0
+                            end if
+                            ! Accumulate the crossing fraction for use in the following check.
+                            varianceStepRate   =+varianceProgenitorRateQuad(i  ) &
+                                 &              -varianceProgenitorRateQuad(i-1)
+                            crossingFractionNew=+crossingFraction                &
+                                 &              +firstCrossingRateQuad     (i  ) &
+                                 &              *varianceStepRate
+                            ! Remove unphysical values. Force the crossing rate at points close to maximum variance, or where most
+                            ! trajectories have already crossed the barrier to zero if its value is one order of magnitude larger
+                            ! than the value at previous point.
+                            if     (                                                                                                                              &
+                                 &  (                                                                                                                             &
+                                 &    varianceProgenitorRateQuad(i)+varianceCurrentRateQuad(iVariance) > varianceMaximumRateLimit-10.0_kind_quad*varianceStepRate &
+                                 &   .or.                                                                                                                         &
+                                 &    crossingFractionNew                                              > (1.0_kind_quad-nonCrossingFractionTiny)                  &
+                                 &   )                                                                                                                            &
+                                 &  .and.                                                                                                                         &
+                                 &  (                                                                                                                             &
+                                 &   firstCrossingRateQuad      (i)                                    > 10.0_kind_quad*firstCrossingRateQuad(i-1)                &
+                                 &   .or.                                                                                                                         &
+                                 &   firstCrossingRateQuad      (i)                                    >                firstCrossingRateHuge                     &
+                                 &   .or.                                                                                                                         &
+                                 &   firstCrossingRateQuad      (i)                                    <  0.0_kind_quad                                           &
+                                 &   )                                                                                                                            &
+                                 & )                                                                                                                              &
+                                 & firstCrossingRateQuad(i)=0.0_kind_quad
+                            if (abs(firstCrossingRateQuad(i)) > firstCrossingRateHuge .and. displayVerbosity() >= verbosityLevelWarn) then
+                               message=         displayMagenta()//"WARNING:"//displayReset()//" unphysical solution for crossing rate:"//char(10)
+                               write (label,'(e15.6," (",e15.6,")")') crossingFraction,crossingFractionNew
+                               message=message//"    crossing fraction = "//trim(label)//char(10)
+                               write (label,'(e15.6)') firstCrossingRateQuad(i)
+                               message=message//"  first crossing rate = "//trim(label)//char(10)
+                               write (label,'(i8)'   ) iTime
+                               message=message//"           index time = "//trim(label)//char(10)
+                               write (label,'(i8)'   ) iVariance
+                               message=message//"       index variance = "//trim(label)//char(10)
+                               write (label,'(i8)'   ) i
+                               message=message//"                index = "//trim(label)
+                               call displayMessage(message,verbosityLevelWarn)
+                            end if
+                            crossingFraction     =+crossingFractionNew
+                         end if
+                      end if
+                   end do
+                   if (iCompute == 1) then
+                      ! Store the compute crossing rate in our table.
+                      self%firstCrossingRate(:,iVariance,iTime)=real(firstCrossingRateQuad,kind=kind_dble)
+                      ! Divide through by the time step to get the rate of barrier crossing.
+                      self%firstCrossingRate(:,iVariance,iTime)=+self%firstCrossingRate (:,iVariance,iTime) &
+                           &                                    /self%timeRate          (            iTime) &
+                           &                                    /self%fractionalTimeStep
+                   else
+                      ! Compute the fraction of trajectories which never cross the barrier.
+                      crossingFraction=0.0_kind_quad
+                      do j=1,self%countVarianceProgenitorRate
+                         if (varianceCurrentRateQuad(iVariance)+varianceProgenitorRateQuad(j) <= varianceMaximumRateLimit) then
+                            varianceStepRate=+varianceProgenitorRateQuad(j  ) &
+                                 &           -varianceProgenitorRateQuad(j-1)
+                            crossingFraction=+crossingFraction                &
+                                 &           +firstCrossingRateQuad     (j  ) &
+                                 &           *varianceStepRate
+                         end if
+                      end do
+                      ! Compute the rate for trajectories which never cross the barrier.
+                      self%nonCrossingRate(iVariance,iTime)=real(                                     &
+                           &                                     +max(                                &
+                           &                                          1.0_kind_quad-crossingFraction, &
+                           &                                          0.0_kind_quad                   &
+                           &                                         )                                &
+                           &                                     /self%timeRate(iTime)                &
+                           &                                     /self%fractionalTimeStep           , &
+                           &                                     kind=kind_dble                       &
+                           &                                    )
                    end if
                 end do
-                ! Compute the fraction of trajectories which never cross the barrier.
-                crossingFraction=0.0_kind_quad
-                do j=1,self%varianceTableCountRate
-                   varianceTableStepRate=varianceTableRateQuad(j)-varianceTableRateQuad(j-1)
-                   crossingFraction     =+crossingFraction              &
-                        &                +firstCrossingTableRateQuad(j) &
-                        &                *varianceTableStepRate
-                end do
-                ! Compute the rate for trajectories which never cross the barrier.
-                self%nonCrossingTableRate(iVariance,iTime)=real(                                     &
-                     &                                          +max(                                &
-                     &                                               1.0_kind_quad-crossingFraction, &
-                     &                                               0.0_kind_quad                   &
-                     &                                              )                                &
-                     &                                          /self%timeTableRate(iTime)           &
-                     &                                          /self%timeStepFractional           , &
-                     &                                          kind=kind_dble                       &
-                     &                                         )
-                ! Store the compute crossing rate in our table.
-                self%firstCrossingTableRate(:,iVariance,iTime)=real(firstCrossingTableRateQuad,kind=kind_dble)
+                !$omp end do
              end do
-             !$omp end do
-             ! Divide through by the time step to get the rate of barrier crossing.
-             !$omp single
-             self%firstCrossingTableRate(:,:,iTime)=+self%firstCrossingTableRate(:,:,iTime) &
-                  &                                 /self%timeTableRate         (    iTime) &
-                  &                                 /self%timeStepFractional
-             !$omp end single
           end do
           !![
           <objectDestructor name="excursionSetBarrier_"     />
           <objectDestructor name="cosmologicalMassVariance_"/>
           !!]
-          deallocate(barrierTableRateQuad   )
-          deallocate(barrierMidTableRateQuad)
+          ! Deallocate work arrays.
+          deallocate(barrierRateQuad        )
+          deallocate(barrierMidpointRateQuad)
+          deallocate(varianceCurrentRateQuad)
+          if (allocated(firstCrossingRateQuad)) deallocate(firstCrossingRateQuad)
           !$omp end parallel
           ! Update the variance table to reflect the variances at the midpoints. Note that the first crossing probability is computed
           ! at the mid-points. The last element of the variance table is unchanged to ensure that its value equals
           ! varianceMaximum. This will not affect the result becasue the crossing rate at maximum variance is set to zero anyway.
-          self%varianceTableRate(1:self%varianceTableCountRate-1)=real(varianceMidTableRateQuad(1:self%varianceTableCountRate-1),kind=kind_dble)
-          deallocate(varianceMidTableRateQuad)
-          ! Deallocate work arrays.
-          deallocate(varianceTableRateBaseQuad )
-          deallocate(varianceTableRateQuad     )
-          if (allocated(firstCrossingTableRateQuad)) deallocate(firstCrossingTableRateQuad)
+          self%varianceProgenitorRate(1:self%countVarianceProgenitorRate-1)=real(varianceMidpointRateQuad(1:self%countVarianceProgenitorRate-1),kind=kind_dble)
+          deallocate(varianceMidpointRateQuad  )
+          deallocate(varianceProgenitorRateQuad)
 #ifdef USEMPI
           if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
 #endif
              call displayCounterClear(       verbosityLevelWorking)
-             call displayUnindent     ("done",verbosityLevelWorking)
+             call displayUnindent    ("done",verbosityLevelWorking)
 #ifdef USEMPI
           end if
           if (self%coordinatedMPI_) then
              call mpiBarrier()
-             self%firstCrossingTableRate=mpiSelf%sum(self%firstCrossingTableRate)
-             self%  nonCrossingTableRate=mpiSelf%sum(self%  nonCrossingTableRate)
+             if (makeTable) then
+                self%firstCrossingRate=mpiSelf%sum(self%firstCrossingRate)
+             end if
+             self%nonCrossingRate=mpiSelf%sum(self%nonCrossingRate)
           end if
 #endif
+          ! If only times have changed then copy results previously computed to the tables.
+          if (.not.varianceMaximumChanged) then
+             if (makeTable) then
+                self%firstCrossingRate(:,:,countNewLower+1:countNewLower+size(firstCrossingRate,dim=3))=firstCrossingRate
+                deallocate(firstCrossingRate)
+             end if
+             if (.not.self%retabulateRateNonCrossing) then
+                self%nonCrossingRate  (  :,countNewLower+1:countNewLower+size(nonCrossingRate  ,dim=2))=nonCrossingRate
+                deallocate(nonCrossingRate  )
+             end if
+          end if
           ! Build the interpolators.
-          if (allocated(self%interpolatorVarianceRate    )) deallocate(self%interpolatorVarianceRate    )
-          if (allocated(self%interpolatorVarianceRateBase)) deallocate(self%interpolatorVarianceRateBase)
-          if (allocated(self%interpolatorTimeRate        )) deallocate(self%interpolatorTimeRate        )
-          allocate(self%interpolatorVarianceRate    )
-          allocate(self%interpolatorVarianceRateBase)
-          allocate(self%interpolatorTimeRate        )
-          self%interpolatorVarianceRate    =interpolator(self%varianceTableRate    )
-          self%interpolatorVarianceRateBase=interpolator(self%varianceTableRateBase)
-          self%interpolatorTimeRate        =interpolator(self%timeTableRate        )
+          if (allocated(self%interpolatorVarianceRate                  )) deallocate(self%interpolatorVarianceRate                  )
+          if (allocated(self%interpolatorVarianceCurrentRate           )) deallocate(self%interpolatorVarianceCurrentRate           )
+          if (allocated(self%interpolatorVarianceCurrentRateNonCrossing)) deallocate(self%interpolatorVarianceCurrentRateNonCrossing)
+          if (allocated(self%interpolatorTimeRate                      )) deallocate(self%interpolatorTimeRate                      )
+          allocate(self%interpolatorVarianceRate                  )
+          allocate(self%interpolatorVarianceCurrentRate           )
+          allocate(self%interpolatorVarianceCurrentRateNonCrossing)
+          allocate(self%interpolatorTimeRate                      )
+          self%interpolatorVarianceRate                  =interpolator(self%varianceProgenitorRate        )
+          self%interpolatorVarianceCurrentRate           =interpolator(self%varianceCurrentRate           )
+          self%interpolatorVarianceCurrentRateNonCrossing=interpolator(self%varianceCurrentRateNonCrossing)
+          self%interpolatorTimeRate                      =interpolator(self%timeRate                      )
           ! Set previous variance and time to unphysical values to force recompute of interpolation factors on next call.
-          self%varianceRatePrevious=-1.0d0
-          self%timeRatePrevious    =-1.0d0
+          self%variancePreviousRate=-1.0d0
+          self%timePreviousRate    =-1.0d0
           ! Record that the table is now built.
-          self%tableInitializedRate=.true.
+          self%tableInitializedRate     =.true.
+          self%retabulateRateNonCrossing=.false.
           ! Write the table to file if possible.
 #ifdef USEMPI
           if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then

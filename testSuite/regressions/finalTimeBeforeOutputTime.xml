@@ -72,7 +72,6 @@
   </powerSpectrumPrimordial>
   <stellarPopulationSpectra value="FSPS"/>
   <mergerRemnantSize value="null"/>
-  <diskMassToleranceAbsolute value="1.0e-6"/>
   <galacticDynamicsBarInstability value="stable"/>
   <transferFunction value="eisensteinHu1999">
     <neutrinoNumberEffective value="3.04"/>
@@ -122,8 +121,10 @@
   <coolingFunction value="atomicCIECloudy"/>
 
   <initialMassFunction value="chabrier2001"/>
-  <componentHotHalo value="verySimple"/>
-  <hotHaloAngularMomentumLossFraction value="0.0"/>
+  <componentHotHalo value="verySimple">
+    <fractionLossAngularMomentum value="0.0"/>
+    <starveSatellites value="true"/>
+  </componentHotHalo>
   <mergerTreeEvolver value="standard">
     <timestepHostRelative value="0.1"/>
     <allTreesExistAtFinalTime value="false"/>
@@ -148,7 +149,9 @@
   </coolingRate>
   <componentSpin value="null"/>
   <linearGrowth value="collisionlessMatter"/>
-  <componentDisk value="verySimple"/>
+  <componentDisk value="verySimple">
+    <toleranceAbsoluteMass value="1.0e-6"/>
+  </componentDisk>
   <mergerTreeBuilder value="cole2000">
     <accretionLimit value="0.1"/>
     <mergeProbability value="0.1"/>
@@ -160,7 +163,6 @@
     <redshifts value="0.0700"/>
   </outputTimes>
 
-  <starveSatellites value="true"/>
   <coolingRadius value="isothermal"/>
   <hotHaloMassDistribution value="betaProfile"/>
   <hotHaloTemperatureProfile value="virial"/>

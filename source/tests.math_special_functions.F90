@@ -366,7 +366,7 @@ program Test_Math_Special_Functions
        &       relTol=1.0d-6            &
        &     )
 
-  ! Test gamma functions.
+  ! Test Gamma functions.
   call Assert("gamma function, Γ(x)",   &
        &       gammaFunction,           &
        &       [                        &

@@ -46,16 +46,16 @@ Contains a module which implements an ISM mass output analysis property extracto
 
 contains
 
-  function finalDescendentConstructorParameters(parameters)
+  function finalDescendentConstructorParameters(parameters) result(self)
     !!{
     Constructor for the {\normalfont \ttfamily finalDescendent} node property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(nodePropertyExtractorFinalDescendent)                :: finalDescendentConstructorParameters
+    type(nodePropertyExtractorFinalDescendent)                :: self
     type(inputParameters                     ), intent(inout) :: parameters
 
-    finalDescendentConstructorParameters=nodePropertyExtractorFinalDescendent()
+    self=nodePropertyExtractorFinalDescendent()
     !![
     <inputParametersValidate source="parameters"/>
     !!]

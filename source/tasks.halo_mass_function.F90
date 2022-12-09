@@ -858,7 +858,7 @@ contains
        end if
        call                                                            powerSpectrumGroup%close         (                                   )
     end if
-    ! Store sigma8.
+    ! Store σ₈.
     if (self%outputGroup == ".") then
        powerSpectrumGroup=outputFile%openGroup('powerSpectrum','Group containing data relating to the power spectrum.')
     else

@@ -62,8 +62,8 @@
      class           (outputTimesClass           ), pointer :: outputTimes_                  => null()
      class           (universeOperatorClass      ), pointer :: universeOperator_             => null()
      ! Pointer to the parameters for this task.
-     type            (inputParameters            ), pointer          :: parameters
-     logical                                                :: initialized                   =.false., nodeComponentsInitialized=.false.
+     type            (inputParameters            ), pointer :: parameters                    => null()
+     logical                                                :: initialized                   =.false. , nodeComponentsInitialized=.false.
    contains
      !![
      <methods>
@@ -88,9 +88,9 @@
 
   ! Class used to build lists of tree branches which get processed independently.
   type :: evolveForestsBranchList
-     type(treeNode               ), pointer :: nodeParent
-     type(mergerTree             ), pointer :: branch
-     type(evolveForestsBranchList), pointer :: next
+     type(treeNode               ), pointer :: nodeParent => null()
+     type(mergerTree             ), pointer :: branch     => null()
+     type(evolveForestsBranchList), pointer :: next       => null()
   end type evolveForestsBranchList
 
   ! Copies of objects used by each thread.
@@ -142,7 +142,6 @@ contains
        call nodeClassHierarchyInitialize(parameters    )
        call Node_Components_Initialize  (parameters    )
     end if
-    self%nodeComponentsInitialized=.true.
     !![
     <inputParameter>
       <name>walltimeMaximum</name>
@@ -200,6 +199,7 @@ contains
     else
        self=taskEvolveForests(evolveSingleForest,evolveSingleForestSections,evolveSingleForestMassMinimum,walltimeMaximum,suspendToRAM,suspendPath,mergerTreeConstructor_,mergerTreeOperator_,nodeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,mergerTreeInitializor_,parameters    )
     end if
+    self%nodeComponentsInitialized=.true.
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="mergerTreeConstructor_" />
@@ -304,8 +304,9 @@ contains
     !!{
     Destructor for the {\normalfont \ttfamily evolveForests} task class.
     !!}
-    use :: Events_Hooks   , only : stateRestoreEventGlobal     , stateStoreEventGlobal
-    use :: Node_Components, only : Node_Components_Uninitialize
+    use :: Events_Hooks    , only : stateRestoreEventGlobal     , stateStoreEventGlobal
+    use :: Node_Components , only : Node_Components_Uninitialize
+    use :: Galacticus_Nodes, only : nodeClassHierarchyFinalize
     implicit none
     type(taskEvolveForests), intent(inout) :: self
 
@@ -323,7 +324,10 @@ contains
     !!]
     if (stateStoreEventGlobal  %isAttached(self,evolveForestsStateStore  )) call stateStoreEventGlobal  %detach(self,evolveForestsStateStore  )
     if (stateRestoreEventGlobal%isAttached(self,evolveForestsStateRestore)) call stateRestoreEventGlobal%detach(self,evolveForestsStateRestore)
-    if (self%nodeComponentsInitialized                                    ) call Node_Components_Uninitialize()
+    if (self%nodeComponentsInitialized                                    ) then
+       call Node_Components_Uninitialize()
+       call nodeClassHierarchyFinalize  ()
+    end if
     return
   end subroutine evolveForestsDestructor
 
@@ -522,6 +526,7 @@ contains
                 ! the static structure of the tree (e.g. assign scale radii, merging orbits, etc.). Initializations related to
                 ! evolution of the tree (e.g. growth rates of scale radii, baryonic component initialization) are typically handled
                 ! by the mergerTreeInitializor class which is called later.
+                call    evolveForestsMergerTreeOperator_%operatePreInitialization(tree)
                 treeWalkerAll=mergerTreeWalkerAllNodes(tree,spanForest=.true.)
                 do while (treeWalkerAll%next(node))
                    call evolveForestsNodeOperator_      %nodeTreeInitialize (node)

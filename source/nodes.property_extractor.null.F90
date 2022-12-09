@@ -44,16 +44,16 @@ Contains a module which implements a null output analysis class.
 
 contains
 
-  function nullConstructorParameters(parameters)
+  function nullConstructorParameters(parameters) result(self)
     !!{
     Constructor for the ``null'' output analysis property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(nodePropertyExtractorNull)                :: nullConstructorParameters
+    type(nodePropertyExtractorNull)                :: self
     type(inputParameters          ), intent(inout) :: parameters
 
-    nullConstructorParameters=nodePropertyExtractorNull()
+    self=nodePropertyExtractorNull()
     !![
     <inputParametersValidate source="parameters"/>
     !!]

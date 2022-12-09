@@ -26,6 +26,7 @@ program Tests_Sigma
   use :: Cosmology_Parameters                , only : cosmologyParametersSimple               , hubbleUnitsLittleH
   use :: Dark_Matter_Particles               , only : darkMatterParticleCDM
   use :: Display                             , only : displayVerbositySet                     , verbosityLevelStandard
+  use :: Error                               , only : Error_Handler_Register
   use :: Linear_Growth                       , only : linearGrowthCollisionlessMatter
   use :: Numerical_Constants_Math            , only : Pi
   use :: Numerical_Ranges                    , only : Make_Range                              , rangeTypeLogarithmic
@@ -54,6 +55,8 @@ program Tests_Sigma
   double precision                                                                 :: mass8                                        , radius8                                        , &
        &                                                                              sigma8
 
+  ! Initialize error handling.
+  call Error_Handler_Register()
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
   ! Begin unit tests.
@@ -150,13 +153,13 @@ program Tests_Sigma
    </constructor>
   </referenceConstruct>
   !!]
-  ! Check that converting from mass to sigma and back to mass gives consistent answers at z=0.
+  ! Check that converting from mass to σ(M) and back to mass gives consistent answers at z=0.
   do iMass=1,massCount
      sigma        (iMass)=cosmologicalMassVarianceLCDM_%rootVariance(mass (iMass),cosmologyFunctions_%cosmicTime(1.0d0               ))
      massFromSigma(iMass)=cosmologicalMassVarianceLCDM_%mass        (sigma(iMass),cosmologyFunctions_%cosmicTime(1.0d0               ))
   end do
   call Assert('M -> σ(M) -> M conversion loop at z=0 ',mass,massFromSigma,relTol=1.0d-2)
-  ! Check that converting from mass to sigma and back to mass gives consistent answers at z=10.
+  ! Check that converting from mass to σ(M) and back to mass gives consistent answers at z=10.
   do iMass=1,massCount
      sigma        (iMass)=cosmologicalMassVarianceLCDM_%rootVariance(mass (iMass),cosmologyFunctions_%cosmicTime(1.0d0/(1.0d0+10.0d0)))
      massFromSigma(iMass)=cosmologicalMassVarianceLCDM_%mass        (sigma(iMass),cosmologyFunctions_%cosmicTime(1.0d0/(1.0d0+10.0d0)))
@@ -167,7 +170,7 @@ program Tests_Sigma
   mass8  =4.0d0*Pi*cosmologyParameters_%densityCritical()*cosmologyParameters_%OmegaMatter()*radius8**3/3.0d0
   sigma8=cosmologicalMassVarianceLCDM_%rootVariance(mass8,cosmologyFunctions_%cosmicTime(1.0d0))
   call Assert('σ₈ equals specified value',sigma8,cosmologicalMassVarianceLCDM_%sigma8(),relTol=1.0d-3)
-  ! Check normalization of sigma(M) when using a non-top-hat filter. Here, we use a simple power-law power spectrum with index
+  ! Check normalization of σ(M) when using a non-top-hat filter. Here, we use a simple power-law power spectrum with index
   ! n=-1, and a sharp k-space filter, and normalize to σ₈=1. For these, the normalization of σ(M₈) can be computed analytically to
   ! be (π√2/3)^{1/3}.
   powerSpectrumPrimordialPowerLaw_         =powerSpectrumPrimordialPowerLaw         (                                                                               &

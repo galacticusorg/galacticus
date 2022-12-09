@@ -50,38 +50,40 @@ Contains a module which implements a galactic high-pass filter for stellar mass-
 
 contains
 
-  function stellarMassMorphologyConstructorParameters(parameters)
+  function stellarMassMorphologyConstructorParameters(parameters) result(self)
     !!{
     Constructor for the ``stellarMassMorphology'' galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type(galacticFilterStellarMassMorphology)                :: stellarMassMorphologyConstructorParameters
-    type(inputParameters          ), intent(inout) :: parameters
-
-    ! Check and read parameters.
+    type            (galacticFilterStellarMassMorphology)                :: self
+    type            (inputParameters                    ), intent(inout) :: parameters
+    double precision                                                     :: spheroidToTotalRatioThreshold
     !![
     <inputParameter>
       <name>spheroidToTotalRatioThreshold</name>
       <source>parameters</source>
-      <variable>stellarMassMorphologyConstructorParameters%spheroidToTotalRatioThreshold</variable>
       <description>The parameter $R_0$ appearing in the stellar mass-weight morphology threshold for the stellar mass-weighted morphology galactic filter class.</description>
     </inputParameter>
+    !!]
+    self=galacticFilterStellarMassMorphology(spheroidToTotalRatioThreshold)
+    !![
     <inputParametersValidate source="parameters"/>
     !!]
     return
   end function stellarMassMorphologyConstructorParameters
 
-  function stellarMassMorphologyConstructorInternal(spheroidToTotalRatioThreshold)
+  function stellarMassMorphologyConstructorInternal(spheroidToTotalRatioThreshold) result(self)
     !!{
     Internal constructor for the ``stellarMassMorphology'' galactic filter class.
     !!}
     implicit none
-    type            (galacticFilterStellarMassMorphology)                :: stellarMassMorphologyConstructorInternal
+    type            (galacticFilterStellarMassMorphology)                :: self
     double precision                                     , intent(in   ) :: spheroidToTotalRatioThreshold
     !![
     <constructorAssign variables="spheroidToTotalRatioThreshold"/>
     !!]
+    
     return
   end function stellarMassMorphologyConstructorInternal
 

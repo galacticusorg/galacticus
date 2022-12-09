@@ -467,13 +467,14 @@ contains
     Compute the Vega-AB offset for the given filter.
     !!}
     use, intrinsic :: ISO_C_Binding          , only : c_size_t
-    use            :: FoX_DOM                , only : node                   , destroy
+    use            :: FoX_DOM                , only : node                 , destroy
     use            :: Error                  , only : Error_Report
-    use            :: Input_Paths            , only : inputPath              , pathTypeDataStatic
-    use            :: IO_XML                 , only : XML_Array_Read         , XML_Parse
-    use            :: ISO_Varying_String     , only : var_str                , char              , operator(//)
-    use            :: Numerical_Integration  , only : GSL_Integ_Gauss15      , integrator
+    use            :: Input_Paths            , only : inputPath            , pathTypeDataStatic
+    use            :: IO_XML                 , only : XML_Array_Read       , XML_Parse
+    use            :: ISO_Varying_String     , only : var_str              , char              , operator(//)
+    use            :: Numerical_Integration  , only : GSL_Integ_Gauss15    , integrator
     use            :: Numerical_Interpolation, only : interpolator
+    use            :: Table_Labels           , only : extrapolationTypeZero
     implicit none
     integer                       , intent(in   )              :: indexFilter
     type            (integrator  )               , allocatable :: integratorVegaBuserV_        , integratorABBuserV_  , &
@@ -506,7 +507,7 @@ contains
              call XML_Array_Read(doc,"datum",wavelengthVega,spectrumVega)
              call destroy(doc)
              !$omp end critical (FoX_DOM_Access)
-             interpolatorVega_=interpolator(wavelengthVega,spectrumVega)
+             interpolatorVega_=interpolator(wavelengthVega,spectrumVega,extrapolationType=extrapolationTypeZero)
              vegaLoaded       =.true.
           end if
           !$omp end critical (loadVegaSpectrum)

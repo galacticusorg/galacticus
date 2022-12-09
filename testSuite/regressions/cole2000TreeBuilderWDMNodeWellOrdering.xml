@@ -14,13 +14,14 @@
   <componentDarkMatterProfile value="scale"/>
   <componentDisk value="null"/>
   <componentSatellite value="standard"/>
-  <componentSpheroid value="null"/>
+  <componentSpheroid value="null">
+    <massDistributionSpheroid value="hernquist"/>
+  </componentSpheroid>
   <componentSpin value="scalar"/>
-  <spheroidMassDistribution value="hernquist"/>
   <satelliteDynamicalFriction value="zero"/>
   <satelliteTidalStripping value="zero"/>
   <satelliteTidalHeatingRate value="zero"/>
-
+  
   <!-- Dark matter halo profile -->
   <darkMatterProfileDMO value="NFW"/>
 
@@ -90,7 +91,9 @@
     </excursionSetBarrier>
   </excursionSetBarrier>
   <excursionSetFirstCrossing value="farahiMidpoint">
-    <timeStepFractional value="0.01"/>
+    <varianceNumberPerUnit   value=" 30   "/>
+    <varianceNumberPerDecade value="250   "/>
+    <fractionalTimeStep      value="  0.01"/>
     <fileName value="%DATADYNAMICPATH%/largeScaleStructure/excursionSets/excursionSetsWdmMx1.5Gx1.5.hdf5"/>
   </excursionSetFirstCrossing>
 
@@ -210,7 +213,7 @@
     <!-- DMO evolution -->
     <nodeOperator value="DMOInterpolate"/>
     <!-- Halo concentrations -->
-    <nodeOperator value="darkMatterProfileScaleSet"        />
+    <nodeOperator value="darkMatterProfileScaleSet"/>
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
     <nodeOperator value="haloAngularMomentumRandom">
       <factorReset value="2.0"/>
@@ -218,7 +221,7 @@
     <nodeOperator value="haloAngularMomentumInterpolate"/>
     <!-- Satellite evolution -->
     <nodeOperator value="satelliteMergingTime"/>
-    <nodeOperator value="satelliteMassLoss"   />
+    <nodeOperator value="satelliteMassLoss"/>
   </nodeOperator>
 
   <!-- Output file -->

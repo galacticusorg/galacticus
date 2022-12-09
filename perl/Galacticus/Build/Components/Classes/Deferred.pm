@@ -23,7 +23,6 @@ use Galacticus::Build::Components::NullFunctions qw(createNullFunction);
 	 implementationIteratedFunctions =>
 	     [
 	      \&Class_Deferred_Binding_Pointers     ,
-	      \&Class_Deferred_Binding_Interfaces   ,
 	      \&Class_Deferred_Binding_Attachers    ,
 	      \&Class_Deferred_Binding_Attach_Status,
 	      \&Class_Deferred_Binding_Wrappers
@@ -56,7 +55,7 @@ sub Class_Deferred_Binding_Pointers {
 	    @{$build->{'variables'}},
 	    {
 		intrinsic  => "procedure",
-		type       => $class->{'name'}.ucfirst($binding->{'method'})."Interface",
+		type       => $class->{'name'}.ucfirst($class->{'member'}).ucfirst($binding->{'method'}),
 		attributes => [ "pointer" ],
 		variables  => [ $classFunctionName."Deferred" ]
 	    },
@@ -65,57 +64,6 @@ sub Class_Deferred_Binding_Pointers {
 		variables  => [ $classFunctionName."IsSetValue=.false." ]
 	    }
 	    );
-    }
-}
-
-sub Class_Deferred_Binding_Interfaces {
-    # Generate interfaces for deferred methods of component implementations.
-    my $build  = shift();
-    my $class  = shift();
-    my $member = shift();
-    # Iterate over bindings.
-    foreach my $binding ( @{$member->{'bindings'}->{'binding'}} ) {
-	# Skip non-deferred bindings.
-	next
-	    unless ( $binding->{'isDeferred'} );
-	# Create an abstract interface for the deferred function.
-	my $interfaceName = $class->{'name'}.ucfirst($binding->{'method'});
-	next
-	    if ( exists($classInterfaces{$interfaceName}) );
-	$classInterfaces{$interfaceName} = 1;
-	# Find the highest level in the node component class hierarchy at which this method should be bound.
-	my $hierarchyBindPoint;
-	if ( $binding->{'bindsTo'} eq "componentClass" ) {
-	    $hierarchyBindPoint = $class->{'name'};
-	} else {
-	    my $parentImplementation = $member;
-	    while ( exists($parentImplementation->{'extends'}) ) {
-		$parentImplementation = $parentImplementation->{'extends'}->{'implementation'};
-	    }
-	    $hierarchyBindPoint = $parentImplementation->{'class'}.ucfirst($parentImplementation->{'name'});
-	}
-	# Determine the type of the interface.
-	(my $type) = $binding->{'interface'}->{'type'} eq "void" ? ("void") : &Galacticus::Build::Components::DataTypes::dataObjectPrimitiveName($binding->{'interface'});
-	# Construct the interface.
-	my $interface =
-	{
-	    name      => $interfaceName."Interface",
-	    intrinsic => $type,
-	    comment   => "Interface for deferred function for {\\normalfont \\ttfamily ".$binding->{'method'}."} method of the {\\normalfont \\ttfamily ".$class->{'name'}."} class.",
-	    data      => [ map {&Fortran::Utils::Unformat_Variables($_)} &List::ExtraUtils::as_array($binding->{'interface'}->{'argument'}) ]
-	};
-	# Add a self argument if required.
-       	unshift
-	    (
-	     @{$interface->{'data'}},
-	     {
-		 intrinsic  => "class",
-		 type       => "nodeComponent".$hierarchyBindPoint,
-		 attributes => [ "intent(".$binding->{'interface'}->{'self'}->{'intent'}.")" ],
-		 variables  => [ "self" ]
-	     }
-	    ) if ( $binding->{'interface'}->{'self'}->{'pass'} );
-    	$build->{'interfaces'}->{$interfaceName} = $interface;
     }
 }
 
@@ -142,7 +90,7 @@ sub Class_Deferred_Binding_Attachers {
 		[
 		 {
 		     intrinsic  => "procedure",
-		     type       => $code::classFunctionName."Interface",
+		     type       => $code::classFunctionName,
 		     isArgument => 1,
 		     variables  => [ "deferredFunction" ]
 		 }

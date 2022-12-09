@@ -46,7 +46,10 @@
     </nodePropertyExtractor>
   </nodePropertyExtractor>
   <mergerTreeOperator value="massAccretionHistory"/>
-  <hotHaloAngularMomentumAlwaysGrows value="true"/>
+  <componentHotHalo value="standard">
+    <angularMomentumAlwaysGrows value="true"/>
+  </componentHotHalo>
+
   <nodePromotionIndexShift value="false"/>
   <outputTimes value="list">
     <redshifts value="0.000"/>
@@ -66,7 +69,7 @@
     <!-- DMO evolution -->
     <nodeOperator value="DMOInterpolate"/>
     <!-- Halo concentrations -->
-    <nodeOperator value="darkMatterProfileScaleSet"        />
+    <nodeOperator value="darkMatterProfileScaleSet"/>
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
     <!-- Halo spins -->
     <nodeOperator value="haloAngularMomentumRandom">

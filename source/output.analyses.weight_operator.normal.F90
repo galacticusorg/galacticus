@@ -195,7 +195,7 @@ contains
     else
        rootVariance =+self%rootVariance(node,propertyValue,propertyValueIntrinsic,propertyType,propertyQuantity,outputIndex)
        if (rootVariance <= 0.0d0) then
-          ! If the root variance is zero we assume that the normal distribution has the limiting case of a delta function, such
+          ! If the root variance is zero we assume that the normal distribution has the limiting case of a δ-function, such
           ! that the weight is multiplied by 0 or 1 depending on whether the property values lies inside or outside of our
           ! integration range.
           normalOperate=0.0d0

@@ -18,6 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVariance, cosmologicalMassVarianceClass, criticalOverdensity, criticalOverdensityClass
+  use :: Linear_Growth             , only : linearGrowthClass
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorPeakHeight">
@@ -31,6 +32,7 @@
      private
      class(criticalOverdensityClass     ), pointer :: criticalOverdensity_      => null()
      class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
+     class(linearGrowthClass)            , pointer :: linearGrowth_             => null()
    contains
      final     ::                 peakHeightDestructor
      procedure :: elementCount => peakHeightElementCount
@@ -60,21 +62,24 @@ contains
     type (inputParameters                ), intent(inout) :: parameters
     class(criticalOverdensityClass       ), pointer       :: criticalOverdensity_
     class(cosmologicalMassVarianceClass  ), pointer       :: cosmologicalMassVariance_
+    class(linearGrowthClass              ), pointer       :: linearGrowth_
 
     !![
     <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
     <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
     !!]
-    self=nodePropertyExtractorPeakHeight(criticalOverdensity_,cosmologicalMassVariance_)
+    self=nodePropertyExtractorPeakHeight(criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="criticalOverdensity_"     />
     <objectDestructor name="cosmologicalMassVariance_"/>
+    <objectDestructor name="linearGrowth_"            />
     !!]
     return
   end function peakHeightConstructorParameters
 
-  function peakHeightConstructorInternal(criticalOverdensity_,cosmologicalMassVariance_) result(self)
+  function peakHeightConstructorInternal(criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_) result(self)
     !!{
     Internal constructor for the ``peakHeight'' output extractor property extractor class.
     !!}
@@ -82,8 +87,9 @@ contains
     type (nodePropertyExtractorPeakHeight)                        :: self
     class(criticalOverdensityClass       ), intent(in   ), target :: criticalOverdensity_
     class(cosmologicalMassVarianceClass  ), intent(in   ), target :: cosmologicalMassVariance_
+    class(linearGrowthClass              ), intent(in   ), target :: linearGrowth_ 
     !![
-    <constructorAssign variables="*criticalOverdensity_,*cosmologicalMassVariance_"/>
+    <constructorAssign variables="*criticalOverdensity_, *cosmologicalMassVariance_, *linearGrowth_"/>
     !!]
 
     return
@@ -99,6 +105,7 @@ contains
     !![
     <objectDestructor name="self%criticalOverdensity_"     />
     <objectDestructor name="self%cosmologicalMassVariance_"/>
+    <objectDestructor name="self%linearGrowth_"            />
     !!]
     return
   end subroutine peakHeightDestructor
@@ -112,7 +119,7 @@ contains
     double precision                                 , intent(in   ) :: time
     !$GLC attributes unused :: self, time
 
-    peakHeightElementCount=3
+    peakHeightElementCount=4
     return
   end function peakHeightElementCount
 
@@ -129,19 +136,21 @@ contains
     type            (multiCounter                   ), intent(inout), optional    :: instance
     class           (nodeComponentBasic             ), pointer                    :: basic
     double precision                                                              :: criticalOverdensityLastIsolated, densityFieldRootVariance, &
-         &                                                                           peakHeightNu
+         &                                                                           peakHeightNu                   , linearGrowthFactor
     !$GLC attributes unused :: time, instance
 
-    basic => node%basic()
-    criticalOverdensityLastIsolated= self%criticalOverdensity_     %value       (mass=basic%mass(),time=basic%timeLastIsolated(),node=node)
-    densityFieldRootVariance       = self%cosmologicalMassVariance_%rootVariance(mass=basic%mass(),time=basic%timeLastIsolated()          )
-    peakHeightNu                   =+criticalOverdensityLastIsolated                                                                        &
-         &                          /densityFieldRootVariance
-    allocate(peakHeightExtract(3))
+    basic                           =>  node                          %basic       (                                                         )
+    criticalOverdensityLastIsolated =   self%criticalOverdensity_     %value       (mass=basic%mass(),time=basic%timeLastIsolated(),node=node)
+    densityFieldRootVariance        =   self%cosmologicalMassVariance_%rootVariance(mass=basic%mass(),time=basic%timeLastIsolated()          )
+    peakHeightNu                    =  +criticalOverdensityLastIsolated                                                                        &
+         &                             /densityFieldRootVariance
+    linearGrowthFactor              =   self%LinearGrowth_            %value        (                 time=basic%timeLastIsolated()          )
+    allocate(peakHeightExtract(4))
     peakHeightExtract=[                                 &
          &             criticalOverdensityLastIsolated, &
          &             densityFieldRootVariance       , &
-         &             peakHeightNu                     &
+         &             peakHeightNu                   , &
+         &             linearGrowthFactor               &
          &            ]
     return
   end function peakHeightExtract
@@ -156,10 +165,11 @@ contains
     type            (varying_string                 ), intent(inout), dimension(:) , allocatable :: names
     !$GLC attributes unused :: self, time
 
-    allocate(names(3))
+    allocate(names(4))
     names(1)=var_str('criticalOverdensityLastIsolated'  )
     names(2)=var_str('haloSigma'                        )
     names(3)=var_str('haloPeakHeightNu'                 )
+    names(4)=var_str('linearGrowth'                     )
     return
   end subroutine peakHeightNames
 
@@ -173,10 +183,11 @@ contains
     type            (varying_string                 ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: self, time
 
-    allocate(descriptions(3))
-    descriptions(1)=var_str('Critical overdensity at the time when the halo was last isolated.')
-    descriptions(2)=var_str('The mass fluctuation on the scale of the halo.'                   )
-    descriptions(3)=var_str('The peak height, ν, of the halo.'                                 )
+    allocate(descriptions(4))
+    descriptions(1)=var_str('Critical overdensity at the time when the halo was last isolated.'          )
+    descriptions(2)=var_str('The mass fluctuation on the scale of the halo.'                             )
+    descriptions(3)=var_str('The peak height, ν, of the halo.'                                           )
+    descriptions(4)=var_str('The cosmological growth factor at the time when the halo was last isolated.')
     return
   end subroutine peakHeightDescriptions
 
@@ -190,8 +201,7 @@ contains
     double precision                                 , intent(in   )              :: time
     !$GLC attributes unused :: self, time
 
-    allocate(peakHeightUnitsInSI(3))
-    peakHeightUnitsInSI=[0.0d0,0.0d0,0.0d0]
+    allocate(peakHeightUnitsInSI(4))
+    peakHeightUnitsInSI=[0.0d0,0.0d0,0.0d0,0.0d0]
     return
   end function peakHeightUnitsInSI
-

@@ -44,16 +44,16 @@ Contains a module which implements a pruning-by-mass operator on merger trees.
 
 contains
 
-  function pruneClonesConstructorParameters(parameters)
+  function pruneClonesConstructorParameters(parameters) result(self)
     !!{
     Constructor for the clone pruning merger tree operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(mergerTreeOperatorPruneClones)                :: pruneClonesConstructorParameters
+    type(mergerTreeOperatorPruneClones)                :: self
     type(inputParameters              ), intent(inout) :: parameters
 
-    pruneClonesConstructorParameters=mergerTreeOperatorPruneClones()
+    self=mergerTreeOperatorPruneClones()
     !![
     <inputParametersValidate source="parameters"/>
     !!]
