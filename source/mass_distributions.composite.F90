@@ -210,56 +210,64 @@ contains
     return
   end function compositeIsDimensionless
 
-  double precision function compositeMassTotal(self)
+  double precision function compositeMassTotal(self,componentType,massType)
     !!{
     Return the total mass of a composite mass distribution.
     !!}
     implicit none
-    class(massDistributionComposite), intent(inout) :: self
-    type (massDistributionList     ), pointer       :: massDistribution_
+    class(massDistributionComposite   ), intent(inout)           :: self
+    type (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    type (massDistributionList        ), pointer                 :: massDistribution_
 
     compositeMassTotal=0.0d0
     if (associated(self%massDistributions)) then
        massDistribution_ => self%massDistributions
        do while (associated(massDistribution_))
-          compositeMassTotal =  +compositeMassTotal                              &
-               &                +massDistribution_ %massDistribution_%massTotal()
-          massDistribution_  =>  massDistribution_ %next
+          if (massDistribution_ %massDistribution_%matches(componentType,massType))     &
+               & compositeMassTotal =  +compositeMassTotal                              &
+               &                       +massDistribution_ %massDistribution_%massTotal()
+          massDistribution_         =>  massDistribution_ %next
        end do
     end if
     return
   end function compositeMassTotal
 
-  double precision function compositeDensity(self,coordinates)
+  double precision function compositeDensity(self,coordinates,componentType,massType)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in a composite mass distribution.
     !!}
     implicit none
-    class(massDistributionComposite), intent(inout) :: self
-    class(coordinate               ), intent(in   ) :: coordinates
-    type (massDistributionList     ), pointer       :: massDistribution_
+    class(massDistributionComposite   ), intent(inout)           :: self
+    class(coordinate                  ), intent(in   )           :: coordinates
+    type (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    type (massDistributionList        ), pointer                 :: massDistribution_
 
     compositeDensity=0.0d0
     if (associated(self%massDistributions)) then
        massDistribution_ => self%massDistributions
        do while (associated(massDistribution_))
-          compositeDensity  =  +compositeDensity                                          &
-               &               +massDistribution_ %massDistribution_%density(coordinates)
-          massDistribution_ =>  massDistribution_ %next
+          if (massDistribution_ %massDistribution_%matches(componentType,massType))              &
+               & compositeDensity  =  +compositeDensity                                          &
+               &                      +massDistribution_ %massDistribution_%density(coordinates)
+          massDistribution_        =>  massDistribution_ %next
        end do
     end if
     return
   end function compositeDensity
 
-  double precision function compositeDensityGradientRadial(self,coordinates,logarithmic)
+  double precision function compositeDensityGradientRadial(self,coordinates,logarithmic,componentType,massType)
     !!{
     Return the radial density gradient at the specified {\normalfont \ttfamily coordinates} in a composite mass distribution.
     !!}
     implicit none
-    class           (massDistributionComposite), intent(inout)           :: self
-    class           (coordinate               ), intent(in   )           :: coordinates
-    logical                                    , intent(in   ), optional :: logarithmic
-    type            (massDistributionList     ), pointer                 :: massDistribution_
+    class           (massDistributionComposite  ), intent(inout)           :: self
+    class           (coordinate                 ), intent(in   )           :: coordinates
+    logical                                      , intent(in   ), optional :: logarithmic
+    type           (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type           (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    type            (massDistributionList       ), pointer                 :: massDistribution_
     !![
     <optionalArgument name="logarithmic" defaultsTo=".false."/>
     !!]
@@ -268,9 +276,10 @@ contains
     if (associated(self%massDistributions)) then
        massDistribution_ => self%massDistributions
        do while (associated(massDistribution_))
-          compositeDensityGradientRadial  =  +compositeDensityGradientRadial                                                                          &
-               &                             +massDistribution_             %massDistribution_%densityGradientRadial(coordinates,logarithmic=.false.)
-          massDistribution_               =>  massDistribution_             %next
+          if (massDistribution_ %massDistribution_%matches(componentType,massType))                                                                          &
+               & compositeDensityGradientRadial  =  +compositeDensityGradientRadial                                                                          &
+               &                                    +massDistribution_             %massDistribution_%densityGradientRadial(coordinates,logarithmic=.false.)
+          massDistribution_                      =>  massDistribution_             %next
        end do
        if (logarithmic_) then
           compositeDensityGradientRadial=+compositeDensityGradientRadial                         &
@@ -281,24 +290,27 @@ contains
     return
   end function compositeDensityGradientRadial
 
-  double precision function compositeDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
+  double precision function compositeDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite,componentType,massType)
     !!{
     Return the given radial density moment in a composite mass distribution.
     !!}
     implicit none
-    class           (massDistributionComposite), intent(inout)           :: self
-    double precision                           , intent(in   )           :: moment
-    double precision                           , intent(in   ), optional :: radiusMinimum, radiusMaximum
-    logical                                    , intent(  out), optional :: isInfinite
-    type            (massDistributionList     ), pointer                 :: massDistribution_
+    class           (massDistributionComposite  ), intent(inout)           :: self
+    double precision                             , intent(in   )           :: moment
+    double precision                             , intent(in   ), optional :: radiusMinimum, radiusMaximum
+    logical                                      , intent(  out), optional :: isInfinite
+    type           (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type           (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    type            (massDistributionList       ), pointer                 :: massDistribution_
 
     compositeDensityRadialMoment=0.0d0
     if (present(isInfinite)) isInfinite=.false.
     if (associated(self%massDistributions)) then
        massDistribution_ => self%massDistributions
        do while (associated(massDistribution_))
-          compositeDensityRadialMoment =  +compositeDensityRadialMoment                                                                                      &
-               &                          +massDistribution_           %massDistribution_%densityRadialMoment(moment,radiusMinimum,radiusMaximum,isInfinite)
+          if (massDistribution_ %massDistribution_%matches(componentType,massType))                                                                                 &
+               & compositeDensityRadialMoment =  +compositeDensityRadialMoment                                                                                      &
+               &                                 +massDistribution_           %massDistribution_%densityRadialMoment(moment,radiusMinimum,radiusMaximum,isInfinite)
           if (present(isInfinite)) then
              if (isInfinite) return
           end if
@@ -308,102 +320,116 @@ contains
     return
   end function compositeDensityRadialMoment
 
-  double precision function compositeMassEnclosedBySphere(self,radius)
+  double precision function compositeMassEnclosedBySphere(self,radius,componentType,massType)
     !!{
     Computes the mass enclosed within a sphere in a composite mass distribution.
     !!}
     implicit none
-    class           (massDistributionComposite), intent(inout), target  :: self
-    double precision                           , intent(in   )          :: radius
-    type            (massDistributionList     )               , pointer :: massDistribution_
+    class           (massDistributionComposite  ), intent(inout), target   :: self
+    double precision                             , intent(in   )           :: radius
+    type           (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type           (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    type            (massDistributionList       )               , pointer  :: massDistribution_
 
     compositeMassEnclosedBySphere=0.0d0
     if (associated(self%massDistributions)) then
        massDistribution_ => self%massDistributions
        do while (associated(massDistribution_))
-          compositeMassEnclosedBySphere  =  +compositeMassEnclosedBySphere                                     &
-               &                            +massDistribution_ %massDistribution_%massEnclosedBySphere(radius)
-          massDistribution_              =>  massDistribution_ %next
+          if (massDistribution_ %massDistribution_%matches(componentType,massType))                                   &
+               & compositeMassEnclosedBySphere  =  +compositeMassEnclosedBySphere                                     &
+               &                                   +massDistribution_ %massDistribution_%massEnclosedBySphere(radius)
+          massDistribution_                     =>  massDistribution_ %next
        end do
     end if
     return
   end function compositeMassEnclosedBySphere
 
-  function compositeAcceleration(self,coordinates)
+  function compositeAcceleration(self,coordinates,componentType,massType)
     !!{
     Computes the gravitational acceleration at {\normalfont \ttfamily coordinates} for a composite mass distribution.
     !!}
     implicit none
-    double precision                           , dimension(3  ) :: compositeAcceleration
-    class           (massDistributionComposite), intent(inout)  :: self
-    class           (coordinate               ), intent(in   )  :: coordinates
-    type            (massDistributionList     ), pointer        :: massDistribution_
+    double precision                              , dimension(3  )          :: compositeAcceleration
+    class           (massDistributionComposite   ), intent(inout)           :: self
+    class           (coordinate                  ), intent(in   )           :: coordinates
+    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    type            (massDistributionList        ), pointer                 :: massDistribution_
 
     compositeAcceleration=[0.0d0,0.0d0,0.0d0]
     if (associated(self%massDistributions)) then
        massDistribution_ => self%massDistributions
        do while (associated(massDistribution_))
-          compositeAcceleration  =  +compositeAcceleration                                             &
-               &                    +massDistribution_    %massDistribution_%acceleration(coordinates)
-          massDistribution_      =>  massDistribution_    %next
+          if (massDistribution_ %massDistribution_%matches(componentType,massType))                           &
+               & compositeAcceleration  =  +compositeAcceleration                                             &
+               &                           +massDistribution_    %massDistribution_%acceleration(coordinates)
+          massDistribution_             =>  massDistribution_    %next
        end do
     end if   
     return
   end function compositeAcceleration
 
-  function compositeTidalTensor(self,coordinates)
+  function compositeTidalTensor(self,coordinates,componentType,massType)
     !!{
     Computes the gravitational tidal tensor at {\normalfont \ttfamily coordinates} for exponential disk mass distributions.
     !!}
     implicit none
-    type (tensorRank2Dimension3Symmetric)                :: compositeTidalTensor
-    class(massDistributionComposite     ), intent(inout) :: self
-    class(coordinate                    ), intent(in   ) :: coordinates
-    type (massDistributionList          ), pointer       :: massDistribution_
+    type (tensorRank2Dimension3Symmetric)                          :: compositeTidalTensor
+    class(massDistributionComposite     ), intent(inout)           :: self
+    class(coordinate                    ), intent(in   )           :: coordinates
+    type (enumerationComponentTypeType  ), intent(in   ), optional :: componentType
+    type (enumerationMassTypeType       ), intent(in   ), optional :: massType
+    type (massDistributionList          ), pointer                 :: massDistribution_
 
     compositeTidalTensor=tensorRank2Dimension3Symmetric()
     if (associated(self%massDistributions)) then
        massDistribution_ => self%massDistributions
        do while (associated(massDistribution_))
-          compositeTidalTensor  =  +compositeTidalTensor                                            &
-               &                   +massDistribution_   %massDistribution_%tidalTensor(coordinates)
-          massDistribution_     =>  massDistribution_   %next
+          if (massDistribution_ %massDistribution_%matches(componentType,massType))                        &
+               & compositeTidalTensor  =  +compositeTidalTensor                                            &
+               &                          +massDistribution_   %massDistribution_%tidalTensor(coordinates)
+          massDistribution_            =>  massDistribution_   %next
        end do
     end if
     return
   end function compositeTidalTensor
   
-  double precision function compositePotential(self,coordinates)
+  double precision function compositePotential(self,coordinates,componentType,massType)
     !!{
     Return the gravitational potential for a composite mass distribution.
     !!}
     implicit none
-    class(massDistributionComposite), intent(inout) :: self
-    class(coordinate               ), intent(in   ) :: coordinates
-    type (massDistributionList     ), pointer       :: massDistribution_
+    class(massDistributionComposite   ), intent(inout)           :: self
+    class(coordinate                  ), intent(in   )           :: coordinates
+    type (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    type (massDistributionList        ), pointer                 :: massDistribution_
 
     compositePotential=0.0d0
     if (associated(self%massDistributions)) then
        massDistribution_ => self%massDistributions
        do while (associated(massDistribution_))
-          compositePotential  =  +compositePotential                                          &
-               &                 +massDistribution_ %massDistribution_%potential(coordinates)
-          massDistribution_   =>  massDistribution_ %next
+          if (massDistribution_ %massDistribution_%matches(componentType,massType))                  &
+               & compositePotential  =  +compositePotential                                          &
+               &                        +massDistribution_ %massDistribution_%potential(coordinates)
+          massDistribution_          =>  massDistribution_ %next
        end do
     end if
     return
   end function compositePotential
   
-  function compositePositionSample(self,randomNumberGenerator_)
+  function compositePositionSample(self,randomNumberGenerator_,componentType,massType)
     !!{
     Sample a position from a composite distribution.
     !!}
     implicit none
-    double precision                            , dimension(3)  :: compositePositionSample
-    class           (massDistributionComposite ), intent(inout) :: self
-    class           (randomNumberGeneratorClass), intent(inout) :: randomNumberGenerator_
-    type            (massDistributionList      ), pointer       :: massDistribution_
-    double precision                                            :: massCumulative
+    double precision                              , dimension(3)            :: compositePositionSample
+    class           (massDistributionComposite   ), intent(inout)           :: self
+    class           (randomNumberGeneratorClass  ), intent(inout)           :: randomNumberGenerator_
+    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    type            (massDistributionList        ), pointer                 :: massDistribution_
+    double precision                                                        :: massCumulative
 
     compositePositionSample=[0.0d0,0.0d0,0.0d0]
     if (associated(self%massDistributions)) then
@@ -411,8 +437,9 @@ contains
             &               *randomNumberGenerator_%uniformSample()
        massDistribution_ =>  self%massDistributions
        do while (associated(massDistribution_))
-          massCumulative=+                                    massCumulative   &
-               &         -massDistribution_%massDistribution_%massTotal     ()
+          if (massDistribution_ %massDistribution_%matches(componentType,massType))   &
+               & massCumulative=+                                    massCumulative   &
+               &                -massDistribution_%massDistribution_%massTotal     ()
           if (massCumulative <= 0.0d0) then
              compositePositionSample=massDistribution_%massDistribution_%positionSample(randomNumberGenerator_)
              return

@@ -51,10 +51,10 @@
    contains
      !![
      <methods>
-       <method description="Compute the density on the isodensity surface defined by the parameter $m^2$2." method="densityEllipsoidal" />
-       <method description="Tabulate the gravitational acceleration due to the ellipsoid." method="accelerationTabulate" />
-       <method description="Interpolate in the tabulated gravitational acceleration due to the ellipsoid." method="accelerationInterpolate" />
-       <method description="(Re)initialize the structural properties of the Gaussian ellispoid." method="initialize" />
+       <method description="Compute the density on the isodensity surface defined by the parameter $m^2$2." method="densityEllipsoidal"     />
+       <method description="Tabulate the gravitational acceleration due to the ellipsoid."                  method="accelerationTabulate"   />
+       <method description="Interpolate in the tabulated gravitational acceleration due to the ellipsoid."  method="accelerationInterpolate"/>
+       <method description="(Re)initialize the structural properties of the Gaussian ellispoid."            method="initialize"             />
      </methods>
      !!]
      procedure :: density                 => gaussianEllipsoidDensity
@@ -80,8 +80,9 @@ contains
     Constructor for the {\normalfont \ttfamily gaussianEllipsoid} mass distribution class which builds the object from a parameter
     set.
     !!}
-    use :: Input_Parameters, only : inputParameter, inputParameters
-    use :: Linear_Algebra  , only : assignment(=) , vector
+    use :: Input_Parameters          , only : inputParameter                , inputParameters
+    use :: Linear_Algebra            , only : assignment(=)                 , vector
+    use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
     implicit none
     type            (massDistributionGaussianEllipsoid)                :: self
     type            (inputParameters                  ), intent(inout) :: parameters
@@ -90,6 +91,8 @@ contains
     double precision                                                   :: mass
     logical                                                            :: dimensionless
     type            (vector                           ), dimension(3)  :: axes
+    type            (varying_string                   )                :: componentType
+    type            (varying_string                   )                :: massType
 
     !![
     <inputParameter>
@@ -126,13 +129,25 @@ contains
       <description>If true the Gaussian ellipsoid profile is considered to be dimensionless.</description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter>
+      <name>componentType</name>
+      <defaultValue>var_str('unknown')</defaultValue>
+      <description>The component type that this mass distribution represents.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>massType</name>
+      <defaultValue>var_str('unknown')</defaultValue>
+      <description>The mass type that this mass distribution represents.</description>
+      <source>parameters</source>
+    </inputParameter>
     !!]
     axes(1)=axis1
     axes(2)=axis2
     axes(3)=axis3    
     !![
     <conditionalCall>
-     <call>self=massDistributionGaussianEllipsoid(scaleLength=scaleLength,axes=axes{conditions})</call>
+     <call>self=massDistributionGaussianEllipsoid(scaleLength=scaleLength,axes=axes,componentType=enumerationComponentTypeEncode(componentType,includesPrefix=.false.),massType=enumerationMassTypeEncode(massType,includesPrefix=.false.){conditions})</call>
      <argument name="mass"          value="mass"          parameterPresent="parameters"/>
      <argument name="dimensionless" value="dimensionless" parameterPresent="parameters"/>
     </conditionalCall>
@@ -141,7 +156,7 @@ contains
     return
   end function gaussianEllipsoidConstructorParameters
   
-  function gaussianEllipsoidConstructorInternal(scaleLength,axes,rotation,mass,dimensionless) result(self)
+  function gaussianEllipsoidConstructorInternal(scaleLength,axes,rotation,mass,dimensionless,componentType,massType) result(self)
     !!{
     Constructor for ``gaussianEllipsoid'' convergence class.
     !!}
@@ -155,8 +170,10 @@ contains
     type            (matrix                           ), intent(in   )              , optional :: rotation
     double precision                                   , intent(in   )              , optional :: mass
     logical                                            , intent(in   )              , optional :: dimensionless
+    type            (enumerationComponentTypeType     ), intent(in   )              , optional :: componentType
+    type            (enumerationMassTypeType          ), intent(in   )              , optional :: massType
     !![
-    <constructorAssign variables="mass, dimensionless"/>
+    <constructorAssign variables="mass, dimensionless, componentType, massType"/>
     !!]
 
     ! Determine if profile is dimensionless.
@@ -245,20 +262,26 @@ contains
     return
   end subroutine gaussianEllipsoidInitialize
   
-  double precision function gaussianEllipsoidDensity(self,coordinates)
+  double precision function gaussianEllipsoidDensity(self,coordinates,componentType,massType)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in a Gaussian ellipsoid mass distribution.
     !!}
     use :: Coordinates   , only : assignment(=), coordinateCartesian
     use :: Linear_Algebra, only : assignment(=), operator(*)        , vector
     implicit none
-    class           (massDistributionGaussianEllipsoid), intent(inout) :: self
-    class           (coordinate                       ), intent(in   ) :: coordinates
-    type            (coordinateCartesian              )                :: position
-    double precision                                   , dimension(3)  :: positionComponents
-    double precision                                                   :: mSquared
-    type           (vector                            )                :: positionVectorUnrotated, positionVector
+    class           (massDistributionGaussianEllipsoid), intent(inout)           :: self
+    class           (coordinate                       ), intent(in   )           :: coordinates
+    type            (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType          ), intent(in   ), optional :: massType
+    type            (coordinateCartesian              )                          :: position
+    double precision                                   , dimension(3)            :: positionComponents
+    double precision                                                             :: mSquared
+    type           (vector                            )                          :: positionVectorUnrotated, positionVector
 
+    if (.not.self%matches(componentType,massType)) then
+       gaussianEllipsoidDensity=0.0d0
+       return
+    end if
     ! Rotate the position to the frame where the ellipsoid is aligned with the principle Cartesian axes.
     position                = coordinates
     positionComponents      = position
@@ -292,7 +315,7 @@ contains
     return
   end function gaussianEllipsoidDensityEllipsoidal
 
-  function gaussianEllipsoidAcceleration(self,coordinates)
+  function gaussianEllipsoidAcceleration(self,coordinates,componentType,massType)
     !!{
     Computes the gravitational acceleration at {\normalfont \ttfamily coordinates} for Gaussian ellipsoid mass distributions.
     !!}
@@ -300,16 +323,22 @@ contains
     use :: Linear_Algebra                  , only : assignment(=)                  , operator(*)        , vector
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    double precision                                   , dimension(3  ) :: gaussianEllipsoidAcceleration
-    class           (massDistributionGaussianEllipsoid), intent(inout)  :: self
-    class           (coordinate                       ), intent(in   )  :: coordinates
-    type            (coordinateCartesian              )                 :: coordinatesCartesian
-    double precision                                   , dimension(3)   :: positionCartesian            , positionCartesianScaleFree , &
-         &                                                                 accelerationScaleFree
-    integer                                                             :: i
-    type            (vector                            )                :: positionVector               , positionVectorUnrotated    , &
-         &                                                                 accelerationVector           , accelerationVectorUnrotated
+    double precision                                   , dimension(3  )          :: gaussianEllipsoidAcceleration
+    class           (massDistributionGaussianEllipsoid), intent(inout)           :: self
+    class           (coordinate                       ), intent(in   )           :: coordinates
+    type            (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType          ), intent(in   ), optional :: massType
+    type            (coordinateCartesian              )                          :: coordinatesCartesian
+    double precision                                   , dimension(3)            :: positionCartesian            , positionCartesianScaleFree , &
+         &                                                                          accelerationScaleFree
+    integer                                                                      :: i
+    type            (vector                            )                         :: positionVector               , positionVectorUnrotated    , &
+         &                                                                          accelerationVector           , accelerationVectorUnrotated
     
+    if (.not.self%matches(componentType,massType)) then
+       gaussianEllipsoidAcceleration=0.0d0
+       return
+    end if
     ! Ensure that acceleration is tabulated.
     call self%accelerationTabulate()
     ! Construct the scale-free (and rotated) position.

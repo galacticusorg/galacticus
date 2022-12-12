@@ -42,7 +42,7 @@
      !![
      <methods>
        <method description="Initialize the surface density tabulation." method="surfaceDensityTabulate"/>
-       <method description="Initialize the enclosed mass tabulation."    method="massEnclosedTabulate" />
+       <method description="Initialize the enclosed mass tabulation."   method="massEnclosedTabulate"  />
      </methods>
      !!]
      procedure :: density                    => miyamotoNagaiDensity
@@ -73,13 +73,16 @@ contains
     Constructor for the {\normalfont \ttfamily miyamotoNagai} mass distribution class which builds the object from a parameter
     set.
     !!}
-    use :: Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters          , only : inputParameter                , inputParameters
+    use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
     implicit none
     type            (massDistributionMiyamotoNagai)                :: self
     type            (inputParameters              ), intent(inout) :: parameters
     double precision                                               :: mass         , a, &
          &                                                            b
     logical                                                        :: dimensionless
+    type            (varying_string               )                :: componentType
+    type            (varying_string               )                :: massType
 
     !![
     <inputParameter>
@@ -106,8 +109,20 @@ contains
       <description>If true the MiyamotoNagai profile is considered to be dimensionless.</description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter>
+      <name>componentType</name>
+      <defaultValue>var_str('unknown')</defaultValue>
+      <description>The component type that this mass distribution represents.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>massType</name>
+      <defaultValue>var_str('unknown')</defaultValue>
+      <description>The mass type that this mass distribution represents.</description>
+      <source>parameters</source>
+    </inputParameter>
     <conditionalCall>
-     <call>self=massDistributionMiyamotoNagai({conditions})</call>
+     <call>self=massDistributionMiyamotoNagai(componentType=enumerationComponentTypeEncode(componentType,includesPrefix=.false.),massType=enumerationMassTypeEncode(massType,includesPrefix=.false.){conditions})</call>
      <argument name="mass"          value="mass"          parameterPresent="parameters"/>
      <argument name="a"             value="a"             parameterPresent="parameters"/>
      <argument name="b"             value="b"             parameterPresent="parameters"/>
@@ -118,7 +133,7 @@ contains
     return
   end function miyamotoNagaiConstructorParameters
 
-  function miyamotoNagaiConstructorInternal(a,b,mass,dimensionless) result(self)
+  function miyamotoNagaiConstructorInternal(a,b,mass,dimensionless,componentType,massType) result(self)
     !!{
     Internal constructor for ``miyamotoNagai'' mass distribution class.
     !!}
@@ -130,6 +145,8 @@ contains
     double precision                               , intent(in   ), optional :: a            , b, &
          &                                                                      mass
     logical                                        , intent(in   ), optional :: dimensionless
+    type            (enumerationComponentTypeType ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType      ), intent(in   ), optional :: massType
 
     ! Determine if profile is dimensionless.
     if (present(dimensionless)) then
@@ -172,17 +189,23 @@ contains
     return
   end function miyamotoNagaiConstructorInternal
 
-  double precision function miyamotoNagaiDensity(self,coordinates)
+  double precision function miyamotoNagaiDensity(self,coordinates,componentType,massType)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in an \citep{miyamoto_three-dimensional_1975} disk mass distribution.
     !!}
     use :: Coordinates, only : assignment(=), coordinateCylindrical
     implicit none
-    class           (massDistributionMiyamotoNagai), intent(inout) :: self
-    class           (coordinate                   ), intent(in   ) :: coordinates
-    type            (coordinateCylindrical        )                :: position
-    double precision                                               :: r          , z
+    class           (massDistributionMiyamotoNagai), intent(inout)           :: self
+    class           (coordinate                   ), intent(in   )           :: coordinates
+    type            (enumerationComponentTypeType ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType      ), intent(in   ), optional :: massType
+    type            (coordinateCylindrical        )                          :: position
+    double precision                                                         :: r          , z
 
+    if (.not.self%matches(componentType,massType)) then
+       miyamotoNagaiDensity=0.0d0
+       return
+    end if
     ! Get position in cylindrical coordinate system.
     position=coordinates
     ! Compute density.
@@ -228,27 +251,35 @@ contains
     return
   end function miyamotoNagaiDensity
 
-  double precision function miyamotoNagaiDensitySphericalAverage(self,radius)
+  double precision function miyamotoNagaiDensitySphericalAverage(self,radius,componentType,massType)
     !!{
     Return the spherically-averaged density at the specified {\normalfont \ttfamily radius} in an \citep{miyamoto_three-dimensional_1975} disk mass distribution.
     !!}
     implicit none
-    class           (massDistributionMiyamotoNagai), intent(inout) :: self
-    double precision                               , intent(in   ) :: radius
+    class           (massDistributionMiyamotoNagai), intent(inout)           :: self
+    double precision                               , intent(in   )           :: radius
+    type            (enumerationComponentTypeType ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType      ), intent(in   ), optional :: massType
 
     miyamotoNagaiDensitySphericalAverage=0.0d0
     call Error_Report('spherically-averaged density profile is not implemented'//{introspection:location})
     return
   end function miyamotoNagaiDensitySphericalAverage
 
-  double precision function miyamotoNagaiMassEnclosedBySphere(self,radius)
+  double precision function miyamotoNagaiMassEnclosedBySphere(self,radius,componentType,massType)
     !!{
     Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for \citep{miyamoto_three-dimensional_1975} disk mass distributions.
     !!}
     implicit none
-    class           (massDistributionMiyamotoNagai), intent(inout), target :: self
-    double precision                               , intent(in   )         :: radius
+    class           (massDistributionMiyamotoNagai), intent(inout), target   :: self
+    double precision                               , intent(in   )           :: radius
+    type            (enumerationComponentTypeType ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType      ), intent(in   ), optional :: massType
 
+    if (.not.self%matches(componentType,massType)) then
+       miyamotoNagaiMassEnclosedBySphere=0.0d0
+       return
+    end if
     ! Ensure mass enclosed profile is tabulated.
     call self%massEnclosedTabulate()
     ! Evaluate the mass enclosed.
@@ -256,13 +287,19 @@ contains
     return
   end function miyamotoNagaiMassEnclosedBySphere
 
-  double precision function miyamotoNagaiRadiusHalfMass(self)
+  double precision function miyamotoNagaiRadiusHalfMass(self,componentType,massType)
     !!{
     Return the half-mass radius in a Miyamoto-Nagai mass distribution.
     !!}
     implicit none
-    class           (massDistributionMiyamotoNagai), intent(inout) :: self
+    class(massDistributionMiyamotoNagai), intent(inout)           :: self
+    type (enumerationComponentTypeType ), intent(in   ), optional :: componentType
+    type (enumerationMassTypeType      ), intent(in   ), optional :: massType
 
+    if (.not.self%matches(componentType,massType)) then
+       miyamotoNagaiRadiusHalfMass=0.0d0
+       return
+    end if
     ! Ensure mass enclosed profile is tabulated.
     call self%massEnclosedTabulate()
     ! Return the half-mass radius.
@@ -425,16 +462,22 @@ contains
 
   end subroutine miyamotoNagaiSurfaceDensityTabulate
 
-  double precision function miyamotoNagaiSurfaceDensity(self,coordinates)
+  double precision function miyamotoNagaiSurfaceDensity(self,coordinates,componentType,massType)
     !!{
     Return the surface density at the specified {\normalfont \ttfamily coordinates} in a Miyamoto-Nagai mass distribution.
     !!}
     use :: Coordinates, only : assignment(=), coordinateCylindrical
     implicit none
-    class           (massDistributionMiyamotoNagai), intent(inout) :: self
-    class           (coordinate                   ), intent(in   ) :: coordinates
-    type            (coordinateCylindrical        )                :: position
+    class(massDistributionMiyamotoNagai), intent(inout)           :: self
+    class(coordinate                   ), intent(in   )           :: coordinates
+    type (coordinateCylindrical        )                          :: position
+    type (enumerationComponentTypeType ), intent(in   ), optional :: componentType
+    type (enumerationMassTypeType      ), intent(in   ), optional :: massType
 
+    if (.not.self%matches(componentType,massType)) then
+       miyamotoNagaiSurfaceDensity=0.0d0
+       return
+    end if
     ! Ensure surface density profile is tabulated.
     call self%surfaceDensityTabulate()
     ! Evaluate the surface density.
@@ -443,20 +486,26 @@ contains
     return
   end function miyamotoNagaiSurfaceDensity
 
-  double precision function miyamotoNagaiSurfaceDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
+  double precision function miyamotoNagaiSurfaceDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite,componentType,massType)
     !!{
     Compute radial moments of the Miyamoto-Nagai mass distribution surface density profile.
     !!}
     use :: Error , only : Error_Report
     use :: Tables, only : tablesIntegrationWeightFunction
     implicit none
-    class           (massDistributionMiyamotoNagai   ), intent(inout)           :: self
+    class           (massDistributionMiyamotoNagai  ), intent(inout)           :: self
     double precision                                 , intent(in   )           :: moment
     double precision                                 , intent(in   ), optional :: radiusMinimum          , radiusMaximum
     logical                                          , intent(  out), optional :: isInfinite
+    type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType        ), intent(in   ), optional :: massType
     procedure       (tablesIntegrationWeightFunction), pointer                 :: integrandWeightFunction
     double precision                                                           :: radiusMinimumActual    , radiusMaximumActual
 
+    if (.not.self%matches(componentType,massType)) then
+       miyamotoNagaiSurfaceDensityRadialMoment=0.0d0
+       return
+    end if
     ! Set infinity status.
     if (present(isInfinite)) isInfinite=.false.
     ! Ensure surface density profile is tabulated.
@@ -521,16 +570,22 @@ contains
 
   end function miyamotoNagaiSurfaceDensityRadialMoment
 
-  double precision function miyamotoNagaiRotationCurve(self,radius)
+  double precision function miyamotoNagaiRotationCurve(self,radius,componentType,massType)
     !!{
     Return the mid-plane rotation curve for a Miyamoto-Nagai mass distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    class           (massDistributionMiyamotoNagai), intent(inout) :: self
-    double precision                               , intent(in   ) :: radius
-    double precision                                               :: r
+    class           (massDistributionMiyamotoNagai), intent(inout)           :: self
+    double precision                               , intent(in   )           :: radius
+    type            (enumerationComponentTypeType ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType      ), intent(in   ), optional :: massType
+    double precision                                                         :: r
 
+    if (.not.self%matches(componentType,massType)) then
+       miyamotoNagaiRotationCurve=0.0d0
+       return
+    end if
     ! Get dimensionless radius.
     r=radius/self%a
     ! Evaluate the rotation curve.
@@ -553,16 +608,22 @@ contains
     return
   end function miyamotoNagaiRotationCurve
 
-  double precision function miyamotoNagaiRotationCurveGradient(self,radius)
+  double precision function miyamotoNagaiRotationCurveGradient(self,radius,componentType,massType)
     !!{
     Return the mid-plane rotation curve gradient for an \citep{miyamoto_three-dimensional_1975} disk.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    class           (massDistributionMiyamotoNagai), intent(inout) :: self
-    double precision                               , intent(in   ) :: radius
-    double precision                                               :: r
+    class           (massDistributionMiyamotoNagai), intent(inout)           :: self
+    double precision                               , intent(in   )           :: radius
+    type            (enumerationComponentTypeType ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType      ), intent(in   ), optional :: massType
+    double precision                                                         :: r
 
+    if (.not.self%matches(componentType,massType)) then
+       miyamotoNagaiRotationCurveGradient=0.0d0
+       return
+    end if
     ! Get dimensionless radius.
     r=radius/self%a
     ! Evaluate the rotation curve.
@@ -595,18 +656,24 @@ contains
     return
   end function miyamotoNagaiRotationCurveGradient
 
-  double precision function miyamotoNagaiPotential(self,coordinates)
+  double precision function miyamotoNagaiPotential(self,coordinates,componentType,massType)
     !!{
     Return the gravitational potential for an \citep{miyamoto_three-dimensional_1975} disk.
     !!}
-    use :: Coordinates                 , only : assignment(=)                  , coordinateCylindrical
+    use :: Coordinates                     , only : assignment(=)                  , coordinateCylindrical
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    class           (massDistributionMiyamotoNagai), intent(inout) :: self
-    class           (coordinate                   ), intent(in   ) :: coordinates
-    type            (coordinateCylindrical        )                :: position
-    double precision                                               :: r          , z
+    class           (massDistributionMiyamotoNagai), intent(inout)           :: self
+    class           (coordinate                   ), intent(in   )           :: coordinates
+    type            (enumerationComponentTypeType ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType      ), intent(in   ), optional :: massType
+    type            (coordinateCylindrical        )                          :: position
+    double precision                                                         :: r          , z
 
+    if (.not.self%matches(componentType,massType)) then
+       miyamotoNagaiPotential=0.0d0
+       return
+    end if
     ! Get position in cylindrical coordinate system.
     position=coordinates
     ! Compute density.

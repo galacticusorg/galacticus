@@ -118,7 +118,9 @@ contains
     !![
     <constructorAssign variables="factorScalingLength, factorScalingMass, *massDistribution_"/>
     !!]
-    
+
+    self%componentType=self%massDistribution_%componentType
+    self%     massType=self%massDistribution_%     massType
     return
   end function cylindricalScalerConstructorInternal
 
@@ -146,145 +148,175 @@ contains
     return
   end function cylindricalScalerIsDimensionless
 
-  double precision function cylindricalScalerDensity(self,coordinates)
+  double precision function cylindricalScalerDensity(self,coordinates,componentType,massType)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in a scaled cylindrical distribution.
     !!}
     implicit none
-    class(massDistributionCylindricalScaler), intent(inout) :: self
-    class(coordinate                       ), intent(in   ) :: coordinates
- 
-    cylindricalScalerDensity=+self%massDistribution_%density            (                          &
-         &                                                                     coordinates         &
-         &                                                               /self%factorScalingLength &
-         &                                                              )                          &
-         &                   *self                  %factorScalingMass                             &
+    class(massDistributionCylindricalScaler), intent(inout)           :: self
+    class(coordinate                       ), intent(in   )           :: coordinates
+    type (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
+    type (enumerationMassTypeType          ), intent(in   ), optional :: massType
+
+    cylindricalScalerDensity=+self%massDistribution_%density            (                           &
+         &                                                                     coordinates          &
+         &                                                               /self%factorScalingLength, &
+         &                                                               componentType            , &
+         &                                                               massType                   &
+         &                                                              )                           &
+         &                   *self                  %factorScalingMass                              &
          &                   /self                  %factorScalingLength**3
     return
   end function cylindricalScalerDensity
 
-  double precision function cylindricalScalerDensitySphericalAverage(self,radius)
+  double precision function cylindricalScalerDensitySphericalAverage(self,radius,componentType,massType)
     !!{
     Return the spherically-averaged density at the specified {\normalfont \ttfamily coordinates} in a scaled cylindrical mass
     distribution.
     !!}
     implicit none
-    class           (massDistributionCylindricalScaler), intent(inout) :: self
-    double precision                                   , intent(in   ) :: radius
+    class           (massDistributionCylindricalScaler), intent(inout)           :: self
+    double precision                                   , intent(in   )           :: radius
+    type            (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType          ), intent(in   ), optional :: massType
 
-    cylindricalScalerDensitySphericalAverage=+self%massDistribution_%densitySphericalAverage(                          &
-         &                                                                                   +     radius              &
-         &                                                                                   /self%factorScalingLength &
-         &                                                                                  )                          &
-         &                                   *self                  %factorScalingMass                                 &
+    cylindricalScalerDensitySphericalAverage=+self%massDistribution_%densitySphericalAverage(                           &
+         &                                                                                   +     radius               &
+         &                                                                                   /self%factorScalingLength, &
+         &                                                                                   componentType            , &
+         &                                                                                   massType                   &
+         &                                                                                  )                           &
+         &                                   *self                  %factorScalingMass                                  &
          &                                   /self                  %factorScalingLength**3
     return
   end function cylindricalScalerDensitySphericalAverage
 
-  double precision function cylindricalScalerRadiusHalfMass(self)
+  double precision function cylindricalScalerRadiusHalfMass(self,componentType,massType)
     !!{
     Interface for cylindrically symmetric mass distribution half mass radii functions.
     !!}
     implicit none
-    class(massDistributionCylindricalScaler), intent(inout) :: self
-    
-    cylindricalScalerRadiusHalfMass=+self%massDistribution_%radiusHalfMass     () &
+    class(massDistributionCylindricalScaler), intent(inout)           :: self
+    type (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
+    type (enumerationMassTypeType          ), intent(in   ), optional :: massType
+
+    cylindricalScalerRadiusHalfMass=+self%massDistribution_%radiusHalfMass     (componentType,massType) &
          &                          *self                  %factorScalingLength
     return
   end function cylindricalScalerRadiusHalfMass
 
-  double precision function cylindricalScalerMassEnclosedBySphere(self,radius)
+  double precision function cylindricalScalerMassEnclosedBySphere(self,radius,componentType,massType)
     !!{
     Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for a scaled cylindrical mass
     distribution.
     !!}
     implicit none
-    class           (massDistributionCylindricalScaler), intent(inout), target :: self
-    double precision                                   , intent(in   )         :: radius
+    class           (massDistributionCylindricalScaler), intent(inout), target   :: self
+    double precision                                   , intent(in   )           :: radius
+    type            (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType          ), intent(in   ), optional :: massType
 
-    cylindricalScalerMassEnclosedBySphere=+self%massDistribution_%massEnclosedBySphere(                          &
-         &                                                                                   radius              &
-         &                                                                             /self%factorScalingLength &
-         &                                                                            )                          &
+    cylindricalScalerMassEnclosedBySphere=+self%massDistribution_%massEnclosedBySphere(                           &
+         &                                                                                   radius               &
+         &                                                                             /self%factorScalingLength, &
+         &                                                                             componentType            , &
+         &                                                                             massType                   &
+         &                                                                            )                           &
          &                                *self                  %factorScalingMass
     return
   end function cylindricalScalerMassEnclosedBySphere
 
-  double precision function cylindricalScalerSurfaceDensity(self,coordinates)
+  double precision function cylindricalScalerSurfaceDensity(self,coordinates,componentType,massType)
     !!{
     Return the surface density at the specified {\normalfont \ttfamily coordinates} in a scaled cylindrical distribution.
     !!}
     use :: Coordinates, only : coordinate
     implicit none
-    class           (massDistributionCylindricalScaler), intent(inout) :: self
-    class           (coordinate                       ), intent(in   ) :: coordinates
+    class(massDistributionCylindricalScaler), intent(inout)           :: self
+    class(coordinate                       ), intent(in   )           :: coordinates
+    type (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
+    type (enumerationMassTypeType          ), intent(in   ), optional :: massType
 
-    cylindricalScalerSurfaceDensity=+self%massDistribution_%surfaceDensity     (                          &
-         &                                                                            coordinates         &
-         &                                                                      /self%factorScalingLength &
-         &                                                                     )                          &
-         &                          *self                  %factorScalingMass                             &
+    cylindricalScalerSurfaceDensity=+self%massDistribution_%surfaceDensity     (                           &
+         &                                                                            coordinates          &
+         &                                                                      /self%factorScalingLength, &
+         &                                                                      componentType            , &
+         &                                                                      massType                   &
+         &                                                                     )                           &
+         &                          *self                  %factorScalingMass                              &
          &                          /self                  %factorScalingLength**2
     return
   end function cylindricalScalerSurfaceDensity
 
-  double precision function cylindricalScalerRotationCurve(self,radius)
+  double precision function cylindricalScalerRotationCurve(self,radius,componentType,massType)
     !!{
     Return the mid-plane rotation curve for a scaled cylindrical distribution.
     !!}
     implicit none
-    class           (massDistributionCylindricalScaler), intent(inout) :: self
-    double precision                                   , intent(in   ) :: radius
+    class           (massDistributionCylindricalScaler), intent(inout)           :: self
+    double precision                                   , intent(in   )           :: radius
+    type            (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType          ), intent(in   ), optional :: massType
 
-    cylindricalScalerRotationCurve=+      self%massDistribution_%rotationCurve      (                          &
-         &                                                                           +     radius              &
-         &                                                                           /self%factorScalingLength &
-         &                                                                          )                          &
-         &                         *sqrt(                                                                      &
-         &                               +self                  %factorScalingMass                             &
-         &                               /self                  %factorScalingLength                           &
+    cylindricalScalerRotationCurve=+      self%massDistribution_%rotationCurve      (                           &
+         &                                                                           +     radius               &
+         &                                                                           /self%factorScalingLength, &
+         &                                                                           componentType            , &
+         &                                                                           massType                   &
+         &                                                                          )                           &
+         &                         *sqrt(                                                                       &
+         &                               +self                  %factorScalingMass                              &
+         &                               /self                  %factorScalingLength                            &
          &                              )
     return
   end function cylindricalScalerRotationCurve
 
-  double precision function cylindricalScalerRotationCurveGradient(self,radius)
+  double precision function cylindricalScalerRotationCurveGradient(self,radius,componentType,massType)
     !!{
     Return the mid-plane rotation curve gradient for a scaled cylindrical distribution.
     !!}
     implicit none
-    class           (massDistributionCylindricalScaler), intent(inout) :: self
-    double precision                                   , intent(in   ) :: radius
+    class           (massDistributionCylindricalScaler), intent(inout)           :: self
+    double precision                                   , intent(in   )           :: radius
+    type            (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType          ), intent(in   ), optional :: massType
 
-    cylindricalScalerRotationCurveGradient=+      self%massDistribution_%rotationCurveGradient(                          &
-         &                                                                                     +     radius              &
-         &                                                                                     /self%factorScalingLength &
-         &                                                                                    )                          &
-         &                                 *sqrt(                                                                        &
-         &                                       +self                  %factorScalingMass                               &
-         &                                       /self                  %factorScalingLength                             &
-         &                                      )                                                                        &
+    cylindricalScalerRotationCurveGradient=+      self%massDistribution_%rotationCurveGradient(                           &
+         &                                                                                     +     radius               &
+         &                                                                                     /self%factorScalingLength, &
+         &                                                                                     componentType            , &
+         &                                                                                     massType                   &
+         &                                                                                    )                           &
+         &                                 *sqrt(                                                                         &
+         &                                       +self                  %factorScalingMass                                &
+         &                                       /self                  %factorScalingLength                              &
+         &                                      )                                                                         &
          &                                 /      self                  %factorScalingLength   
     return
   end function cylindricalScalerRotationCurveGradient
 
-  double precision function cylindricalScalerPotential(self,coordinates)
+  double precision function cylindricalScalerPotential(self,coordinates,componentType,massType)
     !!{
     Return the gravitational potential for a scaled cylindrical distribution.
     !!}
     implicit none
-    class(massDistributionCylindricalScaler), intent(inout) :: self
-    class(coordinate                       ), intent(in   ) :: coordinates
+    class(massDistributionCylindricalScaler), intent(inout)           :: self
+    class(coordinate                       ), intent(in   )           :: coordinates
+    type (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
+    type (enumerationMassTypeType          ), intent(in   ), optional :: massType
 
-    cylindricalScalerPotential=+self%massDistribution_%potential          (                          &
-         &                                                                       coordinates         &
-         &                                                                 /self%factorScalingLength &
-         &                                                                )                          &
-         &                     *self                  %factorScalingMass                             &
+    cylindricalScalerPotential=+self%massDistribution_%potential          (                           &
+         &                                                                       coordinates          &
+         &                                                                 /self%factorScalingLength, &
+         &                                                                 componentType            , &
+         &                                                                 massType                   &
+         &                                                                )                           &
+         &                     *self                  %factorScalingMass                              &
          &                     /self                  %factorScalingLength
     return
   end function cylindricalScalerPotential
 
-  double precision function cylindricalScalerSurfaceDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
+  double precision function cylindricalScalerSurfaceDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite,componentType,massType)
     !!{
     Compute radial moments of a scaled cylindrical distribution.
     !!}
@@ -293,11 +325,13 @@ contains
     double precision                                   , intent(in   )           :: moment
     double precision                                   , intent(in   ), optional :: radiusMinimum, radiusMaximum
     logical                                            , intent(  out), optional :: isInfinite
+    type            (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType          ), intent(in   ), optional :: massType
 
     cylindricalScalerSurfaceDensityRadialMoment=0.0d0
     !![
     <conditionalCall>
-      <call>cylindricalScalerSurfaceDensityRadialMoment=self%massDistribution_%surfaceDensityRadialMoment(moment=moment,isInfinite=isInfinite{conditions})</call>
+      <call>cylindricalScalerSurfaceDensityRadialMoment=self%massDistribution_%surfaceDensityRadialMoment(moment=moment,isInfinite=isInfinite,componentType=componentType,massType=massType{conditions})</call>
       <argument name="radiusMinimum" value="radiusMinimum/self%factorScalingLength" condition="present(radiusMinimum)"/>
       <argument name="radiusMaximum" value="radiusMaximum/self%factorScalingLength" condition="present(radiusMaximum)"/>
     </conditionalCall>
@@ -308,52 +342,62 @@ contains
     return
   end function cylindricalScalerSurfaceDensityRadialMoment
 
-  function cylindricalScalerAcceleration(self,coordinates)
+  function cylindricalScalerAcceleration(self,coordinates,componentType,massType)
     !!{
     Computes the gravitational acceleration at {\normalfont \ttfamily coordinates} for a scaled cylindrical distribution.
     !!}
     implicit none
-    double precision                                   , dimension(3  ) :: cylindricalScalerAcceleration
-    class           (massDistributionCylindricalScaler), intent(inout)  :: self
-    class           (coordinate                       ), intent(in   )  :: coordinates
+    double precision                                   , dimension(3  )          :: cylindricalScalerAcceleration
+    class           (massDistributionCylindricalScaler), intent(inout)           :: self
+    class           (coordinate                       ), intent(in   )           :: coordinates
+    type            (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType          ), intent(in   ), optional :: massType
 
-    cylindricalScalerAcceleration=+self%massDistribution_%acceleration       (                          &
-         &                                                                          coordinates         &
-         &                                                                    /self%factorScalingLength &
-         &                                                                   )                          &
-         &                        *self                  %factorScalingMass                             &
+    cylindricalScalerAcceleration=+self%massDistribution_%acceleration       (                           &
+         &                                                                          coordinates          &
+         &                                                                    /self%factorScalingLength, &
+         &                                                                    componentType            , &
+         &                                                                    massType                   &
+         &                                                                   )                           &
+         &                        *self                  %factorScalingMass                              &
          &                        /self                  %factorScalingLength**2
     return
   end function cylindricalScalerAcceleration
 
-  function cylindricalScalerTidalTensor(self,coordinates)
+  function cylindricalScalerTidalTensor(self,coordinates,componentType,massType)
     !!{
     Computes the gravitational tidal tensor at {\normalfont \ttfamily coordinates} for a scaled cylindrical distribution.
     !!}
     implicit none
-    type (tensorRank2Dimension3Symmetric   )                 :: cylindricalScalerTidalTensor
-    class(massDistributionCylindricalScaler), intent(inout)  :: self
-    class(coordinate                       ), intent(in   )  :: coordinates
+    type (tensorRank2Dimension3Symmetric   )                          :: cylindricalScalerTidalTensor
+    class(massDistributionCylindricalScaler), intent(inout)           :: self
+    class(coordinate                       ), intent(in   )           :: coordinates
+    type (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
+    type (enumerationMassTypeType          ), intent(in   ), optional :: massType
 
-    cylindricalScalerTidalTensor=+self%massDistribution_%tidalTensor        (                          &
-         &                                                                         coordinates         &
-         &                                                                   /self%factorScalingLength &
-         &                                                                  )                          &
-         &                       *self                  %factorScalingMass                             &
+    cylindricalScalerTidalTensor=+self%massDistribution_%tidalTensor        (                           &
+         &                                                                         coordinates          &
+         &                                                                   /self%factorScalingLength, &
+         &                                                                   componentType            , &
+         &                                                                   massType                   &
+         &                                                                  )                           &
+         &                       *self                  %factorScalingMass                              &
          &                       /self                  %factorScalingLength**3
     return
   end function cylindricalScalerTidalTensor
   
-  function cylindricalScalerPositionSample(self,randomNumberGenerator_)
+  function cylindricalScalerPositionSample(self,randomNumberGenerator_,componentType,massType)
     !!{
     Sample a position from a scaled cylindrical distribution.
     !!}
     implicit none
-    double precision                                   , dimension(3)  :: cylindricalScalerPositionSample
-    class           (massDistributionCylindricalScaler), intent(inout) :: self
-    class           (randomNumberGeneratorClass       ), intent(inout) :: randomNumberGenerator_
+    double precision                                   , dimension(3)            :: cylindricalScalerPositionSample
+    class           (massDistributionCylindricalScaler), intent(inout)           :: self
+    class           (randomNumberGeneratorClass       ), intent(inout)           :: randomNumberGenerator_
+    type            (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType          ), intent(in   ), optional :: massType
 
-    cylindricalScalerPositionSample=+self%massDistribution_%positionSample     (randomNumberGenerator_) &
+    cylindricalScalerPositionSample=+self%massDistribution_%positionSample     (randomNumberGenerator_,componentType,massType) &
          &                          *self                  %factorScalingLength
     return
   end function cylindricalScalerPositionSample

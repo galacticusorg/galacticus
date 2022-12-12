@@ -56,14 +56,17 @@ contains
     Constructor for the {\normalfont \ttfamily hernquist} mass distribution class which builds the object from a parameter
     set.
     !!}
-    use :: Input_Parameters        , only : inputParameter, inputParameters
-    use :: Numerical_Constants_Math, only : Pi
+    use :: Input_Parameters          , only : inputParameter                , inputParameters
+    use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
+    use :: Numerical_Constants_Math  , only : Pi
     implicit none
     type            (massDistributionHernquist)                :: self
     type            (inputParameters          ), intent(inout) :: parameters
     double precision                                           :: mass                , scaleLength, &
          &                                                        densityNormalization
     logical                                                    :: dimensionless
+    type            (varying_string           )                :: componentType
+    type            (varying_string           )                :: massType
 
     !![
     <inputParameter>
@@ -90,8 +93,20 @@ contains
       <description>If true the Hernquist profile is considered to be dimensionless.</description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter>
+      <name>componentType</name>
+      <defaultValue>var_str('unknown')</defaultValue>
+      <description>The component type that this mass distribution represents.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>massType</name>
+      <defaultValue>var_str('unknown')</defaultValue>
+      <description>The mass type that this mass distribution represents.</description>
+      <source>parameters</source>
+    </inputParameter>
     <conditionalCall>
-     <call>self=massDistributionHernquist({conditions})</call>
+     <call>self=massDistributionHernquist(componentType=enumerationComponentTypeEncode(componentType,includesPrefix=.false.),massType=enumerationMassTypeEncode(massType,includesPrefix=.false.){conditions})</call>
      <argument name="densityNormalization" value="densityNormalization" parameterPresent="parameters"/>
      <argument name="mass"                 value="mass"                 parameterPresent="parameters"/>
      <argument name="scaleLength"          value="scaleLength"          parameterPresent="parameters"/>
@@ -102,7 +117,7 @@ contains
     return
   end function hernquistConstructorParameters
 
-  function hernquistConstructorInternal(densityNormalization,mass,scaleLength,dimensionless) result(self)
+  function hernquistConstructorInternal(densityNormalization,mass,scaleLength,dimensionless,componentType,massType) result(self)
     !!{
     Internal constructor for ``hernquist'' mass distribution class.
     !!}
@@ -110,9 +125,15 @@ contains
     use :: Numerical_Comparison    , only : Values_Differ
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    type            (massDistributionHernquist)                          :: self
-    double precision                           , intent(in   ), optional :: densityNormalization, mass, scaleLength
-    logical                                    , intent(in   ), optional :: dimensionless
+    type            (massDistributionHernquist   )                          :: self
+    double precision                              , intent(in   ), optional :: densityNormalization, mass, &
+         &                                                                     scaleLength
+    logical                                       , intent(in   ), optional :: dimensionless
+    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    !![
+    <constructorAssign variables="componentType, massType"/>
+    !!]
 
     ! Determine if profile is dimensionless.
     self%dimensionless=.false.
@@ -150,17 +171,23 @@ contains
     return
   end function hernquistConstructorInternal
 
-  double precision function hernquistDensity(self,coordinates)
+  double precision function hernquistDensity(self,coordinates,componentType,massType)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in a Hernquist mass distribution.
     !!}
     use :: Coordinates, only : assignment(=), coordinateSpherical
     implicit none
-    class           (massDistributionHernquist), intent(inout) :: self
-    class           (coordinate               ), intent(in   ) :: coordinates
-    type            (coordinateSpherical      )                :: position
-    double precision                                           :: r
+    class           (massDistributionHernquist   ), intent(inout)           :: self
+    class           (coordinate                  ), intent(in   )           :: coordinates
+    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    type            (coordinateSpherical         )                          :: position
+    double precision                                                        :: r
 
+    if (.not.self%matches(componentType,massType)) then
+       hernquistDensity=0.0d0
+       return
+    end if
     ! Get position in spherical coordinate system.
     position        = coordinates
     ! Compute the density at this position.
@@ -172,7 +199,7 @@ contains
     return
   end function hernquistDensity
 
-  double precision function hernquistDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
+  double precision function hernquistDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite,componentType,massType)
     !!{
     Returns a radial density moment for the Hernquist mass distribution.
     !!}
@@ -180,11 +207,17 @@ contains
     use :: Numerical_Comparison    , only : Values_Agree
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    class           (massDistributionHernquist), intent(inout)           :: self
-    double precision                           , intent(in   )           :: moment
-    double precision                           , intent(in   ), optional :: radiusMinimum, radiusMaximum
-    logical                                    , intent(  out), optional :: isInfinite
+    class           (massDistributionHernquist   ), intent(inout)           :: self
+    double precision                              , intent(in   )           :: moment
+    double precision                              , intent(in   ), optional :: radiusMinimum, radiusMaximum
+    logical                                       , intent(  out), optional :: isInfinite
+    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
 
+    if (.not.self%matches(componentType,massType)) then
+       hernquistDensityRadialMoment=0.0d0
+       return
+    end if
     ! Abort on limited ranges.
     if (present(radiusMinimum).or.present(radiusMaximum)) call Error_Report('ranges are not supported'//{introspection:location})
     if (moment <= 0.0d0 .or. moment >= 3.0d0) then
@@ -215,17 +248,23 @@ contains
     return
   end function hernquistDensityRadialMoment
 
-  double precision function hernquistMassEnclosedBySphere(self,radius)
+  double precision function hernquistMassEnclosedBySphere(self,radius,componentType,massType)
     !!{
     Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for Hernquist mass distributions.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    class           (massDistributionHernquist), intent(inout), target :: self
-    double precision                           , intent(in   )         :: radius
-    double precision                           , parameter             :: fractionalRadiusLarge=1.0d6
-    double precision                                                   :: fractionalRadius
+    class           (massDistributionHernquist   ), intent(inout), target   :: self
+    double precision                              , intent(in   )           :: radius
+    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    double precision                              , parameter               :: fractionalRadiusLarge=1.0d6
+    double precision                                                        :: fractionalRadius
 
+    if (.not.self%matches(componentType,massType)) then
+       hernquistMassEnclosedBySphere=0.0d0
+       return
+    end if
     fractionalRadius=radius/self%scaleLength
     if (fractionalRadius > fractionalRadiusLarge) then
        ! For very large radius approximate the mass enclosed as the total mass.
@@ -236,17 +275,23 @@ contains
     return
   end function hernquistMassEnclosedBySphere
 
-  double precision function hernquistPotential(self,coordinates)
+  double precision function hernquistPotential(self,coordinates,componentType,massType)
     !!{
     Return the potential at the specified {\normalfont \ttfamily coordinates} in a Hernquist mass distribution.
     !!}
     use :: Coordinates                     , only : assignment(=)                  , coordinateSpherical
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    class(massDistributionHernquist), intent(inout) :: self
-    class(coordinate               ), intent(in   ) :: coordinates
-    type (coordinateSpherical      )                :: position
+    class(massDistributionHernquist   ), intent(inout)           :: self
+    class(coordinate                  ), intent(in   )           :: coordinates
+    type (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    type (coordinateSpherical         )                          :: position
 
+    if (.not.self%matches(componentType,massType)) then
+       hernquistPotential=0.0d0
+       return
+    end if
     ! Get position in spherical coordinate system.
     position=coordinates
     ! Compute the potential at this position.
@@ -256,14 +301,20 @@ contains
     return
   end function hernquistPotential
 
-  double precision function hernquistRadiusHalfMass(self)
+  double precision function hernquistRadiusHalfMass(self,componentType,massType)
     !!{
     Return the half-mass radius of a Hernquist mass distribution.
     !!}
     implicit none
-    class           (massDistributionHernquist), intent(inout) :: self
-    double precision                           , parameter     :: radiusHalfMassToScaleRadius=1.0d0/(sqrt(2.0d0)-1.0d0)
+    class           (massDistributionHernquist   ), intent(inout)           :: self
+    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    double precision                              , parameter               :: radiusHalfMassToScaleRadius=1.0d0/(sqrt(2.0d0)-1.0d0)
 
+    if (.not.self%matches(componentType,massType)) then
+       hernquistRadiusHalfMass=0.0d0
+       return
+    end if
     hernquistRadiusHalfMass=+radiusHalfMassToScaleRadius &
          &                  *self%scaleLength
     return
