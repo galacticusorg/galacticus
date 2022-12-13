@@ -159,8 +159,10 @@ contains
     type(outputAnalysisDistributionOperatorDiskSizeInclntn), intent(inout) :: self
 
     call self%inclinationTable%destroy()
-    call self%sizeTable       %destroy()
-    deallocate(self%sizeTable)
+    if (allocated(self%sizeTable)) then
+       call self%sizeTable%destroy()
+       deallocate(self%sizeTable)
+    end if
     return
   end subroutine diskSizeInclinationDestructor
 
