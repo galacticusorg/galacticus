@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1670521166807,
+  "lastUpdate": 1670903237790,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
@@ -5486,6 +5486,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 27887.2181311663,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c0ceae113abac02e4eab71eb137360c49308d11e",
+          "message": "Merge pull request #343 from galacticusorg/massDistributions\n\nAdd support for component and mass types in `massDistribution` classes",
+          "timestamp": "2022-12-12T17:02:30-08:00",
+          "tree_id": "719b329ab361427c0147b1960d842a23ff63d174",
+          "url": "https://github.com/galacticusorg/galacticus/commit/c0ceae113abac02e4eab71eb137360c49308d11e"
+        },
+        "date": 1670903236616,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 53.885,
+            "unit": "seconds",
+            "range": 0.371906574289683
           }
         ]
       }
