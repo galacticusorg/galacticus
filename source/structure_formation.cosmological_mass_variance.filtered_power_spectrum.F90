@@ -673,10 +673,12 @@ contains
     integer                                                                              :: i                         , rootVarianceTableCount , &
          &                                                                                  j                         , rootVarianceUniqueCount, &
          &                                                                                  rootVarianceTimeCount     , k                      , &
-         &                                                                                  countNewLower             , countNewUpper
+         &                                                                                  countNewLower             , countNewUpper          , &
+         &                                                                                  iMinimum
     double precision                                                                     :: sigma                     , smoothingMass          , &
          &                                                                                  massMinimum               , massMaximum            , &
-         &                                                                                  timeMinimum               , timeMaximum
+         &                                                                                  timeMinimum               , timeMaximum            , &
+         &                                                                                  sigmaMinimum
     logical                                                , allocatable  , dimension(:) :: rootVarianceIsUnique
     type            (varying_string                       ), save                        :: message
     character       (len=12                               )                              :: label                     , labelLow               , &
@@ -842,7 +844,9 @@ contains
              allocate(rootVarianceIsUnique(rootVarianceTableCount))
              rootVarianceIsUnique=.true.
              ! Compute σ(M) at each tabulated point.
-             massMinimum=-1.0d0
+             massMinimum =-1.0d0
+             sigmaMinimum=-1.0d0
+             iMinimum    =-1
              do i=1,rootVarianceTableCount
                 smoothingMass=+self        %rootVarianceTable(k)%x(                                    i)
                 sigma        =+rootVariance                       (time_=self%times(k),useTopHat=.false.) &
@@ -850,8 +854,9 @@ contains
                 ! Enforce monotonicity.
                 if (i > 1) then
                    if (sigma >= self%rootVarianceTable(k)%y(i-1)) then
+                      iMinimum              =i
                       massMinimum            =smoothingMass
-                      rootVarianceIsUnique(i)=.false.
+                      rootVarianceIsUnique(i)=.false.                      
                    end if
                    sigma=min(sigma,self%rootVarianceTable(k)%y(i-1))
                 end if
@@ -882,10 +887,31 @@ contains
                 message=         "σ(M) is non-increasing below mass M="//label//"M☉"
                 write (label,'(e12.6)') self%times(k)
                 message=message//" at time t="//label//"Gyr."//char(10)
+                message=message//"                 M  ="
+                do i=max(1,iMinimum-2),min(rootVarianceTableCount,iMinimum+2)
+                   write (label,'(e12.6)') self%rootVarianceTable(k)%x(i)
+                   message=message//" "//label
+                end do
+                message=message//char(10)
+                message=message//"   monotonized σ(M) ="
+                do i=max(1,iMinimum-2),min(rootVarianceTableCount,iMinimum+2)
+                   write (label,'(e12.6)') self%rootVarianceTable(k)%y(i)
+                   message=message//" "//label
+                end do
+                message=message//char(10)
+                message=message//"      original σ(M) ="
+                do i=max(1,iMinimum-2),min(rootVarianceTableCount,iMinimum+2)
+                   if (i == iMinimum) then
+                      write (label,'(e12.6)') sigmaMinimum
+                   else
+                      write (label,'(a    )') repeat(" ",12)
+                   end if
+                   message=message//" "//label
+                end do
                 if (self%nonMonotonicIsFatal) then
                    call Error_Report(message//{introspection:location})
                 else
-                   message=message//"         If problems occur consider not attempting to model structure below this mass scale."
+                   message=message//char(10)//"         If problems occur consider not attempting to model structure below this mass scale."
                    call Warn        (message                          )
                 end if
              end if
@@ -906,7 +932,7 @@ contains
       !!{
       Compute the root-variance of mass in spheres enclosing the given {\normalfont \ttfamily mass} from the power spectrum.
       !!}
-      use :: Interface_GSL           , only : GSL_EBadTol      , GSL_ETol
+      use :: Interface_GSL           , only : GSL_EBadTol      , GSL_ETol  , GSL_Success
       use :: Numerical_Constants_Math, only : Pi
       use :: Numerical_Integration   , only : GSL_Integ_Gauss15, integrator
       implicit none
@@ -1015,6 +1041,8 @@ contains
                integratorLogarithmic_=integrator(varianceIntegrandLogarithmic,toleranceRelative=+self%tolerance,integrationRule=GSL_Integ_Gauss15)
                integrandHigh         =integratorLogarithmic_%integrate(log(wavenumberBAO),log(wavenumberMaximum))
                if (integrandHigh <= 0.0d0) call Error_Report('no power above BAO scale - unexpected'//{introspection:location})
+            else if (status /= GSL_Success) then
+               call Error_Report('integration above the BAO scale failed'//{introspection:location})
             end if
             rootVariance =+(                                                            &
                  &          +integrandLow                                               &
