@@ -853,14 +853,20 @@ contains
     Compute the derivative of the initial radius in the dark matter halo using the adiabatic contraction algorithm of
     \cite{gnedin_response_2004}.
     !!}
+    use :: Display                 , only : displayMessage, displayIndent, displayUnindent
+    use :: Error                   , only : Error_Report
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (darkMatterProfileAdiabaticGnedin2004), intent(inout) :: self
     type            (treeNode                            ), intent(inout) :: node
     double precision                                      , intent(in   ) :: radius
+    type            (varying_string                      ), save          :: message
+    !$omp threadprivate(message)
+    character       (len=12                              )                :: label
     double precision                                                      :: radiusInitial                  , radiusInitialMean            , &
          &                                                                   massDarkMatterInitial          , densityDarkMatterInitial     , &
-         &                                                                   radiusInitialMeanSelfDerivative, radiusFinalMeanSelfDerivative
+         &                                                                   radiusInitialMeanSelfDerivative, radiusFinalMeanSelfDerivative, &
+         &                                                                   numerator                      , denominator
 
     ! Reset stored solutions if the node has changed.
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
@@ -871,6 +877,8 @@ contains
        adiabaticGnedin2004RadiusInitialDerivative=1.0d0
        return
     end if
+    ! Validate.
+    if (radius <= 0.0d0) call Error_Report('non-positive radius')
     ! Compute initial radius, and derivatives of initial and final mean radii.
     radiusInitial                  =self                      %radiusInitial              (node,radius           )
     radiusInitialMeanSelfDerivative=self                      %radiusOrbitalMeanDerivative(     radiusInitial    )
@@ -880,9 +888,9 @@ contains
     ! Get the mass of dark matter inside the initial radius.
     massDarkMatterInitial          =self%darkMatterProfileDMO_%enclosedMass               (node,radiusInitialMean)
     ! Get the mass of dark matter inside the initial radius.
-    densityDarkMatterInitial       =self%darkMatterProfileDMO_%density                    (node,radiusInitialMean)
+    densityDarkMatterInitial       =self%darkMatterProfileDMO_%density                    (node,radiusInitialMean)    
     ! Find the solution for the derivtive of the initial radius.
-    adiabaticGnedin2004RadiusInitialDerivative=+(                                                      &
+    numerator                                 =+(                                                      &
          &                                       +massDarkMatterInitial                                &
          &                                       *self%darkMatterDistributedFraction                   &
          &                                       +self%baryonicFinalTerm                               &
@@ -891,8 +899,8 @@ contains
          &                                         +radiusFinalMeanSelfDerivative/self%radiusFinalMean &
          &                                        )                                                    &
          &                                       +self%baryonicFinalTermDerivative                     &
-         &                                      )                                                      &
-         &                                     /(                                                      &
+         &                                      )
+    denominator                               =+(                                                      &
          &                                       +massDarkMatterInitial*self%initialMassFraction       &
          &                                       +(                                                    &
          &                                         +self%initialMassFraction          *radiusInitial   &
@@ -904,6 +912,40 @@ contains
          &                                       *densityDarkMatterInitial                             &
          &                                       *radiusInitialMeanSelfDerivative                      &
          &                                      )
+    if (exponent(numerator)-exponent(denominator) > maxExponent(0.0d0)) then
+       call displayIndent  ('Radius derivative calculation')
+       write (label,'(e12.6)')      radius
+       message='r_final                       = '//label//' Mpc'
+       call displayMessage (message)
+       write (label,'(e12.6)')      radiusInitial
+       message='r_initial                     = '//label//' Mpc'
+       call displayMessage (message)
+       write (label,'(e12.6)') self%radiusFinalMean
+       message='⟨r_final⟩                     = '//label//' Mpc'
+       call displayMessage (message)
+       write (label,'(e12.6)')      radiusInitialMean
+       message='⟨r_initial⟩                   = '//label//' Mpc'
+       call displayMessage (message)
+       write (label,'(e12.6)')      radiusInitialMeanSelfDerivative
+       message='d⟨r_initial⟩/dr_initial       = '//label
+       call displayMessage (message)
+       write (label,'(e12.6)')      radiusFinalMeanSelfDerivative
+       message='d⟨r_final⟩/dr_final           = '//label
+       call displayMessage (message)
+       write (label,'(e12.6)')      massDarkMatterInitial
+       message='M_dark,initial                = '//label//' M☉'
+       call displayMessage (message)
+       write (label,'(e12.6)') self%baryonicFinalTerm
+       message='M_baryonic,final              = '//label//' M☉'
+       call displayMessage (message)
+       write (label,'(e12.6)') self%baryonicFinalTermDerivative
+       message='dM_braryonic,final/dr_initial = '//label//' M☉/Mpc'
+       call displayMessage (message)
+       call displayUnindent(''     )
+       call Error_Report('Overflow in initial radius derivative calculation'//{introspection:location})
+    end if
+    adiabaticGnedin2004RadiusInitialDerivative=+numerator                                              &
+         &                                     /denominator
     return
   end function adiabaticGnedin2004RadiusInitialDerivative
 
