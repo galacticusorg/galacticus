@@ -342,12 +342,12 @@ contains
     allocate(nodePropertyExtractor_)
     if (includeNitrogenII) then
        allocate(lineNames(3))
-       lineNames(1)=var_str('balmerAlpha6563')
-       lineNames(2)=var_str('nitrogenII6548' )
-       lineNames(3)=var_str('nitrogenII6584' )
+       lineNames(1)=var_str('balmerAlpha6565')
+       lineNames(2)=var_str('nitrogenII6550' )
+       lineNames(3)=var_str('nitrogenII6585' )
     else
        allocate(lineNames(1))
-       lineNames(1)=var_str('balmerAlpha6563')
+       lineNames(1)=var_str('balmerAlpha6565')
     end if
     !![
     <referenceConstruct object="nodePropertyExtractor_"                           constructor="nodePropertyExtractorLmnstyEmssnLine           (starFormationRateDisks_,starFormationRateSpheroids_,stellarSpectraDustAttenuation_,outputTimes_           ,lineNames,depthOpticalISMCoefficient,outputMask=sum(outputWeight,dim=1) > 0.0d0)"/>
