@@ -62,7 +62,8 @@ contains
     Constructor for the {\normalfont \ttfamily cloudOverdensities} mass distribution class which builds the object from a parameter
     set.
     !!}
-    use :: Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters          , only : inputParameter                , inputParameters
+    use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
     implicit none
     type            (massDistributionCloudOverdensities)                :: self
     type            (inputParameters                   ), intent(inout) :: parameters
@@ -71,6 +72,8 @@ contains
     double precision                                                    :: radius                , densityContrast, &
           &                                                                volumeFillingFactor   , radiusBoundary
     logical                                                             :: dimensionless
+    type            (varying_string                    )                :: componentType
+    type            (varying_string                    )                :: massType
 
     !![
     <inputParameter>
@@ -100,9 +103,21 @@ contains
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="massDistribution"      name="massDistribution_"      source="parameters"/>
+    <inputParameter>
+      <name>componentType</name>
+      <defaultValue>var_str('unknown')</defaultValue>
+      <description>The component type that this mass distribution represents.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>massType</name>
+      <defaultValue>var_str('unknown')</defaultValue>
+      <description>The mass type that this mass distribution represents.</description>
+      <source>parameters</source>
+    </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     !!]
-    self=massDistributionCloudOverdensities(radius,densityContrast,volumeFillingFactor,radiusBoundary,massDistribution_,randomNumberGenerator_,dimensionless)
+    self=massDistributionCloudOverdensities(radius,densityContrast,volumeFillingFactor,radiusBoundary,massDistribution_,randomNumberGenerator_,dimensionless,enumerationComponentTypeEncode(componentType,includesPrefix=.false.),enumerationMassTypeEncode(massType,includesPrefix=.false.))
     !![
     <objectDestructor name="massDistribution_"     />
     <objectDestructor name="randomNumberGenerator_"/>
@@ -111,7 +126,7 @@ contains
     return
   end function cloudOverdensitiesConstructorParameters
   
-  function cloudOverdensitiesConstructorInternal(radius,densityContrast,volumeFillingFactor,radiusBoundary,massDistribution_,randomNumberGenerator_,dimensionless) result(self)
+  function cloudOverdensitiesConstructorInternal(radius,densityContrast,volumeFillingFactor,radiusBoundary,massDistribution_,randomNumberGenerator_,dimensionless,componentType,massType) result(self)
     !!{
     Constructor for ``cloudOverdensities'' mass distribution class.
     !!}
@@ -124,12 +139,14 @@ contains
     class           (massDistributionClass             ), intent(in   ), target       :: massDistribution_
     class           (randomNumberGeneratorClass        ), intent(in   ), target       :: randomNumberGenerator_
     logical                                             , intent(in   ), optional     :: dimensionless
+    type            (enumerationComponentTypeType      ), intent(in   ), optional     :: componentType
+    type            (enumerationMassTypeType           ), intent(in   ), optional     :: massType
     integer         (c_size_t                          ), allocatable  , dimension(:) :: order
     double precision                                                                  :: positionRadius        , positionTheta  , &
          &                                                                               positionPhi
     integer         (c_size_t                          )                              :: i
     !![
-    <constructorAssign variables="radius, densityContrast, volumeFillingFactor, radiusBoundary, *massDistribution_, *randomNumberGenerator_"/>
+    <constructorAssign variables="radius, densityContrast, volumeFillingFactor, radiusBoundary, componentType, massType, *massDistribution_, *randomNumberGenerator_"/>
     !!]
 
     ! Determine if profile is dimensionless.
@@ -193,19 +210,25 @@ contains
     return
   end subroutine cloudOverdensitiesDestructor
 
-  double precision function cloudOverdensitiesDensity(self,coordinates)
+  double precision function cloudOverdensitiesDensity(self,coordinates,componentType,massType)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in a cloud overdensities mass distribution.
     !!}
     use :: Coordinates  , only : assignment(=), coordinateCartesian
     implicit none
-    class           (massDistributionCloudOverdensities), intent(inout) :: self
-    class           (coordinate                        ), intent(in   ) :: coordinates
-    type            (coordinateCartesian               )                :: position
-    double precision                                    , dimension(3)  :: positionComponents
-    double precision                                                    :: densityContrast
-    integer                                                             :: neighborCount
-
+    class           (massDistributionCloudOverdensities), intent(inout)           :: self
+    class           (coordinate                        ), intent(in   )           :: coordinates
+    type            (enumerationComponentTypeType      ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType           ), intent(in   ), optional :: massType
+    type            (coordinateCartesian               )                          :: position
+    double precision                                    , dimension(3)            :: positionComponents
+    double precision                                                              :: densityContrast
+    integer                                                                       :: neighborCount
+    
+    if (.not.self%matches(componentType,massType)) then
+       cloudOverdensitiesDensity=0.0d0
+       return
+    end if
     ! Extract the position.
     position          =coordinates
     positionComponents=position

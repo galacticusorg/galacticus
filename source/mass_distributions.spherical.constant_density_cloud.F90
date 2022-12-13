@@ -55,11 +55,14 @@ contains
     Constructor for the {\normalfont \ttfamily constantDensityCloud} mass distribution class which builds the object from a parameter
     set.
     !!}
-    use :: Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters          , only : inputParameter                , inputParameters
+    use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
     implicit none
     type            (massDistributionConstantDensityCloud)                :: self
     type            (inputParameters                     ), intent(inout) :: parameters
-    double precision                                                      :: mass      , radius
+    double precision                                                      :: mass         , radius
+    type            (varying_string                      )                :: componentType
+    type            (varying_string                      )                :: massType
 
     !![
     <inputParameter>
@@ -72,24 +75,38 @@ contains
       <description>The radius of the cloud.</description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter>
+      <name>componentType</name>
+      <defaultValue>var_str('unknown')</defaultValue>
+      <description>The component type that this mass distribution represents.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>massType</name>
+      <defaultValue>var_str('unknown')</defaultValue>
+      <description>The mass type that this mass distribution represents.</description>
+      <source>parameters</source>
+    </inputParameter>
     !!]
-    self=massDistributionConstantDensityCloud(mass,radius)
+    self=massDistributionConstantDensityCloud(mass,radius,enumerationComponentTypeEncode(componentType,includesPrefix=.false.),enumerationMassTypeEncode(massType,includesPrefix=.false.))
     !![
     <inputParametersValidate source="parameters"/>
     !!]
     return
   end function constantDensityCloudConstructorParameters
   
-  function constantDensityCloudConstructorInternal(mass,radius) result(self)
+  function constantDensityCloudConstructorInternal(mass,radius,componentType,massType) result(self)
     !!{
     Constructor for ``constantDensityCloud'' convergence class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    type            (massDistributionConstantDensityCloud)                :: self
-    double precision                                      , intent(in   ) :: mass, radius
+    type            (massDistributionConstantDensityCloud)                          :: self
+    double precision                                      , intent(in   )           :: mass         , radius
+    type            (enumerationComponentTypeType        ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType             ), intent(in   ), optional :: massType
     !![
-    <constructorAssign variables="mass, radius"/>
+    <constructorAssign variables="mass, radius, componentType, massType"/>
     !!]
 
     self%radiusSquared=+radius**2
@@ -101,14 +118,20 @@ contains
     return
   end function constantDensityCloudConstructorInternal
 
-  double precision function constantDensityCloudDensity(self,coordinates)
+  double precision function constantDensityCloudDensity(self,coordinates,componentType,massType)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in a $\beta$-profile mass distribution.
     !!}
     implicit none
-    class(massDistributionConstantDensityCloud), intent(inout) :: self
-    class(coordinate                          ), intent(in   ) :: coordinates
-
+    class(massDistributionConstantDensityCloud), intent(inout)           :: self
+    class(coordinate                          ), intent(in   )           :: coordinates
+    type (enumerationComponentTypeType        ), intent(in   ), optional :: componentType
+    type (enumerationMassTypeType             ), intent(in   ), optional :: massType
+    
+    if (.not.self%matches(componentType,massType)) then
+       constantDensityCloudDensity=0.0d0
+       return
+    end if
     if (coordinates%rSphericalSquared() < self%radiusSquared) then
        constantDensityCloudDensity=self%density_
     else
@@ -117,7 +140,7 @@ contains
     return
   end function constantDensityCloudDensity
 
-  double precision function constantDensityCloudDensityGradientRadial(self,coordinates,logarithmic)
+  double precision function constantDensityCloudDensityGradientRadial(self,coordinates,logarithmic,componentType,massType)
     !!{
     Return the density gradient in the radial direction in a constant density cloud.
     !!}
@@ -125,20 +148,28 @@ contains
     class  (massDistributionConstantDensityCloud), intent(inout)           :: self
     class  (coordinate                          ), intent(in   )           :: coordinates
     logical                                      , intent(in   ), optional :: logarithmic
-    !$GLC attributes unused :: self, coordinates, logarithmic
+    type   (enumerationComponentTypeType        ), intent(in   ), optional :: componentType
+    type   (enumerationMassTypeType             ), intent(in   ), optional :: massType
+    !$GLC attributes unused :: self, coordinates, logarithmic, componentType, massType
     
     constantDensityCloudDensityGradientRadial=0.0d0
     return
   end function constantDensityCloudDensityGradientRadial
 
-  double precision function constantDensityCloudMassEnclosedBySphere(self,radius)
+  double precision function constantDensityCloudMassEnclosedBySphere(self,radius,componentType,massType)
     !!{
     Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for a constant density cloud.
     !!}
     implicit none
-    class           (massDistributionConstantDensityCloud), intent(inout), target :: self
-    double precision                                      , intent(in   )         :: radius
+    class           (massDistributionConstantDensityCloud), intent(inout), target   :: self
+    double precision                                      , intent(in   )           :: radius
+    type            (enumerationComponentTypeType        ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType             ), intent(in   ), optional :: massType
 
+    if (.not.self%matches(componentType,massType)) then
+       constantDensityCloudMassEnclosedBySphere=0.0d0
+       return
+    end if
     if (radius > self%radius) then
        constantDensityCloudMassEnclosedBySphere=+self%mass
     else
@@ -151,18 +182,22 @@ contains
     return
   end function constantDensityCloudMassEnclosedBySphere
 
-  double precision function constantDensityCloudPotential(self,coordinates)
+  double precision function constantDensityCloudPotential(self,coordinates,componentType,massType)
     !!{
-    Return the potential at the specified {\normalfont \ttfamily coordinates} in a $\beta$-profile mass distribution. Calculated using
-    \href{http://www.wolframalpha.com/input/?i=integrate+4\%2F3+\%CF\%80+r+\%CF\%81+2F1\%283\%2F2\%2C+\%283+\%CE\%B2\%29\%2F2\%2C+5\%2F2\%2C+-r^2\%29}{Wolfram
-    Alpha}.
+    Return the potential at the specified {\normalfont \ttfamily coordinates} in a constant density cloud.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    class           (massDistributionConstantDensityCloud), intent(inout) :: self
-    class           (coordinate                          ), intent(in   ) :: coordinates
-    double precision                                                      :: radius
+    class           (massDistributionConstantDensityCloud), intent(inout)           :: self
+    class           (coordinate                          ), intent(in   )           :: coordinates
+    type            (enumerationComponentTypeType        ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType             ), intent(in   ), optional :: massType
+    double precision                                                                :: radius
 
+    if (.not.self%matches(componentType,massType)) then
+       constantDensityCloudPotential=0.0d0
+       return
+    end if
     radius=coordinates%rSpherical()
     if (radius > self%radius) then
        constantDensityCloudPotential=-gravitationalConstantGalacticus &
@@ -184,7 +219,7 @@ contains
     return
   end function constantDensityCloudPotential
 
-  double precision function constantDensityCloudDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
+  double precision function constantDensityCloudDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite,componentType,massType)
     !!{
     Computes radial moments of the density in a constant density cloud.
     !!}
@@ -195,8 +230,14 @@ contains
     double precision                                      , intent(in   )           :: moment
     double precision                                      , intent(in   ), optional :: radiusMinimum , radiusMaximum
     logical                                               , intent(  out), optional :: isInfinite
+    type            (enumerationComponentTypeType        ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType             ), intent(in   ), optional :: massType
     double precision                                                                :: radiusMaximum_
     
+    if (.not.self%matches(componentType,massType)) then
+       constantDensityCloudDensityRadialMoment=0.0d0
+       return
+    end if
     constantDensityCloudDensityRadialMoment=+0.0d0
     if (present(isInfinite)) isInfinite=.false.
     radiusMaximum_=min(radiusMaximum,self%radius)

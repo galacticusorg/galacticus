@@ -40,6 +40,7 @@ module Galactic_Structure_Options
    <entry label="gaseous"   />
    <entry label="stellar"   />
    <entry label="blackHole" />
+   <entry label="unknown"   />
   </enumeration>
   !!]
 
@@ -58,6 +59,7 @@ module Galactic_Structure_Options
    <entry label="coldHalo"  />
    <entry label="darkHalo"  />
    <entry label="blackHole" />
+   <entry label="unknown"   />
   </enumeration>
   !!]
 
