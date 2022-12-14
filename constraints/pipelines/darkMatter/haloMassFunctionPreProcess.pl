@@ -600,6 +600,108 @@ my @simulations =
 	     ]
      },
      {
+	 label                   => "MilkyWay_fdm_25.9e-22eV",
+	 subpath                 => "ZoomIns",
+	 realizations            => [ "Halo004", "Halo113", "Halo023" ],
+	 hostHaloIDs             => [ "1830021", "3212308", "1739218" ],     
+	 description             => "Halo mass function for non-backsplash halos from Milky Way, 25.9-22eV FDM zoom-in simulations.",
+	 simulationReference     => "Nadler et al.",
+	 simulationURL           => "https://www",
+	 hubbleConstant          => 0.7,
+	 massParticle            => 2.81981e5,
+	 massHostLogMin          => 12.0, 
+	 massHostLogMax          => 12.3, 
+	 subvolumes              => 1,
+	 expansionFactors        => [ 1.0000 ],
+	 snapshots               => [ 235    ],
+	 processIdentify         => \&zoomInsProcessIdentify,
+	 preprocessExtract       => [
+	     \&zoomInsPreProcessExtractLocate,
+	     \&zoomInsPreProcessExtractUncontaminated,
+	     ],
+	 processExtract          => \&zoomInsProcessExtract,
+	 postprocessExtract      =>
+	     [
+	      \&zoomInsPostprocessSelectInSphere    ,
+	      \&zoomInsPostprocessExtractSelectedIDs,
+	      \&zoomInsPostprocessSelectInICs       ,
+	      \&zoomInsPostprocessAnalyze           ,
+	      \&zoomInsPostprocessSetVolume
+	     ],
+	 postprocessMassFunction =>
+	     [
+	      \&zoomInsPostProcessMassFunction
+	     ]
+     },
+     {
+	 label                   => "MilkyWay_fdm_185e-22eV",
+	 subpath                 => "ZoomIns",
+	 realizations            => [ "Halo004", "Halo113", "Halo023" ],
+	 hostHaloIDs             => [ "3910587", "6907393", "3862528" ],     
+	 description             => "Halo mass function for non-backsplash halos from Milky Way, 185-22eV FDM zoom-in simulations.",
+	 simulationReference     => "Nadler et al.",
+	 simulationURL           => "https://www",
+	 hubbleConstant          => 0.7,
+	 massParticle            => 2.81981e5,
+	 massHostLogMin          => 12.0, 
+	 massHostLogMax          => 12.3, 
+	 subvolumes              => 1,
+	 expansionFactors        => [ 1.0000 ],
+	 snapshots               => [ 235    ],
+	 processIdentify         => \&zoomInsProcessIdentify,
+	 preprocessExtract       => [
+	     \&zoomInsPreProcessExtractLocate,
+	     \&zoomInsPreProcessExtractUncontaminated,
+	     ],
+	 processExtract          => \&zoomInsProcessExtract,
+	 postprocessExtract      =>
+	     [
+	      \&zoomInsPostprocessSelectInSphere    ,
+	      \&zoomInsPostprocessExtractSelectedIDs,
+	      \&zoomInsPostprocessSelectInICs       ,
+	      \&zoomInsPostprocessAnalyze           ,
+	      \&zoomInsPostprocessSetVolume
+	     ],
+	 postprocessMassFunction =>
+	     [
+	      \&zoomInsPostProcessMassFunction
+	     ]
+     },
+     {
+	 label                   => "MilkyWay_fdm_490e-22eV",
+	 subpath                 => "ZoomIns",
+	 realizations            => [ "Halo004", "Halo113", "Halo023" ],
+	 hostHaloIDs             => [ "5424974", "9529989", "5314898" ],     
+	 description             => "Halo mass function for non-backsplash halos from Milky Way, 490e-22eV FDM zoom-in simulations.",
+	 simulationReference     => "Nadler et al.",
+	 simulationURL           => "https://www",
+	 hubbleConstant          => 0.7,
+	 massParticle            => 2.81981e5,
+	 massHostLogMin          => 12.0, 
+	 massHostLogMax          => 12.3, 
+	 subvolumes              => 1,
+	 expansionFactors        => [ 1.0000 ],
+	 snapshots               => [ 235    ],
+	 processIdentify         => \&zoomInsProcessIdentify,
+	 preprocessExtract       => [
+	     \&zoomInsPreProcessExtractLocate,
+	     \&zoomInsPreProcessExtractUncontaminated,
+	     ],
+	 processExtract          => \&zoomInsProcessExtract,
+	 postprocessExtract      =>
+	     [
+	      \&zoomInsPostprocessSelectInSphere    ,
+	      \&zoomInsPostprocessExtractSelectedIDs,
+	      \&zoomInsPostprocessSelectInICs       ,
+	      \&zoomInsPostprocessAnalyze           ,
+	      \&zoomInsPostprocessSetVolume
+	     ],
+	 postprocessMassFunction =>
+	     [
+	      \&zoomInsPostProcessMassFunction
+	     ]
+     },
+     {
 	 # LMC zoom-in simulations from the Symphony suite. Host halo IDs were found (by Ethan Nadler) by matching the MAH to that of
 	 # the target halo in the originasl cosmological box simulation.
 	 label                   => "LMC",
