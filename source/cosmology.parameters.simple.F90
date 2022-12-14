@@ -105,7 +105,7 @@ contains
     </inputParameter>
     !!]
     ! Validate the input.
-    if (self%HubbleConstant_ <= 0.0d0)                                                                                                       &
+    if (HubbleConstant <= 0.0d0)                                                                                                                 &
          & call Warn(displayMagenta()//"WARNING:"//displayReset()//" H₀ ≤ 0 - are you sure this is what you wanted? "//{introspection:location})
     self=cosmologyParametersSimple(OmegaMatter,OmegaBaryon,OmegaDarkEnergy,temperatureCMB,HubbleConstant)
     !![

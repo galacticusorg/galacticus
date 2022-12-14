@@ -150,7 +150,7 @@ contains
     implicit none
     type(outputAnalysisPropertyOperatorCsmlgyAnglrDstnc), intent(inout) :: self
 
-    deallocate(self%correctionFactor)
+    if (allocated(self%correctionFactor)) deallocate(self%correctionFactor)
     !![
     <objectDestructor name="self%cosmologyFunctionsModel"/>
     <objectDestructor name="self%cosmologyFunctionsData" />
