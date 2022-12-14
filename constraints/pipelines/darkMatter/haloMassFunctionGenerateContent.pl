@@ -161,6 +161,33 @@ my @types =
 	 massParticle => 4.02830e05
      },
      {
+	 label        => "MilkyWay_fdm_25.9e-22eV",
+	 simulation   => "MilkyWay",
+	 suite        => "Symphony",
+	 transfer     => "fdm_25.9e-22eV",
+	 name         => "Milky Way FDM 25.9*10^{-22} eV",
+	 redshifts    => [ 0.000  ],
+	 massParticle => 4.02830e05
+     },
+     {
+	 label        => "MilkyWay_fdm_185e-22eV",
+	 simulation   => "MilkyWay",
+	 suite        => "Symphony",
+	 transfer     => "fdm_185e-22eV",
+	 name         => "Milky Way FDM 185*10^{-22} eV",
+	 redshifts    => [ 0.000  ],
+	 massParticle => 4.02830e05
+     },
+     {
+	 label        => "MilkyWay_fdm_490e-22eV",
+	 simulation   => "MilkyWay",
+	 suite        => "Symphony",
+	 transfer     => "fdm_490e-22eV",
+	 name         => "Milky Way FDM 490*10^{-22} eV",
+	 redshifts    => [ 0.000  ],
+	 massParticle => 4.02830e05
+     },
+     {
 	 label        => "LMC",
 	 simulation   => "MilkyWay",
 	 suite        => "Symphony",
