@@ -209,7 +209,7 @@ contains
        self%mass                       =1.0d0
        self%surfaceDensityNormalization=1.0d0/2.0d0/Pi
     else
-       ! Set core radius.
+       ! Set scale radius.
        if (.not.present(scaleRadius)) call Error_Report('scale radius must be specified for dimensionful profiles'//{introspection:location})
        if (.not.present(mass       )) call Error_Report('mass must be specified for dimensionful profiles'        //{introspection:location})
        self%scaleRadius                =scaleRadius
