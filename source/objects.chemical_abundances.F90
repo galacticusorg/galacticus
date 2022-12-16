@@ -159,6 +159,10 @@ contains
     propertyCount=chemicalsCount
     ! If tracking chemicals, read names of which ones to track.
     if (chemicalsCount > 0) then
+       if (allocated(chemicalsToTrack)) deallocate(chemicalsToTrack)
+       if (allocated(chemicalsIndices)) deallocate(chemicalsIndices)
+       if (allocated(chemicalsCharges)) deallocate(chemicalsCharges)
+       if (allocated(chemicalsMasses )) deallocate(chemicalsMasses )
        allocate(chemicalsToTrack(chemicalsCount))
        allocate(chemicalsIndices(chemicalsCount))
        allocate(chemicalsCharges(chemicalsCount))
