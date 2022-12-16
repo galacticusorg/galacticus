@@ -120,7 +120,8 @@
      double precision                                                                                 :: baryonicFinalTerm                        , baryonicFinalTermDerivative, &
           &                                                                                              darkMatterDistributedFraction            , initialMassFraction        , &
           &                                                                                              radiusFinal                              , radiusFinalMean            , &
-          &                                                                                              darkMatterFraction                       , radiusVirial
+          &                                                                                              darkMatterFraction                       , radiusVirial               , &
+          &                                                                                              toleranceRelative
      logical                                                                                          :: massesComputed
    contains
      !![
@@ -175,7 +176,7 @@
   type             (enumerationMassTypeType            ), parameter :: adiabaticGnedin2004MassType     =massTypeBaryonic
   type             (enumerationWeightByType            ), parameter :: adiabaticGnedin2004WeightBy     =weightByMass
   integer                                               , parameter :: adiabaticGnedin2004WeightIndex  =weightIndexNull
-  double precision                                      , parameter :: toleranceAbsolute               =0.0d0           , toleranceRelative             =1.0d-2
+  double precision                                      , parameter :: toleranceAbsolute               =0.0d0
   type            (treeNode                            ), pointer   :: adiabaticGnedin2004Node
   class           (darkMatterProfileAdiabaticGnedin2004), pointer   :: adiabaticGnedin2004Self
   !$omp threadprivate(adiabaticGnedin2004Self,adiabaticGnedin2004Node)
@@ -198,8 +199,8 @@ contains
     class           (darkMatterProfileDMOClass           ), pointer                 :: darkMatterProfileDMO_
     class           (*                                   ), pointer                 :: galacticStructure_
     type            (varying_string                      )                          :: nonAnalyticSolver
-    double precision                                                                :: A                    , omega, &
-          &                                                                            radiusFractionalPivot
+    double precision                                                                :: A                    , omega            , &
+          &                                                                            radiusFractionalPivot, toleranceRelative
     !![
     <optionalArgument name="recursiveConstruct" defaultsTo=".false." />
     !!]
@@ -227,6 +228,12 @@ contains
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
+      <name>toleranceRelative</name>
+      <defaultValue>1.0d-2</defaultValue>
+      <source>parameters</source>
+      <description>The relative tolerance to use in solving for the initial radius in the adiabatically-contracted dark matter profile.</description>
+    </inputParameter>
+    <inputParameter>
       <name>nonAnalyticSolver</name>
       <defaultValue>var_str('fallThrough')</defaultValue>
       <source>parameters</source>
@@ -241,7 +248,7 @@ contains
     else
        call galacticStructureConstruct_(parameters,galacticStructure_)
     end if
-    self=darkMatterProfileAdiabaticGnedin2004(A,omega,radiusFractionalPivot,enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileDMO_,galacticStructure_,recursiveConstruct,recursiveSelf)
+    self=darkMatterProfileAdiabaticGnedin2004(A,omega,radiusFractionalPivot,toleranceRelative,enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileDMO_,galacticStructure_,recursiveConstruct,recursiveSelf)
     !![
     <inputParametersValidate source="parameters" extraAllowedNames="galacticStructure"/>
     <objectDestructor name="cosmologyParameters_" />
@@ -252,15 +259,15 @@ contains
     return
   end function adiabaticGnedin2004ConstructorParameters
 
-  function adiabaticGnedin2004ConstructorInternal(A,omega,radiusFractionalPivot,nonAnalyticSolver,cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileDMO_,galacticStructure_,recursiveConstruct,recursiveSelf) result(self)
+  function adiabaticGnedin2004ConstructorInternal(A,omega,radiusFractionalPivot,toleranceRelative,nonAnalyticSolver,cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileDMO_,galacticStructure_,recursiveConstruct,recursiveSelf) result(self)
     !!{
     Generic constructor for the {\normalfont \ttfamily adiabaticGnedin2004} dark matter profile class.
     !!}
     use :: Error, only : Error_Report
     implicit none
     type            (darkMatterProfileAdiabaticGnedin2004)                                  :: self
-    double precision                                      , intent(in   )                   :: A                    , omega, &
-         &                                                                                     radiusFractionalPivot
+    double precision                                      , intent(in   )                   :: A                    , omega            , &
+         &                                                                                     radiusFractionalPivot, toleranceRelative
     class           (cosmologyParametersClass            ), intent(in   ), target           :: cosmologyParameters_
     class           (darkMatterProfileDMOClass           ), intent(in   ), target           :: darkMatterProfileDMO_
     class           (darkMatterHaloScaleClass            ), intent(in   ), target           :: darkMatterHaloScale_
@@ -270,7 +277,7 @@ contains
     class           (darkMatterProfileClass              ), intent(in   ), target, optional :: recursiveSelf
     !![
     <optionalArgument name="recursiveConstruct" defaultsTo=".false." />
-    <constructorAssign variables="A, omega, radiusFractionalPivot, nonAnalyticSolver, *cosmologyParameters_, *darkMatterHaloScale_, *darkMatterProfileDMO_, *galacticStructure_"/>
+    <constructorAssign variables="A, omega, radiusFractionalPivot, toleranceRelative, nonAnalyticSolver, *cosmologyParameters_, *darkMatterHaloScale_, *darkMatterProfileDMO_, *galacticStructure_"/>
     !!]
     
     ! Validate.
@@ -788,7 +795,7 @@ contains
        ! No exact match exists, look for approximate matches.
        do i=1,self%radiusPreviousIndexMaximum
           iMod=modulo(self%radiusPreviousIndex-i,adiabaticGnedin2004StoreCount)+1
-          if (abs(radius-self%radiusPrevious(iMod))/self%radiusPrevious(iMod) < toleranceRelative) then
+          if (abs(radius-self%radiusPrevious(iMod))/self%radiusPrevious(iMod) < self%toleranceRelative) then
              j=iMod
              exit
           end if
@@ -826,18 +833,18 @@ contains
        adiabaticGnedin2004RadiusInitial=self%finder%find(rootRange=[radius,radiusUpperBound])
     else
        ! Use previous solution as an initial guess.
-       call self%finder%rangeExpand(                                                                   &
-            &                       rangeExpandDownward          =1.0d0/sqrt(1.0d0+toleranceRelative), &
-            &                       rangeExpandUpward            =1.0d0*sqrt(1.0d0+toleranceRelative), &
-            &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative      , &
-            &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive      , &
-            &                       rangeExpandType              =rangeExpandMultiplicative            &
+       call self%finder%rangeExpand(                                                                        &
+            &                       rangeExpandDownward          =1.0d0/sqrt(1.0d0+self%toleranceRelative), &
+            &                       rangeExpandUpward            =1.0d0*sqrt(1.0d0+self%toleranceRelative), &
+            &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative           , &
+            &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive           , &
+            &                       rangeExpandType              =rangeExpandMultiplicative                 &
             &                      )
-       adiabaticGnedin2004RadiusInitial=self%finder%find(                                                                        &
-            &                                            rootRange=[                                                             &
-            &                                                       self%radiusInitialPrevious(j)/sqrt(1.0d0+toleranceRelative), &
-            &                                                       self%radiusInitialPrevious(j)*sqrt(1.0d0+toleranceRelative)  &
-            &                                                      ]                                                             &
+       adiabaticGnedin2004RadiusInitial=self%finder%find(                                                                             &
+            &                                            rootRange=[                                                                  &
+            &                                                       self%radiusInitialPrevious(j)/sqrt(1.0d0+self%toleranceRelative), &
+            &                                                       self%radiusInitialPrevious(j)*sqrt(1.0d0+self%toleranceRelative)  &
+            &                                                      ]                                                                  &
             &                                           )
     end if
     ! Store this solution.
