@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1671029403458,
+  "lastUpdate": 1671294885640,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
@@ -4888,6 +4888,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 2.31616085287071,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a9f8f5b8fc960e2b52a6075fa7adfe9fbd5aa5bb",
+          "message": "Merge pull request #346 from galacticusorg/igbrHDF5\n\nSupport HDF5 format for intergalactic background radiation data files",
+          "timestamp": "2022-12-17T05:44:03-08:00",
+          "tree_id": "04872b9274be1b8317f3a4ea85c66bb50c64500b",
+          "url": "https://github.com/galacticusorg/galacticus/commit/a9f8f5b8fc960e2b52a6075fa7adfe9fbd5aa5bb"
+        },
+        "date": 1671294885168,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 217.037,
+            "unit": "seconds",
+            "range": 0.196041067129384
           }
         ]
       }
