@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1671294882164,
+  "lastUpdate": 1671294888867,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
@@ -5654,6 +5654,45 @@ window.BENCHMARK_DATA = {
             "value": 51.898,
             "unit": "seconds",
             "range": 0.0714114836699856
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a9f8f5b8fc960e2b52a6075fa7adfe9fbd5aa5bb",
+          "message": "Merge pull request #346 from galacticusorg/igbrHDF5\n\nSupport HDF5 format for intergalactic background radiation data files",
+          "timestamp": "2022-12-17T05:44:03-08:00",
+          "tree_id": "04872b9274be1b8317f3a4ea85c66bb50c64500b",
+          "url": "https://github.com/galacticusorg/galacticus/commit/a9f8f5b8fc960e2b52a6075fa7adfe9fbd5aa5bb"
+        },
+        "date": 1671294888270,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 57.3752255203618,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 26.1474686204082,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 27887.2181311663,
+            "unit": "-logℒ"
           }
         ]
       }
