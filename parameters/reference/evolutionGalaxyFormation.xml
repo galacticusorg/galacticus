@@ -40,7 +40,7 @@
   
   <!-- Intergalactic background radiation -->
   <radiationFieldIntergalacticBackground value="intergalacticBackgroundFile">
-    <fileName value="%DATASTATICPATH%/radiation/Cosmic_Background_Radiation_FG20.xml"/>
+    <fileName value="%DATASTATICPATH%/radiation/Cosmic_Background_Radiation_FG20.hdf5"/>
   </radiationFieldIntergalacticBackground>
 
   <!-- Halo accretion options -->
