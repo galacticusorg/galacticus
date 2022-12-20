@@ -201,6 +201,8 @@ contains
     propertyCount=elementsCount+1
     ! If tracking elements, read names of which ones to track.
     if (elementsCount > 0) then
+       if (allocated(elementsToTrack)) deallocate(elementsToTrack)
+       if (allocated(elementsIndices)) deallocate(elementsIndices)
        allocate(elementsToTrack(elementsCount))
        allocate(elementsIndices(elementsCount))
        !![
