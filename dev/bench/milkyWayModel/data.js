@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1671294892402,
+  "lastUpdate": 1671565952022,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
@@ -4972,6 +4972,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 11.714061735364,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "429de06c773f660e4d551bfdf44adcff5407204e",
+          "message": "fix: Deallocate `elementsToTrack` if necessary before reallocating",
+          "timestamp": "2022-12-20T17:18:46Z",
+          "tree_id": "3f54c2f22764414cab1ef835b54f1e62704cf345",
+          "url": "https://github.com/galacticusorg/galacticus/commit/429de06c773f660e4d551bfdf44adcff5407204e"
+        },
+        "date": 1671565950630,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 192.941,
+            "unit": "seconds",
+            "range": 0.234505650255011
           }
         ]
       }
