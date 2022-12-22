@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1671565957083,
+  "lastUpdate": 1671742147927,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
@@ -5762,6 +5762,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 27887.2181311663,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "41073b970bbcceef060e5d689f7fc81502c552d3",
+          "message": "fix: `mpiCounter` destructor must reset initialization state\n\nOtherwise such an object can be finalizef twice causing a segfault.",
+          "timestamp": "2022-12-22T17:54:28Z",
+          "tree_id": "dd72f9c5bdeda938043f148e7570c946bc8b6811",
+          "url": "https://github.com/galacticusorg/galacticus/commit/41073b970bbcceef060e5d689f7fc81502c552d3"
+        },
+        "date": 1671742146629,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 52.371,
+            "unit": "seconds",
+            "range": 0.0567000881838577
           }
         ]
       }
