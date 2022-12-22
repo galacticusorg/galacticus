@@ -1937,6 +1937,7 @@ call mpiBarrier()
     if (self%initialized) then
        call MPI_Win_Free(self%window ,iError)
        call MPI_Free_Mem(self%counter,iError)
+       self%initialized=.false.
     end if
 #else
     !$GLC attributes unused :: self
