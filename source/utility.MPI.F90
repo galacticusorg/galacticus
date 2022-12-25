@@ -143,12 +143,14 @@ module MPI_Utilities
        <method description="Increment the counter and return the new value." method="increment"/>
        <method description="Decrement the counter and return the new value." method="decrement"/>
        <method description="Get the current value of the counter."           method="get"      />
+       <method description="Reset the counter."                              method="reset"    />
      </methods>
      !!]
      final     ::              counterDestructor
      procedure :: increment => counterIncrement
      procedure :: decrement => counterDecrement
      procedure :: get       => counterGet
+     procedure :: reset     => counterReset
   end type mpiCounter
 
   interface mpiCounter
@@ -1876,15 +1878,13 @@ contains
 #ifdef USEMPI
     use            :: Error        , only : Error_Report
     use            :: MPI_F08      , only : MPI_Win_Create       , MPI_Address_Kind, MPI_Info_Null      , MPI_Comm_World    , &
-         &                                  MPI_TypeClass_Integer, MPI_SizeOf      , MPI_Type_Match_Size, MPI_Alloc_Mem     , &
-         &                                  MPI_Win_Lock         , MPI_Put         , MPI_Win_Unlock     , MPI_Lock_Exclusive
+         &                                  MPI_TypeClass_Integer, MPI_SizeOf      , MPI_Type_Match_Size, MPI_Alloc_Mem
 #endif
     implicit none
-    type   (mpiCounter)               :: self
+    type   (mpiCounter)          :: self
 #ifdef USEMPI
-    integer                           :: mpiSize            , iError
-    integer(c_size_t  ), dimension(1) :: countInitial
-    integer(c_size_t  ), pointer      :: countInitialPointer
+    integer                      :: mpiSize            , iError
+    integer(c_size_t  ), pointer :: countInitialPointer
 
     call MPI_SizeOf(0_c_size_t,mpiSize,iError)
     if (iError /= 0) call Error_Report('failed to get type size'//{introspection:location})
@@ -1898,8 +1898,37 @@ contains
        call MPI_Win_Create(countInitialPointer,int(mpiSize,kind=MPI_Address_Kind),mpiSize,MPI_Info_Null,MPI_Comm_World,self%window,iError)
        if (iError /= 0) call Error_Report('failed to create RMA window'//{introspection:location})
        call mpiBarrier()
+    else
+       ! Other processes create a zero-size window.
+       call MPI_Win_Create(C_Null_Ptr  ,               0_MPI_Address_Kind,mpiSize,MPI_Info_Null,MPI_Comm_World,self%window,iError)
+       if (iError /= 0) call Error_Report('failed to create RMA window'//{introspection:location})
+       call mpiBarrier()
+    end if
+#endif
+    call self%reset()
+    !$ self%ompLock_=ompLock()
+    self%initialized=.true.
+    return
+  end function counterConstructor
+
+  subroutine counterReset(self)
+    !!{
+    Reset an MPI counter.
+    !!}
+#ifdef USEMPI
+    use :: Error  , only : Error_Report
+    use :: MPI_F08, only : MPI_Put     , MPI_Win_Unlock, MPI_Lock_Exclusive, MPI_Address_Kind
+#endif
+    implicit none
+    class  (mpiCounter), intent(inout) :: self
+#ifdef USEMPI
+    integer                            :: iError
+    integer(c_size_t  ), dimension(1)  :: countInitial
+
+    if (mpiSelf%rank() == 0) then
+       ! The rank-0 process resets the counter.
        !$omp master
-       ! Initialize the counter to zero.
+       ! Reset the counter to zero.
        call MPI_Win_Lock(MPI_Lock_Exclusive,0,0,self%window,iError)
        if (iError /= 0) call Error_Report('failed to lock RMA window'  //{introspection:location})
        countInitial=0_c_size_t
@@ -1908,19 +1937,12 @@ contains
        call MPI_Win_Unlock(0,self%window,iError)
        if (iError /= 0) call Error_Report('failed to unlock RMA window'//{introspection:location})
        !$omp end master
-    else
-       ! Other processes create a zero-size window.
-       call MPI_Win_Create(C_Null_Ptr  ,               0_MPI_Address_Kind,mpiSize,MPI_Info_Null,MPI_Comm_World,self%window,iError)
-       if (iError /= 0) call Error_Report('failed to create RMA window'//{introspection:location})
-call mpiBarrier()
     end if
 #else
     self%counter=0
 #endif
-    !$ self%ompLock_=ompLock()
-    self%initialized=.true.
     return
-  end function counterConstructor
+  end subroutine counterReset
 
   subroutine counterDestructor(self)
     !!{
