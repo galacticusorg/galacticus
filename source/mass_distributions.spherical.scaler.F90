@@ -306,11 +306,13 @@ contains
        type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
        type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
 
-    sphericalScalerAcceleration=+self%massDistribution_%acceleration   (                          &
-         &                                                                    coordinates         &
-         &                                                              /self%factorScalingLength &
-         &                                                             )                          &
-         &                  *self                  %factorScalingMass                             &
+    sphericalScalerAcceleration=+self%massDistribution_%acceleration   (                           &
+         &                                                                    coordinates          &
+         &                                                              /self%factorScalingLength, &
+         &                                                                    componentType      , &
+         &                                                                    massType             &
+         &                                                             )                           &
+         &                  *self                  %factorScalingMass                              &
          &                  /self                  %factorScalingLength**2
     return
   end function sphericalScalerAcceleration
