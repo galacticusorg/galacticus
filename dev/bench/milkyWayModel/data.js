@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1672009622711,
+  "lastUpdate": 1672080014239,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
@@ -5224,6 +5224,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 11.5015497850488,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a655520045c0c9c418fbc040a4d395937907b203",
+          "message": "Merge pull request #347 from galacticusorg/mpiCounterReset\n\nAdd a reset method to MPI counters",
+          "timestamp": "2022-12-26T08:53:03-07:00",
+          "tree_id": "82465daf4378f4c8dc58ffc31cf0ec8d161b6f57",
+          "url": "https://github.com/galacticusorg/galacticus/commit/a655520045c0c9c418fbc040a4d395937907b203"
+        },
+        "date": 1672080013272,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 297.831,
+            "unit": "seconds",
+            "range": 0.514644440365331
           }
         ]
       }
