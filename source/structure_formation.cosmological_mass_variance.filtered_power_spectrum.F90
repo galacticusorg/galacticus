@@ -932,7 +932,7 @@ contains
       !!{
       Compute the root-variance of mass in spheres enclosing the given {\normalfont \ttfamily mass} from the power spectrum.
       !!}
-      use :: Interface_GSL           , only : GSL_EBadTol      , GSL_ETol  , GSL_Success
+      use :: Interface_GSL           , only : GSL_EBadTol      , GSL_ETol  , GSL_ERound, GSL_Success
       use :: Numerical_Constants_Math, only : Pi
       use :: Numerical_Integration   , only : GSL_Integ_Gauss15, integrator
       implicit none
@@ -1032,7 +1032,13 @@ contains
          else if (wavenumberMaximum > wavenumberBAO) then
             integrandLow =   integrator_%integrate(wavenumberMinimum,wavenumberBAO                  )
             integrandHigh=   integrator_%integrate(wavenumberBAO    ,wavenumberMaximum,status=status)
-            if (status == GSL_EBadTol .or. status == GSL_ETol) then
+            if     (                       &
+                 &   status == GSL_EBadTol &
+                 &  .or.                   &
+                 &   status == GSL_ETol    &
+                 &  .or.                   &
+                 &   status == GSL_ERound  &
+                 & ) then
                ! If there is no power in the high wavenumber integral this may be because the upper limit is large and the power
                ! is confined to small wavenumbers near the lower limit. This can happen, for example, if attempting to compute
                ! σ(M) for mass scales far below the cut off for power spectra with a small-scale cut off. In such cases attempt to
