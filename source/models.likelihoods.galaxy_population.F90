@@ -37,7 +37,7 @@
      type   (varying_string               )          :: failedParametersFileName
      logical                                         :: randomize
      type   (enumerationVerbosityLevelType)          :: evolveForestsVerbosity
-     class  (*                            ), pointer :: task_
+     class  (*                            ), pointer :: task_                    => null()
      class  (outputAnalysisClass          ), pointer :: outputAnalysis_          => null()
    contains
      final     ::                    galaxyPopulationDestructor

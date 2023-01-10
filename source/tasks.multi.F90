@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   type, public :: multiTaskList
-     class(taskClass    ), pointer :: task_
+     class(taskClass    ), pointer :: task_ => null()
      type (multiTaskList), pointer :: next  => null()
   end type multiTaskList
 

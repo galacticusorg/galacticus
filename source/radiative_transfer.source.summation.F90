@@ -20,7 +20,7 @@
   use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
 
   type, public :: radiativeTransferSourceList
-     class(radiativeTransferSourceClass), pointer :: radiativeTransferSource
+     class(radiativeTransferSourceClass), pointer :: radiativeTransferSource => null()
      type (radiativeTransferSourceList ), pointer :: next                    => null()
   end type radiativeTransferSourceList
 

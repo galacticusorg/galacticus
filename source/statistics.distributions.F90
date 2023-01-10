@@ -145,7 +145,7 @@ module Statistics_Distributions
   
   ! Define a list of distributions.
   type, public :: distributionFunction1DList
-     class(distributionFunction1DClass), pointer :: distributionFunction1D_
+     class(distributionFunction1DClass), pointer :: distributionFunction1D_ => null()
   end type distributionFunction1DList
 
 contains

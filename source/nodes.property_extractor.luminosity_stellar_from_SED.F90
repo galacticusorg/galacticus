@@ -29,7 +29,7 @@ Contains a module which implements a stellar mass output analysis property extra
      !!{
      Type used to hold pointers to filter response functions.
      !!}
-     type(interpolator), pointer :: interpolator_
+     type(interpolator), pointer :: interpolator_ => null()
   end type filterResponse
   
   !![

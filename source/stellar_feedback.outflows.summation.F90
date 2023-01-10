@@ -18,8 +18,8 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   type, public :: stellarFeedbackOutflowsList
-     class(stellarFeedbackOutflowsClass), pointer :: stellarFeedbackOutflows
-     type (stellarFeedbackOutflowsList ), pointer :: next            => null()
+     class(stellarFeedbackOutflowsClass), pointer :: stellarFeedbackOutflows => null()
+     type (stellarFeedbackOutflowsList ), pointer :: next                    => null()
   end type stellarFeedbackOutflowsList
 
   !![

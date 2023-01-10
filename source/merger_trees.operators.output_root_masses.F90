@@ -41,10 +41,10 @@
      A merger tree operator class which outputs a file of tree root masses (and weights).
      !!}
      private
-     class           (cosmologyFunctionsClass), pointer                               :: cosmologyFunctions_
-     integer                                                                          :: nodeHierarchyLevelMaximumID, treeCount
-     double precision                                                                 :: time                       , redshift
-     double precision                         , dimension(outputRootMassesBufferSize) :: mass                       , weight
+     class           (cosmologyFunctionsClass), pointer                               :: cosmologyFunctions_         => null()
+     integer                                                                          :: nodeHierarchyLevelMaximumID          , treeCount
+     double precision                                                                 :: time                                 , redshift
+     double precision                         , dimension(outputRootMassesBufferSize) :: mass                                 , weight
      type            (varying_string         )                                        :: fileName
      logical                                                                          :: alwaysIsolatedHalosOnly
    contains

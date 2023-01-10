@@ -32,9 +32,9 @@
      A merger tree walker which iterates depth-first over all all nodes.
      !!}
      private
-     type   (mergerTree), pointer :: tree      , treePrevious
-     type   (treeNode  ), pointer :: node      , nodePrevious
-     logical                      :: spanForest, nodesRemain_
+     type   (mergerTree), pointer :: tree       => null(), treePrevious => null()
+     type   (treeNode  ), pointer :: node       => null(), nodePrevious => null()
+     logical                      :: spanForest          , nodesRemain_
    contains
      !![
      <methods>

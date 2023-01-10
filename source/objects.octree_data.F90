@@ -68,7 +68,7 @@ module Octree_Data_Structure
      Pointer to an octreeNode object.
      !!}
      private
-     type(octreeNode), pointer :: p
+     type(octreeNode), pointer :: p => null()
   end type octreeNodePointer
 
   type :: octreeNode

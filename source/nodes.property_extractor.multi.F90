@@ -24,7 +24,7 @@
   use :: Hashes, only : doubleHash
 
   type, public :: multiExtractorList
-     class(nodePropertyExtractorClass), pointer :: extractor_
+     class(nodePropertyExtractorClass), pointer :: extractor_ => null()
      type (multiExtractorList        ), pointer :: next       => null()
   end type multiExtractorList
 

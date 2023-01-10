@@ -169,10 +169,10 @@ module Root_Finder
      !!{
      Type used to maintain a list of root finder objects when root finding is performed recursively.
      !!}
-     class           (rootFinder), pointer :: finder
-     logical                               :: lowInitialUsed, highInitialUsed
-     double precision                      :: xLowInitial   , xHighInitial   , &
-          &                                   fLowInitial   , fHighInitial
+     class           (rootFinder), pointer :: finder         => null()
+     logical                               :: lowInitialUsed          , highInitialUsed
+     double precision                      :: xLowInitial             , xHighInitial   , &
+          &                                   fLowInitial             , fHighInitial
   end type rootFinderList
 
   ! List of currently active root finders.

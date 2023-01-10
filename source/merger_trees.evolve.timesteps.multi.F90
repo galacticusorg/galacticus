@@ -22,7 +22,7 @@
   !!}
 
   type, public :: multiMergerTreeEvolveTimestepList
-     class(mergerTreeEvolveTimestepClass    ), pointer :: mergerTreeEvolveTimestep_
+     class(mergerTreeEvolveTimestepClass    ), pointer :: mergerTreeEvolveTimestep_ => null()
      type (multiMergerTreeEvolveTimestepList), pointer :: next                      => null()
   end type multiMergerTreeEvolveTimestepList
 

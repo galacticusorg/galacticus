@@ -29,7 +29,7 @@
   !!]
 
   type, public :: coolantList
-     class(coolingFunctionClass), pointer :: coolingFunction
+     class(coolingFunctionClass), pointer :: coolingFunction => null()
      type (coolantList         ), pointer :: next            => null()
   end type coolantList
 

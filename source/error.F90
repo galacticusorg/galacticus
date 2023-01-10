@@ -74,7 +74,7 @@ module Error
   ! Type used to accumulate warning messages.
   type :: warning
      type(varying_string)          :: message
-     type(warning       ), pointer :: next
+     type(warning       ), pointer :: next    => null()
   end type warning
 
   ! Record of warnings.

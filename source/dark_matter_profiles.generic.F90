@@ -130,8 +130,8 @@ module Dark_Matter_Profiles_Generic
 
   ! Module-scope pointers used in integrand functions and root finding.
   type :: genericSolver
-     class(darkMatterProfileGeneric), pointer :: self
-     type (treeNode                ), pointer :: node
+     class(darkMatterProfileGeneric), pointer :: self => null()
+     type (treeNode                ), pointer :: node => null()
   end type genericSolver
   type            (genericSolver                 ), allocatable, dimension(:) :: solvers
   integer                                         , parameter                 :: solversIncrement              =10
