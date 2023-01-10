@@ -46,6 +46,9 @@ contains
     type     (enumerationDeadlockStatusType), intent(inout)          :: deadlockStatus
     type     (treeNode                     )               , pointer :: nodePromotion
     class    (nodeComponentSatellite       )               , pointer :: satellite
+    logical                                                , save    :: timeOfMergingIsSettable        , destructionTimeIsSettable, &
+         &                                                              attributesInitialized  =.false.
+    !$omp threadprivate(timeOfMergingIsSettable,destructionTimeIsSettable,attributesInitialized)
     type     (varying_string               )                         :: message
     character(len=12                       )                         :: label
 
@@ -70,8 +73,13 @@ contains
     ! Reset the merging and destruction times of the satellite component to ensure no merging or destruction can occur (now that
     ! this node is no longer a satellite).
     satellite => node%satellite()
-    call satellite%timeOfMergingSet  (huge( 0.0d0))
-    call satellite%destructionTimeSet(     -1.0d0 )
+    if (.not.attributesInitialized) then
+       timeOfMergingIsSettable  =satellite%  timeOfMergingIsSettable()
+       destructionTimeIsSettable=satellite%destructionTimeIsSettable()
+       attributesInitialized    =.true.
+    end if
+    if (  timeOfMergingIsSettable) call satellite%timeOfMergingSet  (huge( 0.0d0))
+    if (destructionTimeIsSettable) call satellite%destructionTimeSet(     -1.0d0 )
     ! Make node the primary progenitor of the target node.
     node         %parent     => nodePromotion
     node         %sibling    => null()
