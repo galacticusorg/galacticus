@@ -344,9 +344,9 @@
   ! Iterator object for iterating over progenitor nodes.
   type :: progenitorIterator
      integer(c_size_t                 )          :: progenitorLocation
-     integer(kind_int8                )          :: progenitorIndex   , targetIndex
+     integer(kind_int8                )          :: progenitorIndex             , targetIndex
      logical                                     :: progenitorsFound
-     type   (mergerTreeConstructorRead), pointer :: constructor
+     type   (mergerTreeConstructorRead), pointer :: constructor        => null()
    contains
      !![
      <methods>

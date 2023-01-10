@@ -31,8 +31,8 @@ Contains a module which implements a depth-first merger tree walker over all iso
      A merger tree walker which iterates depth-first over all isolated nodes in a given branch.
      !!}
      private
-     type            (treeNode), pointer :: branchHead  , node
-     logical                             :: nodesRemain_, timeLimited
+     type            (treeNode), pointer :: branchHead   => null(), node        => null()
+     logical                             :: nodesRemain_          , timeLimited
      double precision                    :: timeEarliest
    contains
      procedure :: next        => isolatedNodesBranchNext

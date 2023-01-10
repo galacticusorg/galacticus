@@ -29,7 +29,7 @@
   !!]
 
   type, public :: heatSourceList
-     class(darkMatterProfileHeatingClass), pointer :: heatSource
+     class(darkMatterProfileHeatingClass), pointer :: heatSource => null()
      type (heatSourceList               ), pointer :: next       => null()
   end type heatSourceList
 

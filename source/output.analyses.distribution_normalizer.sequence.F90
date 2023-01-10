@@ -29,7 +29,7 @@
   !!]
 
   type, public :: normalizerList
-     class(outputAnalysisDistributionNormalizerClass), pointer :: normalizer_
+     class(outputAnalysisDistributionNormalizerClass), pointer :: normalizer_ => null()
      type (normalizerList                           ), pointer :: next        => null()
   end type normalizerList
 

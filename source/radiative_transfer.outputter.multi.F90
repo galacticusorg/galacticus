@@ -22,7 +22,7 @@
   !!}
 
   type, public :: multiOutputterList
-     class(radiativeTransferOutputterClass), pointer :: outputter_
+     class(radiativeTransferOutputterClass), pointer :: outputter_ => null()
      type (multiOutputterList             ), pointer :: next       => null()
   end type multiOutputterList
 

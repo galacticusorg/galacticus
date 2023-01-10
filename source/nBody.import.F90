@@ -52,7 +52,7 @@ module NBody_Importers
      !!{
      Class used to build linked list of N-body data importers.
      !!}
-     class(nbodyImporterClass), pointer                   :: importer_
+     class(nbodyImporterClass), pointer                   :: importer_   => null()
      type (nbodyImporterList ), pointer                   :: next        => null()
      type (nBodyData         ), allocatable, dimension(:) :: simulations
   end type nbodyImporterList

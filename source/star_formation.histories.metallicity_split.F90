@@ -100,13 +100,13 @@ Contains a module which implements a star formation histories class which record
      A star formation histories class which records star formation split by metallicity.
      !!}
      private
-     class           (outputTimesClass), pointer :: outputTimes_            => null()
-     integer                                     :: countMetallicities
-     double precision                            :: timeStep                         , timeStepFine          , &
-          &                                         timeFine                         , metallicityMaximum    , &
-          &                                         metallicityMinimum
-     double precision, allocatable, dimension(:) :: metallicityTable                 , metallicityBoundaries_
-     logical                                     :: metallicityTableWritten
+     class           (outputTimesClass), pointer                   :: outputTimes_            => null()
+     integer                                                       :: countMetallicities
+     double precision                                              :: timeStep                         , timeStepFine          , &
+          &                                                           timeFine                         , metallicityMaximum    , &
+          &                                                           metallicityMinimum
+     double precision                  , allocatable, dimension(:) :: metallicityTable                 , metallicityBoundaries_
+     logical                                                       :: metallicityTableWritten
    contains
      !![
      <methods>
@@ -134,8 +134,8 @@ Contains a module which implements a star formation histories class which record
   type metallicitySplitTimeStepRange
      private
      integer                                                  :: count
-     double precision                                         :: timeBegin, timeEnd
-     type            (metallicitySplitTimeStepRange), pointer :: next
+     double precision                                         :: timeBegin          , timeEnd
+     type            (metallicitySplitTimeStepRange), pointer :: next      => null()
   end type metallicitySplitTimeStepRange
 
   ! Effective infinite metallicity.

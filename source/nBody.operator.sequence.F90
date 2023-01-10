@@ -22,7 +22,7 @@ Contains a module which implements an N-body data operator which applies a seque
 !!}
 
   type, public :: nbodyOperatorList
-     class(nbodyOperatorClass), pointer :: operator_
+     class(nbodyOperatorClass), pointer :: operator_ => null()
      type (nbodyOperatorList ), pointer :: next      => null()
   end type nbodyOperatorList
 

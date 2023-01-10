@@ -40,9 +40,9 @@
      A node operator class that sets the positions of subhalos to trace the dark matter component of their host halo.
      !!}
      private
-     class(darkMatterHaloScaleClass                  ), pointer :: darkMatterHaloScale_
-     class(galacticStructureClass                    ), pointer :: galacticStructure_
-     type (satelliteOrphanDistributionTraceDarkMatter), pointer :: satelliteOrphanDistribution_
+     class(darkMatterHaloScaleClass                  ), pointer :: darkMatterHaloScale_         => null()
+     class(galacticStructureClass                    ), pointer :: galacticStructure_           => null()
+     type (satelliteOrphanDistributionTraceDarkMatter), pointer :: satelliteOrphanDistribution_ => null()
    contains
      !![
      <methods>

@@ -70,8 +70,8 @@ Contains a module which implements a star formation histories class which record
   type inSituTimeStepRange
      private
      integer                                        :: count
-     double precision                               :: timeBegin, timeEnd
-     type            (inSituTimeStepRange), pointer :: next
+     double precision                               :: timeBegin          , timeEnd
+     type            (inSituTimeStepRange), pointer :: next      => null()
   end type inSituTimeStepRange
 
 contains

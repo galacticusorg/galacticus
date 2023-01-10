@@ -22,7 +22,7 @@
   !!}
 
   type, public :: multiAnalysisList
-     class(outputAnalysisClass), pointer :: analysis_
+     class(outputAnalysisClass), pointer :: analysis_ => null()
      type (multiAnalysisList  ), pointer :: next      => null()
   end type multiAnalysisList
 

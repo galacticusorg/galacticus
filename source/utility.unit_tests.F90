@@ -78,9 +78,9 @@ module Unit_Tests
      A derived type for storing results of asserts.
      !!}
      type    (enumerationTestType)          :: result
-     logical                                :: beginGroup, endGroup
-     type   (varying_string      )          :: label     , note
-     type   (assertResult        ), pointer :: nextResult
+     logical                                :: beginGroup          , endGroup
+     type   (varying_string      )          :: label               , note
+     type   (assertResult        ), pointer :: nextResult => null()
   end type assertResult
 
   ! Results list.

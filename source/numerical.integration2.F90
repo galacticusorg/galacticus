@@ -39,23 +39,23 @@ module Numerical_Integration2
   type :: interval
      private
      integer                             :: depth
-     double precision                    :: a    , b       , &
-          &                                 fa   , fb      , &
-          &                                 error, integral
-     type            (interval), pointer :: next
+     double precision                    :: a              , b       , &
+          &                                 fa             , fb      , &
+          &                                 error          , integral
+     type            (interval), pointer :: next  => null()
   end type interval
 
   type :: intervalMulti
      private
      integer                                                    :: depth
-     double precision                                           ::  a   ,  b
-     double precision               , dimension(:), allocatable :: fa   , fb       , &
-          &                                                        error, integral
-     type            (intervalMulti), pointer                   :: next
+     double precision                                           ::  a             ,  b
+     double precision               , dimension(:), allocatable :: fa             , fb       , &
+          &                                                        error          , integral
+     type            (intervalMulti), pointer                   :: next  => null()
   end type intervalMulti
 
   type :: intervalMultiList
-     type(intervalMulti), pointer :: interval_
+     type(intervalMulti), pointer :: interval_ => null()
   end type intervalMultiList
 
   ! Generic integrator.

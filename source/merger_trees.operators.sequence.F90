@@ -29,7 +29,7 @@ Contains a module which implements a sequence of operators on merger trees.
   !!]
 
   type, public :: operatorList
-     class(mergerTreeOperatorClass), pointer :: operator_
+     class(mergerTreeOperatorClass), pointer :: operator_ => null()
      type (operatorList           ), pointer :: next      => null()
   end type operatorList
 

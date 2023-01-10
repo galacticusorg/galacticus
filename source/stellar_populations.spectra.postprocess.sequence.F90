@@ -22,7 +22,7 @@ Implements a stellar population spectra postprocessor class which applies a sequ
 !!}
 
   type, public :: postprocessorList
-     class(stellarPopulationSpectraPostprocessorClass), pointer :: postprocessor_
+     class(stellarPopulationSpectraPostprocessorClass), pointer :: postprocessor_ => null()
      type (postprocessorList                         ), pointer :: next           => null()
   end type postprocessorList
 

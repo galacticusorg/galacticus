@@ -39,14 +39,14 @@ module Virial_Density_Contrast_Percolation_Utilities
 
   ! Container type used to store state.
   type :: solverState
-     type            (treeNode                                 ), pointer :: workNode
-     class           (nodeComponentDarkMatterProfile           ), pointer :: workDarkMatterProfile
-     class           (darkMatterProfileDMOClass                ), pointer :: darkMatterProfileDMO_
-     class           (darkMatterProfileShapeClass              ), pointer :: darkMatterProfileShape_
-     type            (darkMatterProfileScaleRadiusConcentration), pointer :: darkMatterProfileScaleRadius_
-     double precision                                                     :: boundingDensity              , densityMatterMean, &
+     type            (treeNode                                 ), pointer :: workNode                      => null()
+     class           (nodeComponentDarkMatterProfile           ), pointer :: workDarkMatterProfile         => null()
+     class           (darkMatterProfileDMOClass                ), pointer :: darkMatterProfileDMO_         => null()
+     class           (darkMatterProfileShapeClass              ), pointer :: darkMatterProfileShape_       => null()
+     type            (darkMatterProfileScaleRadiusConcentration), pointer :: darkMatterProfileScaleRadius_ => null()
+     double precision                                                     :: boundingDensity                        , densityMatterMean, &
           &                                                                  massHalo
-     double precision                                           , pointer :: densityContrast
+     double precision                                           , pointer :: densityContrast               => null()
   end type solverState
 
   ! State stack.
@@ -58,12 +58,12 @@ module Virial_Density_Contrast_Percolation_Utilities
      !!{
      Type used to store pointers to objects
      !!}
-     class(darkMatterProfileDMOClass          ), pointer :: darkMatterProfileDMO_
-     class(cosmologyParametersClass           ), pointer :: cosmologyParameters_
-     class(cosmologyFunctionsClass            ), pointer :: cosmologyFunctions_
-     class(darkMatterHaloScaleClass           ), pointer :: darkMatterHaloScale_
-     class(darkMatterProfileConcentrationClass), pointer :: darkMatterProfileConcentration_
-     class(darkMatterProfileShapeClass        ), pointer :: darkMatterProfileShape_
+     class(darkMatterProfileDMOClass          ), pointer :: darkMatterProfileDMO_           => null()
+     class(cosmologyParametersClass           ), pointer :: cosmologyParameters_            => null()
+     class(cosmologyFunctionsClass            ), pointer :: cosmologyFunctions_             => null()
+     class(darkMatterHaloScaleClass           ), pointer :: darkMatterHaloScale_            => null()
+     class(darkMatterProfileConcentrationClass), pointer :: darkMatterProfileConcentration_ => null()
+     class(darkMatterProfileShapeClass        ), pointer :: darkMatterProfileShape_         => null()
    contains
      final :: percolationObjectsDestructor
   end type percolationObjects

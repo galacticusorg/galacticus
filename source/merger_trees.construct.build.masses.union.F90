@@ -22,7 +22,7 @@
   !!}
 
   type, public :: mergerTreeBuildMassesList
-     class(mergerTreeBuildMassesClass), pointer :: mergerTreeBuildMasses_
+     class(mergerTreeBuildMassesClass), pointer :: mergerTreeBuildMasses_ => null()
      type (mergerTreeBuildMassesList ), pointer :: next                   => null()
   end type mergerTreeBuildMassesList
 

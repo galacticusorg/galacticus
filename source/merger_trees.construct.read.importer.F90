@@ -80,19 +80,19 @@ module Merger_Tree_Read_Importers
      !!{
      Structure used to store default raw data read from merger tree files.
      !!}
-     integer         (kind_int8)                            :: isolatedNodeIndex , mergesWithIndex         , &
-          &                                                    particleCount     , primaryIsolatedNodeIndex
-     double precision                                       :: angularMomentum   , halfMassRadius          , &
-          &                                                    velocityDispersion, spin                    , &
-          &                                                    scaleRadius       , velocityMaximum
-     double precision           , dimension(3)              :: position          , velocity                , &
-          &                                                    angularMomentum3D , spin3D
+     integer         (kind_int8)                            :: isolatedNodeIndex            , mergesWithIndex                    , &
+          &                                                    particleCount                , primaryIsolatedNodeIndex
+     double precision                                       :: angularMomentum              , halfMassRadius                     , &
+          &                                                    velocityDispersion           , spin                               , &
+          &                                                    scaleRadius                  , velocityMaximum
+     double precision           , dimension(3)              :: position                     , velocity                           , &
+          &                                                    angularMomentum3D            , spin3D
      double precision           , dimension(:), allocatable :: reals
      integer         (kind_int8), dimension(:), allocatable :: integers
-     logical                                                :: childIsSubhalo    , isSubhalo
-     class           (nodeData ), pointer                   :: descendent        , host                    , &
-          &                                                    parent
-     type            (treeNode ), pointer                   :: node => null()
+     logical                                                :: childIsSubhalo               , isSubhalo
+     class           (nodeData ), pointer                   :: descendent         => null() , host                      => null(), &
+          &                                                    parent             => null()
+     type            (treeNode ), pointer                   :: node               => null()
   end type nodeData
 
   interface importerUnitConvert

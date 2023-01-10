@@ -22,8 +22,8 @@ Contains a module which implements a sequence output analysis distribution opera
 !!}
 
   type, public :: distributionOperatorList
-     class(outputAnalysisDistributionOperatorClass), pointer :: operator_
-     type (distributionOperatorList               ), pointer :: next     => null()
+     class(outputAnalysisDistributionOperatorClass), pointer :: operator_ => null()
+     type (distributionOperatorList               ), pointer :: next      => null()
   end type distributionOperatorList
 
   !![

@@ -31,7 +31,7 @@ Contains a module which implements a depth-first merger tree walker over all all
      A merger tree walker which iterates depth-first over all all nodes in a given branch.
      !!}
      private
-     type   (treeNode), pointer :: branchHead  , node
+     type   (treeNode), pointer :: branchHead   => null(), node => null()
      logical                    :: nodesRemain_
    contains
      !![

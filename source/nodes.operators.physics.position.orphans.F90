@@ -31,7 +31,7 @@
      A node operator class that sets the positions of orphaned subhalos.
      !!}
      private
-     class(satelliteOrphanDistributionClass), pointer :: satelliteOrphanDistribution_
+     class(satelliteOrphanDistributionClass), pointer :: satelliteOrphanDistribution_ => null()
    contains
      procedure :: differentialEvolutionStepFinalState => positionOrphansDifferentialEvolutionStepFinalState
   end type nodeOperatorPositionOrphans

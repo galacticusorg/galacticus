@@ -34,7 +34,7 @@
   ! Structure used to store list of nodes for deadlock reporting.
   type :: deadlockList
      type   (deadlockList  ), pointer :: next      => null()
-     type   (treeNode      ), pointer :: nodeLock           , node
+     type   (treeNode      ), pointer :: nodeLock  => null(), node => null()
      integer(kind=kind_int8)          :: treeIndex
      type   (varying_string)          :: lockType
   end type deadlockList
