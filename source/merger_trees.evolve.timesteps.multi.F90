@@ -151,7 +151,8 @@ contains
     procedure       (timestepTask                     )               , pointer           :: task_
     class           (*                                )               , pointer           :: taskSelf_
     type            (treeNode                         )               , pointer           :: lockNode_
-    type            (varying_string                   )                                   :: lockType_
+    type            (varying_string                   ), save                             :: lockType_
+    !$omp threadprivate(lockType_)
     double precision                                                                      :: timeEvolveTo
 
     multiTimeEvolveTo               =  huge(0.0d0)
