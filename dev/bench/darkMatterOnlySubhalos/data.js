@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1673461425251,
+  "lastUpdate": 1673461433841,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
@@ -6137,6 +6137,45 @@ window.BENCHMARK_DATA = {
             "value": 60.165,
             "unit": "seconds",
             "range": 0.171185571821762
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1fd62974f45f3a114efd9dba474113e7e151c5a0",
+          "message": "Merge pull request #349 from galacticusorg/orbitingNBodyTrees\n\nReset satellite timescales when a subhalo is promoted to an isolated halo",
+          "timestamp": "2023-01-11T06:10:38-08:00",
+          "tree_id": "db4a3c4fc16467627d563c488dd475656a3cc7ab",
+          "url": "https://github.com/galacticusorg/galacticus/commit/1fd62974f45f3a114efd9dba474113e7e151c5a0"
+        },
+        "date": 1673461432514,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 57.3752255203618,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 26.1474686204082,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 27887.2181311663,
+            "unit": "-logℒ"
           }
         ]
       }
