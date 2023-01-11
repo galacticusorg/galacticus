@@ -6,5 +6,5 @@
 	"GALACTICUS_DATA_PATH": "/workspaces/datasets",
     },
     "onCreateCommand": "apt-get update && apt-get install -y emacs && mkdir -p ~/.ssh && ssh-keyscan github.com >> ~/.ssh/known_hosts && gh repo clone galacticusorg/datasets /workspaces/datasets",
-    "updateContentCommand": "git -C /workspaces/datasets pull",
+    "updateContentCommand": "git -C /workspaces/datasets pull && make Galacticus.exe",
 }
