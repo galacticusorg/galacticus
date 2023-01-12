@@ -22,6 +22,7 @@ Implements a merger tree branching probability class using the algorithm of \cit
 !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
+  use :: Linear_Growth             , only : linearGrowthClass
   use :: Tables                    , only : table1DLogarithmicLinear
 
   !![
@@ -34,11 +35,15 @@ Implements a merger tree branching probability class using the algorithm of \cit
      A merger tree branching probability class using the algorithm of \cite{parkinson_generating_2008} plus an additional term.
      !!}
      private
-     double precision :: gamma3
+     double precision                             :: gamma3                 , gamma4, &
+          &                                          gamma5
+     class           (linearGrowthClass), pointer :: linearGrowth_ => null()
    contains
-     procedure :: V               => pchPlusV
-     procedure :: modifier        => pchPlusModifier
-     procedure :: hypergeometricA => pchPlusHypergeometricA
+     final     ::                         pchPlusDestructor
+     procedure :: V                    => pchPlusV
+     procedure :: modifier             => pchPlusModifier
+     procedure :: hypergeometricA      => pchPlusHypergeometricA
+     procedure :: computeCommonFactors => pchPlusComputeCommonFactors
   end type mergerTreeBranchingProbabilityPCHPlus
 
   interface mergerTreeBranchingProbabilityPCHPlus
@@ -61,10 +66,12 @@ contains
     type            (inputParameters                      ), intent(inout) :: parameters
     class           (cosmologicalMassVarianceClass        ), pointer       :: cosmologicalMassVariance_
     class           (criticalOverdensityClass             ), pointer       :: criticalOverdensity_
-    double precision                                                       :: gamma1                   , gamma2            , &
-         &                                                                    G0                       , accuracyFirstOrder, &
-         &                                                                    precisionHypergeometric  , gamma3
-    logical                                                                :: hypergeometricTabulate   , cdmAssumptions
+    class           (linearGrowthClass                    ), pointer       :: linearGrowth_
+    double precision                                                       :: gamma1                       , gamma2            , &
+         &                                                                    G0                           , accuracyFirstOrder, &
+         &                                                                    precisionHypergeometric      , gamma3            , &
+         &                                                                    gamma4                       , gamma5
+    logical                                                                :: hypergeometricTabulate       , cdmAssumptions
 
     ! Check and read parameters.
     !![
@@ -89,7 +96,19 @@ contains
     <inputParameter>
       <name>gamma3</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The parameter $\gamma_32$ appearing in the modified merger rate expression of \cite{parkinson_generating_2008}.</description>
+      <description>The parameter $\gamma_3$ appearing in the modified merger rate expression of \cite{parkinson_generating_2008}.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>gamma4</name>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The parameter $\gamma_4$ appearing in the modified merger rate expression of \cite{parkinson_generating_2008}.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>gamma5</name>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The parameter $\gamma_5$ appearing in the modified merger rate expression of \cite{parkinson_generating_2008}.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -119,31 +138,35 @@ contains
     </inputParameter>
     <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
+    <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
     !!]
-    self=mergerTreeBranchingProbabilityPCHPlus(G0,gamma1,gamma2,gamma3,accuracyFirstOrder,precisionHypergeometric,hypergeometricTabulate,cdmAssumptions,cosmologicalMassVariance_,criticalOverdensity_)
+    self=mergerTreeBranchingProbabilityPCHPlus(G0,gamma1,gamma2,gamma3,gamma4,gamma5,accuracyFirstOrder,precisionHypergeometric,hypergeometricTabulate,cdmAssumptions,cosmologicalMassVariance_,criticalOverdensity_,linearGrowth_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologicalMassVariance_"/>
     <objectDestructor name="criticalOverdensity_"     />
+    <objectDestructor name="linearGrowth_"            />
     !!]
     return
   end function pchPlusConstructorParameters
 
-  function pchPlusConstructorInternal(G0,gamma1,gamma2,gamma3,accuracyFirstOrder,precisionHypergeometric,hypergeometricTabulate,cdmAssumptions,cosmologicalMassVariance_,criticalOverdensity_) result(self)
+  function pchPlusConstructorInternal(G0,gamma1,gamma2,gamma3,gamma4,gamma5,accuracyFirstOrder,precisionHypergeometric,hypergeometricTabulate,cdmAssumptions,cosmologicalMassVariance_,criticalOverdensity_,linearGrowth_) result(self)
     !!{
     Internal constructor for the ``pchPlus'' merger tree branching probability class.
     !!}
     use :: Error, only : Error_Report
     implicit none
     type            (mergerTreeBranchingProbabilityPCHPlus)                        :: self
-    double precision                                       , intent(in   )         :: gamma1                   , gamma2            , &
-         &                                                                            G0                       , accuracyFirstOrder, &
-         &                                                                            precisionHypergeometric  , gamma3
-    logical                                                , intent(in   )         :: hypergeometricTabulate   , cdmAssumptions
+    double precision                                       , intent(in   )         :: gamma1                       , gamma2            , &
+         &                                                                            G0                           , accuracyFirstOrder, &
+         &                                                                            precisionHypergeometric      , gamma3            , &
+         &                                                                            gamma4                       , gamma5
+    logical                                                , intent(in   )         :: hypergeometricTabulate       , cdmAssumptions
     class           (cosmologicalMassVarianceClass        ), intent(in   ), target :: cosmologicalMassVariance_
     class           (criticalOverdensityClass             ), intent(in   ), target :: criticalOverdensity_
+    class           (linearGrowthClass                    ), intent(in   ), target :: linearGrowth_
     !![
-    <constructorAssign variables=" gamma3"/>
+    <constructorAssign variables="gamma3, gamma4, gamma5, *linearGrowth_"/>
     !!]
 
     ! Validate.
@@ -152,6 +175,19 @@ contains
     self%mergerTreeBranchingProbabilityParkinsonColeHelly=mergerTreeBranchingProbabilityParkinsonColeHelly(G0,gamma1,gamma2,accuracyFirstOrder,precisionHypergeometric,hypergeometricTabulate,cdmAssumptions,cosmologicalMassVariance_,criticalOverdensity_)
     return
   end function pchPlusConstructorInternal
+
+  subroutine pchPlusDestructor(self)
+    !!{
+    Destructor for the ``pchPlus'' merger tree branching probability class.
+    !!}
+    implicit none
+    type(mergerTreeBranchingProbabilityPCHPlus), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%linearGrowth_"/>
+    !!]
+    return
+  end subroutine pchPlusDestructor
 
   double precision function pchPlusV(self,massFraction,haloMass)
     !!{
@@ -202,3 +238,24 @@ contains
     a=[0.5d0-0.5d0*gamma,1.5d0-self%gamma3]
     return
   end function pchPlusHypergeometricA
+
+  subroutine pchPlusComputeCommonFactors(self,deltaParent,time,massHaloParent,node)
+    !!{
+    Precomputes some useful factors that are used in the modified Press-Schechter branching integrals.
+    !!}
+    implicit none
+    class           (mergerTreeBranchingProbabilityPCHPlus), intent(inout) :: self
+    double precision                                       , intent(in   ) :: deltaParent, massHaloParent, &
+         &                                                                    time
+    type            (treeNode                             ), intent(inout) :: node
+    double precision                                                       :: modifier
+
+    call self%mergerTreeBranchingProbabilityParkinsonColeHelly%computeCommonFactors(deltaParent,time,massHaloParent,node)
+    modifier                          =+    self%linearGrowth_            %logarithmicDerivativeExpansionFactor(               time) **self%gamma4 &
+         &                             *abs(self%cosmologicalMassVariance_%rootVarianceLogarithmicGradient     (massHaloParent,time))**self%gamma5
+    self%factorG0Gamma2               =+self%factorG0Gamma2                                                                                        &
+         &                             *modifier
+    self%branchingProbabilityPreFactor=+self%branchingProbabilityPreFactor                                                                         &
+         &                             *modifier
+    return
+  end subroutine pchPlusComputeCommonFactors
