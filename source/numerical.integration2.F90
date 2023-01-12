@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -39,23 +39,23 @@ module Numerical_Integration2
   type :: interval
      private
      integer                             :: depth
-     double precision                    :: a    , b       , &
-          &                                 fa   , fb      , &
-          &                                 error, integral
-     type            (interval), pointer :: next
+     double precision                    :: a              , b       , &
+          &                                 fa             , fb      , &
+          &                                 error          , integral
+     type            (interval), pointer :: next  => null()
   end type interval
 
   type :: intervalMulti
      private
      integer                                                    :: depth
-     double precision                                           ::  a   ,  b
-     double precision               , dimension(:), allocatable :: fa   , fb       , &
-          &                                                        error, integral
-     type            (intervalMulti), pointer                   :: next
+     double precision                                           ::  a             ,  b
+     double precision               , dimension(:), allocatable :: fa             , fb       , &
+          &                                                        error          , integral
+     type            (intervalMulti), pointer                   :: next  => null()
   end type intervalMulti
 
   type :: intervalMultiList
-     type(intervalMulti), pointer :: interval_
+     type(intervalMulti), pointer :: interval_ => null()
   end type intervalMultiList
 
   ! Generic integrator.

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -29,7 +29,7 @@ Contains a module which implements a stellar mass output analysis property extra
      !!{
      Type used to hold pointers to filter response functions.
      !!}
-     type(interpolator), pointer :: interpolator_
+     type(interpolator), pointer :: interpolator_ => null()
   end type filterResponse
   
   !![

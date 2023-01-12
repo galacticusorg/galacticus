@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,8 +18,8 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   type, public :: stellarFeedbackOutflowsList
-     class(stellarFeedbackOutflowsClass), pointer :: stellarFeedbackOutflows
-     type (stellarFeedbackOutflowsList ), pointer :: next            => null()
+     class(stellarFeedbackOutflowsClass), pointer :: stellarFeedbackOutflows => null()
+     type (stellarFeedbackOutflowsList ), pointer :: next                    => null()
   end type stellarFeedbackOutflowsList
 
   !![

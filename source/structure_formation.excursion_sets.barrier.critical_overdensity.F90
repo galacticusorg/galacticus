@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -143,7 +143,7 @@ contains
     double precision                                                        :: alpha      , mass
     !$GLC attributes unused :: rateCompute
 
-    if (variance <= 0.0d0) then
+    if (variance <= 0.0d0 .or. .not.self%criticalOverdensity_%isMassDependent()) then
        ! Return zero critical overdensity gradient at this time for infinite mass.
        criticalOverdensityBarrierGradient=0.0d0
     else

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -173,7 +173,7 @@ contains
     transferRate               =max(         0.0d0         ,disk    %massStellar         (                         ))/barInstabilityTimescale
     call                                      disk    %massStellarRate         (-                                                    transferRate                            )
     call                                      spheroid%massStellarRate         (+                                                    transferRate,interrupt,functionInterrupt)
-    ! Angular momentum. Note that we only removed from the disk the non-retained fraction. However, for the spheroid we transfer
+    ! Angular momentum. Note that we remove from the disk only the non-retained fraction. However, for the spheroid we transfer
     ! the full amount of angular momentum as this becomes the "pseudo-angular momentum" of the spheroid.
     transferRate               =max(         0.0d0         ,disk    %angularMomentum     (                         ))/barInstabilityTimescale
     call                                      disk    %angularMomentumRate     (-(1.0d0-fractionAngularMomentumRetained)*            transferRate                            )

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -47,8 +47,8 @@
      double precision                                              :: snapTolerance
      double precision                  , allocatable, dimension(:) :: timeGrid
    contains
-     final     ::                        regridTimesDestructor
-     procedure :: operatePreEvolution => regridTimesOperatePreEvolution
+     final     ::                             regridTimesDestructor
+     procedure :: operatePreInitialization => regridTimesOperatePreInitialization
   end type mergerTreeOperatorRegridTimes
 
   interface mergerTreeOperatorRegridTimes
@@ -132,7 +132,7 @@ contains
     return
   end subroutine regridTimesDestructor
 
-  subroutine regridTimesOperatePreEvolution(self,tree)
+  subroutine regridTimesOperatePreInitialization(self,tree)
     !!{
     Perform a regrid times operation on a merger tree.
     !!}
@@ -473,4 +473,4 @@ contains
        currentTree => currentTree%nextTree
     end do
     return
-  end subroutine regridTimesOperatePreEvolution
+  end subroutine regridTimesOperatePreInitialization

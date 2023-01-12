@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,6 +26,7 @@ program Tests_Sigma
   use :: Cosmology_Parameters                , only : cosmologyParametersSimple               , hubbleUnitsLittleH
   use :: Dark_Matter_Particles               , only : darkMatterParticleCDM
   use :: Display                             , only : displayVerbositySet                     , verbosityLevelStandard
+  use :: Error                               , only : Error_Handler_Register
   use :: Linear_Growth                       , only : linearGrowthCollisionlessMatter
   use :: Numerical_Constants_Math            , only : Pi
   use :: Numerical_Ranges                    , only : Make_Range                              , rangeTypeLogarithmic
@@ -54,6 +55,8 @@ program Tests_Sigma
   double precision                                                                 :: mass8                                        , radius8                                        , &
        &                                                                              sigma8
 
+  ! Initialize error handling.
+  call Error_Handler_Register()
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
   ! Begin unit tests.

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -145,7 +145,7 @@ module Statistics_Distributions
   
   ! Define a list of distributions.
   type, public :: distributionFunction1DList
-     class(distributionFunction1DClass), pointer :: distributionFunction1D_
+     class(distributionFunction1DClass), pointer :: distributionFunction1D_ => null()
   end type distributionFunction1DList
 
 contains

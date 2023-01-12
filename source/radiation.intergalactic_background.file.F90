@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -29,8 +29,8 @@
   <radiationField name="radiationFieldIntergalacticBackgroundFile">
    <description>
     A radiation field class for intergalactic background light with properties read from file. The flux is determined by
-    linearly interpolating to the required time and wavelength. The XML file to read is specified by {\normalfont \ttfamily
-    [fileName]}. An example of the required file structure is:
+    linearly interpolating to the required time and wavelength. The XML or HDF5 file to read is specified by {\normalfont \ttfamily
+    [fileName]}. An example of the required file structure for XML files is:
     \begin{verbatim}
     &lt;spectrum>
       &lt;URL>http://adsabs.harvard.edu/abs/1996ApJ...461...20H&lt;/URL>
@@ -139,71 +139,113 @@ contains
     use :: Array_Utilities  , only : Array_Is_Monotonic               , Array_Reverse        , directionIncreasing
     use :: FoX_DOM          , only : destroy                          , extractDataContent   , node
     use :: Error            , only : Error_Report
+    use :: HDF5_Access      , only : hdf5Access
+    use :: IO_HDF5          , only : hdf5Object
     use :: IO_XML           , only : XML_Array_Read                   , XML_Array_Read_Static, XML_Count_Elements_By_Tag_Name, XML_Get_Elements_By_Tag_Name, &
           &                          XML_Get_First_Element_By_Tag_Name, XML_Parse            , xmlNodeList
     implicit none
-    type   (radiationFieldIntergalacticBackgroundFile)                              :: self
-    type   (varying_string                           ), intent(in   )               :: fileName
-    class  (cosmologyFunctionsClass                  ), intent(in   ), target       :: cosmologyFunctions_
-    type   (node                                     ), pointer                     :: doc                , datum     , &
-         &                                                                             spectrum           , wavelength
-    type   (xmlNodeList                              ), allocatable  , dimension(:) :: spectraList
-    integer                                                                         :: fileFormatVersion  , iSpectrum , &
-         &                                                                             status             , jSpectrum
-    logical                                                                         :: timesIncreasing
+    type            (radiationFieldIntergalacticBackgroundFile)                                :: self
+    type            (varying_string                           ), intent(in   )                 :: fileName
+    class           (cosmologyFunctionsClass                  ), intent(in   ), target         :: cosmologyFunctions_
+    type            (node                                     ), pointer                       :: doc                , datum     , &
+         &                                                                                        spectrum           , wavelength
+    type            (xmlNodeList                              ), allocatable  , dimension(:  ) :: spectraList
+    double precision                                           , allocatable  , dimension(:,:) :: spectraTmp
+    integer                                                                                    :: fileFormatVersion  , iSpectrum , &
+         &                                                                                        status             , jSpectrum
+    logical                                                                                    :: timesIncreasing
+    type            (hdf5Object                               )                                :: file
     !![
     <constructorAssign variables="fileName, *cosmologyFunctions_"/>
     !!]
 
-    !$omp critical (FoX_DOM_Access)
-    doc => XML_Parse(char(fileName),iostat=status)
-    if (status /= 0) call Error_Report('Unable to find or parse data file'//{introspection:location})
-    ! Check the file format version of the file.
-    datum => XML_Get_First_Element_By_Tag_Name(doc,"fileFormat")
-    call extractDataContent(datum,fileFormatVersion)
-    if (fileFormatVersion /= intergalacticBackgroundFileFormatVersionCurrent) call Error_Report('file format version is out of date'//{introspection:location})
-    ! Get a list of all spectra.
-    call XML_Get_Elements_By_Tag_Name(doc,"spectra",spectraList)
-    ! Get the wavelengths.
-    wavelength => XML_Get_First_Element_By_Tag_Name(doc,"wavelengths")
-    call XML_Array_Read(wavelength,"datum",self%spectraWavelengths)
-    self%spectraWavelengthsCount=size(self%spectraWavelengths)
-    ! Allocate array for spectra.
-    self%spectraTimesCount=size(spectraList)
-    allocate(self%spectra     (self%spectraWavelengthsCount,self%spectraTimesCount))
-    allocate(self%spectraTimes(self%spectraTimesCount))
-    ! Read times.
-    do iSpectrum=1,self%spectraTimesCount
-       ! Get the data.
-       spectrum => spectraList(iSpectrum-1)%element
-       ! Extract the redshift.
-       call extractDataContent(XML_Get_First_Element_By_Tag_Name(spectrum,"redshift"),self%spectraTimes(iSpectrum))
-       ! Convert redshift to a time.
-       self%spectraTimes(iSpectrum)=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(self%spectraTimes(iSpectrum)))
-    end do
-    ! Check if the times are monotonically ordered.
-    if (.not.Array_Is_Monotonic(self%spectraTimes)) call Error_Report('spectra must be monotonically ordered in time'//{introspection:location})
-    timesIncreasing=Array_Is_Monotonic(self%spectraTimes,direction=directionIncreasing)
-    ! Reverse times if necessary.
-    if (.not.timesIncreasing) self%spectraTimes=Array_Reverse(self%spectraTimes)
-    ! Read spectra into arrays.
-    do iSpectrum=1,self%spectraTimesCount
-       ! Determine where to store this spectrum, depending on whether the times were stored in increasing or decreasing order.
-       if (timesIncreasing) then
-          jSpectrum=                        +iSpectrum
-       else
-          jSpectrum=self%spectraTimesCount+1-iSpectrum
+    ! Determine if we are reading and XML or HDF5 file.
+    if (extract(fileName,len(fileName)-3,len(fileName)) == ".xml") then
+       ! XML file
+       !$omp critical (FoX_DOM_Access)
+       doc => XML_Parse(char(fileName),iostat=status)
+       if (status /= 0) call Error_Report('Unable to find or parse data file'//{introspection:location})
+       ! Check the file format version of the file.
+       datum => XML_Get_First_Element_By_Tag_Name(doc,"fileFormat")
+       call extractDataContent(datum,fileFormatVersion)
+       if (fileFormatVersion /= intergalacticBackgroundFileFormatVersionCurrent) call Error_Report('file format version is out of date'//{introspection:location})
+       ! Get a list of all spectra.
+       call XML_Get_Elements_By_Tag_Name(doc,"spectra",spectraList)
+       ! Get the wavelengths.
+       wavelength => XML_Get_First_Element_By_Tag_Name(doc,"wavelengths")
+       call XML_Array_Read(wavelength,"datum",self%spectraWavelengths)
+       self%spectraWavelengthsCount=size(self%spectraWavelengths)
+       ! Allocate array for spectra.
+       self%spectraTimesCount=size(spectraList)
+       allocate(self%spectra     (self%spectraWavelengthsCount,self%spectraTimesCount))
+       allocate(self%spectraTimes(self%spectraTimesCount))
+       ! Read times.
+       do iSpectrum=1,self%spectraTimesCount
+          ! Get the data.
+          spectrum => spectraList(iSpectrum-1)%element
+          ! Extract the redshift.
+          call extractDataContent(XML_Get_First_Element_By_Tag_Name(spectrum,"redshift"),self%spectraTimes(iSpectrum))
+          ! Convert redshift to a time.
+          self%spectraTimes(iSpectrum)=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(self%spectraTimes(iSpectrum)))
+       end do
+       ! Check if the times are monotonically ordered.
+       if (.not.Array_Is_Monotonic(self%spectraTimes)) call Error_Report('spectra must be monotonically ordered in time'//{introspection:location})
+       timesIncreasing=Array_Is_Monotonic(self%spectraTimes,direction=directionIncreasing)
+       ! Reverse times if necessary.
+       if (.not.timesIncreasing) self%spectraTimes=Array_Reverse(self%spectraTimes)
+       ! Read spectra into arrays.
+       do iSpectrum=1,self%spectraTimesCount
+          ! Determine where to store this spectrum, depending on whether the times were stored in increasing or decreasing order.
+          if (timesIncreasing) then
+             jSpectrum=                        +iSpectrum
+          else
+             jSpectrum=self%spectraTimesCount+1-iSpectrum
+          end if
+          ! Get the data.
+          spectrum => spectraList(iSpectrum-1)%element
+          ! Check that we have the correct number of data.
+          if (XML_Count_Elements_By_Tag_Name(spectrum,"datum") /= self%spectraWavelengthsCount) call Error_Report('all spectra must contain the same number of wavelengths'//{introspection:location})
+          ! Extract the data.
+          call XML_Array_Read_Static(spectrum,"datum",self%spectra(:,jSpectrum))
+       end do
+       ! Destroy the document.
+       call destroy(doc)
+       !$omp end critical (FoX_DOM_Access)
+    else if (extract(fileName,len(fileName)-4,len(fileName)) == ".hdf5") then
+       ! HDF5 file.
+       !$ call hdf5Access%set()
+       call file%openFile(char(self%fileName),readOnly=.true.)
+       ! Check the file format version of the file.
+       call file%readAttribute('fileFormat',fileFormatVersion)
+       if (fileFormatVersion /= intergalacticBackgroundFileFormatVersionCurrent) call Error_Report('file format version is out of date'//{introspection:location})
+       ! Get the wavelengths.
+       call file%readDataset('wavelengths',self%spectraWavelengths)
+       self%spectraWavelengthsCount=size(self%spectraWavelengths)
+       ! Read redshifts.
+       call file%readDataset('redshifts',self%spectraTimes)
+       self%spectraTimesCount=size(self%spectraTimes)
+       do iSpectrum=1,self%spectraTimesCount
+          ! Convert redshift to a time.
+          self%spectraTimes(iSpectrum)=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(self%spectraTimes(iSpectrum)))
+       end do
+       ! Check if the times are monotonically ordered.
+       if (.not.Array_Is_Monotonic(self%spectraTimes)) call Error_Report('spectra must be monotonically ordered in time'//{introspection:location})
+       timesIncreasing=Array_Is_Monotonic(self%spectraTimes,direction=directionIncreasing)
+       ! Reverse times if necessary.
+       if (.not.timesIncreasing) self%spectraTimes=Array_Reverse(self%spectraTimes)
+       ! Read spectra.
+       call file%readDataset('spectra',self%spectra)
+       if (.not.timesIncreasing) then
+          spectraTmp=self%spectra
+          do iSpectrum=1,self%spectraTimesCount
+             self%spectra(:,iSpectrum)=spectraTmp(:,self%spectraTimesCount+1-iSpectrum)
+          end do
        end if
-       ! Get the data.
-       spectrum => spectraList(iSpectrum-1)%element
-       ! Check that we have the correct number of data.
-       if (XML_Count_Elements_By_Tag_Name(spectrum,"datum") /= self%spectraWavelengthsCount) call Error_Report('all spectra must contain the same number of wavelengths'//{introspection:location})
-       ! Extract the data.
-       call XML_Array_Read_Static(spectrum,"datum",self%spectra(:,jSpectrum))
-    end do
-    ! Destroy the document.
-    call destroy(doc)
-    !$omp end critical (FoX_DOM_Access)
+       call file%close()
+       !$ call hdf5Access%unset()
+    else
+       call Error_Report('unrecognized file format'//{introspection:location})
+    end if
     self%interpolatorWavelengths=interpolator(self%spectraWavelengths)
     self%interpolatorTimes      =interpolator(self%spectraTimes      )
     return

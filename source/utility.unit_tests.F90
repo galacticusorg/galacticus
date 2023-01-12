@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -78,9 +78,9 @@ module Unit_Tests
      A derived type for storing results of asserts.
      !!}
      type    (enumerationTestType)          :: result
-     logical                                :: beginGroup, endGroup
-     type   (varying_string      )          :: label     , note
-     type   (assertResult        ), pointer :: nextResult
+     logical                                :: beginGroup          , endGroup
+     type   (varying_string      )          :: label               , note
+     type   (assertResult        ), pointer :: nextResult => null()
   end type assertResult
 
   ! Results list.

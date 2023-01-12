@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -75,12 +75,12 @@
 
   ! Array used to store state.
   type :: ludlow2016State
-     class           (darkMatterProfileScaleRadiusLudlow2016), pointer     :: self
-     class           (cosmologyFunctionsClass               ), pointer     :: cosmologyFunctions_
-     type            (treeNode                              ), pointer     :: node
+     class           (darkMatterProfileScaleRadiusLudlow2016), pointer     :: self                   => null()
+     class           (cosmologyFunctionsClass               ), pointer     :: cosmologyFunctions_    => null()
+     type            (treeNode                              ), pointer     :: node                   => null()
      type            (rootFinder                            ), allocatable :: finder
-     double precision                                                      :: massHaloCharacteristic, massLimit      , &
-          &                                                                   hubbleParameterPresent, densityContrast, &
+     double precision                                                      :: massHaloCharacteristic          , massLimit      , &
+          &                                                                   hubbleParameterPresent          , densityContrast, &
           &                                                                   timePrevious
   end type ludlow2016State
   type   (ludlow2016State), allocatable, dimension(:) :: ludlow2016States

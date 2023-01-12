@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,7 @@
   use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
 
   type, public :: radiativeTransferSourceList
-     class(radiativeTransferSourceClass), pointer :: radiativeTransferSource
+     class(radiativeTransferSourceClass), pointer :: radiativeTransferSource => null()
      type (radiativeTransferSourceList ), pointer :: next                    => null()
   end type radiativeTransferSourceList
 

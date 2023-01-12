@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -70,8 +70,8 @@ Contains a module which implements a star formation histories class which record
   type inSituTimeStepRange
      private
      integer                                        :: count
-     double precision                               :: timeBegin, timeEnd
-     type            (inSituTimeStepRange), pointer :: next
+     double precision                               :: timeBegin          , timeEnd
+     type            (inSituTimeStepRange), pointer :: next      => null()
   end type inSituTimeStepRange
 
 contains

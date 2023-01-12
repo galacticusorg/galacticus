@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -29,7 +29,7 @@ Contains a module which implements a sequence of operators on merger trees.
   !!]
 
   type, public :: operatorList
-     class(mergerTreeOperatorClass), pointer :: operator_
+     class(mergerTreeOperatorClass), pointer :: operator_ => null()
      type (operatorList           ), pointer :: next      => null()
   end type operatorList
 
@@ -40,9 +40,12 @@ Contains a module which implements a sequence of operators on merger trees.
      private
      type(operatorList), pointer :: operators => null()
   contains
-     final     ::                        sequenceDestructor
-     procedure :: operatePreEvolution => sequenceOperatePreEvolution
-     procedure :: finalize            => sequenceFinalize
+     final     ::                             sequenceDestructor
+     procedure :: operatePreConstruction   => sequenceOperatePreConstruction
+     procedure :: operatePreInitialization => sequenceOperatePreInitialization
+     procedure :: operatePreEvolution      => sequenceOperatePreEvolution
+     procedure :: operatePostEvolution     => sequenceOperatePostEvolution
+     procedure :: finalize                 => sequenceFinalize
   end type mergerTreeOperatorSequence
 
   interface mergerTreeOperatorSequence
@@ -128,6 +131,39 @@ contains
     return
   end subroutine sequenceDestructor
 
+  subroutine sequenceOperatePreConstruction(self)
+    !!{
+    Perform a sequence operation on a merger tree.
+    !!}
+    implicit none
+    class(mergerTreeOperatorSequence), intent(inout) :: self
+    type (operatorList              ), pointer       :: operator_
+
+    operator_ => self%operators
+    do while (associated(operator_))
+       call operator_%operator_%operatePreConstruction()
+       operator_ => operator_%next
+    end do
+    return
+  end subroutine sequenceOperatePreConstruction
+
+  subroutine sequenceOperatePreInitialization(self,tree)
+    !!{
+    Perform a sequence operation on a merger tree.
+    !!}
+    implicit none
+    class(mergerTreeOperatorSequence), intent(inout), target :: self
+    type (mergerTree                ), intent(inout), target :: tree
+    type (operatorList              ), pointer               :: operator_
+
+    operator_ => self%operators
+    do while (associated(operator_))
+       call operator_%operator_%operatePreInitialization(tree)
+       operator_ => operator_%next
+    end do
+    return
+  end subroutine sequenceOperatePreInitialization
+
   subroutine sequenceOperatePreEvolution(self,tree)
     !!{
     Perform a sequence operation on a merger tree.
@@ -144,6 +180,22 @@ contains
     end do
     return
   end subroutine sequenceOperatePreEvolution
+
+  subroutine sequenceOperatePostEvolution(self)
+    !!{
+    Perform a sequence operation on a merger tree.
+    !!}
+    implicit none
+    class(mergerTreeOperatorSequence), intent(inout) :: self
+    type (operatorList              ), pointer       :: operator_
+
+    operator_ => self%operators
+    do while (associated(operator_))
+       call operator_%operator_%operatePostEvolution()
+       operator_ => operator_%next
+    end do
+    return
+  end subroutine sequenceOperatePostEvolution
 
   subroutine sequenceFinalize(self)
     !!{

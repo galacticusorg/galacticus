@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -40,9 +40,9 @@
      A node operator class that sets the positions of subhalos to trace the dark matter component of their host halo.
      !!}
      private
-     class(darkMatterHaloScaleClass                  ), pointer :: darkMatterHaloScale_
-     class(galacticStructureClass                    ), pointer :: galacticStructure_
-     type (satelliteOrphanDistributionTraceDarkMatter), pointer :: satelliteOrphanDistribution_
+     class(darkMatterHaloScaleClass                  ), pointer :: darkMatterHaloScale_         => null()
+     class(galacticStructureClass                    ), pointer :: galacticStructure_           => null()
+     type (satelliteOrphanDistributionTraceDarkMatter), pointer :: satelliteOrphanDistribution_ => null()
    contains
      !![
      <methods>

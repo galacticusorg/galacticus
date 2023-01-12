@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -72,7 +72,7 @@ contains
     type(nodePropertyExtractorIndexBranchTip) :: self
 
     !![
-    <addMetaProperty component="basic" name="nodeIndexBranchTip" type="integer" id="self%indexBranchTipID" isCreator="no"/>
+    <addMetaProperty component="basic" name="nodeIndexBranchTip" type="longInteger" id="self%indexBranchTipID" isCreator="no"/>
     !!]
     return
   end function indexBranchTipConstructorInternal
@@ -91,8 +91,8 @@ contains
     class           (nodeComponentBasic                 )               , pointer  :: basic
     !$GLC attributes unused :: instance, time
 
-    basic                 => node %basic                      (                     )
-    indexBranchTipExtract =  basic%integerRank0MetaPropertyGet(self%indexBranchTipID)
+    basic                 => node %basic                          (                     )
+    indexBranchTipExtract =  basic%longIntegerRank0MetaPropertyGet(self%indexBranchTipID)
     return
   end function indexBranchTipExtract
 

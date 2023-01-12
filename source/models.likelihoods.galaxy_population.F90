@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -37,7 +37,7 @@
      type   (varying_string               )          :: failedParametersFileName
      logical                                         :: randomize
      type   (enumerationVerbosityLevelType)          :: evolveForestsVerbosity
-     class  (*                            ), pointer :: task_
+     class  (*                            ), pointer :: task_                    => null()
      class  (outputAnalysisClass          ), pointer :: outputAnalysis_          => null()
    contains
      final     ::                    galaxyPopulationDestructor

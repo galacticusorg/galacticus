@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -244,6 +244,7 @@ program Tests_Halo_Mass_Function_Environmental_Average
   <referenceConstruct object="excursionSetFirstCrossing_"           >
    <constructor>
      excursionSetFirstCrossingLinearBarrier                     (                                                                           &amp;
+      &amp;                                                      fractionalTimeStep                 =0.01d0                               , &amp;
       &amp;                                                      excursionSetBarrier_               =excursionSetBarrier_                 , &amp;
       &amp;                                                      cosmologicalMassVariance_          =cosmologicalMassVariance_              &amp;
       &amp;                                                     )
@@ -252,6 +253,7 @@ program Tests_Halo_Mass_Function_Environmental_Average
   <referenceConstruct object="excursionSetFirstCrossingConditioned_">
    <constructor>
      excursionSetFirstCrossingLinearBarrier                     (                                                                           &amp;
+      &amp;                                                      fractionalTimeStep                 =0.01d0                               , &amp;
       &amp;                                                      excursionSetBarrier_               =excursionSetBarrierConditioned_      , &amp;
       &amp;                                                      cosmologicalMassVariance_          =cosmologicalMassVarianceConditioned_   &amp;
       &amp;                                                     )

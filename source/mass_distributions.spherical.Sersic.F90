@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -85,13 +85,16 @@ contains
     Constructor for the {\normalfont \ttfamily sersic} mass distribution class which builds the object from a parameter
     set.
     !!}
-    use :: Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters          , only : inputParameter                , inputParameters
+    use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
     implicit none
     type            (massDistributionSersic)                :: self
     type            (inputParameters       ), intent(inout) :: parameters
     double precision                                        :: mass         , radiusHalfMass, &
          &                                                     index_
     logical                                                 :: dimensionless
+    type            (varying_string        )                :: componentType
+    type            (varying_string        )                :: massType
 
     !![
     <inputParameter>
@@ -119,8 +122,20 @@ contains
       <description>If true the S\'ersic profile is considered to be dimensionless.</description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter>
+      <name>componentType</name>
+      <defaultValue>var_str('unknown')</defaultValue>
+      <description>The component type that this mass distribution represents.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>massType</name>
+      <defaultValue>var_str('unknown')</defaultValue>
+      <description>The mass type that this mass distribution represents.</description>
+      <source>parameters</source>
+    </inputParameter>
     <conditionalCall>
-     <call>self=massDistributionSersic(index_{conditions})</call>
+     <call>self=massDistributionSersic(index_,componentType=enumerationComponentTypeEncode(componentType,includesPrefix=.false.),massType=enumerationMassTypeEncode(massType,includesPrefix=.false.){conditions})</call>
      <argument name="radiusHalfMass" value="radiusHalfMass"      parameterPresent="parameters"/>
      <argument name="mass"                 value="mass"          parameterPresent="parameters"/>
      <argument name="dimensionless"        value="dimensionless" parameterPresent="parameters"/>
@@ -130,17 +145,22 @@ contains
     return
   end function sersicConstructorParameters
 
-  function sersicConstructorInternal(index,radiusHalfMass,mass,dimensionless) result(self)
+  function sersicConstructorInternal(index,radiusHalfMass,mass,dimensionless,componentType,massType) result(self)
     !!{
     Internal constructor for ``sersic'' mass distribution class.
     !!}
     use :: Error               , only : Error_Report
     use :: Numerical_Comparison, only : Values_Differ
     implicit none
-    type            (massDistributionSersic)                          :: self
-    double precision                        , intent(in   )           :: index
-    double precision                        , intent(in   ), optional :: radiusHalfMass, mass
-    logical                                 , intent(in   ), optional :: dimensionless
+    type            (massDistributionSersic      )                          :: self
+    double precision                              , intent(in   )           :: index
+    double precision                              , intent(in   ), optional :: radiusHalfMass, mass
+    logical                                       , intent(in   ), optional :: dimensionless
+    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    !![
+    <constructorAssign variables="componentType, massType"/>
+    !!]
 
     ! Determine if profile is dimensionless.
     self%dimensionless=.false.
@@ -179,17 +199,23 @@ contains
     return
   end function sersicConstructorInternal
 
-  double precision function sersicDensity(self,coordinates)
+  double precision function sersicDensity(self,coordinates,componentType,massType)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in a S\'ersic mass distribution.
     !!}
     use :: Coordinates , only : assignment(=)               , coordinateSpherical
     implicit none
-    class           (massDistributionSersic), intent(inout) :: self
-    class           (coordinate            ), intent(in   ) :: coordinates
-    type            (coordinateSpherical   )                :: position
-    double precision                                        :: r
+    class           (massDistributionSersic      ), intent(inout)           :: self
+    class           (coordinate                  ), intent(in   )           :: coordinates
+    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    type            (coordinateSpherical         )                          :: position
+    double precision                                                        :: r
 
+    if (.not.self%matches(componentType,massType)) then
+       sersicDensity=0.0d0
+       return
+    end if
     ! Get position in spherical coordinate system.
     position= coordinates
     ! Compute the density at this position.
@@ -204,20 +230,26 @@ contains
     return
   end function sersicDensity
 
-  double precision function sersicDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
+  double precision function sersicDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite,componentType,massType)
     !!{
     Returns a radial density moment for the S\'ersic mass distribution.
     !!}
     implicit none
-    class           (massDistributionSersic), intent(inout)           :: self
-    double precision                        , intent(in   )           :: moment
-    double precision                        , intent(in   ), optional :: radiusMinimum    , radiusMaximum
-    logical                                 , intent(  out), optional :: isInfinite
-    integer                                                           :: iRadius
-    double precision                                                  :: deltaRadius      , integrand              , &
-         &                                                               previousIntegrand, fractionalRadiusMinimum, &
-         &                                                               fractionalRadiusMaximum
+    class           (massDistributionSersic      ), intent(inout)           :: self
+    double precision                              , intent(in   )           :: moment
+    double precision                              , intent(in   ), optional :: radiusMinimum          , radiusMaximum
+    logical                                       , intent(  out), optional :: isInfinite
+    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    integer                                                                 :: iRadius
+    double precision                                                        :: deltaRadius            , integrand              , &
+         &                                                                     previousIntegrand      , fractionalRadiusMinimum, &
+         &                                                                     fractionalRadiusMaximum
 
+    if (.not.self%matches(componentType,massType)) then
+       sersicDensityRadialMoment=0.0d0
+       return
+    end if
     isInfinite               =.false.
     sersicDensityRadialMoment=0.0d0
     !$ call OMP_Set_Lock(self%tableLock)
@@ -259,26 +291,38 @@ contains
     return
   end function sersicDensityRadialMoment
 
-  double precision function sersicMassTotal(self)
+  double precision function sersicMassTotal(self,componentType,massType)
     !!{
     Computes the total mass for S\'ersic mass distributions.
     !!}
     implicit none
-    class(massDistributionSersic), intent(inout) :: self
+    class(massDistributionSersic      ), intent(inout)           :: self
+    type (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type (enumerationMassTypeType     ), intent(in   ), optional :: massType
 
+    if (.not.self%matches(componentType,massType)) then
+       sersicMassTotal=0.0d0
+       return
+    end if
     sersicMassTotal=self%mass
     return
   end function sersicMassTotal
   
-  double precision function sersicMassEnclosedBySphere(self,radius)
+  double precision function sersicMassEnclosedBySphere(self,radius,componentType,massType)
     !!{
     Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for S\'ersic mass distributions.
     !!}
     implicit none
-    class           (massDistributionSersic), intent(inout), target :: self
-    double precision                        , intent(in   )         :: radius
-    double precision                                                :: fractionalRadius
+    class           (massDistributionSersic      ), intent(inout), target   :: self
+    double precision                              , intent(in   )           :: radius
+    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    double precision                                                        :: fractionalRadius
 
+    if (.not.self%matches(componentType,massType)) then
+       sersicMassEnclosedBySphere=0.0d0
+       return
+    end if
     if (radius <= 0.0d0) then
        sersicMassEnclosedBySphere=0.0d0
     else
@@ -297,18 +341,24 @@ contains
     return
   end function sersicMassEnclosedBySphere
 
-  double precision function sersicPotential(self,coordinates)
+  double precision function sersicPotential(self,coordinates,componentType,massType)
     !!{
     Return the potential at the specified {\normalfont \ttfamily coordinates} in a S\'ersic mass distribution.
     !!}
     use :: Coordinates                     , only : assignment(=)                  , coordinateSpherical
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    class           (massDistributionSersic), intent(inout) :: self
-    class           (coordinate            ), intent(in   ) :: coordinates
-    type            (coordinateSpherical   )                :: position
-    double precision                                        :: r
+    class           (massDistributionSersic      ), intent(inout)           :: self
+    class           (coordinate                  ), intent(in   )           :: coordinates
+    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    type            (coordinateSpherical         )                          :: position
+    double precision                                                        :: r
 
+    if (.not.self%matches(componentType,massType)) then
+       sersicPotential=0.0d0
+       return
+    end if
     ! Get position in spherical coordinate system.
     position=coordinates
     ! Compute the potential at this position.
@@ -329,26 +379,38 @@ contains
     return
   end function sersicPotential
 
-  double precision function sersicRadiusHalfMass(self)
+  double precision function sersicRadiusHalfMass(self,componentType,massType)
     !!{
     Return the half-mass radius of a S\'ersic mass distribution.
     !!}
     implicit none
-    class(massDistributionSersic), intent(inout) :: self
+    class(massDistributionSersic      ), intent(inout)           :: self
+    type (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type (enumerationMassTypeType     ), intent(in   ), optional :: massType
 
+    if (.not.self%matches(componentType,massType)) then
+       sersicRadiusHalfMass=0.0d0
+       return
+    end if
     !$ call OMP_Set_Lock(self%tableLock)
     sersicRadiusHalfMass=+self%radiusHalfMass_
     !$ call OMP_Unset_Lock(self%tableLock)
     return
   end function sersicRadiusHalfMass
 
-  double precision function sersicRadiusHalfMassProjected(self)
+  double precision function sersicRadiusHalfMassProjected(self,componentType,massType)
     !!{
     Return the half-mass radius in projection of a S\'ersic mass distribution.
     !!}
     implicit none
-    class(massDistributionSersic), intent(inout) :: self
+    class(massDistributionSersic      ), intent(inout)           :: self
+    type (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type (enumerationMassTypeType     ), intent(in   ), optional :: massType
 
+    if (.not.self%matches(componentType,massType)) then
+       sersicRadiusHalfMassProjected=0.0d0
+       return
+    end if
     sersicRadiusHalfMassProjected=+self%radiusHalfMass_        &
          &                        *self%table2dRadiusHalfMass
     return

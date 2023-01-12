@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -33,8 +33,12 @@ Contains a module which implements a merger tree build controller class which bu
      off of the main branch, but those stubs do not grow full branches of their own.
      !!}
      private
-  contains
-     procedure :: control => controlBranchless
+     class(mergerTreeBranchingProbabilityClass), pointer :: mergerTreeBranchingProbability_ => null()
+   contains
+     final     ::                               branchlessDestructor
+     procedure :: control                    => branchlessControl
+     procedure :: branchingProbabilityObject => branchlessBranchingProbabilityObject
+     procedure :: nodesInserted              => branchlessNodesInserted
   end type mergerTreeBuildControllerBranchless
 
   interface mergerTreeBuildControllerBranchless
@@ -42,6 +46,7 @@ Contains a module which implements a merger tree build controller class which bu
      Constructors for the ``branchless'' merger tree build controller class.
      !!}
      module procedure branchlessConstructorParameters
+     module procedure branchlessConstructorInternal
   end interface mergerTreeBuildControllerBranchless
 
 contains
@@ -52,17 +57,49 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type(mergerTreeBuildControllerBranchless)                :: self
-    type(inputParameters                    ), intent(inout) :: parameters
-  
-    self=mergerTreeBuildControllerBranchless()
+    type (mergerTreeBuildControllerBranchless)                :: self
+    type (inputParameters                    ), intent(inout) :: parameters
+    class(mergerTreeBranchingProbabilityClass), pointer       :: mergerTreeBranchingProbability_
+
+    !![
+    <objectBuilder class="mergerTreeBranchingProbability" name="mergerTreeBranchingProbability_" source="parameters"/>
+    !!]
+    self=mergerTreeBuildControllerBranchless(mergerTreeBranchingProbability_)
     !![
     <inputParametersValidate source="parameters"/>
+    <objectDestructor name="mergerTreeBranchingProbability_"/>
     !!]
     return
   end function branchlessConstructorParameters
 
-  logical function controlBranchless(self,node,treeWalker_)
+  function branchlessConstructorInternal(mergerTreeBranchingProbability_) result(self)
+    !!{
+    Internal constructor for the ``branchless'' merger tree build controller class .
+    !!}
+    implicit none
+    type (mergerTreeBuildControllerBranchless)                        :: self
+    class(mergerTreeBranchingProbabilityClass), intent(in   ), target :: mergerTreeBranchingProbability_
+    !![
+    <constructorAssign variables="*mergerTreeBranchingProbability_"/>
+    !!]
+    
+    return
+  end function branchlessConstructorInternal
+
+  subroutine branchlessDestructor(self)
+    !!{
+    Destructor for the {\normalfont \ttfamily branchless} merger tree build controller class.
+    !!}
+    implicit none
+    type(mergerTreeBuildControllerBranchless), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%mergerTreeBranchingProbability_"/>
+    !!]
+    return
+  end subroutine branchlessDestructor
+
+  logical function branchlessControl(self,node,treeWalker_)
     !!{
     Skip side branches of a tree under construction.
     !!}
@@ -72,10 +109,38 @@ contains
     class(mergerTreeWalkerClass              ), intent(inout)          :: treeWalker_
     !$GLC attributes unused :: self
 
-    controlBranchless=.true.
+    branchlessControl=.true.
     ! Move to the next node in the tree while such exists, and the current node is on a side branch.
-    do while (controlBranchless.and.associated(node%parent).and..not.node%isPrimaryProgenitor())
-       controlBranchless=treeWalker_%next(node)
+    do while (branchlessControl.and.associated(node%parent).and..not.node%isPrimaryProgenitor())
+       branchlessControl=treeWalker_%next(node)
     end do
     return
-  end function controlBranchless
+  end function branchlessControl
+
+  function branchlessBranchingProbabilityObject(self,node) result(mergerTreeBranchingProbability_)
+    !!{
+    Return a pointer the the merger tree branching probability object to use.
+    !!}
+    implicit none
+    class(mergerTreeBranchingProbabilityClass), pointer       :: mergerTreeBranchingProbability_
+    class(mergerTreeBuildControllerBranchless), intent(inout) :: self
+    type (treeNode                           ), intent(inout) :: node
+    !$GLC attributes unused :: node
+
+    mergerTreeBranchingProbability_ => self%mergerTreeBranchingProbability_
+    return
+  end function branchlessBranchingProbabilityObject
+
+  subroutine branchlessNodesInserted(self,nodeCurrent,nodeProgenitor1,nodeProgenitor2)
+    !!{
+    Act on the insertion of nodes into the merger tree.
+    !!}
+    implicit none
+    class(mergerTreeBuildControllerBranchless), intent(inout)           :: self
+    type (treeNode                           ), intent(inout)           :: nodeCurrent    , nodeProgenitor1
+    type (treeNode                           ), intent(inout), optional :: nodeProgenitor2
+    !$GLC attributes unused :: self, nodeCurrent, nodeProgenitor1, nodeProgenitor2
+
+    ! Nothing to do.
+    return
+  end subroutine branchlessNodesInserted

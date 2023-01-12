@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -34,8 +34,8 @@
    contains
      !![
      <methods>
-       <method description="Returns the radius enclosing half of the mass of the mass distribution." method="radiusHalfMass" />
-       <method description="Returns the radius enclosing the given mass." method="radiusEnclosingMass" />
+       <method description="Returns the radius enclosing half of the mass of the mass distribution." method="radiusHalfMass"     />
+       <method description="Returns the radius enclosing the given mass."                            method="radiusEnclosingMass"/>
      </methods>
      !!]
      procedure :: symmetry             => sphericalSymmetry
@@ -67,7 +67,7 @@ contains
     return
   end function sphericalSymmetry
 
-  double precision function sphericalMassEnclosedBySphere(self,radius)
+  double precision function sphericalMassEnclosedBySphere(self,radius,componentType,massType)
     !!{
     Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for spherically-symmetric mass
     distributions using numerical integration.
@@ -75,10 +75,16 @@ contains
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Integration   , only : integrator
     implicit none
-    class           (massDistributionSpherical), intent(inout), target :: self
-    double precision                           , intent(in   )         :: radius
-    type            (integrator               )                        :: integrator_
+    class           (massDistributionSpherical   ), intent(inout), target   :: self
+    double precision                              , intent(in   )           :: radius
+    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    type            (integrator                  )                          :: integrator_
 
+    if (.not.self%matches(componentType,massType)) then
+       sphericalMassEnclosedBySphere=0.0d0
+       return
+    end if
     sphericalActive               =>  self
     integrator_                   =   integrator(sphericalMassEnclosedBySphereIntegrand,toleranceRelative=1.0d-6)
     sphericalMassEnclosedBySphere =  +4.0d0                              &
@@ -102,21 +108,23 @@ contains
     return
   end function sphericalMassEnclosedBySphereIntegrand
 
-  double precision function sphericalRadiusEnclosingMass(self,mass)
+  double precision function sphericalRadiusEnclosingMass(self,mass,componentType,massType)
     !!{
     Computes the radius enclosing a given mass in a spherically symmetric mass distribution using numerical root finding.
     !!}
     use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder, &
          &                     GSL_Root_fSolver_Brent
     implicit none
-    class           (massDistributionSpherical), intent(inout), target :: self
-    double precision                           , intent(in   )         :: mass
-    type            (rootFinder               ), save                  :: finder
-    logical                                    , save                  :: finderConstructed=.false.
+    class           (massDistributionSpherical   ), intent(inout), target   :: self
+    double precision                              , intent(in   )           :: mass
+    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    type            (rootFinder                  ), save                    :: finder
+    logical                                       , save                    :: finderConstructed=.false.
     !$omp threadprivate(finder,finderConstructed)
-    double precision                           , parameter             :: toleranceAbsolute=0.0d0  , toleranceRelative=1.0d-6
+    double precision                              , parameter               :: toleranceAbsolute=0.0d0  , toleranceRelative=1.0d-6
 
-    if (mass <= 0.0d0) then
+    if (mass <= 0.0d0 .or. .not.self%matches(componentType,massType)) then
        sphericalRadiusEnclosingMass=0.0d0
        return
     end if
@@ -140,13 +148,19 @@ contains
     return
   end function sphericalRadiusEnclosingMass
 
-  double precision function sphericalRadiusHalfMass(self)
+  double precision function sphericalRadiusHalfMass(self,componentType,massType)
     !!{
     Computes the half-mass radius of a spherically symmetric mass distribution using numerical root finding.
     !!}
     implicit none
-    class(massDistributionSpherical), intent(inout) :: self
+    class(massDistributionSpherical   ), intent(inout)           :: self
+    type (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type (enumerationMassTypeType     ), intent(in   ), optional :: massType
 
+    if (.not.self%matches(componentType,massType)) then
+       sphericalRadiusHalfMass=0.0d0
+       return
+    end if
     sphericalRadiusHalfMass=self%radiusEnclosingMass(0.5d0*self%massTotal())
     return
   end function sphericalRadiusHalfMass
@@ -163,7 +177,7 @@ contains
     return
   end function sphericalMassRoot
   
-  function sphericalAcceleration(self,coordinates)
+  function sphericalAcceleration(self,coordinates,componentType,massType)
     !!{
     Computes the gravitational acceleration at {\normalfont \ttfamily coordinates} for spherically-symmetric mass
     distributions.
@@ -172,14 +186,20 @@ contains
     use :: Numerical_Constants_Astronomical, only : gigaYear     , megaParsec         , gravitationalConstantGalacticus
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
-    double precision                           , dimension(3)  :: sphericalAcceleration
-    class           (massDistributionSpherical), intent(inout) :: self
-    class           (coordinate               ), intent(in   ) :: coordinates
-    type            (coordinateSpherical      )                :: coordinatesSpherical
-    type            (coordinateCartesian      )                :: coordinatesCartesian
-    double precision                                           :: radius
-    double precision                           , dimension(3)  :: positionCartesian
+    double precision                              , dimension(3)            :: sphericalAcceleration
+    class           (massDistributionSpherical   ), intent(inout)           :: self
+    class           (coordinate                  ), intent(in   )           :: coordinates
+    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    type            (coordinateSpherical         )                          :: coordinatesSpherical
+    type            (coordinateCartesian         )                          :: coordinatesCartesian
+    double precision                                                        :: radius
+    double precision                              , dimension(3)            :: positionCartesian
 
+    if (.not.self%matches(componentType,massType)) then
+       sphericalAcceleration=0.0d0
+       return
+    end if
     ! Get position in spherical and Cartesian coordinate systems.
     coordinatesSpherical=coordinates
     coordinatesCartesian=coordinates
@@ -198,7 +218,7 @@ contains
     return
   end function sphericalAcceleration
 
-  function sphericalTidalTensor(self,coordinates)
+  function sphericalTidalTensor(self,coordinates,componentType,massType)
     !!{
     Computes the gravitational tidal tensor at {\normalfont \ttfamily coordinates} for spherically-symmetric mass
     distributions.
@@ -206,19 +226,25 @@ contains
     use :: Coordinates                     , only : assignment(=)                  , coordinateSpherical, coordinateCartesian
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     use :: Numerical_Constants_Math        , only : Pi
-    use :: Tensors                         , only : tensorIdentityR2D3Sym          , assignment(=)      , operator(*)
+    use :: Tensors                         , only : tensorIdentityR2D3Sym          , tensorNullR2D3Sym   ,assignment(=)      , operator(*)
     use :: Vectors                         , only : Vector_Outer_Product
     implicit none
-    type            (tensorRank2Dimension3Symmetric)                :: sphericalTidalTensor
-    class           (massDistributionSpherical     ), intent(inout) :: self
-    class           (coordinate                    ), intent(in   ) :: coordinates
-    type            (coordinateSpherical           )                :: coordinatesSpherical
-    type            (coordinateCartesian           )                :: coordinatesCartesian
-    double precision                                                :: radius              , massEnclosed, &
-         &                                                             density
-    double precision                                , dimension(3)  :: positionCartesian
-    type            (tensorRank2Dimension3Symmetric)                :: positionTensor
+    type            (tensorRank2Dimension3Symmetric)                          :: sphericalTidalTensor
+    class           (massDistributionSpherical     ), intent(inout)           :: self
+    class           (coordinate                    ), intent(in   )           :: coordinates
+    type            (enumerationComponentTypeType  ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType       ), intent(in   ), optional :: massType
+    type            (coordinateSpherical           )                          :: coordinatesSpherical
+    type            (coordinateCartesian           )                          :: coordinatesCartesian
+    double precision                                                          :: radius              , massEnclosed, &
+         &                                                                       density
+    double precision                                , dimension(3)            :: positionCartesian
+    type            (tensorRank2Dimension3Symmetric)                          :: positionTensor
 
+    if (.not.self%matches(componentType,massType)) then
+       sphericalTidalTensor=tensorNullR2D3Sym
+       return
+    end if
     ! Get position in spherical and Cartesian coordinate systems.
     coordinatesSpherical=coordinates
     coordinatesCartesian=coordinates
@@ -239,18 +265,24 @@ contains
     return
   end function sphericalTidalTensor
   
-  function sphericalPositionSample(self,randomNumberGenerator_)
+  function sphericalPositionSample(self,randomNumberGenerator_,componentType,massType)
     !!{
     Computes the half-mass radius of a spherically symmetric mass distribution using numerical root finding.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    double precision                            , dimension(3)  :: sphericalPositionSample
-    class           (massDistributionSpherical ), intent(inout) :: self
-    class           (randomNumberGeneratorClass), intent(inout) :: randomNumberGenerator_
-    double precision                                            :: mass                   , radius, &
-         &                                                         theta                  , phi
+    double precision                              , dimension(3)            :: sphericalPositionSample
+    class           (massDistributionSpherical   ), intent(inout)           :: self
+    class           (randomNumberGeneratorClass  ), intent(inout)           :: randomNumberGenerator_
+    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    double precision                                                        :: mass                   , radius, &
+         &                                                                     theta                  , phi
 
+    if (.not.self%matches(componentType,massType)) then
+       sphericalPositionSample=0.0d0
+       return
+    end if
     ! Choose an enclosed mass and find the radius enclosing that mass. Choose angular
     ! coordinates at random and finally convert to Cartesian.
     mass  =+              self                  %massTotal          (    )        &

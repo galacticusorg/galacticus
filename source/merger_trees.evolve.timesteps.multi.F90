@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +22,7 @@
   !!}
 
   type, public :: multiMergerTreeEvolveTimestepList
-     class(mergerTreeEvolveTimestepClass    ), pointer :: mergerTreeEvolveTimestep_
+     class(mergerTreeEvolveTimestepClass    ), pointer :: mergerTreeEvolveTimestep_ => null()
      type (multiMergerTreeEvolveTimestepList), pointer :: next                      => null()
   end type multiMergerTreeEvolveTimestepList
 
@@ -151,7 +151,8 @@ contains
     procedure       (timestepTask                     )               , pointer           :: task_
     class           (*                                )               , pointer           :: taskSelf_
     type            (treeNode                         )               , pointer           :: lockNode_
-    type            (varying_string                   )                                   :: lockType_
+    type            (varying_string                   ), save                             :: lockType_
+    !$omp threadprivate(lockType_)
     double precision                                                                      :: timeEvolveTo
 
     multiTimeEvolveTo               =  huge(0.0d0)

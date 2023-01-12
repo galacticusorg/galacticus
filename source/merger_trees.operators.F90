@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -38,6 +38,18 @@ module Merger_Tree_Operators
     <pass>yes</pass>
     <code>
      !$GLC attributes unused :: self
+     ! Nothing to do.
+     return
+    </code>
+   </method>
+   <method name="operatePreInitialization" >
+    <description>Perform an operation on the merger tree prior to initialization.</description>
+    <type>void</type>
+    <pass>yes</pass>
+    <selfTarget>yes</selfTarget>
+    <argument>type(mergerTree), intent(inout), target :: tree</argument>
+    <code>
+     !$GLC attributes unused :: self, tree
      ! Nothing to do.
      return
     </code>

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -34,7 +34,7 @@
   ! Structure used to store list of nodes for deadlock reporting.
   type :: deadlockList
      type   (deadlockList  ), pointer :: next      => null()
-     type   (treeNode      ), pointer :: nodeLock           , node
+     type   (treeNode      ), pointer :: nodeLock  => null(), node => null()
      integer(kind=kind_int8)          :: treeIndex
      type   (varying_string)          :: lockType
   end type deadlockList

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -65,11 +65,18 @@ module Hot_Halo_Mass_Distributions
     <argument>double precision          , intent(in   )         :: radius</argument>
    </method>
    <method name="radialMoment" >
-    <description>Return the density of the hot halo at the given {\normalfont \ttfamily radius}.</description>
+    <description>Return the specified radial{\normalfont \ttfamily moment} of the density of the hot halo at the given {\normalfont \ttfamily radius}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type            (treeNode), intent(inout) :: node</argument>
     <argument>double precision          , intent(in   ) :: moment, radius</argument>
+   </method>
+   <method name="densitySquaredIntegral" >
+    <description>Return the integral of the square of the density of the hot halo from zero to the given {\normalfont \ttfamily radius}.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>type            (treeNode), intent(inout) :: node</argument>
+    <argument>double precision          , intent(in   ) :: radius</argument>
    </method>
    <method name="rotationNormalization" >
     <description>Returns the relation between specific angular momentum and rotation velocity (assuming a rotation velocity that is constant in radius) for {\normalfont \ttfamily node}. Specifically, the normalization, $A$, returned is such that $V_\mathrm{rot} = A J/M$.</description>
@@ -258,7 +265,7 @@ module Hot_Halo_Mass_Distributions
     double precision                              , parameter                   :: XvMaximum                                    =10.0d0
     double precision                                                            :: radius                                              , velocity         , &
          &                                                                         density                                             , xV
-    !$GLC attributes unused :: radiusHalfMass
+    !$GLC attributes unused :: radiusHalfMass, nodeSatellite
     
     radius                                      = sqrt(sum(positionCartesian**2))
     velocity                                    = sqrt(sum(velocityCartesian**2))

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -63,18 +63,19 @@ contains
     return
   end function zeroConstructorParameters
 
-  subroutine zeroRates(self,lengthColumn,temperature,chemicalDensity,radiation,chemicalRates,node)
+  subroutine zeroRates(self,lengthColumn,temperature,chemicalDensity,factorClumping,radiation,chemicalRates,node)
     !!{
     Return zero rates of chemical reactions.
     !!}
     implicit none
     class           (chemicalReactionRateZero), intent(inout), target :: self
     type            (chemicalAbundances      ), intent(in   )         :: chemicalDensity
-    double precision                          , intent(in   )         :: lengthColumn   , temperature
+    double precision                          , intent(in   )         :: lengthColumn   , temperature, &
+         &                                                               factorClumping
     class           (radiationFieldClass     ), intent(inout)         :: radiation
     type            (chemicalAbundances      ), intent(inout)         :: chemicalRates
     type            (treeNode                ), intent(inout)         :: node
-    !$GLC attributes unused :: self, chemicalDensity, lengthColumn, temperature, radiation, node
+    !$GLC attributes unused :: self, chemicalDensity, lengthColumn, temperature, factorClumping, radiation, node
 
     call chemicalRates%reset()
     return

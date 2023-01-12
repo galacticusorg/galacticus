@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -105,7 +105,7 @@ contains
     </inputParameter>
     !!]
     ! Validate the input.
-    if (self%HubbleConstant_ <= 0.0d0)                                                                                                       &
+    if (HubbleConstant <= 0.0d0)                                                                                                                 &
          & call Warn(displayMagenta()//"WARNING:"//displayReset()//" H₀ ≤ 0 - are you sure this is what you wanted? "//{introspection:location})
     self=cosmologyParametersSimple(OmegaMatter,OmegaBaryon,OmegaDarkEnergy,temperatureCMB,HubbleConstant)
     !![

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +22,7 @@ Implements a stellar population spectra postprocessor class which applies a sequ
 !!}
 
   type, public :: postprocessorList
-     class(stellarPopulationSpectraPostprocessorClass), pointer :: postprocessor_
+     class(stellarPopulationSpectraPostprocessorClass), pointer :: postprocessor_ => null()
      type (postprocessorList                         ), pointer :: next           => null()
   end type postprocessorList
 

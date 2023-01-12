@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -201,6 +201,8 @@ contains
     propertyCount=elementsCount+1
     ! If tracking elements, read names of which ones to track.
     if (elementsCount > 0) then
+       if (allocated(elementsToTrack)) deallocate(elementsToTrack)
+       if (allocated(elementsIndices)) deallocate(elementsIndices)
        allocate(elementsToTrack(elementsCount))
        allocate(elementsIndices(elementsCount))
        !![

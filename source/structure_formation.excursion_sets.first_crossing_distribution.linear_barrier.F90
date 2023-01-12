@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -41,8 +41,10 @@ Contains a module which implements a excursion set first crossing statistics cla
      A linearBarrier excursion set barrier class.
      !!}
      private
-     class(excursionSetBarrierClass     ), pointer :: excursionSetBarrier_      => null()
-     class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
+     class           (excursionSetBarrierClass     ), pointer :: excursionSetBarrier_      => null()
+     class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
+     ! The fractional step in time used to compute barrier crossing rates.
+     double precision                                         :: fractionalTimeStep
    contains
      final     ::                    linearBarrierDestructor
      procedure :: probability     => linearBarrierProbability
@@ -66,16 +68,23 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type (excursionSetFirstCrossingLinearBarrier)                :: self
-    type (inputParameters                       ), intent(inout) :: parameters
-    class(excursionSetBarrierClass              ), pointer       :: excursionSetBarrier_
-    class(cosmologicalMassVarianceClass         ), pointer       :: cosmologicalMassVariance_
+    type            (excursionSetFirstCrossingLinearBarrier)                :: self
+    type            (inputParameters                       ), intent(inout) :: parameters
+    class           (excursionSetBarrierClass              ), pointer       :: excursionSetBarrier_
+    class           (cosmologicalMassVarianceClass         ), pointer       :: cosmologicalMassVariance_
+    double precision                                                        :: fractionalTimeStep
 
     !![
+    <inputParameter>
+      <name>fractionalTimeStep</name>
+      <defaultValue>0.01d0</defaultValue>
+      <source>parameters</source>
+      <description>The fractional time step used when computing barrier crossing rates (i.e. the step used in finite difference calculations).</description>
+    </inputParameter>
     <objectBuilder class="excursionSetBarrier"      name="excursionSetBarrier_"      source="parameters"/>
     <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     !!]
-    self=excursionSetFirstCrossingLinearBarrier(excursionSetBarrier_,cosmologicalMassVariance_)
+    self=excursionSetFirstCrossingLinearBarrier(fractionalTimeStep,excursionSetBarrier_,cosmologicalMassVariance_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="excursionSetBarrier_"     />
@@ -84,16 +93,17 @@ contains
     return
   end function linearBarrierConstructorParameters
 
-  function linearBarrierConstructorInternal(excursionSetBarrier_,cosmologicalMassVariance_) result(self)
+  function linearBarrierConstructorInternal(fractionalTimeStep,excursionSetBarrier_,cosmologicalMassVariance_) result(self)
     !!{
     Constructor for the linear barrier excursion set class first crossing class which takes a parameter set as input.
     !!}
     implicit none
-    type (excursionSetFirstCrossingLinearBarrier)                        :: self
-    class(excursionSetBarrierClass              ), intent(in   ), target :: excursionSetBarrier_
-    class(cosmologicalMassVarianceClass         ), intent(in   ), target :: cosmologicalMassVariance_
+    type            (excursionSetFirstCrossingLinearBarrier)                        :: self
+    double precision                                        , intent(in   )         :: fractionalTimeStep
+    class           (excursionSetBarrierClass              ), intent(in   ), target :: excursionSetBarrier_
+    class           (cosmologicalMassVarianceClass         ), intent(in   ), target :: cosmologicalMassVariance_
     !![
-    <constructorAssign variables="*excursionSetBarrier_, *cosmologicalMassVariance_"/>
+    <constructorAssign variables="fractionalTimeStep, *excursionSetBarrier_, *cosmologicalMassVariance_"/>
     !!]
 
     return
@@ -148,7 +158,6 @@ contains
     double precision                                        , intent(in   ) :: variance                   , varianceProgenitor, &
          &                                                                     time
     type            (treeNode                              ), intent(inout) :: node
-    double precision                                        , parameter     :: fractionalTimeChange=1.0d-3
     double precision                                                        :: timeProgenitor             , massProgenitor    , &
          &                                                                     growthFactorEffective
 
@@ -163,10 +172,10 @@ contains
        !   account for the fact that, at a fixed mass, the root variance will be smaller at that earlier time. Since the solution
        !   to the excursion set problem must always be a function of δc(M,t)/√S(M,t) then we can simply scale δc by the ratio of
        !   root-variances for the progenitor at the current and earlier times.
-       timeProgenitor       =+time*(1.0d0-fractionalTimeChange)
-       massProgenitor       =+self%cosmologicalMassVariance_%mass        (varianceProgenitor,time          )
-       growthFactorEffective=+self%cosmologicalMassVariance_%rootVariance(    massProgenitor,time          ) &
-            &                /self%cosmologicalMassVariance_%rootVariance(    massProgenitor,timeProgenitor)
+       timeProgenitor       =+time*(1.0d0-self%fractionalTimeStep)
+       massProgenitor       =+self%cosmologicalMassVariance_%mass        (sqrt(varianceProgenitor),time          )
+       growthFactorEffective=+self%cosmologicalMassVariance_%rootVariance(         massProgenitor ,time          ) &
+            &                /self%cosmologicalMassVariance_%rootVariance(         massProgenitor ,timeProgenitor)
        linearBarrierRate    =+     barrierEffective(variance,time,variance          ,timeProgenitor)    &
             &                *exp(                                                                      &
             &                     -0.5d0                                                                &
@@ -180,7 +189,7 @@ contains
             &                      *(+varianceProgenitor-variance)                                      &
             &                     )                                                                     &
             &                /time                                                                      &
-            &                /fractionalTimeChange
+            &                /self%fractionalTimeStep
        linearBarrierRate    =max(                   &
             &                    linearBarrierRate, &
             &                    0.0d0              &
@@ -205,18 +214,46 @@ contains
 
   end function linearBarrierRate
 
-  double precision function linearBarrierRateNonCrossing(self,variance,time,node)
+  double precision function linearBarrierRateNonCrossing(self,variance,massMinimum,time,node)
     !!{
-    Return the rate for excursion set non-crossing assuming a linearBarrier barrier. For a linearBarrier barrier the integral over the
-    crossing probability (from zero to infinite variance) equals unity, so all trajectories cross. The non-crossing rate is
-    therefore zero.
+    Return the rate for excursion set non-crossing assuming a linear barrier.
     !!}
+    use :: Error_Functions, only : Error_Function
     implicit none
     class           (excursionSetFirstCrossingLinearBarrier), intent(inout) :: self
-    double precision                                        , intent(in   ) :: time, variance
+    double precision                                        , intent(in   ) :: time                           , variance                    , &
+         &                                                                     massMinimum
     type            (treeNode                              ), intent(inout) :: node
-    !$GLC attributes unused :: self, time, variance, node
+    double precision                                                        :: varianceMaximum                , timeProgenitor              , &
+         &                                                                     growthFactorEffective          , barrierEffectiveZeroVariance, &
+         &                                                                     barrierEffectiveMaximumVariance, barrierEffectiveGradient    , &
+         &                                                                     varianceDifference
 
-    linearBarrierRateNonCrossing=0.0d0
+    varianceMaximum=self%cosmologicalMassVariance_%rootVariance(massMinimum,time)**2
+    if (variance < varianceMaximum) then
+       timeProgenitor                 =+time*(1.0d0-self%fractionalTimeStep)
+       growthFactorEffective          =+self%cosmologicalMassVariance_%rootVariance(         massMinimum ,time          ) &
+            &                          /self%cosmologicalMassVariance_%rootVariance(         massMinimum ,timeProgenitor)
+       barrierEffectiveZeroVariance   =+self%excursionSetBarrier_%barrier        (variance       ,timeProgenitor,node,rateCompute=.false.)*growthFactorEffective &
+            &                          -self%excursionSetBarrier_%barrier        (variance       ,time          ,node,rateCompute=.false.)
+       barrierEffectiveMaximumVariance=+self%excursionSetBarrier_%barrier        (varianceMaximum,timeProgenitor,node,rateCompute=.false.)*growthFactorEffective &
+            &                          -self%excursionSetBarrier_%barrier        (variance       ,time          ,node,rateCompute=.false.)
+       barrierEffectiveGradient       =+self%excursionSetBarrier_%barrierGradient(varianceMaximum,timeProgenitor,node,rateCompute=.false.)*growthFactorEffective
+       varianceDifference             =+varianceMaximum-variance
+       linearBarrierRateNonCrossing   =+0.5d0                                                                                                                 &
+            &                          *(                                                                                                                     &
+            &                            +1.0d0                                                                                                               &
+            &                            -exp(-2.0d0*barrierEffectiveZeroVariance*barrierEffectiveGradient)                                                   &
+            &                            +Error_Function(                                    barrierEffectiveMaximumVariance /sqrt(2.0d0*varianceDifference)) &
+            &                            +exp(-2.0d0*barrierEffectiveZeroVariance*barrierEffectiveGradient)                                                   &
+            &                            *Error_Function((2.0d0*barrierEffectiveZeroVariance-barrierEffectiveMaximumVariance)/sqrt(2.0d0*varianceDifference)) &
+            &                           )                                                                                                                     &
+            &                          /time                                                                                                                  &
+            &                          /self%fractionalTimeStep
+    else
+       linearBarrierRateNonCrossing   =+1.0d0                   &
+            &                          /time                    &
+            &                          /self%fractionalTimeStep
+    end if
     return
   end function linearBarrierRateNonCrossing

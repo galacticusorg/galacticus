@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -45,6 +45,7 @@ module Chemical_Reaction_Rates
     <selfTarget>yes</selfTarget>
     <argument>double precision                     , intent(in   ) :: lengthColumn   , temperature</argument>
     <argument>type            (chemicalAbundances ), intent(in   ) :: chemicalDensity             </argument>
+    <argument>double precision                     , intent(in   ) :: factorClumping              </argument>
     <argument>class           (radiationFieldClass), intent(inout) :: radiation                   </argument>
     <argument>type            (chemicalAbundances ), intent(inout) :: chemicalRates               </argument>
     <argument>type            (treeNode           ), intent(inout) :: node                        </argument>

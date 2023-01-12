@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -123,7 +123,7 @@ program Tests_Excursion_Sets
        &                                                                                                                       powerSpectrumPrimordialTransferred_    =powerSpectrumPrimordialTransferredSimple_                     , &
        &                                                                                                                       powerSpectrumWindowFunction_           =powerSpectrumWindowFunctionSharpKSpace_                         &
        &                                                                                                                      )
-  criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_=criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt(                                                                                                        &
+  criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_=criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt(                                                                                                          &
        &                                                                                                                       linearGrowth_                          =linearGrowthCollisionlessMatter_                              , &
        &                                                                                                                       cosmologyFunctions_                    =cosmologyFunctionsMatterLambda_                               , &
        &                                                                                                                       cosmologicalMassVariance_              =cosmologicalMassVarianceFilteredPower_                        , &
@@ -131,31 +131,36 @@ program Tests_Excursion_Sets
        &                                                                                                                       tableStore                             =.true.                                                          &
        &                                                                                                                      )
   excursionSetBarrierCriticalOverdensity_                       =excursionSetBarrierCriticalOverdensity                       (                                                                                                        &
-       &                                                                                                                       criticalOverdensity_                   =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_, &
+       &                                                                                                                       criticalOverdensity_                   =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_,  &
        &                                                                                                                       cosmologicalMassVariance_              =cosmologicalMassVarianceFilteredPower_                          &
        &                                                                                                                      )
   excursionSetFirstCrossingLinearBarrier_                       =excursionSetFirstCrossingLinearBarrier                       (                                                                                                        &
+       &                                                                                                                       fractionalTimeStep                     =0.01d0                                                        , &
        &                                                                                                                       excursionSetBarrier_                   =excursionSetBarrierCriticalOverdensity_                       , &
        &                                                                                                                       cosmologicalMassVariance_              =cosmologicalMassVarianceFilteredPower_                          &
        &                                                                                                                      )
   excursionSetFirstCrossingFarahiMidpoint_                      =excursionSetFirstCrossingFarahiMidpoint                      (                                                                                                        &
-       &                                                                                                                       timeStepFractional                     =0.01d0                                                        , &
+       &                                                                                                                       fractionalTimeStep                     =0.01d0                                                        , &
        &                                                                                                                       fileName                               =var_str("auto")                                               , &
        &                                                                                                                       varianceNumberPerUnitProbability       =1000                                                          , &
        &                                                                                                                       varianceNumberPerUnit                  =  32                                                          , &
        &                                                                                                                       varianceNumberPerDecade                =  64                                                          , &
+       &                                                                                                                       varianceNumberPerDecadeNonCrossing     =   8                                                         , &
+       &                                                                                                                       varianceIsUnlimited                    =.true.                                                        , &
        &                                                                                                                       timeNumberPerDecade                    =  10                                                          , &
        &                                                                                                                       cosmologyFunctions_                    =cosmologyFunctionsMatterLambda_                               , &
        &                                                                                                                       excursionSetBarrier_                   =excursionSetBarrierCriticalOverdensity_                       , &
        &                                                                                                                       cosmologicalMassVariance_              =cosmologicalMassVarianceFilteredPower_                          &
        &                                                                                                                      )
   excursionSetFirstCrossingFarahi_                              =excursionSetFirstCrossingFarahi                              (                                                                                                        &
-       &                                                                                                                       timeStepFractional                     =0.01d0                                                        , &
+       &                                                                                                                       fractionalTimeStep                     =0.01d0                                                        , &
        &                                                                                                                       fileName                               =var_str("auto")                                               , &
        &                                                                                                                       varianceNumberPerUnitProbability       =1000                                                          , &
        &                                                                                                                       varianceNumberPerUnit                  =  32                                                          , &
        &                                                                                                                       varianceNumberPerDecade                =  64                                                          , &
+       &                                                                                                                       varianceNumberPerDecadeNonCrossing     =   8                                                          , &
        &                                                                                                                       timeNumberPerDecade                    =  10                                                          , &
+       &                                                                                                                       varianceIsUnlimited                    =.true.                                                        , &
        &                                                                                                                       cosmologyFunctions_                    =cosmologyFunctionsMatterLambda_                               , &
        &                                                                                                                       excursionSetBarrier_                   =excursionSetBarrierCriticalOverdensity_                       , &
        &                                                                                                                       cosmologicalMassVariance_              =cosmologicalMassVarianceFilteredPower_                          &

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -74,7 +74,7 @@ module Error
   ! Type used to accumulate warning messages.
   type :: warning
      type(varying_string)          :: message
-     type(warning       ), pointer :: next
+     type(warning       ), pointer :: next    => null()
   end type warning
 
   ! Record of warnings.

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -24,7 +24,7 @@
   use :: Hashes, only : doubleHash
 
   type, public :: multiExtractorList
-     class(nodePropertyExtractorClass), pointer :: extractor_
+     class(nodePropertyExtractorClass), pointer :: extractor_ => null()
      type (multiExtractorList        ), pointer :: next       => null()
   end type multiExtractorList
 

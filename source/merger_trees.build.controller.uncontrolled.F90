@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -31,8 +31,12 @@ Contains a module which implements a merger tree build controller class which pr
      A merger tree build controller class which provides no control.
      !!}
      private
-  contains
-     procedure :: control => controlUncontrolled
+     class(mergerTreeBranchingProbabilityClass), pointer :: mergerTreeBranchingProbability_ => null()
+   contains
+     final     ::                               uncontrolledDestructor
+     procedure :: control                    => uncontrolledControl
+     procedure :: branchingProbabilityObject => uncontrolledBranchingProbabilityObject
+     procedure :: nodesInserted              => uncontrolledNodesInserted
   end type mergerTreeBuildControllerUncontrolled
 
   interface mergerTreeBuildControllerUncontrolled
@@ -40,6 +44,7 @@ Contains a module which implements a merger tree build controller class which pr
      Constructors for the ``uncontrolled'' merger tree build controller class.
      !!}
      module procedure uncontrolledConstructorParameters
+     module procedure uncontrolledConstructorInternal
   end interface mergerTreeBuildControllerUncontrolled
 
 contains
@@ -50,19 +55,51 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type(mergerTreeBuildControllerUncontrolled)                :: self
-    type(inputParameters                      ), intent(inout) :: parameters
-    
-    self=mergerTreeBuildControllerUncontrolled()
+    type (mergerTreeBuildControllerUncontrolled)                :: self
+    type (inputParameters                      ), intent(inout) :: parameters
+    class(mergerTreeBranchingProbabilityClass  ), pointer       :: mergerTreeBranchingProbability_
+
+    !![
+    <objectBuilder class="mergerTreeBranchingProbability" name="mergerTreeBranchingProbability_" source="parameters"/>
+    !!]
+    self=mergerTreeBuildControllerUncontrolled(mergerTreeBranchingProbability_)
     !![
     <inputParametersValidate source="parameters"/>
+    <objectDestructor name="mergerTreeBranchingProbability_"/>
     !!]
     return
   end function uncontrolledConstructorParameters
 
-  logical function controlUncontrolled(self,node,treeWalker_)
+  function uncontrolledConstructorInternal(mergerTreeBranchingProbability_) result(self)
     !!{
-    Apply a set of filters to a {\normalfont \ttfamily tree} combined with ``all'' operations.
+    Internal constructor for the ``uncontrolled'' merger tree build controller class .
+    !!}
+    implicit none
+    type (mergerTreeBuildControllerUncontrolled)                     :: self
+    class(mergerTreeBranchingProbabilityClass  ), intent(in), target :: mergerTreeBranchingProbability_
+    !![
+    <constructorAssign variables="*mergerTreeBranchingProbability_"/>
+    !!]
+    
+    return
+  end function uncontrolledConstructorInternal
+
+  subroutine uncontrolledDestructor(self)
+    !!{
+    Destructor for the {\normalfont \ttfamily uncontrolled} merger tree build controller class.
+    !!}
+    implicit none
+    type(mergerTreeBuildControllerUncontrolled), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%mergerTreeBranchingProbability_"/>
+    !!]
+    return
+  end subroutine uncontrolledDestructor
+
+  logical function uncontrolledControl(self,node,treeWalker_)
+    !!{
+    Apply control to merger tree building.
     !!}
     implicit none
     class(mergerTreeBuildControllerUncontrolled), intent(inout)          :: self
@@ -71,6 +108,34 @@ contains
     !$GLC attributes unused :: self, node, treeWalker_
 
     ! Always return true as we never want to halt tree building.
-    controlUncontrolled=.true.
+    uncontrolledControl=.true.
     return
-  end function controlUncontrolled
+  end function uncontrolledControl
+
+  function uncontrolledBranchingProbabilityObject(self,node) result(mergerTreeBranchingProbability_)
+    !!{
+    Return a pointer the the merger tree branching probability object to use.
+    !!}
+    implicit none
+    class(mergerTreeBranchingProbabilityClass  ), pointer       :: mergerTreeBranchingProbability_
+    class(mergerTreeBuildControllerUncontrolled), intent(inout) :: self
+    type (treeNode                             ), intent(inout) :: node
+    !$GLC attributes unused :: node
+
+    mergerTreeBranchingProbability_ => self%mergerTreeBranchingProbability_
+    return
+  end function uncontrolledBranchingProbabilityObject
+
+  subroutine uncontrolledNodesInserted(self,nodeCurrent,nodeProgenitor1,nodeProgenitor2)
+    !!{
+    Act on the insertion of nodes into the merger tree.
+    !!}
+    implicit none
+    class(mergerTreeBuildControllerUncontrolled), intent(inout)           :: self
+    type (treeNode                             ), intent(inout)           :: nodeCurrent     , nodeProgenitor1
+    type (treeNode                             ), intent(inout), optional :: nodeProgenitor2
+    !$GLC attributes unused :: self, nodeCurrent, nodeProgenitor1, nodeProgenitor2
+
+    ! Nothing to do.
+    return
+  end subroutine uncontrolledNodesInserted
