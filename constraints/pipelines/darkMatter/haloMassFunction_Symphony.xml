@@ -20,12 +20,9 @@
   <!-- Halo mass function -->
   <haloMassFunction value="errorConvolved">
     <errorFractionalMaximum value="1.0e+0"/>
-    <toleranceRelative      value="1.0e-5"/>
-    <haloMassFunction value="shethTormenPlus">
+    <toleranceRelative      value="3.0e-4"/>
+    <haloMassFunction value="bhattacharya2011">
       <a             value="=[haloMassFunctionParameters::a]"            />
-      <b             value="=[haloMassFunctionParameters::b]"            />
-      <c             value="=[haloMassFunctionParameters::c]"            />
-      <d             value="=[haloMassFunctionParameters::d]"            />
       <p             value="=[haloMassFunctionParameters::p]"            />
       <q             value="=[haloMassFunctionParameters::q]"            />
       <normalization value="=[haloMassFunctionParameters::normalization]"/>

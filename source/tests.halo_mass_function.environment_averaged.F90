@@ -206,6 +206,7 @@ program Tests_Halo_Mass_Function_Environmental_Average
   <referenceConstruct object="cosmologicalMassVarianceConditioned_" >
    <constructor>
     cosmologicalMassVariancePeakBackgroundSplit                 (                                                                           &amp;
+     &amp;                                                       factorMassEnvironment              =1.0d0                                , &amp;
      &amp;                                                       haloEnvironment_                   =haloEnvironment_                     , &amp;
      &amp;                                                       cosmologicalMassVariance_          =cosmologicalMassVariance_            , &amp;
      &amp;                                                       cosmologyParameters_               =cosmologyParameters_                 , &amp;

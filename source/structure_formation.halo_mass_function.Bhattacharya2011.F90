@@ -182,6 +182,10 @@ contains
          &                    +self%criticalOverdensity_%value(time=time,mass=mass,node=node) &
          &                    /massVariance                                                   &
          &                   )**2
+    if (nu <= 0.0d0) then
+       bhattacharya2011Differential=0.0d0
+       return
+    end if
     nuPrime                =+self%a(time,mass)                                                &
          &                  *nu
     alpha                  =+abs(self%cosmologicalMassVariance_%rootVarianceLogarithmicGradient(mass,time))

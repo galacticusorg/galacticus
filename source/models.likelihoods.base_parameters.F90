@@ -81,6 +81,14 @@ contains
     if (.not.allocated(self%modelParametersActive_)) then
        allocate(self%modelParametersActive_(size(modelParametersActive_)))
        do i=1,size(modelParametersActive_)
+          ! Check for duplicated parameters.
+          do j=1,size(modelParametersActive_)
+             if     (                                                                                                                                                &
+                  &   modelParametersActive_(i)%modelParameter_%name() == modelParametersActive_(j)%modelParameter_%name()                                           &
+                  &  .and.                                                                                                                                           &
+                  &                          i                         /=                        j                                                                   &
+                  & ) call Error_Report("duplicated active parameter name '"//char(modelParametersActive_(i)%modelParameter_%name())//"'"//{introspection:location})
+          end do
           parameterCount=String_Count_Words(char(modelParametersActive_(i)%modelParameter_%name()),"::")
           allocate(parameterNames(parameterCount))
           call String_Split_Words(parameterNames,char(modelParametersActive_(i)%modelParameter_%name()),"::")
@@ -115,6 +123,14 @@ contains
     if (.not.allocated(self%modelParametersInactive_)) then
        allocate(self%modelParametersInactive_(size(modelParametersInactive_)))
        do i=1,size(modelParametersInactive_)
+          ! Check for duplicated parameters.
+          do j=1,size(modelParametersInactive_)
+             if     (                                                                                                                                                  &
+                  &   modelParametersInactive_(i)%modelParameter_%name() == modelParametersInactive_(j)%modelParameter_%name()                                         &
+                  &  .and.                                                                                                                                             &
+                  &                            i                         /=                          j                                                                 &
+                  & ) call Error_Report("duplicated active parameter name '"//char(modelParametersInactive_(i)%modelParameter_%name())//"'"//{introspection:location})
+          end do
           parameterCount=String_Count_Words(char(modelParametersInactive_(i)%modelParameter_%name()),"::")
           allocate(parameterNames(parameterCount))
           call String_Split_Words(parameterNames,char(modelParametersInactive_(i)%modelParameter_%name()),"::")

@@ -26,17 +26,19 @@
       <running             value="0.000"/>
     </powerSpectrumPrimordial>
   </powerSpectrumPrimordial>
-  <powerSpectrumWindowFunction value="ETHOS">
-    <cW   value="=[haloMassFunctionParameters::cW]"  />
+  <powerSpectrumWindowFunction value="hyperbolicTangent">
+    <c    value="=[haloMassFunctionParameters::cW]"  />
     <beta value="=[haloMassFunctionParameters::beta]"/>
   </powerSpectrumWindowFunction>
   <cosmologicalMassVariance value="filteredPower">
     <!-- Normalize to a reference power spectrum at small scales because the actual power spectrum we used excludes modes which do
          not fit into the cosmological box. Normalizing that power spectrum would result in too much power on small scales to
          compensate. -->
-    <tolerance           value="4.0e-4"/>
-    <toleranceTopHat     value="2.0e-4"/>
-    <wavenumberReference value="1.0e+2"/>
+    <tolerance              value="4.0e-4"/>
+    <toleranceTopHat        value="2.0e-4"/>
+    <nonMonotonicIsFatal    value="false" />
+    <monotonicInterpolation value="true"  />
+    <wavenumberReference    value="1.0e+2"/>
     <reference value="N/A">
       <powerSpectrumPrimordial value="powerLaw">
 	<!-- MDPL simulation power spectrum; https://www.cosmosim.org/cms/simulations/mdpl -->
@@ -45,19 +47,19 @@
 	<running             value="0.000"/>
       </powerSpectrumPrimordial>
       <powerSpectrumPrimordialTransferred value="simple" />
-      <powerSpectrumWindowFunction value="ETHOS">
-	<cW   value="=[haloMassFunctionParameters::cW]"  />
+      <powerSpectrumWindowFunction value="hyperbolicTangent">
+	<c    value="=[haloMassFunctionParameters::cW]"  />
 	<beta value="=[haloMassFunctionParameters::beta]"/>
       </powerSpectrumWindowFunction>
       <cosmologicalMassVariance value="filteredPower">
 	<!-- MDPL simulation power spectrum; https://www.cosmosim.org/cms/simulations/mdpl -->
-	<sigma_8 value="0.8228" />
-	<tolerance value="4.0e-4" />
-	<toleranceTopHat value="2.0e-4" />
-        <nonMonotonicIsFatal value="false"/>
+	<sigma_8                value="0.8228"/>
+	<tolerance              value="4.0e-4"/>
+	<toleranceTopHat        value="2.0e-4"/>
+        <nonMonotonicIsFatal    value="false" />
+	<monotonicInterpolation value="true"  />
       </cosmologicalMassVariance>
     </reference>
-    <nonMonotonicIsFatal value="false"/>
   </cosmologicalMassVariance>
   <transferFunction value="CAMB"/>
   <powerSpectrumPrimordialTransferred value="simple"/>

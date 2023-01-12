@@ -292,7 +292,7 @@ contains
     call fileObject%openFile(char(File_Name_Expand(fileName)),readOnly=.true.)
     ! Check that the file has the correct format version number.
     call fileObject%readAttribute('fileFormat',versionNumber,allowPseudoScalar=.true.)
-    if (versionNumber /= fileFormatVersionCurrent) call Error_Report('file has the incorrect version number'//{introspection:location})
+    if (versionNumber /= fileFormatVersionCurrent) call Error_Report("file '"//char(File_Name_Expand(fileName))//"' has the incorrect version number"//{introspection:location})
     ! Check that parameters match if any are present.
     parametersObject=fileObject%openGroup('parameters')
     allocate(cosmologyParametersSimple :: cosmologyParametersFile)

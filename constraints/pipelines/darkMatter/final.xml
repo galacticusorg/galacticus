@@ -3,10 +3,11 @@
   <darkMatterProfileScaleVirialTheoremMassExponent value="2.16840998565309" />
   <darkMatterProfileScaleVirialTheoremUnresolvedEnergy value="+0.5500" />
   <outputFileName value="/data001/abenson/Galacticus/galacticus_dmConstraintPipeline/pipeline/final.hdf5" />
-  <haloMassFunction value="shethTormen">
+  <haloMassFunction value="bhattacharya2011">
     <a value="0.758359488694975" />
     <normalization value="0.289897200615808" />
     <p value="0.331118219117848" />
+    <q value="0.331118219117848" />
   </haloMassFunction>
   <mergerTreeBranchingProbability value="PCHPlus">
     <G0 value="1.14254683789855" />

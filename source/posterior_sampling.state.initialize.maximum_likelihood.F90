@@ -126,7 +126,8 @@ contains
     allocate(stateVectorMapped(simulationState%dimension()))
     ! Read state from the log files.
     do i=0,mpiSelf%count()-1
-       logFileName=self%logFileRoot//'_'//i//'.log'
+       write (labelValue,'(i4.4)') i
+       logFileName=self%logFileRoot//'_'//trim(labelValue)//'.log'
        open(newunit=logFileUnit,file=char(logFileName),status='unknown',form='formatted')
        ioStatus=0
        do while (ioStatus == 0)

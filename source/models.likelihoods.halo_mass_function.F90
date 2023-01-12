@@ -34,13 +34,13 @@
      !!}
      private
      class           (cosmologyFunctionsClass), pointer                     :: cosmologyFunctions_ => null()
-     double precision                         , dimension(:  ), allocatable :: mass                         , massFunction, &
+     double precision                         , dimension(:  ), allocatable :: mass                         , massFunction    , &
           &                                                                    massMinimum                  , massMaximum
      double precision                         , dimension(:,:), allocatable :: covarianceMatrix
      integer         (c_size_t               ), dimension(:  ), allocatable :: countHalos
-     double precision                                                       :: time                         , massParticle, &
-          &                                                                    massRangeMinimum             , redshift    , &
-          &                                                                    countConversionFactor
+     double precision                                                       :: time                         , massParticle    , &
+          &                                                                    massRangeMinimum             , massRangeMaximum, &
+          &                                                                    countConversionFactor        , redshift
      logical                                                                :: likelihoodPoisson
      integer                                                                :: binCountMinimum
      type            (vector                 )                              :: means
@@ -72,7 +72,8 @@ contains
     type            (posteriorSampleLikelihoodHaloMassFunction)                :: self
     type            (inputParameters                          ), intent(inout) :: parameters
     type            (varying_string                           )                :: fileName           , baseParametersFileName
-    double precision                                                           :: redshift           , massRangeMinimum
+    double precision                                                           :: redshift           , massRangeMinimum      , &
+         &                                                                        massRangeMaximum
     integer                                                                    :: binCountMinimum
     logical                                                                    :: likelihoodPoisson
     type            (inputParameters                          ), pointer       :: parametersModel
@@ -100,6 +101,12 @@ contains
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
+      <name>massRangeMaximum</name>
+      <description>The maximum halo mass to include in the likelihood evaluation.</description>
+      <source>parameters</source>
+      <defaultValue>huge(0.0d0)</defaultValue>
+    </inputParameter>
+    <inputParameter>
       <name>binCountMinimum</name>
       <description>The minimum number of halos per bin required to permit bin to be included in likelihood evaluation.</description>
       <source>parameters</source>
@@ -116,7 +123,7 @@ contains
     !![
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parametersModel"/>
     !!]
-    self           =posteriorSampleLikelihoodHaloMassFunction(char(fileName),redshift,massRangeMinimum,binCountMinimum,likelihoodPoisson,parametersModel,cosmologyFunctions_)
+    self           =posteriorSampleLikelihoodHaloMassFunction(char(fileName),redshift,massRangeMinimum,massRangeMaximum,binCountMinimum,likelihoodPoisson,parametersModel,cosmologyFunctions_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"/>
@@ -125,7 +132,7 @@ contains
     return
   end function haloMassFunctionConstructorParameters
 
-  function haloMassFunctionConstructorInternal(fileName,redshift,massRangeMinimum,binCountMinimum,likelihoodPoisson,parametersModel,cosmologyFunctions_) result(self)
+  function haloMassFunctionConstructorInternal(fileName,redshift,massRangeMinimum,massRangeMaximum,binCountMinimum,likelihoodPoisson,parametersModel,cosmologyFunctions_) result(self)
     !!{
     Constructor for ``haloMassFunction'' posterior sampling likelihood class.
     !!}
@@ -138,7 +145,8 @@ contains
     implicit none
     type            (posteriorSampleLikelihoodHaloMassFunction)                                :: self
     character       (len=*                                    ), intent(in   )                 :: fileName
-    double precision                                           , intent(in   )                 :: redshift                      , massRangeMinimum
+    double precision                                           , intent(in   )                 :: redshift                      , massRangeMinimum , &
+         &                                                                                        massRangeMaximum
     integer                                                    , intent(in   )                 :: binCountMinimum
     logical                                                    , intent(in   )                 :: likelihoodPoisson
     type            (inputParameters                          ), intent(inout), target         :: parametersModel
@@ -156,7 +164,7 @@ contains
     type            (matrix                                   )                                :: eigenVectors
     type            (vector                                   )                                :: eigenValues
     !![
-    <constructorAssign variables="fileName, redshift, binCountMinimum, massRangeMinimum, likelihoodPoisson, *parametersModel, *cosmologyFunctions_"/>
+    <constructorAssign variables="fileName, redshift, binCountMinimum, massRangeMinimum, massRangeMaximum, likelihoodPoisson, *parametersModel, *cosmologyFunctions_"/>
     !!]
 
     ! Convert redshift to time.
@@ -181,7 +189,11 @@ contains
        ! Find a reduced mass function excluding bins below the mass threshold
        massCountReduced=0
        do i=1,size(massOriginal)       
-          if (massOriginal(i) < massRangeMinimum) cycle
+          if     (                                    &
+               &   massOriginal(i) < massRangeMinimum &
+               &  .or.                                &
+               &   massOriginal(i) > massRangeMaximum &
+               & ) cycle
           massCountReduced=massCountReduced+1
        end do
        if (massCountReduced == 0) call Error_Report("no usable bins in mass function from file '"//trim(fileName)//"'"//{introspection:location})
@@ -190,7 +202,11 @@ contains
        allocate(self%countHalos  (massCountReduced))
        ii=0
        do i=1,size(massOriginal)
-          if (massOriginal(i) <  massRangeMinimum) cycle
+          if     (                                    &
+               &   massOriginal(i) < massRangeMinimum &
+               &  .or.                                &
+               &   massOriginal(i) > massRangeMaximum &
+               & ) cycle
           ii=ii+1
           self%mass        (ii)=massOriginal             (i)
           self%massFunction(ii)=massFunctionOriginal     (i)
@@ -213,6 +229,7 @@ contains
        do i=1,size(massOriginal)       
           if (massFunctionOriginal     (i) <= 0.0d0           ) cycle
           if (massOriginal             (i) <  massRangeMinimum) cycle
+          if (massOriginal             (i) >  massRangeMaximum) cycle
           if (massFunctionCountOriginal(i) <  binCountMinimum ) cycle
           massCountReduced=massCountReduced+1
        end do
@@ -224,6 +241,7 @@ contains
        do i=1,size(massOriginal)
           if (massFunctionOriginal     (i) <= 0.0d0           ) cycle
           if (massOriginal             (i) <  massRangeMinimum) cycle
+          if (massOriginal             (i) >  massRangeMaximum) cycle
           if (massFunctionCountOriginal(i) <  binCountMinimum ) cycle
           ii=ii+1
           self%mass        (ii)=massOriginal        (i)
@@ -232,6 +250,7 @@ contains
           do j=1,size(massOriginal)
              if (massFunctionOriginal     (j) <= 0.0d0           ) cycle
              if (massOriginal             (j) <  massRangeMinimum) cycle
+             if (massOriginal             (j) >  massRangeMaximum) cycle
              if (massFunctionCountOriginal(j) <  binCountMinimum ) cycle
              jj=jj+1
              self%covarianceMatrix(ii,jj)=massFunctionCovarianceOriginal(i,j)

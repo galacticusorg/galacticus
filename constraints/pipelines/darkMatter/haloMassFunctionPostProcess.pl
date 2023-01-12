@@ -34,7 +34,7 @@ my @simulations =
      label               => "MilkyWay",
      description         => "Halo mass function for non-backsplash z=0 halos from Milky Way zoom-in simulations.",
      subpath             => "ZoomIns",
-     realizations        => [ "Halo023", "Halo088", "Halo119", "Halo188", "Halo247", "Halo268", "Halo270", "Halo288", "Halo327", "Halo349", "Halo364", "Halo374", "Halo414", "Halo415", "Halo416", "Halo440", "Halo460", "Halo469", "Halo490", "Halo530", "Halo558", "Halo567", "Halo570", "Halo606", "Halo628", "Halo641", "Halo675", "Halo718", "Halo738", "Halo749", "Halo797", "Halo800", "Halo825", "Halo829", "Halo852", "Halo878", "Halo881", "Halo925", "Halo926", "Halo937", "Halo939", "Halo967", "Halo9749", "Halo9829", "Halo990" ],
+     realizations        => [ "Halo023", "Halo088", "Halo119", "Halo188", "Halo247", "Halo268", "Halo270", "Halo288", "Halo327", "Halo349", "Halo364", "Halo374", "Halo414", "Halo415", "Halo416", "Halo440", "Halo460", "Halo469", "Halo490", "Halo530", "Halo558", "Halo567", "Halo570", "Halo606", "Halo628", "Halo641", "Halo675", "Halo718", "Halo738", "Halo749", "Halo797", "Halo800", "Halo825", "Halo829", "Halo852", "Halo878", "Halo881", "Halo925", "Halo926", "Halo937", "Halo939", "Halo967", "Halo9749", "Halo9829", "Halo990", "Halo004", "Halo113" ],
      simulationReference => "Nadler et al.",
      simulationURL       => "https://www",
      hubbleConstant      => 0.7,
@@ -61,6 +61,21 @@ my @simulations =
      validate            => \&zoomInsValidate
  },
  {
+     label               => "MilkyWay_WDM3",
+     description         => "Halo mass function for non-backsplash z=0 halos from Milky Way WDM 3keV zoom-in simulations.",
+     subpath             => "ZoomIns",
+     realizations        => [ "Halo004", "Halo113", "Halo023" ],
+     simulationReference => "Nadler et al.",
+     simulationURL       => "https://www",
+     hubbleConstant      => 0.7,
+     massParticle        => 2.81981e5,
+     countHaloMinimum    => 0,
+     expansionFactors    => [ 1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
+     color               => "#0ba0f7",
+     plotModify          => \&zoomInsPlotModify,
+     validate            => \&zoomInsValidate
+ },
+ {
      label               => "MilkyWay_WDM5",
      description         => "Halo mass function for non-backsplash z=0 halos from Milky Way WDM 5keV zoom-in simulations.",
      subpath             => "ZoomIns",
@@ -72,6 +87,21 @@ my @simulations =
      countHaloMinimum    => 0,
      expansionFactors    => [ 1.00000 ],
      color               => "#0b65f7",
+     plotModify          => \&zoomInsPlotModify,
+     validate            => \&zoomInsValidate
+ },
+ {
+     label               => "MilkyWay_WDM6.5",
+     description         => "Halo mass function for non-backsplash z=0 halos from Milky Way WDM 3keV zoom-in simulations.",
+     subpath             => "ZoomIns",
+     realizations        => [ "Halo004", "Halo113", "Halo023" ],
+     simulationReference => "Nadler et al.",
+     simulationURL       => "https://www",
+     hubbleConstant      => 0.7,
+     massParticle        => 2.81981e5,
+     countHaloMinimum    => 0,
+     expansionFactors    => [ 1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
+     color               => "#0ba0f7",
      plotModify          => \&zoomInsPlotModify,
      validate            => \&zoomInsValidate
  },
@@ -125,6 +155,96 @@ my @simulations =
      description         => "Halo mass function for non-backsplash z=0 halos from Milky Way 10^-20 eV axion zoom-in simulations.",
      subpath             => "ZoomIns",
      realizations        => [ "Halo416" ],
+     simulationReference => "Nadler et al.",
+     simulationURL       => "https://www",
+     hubbleConstant      => 0.7,
+     massParticle        => 2.81981e5,
+     countHaloMinimum    => 0,
+     expansionFactors    => [ 1.00000 ],
+     color               => "#f70bdf",
+     plotModify          => \&zoomInsPlotModify,
+     validate            => \&zoomInsValidate
+ },
+ {
+     label               => "MilkyWay_IDM1GeV_envelope",
+     description         => "Halo mass function for non-backsplash z=0 halos from Milky Way, 1GeV (envelope) IDM zoom-in simulations.",
+     subpath             => "ZoomIns",
+     realizations        => [ "Halo004", "Halo113", "Halo023" ],
+     simulationReference => "Nadler et al.",
+     simulationURL       => "https://www",
+     hubbleConstant      => 0.7,
+     massParticle        => 2.81981e5,
+     countHaloMinimum    => 0,
+     expansionFactors    => [ 1.00000 ],
+     color               => "#f70bdf",
+     plotModify          => \&zoomInsPlotModify,
+     validate            => \&zoomInsValidate
+ },
+ {
+     label               => "MilkyWay_IDM1GeV_halfmode",
+     description         => "Halo mass function for non-backsplash z=0 halos from Milky Way, 1GeV (halfmode) IDM zoom-in simulations.",
+     subpath             => "ZoomIns",
+     realizations        => [ "Halo004", "Halo113" ],
+     simulationReference => "Nadler et al.",
+     simulationURL       => "https://www",
+     hubbleConstant      => 0.7,
+     massParticle        => 2.81981e5,
+     countHaloMinimum    => 0,
+     expansionFactors    => [ 1.00000 ],
+     color               => "#f70bdf",
+     plotModify          => \&zoomInsPlotModify,
+     validate            => \&zoomInsValidate
+ },
+ {
+     label               => "MilkyWay_IDM1e-2GeV_envelope",
+     description         => "Halo mass function for non-backsplash z=0 halos from Milky Way, 1e-2GeV (envelope) IDM zoom-in simulations.",
+     subpath             => "ZoomIns",
+     realizations        => [ "Halo004", "Halo113", "Halo023" ],
+     simulationReference => "Nadler et al.",
+     simulationURL       => "https://www",
+     hubbleConstant      => 0.7,
+     massParticle        => 2.81981e5,
+     countHaloMinimum    => 0,
+     expansionFactors    => [ 1.00000 ],
+     color               => "#f70bdf",
+     plotModify          => \&zoomInsPlotModify,
+     validate            => \&zoomInsValidate
+ },
+ {
+     label               => "MilkyWay_IDM1e-2GeV_halfmode",
+     description         => "Halo mass function for non-backsplash z=0 halos from Milky Way, 1e-2GeV (halfmode) IDM zoom-in simulations.",
+     subpath             => "ZoomIns",
+     realizations        => [ "Halo004", "Halo113", "Halo023" ],
+     simulationReference => "Nadler et al.",
+     simulationURL       => "https://www",
+     hubbleConstant      => 0.7,
+     massParticle        => 2.81981e5,
+     countHaloMinimum    => 0,
+     expansionFactors    => [ 1.00000 ],
+     color               => "#f70bdf",
+     plotModify          => \&zoomInsPlotModify,
+     validate            => \&zoomInsValidate
+ },
+ {
+     label               => "MilkyWay_IDM1e-4GeV_envelope",
+     description         => "Halo mass function for non-backsplash z=0 halos from Milky Way, 1e-4GeV (envelope) IDM zoom-in simulations.",
+     subpath             => "ZoomIns",
+     realizations        => [ "Halo004", "Halo113", "Halo023" ],
+     simulationReference => "Nadler et al.",
+     simulationURL       => "https://www",
+     hubbleConstant      => 0.7,
+     massParticle        => 2.81981e5,
+     countHaloMinimum    => 0,
+     expansionFactors    => [ 1.00000 ],
+     color               => "#f70bdf",
+     plotModify          => \&zoomInsPlotModify,
+     validate            => \&zoomInsValidate
+ },
+ {
+     label               => "MilkyWay_IDM1e-4GeV_halfmode",
+     description         => "Halo mass function for non-backsplash z=0 halos from Milky Way, 1e-4GeV (halfmode) IDM zoom-in simulations.",
+     subpath             => "ZoomIns",
+     realizations        => [ "Halo004", "Halo113", "Halo023" ],
      simulationReference => "Nadler et al.",
      simulationURL       => "https://www",
      hubbleConstant      => 0.7,
@@ -269,8 +389,8 @@ foreach my $simulation ( @simulations ) {
 		$job->{'launchFile'} = $outputDirectory."/haloMassFunction_".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.".sh" ;
 		$job->{'logFile'   } = $outputDirectory."/haloMassFunction_".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.".log";
 		$job->{'label'     } =                   "haloMassFunction_".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel       ;
-		$job->{'ppn'       } = 16;
-		$job->{'nodes'     } =  1;
+		$job->{'ppn'       } = 1;
+		$job->{'nodes'     } = 1;
 		$job->{'mpi'       } = "no";
 		push(@jobs,$job)
 		    unless ( -e $outputDirectory."/haloMassFunction".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.":MPI0000.hdf5" );
@@ -280,23 +400,23 @@ foreach my $simulation ( @simulations ) {
 	    $parameters->{'outputFileName'}->{'value'} = $outputDirectory."/haloMassFunction_Despali2015".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.".hdf5";
 	    $parameters->{'haloMassFunction'}->{'value'} = "despali2015";
 	    delete($parameters->{'haloMassFunction'}->{$_})
-		foreach ( "errorFractionalMaximum", "toleranceRelative", "haloMassFunction" );
+	    	foreach ( "errorFractionalMaximum", "toleranceRelative", "haloMassFunction" );
 	    open(my $parameterFile,">",$outputDirectory."/haloMassFunctionBase_Despali2015_".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.".xml");
 	    print $parameterFile $xml->XMLout($parameters,RootName => "parameters");
 	    close($parameterFile);
 	    # Generate a job to create Despali et al. (2015) mass functions.
 	    {
-		my $job;
-		$job->{'command'   } =
-		    "Galacticus.exe ".$outputDirectory."/haloMassFunctionBase_Despali2015_".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.".xml";
-		$job->{'launchFile'} = $outputDirectory."/haloMassFunction_Despali2015_".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.".sh" ;
-		$job->{'logFile'   } = $outputDirectory."/haloMassFunction_Despali2015_".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.".log";
-		$job->{'label'     } =                   "haloMassFunction_Despali2015_".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel       ;
-		$job->{'ppn'       } = 16;
-		$job->{'nodes'     } =  1;
-		$job->{'mpi'       } = "no";
-		push(@jobs,$job)
-		    unless ( -e $outputDirectory."/haloMassFunction_Despali2015".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.":MPI0000.hdf5" );
+	    	my $job;
+	    	$job->{'command'   } =
+	    	    "Galacticus.exe ".$outputDirectory."/haloMassFunctionBase_Despali2015_".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.".xml";
+	    	$job->{'launchFile'} = $outputDirectory."/haloMassFunction_Despali2015_".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.".sh" ;
+	    	$job->{'logFile'   } = $outputDirectory."/haloMassFunction_Despali2015_".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.".log";
+	    	$job->{'label'     } =                   "haloMassFunction_Despali2015_".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel       ;
+	    	$job->{'ppn'       } = 1;
+	    	$job->{'nodes'     } = 1;
+	    	$job->{'mpi'       } = "no";
+	    	push(@jobs,$job)
+	    	    unless ( -e $outputDirectory."/haloMassFunction_Despali2015".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.":MPI0000.hdf5" );
 	    }
 	}
     }
@@ -698,10 +818,10 @@ for(my $i=0;$i<=$iMax;++$i) {
 	# Iterate over realizations.
 	foreach my $realization ( @{$simulation->{'realizations'}} ) {
 	    my $redshiftLabelLocal   = sprintf("%5.3f",1.0/$simulation->{'expansionFactors'}->[$i]-1.0);
-	    my $target              = new PDL::IO::HDF5($ENV{'GALACTICUS_DATA_PATH'}."/static/darkMatter/haloMassFunction_".$simulation->{'label'}."_".$realization."_z".$redshiftLabelLocal.".hdf5");
-	    my $targetSimulation    = $target          ->group  ('simulation0001'   );
-	    (my $massRegion       ) = $targetSimulation->attrGet('massRegion'       );
-	    (my $overdensityRegion) = $targetSimulation->attrGet('overdensityRegion');
+	    my $target                   = new PDL::IO::HDF5($ENV{'GALACTICUS_DATA_PATH'}."/static/darkMatter/haloMassFunction_".$simulation->{'label'}."_".$realization."_z".$redshiftLabelLocal.".hdf5");
+	    my $targetSimulation         = $target          ->group  ('simulation0001'        );
+	    (my $massEnvironment       ) = $targetSimulation->attrGet('massEnvironment'       );
+	    (my $overdensityEnvironment) = $targetSimulation->attrGet('overdensityEnvironment');
 	    my $realizationLabel = $realization eq "" ? "" : "_".$realization;
 	    my $countHalos =
 		(
@@ -728,12 +848,12 @@ for(my $i=0;$i<=$iMax;++$i) {
 	    my $overdensityLow  = -1.50;
 	    my $overdensityHigh = +1.10;
 	    my $fraction;
-	    if ( $overdensityRegion < $overdensityLow ) {
+	    if ( $overdensityEnvironment      < $overdensityLow  ) {
 		$fraction = 0.0;
-	    } elsif ( $overdensityRegion > $overdensityHigh ) {
+	    } elsif ( $overdensityEnvironment > $overdensityHigh ) {
 		$fraction = 1.0;
 	    } else {
-		$fraction = sclr(($overdensityRegion-$overdensityLow)/($overdensityHigh-$overdensityLow));
+		$fraction = sclr(($overdensityEnvironment-$overdensityLow)/($overdensityHigh-$overdensityLow));
 	    }
 	    my @colorLowDensity  = ( 237.0, 0.83, 0.94 );
 	    my @colorHighDensity = (  13.0, 0.83, 0.94 ); 
