@@ -31,7 +31,7 @@ Contains a module which implements a high-pass filter analysis weight operator c
      A high-pass filter weight operator class.
      !!}
      private
-     double precision :: filterThreshold
+     double precision :: filterThreshold, filterWidth
    contains
      procedure :: operate => filterHighPassOperate
   end type outputAnalysisWeightOperatorFilterHighPass
@@ -54,7 +54,7 @@ contains
     implicit none
     type(outputAnalysisWeightOperatorFilterHighPass)                :: self
     type(inputParameters                           ), intent(inout) :: parameters
-    double precision                                                :: filterThreshold
+    double precision                                                :: filterThreshold, filterWidth
 
     ! Check and read parameters.
     !![
@@ -64,25 +64,33 @@ contains
       <variable>filterThreshold</variable>
       <description>Threshold for the high-pass filter distribution operator.</description>
     </inputParameter>
+    <inputParameter>
+      <name>filterWidth</name>
+      <defaultValue>0.0d0</defaultValue>
+      <source>parameters</source>
+      <description>The width of the filter (0 for a sharp transition; $&gt;0$ for a smoothed transition.</description>
+    </inputParameter>
     !!]
-    self=outputAnalysisWeightOperatorFilterHighPass(filterThreshold)
+    self=outputAnalysisWeightOperatorFilterHighPass(filterThreshold,filterWidth)
     !![
     <inputParametersValidate source="parameters"/>
     !!]
     return
   end function filterHighPassConstructorParameters
 
-  function filterHighPassConstructorInternal(filterThreshold) result (self)
+  function filterHighPassConstructorInternal(filterThreshold,filterWidth) result (self)
     !!{
     Internal constructor for the ``filterHighPass'' output analysis distribution operator class.
     !!}
     implicit none
-    type            (outputAnalysisWeightOperatorFilterHighPass)                :: self
-    double precision                                            , intent(in   ) :: filterThreshold
+    type            (outputAnalysisWeightOperatorFilterHighPass)                          :: self
+    double precision                                            , intent(in   )           :: filterThreshold
+    double precision                                            , intent(in   ), optional :: filterWidth
     !![
-    <constructorAssign variables="filterThreshold"/>
+    <constructorAssign variables="filterThreshold, filterWidth"/>
     !!]
 
+    if (.not.present(filterWidth)) self%filterWidth=0.0d0
     return
   end function filterHighPassConstructorInternal
 
@@ -101,10 +109,26 @@ contains
     integer         (c_size_t                                     ), intent(in   ) :: outputIndex
     !$GLC attributes unused :: node, propertyValueIntrinsic, propertyType, outputIndex, propertyQuantity
 
-    if (propertyValue > self%filterThreshold) then
-       filterHighPassOperate=weightValue
+    if (self%filterWidth <= 0.0d0) then
+       ! Sharp filter.
+       if (propertyValue > self%filterThreshold) then
+          filterHighPassOperate=weightValue
+       else
+          filterHighPassOperate=0.0d0
+       end if
     else
-       filterHighPassOperate=0.0d0
+       ! Smooth filter using a sigmoid function
+       filterHighPassOperate=+weightValue                   &
+            &                /(                             &
+            &                  +1.0d0                       &
+            &                  +exp(                        &
+            &                       -(                      &
+            &                         +     propertyValue   &
+            &                         -self%filterThreshold &
+            &                        )                      &
+            &                       /  self%filterWidth     &
+            &                      )                        &
+            &                 )
     end if
     return
   end function filterHighPassOperate
