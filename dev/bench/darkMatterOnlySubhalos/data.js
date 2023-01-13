@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1673651807583,
+  "lastUpdate": 1673651816311,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
@@ -6275,6 +6275,45 @@ window.BENCHMARK_DATA = {
             "value": 63.681,
             "unit": "seconds",
             "range": 0.315732323337358
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "edf56bd05e127325a2415787df342c4e72f15671",
+          "message": "feat: Allow for smoothed transitions in high-pass filters\n\nMake use of these in the COSMOS SHMR likelihood class to avoid having sharp transitions in the likelihood function.",
+          "timestamp": "2023-01-13T17:13:09Z",
+          "tree_id": "b1c263cc0161db07919d832a57f94b36c905bbc8",
+          "url": "https://github.com/galacticusorg/galacticus/commit/edf56bd05e127325a2415787df342c4e72f15671"
+        },
+        "date": 1673651814888,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 57.3752255203618,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 26.1474686204082,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 27887.2181311663,
+            "unit": "-logℒ"
           }
         ]
       }
