@@ -1048,15 +1048,15 @@ contains
          end if
          integrandInterval=integrator_%integrate(wavenumberLower,wavenumberUpper,status=status)
          ! Decide if we need to try a logarithmic integral instead.
-         if     (                       &
-              &   (&
+         if     (                         &
+              &   (                       &
               &     status == GSL_EBadTol &
               &    .or.                   &
               &     status == GSL_ETol    &
               &    .or.                   &
               &     status == GSL_ERound  &
-              &   )&
-              &  .and.&
+              &   )                       &
+              &  .and.                    &
               &   wavenumberLower > 0.0d0 &
               & ) then
             ! The integration failed numerically, and the lower limit is non-zero, so try a logarithmic integral instead.
