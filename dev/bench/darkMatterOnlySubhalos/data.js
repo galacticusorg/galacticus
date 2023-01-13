@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1673575183057,
+  "lastUpdate": 1673575192471,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
@@ -6206,6 +6206,45 @@ window.BENCHMARK_DATA = {
             "value": 59.602,
             "unit": "seconds",
             "range": 0.0799099493172472
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "ebb98121bba118e49fac2cfec2d68dea4fbedba2",
+          "message": "fix: Use copy constructors when walking the parameter tree\n\nThis avoids segmentation faults due to finalization on assignment.",
+          "timestamp": "2023-01-12T11:22:51-08:00",
+          "tree_id": "9fa7a16930cefaac01d0a539162b84ddc6123b1f",
+          "url": "https://github.com/galacticusorg/galacticus/commit/ebb98121bba118e49fac2cfec2d68dea4fbedba2"
+        },
+        "date": 1673575191058,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 57.3752255203618,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 26.1474686204082,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 27887.2181311663,
+            "unit": "-logℒ"
           }
         ]
       }
