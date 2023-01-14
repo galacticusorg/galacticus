@@ -24,9 +24,9 @@
 
   <!-- Power spectrum options -->
   <cosmologicalMassVariance value="filteredPower">
-    <sigma_8 value="0.8228"/>
-    <tolerance value="4.0e-4"/>
-    <toleranceTopHat value="2.0e-4"/>
+    <sigma_8         value="0.8228"/>
+    <tolerance       value="1.0e-6"/>
+    <toleranceTopHat value="1.0e-6"/>
   </cosmologicalMassVariance>
   <transferFunction value="CAMB"/>
   <powerSpectrumPrimordial value="powerLaw">
