@@ -132,7 +132,7 @@ contains
        parameterCount=String_Count_Words(char(modelParameters_(i)%modelParameter_%name()),"::")
        allocate(parameterNames(parameterCount))
        call String_Split_Words(parameterNames,char(modelParameters_(i)%modelParameter_%name()),"::")
-       parameters_=parameters
+       parameters_=inputParameters(parameters)
        do j=1,parameterCount
           instance    =1
           indexElement=0
@@ -163,7 +163,7 @@ contains
              ! This is an intermediate parameter, get the appropriate sub-parameters.
              if (parameters_%isPresent(char(parameterNames(j)),requireValue=.false.)) then
                 subParameters_=parameters_   %subParameters(char(parameterNames(j)),requireValue=.false.,copyInstance=instance)
-                parameters_   =subParameters_
+                parameters_   =inputParameters(subParameters_)
              else
                 call Error_Report('parameter "'//char(parameterNames(j))//'" not found in "'//char(modelParameters_(i)%modelParameter_%name())//'"'//{introspection:location})
              end if
