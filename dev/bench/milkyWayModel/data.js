@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1673651820479,
+  "lastUpdate": 1673668330022,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
@@ -5728,6 +5728,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 2.5353450699136,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "baab79ac9a0bba2e7f9c4e4c4cb864ca535bbd41",
+          "message": "Merge pull request #351 from galacticusorg/sigmaMIntegration\n\nMake integration of σ(M) more robust",
+          "timestamp": "2023-01-13T17:02:28-08:00",
+          "tree_id": "359f77eaa4f9f8f97befa8164933b1db07d74300",
+          "url": "https://github.com/galacticusorg/galacticus/commit/baab79ac9a0bba2e7f9c4e4c4cb864ca535bbd41"
+        },
+        "date": 1673668329016,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 224.453,
+            "unit": "seconds",
+            "range": 0.430441749833079
           }
         ]
       }
