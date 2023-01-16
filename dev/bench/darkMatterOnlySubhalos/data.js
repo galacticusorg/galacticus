@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1673668334144,
+  "lastUpdate": 1673829655108,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
@@ -6383,6 +6383,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 26366.2430061311,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9adeb9a47c16ec662d76136db78461fd1526e16c",
+          "message": "Merge pull request #352 from galacticusorg/trapZeroOuterRadius\n\nTrap zero hot halo outer radius",
+          "timestamp": "2023-01-15T14:02:27-08:00",
+          "tree_id": "5092d2fc43c7741617c69dce444b7af551a39a77",
+          "url": "https://github.com/galacticusorg/galacticus/commit/9adeb9a47c16ec662d76136db78461fd1526e16c"
+        },
+        "date": 1673829653141,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 50.184,
+            "unit": "seconds",
+            "range": 0.0399799949970758
           }
         ]
       }
