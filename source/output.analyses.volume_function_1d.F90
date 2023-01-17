@@ -40,7 +40,7 @@ mass function) output analysis class.
   
      In addition to the volume function itself, the covariance matrix, $\mathbf{C}_\mathrm{model}$, of the mass function is also
      computed. The assumptions used when constructing the covariance matrix are controlled by the parameter {\normalfont
-     \ttfamily [covarianceModel]}. If set to {\normalfont \ttfamily binomial}, them to construct $\mathbf{C}_\mathrm{model}$ we
+     \ttfamily [covarianceModel]}. If set to {\normalfont \ttfamily binomial}, then to construct $\mathbf{C}_\mathrm{model}$ we
      make use of the fact that \glc\ works by sampling a set of tree ``root masses'' from the $z=0$ dark matter halo mass
      function. From each root, a tree is grown, within which the physics of galaxy formation is then solved. Root masses are
      sampled uniformly from the halo mass function. That is, the cumulative halo mass function, $N(M)$, is constructed between
