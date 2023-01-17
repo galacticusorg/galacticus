@@ -42,14 +42,6 @@ module Task_Evolve_Forests_Work_Shares
     <pass>yes</pass>
     <argument>logical, intent(in   ) :: utilizeOpenMPThreads</argument>
    </method>
-   <method name="ping" >
-    <description>Pings the work-share object (useful to allow synchronization).</description>
-    <type>void</type>
-    <pass>yes</pass>
-    <code>
-     !$GLC attributes unused :: self
-    </code>
-   </method>
    <method name="workerID" >
     <description>Return a unique worker ID.</description>
     <type>integer</type>
