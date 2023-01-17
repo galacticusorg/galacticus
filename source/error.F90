@@ -34,8 +34,8 @@ module Error
   public :: Error_Report               , Error_Handler_Register    , &
        &    Component_List             , GSL_Error_Handler_Abort_On, &
        &    GSL_Error_Handler_Abort_Off, GSL_Error_Status          , &
-       &    Warn                       , Error_Wait_Set
-
+       &    Warn                       , Error_Wait_Set            , &
+       &    GSL_Error_Details
   interface Error_Report
      module procedure Error_Report_Char
      module procedure Error_Report_VarStr
@@ -67,9 +67,10 @@ module Error
   integer                    :: errorWaitTime          =86400
 
   ! GSL error status.
-  logical             :: abortOnErrorGSL=.true.
-  integer(kind=c_int) :: errorStatusGSL
-  !$omp threadprivate(abortOnErrorGSL,errorStatusGSL)
+  logical                 :: abortOnErrorGSL=.true.
+  integer(c_int         ) :: errorStatusGSL        , lineGSL
+  type   (varying_string) :: reasonGSL             , fileGSL
+  !$omp threadprivate(abortOnErrorGSL,errorStatusGSL,lineGSL,reasonGSL,fileGSL)
 
   ! Type used to accumulate warning messages.
   type :: warning
@@ -645,6 +646,9 @@ contains
 #endif
     else
        errorStatusGSL=errorNumber
+       reasonGSL     =String_C_to_Fortran(reason)
+       fileGSL       =String_C_to_Fortran(file  )
+       lineGSL       =line
     end if
     return
   end subroutine errorHandlerGSL
@@ -678,6 +682,21 @@ contains
     GSL_Error_Status=errorStatusGSL
     return
   end function GSL_Error_Status
+
+  subroutine GSL_Error_Details(reason,file,line,errorStatus)
+    !!{
+    Return current GSL error details.
+    !!}
+    implicit none
+    type   (varying_string), intent(  out) :: reason     , file
+    integer                , intent(  out) :: errorStatus, line
+
+    errorStatus=errorStatusGSL
+    reason     =reasonGSL
+    file       =fileGSL
+    line       =lineGSL
+    return
+  end subroutine GSL_Error_Details
 
   function Component_List(className,componentList)
     !!{
