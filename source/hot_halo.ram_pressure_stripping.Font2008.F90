@@ -161,17 +161,21 @@ contains
     !!{
     Return the ram pressure stripping radius due to the hot halo using the model of \cite{font_colours_2008}.
     !!}
-    use :: Display    , only : displayMessage           , verbosityLevelSilent
-    use :: Error      , only : Error_Report             , errorStatusSuccess
-    use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
+    use :: Display        , only : displayMessage           , verbosityLevelSilent
+    use :: Error          , only : Error_Report             , errorStatusSuccess           , GSL_Error_Details
+    use :: Root_Finder    , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
+    use :: String_Handling, only : operator(//)
     implicit none
     class           (hotHaloRamPressureStrippingFont2008), intent(inout), target :: self
     type            (treeNode                           ), intent(inout), target :: node
     double precision                                     , parameter             :: radiusSmallestOverRadiusVirial=1.0d-6
-    double precision                                                             :: radiusVirial                         , radiusVirialRoot        , &
+    double precision                                     , parameter             :: radiusTolerance               =1.0d-1
+    double precision                                                             :: radiusVirial                         , radiusVirialRoot, &
          &                                                                          radiusSmallRoot
-    integer                                                                      :: status
-    type            (varying_string                     )                        :: message
+    integer                                                                      :: status                               , line
+    type            (varying_string                     ), save                  :: message                              , reason          , &
+         &                                                                          file
+    !$omp threadprivate(message,reason,file)
     character       (len=16                             )                        :: label
 
     ! Get the virial radius of the satellite.
@@ -204,8 +208,8 @@ contains
                      &                       rangeExpandDownward          =0.9d0                                      , &
                      &                       rangeExpandUpward            =1.1d0                                      , &
                      &                       rangeExpandType              =rangeExpandMultiplicative                  , &
-                     &                       rangeDownwardLimit           =radiusSmallestOverRadiusVirial*radiusVirial, &
-                     &                       rangeUpwardLimit             =                               radiusVirial, &
+                     &                       rangeDownwardLimit           =radiusSmallestOverRadiusVirial*radiusVirial/(1.0d0+radiusTolerance), &
+                     &                       rangeUpwardLimit             =                               radiusVirial*(1.0d0+radiusTolerance), &
                      &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive              , &
                      &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative                &
                      &                      )
@@ -213,13 +217,13 @@ contains
                 call self%finder%rangeExpand(                                                                           &
                      &                       rangeExpandDownward          =0.5d0                                      , &
                      &                       rangeExpandType              =rangeExpandMultiplicative                  , &
-                     &                       rangeDownwardLimit           =radiusSmallestOverRadiusVirial*radiusVirial, &
+                     &                       rangeDownwardLimit           =radiusSmallestOverRadiusVirial*radiusVirial/(1.0d0+radiusTolerance), &
                      &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive                &
                      &                      )
                 self%radiusLast  =radiusVirial
                 self%uniqueIDLast=node%uniqueID()
              end if
-             font2008RadiusStripped=self%finder%find(rootGuess=min(self%radiusLast,radiusVirial),status=status)
+             font2008RadiusStripped=min(self%finder%find(rootGuess=min(self%radiusLast,radiusVirial),status=status),radiusVirial)
              if (status /= errorStatusSuccess) then
                 message='virial radius / root function at virial radius = '
                 write (label,'(e12.6)') radiusVirial
@@ -237,6 +241,13 @@ contains
                 write (label,'(e12.6)') font2008RadiusSolver(radiusSmallestOverRadiusVirial*radiusVirial)
                 message=message//" : "//trim(adjustl(label))
                 call displayMessage(message,verbosityLevelSilent)
+                select case (status)
+                case (errorStatusOutOfRange)
+                   call displayMessage('could not bracket the root',verbosityLevelSilent)
+                case default
+                   call GSL_Error_Details(reason,file,line,status)
+                   call displayMessage(var_str('GSL error ')//status//': "'//reason//'" at line '//line//' of file "'//file//'"',verbosityLevelSilent)
+                end select
                 call Error_Report('root finding failed'//{introspection:location})
              end if
              self%radiusLast=font2008RadiusStripped
