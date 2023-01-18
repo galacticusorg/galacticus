@@ -237,7 +237,7 @@ contains
           end if
 #endif
 #ifdef USEMPI
-          if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
+          if (mpiSelf%isMaster() .and. self%coordinatedMPI_) then
              loopCountTotal=(int(self%countTime,kind=c_size_t)/int(mpiSelf%count(),kind=c_size_t)+1_c_size_t)*(int(self%countVariance-1,kind=c_size_t)*int(self%countVariance,kind=c_size_t))/2_c_size_t
           else
 #endif
@@ -684,7 +684,7 @@ contains
                   &         +int(countTimeNew,kind=c_size_t)*int(self%countVarianceCurrentRate           +1,kind=c_size_t)
           end if
 #ifdef USEMPI
-          if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
+          if (mpiSelf%isMaster() .and. self%coordinatedMPI_) then
              loopCountTotal=loopCountTotal/int(mpiSelf%count(),kind=c_size_t)+1_c_size_t
           end if
 #endif
