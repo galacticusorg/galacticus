@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1673829669531,
+  "lastUpdate": 1674044462773,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
@@ -5896,6 +5896,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 4.68252811180385,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "7c8da1a05472814ae8eae84412d2d7a147abf5f7",
+          "message": "feat: Add a function to return GSL error details\n\nUseful for when GSL errors are trapped and we want to provide context in the error message.",
+          "timestamp": "2023-01-17T23:40:10Z",
+          "tree_id": "4ec9f1edae72fe248d7247152788eccaab7519f5",
+          "url": "https://github.com/galacticusorg/galacticus/commit/7c8da1a05472814ae8eae84412d2d7a147abf5f7"
+        },
+        "date": 1674044461666,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 237.975,
+            "unit": "seconds",
+            "range": 0.345427995391691
           }
         ]
       }
