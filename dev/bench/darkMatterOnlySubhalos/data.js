@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1674044458591,
+  "lastUpdate": 1674044467205,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
@@ -6482,6 +6482,45 @@ window.BENCHMARK_DATA = {
             "value": 60.085,
             "unit": "seconds",
             "range": 0.123622408972253
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "7c8da1a05472814ae8eae84412d2d7a147abf5f7",
+          "message": "feat: Add a function to return GSL error details\n\nUseful for when GSL errors are trapped and we want to provide context in the error message.",
+          "timestamp": "2023-01-17T23:40:10Z",
+          "tree_id": "4ec9f1edae72fe248d7247152788eccaab7519f5",
+          "url": "https://github.com/galacticusorg/galacticus/commit/7c8da1a05472814ae8eae84412d2d7a147abf5f7"
+        },
+        "date": 1674044465898,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 57.3844543134178,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 25.9186267741694,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 26366.2430061311,
+            "unit": "-logℒ"
           }
         ]
       }
