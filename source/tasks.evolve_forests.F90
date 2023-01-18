@@ -572,8 +572,6 @@ contains
           end if
           ! Iterate evolving the tree until no more outputs are required.
           treeEvolveLoop : do while (iOutput <= self%outputTimes_%count())
-             ! Ping the work-share object.
-             call self%evolveForestsWorkShare_%ping()
              ! For single forest evolution, maximum evolution time is determined by the master thread only.
              singleForestMaximumTime : if (OMP_Get_Thread_Num() == 0 .or. .not.self%evolveSingleForest) then
                 ! We want to find the maximum time to which we can evolve this tree. This will be the minimum of the next output
