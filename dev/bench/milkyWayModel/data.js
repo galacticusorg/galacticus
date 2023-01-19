@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1674070339019,
+  "lastUpdate": 1674114136021,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
@@ -6064,6 +6064,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 4.43541678924816,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6b1d1a78f5991eaf1c8b3906fea05bee8179c2e1",
+          "message": "Merge pull request #357 from galacticusorg/excursionSetsProgressBarFix\n\nFix an issue that the progress bar is inaccurate when solving the excursion sets problem with MPI",
+          "timestamp": "2023-01-18T21:09:36-08:00",
+          "tree_id": "5c02a2059732b8f299be3b725a8f536a1df6c8a8",
+          "url": "https://github.com/galacticusorg/galacticus/commit/6b1d1a78f5991eaf1c8b3906fea05bee8179c2e1"
+        },
+        "date": 1674114134923,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 215.806,
+            "unit": "seconds",
+            "range": 0.199535460509189
           }
         ]
       }
