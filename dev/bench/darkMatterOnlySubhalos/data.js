@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1674114131519,
+  "lastUpdate": 1674114140292,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
@@ -6620,6 +6620,45 @@ window.BENCHMARK_DATA = {
             "value": 51.939,
             "unit": "seconds",
             "range": 0.089481282958862
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6b1d1a78f5991eaf1c8b3906fea05bee8179c2e1",
+          "message": "Merge pull request #357 from galacticusorg/excursionSetsProgressBarFix\n\nFix an issue that the progress bar is inaccurate when solving the excursion sets problem with MPI",
+          "timestamp": "2023-01-18T21:09:36-08:00",
+          "tree_id": "5c02a2059732b8f299be3b725a8f536a1df6c8a8",
+          "url": "https://github.com/galacticusorg/galacticus/commit/6b1d1a78f5991eaf1c8b3906fea05bee8179c2e1"
+        },
+        "date": 1674114139509,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 57.3844543134178,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 25.9186267741694,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 26366.2430061311,
+            "unit": "-logℒ"
           }
         ]
       }
