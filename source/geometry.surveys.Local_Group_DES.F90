@@ -47,7 +47,7 @@ Implements the geometry of the DES survey for Local Group dwarfs.
   end interface surveyGeometryLocalGroupDES
 
   ! Angular power spectra.
-  integer, parameter :: localGroupDESAngularPowerMaximumL=360
+  integer, parameter :: angularPowerMaximumL=360
 
 contains
 
@@ -131,7 +131,7 @@ contains
     class(surveyGeometryLocalGroupDES), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    localGroupDESAngularPowerMaximumDegree=localGroupDESAngularPowerMaximumL
+    localGroupDESAngularPowerMaximumDegree=angularPowerMaximumL
     return
   end function localGroupDESAngularPowerMaximumDegree
 

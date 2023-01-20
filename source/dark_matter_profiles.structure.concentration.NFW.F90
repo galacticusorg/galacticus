@@ -87,8 +87,8 @@
   end interface darkMatterProfileConcentrationNFW1996
 
   ! Target value used in concentration root finder.
-  double precision :: nfw1996RootTarget
-  !$omp threadprivate(nfw1996RootTarget)
+  double precision :: rootTarget
+  !$omp threadprivate(rootTarget)
 
 contains
 
@@ -278,9 +278,9 @@ contains
     ! Compute the overdensity of the progenitor at collapse using the scaling given by NFW.
     collapseOverdensity        =self%C*(expansionFactor/collapseExpansionFactor)**3
     ! Find the ratio of this overdensity to that at for the present node.
-    nfw1996RootTarget          =collapseOverdensity/self%virialDensityContrast_%densityContrast(nodeMass,nodeTime)
+    rootTarget                 =collapseOverdensity/self%virialDensityContrast_%densityContrast(nodeMass,nodeTime)
      ! Find the concentration.
-    nfw1996Concentration=self%finder%find(rootRange=[1.0d0,20.0d0])
+    nfw1996Concentration       =self%finder%find(rootRange=[1.0d0,20.0d0])
     return
   end function nfw1996Concentration
 
@@ -291,7 +291,7 @@ contains
     implicit none
     double precision, intent(in   ) :: concentration
 
-    nfw1996ConcentrationRoot=concentration**3/(log(1.0d0+concentration)-concentration/(1.0d0+concentration))/3.0d0-nfw1996RootTarget
+    nfw1996ConcentrationRoot=concentration**3/(log(1.0d0+concentration)-concentration/(1.0d0+concentration))/3.0d0-rootTarget
     return
   end function nfw1996ConcentrationRoot
 

@@ -122,8 +122,8 @@ contains
     double precision                              , parameter                       :: particleNumberReference =+1.000d3
 
     self%massParticle                  =massParticle
-    self%normalizationSquared          =(normalization*(powerLawMassReference/particleNumberReference/massParticle)**exponent)**2
-    self%exponent                      =                                                                             exponent
+    self%normalizationSquared          =(normalization*(massReference/particleNumberReference/massParticle)**exponent)**2
+    self%exponent                      =                                                                     exponent
     self%fractionalErrorHighMassSquared=+0.0d0
     ! Set correlation properties.
     if (present(correlationNormalization).or.present(correlationMassExponent).or.present(correlationRedshiftExponent)) then

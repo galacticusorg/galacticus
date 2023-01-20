@@ -69,11 +69,6 @@
      module procedure zentner2005ConstructorInternal
   end interface satelliteTidalStrippingZentner2005
 
-  ! Module-scope objects used for root finding.
-  type            (treeNode), pointer :: zentner2005Node
-  double precision                    :: zentner2005TidalPull
-  !$omp threadprivate(zentner2005Node,zentner2005TidalPull)
-
 contains
 
   function zentner2005ConstructorParameters(parameters) result(self)

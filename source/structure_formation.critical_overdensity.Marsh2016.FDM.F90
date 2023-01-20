@@ -25,7 +25,7 @@
   use :: Numerical_Interpolation, only : interpolator
 
   !![
-  <criticalOverdensity name="criticalOverdensityMarsh2016FDM" defaultThreaedPrivate="yes">
+  <criticalOverdensity name="criticalOverdensityMarsh2016FDM">
    <description>
     A critical overdensity for collapse class based on the \gls{fdm} modifier of \cite{marsh_warmAndFuzzy_2016} applied to
     some other, \gls{cdm} critical overdensity class. Specifically, the critical overdensity is multiplied by a factor
@@ -77,12 +77,12 @@
   end interface criticalOverdensityMarsh2016FDM
 
   ! Parameters of fitting functions.
-  double precision, parameter :: marsh2016FDMFitParameterA1=+3.4d0
-  double precision, parameter :: marsh2016FDMFitParameterA2=+1.0d0
-  double precision, parameter :: marsh2016FDMFitParameterA3=+1.8d0
-  double precision, parameter :: marsh2016FDMFitParameterA4=+0.5d0
-  double precision, parameter :: marsh2016FDMFitParameterA5=+1.7d0
-  double precision, parameter :: marsh2016FDMFitParameterA6=+0.9d0
+  double precision, parameter :: fitParameterA1=+3.4d0
+  double precision, parameter :: fitParameterA2=+1.0d0
+  double precision, parameter :: fitParameterA3=+1.8d0
+  double precision, parameter :: fitParameterA4=+0.5d0
+  double precision, parameter :: fitParameterA5=+1.7d0
+  double precision, parameter :: fitParameterA6=+0.9d0
 
 contains
 
@@ -163,7 +163,7 @@ contains
     select type (darkMatterParticleFDM_ => self%darkMatterParticle_)
     class is (darkMatterParticleFuzzyDarkMatter)
        m22           =self%darkMatterParticle_%mass()*kilo/1.0d-22
-       self%jeansMass=+marsh2016FDMFitParameterA1                                        &
+       self%jeansMass=+fitParameterA1                                        &
             &         *1.0d8                                                             &
             &         *m22**(-3.0d0/2.0d0)                                               &
             &         *(                                                                 &
@@ -253,17 +253,17 @@ contains
                &                    +self%jeansMass               &
                &                    *(                            &
                &                      +massScaleFree              &
-               &                      -marsh2016FDMFitParameterA2 &
+               &                      -fitParameterA2 &
                &                     )                            &
                &                   )                              &
                &             )
           exponentialFit1  =exp(                                              &
-               &                +marsh2016FDMFitParameterA3                   &
-               &                *massScaleFree**(-marsh2016FDMFitParameterA4) &
+               &                +fitParameterA3                   &
+               &                *massScaleFree**(-fitParameterA4) &
                &               )
           exponentialFit2  =exp(                                              &
-               &                +marsh2016FDMFitParameterA5                   &
-               &                *massScaleFree**(-marsh2016FDMFitParameterA6) &
+               &                +fitParameterA5                   &
+               &                *massScaleFree**(-fitParameterA6) &
                &               )
           marsh2016FDMValue=        hF *exponentialFit1 &
                &            +(1.0d0-hF)*exponentialFit2
@@ -330,52 +330,52 @@ contains
        if (massScaleFree > massScaleFreeLarge) then
           marsh2016FDMGradientMass=0.0d0
        else
-          hF                      =+0.5d0                                &
-               &                   *(                                    &
-               &                     +1.0d0                              &
-               &                     -tanh(                              &
-               &                           +self%jeansMass               &
-               &                           *(                            &
-               &                             +massScaleFree              &
-               &                             -marsh2016FDMFitParameterA2 &
-               &                            )                            &
-               &                          )                              &
+          hF                      =+0.5d0                                  &
+               &                   *(                                      &
+               &                     +1.0d0                                &
+               &                     -tanh(                                &
+               &                           +self%jeansMass                 &
+               &                           *(                              &
+               &                             +massScaleFree                &
+               &                             -fitParameterA2               &
+               &                            )                              &
+               &                          )                                &
                &                    )
-          dhF_dM                  =-0.5d0                                &
-               &                   *self%jeansMass                       &
-               &                   /(                                    &
-               &                     cosh(                               &
-               &                          +self%jeansMass                &
-               &                          *(                             &
-               &                            +massScaleFree               &
-               &                            -marsh2016FDMFitParameterA2  &
-               &                           )                             &
-               &                         )                               &
+          dhF_dM                  =-0.5d0                                  &
+               &                   *self%jeansMass                         &
+               &                   /(                                      &
+               &                     cosh(                                 &
+               &                          +self%jeansMass                  &
+               &                          *(                               &
+               &                            +massScaleFree                 &
+               &                            -fitParameterA2                &
+               &                           )                               &
+               &                         )                                 &
                &                    )**2.0d0
-          exponentialFit1         =exp(                                              &
-               &                       +marsh2016FDMFitParameterA3                   &
-               &                       *massScaleFree**(-marsh2016FDMFitParameterA4) &
+          exponentialFit1         =exp(                                    &
+               &                       +fitParameterA3                     &
+               &                       *massScaleFree**(-fitParameterA4)   &
                &                      )
-          exponentialFit2         =exp(                                              &
-               &                       +marsh2016FDMFitParameterA5                   &
-               &                       *massScaleFree**(-marsh2016FDMFitParameterA6) &
+          exponentialFit2         =exp(                                    &
+               &                       +fitParameterA5                     &
+               &                       *massScaleFree**(-fitParameterA6)   &
                &                      )
-          exponentialFitGradient1 =-marsh2016FDMFitParameterA3                         &
-               &                   *marsh2016FDMFitParameterA4                         &
-               &                   *massScaleFree**(-marsh2016FDMFitParameterA4-1.0d0) &
+          exponentialFitGradient1 =-fitParameterA3                         &
+               &                   *fitParameterA4                         &
+               &                   *massScaleFree**(-fitParameterA4-1.0d0) &
                &                   *exponentialFit1
-          exponentialFitGradient2 =-marsh2016FDMFitParameterA5                         &
-               &                   *marsh2016FDMFitParameterA6                         &
-               &                   *massScaleFree**(-marsh2016FDMFitParameterA6-1.0d0) &
+          exponentialFitGradient2 =-fitParameterA5                         &
+               &                   *fitParameterA6                         &
+               &                   *massScaleFree**(-fitParameterA6-1.0d0) &
                &                   *exponentialFit2
-          marsh2016FDMGradientMass=+(                                    &
-               &                     +dhF_dM                             &
-               &                     *(exponentialFit1-exponentialFit2)  &
-               &                     +       hF                          &
-               &                     *exponentialFitGradient1            &
-               &                     +(1.0d0-hF)                         &
-               &                     *exponentialFitGradient2            &
-               &                    )                                    &
+          marsh2016FDMGradientMass=+(                                      &
+               &                     +dhF_dM                               &
+               &                     *(exponentialFit1-exponentialFit2)    &
+               &                     +       hF                            &
+               &                     *exponentialFitGradient1              &
+               &                     +(1.0d0-hF)                           &
+               &                     *exponentialFitGradient2              &
+               &                    )                                      &
                &                   /self%jeansMass
        end if
     else

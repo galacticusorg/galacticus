@@ -56,7 +56,7 @@ An implementation of the hot halo temperature class which uses the ``hydrostatic
      module procedure enzoHydrostaticConstructorInternal
   end interface hotHaloTemperatureProfileEnzoHydrostatic
 
-  double precision, parameter :: enzoHydrostaticTemperatureMinimum=1.0d2
+  double precision, parameter :: temperatureMinimum=1.0d2
 
 contains
 
@@ -123,7 +123,7 @@ contains
     double precision                                                          :: enclosedMass
 
     if (radius == 0.0d0) then
-       enzoHydrostaticTemperature=enzoHydrostaticTemperatureMinimum
+       enzoHydrostaticTemperature=temperatureMinimum
     else
        enclosedMass              =self%darkMatterProfileDMO_%enclosedMass(        &
             &                                                             node  , &
@@ -138,7 +138,7 @@ contains
             &                         /3.0d0                               &
             &                         /boltzmannsConstant                  &
             &                         /radius                            , &
-            &                         enzoHydrostaticTemperatureMinimum    &
+            &                         temperatureMinimum                   &
             &                        )
     end if
     return
@@ -156,7 +156,7 @@ contains
     double precision                                          , intent(in   ) :: radius
     double precision                                                          :: enclosedMass, density
 
-    if (self%temperature(node,radius) <= enzoHydrostaticTemperatureMinimum) then
+    if (self%temperature(node,radius) <= temperatureMinimum) then
        enzoHydrostaticTemperatureLogSlope=0.0d0
     else
        enclosedMass                      =  self%darkMatterProfileDMO_%enclosedMass(        &

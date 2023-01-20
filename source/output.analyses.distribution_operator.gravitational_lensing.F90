@@ -72,9 +72,9 @@ Contains a module which implements a gravitational lensing output analysis distr
   end interface outputAnalysisDistributionOperatorGrvtnlLnsng
 
   ! Module scope lensing object used in parallel evaluation of the lensing matrix.
-  integer(c_size_t                 )          :: grvtnLnsngK
-  class  (gravitationalLensingClass), pointer :: grvtnlLnsngGravitationalLensing_
-  !$omp threadprivate(grvtnLnsngK,grvtnlLnsngGravitationalLensing_)
+  integer(c_size_t                 )          :: k_
+  class  (gravitationalLensingClass), pointer :: gravitationalLensing_
+  !$omp threadprivate(k_,gravitationalLensing_)
 
 contains
 
@@ -207,12 +207,12 @@ contains
           redshift=self%outputTimes_%redshift(outputIndex)
           allocate(self%transfer_(outputIndex)%matrix(size(propertyValueMinimum),size(propertyValueMinimum)))
           !$omp parallel private (i,j,k,l,integrator_)
-          allocate(grvtnlLnsngGravitationalLensing_,mold=self%gravitationalLensing_)
+          allocate(gravitationalLensing_,mold=self%gravitationalLensing_)
           !$omp critical(analysesGravitationalLensingDeepCopy)
           !![
           <deepCopyReset variables="self%gravitationalLensing_"/>
-          <deepCopy source="self%gravitationalLensing_" destination="grvtnlLnsngGravitationalLensing_"/>
-          <deepCopyFinalize variables="grvtnlLnsngGravitationalLensing_"/>
+          <deepCopy source="self%gravitationalLensing_" destination="gravitationalLensing_"/>
+          <deepCopyFinalize variables="gravitationalLensing_"/>
           !!]
           !$omp end critical(analysesGravitationalLensingDeepCopy)
           allocate(integrator_)
@@ -221,17 +221,17 @@ contains
           do l=1,size(propertyValueMinimum)
              do i=1,2
                 if (i == 1) then
-                   j=l; grvtnLnsngK=1
+                   j=l; k_=1
                 else
-                   j=1; grvtnLnsngK=l
+                   j=1; k_=l
                 end if
-                self%transfer_(outputIndex)%matrix(j,grvtnLnsngK)=+integrator_%integrate( propertyValueMinimum(j),propertyValueMaximum(j)) &
-                     &                                            /                     (+propertyValueMaximum(j)-propertyValueMinimum(j))
+                self%transfer_(outputIndex)%matrix(j,k_)=+integrator_%integrate( propertyValueMinimum(j),propertyValueMaximum(j)) &
+                     &                                   /                     (+propertyValueMaximum(j)-propertyValueMinimum(j))
              end do
           end do
           !$omp end do
           !![
-          <objectDestructor name="grvtnlLnsngGravitationalLensing_"/>
+          <objectDestructor name="gravitationalLensing_"/>
           !!]
           deallocate(integrator_)
           !$omp end parallel
@@ -265,15 +265,15 @@ contains
       ! Find the minimum and maximum magnification ratios.
       select case (propertyType%ID)
       case (outputAnalysisPropertyTypeLinear   %ID)
-         ratioMinimum=                 propertyValueMaximum(grvtnLnsngK)/propertyValue
-         ratioMaximum=                 propertyValueMinimum(grvtnLnsngK)/propertyValue
+         ratioMinimum=                 propertyValueMaximum(k_)/propertyValue
+         ratioMaximum=                 propertyValueMinimum(k_)/propertyValue
       case (outputAnalysisPropertyTypeLog10    %ID)
-         ratioMinimum=10.0d0**(        propertyValueMinimum(grvtnLnsngK)-propertyValue)
-         ratioMaximum=10.0d0**(        propertyValueMaximum(grvtnLnsngK)-propertyValue)
+         ratioMinimum=10.0d0**(        propertyValueMinimum(k_)-propertyValue)
+         ratioMaximum=10.0d0**(        propertyValueMaximum(k_)-propertyValue)
       case (outputAnalysisPropertyTypeMagnitude%ID)
          ! Note that ratio min/max is related to property value max/min because magnitudes are brighter when more negative.
-         ratioMinimum=10.0d0**(-0.4d0*(propertyValueMaximum(grvtnLnsngK)-propertyValue))
-         ratioMaximum=10.0d0**(-0.4d0*(propertyValueMinimum(grvtnLnsngK)-propertyValue))
+         ratioMinimum=10.0d0**(-0.4d0*(propertyValueMaximum(k_)-propertyValue))
+         ratioMaximum=10.0d0**(-0.4d0*(propertyValueMinimum(k_)-propertyValue))
       case default
          call Error_Report('unknown property type'//{introspection:location})
       end select
@@ -291,19 +291,19 @@ contains
          call Error_Report('unknown lensedProperty'//{introspection:location})
       end select
       ! Compute the lensing CDF across this range of magnifications.
-      magnificationCDFIntegrand=                                                     &
-           & max(                                                                    &
-           &     +0.0d0                                                            , &
-           &     +grvtnlLnsngGravitationalLensing_%magnificationCDF(                 &
-           &                                                        ratioMaximum   , &
-           &                                                        redshift       , &
-           &                                                        self%sizeSource  &
-           &                                                       )                 &
-           &     -grvtnlLnsngGravitationalLensing_%magnificationCDF(                 &
-           &                                                        ratioMinimum   , &
-           &                                                        redshift       , &
-           &                                                        self%sizeSource  &
-           &                                                       )                 &
+      magnificationCDFIntegrand=                                          &
+           & max(                                                         &
+           &     +0.0d0                                                 , &
+           &     +gravitationalLensing_%magnificationCDF(                 &
+           &                                             ratioMaximum   , &
+           &                                             redshift       , &
+           &                                             self%sizeSource  &
+           &                                            )                 &
+           &     -gravitationalLensing_%magnificationCDF(                 &
+           &                                             ratioMinimum   , &
+           &                                             redshift       , &
+           &                                             self%sizeSource  &
+           &                                            )                 &
            &    )
       return
     end function magnificationCDFIntegrand

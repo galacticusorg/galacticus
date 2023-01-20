@@ -59,12 +59,12 @@
   end interface galacticStructureSolverEquilibrium
 
   ! Module-scope variables used to communicate current state of radius solver.
-  integer                                               :: equilibriumActiveComponentCount        , equilibriumIterationCount
-  double precision                                      :: equilibriumFitMeasure
-  type            (treeNode), pointer                   :: equilibriumHaloNode
-  double precision          , allocatable, dimension(:) :: equilibriumRadiusStored                , equilibriumVelocityStored
-  logical                                               :: equilibriumRevertStructure     =.false.
-  !$omp threadprivate(equilibriumIterationCount,equilibriumActiveComponentCount,equilibriumFitMeasure,equilibriumHaloNode,equilibriumRadiusStored,equilibriumVelocityStored,equilibriumRevertStructure)
+  integer                                               :: countComponentsActive        , countIterations
+  double precision                                      :: fitMeasure
+  type            (treeNode), pointer                   :: node_
+  double precision          , allocatable, dimension(:) :: radiusStored                , velocityStored
+  logical                                               :: revertStructure     =.false.
+  !$omp threadprivate(countIterations,countComponentsActive,fitMeasure,node_,radiusStored,velocityStored,revertStructure)
 
 contains
 
@@ -254,32 +254,32 @@ contains
     include 'galactic_structure.radius_solver.plausible.inc'
     if (node%isPhysicallyPlausible) then
        ! Initialize the solver state.
-       equilibriumIterationCount=0
-       equilibriumFitMeasure    =2.0d0*self%solutionTolerance
+       countIterations=0
+       fitMeasure    =2.0d0*self%solutionTolerance
        ! Determine which node to use for halo properties.
        if (self%useFormationHalo) then
           if (.not.associated(node%formationNode)) call Error_Report('no formation node exists'//{introspection:location})
-          equilibriumHaloNode => node%formationNode
+          node_ => node%formationNode
        else
-          equilibriumHaloNode => node
+          node_ => node
        end if
        ! Begin iteration to find a converged solution.
-       do while (equilibriumIterationCount <= 2 .or. ( equilibriumFitMeasure > self%solutionTolerance .and. equilibriumIterationCount < iterationMaximum ) )
-          equilibriumIterationCount      =equilibriumIterationCount+1
-          equilibriumActiveComponentCount=0
-          if (equilibriumIterationCount > 1) equilibriumFitMeasure=0.0d0
+       do while (countIterations <= 2 .or. ( fitMeasure > self%solutionTolerance .and. countIterations < iterationMaximum ) )
+          countIterations      =countIterations+1
+          countComponentsActive=0
+          if (countIterations > 1) fitMeasure=0.0d0
           include 'galactic_structure.radius_solver.tasks.inc'
           ! Check that we have some active components.
-          if (equilibriumActiveComponentCount == 0) then
-             equilibriumFitMeasure=0.0d0
+          if (countComponentsActive == 0) then
+             fitMeasure=0.0d0
              exit
           else
              ! Normalize the fit measure by the number of active components.
-             equilibriumFitMeasure=equilibriumFitMeasure/dble(equilibriumActiveComponentCount)
+             fitMeasure=fitMeasure/dble(countComponentsActive)
           end if
        end do
        ! Check that we found a converged solution.
-       if (equilibriumFitMeasure > self%solutionTolerance) then
+       if (fitMeasure > self%solutionTolerance) then
           if (self%convergenceFailureIsFatal) then
              call displayMessage('dumping node for which radii are currently being sought')
              call node%serializeASCII()
@@ -290,7 +290,7 @@ contains
        end if
     end if
     ! Unset structure reversion flag.
-    equilibriumRevertStructure=.false.
+    revertStructure=.false.
     return
 
   contains
@@ -313,7 +313,7 @@ contains
       double precision                    , dimension(:,:), allocatable, save :: radiusHistory
       !$omp threadprivate(radiusHistory)
       double precision                    , dimension(:,:), allocatable       :: radiusHistoryTemporary
-      double precision                    , dimension(:  ), allocatable       :: equilibriumRadiusStoredTmp        , equilibriumVelocityStoredTmp
+      double precision                    , dimension(:  ), allocatable       :: radiusStoredTmp                   , velocityStoredTmp
       integer                             , parameter                         :: storeIncrement                 =10
       integer                             , parameter                         :: iterationsForBisectionMinimum  =10
       integer                             , parameter                         :: activeComponentMaximumIncrement= 2
@@ -321,62 +321,62 @@ contains
       character       (len=14            )                                    :: label
       type            (varying_string    ), save                              :: message
       !$omp threadprivate(message)
-      double precision                                                        :: baryonicVelocitySquared           , darkMatterMassFinal         , &
-           &                                                                     darkMatterVelocitySquared         , velocity                    , &
-           &                                                                     radius                            , radiusNew                   , &
+      double precision                                                        :: baryonicVelocitySquared           , darkMatterMassFinal, &
+           &                                                                     darkMatterVelocitySquared         , velocity           , &
+           &                                                                     radius                            , radiusNew          , &
            &                                                                     specificAngularMomentumMaximum
 
       ! Count the number of active comonents.
-      equilibriumActiveComponentCount=equilibriumActiveComponentCount+1
-      if (equilibriumIterationCount == 1) then
+      countComponentsActive=countComponentsActive+1
+      if (countIterations == 1) then
          ! If structure is to be reverted, do so now.
-         if (equilibriumRevertStructure.and.allocated(equilibriumRadiusStored)) then
-            call          radiusSet(node,  equilibriumRadiusStored(equilibriumActiveComponentCount))
-            call        velocitySet(node,equilibriumVelocityStored(equilibriumActiveComponentCount))
-            call Calculations_Reset(node                                                           )
+         if (revertStructure.and.allocated(radiusStored)) then
+            call          radiusSet(node,  radiusStored(countComponentsActive))
+            call        velocitySet(node,velocityStored(countComponentsActive))
+            call Calculations_Reset(node                                      )
          end if
          ! On first iteration, see if we have a previous radius set for this component.
          radius=radiusGet(node)
          if (radius <= 0.0d0) then
             ! No previous radius was set, so make a simple estimate of sizes of all components ignoring equilibrium contraction and self-gravity.
             ! First check that there is a solution within a reasonable radius.
-            specificAngularMomentumMaximum=+self%darkMatterProfileDMO_%circularVelocity(equilibriumHaloNode,radiusLarge) & 
-                 &                         *                                                                radiusLarge
+            specificAngularMomentumMaximum=+self%darkMatterProfileDMO_%circularVelocity(node_,radiusLarge) & 
+                 &                         *                                                  radiusLarge
             if (specificAngularMomentumMaximum < specificAngularMomentum) then
                ! No solution exists even within a very large radius. Use a simple estimate of the virial radius.
-               radius=self%darkMatterHaloScale_%radiusVirial                      (equilibriumHaloNode                        )
+               radius=self%darkMatterHaloScale_%radiusVirial                      (node_                        )
             else
                ! Find the radius in the dark matter profile with the required specific angular momentum
-               radius=self%darkMatterProfileDMO_%radiusFromSpecificAngularMomentum(equilibriumHaloNode,specificAngularMomentum)
+               radius=self%darkMatterProfileDMO_%radiusFromSpecificAngularMomentum(node_,specificAngularMomentum)
             end if
             ! Find the velocity at this radius.
-            velocity=self%darkMatterProfileDMO_%circularVelocity                  (equilibriumHaloNode,radius                 )
+            velocity=self%darkMatterProfileDMO_%circularVelocity                  (node_,radius                 )
          else
             ! A previous radius was set, so use it, and the previous circular velocity, as the initial guess.
             velocity=velocityGet(node)
          end if
          ! If structure is not being reverted, store the new values of radius and velocity.
-         if (.not.equilibriumRevertStructure .and. equilibriumIterationCount == 1) then
+         if (.not.revertStructure .and. countIterations == 1) then
             ! Store these quantities.
-            if (.not.allocated(equilibriumRadiusStored)) then
-               allocate(  equilibriumRadiusStored(storeIncrement))
-               allocate(equilibriumVelocityStored(storeIncrement))
-               equilibriumRadiusStored  =0.0d0
-               equilibriumVelocityStored=0.0d0
-            else if (equilibriumActiveComponentCount > size(equilibriumRadiusStored)) then
-               call move_alloc(  equilibriumRadiusStored,       equilibriumRadiusStoredTmp                )
-               call move_alloc(equilibriumVelocityStored,     equilibriumVelocityStoredTmp                )
-               allocate       (  equilibriumRadiusStored(size(  equilibriumRadiusStoredTmp)+storeIncrement))
-               allocate       (equilibriumVelocityStored(size(equilibriumVelocityStoredTmp)+storeIncrement))
-               equilibriumRadiusStored  (                        1:size(  equilibriumRadiusStoredTmp))=  equilibriumRadiusStoredTmp
-               equilibriumVelocityStored(                        1:size(equilibriumVelocityStoredTmp))=equilibriumVelocityStoredTmp
-               equilibriumRadiusStored  (size(  equilibriumRadiusStoredTmp)+1:size(  equilibriumRadiusStored   ))=0.0d0
-               equilibriumVelocityStored(size(equilibriumVelocityStoredTmp)+1:size(equilibriumVelocityStored   ))=0.0d0
-               deallocate(  equilibriumRadiusStoredTmp)
-               deallocate(equilibriumVelocityStoredTmp)
+            if (.not.allocated(radiusStored)) then
+               allocate(  radiusStored(storeIncrement))
+               allocate(velocityStored(storeIncrement))
+               radiusStored  =0.0d0
+               velocityStored=0.0d0
+            else if (countComponentsActive > size(radiusStored)) then
+               call move_alloc(  radiusStored,       radiusStoredTmp                )
+               call move_alloc(velocityStored,     velocityStoredTmp                )
+               allocate       (  radiusStored(size(  radiusStoredTmp)+storeIncrement))
+               allocate       (velocityStored(size(velocityStoredTmp)+storeIncrement))
+               radiusStored  (                        1:size(  radiusStoredTmp))=  radiusStoredTmp
+               velocityStored(                        1:size(velocityStoredTmp))=velocityStoredTmp
+               radiusStored  (size(  radiusStoredTmp)+1:size(  radiusStored   ))=0.0d0
+               velocityStored(size(velocityStoredTmp)+1:size(velocityStored   ))=0.0d0
+               deallocate(  radiusStoredTmp)
+               deallocate(velocityStoredTmp)
             end if
-            equilibriumRadiusStored  (equilibriumActiveComponentCount)=radius
-            equilibriumVelocityStored(equilibriumActiveComponentCount)=velocity
+            radiusStored  (countComponentsActive)=radius
+            velocityStored(countComponentsActive)=velocity
          end if
        else
          ! On subsequent iterations do the full calculation providing component has non-zero specific angular momentum.
@@ -384,7 +384,7 @@ contains
          ! Get current radius of the component.
          radius                   =radiusGet(node)
          ! Find the enclosed mass in the dark matter halo.
-         darkMatterMassFinal      =self%darkMatterProfile_%enclosedMass(equilibriumHaloNode,radius)
+         darkMatterMassFinal      =self%darkMatterProfile_%enclosedMass(node_,radius)
          ! Compute dark matter contribution to rotation curve.
          darkMatterVelocitySquared=gravitationalConstantGalacticus*darkMatterMassFinal/radius
          ! Compute baryonic contribution to rotation curve.
@@ -403,44 +403,44 @@ contains
          endif
          ! Ensure that the radius history array is sufficiently sized.
          if (.not.allocated(radiusHistory)) then
-            allocate(radiusHistory(2,equilibriumActiveComponentCount+activeComponentMaximumIncrement))
+            allocate(radiusHistory(2,countComponentsActive+activeComponentMaximumIncrement))
             radiusHistory=-1.0d0
-         else if (size(radiusHistory,dim=2) < equilibriumActiveComponentCount) then
+         else if (size(radiusHistory,dim=2) < countComponentsActive) then
             activeComponentMaximumCurrent=size(radiusHistory,dim=2)
             call Move_Alloc(radiusHistory,radiusHistoryTemporary)
-            allocate(radiusHistory(2,equilibriumActiveComponentCount+activeComponentMaximumIncrement))
-            radiusHistory(:,                              1:                                activeComponentMaximumCurrent  )=radiusHistoryTemporary
-            radiusHistory(:,activeComponentMaximumCurrent+1:equilibriumActiveComponentCount+activeComponentMaximumIncrement)=-1.0d0
+            allocate(radiusHistory(2,countComponentsActive+activeComponentMaximumIncrement))
+            radiusHistory(:,                              1:                      activeComponentMaximumCurrent  )=radiusHistoryTemporary
+            radiusHistory(:,activeComponentMaximumCurrent+1:countComponentsActive+activeComponentMaximumIncrement)=-1.0d0
             deallocate(radiusHistoryTemporary)
          end if
          ! Detect oscillations in the radius solver. Only do this after a few bisection iterations have passed as we don't want to
          ! declare a true oscillation until the solver has had time to "burn in".
-         if (equilibriumIterationCount == 1) radiusHistory=-1.0d0
-         if     (                                                                                                                                                                                                          &
-              &             equilibriumIterationCount                                                                                                                                    >  iterationsForBisectionMinimum  &
-              &  .and. all( radiusHistory(:,equilibriumActiveComponentCount)                                                                                                             >= 0.0d0                        ) &
-              &  .and.     (radiusHistory(2,equilibriumActiveComponentCount)-radiusHistory(1,equilibriumActiveComponentCount))*(radiusHistory(1,equilibriumActiveComponentCount)-radius) <  0.0d0                          &
+         if (countIterations == 1) radiusHistory=-1.0d0
+         if     (                                                                                                                                                                            &
+              &             countIterations                                                                                                                >  iterationsForBisectionMinimum  &
+              &  .and. all( radiusHistory(:,countComponentsActive)                                                                                         >= 0.0d0                        ) &
+              &  .and.     (radiusHistory(2,countComponentsActive)-radiusHistory(1,countComponentsActive))*(radiusHistory(1,countComponentsActive)-radius) <  0.0d0                          &
               & ) then
             ! An oscillation has been detected - attempt to break out of it. The following heuristic has been found to work quite
             ! well - we bisect previous solutions in the oscillating sequence in a variety of different ways
             ! (arithmetic/geometric and using the current+previous or two previous solutions), alternating the bisection method
             ! sequentially. There's no guarantee that this will work in every situation however.
-            select case (mod(equilibriumIterationCount,4))
+            select case (mod(countIterations,4))
             case (0)
-               radius=sqrt  (radius                                          *radiusHistory(1,equilibriumActiveComponentCount))
+               radius=sqrt  (radius                                *radiusHistory(1,countComponentsActive))
             case (1)
-               radius=0.5d0*(radius                                          +radiusHistory(1,equilibriumActiveComponentCount))
+               radius=0.5d0*(radius                                +radiusHistory(1,countComponentsActive))
             case (2)
-               radius=sqrt  (radiusHistory(1,equilibriumActiveComponentCount)*radiusHistory(2,equilibriumActiveComponentCount))
+               radius=sqrt  (radiusHistory(1,countComponentsActive)*radiusHistory(2,countComponentsActive))
             case (3)
-               radius=0.5d0*(radiusHistory(1,equilibriumActiveComponentCount)+radiusHistory(2,equilibriumActiveComponentCount))
+               radius=0.5d0*(radiusHistory(1,countComponentsActive)+radiusHistory(2,countComponentsActive))
             end select
-            radiusHistory(:,equilibriumActiveComponentCount)=-1.0d0
+            radiusHistory(:,countComponentsActive)=-1.0d0
          end if
-         radiusHistory(2,equilibriumActiveComponentCount)=radiusHistory(1,equilibriumActiveComponentCount)
-         radiusHistory(1,equilibriumActiveComponentCount)=radius
+         radiusHistory(2,countComponentsActive)=radiusHistory(1,countComponentsActive)
+         radiusHistory(1,countComponentsActive)=radius
          ! Compute a fit measure.
-         if (radius > 0.0d0 .and. radiusNew > 0.0d0) equilibriumFitMeasure=equilibriumFitMeasure+abs(log(radiusNew/radius))
+         if (radius > 0.0d0 .and. radiusNew > 0.0d0) fitMeasure=fitMeasure+abs(log(radiusNew/radius))
          ! Set radius to new radius.
          radius=radiusNew
          ! Catch unphysical states.
@@ -479,6 +479,6 @@ contains
     !$GLC attributes unused :: self, node
 
     ! Simply record that reversion should be performed on the next call to the solver.
-    equilibriumRevertStructure=.true.
+    revertStructure=.true.
     return
   end subroutine equilibriumRevert

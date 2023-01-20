@@ -146,8 +146,8 @@
      procedure :: radiusFromSpecificAngularMomentumScaleFree => einastoRadiusFromSpecificAngularMomentumScaleFree
      procedure :: radiusFromSpecificAngularMomentumTableMake => einastoRadiusFromSpecificAngularMomentumTableMake
      procedure :: freefallTabulate                           => einastoFreefallTabulate
-     procedure :: energyTableMake                            => einastoEnergyTableMake
-     procedure :: fourierProfileTableMake                    => einastoFourierProfileTableMake
+     procedure :: energyTableMake                            => energyTableMake
+     procedure :: fourierProfileTableMake                    => fourierProfileTableMake
   end type darkMatterProfileDMOEinasto
 
   interface darkMatterProfileDMOEinasto
@@ -159,23 +159,23 @@
   end interface darkMatterProfileDMOEinasto
 
   ! Granularity parameters for tabulations.
-  integer, parameter :: einastoAngularMomentumTableRadiusPointsPerDecade         =100
-  integer, parameter :: einastoAngularMomentumTableAlphaPointsPerUnit            =100
-  integer, parameter :: einastoFreefallRadiusTableRadiusPointsPerDecade          = 30
-  integer, parameter :: einastoFreefallRadiusTableAlphaPointsPerUnit             = 30
-  integer, parameter :: einastoEnergyTableConcentrationPointsPerDecade           =100
-  integer, parameter :: einastoEnergyTableAlphaPointsPerUnit                     =100
-  integer, parameter :: einastoFourierProfileTableConcentrationPointsPerDecade   =100
-  integer, parameter :: einastoFourierProfileTableWavenumberPointsPerDecade      =100
-  integer, parameter :: einastoFourierProfileTableAlphaPointsPerUnit             =100
-  integer, parameter :: einastoRadialVelocityDispersionTableRadiusPointsPerDecade=100
-  integer, parameter :: einastoRadialVelocityDispersionTableAlphaPointsPerUnit   =100
+  integer, parameter :: angularMomentumTableRadiusPointsPerDecade         =100
+  integer, parameter :: angularMomentumTableAlphaPointsPerUnit            =100
+  integer, parameter :: freefallRadiusTableRadiusPointsPerDecade          = 30
+  integer, parameter :: freefallRadiusTableAlphaPointsPerUnit             = 30
+  integer, parameter :: energyTableConcentrationPointsPerDecade           =100
+  integer, parameter :: energyTableAlphaPointsPerUnit                     =100
+  integer, parameter :: fourierProfileTableConcentrationPointsPerDecade   =100
+  integer, parameter :: fourierProfileTableWavenumberPointsPerDecade      =100
+  integer, parameter :: fourierProfileTableAlphaPointsPerUnit             =100
+  integer, parameter :: radialVelocityDispersionTableRadiusPointsPerDecade=100
+  integer, parameter :: radialVelocityDispersionTableAlphaPointsPerUnit   =100
 
   ! Module-scope variables used in root finding.
-  class           (darkMatterProfileDMOEinasto), pointer :: einastoSelf
-  type            (treeNode                   ), pointer :: einastoNode
-  double precision                                       :: einastoDensityEnclosed, einastoAlpha
-  !$omp threadprivate(einastoSelf,einastoNode,einastoDensityEnclosed,einastoAlpha)
+  class           (darkMatterProfileDMOEinasto), pointer :: self_
+  type            (treeNode                   ), pointer :: node_
+  double precision                                       :: densityEnclosed_, alpha_
+  !$omp threadprivate(self_,node_,densityEnclosed_,alpha_)
 
 contains
 
@@ -492,11 +492,11 @@ contains
          &                                                             radiusPeak
 
     ! Get the shape parameter for this halo.
-    darkMatterProfile => node                 %darkMatterProfile(autoCreate=.true.)
+    darkMatterProfile => node             %darkMatterProfile(autoCreate=.true.)
     alpha             =  darkMatterProfile%shape            (                 )
     radiusScale       =  darkMatterProfile%scale            (                 )
     ! Solve for the radius (in units of the scale radius) at which the rotation curve peaks.
-    einastoAlpha=alpha
+    alpha_=alpha
     radiusPeak  =self%finderVelocityPeak%find(rootGuess=radiusScale)
     ! Convert to a physical radius.
     einastoRadiusCircularVelocityMaximum=radiusPeak*radiusScale
@@ -511,23 +511,23 @@ contains
     implicit none
     double precision, intent(in   ) :: radius
     
-    einastoCircularVelocityPeakRadius=+        2.0d0                             **(      +3.0d0/einastoAlpha)          &
-         &                            *        radius                            **(-2.0d0+      einastoAlpha)          &
-         &                            *(       radius**einastoAlpha/einastoAlpha)**(-1.0d0+3.0d0/einastoAlpha)          &
-         &                            * exp(                                                                            &
-         &                                  -(                                                                          &
-         &                                    +2.0d0                                                                    &
-         &                                    *radius**einastoAlpha                                                     &
-         &                                   )                                                                          &
-         &                                  /einastoAlpha                                                               &
-         &                                 )                                                                            &
-         &                            /Gamma_Function                         (                                         &
-         &                                                                     3.0d0                     /einastoAlpha  &
-         &                                                                    )                                         &
-         &                            -Gamma_Function_Incomplete_Complementary(                                         &
-         &                                                                     3.0d0                     /einastoAlpha, &
-         &                                                                     2.0d0*radius**einastoAlpha/einastoAlpha  &
-         &                                                                    )                                         &
+    einastoCircularVelocityPeakRadius=+        2.0d0                 **(      +3.0d0/alpha_)                &
+         &                            *        radius                **(-2.0d0+      alpha_)                &
+         &                            *(       radius**alpha_/alpha_)**(-1.0d0+3.0d0/alpha_)                &
+         &                            * exp(                                                                &
+         &                                  -(                                                              &
+         &                                    +2.0d0                                                        &
+         &                                    *radius**alpha_                                               &
+         &                                   )                                                              &
+         &                                  /alpha_                                                         &
+         &                                 )                                                                &
+         &                            /Gamma_Function                         (                             &
+         &                                                                     3.0d0               /alpha_  &
+         &                                                                    )                             &
+         &                            -Gamma_Function_Incomplete_Complementary(                             &
+         &                                                                     3.0d0               /alpha_, &
+         &                                                                     2.0d0*radius**alpha_/alpha_  &
+         &                                                                    )                             &
          &                            /       radius              **  2
     return
   end function einastoCircularVelocityPeakRadius
@@ -730,10 +730,10 @@ contains
        if (makeTable) then
           ! Allocate arrays to the appropriate sizes.
           self%angularMomentumTableAlphaCount =int(     (self%angularMomentumTableAlphaMaximum -self%angularMomentumTableAlphaMinimum ) &
-               &                                   *dble(einastoAngularMomentumTableAlphaPointsPerUnit   )                              &
+               &                                   *dble(angularMomentumTableAlphaPointsPerUnit   )                                     &
                &                                  )+1
           self%angularMomentumTableRadiusCount=int(log10(self%angularMomentumTableRadiusMaximum/self%angularMomentumTableRadiusMinimum) &
-               &                                   *dble(einastoAngularMomentumTableRadiusPointsPerDecade)                              &
+               &                                   *dble(angularMomentumTableRadiusPointsPerDecade)                                     &
                &                                  )+1
           if (allocated(self%angularMomentumTableAlpha )) deallocate(self%angularMomentumTableAlpha )
           if (allocated(self%angularMomentumTableRadius)) deallocate(self%angularMomentumTableRadius)
@@ -848,7 +848,7 @@ contains
     return
   end function einastoEnergy
 
-  subroutine einastoEnergyTableMake(self,concentrationRequired,alphaRequired)
+  subroutine energyTableMake(self,concentrationRequired,alphaRequired)
     !!{
     Create a tabulation of the energy of Einasto profiles as a function of their concentration of $\alpha$ parameter.
     !!}
@@ -890,10 +890,10 @@ contains
     if (makeTable) then
        ! Allocate arrays to the appropriate sizes.
        self%energyTableAlphaCount        =int(     (self%energyTableAlphaMaximum        -self%energyTableAlphaMinimum        ) &
-            &                                 *dble(einastoEnergyTableAlphaPointsPerUnit                                     ) &
+            &                                 *dble(energyTableAlphaPointsPerUnit                                            ) &
             &                                )+1
        self%energyTableConcentrationCount=int(log10(self%energyTableConcentrationMaximum/self%energyTableConcentrationMinimum) &
-            &                                 *dble(einastoEnergyTableConcentrationPointsPerDecade                           ) &
+            &                                 *dble(energyTableConcentrationPointsPerDecade                                  ) &
             &                                )+1
        if (allocated(self%energyTableAlpha        )) deallocate(self%energyTableAlpha        )
        if (allocated(self%energyTableConcentration)) deallocate(self%energyTableConcentration)
@@ -994,7 +994,7 @@ contains
       return
     end function einastoJeansEquationIntegrand
 
-  end subroutine einastoEnergyTableMake
+  end subroutine energyTableMake
 
   double precision function einastoEnclosedMassScaleFree(self,radius,concentration,alpha)
     !!{
@@ -1122,7 +1122,7 @@ contains
     return
   end function einastoKSpace
 
-  subroutine einastoFourierProfileTableMake(self,wavenumberRequired,concentrationRequired,alphaRequired)
+  subroutine fourierProfileTableMake(self,wavenumberRequired,concentrationRequired,alphaRequired)
     !!{
     Create a tabulation of the Fourier transform of Einasto profiles as a function of their $\alpha$ parameter and
     dimensionless wavenumber.
@@ -1176,12 +1176,12 @@ contains
        ! Display a message.
        call displayIndent('Constructing Einasto profile Fourier transform lookup table...',verbosityLevelInfo)
        ! Allocate arrays to the appropriate sizes.
-       self%fourierProfileTableAlphaCount        =int(      (self%fourierProfileTableAlphaMaximum        -self%fourierProfileTableAlphaMinimum        ) &
-            &*dble(einastoFourierProfileTableAlphaPointsPerUnit          ))+1
+       self%fourierProfileTableAlphaCount        =int(      (self%fourierProfileTableAlphaMaximum        -self%fourierProfileTableAlphaMinimum       ) &
+            &*dble(fourierProfileTableAlphaPointsPerUnit          ))+1
        self%fourierProfileTableConcentrationCount=int(log10(self%fourierProfileTableConcentrationMaximum/self%fourierProfileTableConcentrationMinimum) &
-            &*dble(einastoFourierProfileTableConcentrationPointsPerDecade))+1
+            &*dble(fourierProfileTableConcentrationPointsPerDecade))+1
        self%fourierProfileTableWavenumberCount   =int(log10(self%fourierProfileTableWavenumberMaximum   /self%fourierProfileTableWavenumberMinimum   ) &
-            &*dble(einastoFourierProfileTableWavenumberPointsPerDecade   ))+1
+            &*dble(fourierProfileTableWavenumberPointsPerDecade   ))+1
        if (allocated(self%fourierProfileTableAlpha        )) deallocate(self%fourierProfileTableAlpha        )
        if (allocated(self%fourierProfileTableConcentration)) deallocate(self%fourierProfileTableConcentration)
        if (allocated(self%fourierProfileTableWavenumber   )) deallocate(self%fourierProfileTableWavenumber   )
@@ -1273,7 +1273,7 @@ contains
       return
     end function einastoFourierProfileIntegrand
 
-  end subroutine einastoFourierProfileTableMake
+  end subroutine fourierProfileTableMake
 
   double precision function einastoFreefallRadius(self,node,time)
     !!{
@@ -1456,8 +1456,8 @@ contains
        ! Display a message.
        call displayIndent('Constructing Einasto profile freefall radius lookup table...',verbosityLevelWorking)
        ! Decide how many points to tabulate and allocate table arrays.
-       self%freefallRadiusTableRadiusCount=int(log10(self%freefallRadiusTableRadiusMaximum/self%freefallRadiusTableRadiusMinimum)*dble(einastoFreefallRadiusTableRadiusPointsPerDecade))+1
-       self%freefallRadiusTableAlphaCount =int(     (self%freefallRadiusTableAlphaMaximum -self%freefallRadiusTableAlphaMinimum )*dble(einastoFreefallRadiusTableAlphaPointsPerUnit   ))+1
+       self%freefallRadiusTableRadiusCount=int(log10(self%freefallRadiusTableRadiusMaximum/self%freefallRadiusTableRadiusMinimum)*dble(freefallRadiusTableRadiusPointsPerDecade))+1
+       self%freefallRadiusTableAlphaCount =int(     (self%freefallRadiusTableAlphaMaximum -self%freefallRadiusTableAlphaMinimum )*dble(freefallRadiusTableAlphaPointsPerUnit   ))+1
        if (allocated(self%freefallRadiusTableRadius)) then
           deallocate(self%freefallRadiusTableAlpha )
           deallocate(self%freefallRadiusTableRadius)
@@ -1552,9 +1552,9 @@ contains
     type            (treeNode                   ), intent(inout), target :: node
     double precision                             , intent(in   )         :: density
 
-    einastoDensityEnclosed        =  density
-    einastoNode                   => node
-    einastoSelf                   => self
+    densityEnclosed_              =  density
+    node_                         => node
+    self_                         => self
     einastoRadiusEnclosingDensity =  self%finderEnclosedDensity%find(rootGuess=self%darkMatterHaloScale_%radiusVirial(node))
     return
   end function einastoRadiusEnclosingDensity
@@ -1567,11 +1567,11 @@ contains
     implicit none
     double precision, intent(in   ) :: radius
 
-    einastoRadiusEnclosingDensityRoot=+einastoDensityEnclosed                       &
-         &                            -einastoSelf%enclosedMass(einastoNode,radius) &
-         &                            *3.0d0                                        &
-         &                            /4.0d0                                        &
-         &                            /Pi                                           &
+    einastoRadiusEnclosingDensityRoot=+densityEnclosed_                 &
+         &                            -self_%enclosedMass(node_,radius) &
+         &                            *3.0d0                            &
+         &                            /4.0d0                            &
+         &                            /Pi                               &
          &                            /radius**3
     return
   end function einastoRadiusEnclosingDensityRoot
@@ -1658,10 +1658,10 @@ contains
        call displayIndent('Constructing Einasto profile radial velocity dispersion lookup table...',verbosityLevelWorking)
        ! Decide how many points to tabulate and allocate table arrays.
        self%radialVelocityDispersionTableRadiusCount=int(log10(self%radialVelocityDispersionRadiusMaximum/self%radialVelocityDispersionRadiusMinimum) &
-            &                                            *dble(einastoRadialVelocityDispersionTableRadiusPointsPerDecade                            ) &
+            &                                            *dble(radialVelocityDispersionTableRadiusPointsPerDecade                                   ) &
             &                                           )+1
        self%radialVelocityDispersionTableAlphaCount =int(     (self%radialVelocityDispersionAlphaMaximum -self%radialVelocityDispersionAlphaMinimum ) &
-            &                                            *dble(einastoRadialVelocityDispersionTableAlphaPointsPerUnit                               ) &
+            &                                            *dble(radialVelocityDispersionTableAlphaPointsPerUnit                                      ) &
             &                                           )+1
        if (allocated(self%radialVelocityDispersionTableRadius)) then
           deallocate(self%radialVelocityDispersionTableAlpha )

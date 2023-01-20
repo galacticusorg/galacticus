@@ -89,7 +89,7 @@
      module procedure virialDensityContrastDefinitionInternal
   end interface darkMatterHaloScaleVirialDensityContrastDefinition
 
-  integer, parameter :: virialDensityContrastDefinitionMeanDensityTablePointsPerDecade=100
+  integer, parameter :: meanDensityTablePointsPerDecade=100
 
 contains
 
@@ -444,7 +444,7 @@ contains
              self%densityMeanTimeMinimum=min(self%densityMeanTimeMinimum,time/2.0d0)
              self%densityMeanTimeMaximum=max(self%densityMeanTimeMaximum,time*2.0d0)
           end if
-          densityMeanTablePoints=int(log10(self%densityMeanTimeMaximum/self%densityMeanTimeMinimum)*dble(virialDensityContrastDefinitionMeanDensityTablePointsPerDecade))+1
+          densityMeanTablePoints=int(log10(self%densityMeanTimeMaximum/self%densityMeanTimeMinimum)*dble(meanDensityTablePointsPerDecade))+1
           call self%densityMeanTable%destroy()
           call self%densityMeanTable%create(self%densityMeanTimeMinimum,self%densityMeanTimeMaximum,densityMeanTablePoints)
           do i=1,densityMeanTablePoints

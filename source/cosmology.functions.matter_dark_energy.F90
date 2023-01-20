@@ -24,17 +24,17 @@
 
   use :: Root_Finder, only : rootFinder
 
-  integer         , parameter :: matterDarkEnergyAgeTableNPointsPerDecade     =300
-  double precision, parameter :: matterDarkEnergyAgeTableNPointsPerOctave     =dble(matterDarkEnergyAgeTableNPointsPerDecade)*log(2.0d0)/log(10.0d0)
-  double precision, parameter :: matterDarkEnergyAgeTableIncrementFactor      =exp(int(matterDarkEnergyAgeTableNPointsPerOctave+1.0d0)*log(10.0d0)/dble(matterDarkEnergyAgeTableNPointsPerDecade))
-  integer         , parameter :: matterDarkEnergyDistanceTableNPointsPerDecade=100
+  integer         , parameter :: ageTableNPointsPerDecade     =300
+  double precision, parameter :: ageTableNPointsPerOctave     =dble(ageTableNPointsPerDecade)*log(2.0d0)/log(10.0d0)
+  double precision, parameter :: ageTableIncrementFactor      =exp(int(ageTableNPointsPerOctave+1.0d0)*log(10.0d0)/dble(ageTableNPointsPerDecade))
+  integer         , parameter :: distanceTableNPointsPerDecade=100
 
   ! Factor by which one component of Universe must dominate others such that we can ignore the others.
-  double precision, parameter :: matterDarkEnergyDominateFactor               =100.0d0
+  double precision, parameter :: factorDominate               =100.0d0
 
   ! Variables used in root finding.
-  double precision            :: matterDarkEnergyDominateFactorCurrent
-  !$omp threadprivate(matterDarkEnergyDominateFactorCurrent)
+  double precision            :: factorDominateCurrent
+  !$omp threadprivate(factorDominateCurrent)
 
   !![
   <cosmologyFunctions name="cosmologyFunctionsMatterDarkEnergy">
@@ -55,8 +55,8 @@
    contains
      !![
      <methods>
-       <method description="Set a module-scope pointer to {\normalfont \ttfamily self}." method="targetSelf" />
-       <method description="Return the derivative of the dark energy exponent with respect to expansion factor." method="exponentDarkEnergyDerivative" />
+       <method description="Set a module-scope pointer to {\normalfont \ttfamily self}."                         method="targetSelf"                  />
+       <method description="Return the derivative of the dark energy exponent with respect to expansion factor." method="exponentDarkEnergyDerivative"/>
      </methods>
      !!]
      procedure :: cosmicTime                    => matterDarkEnergyCosmicTime
@@ -76,8 +76,8 @@
   end type cosmologyFunctionsMatterDarkEnergy
 
   ! Module scope pointer to the current object.
-  class(cosmologyFunctionsMatterDarkEnergy), pointer :: matterDarkEnergySelfGlobal => null()
-  !$omp threadprivate(matterDarkEnergySelfGlobal)
+  class(cosmologyFunctionsMatterDarkEnergy), pointer :: self_ => null()
+  !$omp threadprivate(self_)
 
   interface cosmologyFunctionsMatterDarkEnergy
      !!{
@@ -222,11 +222,11 @@ contains
     else
        ! In expanding phase ensure that sufficiently small and large expansion factors have been reached.
        do while (self%ageTableExpansionFactor(                        1) > expansionFactor)
-          self%ageTableTimeMinimum=    self%ageTableTimeMinimum/matterDarkEnergyAgeTableIncrementFactor
+          self%ageTableTimeMinimum=    self%ageTableTimeMinimum/ageTableIncrementFactor
           call self%expansionFactorTabulate()
        end do
        do while (self%ageTableExpansionFactor(self%ageTableNumberPoints) < expansionFactor)
-          self%ageTableTimeMaximum=max(self%ageTableTimeMaximum*matterDarkEnergyAgeTableIncrementFactor,self%timeTurnaround)
+          self%ageTableTimeMaximum=max(self%ageTableTimeMaximum*ageTableIncrementFactor,self%timeTurnaround)
           call self%expansionFactorTabulate()
        end do
     end if
@@ -307,7 +307,7 @@ contains
             &                                 rangeExpandDownward=rangeExpandDownward      , &
             &                                 rangeExpandType    =rangeExpandMultiplicative  &
             &                                )
-       matterDarkEnergyDominateFactorCurrent = dominateFactor       
+       factorDominateCurrent = dominateFactor       
        call self%targetSelf()
        aDominantDarkEnergy  =self%finderDomination%find(rootGuess=1.0d0)
        ! Choose earliest expansion factor.
@@ -429,7 +429,7 @@ contains
     else
        requestTypeActual=requestTypeExpansionFactor
     end if
-    matterDarkEnergyDominateFactorCurrent =  1.0d0
+    factorDominateCurrent =  1.0d0
     call self%targetSelf()
     matterDarkEnergyEqualityEpochMatterDarkEnergy=self%finderEquality%find(rootGuess=1.0d0)
     if (present(requestType)) then
@@ -448,11 +448,11 @@ contains
     double precision, intent(in   ) :: expansionFactor
 
     matterDarkEnergyDomination=                                                                                                 &
-         &                      matterDarkEnergySelfGlobal%cosmologyParameters_%OmegaMatter    ()                               &
+         &                      self_%cosmologyParameters_%OmegaMatter    ()                               &
          &                     /expansionFactor**3                                                                              &
-         &                     -matterDarkEnergyDominateFactorCurrent                                                           &
-         &                     *matterDarkEnergySelfGlobal%cosmologyParameters_%OmegaDarkEnergy()                               &
-         &                     *expansionFactor**matterDarkEnergySelfGlobal%exponentDarkEnergy(expansionFactor=expansionFactor)
+         &                     -factorDominateCurrent                                                           &
+         &                     *self_%cosmologyParameters_%OmegaDarkEnergy()                               &
+         &                     *expansionFactor**self_%exponentDarkEnergy(expansionFactor=expansionFactor)
     return
   end function matterDarkEnergyDomination
 
@@ -463,7 +463,7 @@ contains
     implicit none
     class(cosmologyFunctionsMatterDarkEnergy), intent(in   ), target :: self
 
-    matterDarkEnergySelfGlobal => self
+    self_ => self
     return
   end subroutine matterDarkEnergyTargetSelf
 
@@ -486,29 +486,29 @@ contains
     logical                                                                                    :: solutionFound                           , timeExceeded
 
     ! Find expansion factor early enough that a single component dominates the evolution of the Universe.
-    call self%densityScalingEarlyTime(matterDarkEnergyDominateFactor,densityPower,expansionFactorDominant,OmegaDominant)
+    call self%densityScalingEarlyTime(factorDominate,densityPower,expansionFactorDominant,OmegaDominant)
     ! Find the corresponding time.
     timeDominant=-2.0d0/densityPower/self%cosmologyParameters_%HubbleConstant(hubbleUnitsTime)/sqrt(OmegaDominant)/expansionFactorDominant**(0.5d0*densityPower)
     ! Find minimum and maximum times to tabulate.
     if (present(time)) then
        timeActual=time
        do while (self%ageTableTimeMinimum > min(timeActual,timeDominant)/2.0d0)
-          self%ageTableTimeMinimum=self%ageTableTimeMinimum/matterDarkEnergyAgeTableIncrementFactor
+          self%ageTableTimeMinimum=self%ageTableTimeMinimum/ageTableIncrementFactor
        end do
        do while (self%ageTableTimeMaximum < max(timeActual,timeDominant)*2.0d0)
-          self%ageTableTimeMaximum=self%ageTableTimeMaximum*matterDarkEnergyAgeTableIncrementFactor
+          self%ageTableTimeMaximum=self%ageTableTimeMaximum*ageTableIncrementFactor
        end do
     else
        do while (self%ageTableTimeMinimum > timeDominant/2.0d0)
-          self%ageTableTimeMinimum=self%ageTableTimeMinimum/matterDarkEnergyAgeTableIncrementFactor
+          self%ageTableTimeMinimum=self%ageTableTimeMinimum/ageTableIncrementFactor
        end do
        do while (self%ageTableTimeMaximum < timeDominant*2.0d0)
-          self%ageTableTimeMaximum=self%ageTableTimeMaximum*matterDarkEnergyAgeTableIncrementFactor
+          self%ageTableTimeMaximum=self%ageTableTimeMaximum*ageTableIncrementFactor
        end do
     end if
     ! Determine number of points to tabulate.
-    self%ageTableNumberPoints=int(log10(self%ageTableTimeMaximum/self%ageTableTimeMinimum)     *dble(matterDarkEnergyAgeTableNPointsPerDecade))+1
-    self%ageTableTimeMaximum =self%ageTableTimeMinimum*10.0d0**(dble(self%ageTableNumberPoints)/dble(matterDarkEnergyAgeTableNPointsPerDecade))
+    self%ageTableNumberPoints=int(log10(self%ageTableTimeMaximum/self%ageTableTimeMinimum)     *dble(ageTableNPointsPerDecade))+1
+    self%ageTableTimeMaximum =self%ageTableTimeMinimum*10.0d0**(dble(self%ageTableNumberPoints)/dble(ageTableNPointsPerDecade))
     ! Assume this Universe does not collapse initially.
     self%collapsingUniverse    =.false.
     self%expansionFactorMaximum=0.0d0
@@ -517,7 +517,7 @@ contains
     ! Deallocate arrays if currently allocated.
     if (allocated(self%ageTableTime)) then
        ! Determine number of points that are being added at the start of the array.
-       prefixPointCount=int(log10(self%ageTableTime(1)/self%ageTableTimeMinimum)*dble(matterDarkEnergyAgeTableNPointsPerDecade)+0.5d0)
+       prefixPointCount=int(log10(self%ageTableTime(1)/self%ageTableTimeMinimum)*dble(ageTableNPointsPerDecade)+0.5d0)
        call Move_Alloc(self%ageTableTime           ,ageTableTimeTemporary           )
        call Move_Alloc(self%ageTableExpansionFactor,ageTableExpansionFactorTemporary)
        ! Allocate the arrays to current required size.
@@ -658,7 +658,7 @@ contains
     if (a(1) <= 0.0d0) then
        dadt(1)=0.0d0
     else
-       dadt(1)=a(1)*matterDarkEnergySelfGlobal%expansionRate(a(1))
+       dadt(1)=a(1)*self_%expansionRate(a(1))
     end if
     matterDarkEnergyAgeTableODEs=GSL_Success
   end function matterDarkEnergyAgeTableODEs

@@ -120,14 +120,14 @@
   end interface mergerTreeNodeEvolverStandard
 
   ! Maximum number of trials to solve ODEs.
-  integer                                        , parameter :: standardTrialCountMaximum=8
+  integer                                        , parameter :: trialCountMaximum=8
 
   ! Pointer to self and solver.
-  class           (mergerTreeNodeEvolverStandard), pointer   :: standardSelf
-  type            (odeSolver                    ), pointer   :: standardSolver
+  class           (mergerTreeNodeEvolverStandard), pointer   :: self_
+  type            (odeSolver                    ), pointer   :: solver_
   double precision                                           :: timeStartSaved
-  !$omp threadprivate(standardSelf,standardSolver,timeStartSaved)
-  !$GLC ignore outlive :: standardSolver
+  !$omp threadprivate(self_,solver_,timeStartSaved)
+  !$GLC ignore outlive :: solver_
   
 contains
 
@@ -558,10 +558,10 @@ contains
              call displayUnindent('done')
           end if          
           ! Assign module global pointer to this node.
-          standardSelf         => self
-          standardSolver       => solver
-          self%activeTreeIndex =  tree%index
-          self%activeNode      => node
+          self_                   => self
+          solver_                 => solver
+          self   %activeTreeIndex =  tree%index
+          self   %activeNode      => node
           ! Reset interrupt variables.
           self%interruptFirstFound    =  .false.
           self%timeInterruptFirst     =  0.0d0
@@ -574,7 +574,7 @@ contains
              self%trialCount           =0
              solverInitialized         =.false.
              odeStatus                 =errorStatusFail
-             do while (self%trialCount < standardTrialCountMaximum .and. .not.(odeStatus == errorStatusSuccess .or. odeStatus == odeSolverInterrupt))
+             do while (self%trialCount < trialCountMaximum .and. .not.(odeStatus == errorStatusSuccess .or. odeStatus == odeSolverInterrupt))
                 ! Initialize state. Stepsize is reduced by half on each successive trial.
                 if (.not.solverInitialized) then
                    if (jacobianSolver) then
@@ -745,29 +745,29 @@ contains
     !$GLC attributes unused :: evaluate
 
     ! Set state to indicate that rate calculations are for inactive variables.
-    rateComputeState=standardSelf%propertyTypeIntegrator
+    rateComputeState=self_%propertyTypeIntegrator
     ! Iterate over times.
     do iTime=1,size(time)
        ! Deserialize the active values.
-       call standardSelf%activeNode%deserializeValues(propertyValues               (1:standardSelf%propertyCountActive  ,iTime),standardSelf%propertyTypeODE     )
-       call standardSelf%activeNode%deserializeRates (propertyRates                (1:standardSelf%propertyCountActive  ,iTime),standardSelf%propertyTypeODE     )
-       call standardSelf%activeNode%deserializeValues(inactivePropertyInitialValues(1:standardSelf%propertyCountInactive      ),             propertyTypeInactive)
-       call standardSelf%nodeOperator_%differentialEvolutionSolveAnalytics(standardSelf%activeNode,time(iTime))
+       call self_%activeNode%deserializeValues(propertyValues               (1:self_%propertyCountActive  ,iTime),self_%propertyTypeODE     )
+       call self_%activeNode%deserializeRates (propertyRates                (1:self_%propertyCountActive  ,iTime),self_%propertyTypeODE     )
+       call self_%activeNode%deserializeValues(inactivePropertyInitialValues(1:self_%propertyCountInactive      ),      propertyTypeInactive)
+       call self_%nodeOperator_%differentialEvolutionSolveAnalytics(self_%activeNode,time(iTime))
        ! If past the time of the first interrupt, integrands are set to zero. Otherwise, evaluate integrands.
-       if (standardSelf%interruptFirstFound .and. time(iTime) >= standardSelf%timeInterruptFirst) then
+       if (self_%interruptFirstFound .and. time(iTime) >= self_%timeInterruptFirst) then
           integrands(:,iTime)=0.0d0
        else
           ! Set derivatives to zero initially.
-          call standardSelf%activeNode%odeStepRatesInitialize()
+          call self_%activeNode%odeStepRatesInitialize()
           ! Compute derivatives.
-          call standardSelf%galacticStructureSolver_%revert(standardSelf%activeNode                                                                )
-          call standardDerivativesCompute                  (standardSelf%activeNode,interrupt,functionInterrupt,standardSelf%propertyTypeIntegrator)
+          call self_%galacticStructureSolver_%revert(self_%activeNode                                                                )
+          call standardDerivativesCompute           (self_%activeNode,interrupt,functionInterrupt,self_%propertyTypeIntegrator)
           ! Serialize rates into integrand array.
-          call standardSelf%activeNode%serializeRates(integrands(:,iTime),standardSelf%propertyTypeIntegrator)
+          call self_%activeNode%serializeRates(integrands(:,iTime),self_%propertyTypeIntegrator)
        end if
     end do
     ! Set state to indicate that rate calculations are for active variables.
-    rateComputeState=standardSelf%propertyTypeODE
+    rateComputeState=self_%propertyTypeODE
     return
   end subroutine standardIntegrands
 
@@ -779,9 +779,9 @@ contains
     double precision, intent(in   )               :: time
     double precision, intent(in   ), dimension(:) :: propertyValues
 
-    call standardSelf%activeNode   %deserializeValues                  (propertyValues(1:standardSelf%propertyCountActive),standardSelf%propertyTypeODE)
-    call standardSelf%nodeOperator_%differentialEvolutionSolveAnalytics(                 standardSelf%activeNode          ,time                        )
-    call standardSelf%nodeOperator_%differentialEvolutionStepFinalState(                 standardSelf%activeNode                                       )
+    call self_%activeNode   %deserializeValues                  (propertyValues(1:self_%propertyCountActive),self_%propertyTypeODE)
+    call self_%nodeOperator_%differentialEvolutionSolveAnalytics(                 self_%activeNode          ,time                 )
+    call self_%nodeOperator_%differentialEvolutionStepFinalState(                 self_%activeNode                                )
     return
   end subroutine standardFinalStateProcessing
 
@@ -803,9 +803,9 @@ contains
     integer         (kind_int8         )                              :: systemClockCount
  
     ! Check for exceeding wall time.
-    if (standardSelf%systemClockMaximum > 0_kind_int8) then
+    if (self_%systemClockMaximum > 0_kind_int8) then
        call System_Clock(systemClockCount)
-       if (systemClockCount > standardSelf%systemClockMaximum) then
+       if (systemClockCount > self_%systemClockMaximum) then
           standardODEs=errorStatusXCPU
           return
        end if
@@ -813,55 +813,55 @@ contains
     ! Return success by default.
     standardODEs=GSL_Success
     ! Check if we can reuse the previous derivatives.
-    if   (                                                                                                                                     &
-       &   time                                                    == standardSelf%timePrevious                                                &
-       &  .and.                                                                                                                                &
-       &   all(y(             1:standardSelf%propertyCountActive)  == standardSelf%propertyValuesPrevious(1:standardSelf%propertyCountActive)) &
+    if   (                                                                                                                &
+       &   time                                             == self_%timePrevious                                         &
+       &  .and.                                                                                                           &
+       &   all(y(             1:self_%propertyCountActive)  == self_%propertyValuesPrevious(1:self_%propertyCountActive)) &
        & ) then
-       dydt                  (1:standardSelf%propertyCountActive)  =  standardSelf%propertyRatesPrevious (1:standardSelf%propertyCountActive)
+       dydt                  (1:self_%propertyCountActive)  =  self_%propertyRatesPrevious (1:self_%propertyCountActive)
        return
     else
-       standardSelf%timePrevious                                              =time
-       standardSelf%propertyValuesPrevious(1:standardSelf%propertyCountActive)=y                         (1:standardSelf%propertyCountActive)
+       self_%timePrevious                                       =time
+       self_%propertyValuesPrevious(1:self_%propertyCountActive)=y                         (1:self_%propertyCountActive)
     end if
     ! Extract values.
-    call standardSelf%activeNode%deserializeValues(y(1:standardSelf%propertyCountActive),standardSelf%propertyTypeODE)
-    call standardSelf%nodeOperator_%differentialEvolutionSolveAnalytics(standardSelf%activeNode,time)
+    call self_%activeNode%deserializeValues(y(1:self_%propertyCountActive),self_%propertyTypeODE)
+    call self_%nodeOperator_%differentialEvolutionSolveAnalytics(self_%activeNode,time)
     ! If the node is significantly inaccurate (as judged by the node time being different from the system time), then set rates to
     ! zero, as the ODE solver is likely just taking a step which is too large.
-    basic => standardSelf%activeNode%basic()
-    if (.not.standardSelf%isAccurate(basic%time(),time)) then
+    basic => self_%activeNode%basic()
+    if (.not.self_%isAccurate(basic%time(),time)) then
        dydt=0.0d0
        return
     end if
     ! Set derivatives to zero initially.
-    call standardSelf%activeNode%odeStepRatesInitialize()
-    if (standardSelf%interruptFirstFound .and. time >= standardSelf%timeInterruptFirst) then
+    call self_%activeNode%odeStepRatesInitialize()
+    if (self_%interruptFirstFound .and. time >= self_%timeInterruptFirst) then
        ! Already beyond the location of the first interrupt, simply set any analytic solutions to the interrupt time and return
        ! zero derivatives.
-       dydt                              (1:standardSelf%propertyCountActive)=0.0d0
-       standardSelf%propertyRatesPrevious(1:standardSelf%propertyCountActive)=0.0d0
-       call standardSelf%nodeOperator_%differentialEvolutionSolveAnalytics(standardSelf%activeNode,standardSelf%timeInterruptFirst)
+       dydt                              (1:self_%propertyCountActive)=0.0d0
+       self_%propertyRatesPrevious(1:self_%propertyCountActive)=0.0d0
+       call self_%nodeOperator_%differentialEvolutionSolveAnalytics(self_%activeNode,self_%timeInterruptFirst)
     else
        ! Compute derivatives.
-       call standardDerivativesCompute(standardSelf%activeNode,interrupt,functionInterrupt,standardSelf%propertyTypeODE)
+       call standardDerivativesCompute(self_%activeNode,interrupt,functionInterrupt,self_%propertyTypeODE)
        ! Check whether an interrupt has been requested.
        select case (interrupt)
        case (.false.)
           ! No interrupt - place derivatives into ODE arrays.
-          call standardSelf%activeNode%serializeRates(dydt(1:standardSelf%propertyCountActive),standardSelf%propertyTypeODE)
-          standardSelf%propertyRatesPrevious(1:standardSelf%propertyCountActive)=dydt(1:standardSelf%propertyCountActive)
+          call self_%activeNode%serializeRates(dydt(1:self_%propertyCountActive),self_%propertyTypeODE)
+          self_%propertyRatesPrevious(1:self_%propertyCountActive)=dydt(1:self_%propertyCountActive)
        case (.true.)
           ! Interrupt requested - freeze evolution and store the interrupt if it is the earliest one to occur.
-          dydt                              (1:standardSelf%propertyCountActive)=0.0d0
-          standardSelf%propertyRatesPrevious(1:standardSelf%propertyCountActive)=0.0d0
-          if (time < standardSelf%timeInterruptFirst .or. .not.standardSelf%interruptFirstFound) then
-             standardSelf%interruptFirstFound    =  .true.
-             standardSelf%timeInterruptFirst     =  time
-             standardSelf%functionInterruptFirst => functionInterrupt
+          dydt                              (1:self_%propertyCountActive)=0.0d0
+          self_%propertyRatesPrevious(1:self_%propertyCountActive)=0.0d0
+          if (time < self_%timeInterruptFirst .or. .not.self_%interruptFirstFound) then
+             self_%interruptFirstFound    =  .true.
+             self_%timeInterruptFirst     =  time
+             self_%functionInterruptFirst => functionInterrupt
              ! Let the ODE solver know that an interrupt occured, and when it happened.
-             standardODEs                        =  odeSolverInterrupt
-             interruptedAtX                      =  time
+             standardODEs                 =  odeSolverInterrupt
+             interruptedAtX               =  time
              return
           end if
        end select
@@ -875,58 +875,58 @@ contains
     !!}
     use :: Interface_GSL, only : GSL_Success
     implicit none
-    double precision                                                                                             , intent(in   ) :: time
-    double precision               , dimension(:                                                                ), intent(in   ) :: propertyValues0
-    double precision               , dimension(:                                                                ), intent(  out) :: derivativeRatesValues        , derivativeRatesTime
-    double precision               , dimension(standardSelf%propertyCountActive                                 )                :: propertyRates0               , propertyRates1     , &
-         &                                                                                                                          propertyValues1
-    double precision               , dimension(standardSelf%propertyCountActive,standardSelf%propertyCountActive)                :: jacobian
-    procedure       (interruptTask), pointer                                                                                     :: functionInterrupt
-    double precision               , parameter                                                                                   :: deltaTiny            =1.0d-10
-    logical                                                                                                                      :: interrupt
-    integer   (c_size_t)                                                                                                         :: i
-    double precision                                                                                                             :: propertyValueDelta
+    double precision                                                                               , intent(in   ) :: time
+    double precision               , dimension(:                                                  ), intent(in   ) :: propertyValues0
+    double precision               , dimension(:                                                  ), intent(  out) :: derivativeRatesValues        , derivativeRatesTime
+    double precision               , dimension(self_%propertyCountActive                          )                :: propertyRates0               , propertyRates1     , &
+         &                                                                                                            propertyValues1
+    double precision               , dimension(self_%propertyCountActive,self_%propertyCountActive)                :: jacobian
+    procedure       (interruptTask), pointer                                                                       :: functionInterrupt
+    double precision               , parameter                                                                     :: deltaTiny            =1.0d-10
+    logical                                                                                                        :: interrupt
+    integer   (c_size_t)                                                                                           :: i
+    double precision                                                                                               :: propertyValueDelta
 
     ! Return success by default.
     standardODEsJacobian=GSL_Success
     ! No explicit time dependence.
     derivativeRatesTime=0.0d0
     ! Check for interrupts.
-    if (standardSelf%interruptFirstFound .and. time >= standardSelf%timeInterruptFirst) then
+    if (self_%interruptFirstFound .and. time >= self_%timeInterruptFirst) then
        ! Already beyond the location of the first interrupt, simply return zero derivatives.
-       jacobian(1:standardSelf%propertyCountActive,1:standardSelf%propertyCountActive)=0.0d0
+       jacobian(1:self_%propertyCountActive,1:self_%propertyCountActive)=0.0d0
     else
        ! Compute rates at current parameter values.
-       call standardSelf%activeNode%deserializeValues     (propertyValues0(1:standardSelf%propertyCountActive),standardSelf%propertyTypeODE)
-       call standardSelf%nodeOperator_%differentialEvolutionSolveAnalytics(standardSelf%activeNode,time)
-       call standardSelf%activeNode%odeStepRatesInitialize(                                                                                             )
-       call standardDerivativesCompute                    (standardSelf%activeNode,interrupt,functionInterrupt,standardSelf%propertyTypeODE)
-       call standardSelf%activeNode%serializeRates        (propertyRates0                                     ,standardSelf%propertyTypeODE)
+       call self_%activeNode%deserializeValues     (propertyValues0(1:self_%propertyCountActive),self_%propertyTypeODE)
+       call self_%nodeOperator_%differentialEvolutionSolveAnalytics(self_%activeNode,time)
+       call self_%activeNode%odeStepRatesInitialize(                                                                  )
+       call standardDerivativesCompute             (self_%activeNode,interrupt,functionInterrupt,self_%propertyTypeODE)
+       call self_%activeNode%serializeRates        (propertyRates0                              ,self_%propertyTypeODE)
        ! If an interrupt was triggered, then derivatives will all be zero, so we set the Jacobian to zero here and exit.
        if (interrupt) then
-          jacobian(1:standardSelf%propertyCountActive,1:standardSelf%propertyCountActive)=0.0d0
+          jacobian(1:self_%propertyCountActive,1:self_%propertyCountActive)=0.0d0
        else
           ! Iterate over parameters, computing Jacobian using finite differences.
-          do i=1,standardSelf%propertyCountActive
+          do i=1,self_%propertyCountActive
              ! To compute the finite difference we make a small perturbation in one parameter. If the parameter is non-zero, use a
              ! small, fractional perturbation. For parameters with zero value, use a perturbation equal to the absolute tolerance
              ! supplied to the ODE solver.
              if (propertyValues0(i)==0.0d0) then
-                propertyValueDelta       =+standardSelf%propertyScalesActive       (i)
+                propertyValueDelta       =+self_%propertyScalesActive       (i)
              else
-                propertyValueDelta       =+standardSelf%odeJacobianStepSizeRelative    &
+                propertyValueDelta       =+self_%odeJacobianStepSizeRelative    &
                      &                    *propertyValues0                         (i)
-                if (abs(propertyValueDelta) < deltaTiny*standardSelf%propertyScalesActive(i)) &
-                     & propertyValueDelta=+standardSelf%propertyScalesActive       (i)
+                if (abs(propertyValueDelta) < deltaTiny*self_%propertyScalesActive(i)) &
+                     & propertyValueDelta=+self_%propertyScalesActive       (i)
              end if
              propertyValues1   =+propertyValues0
              propertyValues1(i)=+propertyValues1           (i) &
                   &             +propertyValueDelta
-             call standardSelf%activeNode%deserializeValues     (propertyValues1                                         ,standardSelf%propertyTypeODE)
-             call standardSelf%activeNode%odeStepRatesInitialize(                                                                                     )
-             call standardSelf%galacticStructureSolver_%revert  (standardSelf%activeNode                                                              )
-             call standardDerivativesCompute                    (standardSelf%activeNode     ,interrupt,functionInterrupt,standardSelf%propertyTypeODE)
-             call standardSelf%activeNode%serializeRates        (propertyRates1                                          ,standardSelf%propertyTypeODE)
+             call self_%activeNode%deserializeValues     (propertyValues1                                         ,self_%propertyTypeODE)
+             call self_%activeNode%odeStepRatesInitialize(                                                                              )
+             call self_%galacticStructureSolver_%revert  (self_%activeNode                                                              )
+             call standardDerivativesCompute                    (self_%activeNode     ,interrupt,functionInterrupt,self_%propertyTypeODE)
+             call self_%activeNode%serializeRates        (propertyRates1                                          ,self_%propertyTypeODE)
              jacobian(i,:)=+(                  &
                   &          +propertyRates1   &
                   &          -propertyRates0   &
@@ -936,7 +936,7 @@ contains
        end if
     end if
     ! Map Jacobian back to output array.
-    derivativeRatesValues=reshape(jacobian,[standardSelf%propertyCountActive**2])
+    derivativeRatesValues=reshape(jacobian,[self_%propertyCountActive**2])
     return
   end function standardODEsJacobian
 
@@ -981,7 +981,7 @@ contains
     !![
     </include>
     !!]
-    call standardSelf%nodeOperator_%differentialEvolution(node,interrupt,functionInterrupt,propertyType)
+    call self_%nodeOperator_%differentialEvolution(node,interrupt,functionInterrupt,propertyType)
     ! Return the procedure pointer.
     functionInterruptReturn => functionInterrupt
     return
@@ -999,7 +999,7 @@ contains
     integer         (kind=c_int                   ), intent(in   )                                              :: status
     real            (kind=c_double                ), intent(in   )                                              :: time
     real            (kind=c_double                ), intent(in   ), dimension(:                               ) :: y
-    real            (kind=c_double                )               , dimension(standardSelf%propertyCountActive) :: dydt          , yError, &
+    real            (kind=c_double                )               , dimension(self_%propertyCountActive) :: dydt          , yError, &
          &                                                                                                         yTolerance
     type            (varying_string               )                                                             :: message       , line
     integer                                                                                                     :: lengthMaximum
@@ -1010,39 +1010,39 @@ contains
     double precision                                                                                            :: stepFactor
 
     ! Check if this is the final trial for this node.
-    if (standardSelf%trialCount == standardTrialCountMaximum-1) then
+    if (self_%trialCount == trialCountMaximum-1) then
        ! Get the current errors and tolerances in the ODE driver.
-       call standardSolver%errors(yError)
+       call solver_%errors(yError)
        yTolerance=standardODEStepTolerances(y)
        ! Report the failure message.
        verbosityLevel=displayVerbosity()
        if (verbosityLevel < verbosityLevelStandard) call displayVerbositySet(verbosityLevelStandard)
        message="ODE solver failed with error code "
-       message=message//status//" in tree #"//standardSelf%activeTreeIndex
+       message=message//status//" in tree #"//self_%activeTreeIndex
        call displayMessage(message)
        ! Dump all node properties.
-       call standardSelf%activeNode%serializeASCII()
+       call self_%activeNode%serializeASCII()
        ! Evaluate derivatives.
        odeStatus=standardODEs(time,y,dydt)
        call displayIndent('ODE system parameters')
        lengthMaximum=0
-       do i=1,standardSelf%propertyCountActive
-          lengthMaximum=max(lengthMaximum,len(standardSelf%activeNode%nameFromIndex(int(i),standardSelf%propertyTypeODE)))
+       do i=1,self_%propertyCountActive
+          lengthMaximum=max(lengthMaximum,len(self_%activeNode%nameFromIndex(int(i),self_%propertyTypeODE)))
        end do
        line=repeat("―",lengthMaximum)//repeat("―――――――――――――――",5)
        call displayMessage(line)
        call displayMessage(repeat(" ",lengthMaximum)//' : y            : dy/dt        : yScale       : yError       : yErrorScaled')
        call displayMessage(line)
-       do i=1,standardSelf%propertyCountActive
-          message=standardSelf%activeNode%nameFromIndex(int(i),standardSelf%propertyTypeODE)
+       do i=1,self_%propertyCountActive
+          message=self_%activeNode%nameFromIndex(int(i),self_%propertyTypeODE)
           message=repeat(" ",lengthMaximum-len(message))//message
-          write (label,'(e12.6)') y                                (i)
+          write (label,'(e12.6)') y                         (i)
           message=message//" : "//label
-          write (label,'(e12.6)') dydt                             (i)
+          write (label,'(e12.6)') dydt                      (i)
           message=message//" : "//label
-          write (label,'(e12.6)') standardSelf%propertyScalesActive(i)
+          write (label,'(e12.6)') self_%propertyScalesActive(i)
           message=message//" : "//label
-          write (label,'(e12.6)') yError                           (i)
+          write (label,'(e12.6)') yError                    (i)
           message=message//" : "//label
           if (exponent(yError(i))-exponent(yTolerance(i)) < maxExponent(0.0d0)) then
              stepFactor=abs(yError(i))/yTolerance(i)
@@ -1065,15 +1065,15 @@ contains
     Compute the tolerances on each property being evolved in the ODE stystem at the current timestep.
     !!}
     implicit none
-    double precision                         , dimension(standardSelf%propertyCountActive) :: standardODEStepTolerances
-    double precision          , intent(in   ), dimension(standardSelf%propertyCountActive) :: propertyValues
+    double precision                         , dimension(self_%propertyCountActive) :: standardODEStepTolerances
+    double precision          , intent(in   ), dimension(self_%propertyCountActive) :: propertyValues
     integer         (c_size_t)                                                             :: i
 
-    forall(i=1:standardSelf%propertyCountActive)
-       standardODEStepTolerances(i)=+    standardSelf%odeToleranceRelative     &
+    forall(i=1:self_%propertyCountActive)
+       standardODEStepTolerances(i)=+    self_%odeToleranceRelative     &
             &                       *abs(propertyValues                   (i)) &
-            &                       +    standardSelf%odeToleranceAbsolute     &
-            &                       *    standardSelf%propertyScalesActive(i)
+            &                       +    self_%odeToleranceAbsolute     &
+            &                       *    self_%propertyScalesActive(i)
     end forall
     return
   end function standardODEStepTolerances
@@ -1096,12 +1096,12 @@ contains
     real   (kind=c_double), intent(inout), dimension(*) :: y
     integer(kind=c_int   ), intent(inout)               :: postStepStatus
 
-    call standardSelf%activeNode   %deserializeValues                  (y(1:standardSelf%propertyCountActive),standardSelf%propertyTypeODE)
-    call standardSelf%nodeOperator_%differentialEvolutionSolveAnalytics(    standardSelf%activeNode          ,time                        )
-    call standardSelf%nodeOperator_%differentialEvolutionPostStep      (    standardSelf%activeNode          ,postStepStatus              )
+    call self_%activeNode   %deserializeValues                  (y(1:self_%propertyCountActive),self_%propertyTypeODE)
+    call self_%nodeOperator_%differentialEvolutionSolveAnalytics(    self_%activeNode          ,time                 )
+    call self_%nodeOperator_%differentialEvolutionPostStep      (    self_%activeNode          ,postStepStatus       )
     !![
     <include directive="postStepTask" type="functionCall" functionType="void">
-     <functionArgs>standardSelf%activeNode,postStepStatus</functionArgs>
+     <functionArgs>self_%activeNode,postStepStatus</functionArgs>
     !!]
     include 'objects.tree_node.post_step.inc'
     !![
@@ -1109,7 +1109,7 @@ contains
     !!]
     ! If the post-step processing returned a non-success error code - indicating that the node state was changed - reserialize the
     ! node state to the ODE solver arrays.
-    if (postStepStatus /= GSL_Success ) call standardSelf%activeNode%serializeValues(y(1:standardSelf%propertyCountActive),standardSelf%propertyTypeODE)
+    if (postStepStatus /= GSL_Success ) call self_%activeNode%serializeValues(y(1:self_%propertyCountActive),self_%propertyTypeODE)
     ! If post-step processing returned a "continue" code, we do not need to reset ODE evolution, so set status back to success.
     if (postStepStatus == GSL_Continue) postStepStatus=GSL_Success
     return
@@ -1122,29 +1122,29 @@ contains
     use, intrinsic :: ISO_C_Binding, only : c_double   , c_int
     use            :: Interface_GSL, only : GSL_Success
     implicit none
-    real            (kind=c_double ), intent(in   ), dimension(*                                ) :: currentPropertyValue
-    real            (kind=c_double ), intent(in   ), dimension(*                                ) :: currentPropertyError
-    real            (kind=c_double ), intent(in   ), value                                        :: time                , timeEnd         , &
-         &                                                                                           timeStep
-    integer         (kind=c_int    ), intent(in   ), value                                        :: stepStatus
-    double precision                                                                              :: scale               , scaledError     , &
-         &                                                                                           scaledErrorMaximum
-    integer         (c_size_t      )                                                              :: iProperty           , limitingProperty
-    type            (varying_string)                                                              :: propertyName
-    double precision                                , dimension(standardSelf%propertyCountActive) :: scale               , rate
+    real            (kind=c_double ), intent(in   ), dimension(*                         ) :: currentPropertyValue
+    real            (kind=c_double ), intent(in   ), dimension(*                         ) :: currentPropertyError
+    real            (kind=c_double ), intent(in   ), value                                 :: time                , timeEnd         , &
+         &                                                                                    timeStep
+    integer         (kind=c_int    ), intent(in   ), value                                 :: stepStatus
+    double precision                                                                       :: scale               , scaledError     , &
+         &                                                                                    scaledErrorMaximum
+    integer         (c_size_t      )                                                       :: iProperty           , limitingProperty
+    type            (varying_string)                                                       :: propertyName
+    double precision                                , dimension(self_%propertyCountActive) :: scale               , rate
 
     ! Count steps.
-    standardSelf%countEvaluationsToSuccess=standardSelf%countEvaluationsToSuccess+1_c_size_t
+    self_%countEvaluationsToSuccess=self_%countEvaluationsToSuccess+1_c_size_t
     ! If the step was not good, return immediately.
     if (stepStatus /= GSL_Success) return
     ! Stop the timer.
-    call standardSelf%stepTimer%stop()
+    call self_%stepTimer%stop()
     ! Find the property with the largest error (i.e. that which is limiting the step).
     scaledErrorMaximum=0.0d0
     limitingProperty  =-1_c_size_t
-    scale             =+standardSelf%odeToleranceAbsolute*    standardSelf%propertyScalesActive(1:standardSelf%propertyCountActive)  &
-         &             +standardSelf%odeToleranceRelative*abs(             currentPropertyValue(1:standardSelf%propertyCountActive))
-    do iProperty=1,standardSelf%propertyCountActive
+    scale             =+self_%odeToleranceAbsolute*    self_%propertyScalesActive(1:self_%propertyCountActive)  &
+         &             +self_%odeToleranceRelative*abs(      currentPropertyValue(1:self_%propertyCountActive))
+    do iProperty=1,self_%propertyCountActive
        scaledError=abs(currentPropertyError(iProperty))/scale(iProperty)
        if (scaledError > scaledErrorMaximum) then
           scaledErrorMaximum=scaledError
@@ -1154,18 +1154,18 @@ contains
     ! Check that we found a limiting property.
     if (scaledErrorMaximum > 0.0d0) then
        ! Decode the step limiting property.
-       propertyName=standardSelf%activeNode%nameFromIndex(int(limitingProperty),standardSelf%propertyTypeODE)
+       propertyName=self_%activeNode%nameFromIndex(int(limitingProperty),self_%propertyTypeODE)
     else
        propertyName="unknown"
     end if
     ! Serialize rates.
-    call standardSelf%activeNode%serializeRates(rate,standardSelf%propertyTypeODE)
+    call self_%activeNode%serializeRates(rate,self_%propertyTypeODE)
     ! Profile the step.
-    call standardSelf%mergerTreeEvolveProfiler_%profile(standardSelf%activeNode,time,timeStartSaved,timeEnd,timeStep,standardSelf%countEvaluationsToSuccess,standardSelf%interruptFirstFound,limitingProperty,propertyName,currentPropertyValue(1:standardSelf%propertyCountActive),rate,scale,currentPropertyError(1:standardSelf%propertyCountActive),standardSelf%stepTimer%report())
+    call self_%mergerTreeEvolveProfiler_%profile(self_%activeNode,time,timeStartSaved,timeEnd,timeStep,self_%countEvaluationsToSuccess,self_%interruptFirstFound,limitingProperty,propertyName,currentPropertyValue(1:self_%propertyCountActive),rate,scale,currentPropertyError(1:self_%propertyCountActive),self_%stepTimer%report())
     ! Reset the count of steps to success.
-    standardSelf%countEvaluationsToSuccess=0_c_size_t
+    self_%countEvaluationsToSuccess=0_c_size_t
     ! Restart the timer.
-    call standardSelf%stepTimer%start()
+    call self_%stepTimer%start()
     return
   end subroutine standardStepErrorAnalyzer
 

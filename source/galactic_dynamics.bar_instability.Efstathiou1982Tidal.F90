@@ -184,7 +184,7 @@ contains
     else
        ! Compute the stability estimator for this node.
        efstathiou1982TidalEstimator=max(                                             &
-            &                           +efstathiou1982StabilityDiskIsolated       , &
+            &                           +stabilityDiskIsolated                     , &
             &                           +velocityBoostFactor                         &
             &                           *           disk%velocity         (    )     &
             &                           /sqrt(                                       &
