@@ -218,24 +218,42 @@ sub parameterMatrix {
     # Determine number of chains.
     my $chainCount = &chainCount($config,\%options);
     die('Galacticus::Constraints::Parameters::parameterMatrix(): chain index out of range')
-	if ( $chain >= $chainCount );
+	if ( $chain ne "all" && $chain >= $chainCount );
     # Parse the chain.
-    my $chainFileName = sprintf("%s_%4.4i.log",$logFileRoot,$chain);
-    my $stateCount    = -1;
-    my $parameterMatrix = pdl zeros(&parameterCount($config,\%options),&stepCount($config,\%options));
-    open(my $chainFile,$chainFileName);
-    while ( my $line = <$chainFile> ) {
-	++$stateCount;
-	$line =~ s/^\s*//;
-	$line =~ s/\s*$//;
-	my @columns = split(/\s+/,$line);
-	my @state = @columns[6..$#columns];
-	for(my $i=0;$i<scalar(@state);++$i) {
-	    $parameterMatrix->(($i),($stateCount)) .= $state[$i];
-	}
+    my $chainMinimum;
+    my $chainMaximum;
+    if ( $chain eq "all" ) {
+	$chainMinimum = 0;
+	$chainMaximum = $chainCount-1;
+    } else {
+	$chainMinimum = $chain;
+	$chainMaximum = $chain;
     }
-    close($chainFile);
-    return $parameterMatrix;
+    my $countChainsActive = $chainMaximum-$chainMinimum+1;
+    my $parameterMatrix = pdl zeros(&parameterCount($config,\%options),&stepCount($config,\%options)*$countChainsActive);
+    my $logLikelihood   = pdl zeros(                                   &stepCount($config,\%options)*$countChainsActive);
+    my $stateCount      = -1;
+    for(my $chainIndex=$chainMinimum;$chainIndex <= $chainMaximum;++$chainIndex) {
+	my $chainFileName = sprintf("%s_%4.4i.log",$logFileRoot,$chainIndex);
+	open(my $chainFile,$chainFileName);
+	while ( my $line = <$chainFile> ) {
+	    ++$stateCount;
+	    $line =~ s/^\s*//;
+	    $line =~ s/\s*$//;
+	    my @columns = split(/\s+/,$line);
+	    $logLikelihood->(($stateCount)) .= $columns[4];
+	    my @state = @columns[6..$#columns];
+	    for(my $i=0;$i<scalar(@state);++$i) {
+		$parameterMatrix->(($i),($stateCount)) .= $state[$i];
+	    }
+	}
+	close($chainFile);
+    }
+    if ( exists($options{'includeLikelihood'}) && $options{'includeLikelihood'} ) {
+	return ($parameterMatrix, $logLikelihood);
+    } else {
+	return  $parameterMatrix                 ;
+    }
 }
 
 sub parameterFind {

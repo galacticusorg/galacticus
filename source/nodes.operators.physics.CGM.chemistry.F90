@@ -371,6 +371,8 @@ contains
     if (.not.self%chemicalsPresent) return
     ! Compute the state of the chemical system.
     call self%computeState(node,temperature,chemicalDensities,massToDensityConversion)
+    ! Return if unphysical.
+    if (massToDensityConversion <= 0.0d0) return
     ! Get the hot halo component.
     hotHalo => node%hotHalo()
     ! Compute the column length through the halo (in cm).
@@ -431,7 +433,8 @@ contains
     class           (nodeComponentBasic      ), pointer                 :: basic
     class           (nodeComponentHotHalo    ), pointer                 :: hotHalo
     type            (chemicalAbundances      ), save                    :: chemicalMasses
-    double precision                                                    :: massToDensityConversion_, massChemicals
+    double precision                                                    :: massToDensityConversion_, massChemicals, &
+         &          radiusOuter
     !$omp threadprivate(chemicalMasses)
 
     ! Get required components.
@@ -462,7 +465,12 @@ contains
     ! Scale all chemical masses by their mass in atomic mass units to get a number density.
     call chemicalMasses%massToNumber(chemicalDensities)
     ! Compute factor converting mass of chemicals in (M☉/mᵤ) to number density in cm⁻³.
-    massToDensityConversion_=Chemicals_Mass_To_Density_Conversion(hotHalo%outerRadius())
+    radiusOuter=hotHalo%outerRadius()
+    if (radiusOuter > 0.0d0) then
+       massToDensityConversion_=Chemicals_Mass_To_Density_Conversion(radiusOuter)
+    else
+       massToDensityConversion_=0.0d0
+    end if
     if (present(massToDensityConversion)) massToDensityConversion=massToDensityConversion_
     ! Convert to number density.
     chemicalDensities=chemicalDensities*massToDensityConversion_

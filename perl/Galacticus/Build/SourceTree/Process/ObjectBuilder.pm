@@ -182,7 +182,7 @@ sub Process_ObjectBuilder {
 		$builderCode .= "      call ".$node->{'directive'}->{'name'}."%autoHook()\n";
 		$builderCode .= $debugMessage;
 		$builderCode .= $copyLoopClose;
-		$builderCode .= "      call Warn('Using default class for parameter ''['//char(parametersCurrent%path())//'".$parameterName."]''')\n";
+		$builderCode .= "      if (mpiSelf%isMaster()) call Warn('Using default class for parameter ''['//char(parametersCurrent%path())//'".$parameterName."]''')\n";
 		$builderCode .= "   end if\n";
 	    }
 	    if ( exists($node->{'directive'}->{'parameterName'}) ) {
@@ -201,6 +201,22 @@ sub Process_ObjectBuilder {
 	    };
 	    # Insert the node.
 	    &Galacticus::Build::SourceTree::InsertAfterNode($node,[$newNode]);
+	    # Use the MPI module.
+	    if ( $defaultName ) {
+		my $mpiNode =
+		{
+		    type      => "moduleUse",
+		    moduleUse =>
+		    {
+			"MPI_Utilities"   =>
+			{
+			    intrinsic => 0,
+			    only      => {mpiSelf => 1}
+			}
+		    }
+		};
+		&Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$mpiNode);
+	    }
 	    # Add the required module.
 	    if ( exists($stateStorables->{'functionClasses'}->{$node->{'directive'}->{'class'}."Class"}->{'module'}) ) {
 		my $searchNode  = $tree;
