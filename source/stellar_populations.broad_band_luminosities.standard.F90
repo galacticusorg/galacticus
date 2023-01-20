@@ -81,9 +81,9 @@
   integer         (c_size_t                                  )          :: populationID_
   type            (abundances                                )          :: abundances_
   class           (stellarPopulationSpectraPostprocessorClass), pointer :: stellarPopulationSpectraPostprocessor__
-  class           (stellarPopulationSpectraClass             ), pointer :: stellarPopulationSpectra_
+  class           (stellarPopulationSpectraClass             ), pointer :: stellarPopulationSpectra__
   type            (interpolator                              ), pointer :: filterResponse_
-  !$omp threadprivate(age_,redshift_,abundances_,indexFilter_,populationID_,stellarPopulationSpectraPostprocessor__,stellarPopulationSpectra_,filterResponse_)
+  !$omp threadprivate(age_,redshift_,abundances_,indexFilter_,populationID_,stellarPopulationSpectraPostprocessor__,stellarPopulationSpectra__,filterResponse_)
 
 contains
 
@@ -497,13 +497,13 @@ contains
                       copyDone=.true.
                       allocate(integrator_)
                       integrator_=integrator(integrandFilteredLuminosity,toleranceRelative=self%integrationToleranceRelative,integrationRule=GSL_Integ_Gauss15,intervalsMaximum=10000_c_size_t)
-                      allocate(stellarPopulationSpectra_              ,mold=stellarPopulationSpectra_                                                                 )
+                      allocate(stellarPopulationSpectra__             ,mold=stellarPopulationSpectra_                                                                 )
                       allocate(stellarPopulationSpectraPostprocessor__,mold=stellarPopulationSpectraPostprocessor_(iLuminosity)%stellarPopulationSpectraPostprocessor_)
                       !$omp critical(broadBandLuminositiesDeepCopy)
                       !![
                       <deepCopyReset variables="stellarPopulationSpectra_"/>
-                      <deepCopy source="stellarPopulationSpectra_" destination="stellarPopulationSpectra_"/>
-                      <deepCopyFinalize variables="stellarPopulationSpectra_"/>
+                      <deepCopy source="stellarPopulationSpectra_" destination="stellarPopulationSpectra__"/>
+                      <deepCopyFinalize variables="stellarPopulationSpectra__"/>
                       !!]
                       !$omp end critical(broadBandLuminositiesDeepCopy)
                    end if
@@ -646,7 +646,7 @@ contains
           if (copyDone) then
              deallocate(integrator_)
              !![
-             <objectDestructor name="stellarPopulationSpectra_"/>
+             <objectDestructor name="stellarPopulationSpectra__"/>
              !!]
           end if
           !$omp end parallel
@@ -677,7 +677,7 @@ contains
       ! detector).
       wavelengthRedshifted=wavelength/(1.0d0+redshift_)
       integrandFilteredLuminosity=+filterResponse_                        %interpolate(wavelength                             ) &
-           &                      *stellarPopulationSpectra_              %luminosity (abundances_  ,age_,wavelengthRedshifted) &
+           &                      *stellarPopulationSpectra__             %luminosity (abundances_  ,age_,wavelengthRedshifted) &
            &                      *stellarPopulationSpectraPostprocessor__%multiplier (wavelengthRedshifted,age_,redshift_    ) &
            &                      /                                                    wavelength
       return
