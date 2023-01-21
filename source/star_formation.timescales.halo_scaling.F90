@@ -70,7 +70,7 @@
      module procedure haloScalingConstructorInternal
   end interface starFormationTimescaleHaloScaling
 
-  double precision, parameter :: haloScalingVelocityVirialNormalization=200.0d0
+  double precision, parameter :: velocityVirialNormalization=200.0d0
 
 contains
 
@@ -141,8 +141,8 @@ contains
     self%expansionFactorFactorPrevious=-1.0d0
     ! Compute the normalization of the timescale.
     self%timeScale_            =+timescale
-    self%timeScaleNormalization=+timescale                                                           &
-         &                      /haloScalingVelocityVirialNormalization**self%exponentVelocityVirial
+    self%timeScaleNormalization=+timescale                                                &
+         &                      /velocityVirialNormalization**self%exponentVelocityVirial
     return
   end function haloScalingConstructorInternal
 

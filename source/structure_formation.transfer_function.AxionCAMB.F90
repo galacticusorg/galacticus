@@ -65,7 +65,7 @@
   end interface transferFunctionAxionCAMB
 
   ! Smallest maximum wavenumber to tabulate.
-  double precision, parameter :: axionCambWavenumberMaximumLimit=15000.0d0
+  double precision, parameter :: wavenumberMaximumLimit=15000.0d0
 
 contains
 
@@ -143,7 +143,7 @@ contains
     ! Set the epoch time for this transfer function.
     self%time=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(redshift))
     ! Set maximum wavenumber.
-    self%wavenumberMaximum=+axionCambWavenumberMaximumLimit                                    &
+    self%wavenumberMaximum=+wavenumberMaximumLimit                                             &
          &                 *self%cosmologyParameters_%hubbleConstant(units=hubbleUnitsLittleH)
     self%wavenumberMaximumReached=.false.
     return

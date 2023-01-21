@@ -66,7 +66,7 @@
      module procedure velocityMaxScalingConstructorInternal
   end interface starFormationTimescaleVelocityMaxScaling
 
-  double precision, parameter :: velocityMaxScalingVelocityNormalization=200.0d0
+  double precision, parameter :: velocityNormalization=200.0d0
 
 contains
 
@@ -122,10 +122,10 @@ contains
     !!}
     implicit none
     type            (starFormationTimescaleVelocityMaxScaling)                        :: self
-    double precision                                               , intent(in   )         :: timescale            , exponentVelocity, &
-         &                                                                                    exponentRedshift
-    class           (cosmologyFunctionsClass                      ), intent(in   ), target :: cosmologyFunctions_
-    class           (darkMatterProfileDMOClass                    ), intent(in   ), target :: darkMatterProfileDMO_
+    double precision                                          , intent(in   )         :: timescale            , exponentVelocity, &
+         &                                                                               exponentRedshift
+    class           (cosmologyFunctionsClass                 ), intent(in   ), target :: cosmologyFunctions_
+    class           (darkMatterProfileDMOClass               ), intent(in   ), target :: darkMatterProfileDMO_
     !![
     <constructorAssign variables="exponentVelocity, exponentRedshift, *cosmologyFunctions_, *darkMatterProfileDMO_"/>
     !!]
@@ -138,8 +138,8 @@ contains
     self%expansionFactorFactorPrevious=-1.0d0
     ! Compute the normalization of the timescale.
     self%timeScale_            =+timescale
-    self%timeScaleNormalization=+timescale                                                     &
-         &                      /velocityMaxScalingVelocityNormalization**self%exponentVelocity
+    self%timeScaleNormalization=+timescale                                    &
+         &                      /velocityNormalization**self%exponentVelocity
     ! Initialize exponentiators.
     self%velocityExponentiator       =fastExponentiator(1.0d+0,1.0d+3,self%exponentVelocity,1.0d+1,abortOutsideRange=.false.)
     self%expansionFactorExponentiator=fastExponentiator(1.0d-3,1.0d+0,self%exponentRedshift,1.0d+3,abortOutsideRange=.false.)

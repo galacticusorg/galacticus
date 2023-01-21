@@ -100,7 +100,7 @@
   end interface radiationFieldIntergalacticBackgroundFile
 
   ! Current file format version for intergalactic background radiation files.
-  integer, parameter :: intergalacticBackgroundFileFormatVersionCurrent=1
+  integer, parameter :: fileFormatVersionCurrent=1
 
 contains
 
@@ -168,7 +168,7 @@ contains
        ! Check the file format version of the file.
        datum => XML_Get_First_Element_By_Tag_Name(doc,"fileFormat")
        call extractDataContent(datum,fileFormatVersion)
-       if (fileFormatVersion /= intergalacticBackgroundFileFormatVersionCurrent) call Error_Report('file format version is out of date'//{introspection:location})
+       if (fileFormatVersion /= fileFormatVersionCurrent) call Error_Report('file format version is out of date'//{introspection:location})
        ! Get a list of all spectra.
        call XML_Get_Elements_By_Tag_Name(doc,"spectra",spectraList)
        ! Get the wavelengths.
@@ -217,7 +217,7 @@ contains
        call file%openFile(char(self%fileName),readOnly=.true.)
        ! Check the file format version of the file.
        call file%readAttribute('fileFormat',fileFormatVersion)
-       if (fileFormatVersion /= intergalacticBackgroundFileFormatVersionCurrent) call Error_Report('file format version is out of date'//{introspection:location})
+       if (fileFormatVersion /= fileFormatVersionCurrent) call Error_Report('file format version is out of date'//{introspection:location})
        ! Get the wavelengths.
        call file%readDataset('wavelengths',self%spectraWavelengths)
        self%spectraWavelengthsCount=size(self%spectraWavelengths)

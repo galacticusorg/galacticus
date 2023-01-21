@@ -81,8 +81,8 @@
   end interface darkMatterProfileConcentrationDiemerJoyce2019
 
   ! Module global variables used in root finding.
-  double precision :: diemerJoyce2019GRoot, diemerJoyce2019PowerSpectrumSlope
-  !$omp threadprivate(diemerJoyce2019GRoot, diemerJoyce2019PowerSpectrumSlope)
+  double precision :: GRoot_, powerSpectrumSlope
+  !$omp threadprivate(GRoot_, powerSpectrumSlope)
 
 contains
 
@@ -320,33 +320,33 @@ contains
          &  .or.                               &
          &   basic%time() /= self%timePrevious &
          & ) then
-       peakHeight                       =+self%criticalOverdensity_     %value                          (time=basic%time(),mass=basic%mass(),node=node) &
-            &                            /self%cosmologicalMassVariance_%rootVariance                   (time=basic%time(),mass=basic%mass()          )
-       massHalo                         =+self%kappa**3                                                                                                 &
+       peakHeight                       =+self%criticalOverdensity_     %value                               (time=basic%time(),mass=basic%mass(),node=node) &
+            &                            /self%cosmologicalMassVariance_%rootVariance                        (time=basic%time(),mass=basic%mass()          )
+       massHalo                         =+self%kappa**3                                                                                                      &
             &                            *basic%mass()
-       diemerJoyce2019PowerSpectrumSlope=-6.0d0                                                                                                         &
-            &                            *self%cosmologicalMassVariance_%rootVarianceLogarithmicGradient(time=basic%time(),mass=massHalo              ) &
+       powerSpectrumSlope=-6.0d0                                                                                                                             &
+            &                            *self%cosmologicalMassVariance_%rootVarianceLogarithmicGradient     (time=basic%time(),mass=massHalo              ) &
             &                            -3.0d0
-       alphaEffective                   =+self%linearGrowth_%logarithmicDerivativeExpansionFactor(time=basic%time())
-       A                                =+self%a0                                                                                                       &
-            &                            *(                                                                                                             &
-            &                             +1.0d0                                                                                                        &
-            &                             +self%a1*(diemerJoyce2019PowerSpectrumSlope+3.0d0)                                                            &
+       alphaEffective                   =+self%linearGrowth_            %logarithmicDerivativeExpansionFactor(time=basic%time())
+       A                                =+self%a0                                                                                                            &
+            &                            *(                                                                                                                  &
+            &                             +1.0d0                                                                                                             &
+            &                             +self%a1*(powerSpectrumSlope+3.0d0)                                                                                &
             &                             )
-       B                                =+self%b0                                                                                                       &
-            &                            *(                                                                                                             &
-            &                             +1.0d0                                                                                                        &
-            &                             +self%b1*(diemerJoyce2019PowerSpectrumSlope+3.0d0)                                                            &
+       B                                =+self%b0                                                                                                            &
+            &                            *(                                                                                                                  &
+            &                             +1.0d0                                                                                                             &
+            &                             +self%b1*(powerSpectrumSlope+3.0d0)                                                                                &
             &                             )
-       C                                =+1.0d0                                                                                                         &
+       C                                =+1.0d0                                                                                                              &
             &                            -self%cAlpha*(1.0d0-alphaEffective)
        if (self%includeUpturn) then
           termUpturn=+1.0d0+peakHeight**2/B
        else
           termUpturn=+1.0d0
        end if
-       diemerJoyce2019GRoot             =+A                                                                                                             &
-            &                            /peakHeight                                                                                                    &
+       GRoot_             =+A                                                                                                                                &
+            &                            /peakHeight                                                                                                         &
             &                            *termUpturn
        ! Initial guess of the concentration.
        if (self%GTildePrevious < 0.0d0) self%GTildePrevious=5.0d0
@@ -398,11 +398,11 @@ contains
      implicit none
      double precision, intent(in   ) :: concentration
 
-     GRoot  =+diemerJoyce2019GRoot                                 &
-          &  -concentration                                        &
-          &  /(                                                    &
-          &    +              log(1.0d0+concentration)             &
-          &    -concentration/   (1.0d0+concentration)             &
-          &   )**((5.0d0+diemerJoyce2019PowerSpectrumSlope)/6.0d0)
+     GRoot  =+GRoot_                                   &
+          &  -concentration                            &
+          &  /(                                        &
+          &    +              log(1.0d0+concentration) &
+          &    -concentration/   (1.0d0+concentration) &
+          &   )**((5.0d0+powerSpectrumSlope)/6.0d0)
      return
   end function GRoot

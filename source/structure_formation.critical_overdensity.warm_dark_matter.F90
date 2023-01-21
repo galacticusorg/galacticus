@@ -82,13 +82,13 @@ Contains a module which implements a critical overdensity for collapse the \gls{
   end interface criticalOverdensityBarkana2001WDM
 
   ! Parameters of fitting functions.
-  double precision, parameter :: barkana2001WDMFitParameterA            =+2.40000d0
-  double precision, parameter :: barkana2001WDMFitParameterB            =+0.10000d0
-  double precision, parameter :: barkana2001WDMFitParameterC            =+0.04000d0
-  double precision, parameter :: barkana2001WDMFitParameterD            =+2.30000d0
-  double precision, parameter :: barkana2001WDMFitParameterE            =+0.31687d0
-  double precision, parameter :: barkana2001WDMFitParameterF            =+0.80900d0
-  double precision, parameter :: barkana2001WDMSmallMassLogarithmicSlope=-1.93400d0
+  double precision, parameter :: fitParameterA            =+2.40000d0
+  double precision, parameter :: fitParameterB            =+0.10000d0
+  double precision, parameter :: fitParameterC            =+0.04000d0
+  double precision, parameter :: fitParameterD            =+2.30000d0
+  double precision, parameter :: fitParameterE            =+0.31687d0
+  double precision, parameter :: fitParameterF            =+0.80900d0
+  double precision, parameter :: smallMassLogarithmicSlope=-1.93400d0
 
 contains
 
@@ -252,32 +252,32 @@ contains
        ! Impose a minimum to avoid divergence in fit.
        massScaleFree   =max(massScaleFree,massScaleFreeMinimum)
        ! Check for very large masses, and simply set critical overdensity multiplier to unity in such cases.
-       if (massScaleFree > massScaleFreeLarge*abs(log(barkana2001WDMFitParameterE))/barkana2001WDMFitParameterF) then
+       if (massScaleFree > massScaleFreeLarge*abs(log(fitParameterE))/fitParameterF) then
           barkana2001WDMValue=1.0d0
        else
-          smoothTransition=+1.0d0                                &
-               &           /(                                    &
-               &             +1.0d0                              &
-               &             +exp(                               &
-               &                  +(                             &
-               &                    +massScaleFree               &
-               &                    +barkana2001WDMFitParameterA &
-               &                   )                             &
-               &                  /  barkana2001WDMFitParameterB &
-               &                 )                               &
+          smoothTransition=+1.0d0                    &
+               &           /(                        &
+               &             +1.0d0                  &
+               &             +exp(                   &
+               &                  +(                 &
+               &                    +massScaleFree   &
+               &                    +fitParameterA   &
+               &                   )                 &
+               &                  /  fitParameterB   &
+               &                 )                   &
                &            )
-          powerLawFit     =+     barkana2001WDMFitParameterC &
-               &           /exp(                             &
-               &                +barkana2001WDMFitParameterD &
-               &                *massScaleFree               &
+          powerLawFit     =+     fitParameterC       &
+               &           /exp(                     &
+               &                +fitParameterD       &
+               &                *massScaleFree       &
                &               )
           if (smoothTransition < 1.0d0) then
-             exponentialFit=+exp(                                  &
-                  &              +     barkana2001WDMFitParameterE &
-                  &              /exp(                             &
-                  &                   +barkana2001WDMFitParameterF &
-                  &                   *massScaleFree               &
-                  &                  )                             &
+             exponentialFit=+exp(                    &
+                  &              +     fitParameterE &
+                  &              /exp(               &
+                  &                   +fitParameterF &
+                  &                   *massScaleFree &
+                  &                  )               &
                   &             )
           else
              exponentialFit=+0.0d0
@@ -289,13 +289,13 @@ contains
        if      (massScaleFree > self%deltaTableMass(self%deltaTableCount)) then
           barkana2001WDMValue=1.0d0
        else if (massScaleFree < self%deltaTableMass(                   1)) then
-          barkana2001WDMValue=exp(                                         &
-               &                  +  self%deltaTableDelta(1)               &
-               &                  +(                                       &
-               &                    +massScaleFree                         &
-               &                    -self%deltaTableMass (1)               &
-               &                   )                                       &
-               &                  *barkana2001WDMSmallMassLogarithmicSlope &
+          barkana2001WDMValue=exp(                           &
+               &                  +  self%deltaTableDelta(1) &
+               &                  +(                         &
+               &                    +massScaleFree           &
+               &                    -self%deltaTableMass (1) &
+               &                   )                         &
+               &                  *smallMassLogarithmicSlope &
                &                 )
        else
           barkana2001WDMValue=exp(self%interpolator_%interpolate(massScaleFree))
@@ -346,64 +346,64 @@ contains
     massScaleFree=log(mass/self%jeansMass)
     ! Compute the mass scaling via a fitting function or interpolation in tabulated results.
     if (self%useFittingFunction) then
-       smoothTransition          =+1.0d0                                   &
-            &                     /(                                       &
-            &                       +1.0d0                                 &
-            &                       +exp(                                  &
-            &                            +(                                &
-            &                              +massScaleFree                  &
-            &                              +barkana2001WDMFitParameterA    &
-            &                             )                                &
-            &                            /  barkana2001WDMFitParameterB    &
-            &                           )                                  &
+       smoothTransition          =+1.0d0                     &
+            &                     /(                         &
+            &                       +1.0d0                   &
+            &                       +exp(                    &
+            &                            +(                  &
+            &                              +massScaleFree    &
+            &                              +fitParameterA    &
+            &                             )                  &
+            &                            /  fitParameterB    &
+            &                           )                    &
             &                      )
-       powerLawFit               =+     barkana2001WDMFitParameterC        &
-            &                     /exp(                                    &
-            &                          +barkana2001WDMFitParameterD        &
-            &                          *massScaleFree                      &
+       powerLawFit               =+     fitParameterC        &
+            &                     /exp(                      &
+            &                          +fitParameterD        &
+            &                          *massScaleFree        &
             &                         )
-       exponentialFit            =+exp(                                    &
-            &                          +     barkana2001WDMFitParameterE   &
-            &                          /exp(                               &
-            &                               +barkana2001WDMFitParameterF   &
-            &                               *massScaleFree                 &
-            &                              )                               &
+       exponentialFit            =+exp(                      &
+            &                          +     fitParameterE   &
+            &                          /exp(                 &
+            &                               +fitParameterF   &
+            &                               *massScaleFree   &
+            &                              )                 &
             &                         )
-       powerLawFitGradient       =-barkana2001WDMFitParameterD             &
-            &                     *powerLawFit                             &
-            &                     /exp(                                    &
-            &                          +massScaleFree                      &
+       powerLawFitGradient       =-fitParameterD             &
+            &                     *powerLawFit               &
+            &                     /exp(                      &
+            &                          +massScaleFree        &
             &                         )
-       exponentialFitGradient    =-exponentialFit                          &
-            &                     *barkana2001WDMFitParameterF             &
-            &                     *barkana2001WDMFitParameterE             &
-            &                     /exp(                                    &
-            &                          +(                                  &
-            &                            +1.0d0                            &
-            &                            +barkana2001WDMFitParameterF      &
-            &                           )                                  &
-            &                          *massScaleFree                      &
+       exponentialFitGradient    =-exponentialFit            &
+            &                     *fitParameterF             &
+            &                     *fitParameterE             &
+            &                     /exp(                      &
+            &                          +(                    &
+            &                            +1.0d0              &
+            &                            +fitParameterF      &
+            &                           )                    &
+            &                          *massScaleFree        &
             &                         )
-       smoothTransitionGradient  =-exp(                                    &
-            &                          +(                                  &
-            &                            +     massScaleFree               &
-            &                            +     barkana2001WDMFitParameterA &
-            &                           )                                  &
-            &                          /       barkana2001WDMFitParameterB &
-            &                         )                                    &
-            &                        /         barkana2001WDMFitParameterB &
-            &                        /(                                    &
-            &                          +1.0d0                              &
-            &                          +exp(                               &
-            &                               +(                             &
-            &                                 +massScaleFree               &
-            &                                 +barkana2001WDMFitParameterA &
-            &                                )                             &
-            &                               /  barkana2001WDMFitParameterB &
-            &                              )                               &
-            &                         )**2                                 &
-            &                        /exp(                                 &
-            &                             +massScaleFree                   &
+       smoothTransitionGradient  =-exp(                      &
+            &                          +(                    &
+            &                            +     massScaleFree &
+            &                            +     fitParameterA &
+            &                           )                    &
+            &                          /       fitParameterB &
+            &                         )                      &
+            &                        /         fitParameterB &
+            &                        /(                      &
+            &                          +1.0d0                &
+            &                          +exp(                 &
+            &                               +(               &
+            &                                 +massScaleFree &
+            &                                 +fitParameterA &
+            &                                )               &
+            &                               /  fitParameterB &
+            &                              )                 &
+            &                         )**2                   &
+            &                        /exp(                   &
+            &                             +massScaleFree     &
             &                            )
        barkana2001WDMGradientMass=+(                                                                                         &
             &                       +       smoothTransition *powerLawFitGradient   +smoothTransitionGradient*powerLawFit    &
@@ -414,7 +414,7 @@ contains
        if      (massScaleFree > self%deltaTableMass(self%deltaTableCount)) then
           barkana2001WDMGradientMass=+0.0d0
        else if (massScaleFree < self%deltaTableMass(                   1)) then
-          barkana2001WDMGradientMass=+barkana2001WDMSmallMassLogarithmicSlope                                       &
+          barkana2001WDMGradientMass=+smallMassLogarithmicSlope                                                     &
                &                     *self%value(time,expansionFactor,collapsing,mass)                              &
                &                     /mass
        else

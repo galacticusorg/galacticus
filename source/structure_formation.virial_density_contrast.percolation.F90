@@ -24,7 +24,7 @@
   use    :: Cosmology_Functions, only : cosmologyFunctionsClass
   use    :: Kind_Numbers       , only : kind_int8
   !$ use :: OMP_Lib            , only : OMP_Destroy_Lock       , OMP_Init_Lock, OMP_Set_Lock, OMP_Unset_Lock, &
-!$          &                             omp_lock_kind
+  !$      &                             omp_lock_kind
   use    :: Tables             , only : table2DLogLogLin
 
   !![
@@ -96,17 +96,17 @@
   end interface virialDensityContrastPercolation
 
   ! Granularity parameters for tabulations.
-  integer                    , parameter :: percolationDensityContrastTableTimePointsPerDecade=5
-  integer                    , parameter :: percolationDensityContrastTableMassPointsPerDecade=5
+  integer                    , parameter :: densityContrastTableTimePointsPerDecade=5
+  integer                    , parameter :: densityContrastTableMassPointsPerDecade=5
 
   ! Module-scope record of state used when solving for the percolation density contrast.
-  logical                                :: percolationSolving                                =.false.
-  double precision                       :: percolationDensityContrastCurrent                 =-1.0d0
-  !$omp threadprivate(percolationDensityContrastCurrent,percolationSolving)
+  logical                                :: solving                                =.false.
+  double precision                       :: densityContrastCurrent                 =-1.0d0
+  !$omp threadprivate(densityContrastCurrent,solving)
 
   ! Unique ID used to identify parent-child recursive relationships.
-  integer         (kind_int8)            :: percolationID                                     =0_kind_int8, percolationIDRecursive=-1_kind_int8
-  !$omp threadprivate(percolationIDRecursive)
+  integer         (kind_int8)            :: ID                                     =0_kind_int8, IDRecursive=-1_kind_int8
+  !$omp threadprivate(IDRecursive)
 
 contains
 
@@ -203,26 +203,26 @@ contains
        end select
        ! Generate a new ID.
        !$omp critical (percolationIDIncrement)
-       percolationID                =percolationID+1_kind_int8
-       self                  %selfID=percolationID
-       if (percolationID == -1_kind_int8) call Error_Report('ran out of IDs for percolation class'//{introspection:location})
+       ID                =ID+1_kind_int8
+       self                  %selfID=ID
+       if (ID == -1_kind_int8) call Error_Report('ran out of IDs for percolation class'//{introspection:location})
        !$omp end critical (percolationIDIncrement)
-       percolationIDRecursive       =self%selfID
+       IDRecursive       =self%selfID
     else
        self%recursiveSelf => null()
        self%isRecursive   =  .false.
        ! Get a unique ID.
-       if (percolationIDRecursive == -1_kind_int8) then
+       if (IDRecursive == -1_kind_int8) then
           ! Generate a new ID.
           !$omp critical (percolationIDIncrement)
-          percolationID                =percolationID+1_kind_int8
-          self                  %selfID=percolationID
-          if (percolationID == -1_kind_int8) call Error_Report('ran out of IDs for percolation class'//{introspection:location})
+          ID                =ID+1_kind_int8
+          self                  %selfID=ID
+          if (ID == -1_kind_int8) call Error_Report('ran out of IDs for percolation class'//{introspection:location})
           !$omp end critical (percolationIDIncrement)
        else
           ! An ID was already set during recursive construction.
-          self                  %selfID=percolationIDRecursive
-          percolationIDRecursive       =-1_kind_int8
+          self                  %selfID=IDRecursive
+          IDRecursive       =-1_kind_int8
        end if
     end if
     self%parentDeferred=.false.
@@ -304,10 +304,10 @@ contains
           ! Increment the number of table remakes.
           self%densityContrastTableRemakeCount=self%densityContrastTableRemakeCount+1
           ! Record that we are in the solving phase of calculation, so we will avoid recursive calls to this function.
-          percolationSolving=.true.
+          solving=.true.
           ! Allocate arrays to the appropriate sizes.
-          self%densityContrastTableMassCount=int(log10(self%densityContrastTableMassMaximum/self%densityContrastTableMassMinimum)*dble(percolationDensityContrastTableMassPointsPerDecade))+1
-          self%densityContrastTableTimeCount=int(log10(self%densityContrastTableTimeMaximum/self%densityContrastTableTimeMinimum)*dble(percolationDensityContrastTableTimePointsPerDecade))+1
+          self%densityContrastTableMassCount=int(log10(self%densityContrastTableMassMaximum/self%densityContrastTableMassMinimum)*dble(densityContrastTableMassPointsPerDecade))+1
+          self%densityContrastTableTimeCount=int(log10(self%densityContrastTableTimeMaximum/self%densityContrastTableTimeMinimum)*dble(densityContrastTableTimePointsPerDecade))+1
           ! Create the table.
           call self%densityContrastTable%create(                                      &
                &                                self%densityContrastTableMassMinimum, &
@@ -326,7 +326,7 @@ contains
                 tableTime=self%densityContrastTable%y(iTime)
                 iCount=iCount+1
                 call displayCounter(int(100.0d0*dble(iCount)/dble(self%densityContrastTableMassCount*self%densityContrastTableTimeCount)),isNew=(iCount==1),verbosity=verbosityLevelWorking)
-                call self%densityContrastTable%populate(Virial_Density_Contrast_Percolation_Solver_(tableMass,tableTime,self%linkingLength,percolationDensityContrastCurrent,self%percolationObjects_,self),iMass,iTime)
+                call self%densityContrastTable%populate(Virial_Density_Contrast_Percolation_Solver_(tableMass,tableTime,self%linkingLength,densityContrastCurrent,self%percolationObjects_,self),iMass,iTime)
              end do
           end do
           call displayCounterClear(verbosity=verbosityLevelWorking)
@@ -336,7 +336,7 @@ contains
           ! Store the table.
           call self%storeTable()
           ! Solving phase is finished.
-          percolationSolving=.false.
+          solving=.false.
        end if
     end do
     return
@@ -357,13 +357,13 @@ contains
          &                                                                          mustRetabulate
 
     ! Get the time to use.
-    if (.not.percolationSolving) timeActual=self%cosmologyFunctions_%epochTime(time,expansionFactor,collapsing)
+    if (.not.solving) timeActual=self%cosmologyFunctions_%epochTime(time,expansionFactor,collapsing)
     ! Initialize choices for how we will compute the density contrast.
     useSolverCurrent=.false.
     useTable        =.false.
     ! Determine how to compute density contrast.
     if (self%isRecursive) then
-       if (percolationSolving) then
+       if (solving) then
           ! Currently solving for solutions - return the current guess.
           if (self%selfID /= self%recursiveSelf%selfID) call Error_Report('recursively-constructed percolation class object ID does not match that of actively solving object'//{introspection:location})
           useSolverCurrent=.true.
@@ -381,7 +381,7 @@ contains
              useTable=.true.
           end if
        end if
-    else if (percolationSolving) then
+    else if (solving) then
        ! Currently solving for solutions - return the current guess.
        useSolverCurrent=.true.
     else
@@ -390,7 +390,7 @@ contains
     end if
     ! Provide a result based on the chosen method.
     if (useSolverCurrent) then
-       percolationDensityContrast=percolationDensityContrastCurrent
+       percolationDensityContrast=densityContrastCurrent
     else if (useTable) then
        !$ call OMP_Set_Lock(self%densityContrastTableLock)
        call self%tabulate(mass,timeActual)
@@ -715,4 +715,3 @@ contains
     end if
     return
   end subroutine percolationRestoreTable
-

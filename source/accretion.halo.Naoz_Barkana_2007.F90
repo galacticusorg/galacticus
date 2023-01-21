@@ -111,7 +111,7 @@
   end interface accretionHaloNaozBarkana2007
 
   ! Virial density contrast definition used by Gnedin (2000) to define halos, and therefore used in the filtering mass fitting functions.
-  double precision, parameter :: naozBarkana2007VirialDensityContrast=200.0d0
+  double precision, parameter :: densityContrastVirial=200.0d0
 
 contains
 
@@ -283,15 +283,15 @@ contains
     ! the original work by Gnedin (2000; http://adsabs.harvard.edu/abs/2000ApJ...542..535G) based on the discussion of halo
     ! definition in Naoz, Yoshida, & Gnedin (2013; http://adsabs.harvard.edu/abs/2013ApJ...763...27N).
     if (.not.self%filteredFractionComputed) then
-       basic                         => node                                  %basic        (                                                                   )
-       massFiltering                 =  self%intergalacticMediumFilteringMass_%massFiltering(                       basic%time                                ())
-       massHalo                      =  Dark_Matter_Profile_Mass_Definition                 (                                                                     &
-            &                                                                                                             node                                  , &
-            &                                                                                                             naozBarkana2007VirialDensityContrast  , &
-            &                                                                                cosmologyParameters_  =self %cosmologyParameters_                  , &
-            &                                                                                cosmologyFunctions_   =self %cosmologyFunctions_                   , &
-            &                                                                                darkMatterProfileDMO_ =self %darkMatterProfileDMO_                 , &
-            &                                                                                virialDensityContrast_=self %virialDensityContrast_                  &
+       basic                         => node                                  %basic        (                                                     )
+       massFiltering                 =  self%intergalacticMediumFilteringMass_%massFiltering(                       basic%time                  ())
+       massHalo                      =  Dark_Matter_Profile_Mass_Definition                 (                                                       &
+            &                                                                                                             node                    , &
+            &                                                                                                             densityContrastVirial   , &
+            &                                                                                cosmologyParameters_  =self %cosmologyParameters_    , &
+            &                                                                                cosmologyFunctions_   =self %cosmologyFunctions_     , &
+            &                                                                                darkMatterProfileDMO_ =self %darkMatterProfileDMO_   , &
+            &                                                                                virialDensityContrast_=self %virialDensityContrast_    &
             &                                                                               )
        self%filteredFractionStored   =  self%filteredFractionCompute(massHalo,massFiltering)
        self%filteredFractionComputed =  .true.
@@ -321,15 +321,15 @@ contains
     ! definition in Naoz, Yoshida, & Gnedin (2013; http://adsabs.harvard.edu/abs/2013ApJ...763...27N). The rate of change here
     ! assumes that the filtering mass is constant in time.
     if (.not.self%filteredFractionRateComputed) then
-       basic         => node                                  %basic        (                                                                   )
-       massFiltering =  self%intergalacticMediumFilteringMass_%massFiltering(                       basic%time                                ())
-       massHalo      =  Dark_Matter_Profile_Mass_Definition                 (                                                                     &
-            &                                                                                             node                                  , &
-            &                                                                                             naozBarkana2007VirialDensityContrast  , &
-            &                                                                cosmologyParameters_  =self %cosmologyParameters_                  , &
-            &                                                                cosmologyFunctions_   =self %cosmologyFunctions_                   , &
-            &                                                                darkMatterProfileDMO_ =self %darkMatterProfileDMO_                 , &
-            &                                                                virialDensityContrast_=self %virialDensityContrast_                  &
+       basic         => node                                  %basic        (                                                     )
+       massFiltering =  self%intergalacticMediumFilteringMass_%massFiltering(                       basic%time                  ())
+       massHalo      =  Dark_Matter_Profile_Mass_Definition                 (                                                       &
+            &                                                                                             node                    , &
+            &                                                                                             densityContrastVirial   , &
+            &                                                                cosmologyParameters_  =self %cosmologyParameters_    , &
+            &                                                                cosmologyFunctions_   =self %cosmologyFunctions_     , &
+            &                                                                darkMatterProfileDMO_ =self %darkMatterProfileDMO_   , &
+            &                                                                virialDensityContrast_=self %virialDensityContrast_    &
             &                                                               )
        if (.not.self%filteredFractionComputed) then
           self%filteredFractionStored   =  self%filteredFractionCompute(massHalo,massFiltering)

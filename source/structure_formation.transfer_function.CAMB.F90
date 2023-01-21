@@ -65,7 +65,7 @@ Contains a module which implements a transfer function class using the CAMB code
   end interface transferFunctionCAMB
 
   ! Smallest maximum wavenumber to tabulate.
-  double precision, parameter :: cambWavenumberMaximumLimit=50000.0d0
+  double precision, parameter :: wavenumberMaximumLimit=50000.0d0
 
 contains
 
@@ -147,7 +147,7 @@ contains
     ! Set the epoch time for this transfer function.
     self%time=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(redshift))
     ! Set maximum wavenumber.
-    self%wavenumberMaximum=+cambWavenumberMaximumLimit                                         &
+    self%wavenumberMaximum=+wavenumberMaximumLimit                                             &
          &                 *self%cosmologyParameters_%hubbleConstant(units=hubbleUnitsLittleH)
     self%wavenumberMaximumReached=.false.
     return

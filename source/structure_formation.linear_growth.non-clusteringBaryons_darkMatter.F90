@@ -66,7 +66,7 @@
   end interface linearGrowthNonClusteringBaryonsDarkMatter
 
   ! Tolerance parameter used to ensure times do not exceed that at the Big Crunch.
-  double precision, parameter :: nonClusteringBaryonsDarkMatterTimeToleranceRelative=1.0d-4
+  double precision, parameter :: timeToleranceRelative=1.0d-4
 
 contains
 
@@ -113,8 +113,8 @@ contains
     timeBigCrunch        =self%cosmologyFunctions_%timeBigCrunch()
     if (timeBigCrunch > 0.0d0) then
        ! A Big Crunch exists - avoid attempting to tabulate times beyond this epoch.
-       if (self%tableTimeMinimum > timeBigCrunch) self%tableTimeMinimum= 0.5d0                                                     *timeBigCrunch
-       if (self%tableTimeMaximum > timeBigCrunch) self%tableTimeMaximum=(1.0d0-nonClusteringBaryonsDarkMatterTimeToleranceRelative)*timeBigCrunch
+       if (self%tableTimeMinimum > timeBigCrunch) self%tableTimeMinimum= 0.5d0                       *timeBigCrunch
+       if (self%tableTimeMaximum > timeBigCrunch) self%tableTimeMaximum=(1.0d0-timeToleranceRelative)*timeBigCrunch
     end if
     return
   end function nonClusteringBaryonsDarkMatterConstructorInternal
@@ -186,8 +186,8 @@ contains
        timeBigCrunch        =self%cosmologyFunctions_%timeBigCrunch()
        if (timeBigCrunch > 0.0d0) then
           ! A Big Crunch exists - avoid attempting to tabulate times beyond this epoch.
-          if (self%tableTimeMinimum > timeBigCrunch) self%tableTimeMinimum= 0.5d0                             *timeBigCrunch
-          if (self%tableTimeMaximum > timeBigCrunch) self%tableTimeMaximum=(1.0d0-nonClusteringBaryonsDarkMatterTimeToleranceRelative)*timeBigCrunch
+          if (self%tableTimeMinimum > timeBigCrunch) self%tableTimeMinimum= 0.5d0                       *timeBigCrunch
+          if (self%tableTimeMaximum > timeBigCrunch) self%tableTimeMaximum=(1.0d0-timeToleranceRelative)*timeBigCrunch
        end if
        ! Determine number of points to tabulate.
        growthTableNumberPoints=int(log10(self%tableTimeMaximum/self%tableTimeMinimum)*dble(growthTablePointsPerDecade))

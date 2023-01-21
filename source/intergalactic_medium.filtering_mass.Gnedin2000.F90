@@ -86,10 +86,10 @@
   end interface intergalacticMediumFilteringMassGnedin2000
 
   ! Parameter controlling fine-grainedness of filtering mass tabulations.
-  integer                , parameter :: gnedin2000TablePointsPerDecade=100
+  integer                , parameter :: tablePointsPerDecade=100
 
   ! Lock used for file access.
-  type(lockDescriptor) :: gnedin2000FileLock
+  type   (lockDescriptor)            :: fileLock
 
 contains
 
@@ -267,13 +267,13 @@ contains
     ! Check if we need to recompute our table.
     if (self%remakeTable(time)) then
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-       call File_Lock(char(self%fileName),gnedin2000FileLock,lockIsShared=.true.)
+       call File_Lock(char(self%fileName),fileLock,lockIsShared=.true.)
        call self%fileRead()
-       call File_Unlock(gnedin2000FileLock,sync=.false.)
+       call File_Unlock(fileLock,sync=.false.)
     end if
     if (self%remakeTable(time)) then
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-       call File_Lock(char(self%fileName),gnedin2000FileLock,lockIsShared=.false.)
+       call File_Lock(char(self%fileName),fileLock,lockIsShared=.false.)
        ! Evaluate a suitable starting time for filtering mass calculations.
        timeInitial=self%cosmologyFunctions_ %cosmicTime                 (                            &
             &       self%cosmologyFunctions_%expansionFactorFromRedshift (                           &
@@ -286,7 +286,7 @@ contains
        self%timeMaximum=    max(self%cosmologyFunctions_%cosmicTime(1.0d0),time      )
        self%timeMinimum=max(min(self%cosmologyFunctions_%cosmicTime(1.0d0),time/2.0d0),timeInitial)
        ! Decide how many points to tabulate and allocate table arrays.
-       self%countTimes=int(log10(self%timeMaximum/self%timeMinimum)*dble(gnedin2000TablePointsPerDecade))+1
+       self%countTimes=int(log10(self%timeMaximum/self%timeMinimum)*dble(tablePointsPerDecade))+1
        ! Create the tables.
        call self%table%destroy()
        call self%table%create (                   &
@@ -311,7 +311,7 @@ contains
        self%initialized=.true.
        ! Store file.
        call self%fileWrite()
-       call File_Unlock(gnedin2000FileLock)
+       call File_Unlock(fileLock)
     end if
     return
 

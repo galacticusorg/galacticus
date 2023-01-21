@@ -60,15 +60,15 @@
   end interface sphericalCollapseSolverCllsnlssMttrDarkEnergy
 
   ! Pointer to the default cosmology functions object.
-  class           (cosmologyFunctionsClass), pointer   :: cllsnlssMttrDarkEnergyCosmologyFunctions_            => null()
-  !$omp threadprivate(cllsnlssMttrDarkEnergyCosmologyFunctions_)
+  class           (cosmologyFunctionsClass), pointer   :: cosmologyFunctions_            => null()
+  !$omp threadprivate(cosmologyFunctions_)
 
   ! Fraction of current expansion factor to use as initial time in perturbation dynamics solver.
-  double precision                         , parameter :: cllsnlssMttrDarkEnergyExpansionFactorInitialFraction =  1.0d-6
+  double precision                         , parameter :: expansionFactorInitialFraction =  1.0d-6
 
   ! Variables used in root finding.
-  double precision                                     :: cllsnlssMttrDarkEnergyPerturbationRadiusInitial
-  !$omp threadprivate(cllsnlssMttrDarkEnergyPerturbationRadiusInitial)
+  double precision                                     :: perturbationRadiusInitial
+  !$omp threadprivate(perturbationRadiusInitial)
 
 contains
 
@@ -194,7 +194,7 @@ contains
     timeMinimum=min(timeMinimum,time/2.0d0)
     timeMaximum=max(timeMaximum,time*2.0d0)
     ! Determine number of points to tabulate.
-    countTimes=int(log10(timeMaximum/timeMinimum)*dble(cllsnlssMttCsmlgclCnstntTablePointsPerDecade))
+    countTimes=int(log10(timeMaximum/timeMinimum)*dble(tablePointsPerDecade))
     ! Deallocate table if currently allocated.
     if (allocated(sphericalCollapse_)) then
        call sphericalCollapse_%destroy()
@@ -213,18 +213,18 @@ contains
        message=message//trim(adjustl(label))
        call displayIndent(message,verbosity=verbosityLevelWorking)
        iCount=0
-       call displayCounter(                            &
-            &                                    iCount          , &
-            &                          isNew    =.true.          , &
-            &                          verbosity=verbosityLevelWorking  &
-            &                         )
+       call displayCounter(                                 &
+            &                        iCount               , &
+            &              isNew    =.true.               , &
+            &              verbosity=verbosityLevelWorking  &
+            &             )
        !$omp parallel private(expansionFactor,epsilonPerturbationMaximum,epsilonPerturbationMinimum,epsilonPerturbation,timeInitial,timeRange,maximumExpansionTime,expansionFactorExpansionMaximum,q,y,timeEnergyFixed,a,b,x,linearGrowth_)       
        !$omp critical(sphericalCollapseSolveCllnlssMttrDrkEnrgyDeepCopy)
-       allocate(cllsnlssMttrDarkEnergyCosmologyFunctions_,mold=self%cosmologyFunctions_)
+       allocate(cosmologyFunctions_,mold=self%cosmologyFunctions_)
        !![
        <deepCopyReset variables="self%cosmologyFunctions_"/>
-       <deepCopy source="self%cosmologyFunctions_" destination="cllsnlssMttrDarkEnergyCosmologyFunctions_"/>
-       <deepCopyFinalize variables="cllsnlssMttrDarkEnergyCosmologyFunctions_"/>
+       <deepCopy source="self%cosmologyFunctions_" destination="cosmologyFunctions_"/>
+       <deepCopyFinalize variables="cosmologyFunctions_"/>
        !!]
        if (calculationType == cllsnlssMttCsmlgclCnstntClcltnCriticalOverdensity) then
           allocate(linearGrowth_,mold=self%linearGrowth_)
@@ -245,19 +245,19 @@ contains
                &              verbosity=verbosityLevelWorking                         &
                &             )
           ! Get the current expansion factor.
-          expansionFactor=cllsnlssMttrDarkEnergyCosmologyFunctions_%expansionFactor(sphericalCollapse_%x(iTime))
+          expansionFactor=cosmologyFunctions_%expansionFactor(sphericalCollapse_%x(iTime))
           ! In the case of dark energy we cannot (easily) determine the largest (i.e. least negative) value of ε for which a
           ! perturbation can collapse. So, use no perturbation.
           epsilonPerturbationMaximum=  0.0d0
           ! Estimate a suitably negative minimum value for ε.
           epsilonPerturbationMinimum=-10.0d0
           ! Evaluate cosmological parameters at the present time.
-          cllsnlssMttCsmlgclCnstntOmegaMatterEpochal    =cllsnlssMttrDarkEnergyCosmologyFunctions_%omegaMatterEpochal    (expansionFactor=expansionFactor)
-          cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal=cllsnlssMttrDarkEnergyCosmologyFunctions_%omegaDarkEnergyEpochal(expansionFactor=expansionFactor)
-          cllsnlssMttCsmlgclCnstntHubbleTimeEpochal     =cllsnlssMttrDarkEnergyCosmologyFunctions_%expansionRate         (                expansionFactor)
-          cllsnlssMttCsmlgclCnstntTime                  =sphericalCollapse_                       %x                     (                iTime          )
+          OmegaMatterEpochal    =cosmologyFunctions_%omegaMatterEpochal    (expansionFactor=expansionFactor)
+          OmegaDarkEnergyEpochal=cosmologyFunctions_%omegaDarkEnergyEpochal(expansionFactor=expansionFactor)
+          hubbleTimeEpochal     =cosmologyFunctions_%expansionRate         (                expansionFactor)
+          time_                  =sphericalCollapse_%x                     (                iTime          )
           ! Check dark energy equation of state is within acceptable range.
-          if (cllsnlssMttrDarkEnergyCosmologyFunctions_%equationOfStateDarkEnergy(time=cllsnlssMttCsmlgclCnstntTime) >= -1.0d0/3.0d0) &
+          if (cosmologyFunctions_%equationOfStateDarkEnergy(time=time_) >= -1.0d0/3.0d0) &
                & call Error_Report('ω<-⅓ required'//{introspection:location})
           ! Find the value of ε for which the perturbation just collapses at this time.
           if (.not.finderAmplitudeConstructed) then
@@ -272,19 +272,19 @@ contains
           select case (calculationType%ID)
           case (cllsnlssMttCsmlgclCnstntClcltnCriticalOverdensity%ID)
              ! Critical linear overdensity.
-             normalization=+linearGrowth_%value(cllsnlssMttCsmlgclCnstntTime,normalize=normalizeMatterDominated) &
+             normalization=+linearGrowth_%value(time_,normalize=normalizeMatterDominated) &
                   &        /                    expansionFactor
-             call sphericalCollapse_%populate(                                                   &
-                  &                           +normalization                                     &
-                  &                           *0.6d0                                             &
-                  &                           *(                                                 &
-                  &                             +1.0d0                                           &
-                  &                             -cllsnlssMttCsmlgclCnstntOmegaMatterEpochal      &
-                  &                             -cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal  &
-                  &                             -epsilonPerturbation                             &
-                  &                            )                                                 &
-                  &                           /cllsnlssMttCsmlgclCnstntOmegaMatterEpochal      , &
-                  &                           iTime                                              &
+             call sphericalCollapse_%populate(                           &
+                  &                           +normalization             &
+                  &                           *0.6d0                     &
+                  &                           *(                         &
+                  &                             +1.0d0                   &
+                  &                             -OmegaMatterEpochal      &
+                  &                             -OmegaDarkEnergyEpochal  &
+                  &                             -epsilonPerturbation     &
+                  &                            )                         &
+                  &                           /OmegaMatterEpochal      , &
+                  &                           iTime                      &
                   &                          )
           case (cllsnlssMttCsmlgclCnstntClcltnVirialDensityContrast%ID,cllsnlssMttCsmlgclCnstntClcltnRadiusTurnaround%ID)
              ! Find the epoch of maximum expansion for the perturbation.
@@ -300,38 +300,38 @@ contains
                   &                                   rangeExpandDownward          =1.0d0-1.0d-2                 , &
                   &                                   rangeExpandUpward            =1.0d0+1.0d-2                 , &
                   &                                   rangeExpandType              =rangeExpandMultiplicative    , &
-                  &                                   rangeUpwardLimit             =cllsnlssMttCsmlgclCnstntTime , &
+                  &                                   rangeUpwardLimit             =time_                        , &
                   &                                   rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
                   &                                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative  &
                   &                                  )
-             cllsnlssMttCsmlgclCnstntAmplitudePerturbation=epsilonPerturbation
+             amplitudePerturbation=epsilonPerturbation
              ! Compute the corresponding time of maximum expansion.
-             timeInitial                    =cllsnlssMttrDarkEnergyCosmologyFunctions_%cosmicTime(cllsnlssMttrDarkEnergyCosmologyFunctions_%expansionFactor(cllsnlssMttCsmlgclCnstntTime)*cllsnlssMttrDarkEnergyExpansionFactorInitialFraction)
+             timeInitial                    =cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactor(time_)*expansionFactorInitialFraction)
              ! Guess that the time of maximum expansion occurred at close to half of the current time.
-             timeRange                      =[0.45d0,0.55d0]*cllsnlssMttCsmlgclCnstntTime
+             timeRange                      =[0.45d0,0.55d0]*time_
              maximumExpansionTime           =finderExpansionMaximum%find(rootRange=timeRange)
-             expansionFactorExpansionMaximum=cllsnlssMttrDarkEnergyCosmologyFunctions_%expansionFactor(maximumExpansionTime)
+             expansionFactorExpansionMaximum=cosmologyFunctions_%expansionFactor(maximumExpansionTime)
              ! Solve the dynamics of the perturbation to find the radius at the point of maximum expansion.
              call cllsnlssMttrDarkEnergyPerturbationDynamicsSolver(epsilonPerturbation,maximumExpansionTime,radiusExpansionMaximum)
              ! Compute the density contrast of the perturbation at maximum expansion.
              densityContrastExpansionMaximum=(expansionFactorExpansionMaximum/expansionFactor/radiusExpansionMaximum)**3
              ! Solve the cubic equation (Percival, 2005, A&A, 443, 819, eqn. 38) to give the ratio of virial to turnaround radii,
              ! x.
-             q=      cllsnlssMttrDarkEnergyCosmologyFunctions_%omegaDarkEnergyEpochal(time=maximumExpansionTime) &
-                  & /cllsnlssMttrDarkEnergyCosmologyFunctions_%omegaMatterEpochal    (time=maximumExpansionTime) &
+             q=      cosmologyFunctions_%omegaDarkEnergyEpochal(time=maximumExpansionTime) &
+                  & /cosmologyFunctions_%omegaMatterEpochal    (time=maximumExpansionTime) &
                   & /densityContrastExpansionMaximum
-             y=      expansionFactorExpansionMaximum**cllsnlssMttrDarkEnergyCosmologyFunctions_%exponentDarkEnergy(time=maximumExpansionTime        ) &
-                  & /expansionFactor                **cllsnlssMttrDarkEnergyCosmologyFunctions_%exponentDarkEnergy(time=cllsnlssMttCsmlgclCnstntTime)
+             y=      expansionFactorExpansionMaximum**cosmologyFunctions_%exponentDarkEnergy(time=maximumExpansionTime) &
+                  & /expansionFactor                **cosmologyFunctions_%exponentDarkEnergy(time=time_               )
              select case (self%energyFixedAt%ID)
              case (cllsnlssMttrDarkEnergyFixedAtTurnaround   %ID)
                 timeEnergyFixed=maximumExpansionTime
              case (cllsnlssMttrDarkEnergyFixedAtVirialization%ID)
-                timeEnergyFixed=cllsnlssMttCsmlgclCnstntTime
+                timeEnergyFixed=time_
              case default
                 call Error_Report('unrecognized epoch'//{introspection:location})
              end select
-             a=1.0d0-(1.0d0+3.0d0*cllsnlssMttrDarkEnergyCosmologyFunctions_%equationOfStateDarkEnergy(time=timeEnergyFixed             ))*q/2.0d0
-             b=      (1.0d0+3.0d0*cllsnlssMttrDarkEnergyCosmologyFunctions_%equationOfStateDarkEnergy(time=cllsnlssMttCsmlgclCnstntTime))*q/y
+             a=1.0d0-(1.0d0+3.0d0*cosmologyFunctions_%equationOfStateDarkEnergy(time=timeEnergyFixed))*q/2.0d0
+             b=      (1.0d0+3.0d0*cosmologyFunctions_%equationOfStateDarkEnergy(time=time_          ))*q/y
              ! Check for special cases.
              if (q == 0.0d0) then
                 ! No dark energy, the ratio of radii is always ½.
@@ -365,7 +365,7 @@ contains
        end do
        !$omp end do
        !![
-       <objectDestructor name="cllsnlssMttrDarkEnergyCosmologyFunctions_"/>
+       <objectDestructor name="cosmologyFunctions_"/>
        !!]
        if (calculationType == cllsnlssMttCsmlgclCnstntClcltnCriticalOverdensity) then
           !![
@@ -387,7 +387,7 @@ contains
     implicit none
     double precision, intent(in   ) :: epsilonPerturbation
 
-    call cllsnlssMttrDarkEnergyPerturbationDynamicsSolver(epsilonPerturbation,cllsnlssMttCsmlgclCnstntTime,cllsnlssMttrDarkEnergyRadiusPerturbation)
+    call cllsnlssMttrDarkEnergyPerturbationDynamicsSolver(epsilonPerturbation,time_,cllsnlssMttrDarkEnergyRadiusPerturbation)
     return
   end function cllsnlssMttrDarkEnergyRadiusPerturbation
 
@@ -399,7 +399,7 @@ contains
     implicit none
     double precision, intent(in   ) :: time
 
-    call cllsnlssMttrDarkEnergyPerturbationDynamicsSolver(cllsnlssMttCsmlgclCnstntAmplitudePerturbation,time,expansionRatePerturbation=cllsnlssMttrDarkEnergyExpansionRatePerturbation)
+    call cllsnlssMttrDarkEnergyPerturbationDynamicsSolver(amplitudePerturbation,time,expansionRatePerturbation=cllsnlssMttrDarkEnergyExpansionRatePerturbation)
     return
   end function cllsnlssMttrDarkEnergyExpansionRatePerturbation
 
@@ -422,37 +422,37 @@ contains
     integer                                                                          :: odeStatus
 
     ! Specify a sufficiently early time.
-    expansionFactorInitial=cllsnlssMttrDarkEnergyExpansionFactorInitialFraction
+    expansionFactorInitial=expansionFactorInitialFraction
     ! Find the corresponding cosmic time.
-    timeInitial=cllsnlssMttrDarkEnergyCosmologyFunctions_%cosmicTime(cllsnlssMttrDarkEnergyCosmologyFunctions_%expansionFactor(time)*expansionFactorInitial)
+    timeInitial=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactor(time)*expansionFactorInitial)
     ! Find the overdensity of the perturbation at early time (Percival, 2005, A&A, 443, 819, eqn. 25).
-    overdensityInitial=+0.6d0                                            &
-         &             *(                                                &
-         &               +1.0d0                                          &
-         &               -cllsnlssMttCsmlgclCnstntOmegaMatterEpochal     &
-         &               -cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal &
-         &               -epsilonPerturbation                            &
-         &              )                                                &
-         &             *(                                                &
-         &               +3.0d0                                          &
-         &               /2.0d0                                          &
-         &               /cllsnlssMttCsmlgclCnstntOmegaMatterEpochal     &
-         &               *cllsnlssMttCsmlgclCnstntHubbleTimeEpochal      &
-         &               *timeInitial                                    &
+    overdensityInitial=+0.6d0                    &
+         &             *(                        &
+         &               +1.0d0                  &
+         &               -OmegaMatterEpochal     &
+         &               -OmegaDarkEnergyEpochal &
+         &               -epsilonPerturbation    &
+         &              )                        &
+         &             *(                        &
+         &               +3.0d0                  &
+         &               /2.0d0                  &
+         &               /OmegaMatterEpochal     &
+         &               *hubbleTimeEpochal      &
+         &               *timeInitial            &
          &              )**(2.0d0/3.0d0)
     ! Find the perturbation radius at this early time. This is, by construction, just the initial expansion factor.
-    cllsnlssMttrDarkEnergyPerturbationRadiusInitial=+expansionFactorInitial
+    perturbationRadiusInitial=+expansionFactorInitial
     ! Find the perturbation expansion rate at early time (Percival, 2005, A&A, 443, 819, eqn. 22).
-    expansionRatePerturbationInitial         =+cllsnlssMttCsmlgclCnstntHubbleTimeEpochal        &
-         &                                    *sqrt(                                            &
-         &                                          +cllsnlssMttCsmlgclCnstntOmegaMatterEpochal &
-         &                                          /expansionFactorInitial                     &
-         &                                          +epsilonPerturbation                        &
-         &                                         )
+    expansionRatePerturbationInitial=+hubbleTimeEpochal            &
+         &                           *sqrt(                        &
+         &                                 +OmegaMatterEpochal     &
+         &                                 /expansionFactorInitial &
+         &                                 +epsilonPerturbation    &
+         &                                )
     ! Set initial conditions.
-    propertyValues=[                                                 &
-         &          cllsnlssMttrDarkEnergyPerturbationRadiusInitial, &
-         &          expansionRatePerturbationInitial                 &
+    propertyValues=[                                  &
+         &          perturbationRadiusInitial       , &
+         &          expansionRatePerturbationInitial  &
          &         ]
     ! Evolve if the requested time is after the initial time.
     if (time > timeInitial) then
@@ -489,15 +489,15 @@ contains
     if (y(1) <= 0.0d0) then
        dydt(1:2)=0.0d0
     else
-       expansionFactor=+cllsnlssMttrDarkEnergyCosmologyFunctions_%expansionFactor(                        time) &
-            &          /cllsnlssMttrDarkEnergyCosmologyFunctions_%expansionFactor(cllsnlssMttCsmlgclCnstntTime)
+       expansionFactor=+cosmologyFunctions_%expansionFactor(time) &
+            &          /cosmologyFunctions_%expansionFactor(time_)
        dydt(1)=+y(2)
-       dydt(2)=-0.5d0                                                                                                                                                                                                                                  &
-            &  *y(1)                                                                                                                                                                                                                                   &
-            &  *cllsnlssMttCsmlgclCnstntHubbleTimeEpochal**2                                                                                                                                                                                           &
-            &  *(                                                                                                                                                                                                                                      &
-            &    +                                                                                             cllsnlssMttCsmlgclCnstntOmegaMatterEpochal    /y(1)           **3                                                                       &
-            &    +(3.0d0*cllsnlssMttrDarkEnergyCosmologyFunctions_%equationOfStateDarkEnergy(time=time)+1.0d0)*cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal*expansionFactor**cllsnlssMttrDarkEnergyCosmologyFunctions_%exponentDarkEnergy(time=time) &
+       dydt(2)=-0.5d0                                                                                                                                                              &
+            &  *y(1)                                                                                                                                                               &
+            &  *hubbleTimeEpochal**2                                                                                                                                               &
+            &  *(                                                                                                                                                                  &
+            &    +                                                                       OmegaMatterEpochal    /y(1)           **3                                                 &
+            &    +(3.0d0*cosmologyFunctions_%equationOfStateDarkEnergy(time=time)+1.0d0)*OmegaDarkEnergyEpochal*expansionFactor**cosmologyFunctions_%exponentDarkEnergy(time=time) &
             &   )
     end if
     ! Return success.
