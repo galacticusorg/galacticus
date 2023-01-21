@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1674114143837,
+  "lastUpdate": 1674268925088,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
@@ -6148,6 +6148,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 4.62063195740025,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "c17eea79b5ad78e21a97d2ab909b4a5b26a0af3a",
+          "message": "feat: Refactor the Gaussian emulator model likelihood class\n\n* Makes this class more efficient;\n\n* Handles cases where the simulator has intrinsic variance (i.e. exploits the fact that the emulator can not possibly have smaller variance than the simulator);\n\n* Adds a variogram class to provide more flexibility in variogram models.",
+          "timestamp": "2023-01-20T19:41:51Z",
+          "tree_id": "12e20e3efa8f3c824d5c0462c7bd52d7cd17e12b",
+          "url": "https://github.com/galacticusorg/galacticus/commit/c17eea79b5ad78e21a97d2ab909b4a5b26a0af3a"
+        },
+        "date": 1674268924395,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 193.588,
+            "unit": "seconds",
+            "range": 1.68454195554745
           }
         ]
       }
