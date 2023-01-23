@@ -87,10 +87,10 @@ Implements the geometry of the PRIMUS survey used by \cite{moustakas_primus:_201
   end interface surveyGeometryMoustakas2013PRIMUS
 
   ! Number of fields.
-  integer, parameter :: moustakas2013PRIMUSFields        =    5
+  integer, parameter :: countFields         =   5
 
   ! Angular power spectra.
-  integer, parameter :: moustaskas2013AngularPowerMaximumL=3000
+  integer, parameter :: angularPowerMaximumL=3000
 
 contains
 
@@ -198,7 +198,7 @@ contains
     class(surveyGeometryMoustakas2013PRIMUS), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    moustakas2013PRIMUSFieldCount=moustakas2013PRIMUSFields
+    moustakas2013PRIMUSFieldCount=countFields
     return
   end function moustakas2013PRIMUSFieldCount
 
@@ -344,7 +344,7 @@ contains
     class(surveyGeometryMoustakas2013PRIMUS), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    moustakas2013PRIMUSAngularPowerMaximumDegree=moustaskas2013AngularPowerMaximumL
+    moustakas2013PRIMUSAngularPowerMaximumDegree=angularPowerMaximumL
     return
   end function moustakas2013PRIMUSAngularPowerMaximumDegree
 
@@ -358,7 +358,7 @@ contains
 
     ii=min(i,j)
     jj=max(i,j)
-    moustakas2013PRIMUSFieldPairIndex=(ii-1)*(2*moustakas2013PRIMUSFields-ii+2)/2+(jj-ii+1)
+    moustakas2013PRIMUSFieldPairIndex=(ii-1)*(2*countFields-ii+2)/2+(jj-ii+1)
     return
   end function moustakas2013PRIMUSFieldPairIndex
 

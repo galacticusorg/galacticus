@@ -25,10 +25,10 @@
   use :: Cosmology_Parameters   , only : cosmologyParameters, cosmologyParametersClass
   use :: Numerical_Interpolation, only : interpolator
 
-  integer         , parameter :: matterLambdaAgeTableNPointsPerDecade     =300
-  double precision, parameter :: matterLambdaAgeTableNPointsPerOctave     =dble(matterLambdaAgeTableNPointsPerDecade)*log(2.0d0)/log(10.0d0)
-  double precision, parameter :: matterLambdaAgeTableIncrementFactor      =exp(int(matterLambdaAgeTableNPointsPerOctave+1.0d0)*log(10.0d0)/dble(matterLambdaAgeTableNPointsPerDecade))
-  integer         , parameter :: matterLambdaDistanceTableNPointsPerDecade=100
+  integer         , parameter :: ageTableNPointsPerDecade     =300
+  double precision, parameter :: ageTableNPointsPerOctave     =dble(ageTableNPointsPerDecade)*log(2.0d0)/log(10.0d0)
+  double precision, parameter :: ageTableIncrementFactor      =exp(int(ageTableNPointsPerOctave+1.0d0)*log(10.0d0)/dble(ageTableNPointsPerDecade))
+  integer         , parameter :: distanceTableNPointsPerDecade=100
 
   ! Factor by which one component of Universe must dominate others such that we can ignore the others.
   double precision, parameter :: matterLambdaDominateFactor               =100.0d0
@@ -106,9 +106,9 @@
   end type cosmologyFunctionsMatterLambda
 
   ! Module scope pointer to the current object.
-  class(cosmologyFunctionsMatterLambda), pointer :: matterLambdaSelfGlobal
-  !$omp threadprivate(matterLambdaSelfGlobal)
-  !$GLC ignore outlive :: matterLambdaSelfGlobal
+  class(cosmologyFunctionsMatterLambda), pointer :: self_
+  !$omp threadprivate(self_)
+  !$GLC ignore outlive :: self_
 
   interface cosmologyFunctionsMatterLambda
      !!{
@@ -302,8 +302,8 @@ contains
        ! expansion factor during the expansion phase.
        timeMaximum(1)=1.0d0/abs(self%cosmologyParameters_%HubbleConstant(hubbleUnitsTime))/sqrt(OmegaDominant)/expansionFactorDominant**(0.5d0*densityPower)
        ! Solve Friedmann equation to get time at turnaround.
-       matterLambdaSelfGlobal => self
-       solver                 =  odeSolver(1_c_size_t,matterLambdaCollapseODEs,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative)    
+       self_  => self
+       solver =  odeSolver(1_c_size_t,matterLambdaCollapseODEs,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative)    
        call solver%solve(expansionFactorDominant,self%expansionFactorMaximum*(1.0d0-1.0d-4),timeMaximum)
        ! Extract turnaround time from ODE variables and set maximum time to twice turnaround time.
        self%timeTurnaround=timeMaximum(1)
@@ -409,17 +409,17 @@ contains
     if (collapsingPhaseActual) then
        ! In collapsing phase just ensure that a sufficiently large expansion factor has been reached.
        do while (self%ageTableExpansionFactor(self%ageTableNumberPoints) < expansionFactor)
-          self%ageTableTimeMaximum=min(self%ageTableTimeMaximum*matterLambdaAgeTableIncrementFactor,self%timeTurnaround)
+          self%ageTableTimeMaximum=min(self%ageTableTimeMaximum*ageTableIncrementFactor,self%timeTurnaround)
           call self%expansionFactorTabulate()
        end do
     else
        ! In expanding phase ensure that sufficiently small and large expansion factors have been reached.
        do while (self%ageTableExpansionFactor(                    1) > expansionFactor)
-          self%ageTableTimeMinimum=    self%ageTableTimeMinimum/matterLambdaAgeTableIncrementFactor
+          self%ageTableTimeMinimum=    self%ageTableTimeMinimum/ageTableIncrementFactor
           call self%expansionFactorTabulate()
        end do
        do while (self%ageTableExpansionFactor(self%iTableTurnaround) < expansionFactor)
-          self%ageTableTimeMaximum=max(self%ageTableTimeMaximum*matterLambdaAgeTableIncrementFactor,self%timeTurnaround)
+          self%ageTableTimeMaximum=max(self%ageTableTimeMaximum*ageTableIncrementFactor,self%timeTurnaround)
           call self%expansionFactorTabulate()
        end do
     end if
@@ -459,7 +459,7 @@ contains
     ! Compare the rate of change of time with expansion factor. For this ODE system we are always interested in the expanding
     ! phase of the Universe, so we use the absolute value of the expansion rate in case the universe is defined during a
     ! collapsing phase.
-    dtda(1)=1.0d0/a/abs(matterLambdaSelfGlobal%expansionRate(a))
+    dtda(1)=1.0d0/a/abs(self_%expansionRate(a))
     matterLambdaCollapseODEs=GSL_Success
     return
   end function matterLambdaCollapseODEs
@@ -927,30 +927,30 @@ contains
     if (present(time)) then
        timeActual=time
        do while (self%ageTableTimeMinimum > min(timeActual,tDominant)/2.0d0)
-          self%ageTableTimeMinimum=self%ageTableTimeMinimum/matterLambdaAgeTableIncrementFactor
+          self%ageTableTimeMinimum=self%ageTableTimeMinimum/ageTableIncrementFactor
        end do
        do while (self%ageTableTimeMaximum < max(timeActual,tDominant)*2.0d0)
-          self%ageTableTimeMaximum=self%ageTableTimeMaximum*matterLambdaAgeTableIncrementFactor
+          self%ageTableTimeMaximum=self%ageTableTimeMaximum*ageTableIncrementFactor
        end do
     else
        do while (self%ageTableTimeMinimum > tDominant/2.0d0)
-          self%ageTableTimeMinimum=self%ageTableTimeMinimum/matterLambdaAgeTableIncrementFactor
+          self%ageTableTimeMinimum=self%ageTableTimeMinimum/ageTableIncrementFactor
        end do
        do while (self%ageTableTimeMaximum < tDominant*2.0d0)
-          self%ageTableTimeMaximum=self%ageTableTimeMaximum*matterLambdaAgeTableIncrementFactor
+          self%ageTableTimeMaximum=self%ageTableTimeMaximum*ageTableIncrementFactor
        end do
     end if
     if (self%collapsingUniverse) self%ageTableTimeMaximum=min(self%ageTableTimeMaximum,self%timeTurnaround)
 
     ! Determine number of points to tabulate.
-    self%ageTableNumberPoints=int(log10(self%ageTableTimeMaximum/self%ageTableTimeMinimum)*dble(matterLambdaAgeTableNPointsPerDecade))+1
-    self%ageTableTimeMaximum =self%ageTableTimeMinimum*10.0d0**(dble(self%ageTableNumberPoints)/dble(matterLambdaAgeTableNPointsPerDecade))
+    self%ageTableNumberPoints=int(log10(self%ageTableTimeMaximum/self%ageTableTimeMinimum)*dble(ageTableNPointsPerDecade))+1
+    self%ageTableTimeMaximum =self%ageTableTimeMinimum*10.0d0**(dble(self%ageTableNumberPoints)/dble(ageTableNPointsPerDecade))
     if (self%collapsingUniverse) self%ageTableTimeMaximum=min(self%ageTableTimeMaximum,self%timeTurnaround)
 
     ! Deallocate arrays if currently allocated.
     if (allocated(self%ageTableTime)) then
        ! Determine number of points that are being added at the start of the array.
-       prefixPointCount=int(log10(self%ageTableTime(1)/self%ageTableTimeMinimum)*dble(matterLambdaAgeTableNPointsPerDecade)+0.5d0)
+       prefixPointCount=int(log10(self%ageTableTime(1)/self%ageTableTimeMinimum)*dble(ageTableNPointsPerDecade)+0.5d0)
        call Move_Alloc(self%ageTableTime           ,ageTableTimeTemporary           )
        call Move_Alloc(self%ageTableExpansionFactor,ageTableExpansionFactorTemporary)
        ! Allocate the arrays to current required size.
@@ -992,9 +992,9 @@ contains
          &   *sqrt(OmegaDominant)                                            &
          &  )**(-2.0d0/densityPower)
     ! Solve ODE to get corresponding expansion factors.
-    self%iTableTurnaround  =  self%ageTableNumberPoints
-    matterLambdaSelfGlobal => self
-    solver                 =  odeSolver(1_c_size_t,matterLambdaAgeTableODEs,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative)    
+    self%iTableTurnaround =  self%ageTableNumberPoints
+    self_                 => self
+    solver                =  odeSolver(1_c_size_t,matterLambdaAgeTableODEs,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative)    
     do iTime=2,self%ageTableNumberPoints
        ! Find the position in the table corresponding to turn around if we have a collapsing Universe.
        if     (                                                   &
@@ -1034,7 +1034,7 @@ contains
 
     ! For this ODE system we are always interested in the expanding phase of the Universe, so we use the absolute value of the
     ! expansion rate in case the universe is defined during a collapsing phase.
-    dadt(1)=a(1)*abs(matterLambdaSelfGlobal%expansionRate(a(1)))
+    dadt(1)=a(1)*abs(self_%expansionRate(a(1)))
     matterLambdaAgeTableODEs=GSL_Success
   end function matterLambdaAgeTableODEs
 
@@ -1241,7 +1241,7 @@ contains
     self%distanceTableTimeMinimum=min(self%distanceTableTimeMinimum,0.5d0*time)
     self%distanceTableTimeMaximum=    self%cosmicTime(1.0d0)
     ! Determine number of points to tabulate.
-    self%distanceTableNumberPoints=int(log10(self%distanceTableTimeMaximum/self%distanceTableTimeMinimum)*dble(matterLambdaDistanceTableNPointsPerDecade))+1
+    self%distanceTableNumberPoints=int(log10(self%distanceTableTimeMaximum/self%distanceTableTimeMinimum)*dble(distanceTableNPointsPerDecade))+1
     ! Deallocate arrays if currently allocated.
     if (allocated(self%distanceTableTime                               )) deallocate(self%distanceTableTime                               )
     if (allocated(self%distanceTableComovingDistance                   )) deallocate(self%distanceTableComovingDistance                   )
@@ -1257,12 +1257,12 @@ contains
     ! Create the range of times.
     self% distanceTableTime=Make_Range(self%distanceTableTimeMinimum,self%distanceTableTimeMaximum,self%distanceTableNumberPoints,rangeTypeLogarithmic)
     ! Integrate to get the comoving distance.
-    integrator_            =  integrator(                                                         &
-         &                                                 matterLambdaComovingDistanceIntegrand, &
-         &                               toleranceAbsolute=toleranceAbsolute                    , &
-         &                               toleranceRelative=toleranceRelative                      &
-         &                              )
-    matterLambdaSelfGlobal => self
+    integrator_ =  integrator(                                                         &
+         &                                      matterLambdaComovingDistanceIntegrand, &
+         &                    toleranceAbsolute=toleranceAbsolute                    , &
+         &                    toleranceRelative=toleranceRelative                      &
+         &                   )
+    self_       => self
     do iTime=1,self%distanceTableNumberPoints
        self%distanceTableComovingDistance(iTime)=+integrator_%integrate(                                                                              &
             &                                                           self%expansionFactor(self%distanceTableTime(iTime                         )), &
@@ -1307,7 +1307,7 @@ contains
     implicit none
     double precision, intent(in   ) :: expansionFactor
 
-    matterLambdaComovingDistanceIntegrand=1.0d0/expansionFactor**2/matterLambdaSelfGlobal%expansionRate(expansionFactor)
+    matterLambdaComovingDistanceIntegrand=1.0d0/expansionFactor**2/self_%expansionRate(expansionFactor)
     return
   end function matterLambdaComovingDistanceIntegrand
 

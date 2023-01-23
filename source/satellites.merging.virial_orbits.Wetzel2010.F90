@@ -89,21 +89,21 @@
   end interface virialOrbitWetzel2010
 
   ! Table of the cumulative distribution for the pericentric radius.
-  integer         , parameter :: wetzel2010PericentricRadiusPointsPerDecade=10
-  double precision, parameter :: wetzel2010PericentricRadiusMaximum        =1.0d2     , wetzel2010PericentricRadiusMinimum=1.0d-6
+  integer         , parameter :: pericentricRadiusPointsPerDecade=10
+  double precision, parameter :: pericentricRadiusMaximum        =1.0d2     , pericentricRadiusMinimum=1.0d-6
   ! Parameters of the fitting functions.
-  double precision, parameter :: wetzel2010CircularityAlpha1               =0.242d0   , wetzel2010CircularityBeta1        =2.360d0 , &
-       &                         wetzel2010CircularityGamma1               =0.108d0   , wetzel2010CircularityGamma2       =1.05d0  , &
-       &                         wetzel2010CircularityP1                   =0.0d0
-  double precision, parameter :: wetzel2010PericenterAlpha1                =0.450d0   , wetzel2010PericenterBeta1         =-0.395d0, &
-       &                         wetzel2010PericenterGamma1                =0.109d0   , wetzel2010PericenterGamma2        =0.85d0  , &
-       &                         wetzel2010PericenterP1                    =-4.0d0
-  double precision, parameter :: wetzel2010C1Maximum                       =9.999999d0, wetzel2010R1Minimum               =0.05d0
+  double precision, parameter :: circularityAlpha1               =0.242d0   , circularityBeta1        =2.360d0 , &
+       &                         circularityGamma1               =0.108d0   , circularityGamma2       =1.05d0  , &
+       &                         circularityP1                   =0.0d0
+  double precision, parameter :: pericenterAlpha1                =0.450d0   , pericenterBeta1         =-0.395d0, &
+       &                         pericenterGamma1                =0.109d0   , pericenterGamma2        =0.85d0  , &
+       &                         pericenterP1                    =-4.0d0
+  double precision, parameter :: c1Maximum                       =9.999999d0, r1Minimum               =0.05d0
 
   ! Module-scope variables used in root-finding.
-  double precision            :: wetzel2010C0                                         , wetzel2010C1                               , &
-       &                         wetzel2010UniformDeviate
-  !$omp threadprivate(wetzel2010C0,wetzel2010C1,wetzel2010UniformDeviate)
+  double precision            :: c0                                         , c1                               , &
+       &                         uniformDeviate
+  !$omp threadprivate(c0,c1,uniformDeviate)
 
 contains
 
@@ -167,33 +167,33 @@ contains
 
     ! Initialize root finder.
     self%finder=rootFinder(                                             &
-         &                 rootFunction     =wetzel2010CircularityRoot, &
+         &                 rootFunction     =circularityRoot, &
          &                 toleranceAbsolute=toleranceAbsolute        , &
          &                 toleranceRelative=toleranceRelative          &
          &                )
     ! Construct a look-up table for the pericentric radius distribution.
     ! Determine number of points to use in the tabulation.
-    self%pericentricRadiusCount=int(log10(wetzel2010PericentricRadiusMaximum/wetzel2010PericentricRadiusMinimum)*dble(wetzel2010PericentricRadiusPointsPerDecade))+1
+    self%pericentricRadiusCount=int(log10(pericentricRadiusMaximum/pericentricRadiusMinimum)*dble(pericentricRadiusPointsPerDecade))+1
     ! Construct a range of radii.
     call self%pericentricRadiusTable%destroy()
-    call self%pericentricRadiusTable%create(wetzel2010PericentricRadiusMinimum,wetzel2010PericentricRadiusMaximum,self%pericentricRadiusCount)
+    call self%pericentricRadiusTable%create(pericentricRadiusMinimum,pericentricRadiusMaximum,self%pericentricRadiusCount)
     ! For each radius, compute the cumulative probability.
     probabilityCumulativeNormalization=0.0d0
     do iRadius=self%pericentricRadiusCount,1,-1
        x      =self%pericentricRadiusTable%x(iRadius)
-       xGamma2=x**wetzel2010PericenterGamma2
-       probabilityCumulative=                                                                                                                                  &
-            &  exp(-xGamma2)                                                                                                                                   &
-            &  *x                                                                                                                                              &
-            &  *(                                                                                                                                              &
-            &     wetzel2010PericenterGamma2                                                                                                                   &
-            &    *(                                                                                                                                            &
-            &       1.0d0                                                                                                                                      &
-            &      +wetzel2010PericenterGamma2                                                                                                                 &
-            &      *(1.0d0+xGamma2)                                                                                                                            &
-            &     )                                                                                                                                            &
-            &    *Hypergeometric_1F1([2.0d0],[(1.0d0+3.0d0*wetzel2010PericenterGamma2)/wetzel2010PericenterGamma2],xGamma2)/(1.0d0+wetzel2010PericenterGamma2) &
-            &    +Hypergeometric_1F1([1.0d0],[(1.0d0+3.0d0*wetzel2010PericenterGamma2)/wetzel2010PericenterGamma2],xGamma2)*(1.0d0+wetzel2010PericenterGamma2) &
+       xGamma2=x**pericenterGamma2
+       probabilityCumulative=                                                                                                    &
+            &  exp(-xGamma2)                                                                                                     &
+            &  *x                                                                                                                &
+            &  *(                                                                                                                &
+            &     pericenterGamma2                                                                                               &
+            &    *(                                                                                                              &
+            &       1.0d0                                                                                                        &
+            &      +pericenterGamma2                                                                                             &
+            &      *(1.0d0+xGamma2)                                                                                              &
+            &     )                                                                                                              &
+            &    *Hypergeometric_1F1([2.0d0],[(1.0d0+3.0d0*pericenterGamma2)/pericenterGamma2],xGamma2)/(1.0d0+pericenterGamma2) &
+            &    +Hypergeometric_1F1([1.0d0],[(1.0d0+3.0d0*pericenterGamma2)/pericenterGamma2],xGamma2)*(1.0d0+pericenterGamma2) &
             &   )
        if (iRadius == self%pericentricRadiusCount) probabilityCumulativeNormalization=probabilityCumulative
        call self%pericentricRadiusTable%populate(probabilityCumulative/probabilityCumulativeNormalization,iRadius)
@@ -295,15 +295,15 @@ contains
     massCharacteristic=self%criticalOverdensity_%collapsingMass(timeNode)
     ! Compute parameter of the circularity fitting function. We limit C1 to a given maximum - the fit is not explored in this
     ! regime and without the truncation we get problems evaluating hypergeometric functions.
-    g1              =(1.0d0/expansionFactor)**wetzel2010CircularityP1
-    wetzel2010C1    =min(wetzel2010CircularityAlpha1*(1.0d0+wetzel2010CircularityBeta1*(g1*massHost/massCharacteristic)**wetzel2010CircularityGamma1),wetzel2010C1Maximum)
-    wetzel2010C0    =1.0d0
-    probabilityTotal=wetzel2010CircularityCumulativeProbability(circularityMaximum)
-    wetzel2010C0    =1.0d0/probabilityTotal
+    g1              =(1.0d0/expansionFactor)**circularityP1
+    c1    =min(circularityAlpha1*(1.0d0+circularityBeta1*(g1*massHost/massCharacteristic)**circularityGamma1),c1Maximum)
+    c0    =1.0d0
+    probabilityTotal=circularityCumulativeProbability(circularityMaximum)
+    c0    =1.0d0/probabilityTotal
     ! Compute parameter of the pericentric distance fitting function. Since the fit for R1 can lead to negative pericentric
     ! distances in some cases we force R1 to always be above a specified minimum.
-    g1=(1.0d0/expansionFactor)**wetzel2010PericenterP1
-    R1=max(wetzel2010PericenterAlpha1*(1.0d0+wetzel2010PericenterBeta1*(g1*massHost/massCharacteristic)**wetzel2010PericenterGamma1),wetzel2010R1Minimum)
+    g1=(1.0d0/expansionFactor)**pericenterP1
+    R1=max(pericenterAlpha1*(1.0d0+pericenterBeta1*(g1*massHost/massCharacteristic)**pericenterGamma1),r1Minimum)
     ! Search for an orbit.
     foundOrbit=.false.
     do while (.not.foundOrbit)
@@ -313,10 +313,10 @@ contains
        call wetzel2010Orbit%massesSet(massSatellite,massHost      )
        call wetzel2010Orbit%radiusSet(              radiusHostSelf)
        ! Compute pericentric radius by inversion in table.
-       wetzel2010UniformDeviate=node%hostTree%randomNumberGenerator_%uniformSample()
-       pericentricRadius=R1*self%pericentricRadiusTableInverse%interpolate(wetzel2010UniformDeviate)
+       uniformDeviate=node%hostTree%randomNumberGenerator_%uniformSample()
+       pericentricRadius=R1*self%pericentricRadiusTableInverse%interpolate(uniformDeviate)
        ! Compute circularity by root finding in the cumulative probability distribution.
-       wetzel2010UniformDeviate=node%hostTree%randomNumberGenerator_%uniformSample()
+       uniformDeviate=node%hostTree%randomNumberGenerator_%uniformSample()
        circularity=self%finder%find(rootRange=[circularityMinimum,circularityMaximum])
        ! Check that this is an orbit which actually reaches the virial radius.
        eccentricityInternal=sqrt(1.0d0-circularity**2)
@@ -349,19 +349,19 @@ contains
     return
   end function wetzel2010DensityContrastDefinition
 
-  double precision function wetzel2010CircularityRoot(circularity)
+  double precision function circularityRoot(circularity)
     !!{
     Function used in finding the circularity corresponding to a given cumulative probability.
     !!}
     double precision, intent(in   ) :: circularity
     double precision                :: cumulativeProbability
 
-    cumulativeProbability=wetzel2010CircularityCumulativeProbability(circularity)
-    wetzel2010CircularityRoot=cumulativeProbability-wetzel2010UniformDeviate
+    cumulativeProbability=circularityCumulativeProbability(circularity)
+    circularityRoot=cumulativeProbability-uniformDeviate
     return
-  end function wetzel2010CircularityRoot
+  end function circularityRoot
 
-  double precision function wetzel2010CircularityCumulativeProbability(circularity)
+  double precision function circularityCumulativeProbability(circularity)
     !!{
     The cumulative probability distribution for orbital circularity.
     !!}
@@ -369,10 +369,10 @@ contains
     implicit none
     double precision, intent(in   ) :: circularity
 
-    wetzel2010CircularityCumulativeProbability=wetzel2010C0*(circularity**(wetzel2010CircularityGamma2+1.0d0))*Hypergeometric_2F1([-wetzel2010C1,1.0d0&
-         &+wetzel2010CircularityGamma2],[2.0d0+wetzel2010CircularityGamma2],circularity)/(wetzel2010CircularityGamma2+1.0d0)
+    circularityCumulativeProbability=c0*(circularity**(circularityGamma2+1.0d0))*Hypergeometric_2F1([-c1,1.0d0&
+         &+circularityGamma2],[2.0d0+circularityGamma2],circularity)/(circularityGamma2+1.0d0)
     return
-  end function wetzel2010CircularityCumulativeProbability
+  end function circularityCumulativeProbability
 
   double precision function wetzel2010VelocityTangentialMagnitudeMean(self,node,host)
     !!{

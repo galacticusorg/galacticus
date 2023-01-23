@@ -84,11 +84,11 @@
   end interface mergerProgenitorPropertiesCole2000
 
   ! Module global variables used in root finding.
-  class           (mergerProgenitorPropertiesCole2000), pointer :: cole2000Self
-  type            (treeNode                          ), pointer :: cole2000Node
-  type            (enumerationDestinationMergerType  )          :: cole2000DestinationGas, cole2000DestinationStars
-  double precision                                              :: cole2000HalfMass
-  !$omp threadprivate(cole2000Self,cole2000Node,cole2000DestinationGas,cole2000DestinationStars,cole2000HalfMass)
+  class           (mergerProgenitorPropertiesCole2000), pointer :: self_
+  type            (treeNode                          ), pointer :: node_
+  type            (enumerationDestinationMergerType  )          :: destinationGas_, destinationStars_
+  double precision                                              :: massHalf_
+  !$omp threadprivate(self_,node_,destinationGas_,destinationStars_,massHalf_)
 
 contains
 
@@ -245,7 +245,7 @@ contains
          &                          +         spheroidHost%massGas       ()
     radiusHalfMassSpheroidHost     =          spheroidHost%halfMassRadius()
     if (radiusHalfMassSpheroidHost > 0.0d0 .and. massComponent > 0.0d0) then
-       factorDarkMatterSpheroidHost=           spheroidHost%angularMomentum()                           &
+       factorDarkMatterSpheroidHost=           spheroidHost%angularMomentum()                                    &
             &                       /(massComponent**1.5d0)                                                      &
             &                       /sqrt(gravitationalConstantGalacticus*          radiusHalfMassSpheroidHost)
     else
@@ -255,7 +255,7 @@ contains
          &                          +         diskHost%massGas       ()
     radiusHalfMassDiskHost         =          diskHost%halfMassRadius()
     if (radiusHalfMassDiskHost > 0.0d0 .and. massComponent > 0.0d0) then
-       factorDarkMatterDiskHost         =          diskHost%angularMomentum()                           &
+       factorDarkMatterDiskHost         =          diskHost%angularMomentum()                                    &
             &                            /(massComponent**1.5d0)                                                 &
             &                            /sqrt(gravitationalConstantGalacticus*         radiusHalfMassDiskHost)
     else
@@ -265,7 +265,7 @@ contains
          &                          +spheroidSatellite%massGas       ()
     radiusHalfMassSpheroidSatellite= spheroidSatellite%halfMassRadius()
     if (radiusHalfMassSpheroidSatellite > 0.0d0 .and. massComponent > 0.0d0) then
-       factorDarkMatterSpheroidSatellite= spheroidSatellite%angularMomentum()                           &
+       factorDarkMatterSpheroidSatellite= spheroidSatellite%angularMomentum()                                    &
             &                            /(massComponent**1.5d0)                                                 &
             &                            /sqrt(gravitationalConstantGalacticus*radiusHalfMassSpheroidSatellite)
     else
@@ -275,7 +275,7 @@ contains
         &                           +    diskSatelite%massGas       ()
     radiusHalfMassDiskSatellite    =     diskSatelite%halfMassRadius()
     if (radiusHalfMassDiskSatellite > 0.0d0 .and. massComponent > 0.0d0) then
-       factorDarkMatterDiskSatellite    =     diskSatelite%angularMomentum()                           &
+       factorDarkMatterDiskSatellite    =     diskSatelite%angularMomentum()                                     &
             &                            /(massComponent**1.5d0)                                                 &
             &                            /sqrt(gravitationalConstantGalacticus*    radiusHalfMassDiskSatellite)
     else
@@ -351,15 +351,15 @@ contains
     ! Compute the half-mass radii of the material that will end up in the remnant spheroid.
     ! Host node.
     if (massSpheroidHost > 0.0d0) then
-       cole2000Self       => self
-       cole2000Node       => nodeHost
-       cole2000DestinationGas =  destinationGasHost
-       cole2000DestinationStars=  destinationStarsHost
-       cole2000HalfMass   =  0.0d0 ! Set to zero here so that cole2000HalfMassRadiusRoot() returns the actual half mass.
-       cole2000HalfMass   =  0.5d0*cole2000HalfMassRadiusRoot(radiusLarge)
+       self_            => self
+       node_            => nodeHost
+       destinationGas_  =  destinationGasHost
+       destinationStars_=  destinationStarsHost
+       massHalf_        =  0.0d0 ! Set to zero here so that cole2000HalfMassRadiusRoot() returns the actual half mass.
+       massHalf_        =  0.5d0*cole2000HalfMassRadiusRoot(radiusLarge)
        if (cole2000HalfMassRadiusRoot(0.0d0) <= 0.0d0) then
           radiusHost=self%finder%find(rootGuess=self%galacticStructure_%radiusEnclosingMass(                                 &
-               &                                                                                           cole2000Node    , &
+               &                                                                                           node_           , &
                &                                                                            massFractional=0.50d0          , &
                &                                                                            massType      =massTypeGalactic  &
                &                                                                           )                                 &
@@ -372,15 +372,15 @@ contains
        radiusHost=0.0d0
     end if
     if (massSpheroidSatellite > 0.0d0) then
-       cole2000Self             => self
-       cole2000Node             => nodeSatellite
-       cole2000DestinationGas   =  destinationGasSatellite
-       cole2000DestinationStars =  destinationStarsSatellite
-       cole2000HalfMass         =  0.0d0 ! Set to zero here so that cole2000HalfMassRadiusRoot() returns the actual half mass.
-       cole2000HalfMass         =  0.50d0*cole2000HalfMassRadiusRoot(radiusLarge)
+       self_             => self
+       node_             => nodeSatellite
+       destinationGas_   =  destinationGasSatellite
+       destinationStars_ =  destinationStarsSatellite
+       massHalf_         =  0.0d0 ! Set to zero here so that cole2000HalfMassRadiusRoot() returns the actual half mass.
+       massHalf_         =  0.50d0*cole2000HalfMassRadiusRoot(radiusLarge)
        if (cole2000HalfMassRadiusRoot(0.0d0) <= 0.0d0) then
           radiusSatellite=self%finder%find(rootGuess=self%galacticStructure_%radiusEnclosingMass(                                 &
-               &                                                                                                cole2000Node    , &
+               &                                                                                                node_           , &
                &                                                                                 massFractional=0.50d0          , &
                &                                                                                 massType      =massTypeGalactic  &
                &                                                                                )                                 &
@@ -413,26 +413,26 @@ contains
     double precision, intent(in   ) :: radius
 
     ! Initialize enclosed mass to negative of the half mass.
-    cole2000HalfMassRadiusRoot=-cole2000HalfMass
+    cole2000HalfMassRadiusRoot=-massHalf_
     ! Account for gas mass.
-    select case (cole2000DestinationGas%ID)
+    select case (destinationGas_%ID)
     case (destinationMergerSpheroid%ID)
-       cole2000HalfMassRadiusRoot=+cole2000HalfMassRadiusRoot                                                                                                     &
-            &                     +cole2000Self%galacticStructure_%massEnclosed(cole2000Node,radius,componentType=componentTypeSpheroid,massType=massTypeGaseous) &
-            &                     +cole2000Self%galacticStructure_%massEnclosed(cole2000Node,radius,componentType=componentTypeDisk    ,massType=massTypeGaseous)
+       cole2000HalfMassRadiusRoot=+cole2000HalfMassRadiusRoot                                                                                       &
+            &                     +self_%galacticStructure_%massEnclosed(node_,radius,componentType=componentTypeSpheroid,massType=massTypeGaseous) &
+            &                     +self_%galacticStructure_%massEnclosed(node_,radius,componentType=componentTypeDisk    ,massType=massTypeGaseous)
     case (destinationMergerUnmoved %ID)
-       cole2000HalfMassRadiusRoot=+cole2000HalfMassRadiusRoot                                                                                                     &
-            &                     +cole2000Self%galacticStructure_%massEnclosed(cole2000Node,radius,componentType=componentTypeSpheroid,massType=massTypeGaseous)
+       cole2000HalfMassRadiusRoot=+cole2000HalfMassRadiusRoot                                                                                       &
+            &                     +self_%galacticStructure_%massEnclosed(node_,radius,componentType=componentTypeSpheroid,massType=massTypeGaseous)
     end select
     ! Account for stellar mass.
-    select case (cole2000DestinationStars%ID)
+    select case (destinationStars_%ID)
     case (destinationMergerSpheroid%ID)
-       cole2000HalfMassRadiusRoot=+cole2000HalfMassRadiusRoot                                                                                                     &
-            &                     +cole2000Self%galacticStructure_%massEnclosed(cole2000Node,radius,componentType=componentTypeSpheroid,massType=massTypeStellar) &
-            &                     +cole2000Self%galacticStructure_%massEnclosed(cole2000Node,radius,componentType=componentTypeDisk    ,massType=massTypeStellar)
+       cole2000HalfMassRadiusRoot=+cole2000HalfMassRadiusRoot                                                                                       &
+            &                     +self_%galacticStructure_%massEnclosed(node_,radius,componentType=componentTypeSpheroid,massType=massTypeStellar) &
+            &                     +self_%galacticStructure_%massEnclosed(node_,radius,componentType=componentTypeDisk    ,massType=massTypeStellar)
     case (destinationMergerUnmoved %ID)
-       cole2000HalfMassRadiusRoot=+cole2000HalfMassRadiusRoot                                                                                                     &
-            &                     +cole2000Self%galacticStructure_%massEnclosed(cole2000Node,radius,componentType=componentTypeSpheroid,massType=massTypeStellar)
+       cole2000HalfMassRadiusRoot=+cole2000HalfMassRadiusRoot                                                                                       &
+            &                     +self_%galacticStructure_%massEnclosed(node_,radius,componentType=componentTypeSpheroid,massType=massTypeStellar)
     end select
     return
   end function cole2000HalfMassRadiusRoot

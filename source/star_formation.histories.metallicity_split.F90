@@ -139,7 +139,7 @@ Contains a module which implements a star formation histories class which record
   end type metallicitySplitTimeStepRange
 
   ! Effective infinite metallicity.
-  double precision, parameter :: metallicitySplitMetallicityInfinite=huge(1.0d0)
+  double precision, parameter :: metallicityInfinite=huge(1.0d0)
 
 contains
 
@@ -256,7 +256,7 @@ contains
             & ) call Error_Report('specify either a list of metallicity boundaries, or a range, not both'//{introspection:location})
        allocate(self%metallicityTable(size(metallicityBoundaries)+1))
        self%metallicityTable      (1:size(metallicityBoundaries)  )=metallicityBoundaries
-       self%metallicityTable      (  size(metallicityBoundaries)+1)=metallicitySplitMetallicityInfinite
+       self%metallicityTable      (  size(metallicityBoundaries)+1)=metallicityInfinite
        self%metallicityBoundaries_                                 =metallicityBoundaries
     else
        if     (                                &
@@ -278,7 +278,7 @@ contains
        case default
           allocate(self%metallicityTable(countMetallicities+1))
           if (countMetallicities > 1) self%metallicityTable(1:countMetallicities)=Make_Range(metallicityMinimum,metallicityMaximum,countMetallicities,rangeType=rangeTypeLogarithmic)
-          self%metallicityTable(countMetallicities+1)=metallicitySplitMetallicityInfinite
+          self%metallicityTable(countMetallicities+1)=metallicityInfinite
        end select
        self%metallicityBoundaries_=self%metallicityTable(1:countMetallicities)
     end if

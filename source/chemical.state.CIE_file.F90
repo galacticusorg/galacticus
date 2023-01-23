@@ -191,7 +191,7 @@
   end interface chemicalStateCIEFile
 
   ! Current file format version for CIE chemical state files.
-  integer, parameter :: cieFileFormatVersionCurrent=1
+  integer, parameter :: fileFormatVersionCurrent=1
 
 contains
 
@@ -638,7 +638,7 @@ contains
     call chemicalStateFile%openFile(char(File_Name_Expand(fileName)),readOnly=.true.)
     ! Check the file format version of the file.
     call chemicalStateFile%readAttribute('fileFormat',fileFormatVersion)
-    if (fileFormatVersion /= cieFileFormatVersionCurrent) call Error_Report('file format version is out of date'//{introspection:location})
+    if (fileFormatVersion /= fileFormatVersionCurrent) call Error_Report('file format version is out of date'//{introspection:location})
     ! Test for presence of hydrogen data.
     self%gotHydrogenAtomic=chemicalStateFile%hasDataset('hiDensity' )
     self%gotHydrogenCation=chemicalStateFile%hasDataset('hiiDensity')

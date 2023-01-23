@@ -79,7 +79,7 @@ Implements the geometry of the SDSS survey used by \cite{bernardi_massive_2013}.
   end interface surveyGeometryBernardi2013SDSS
 
   ! Angular power spectra.
-  integer, parameter :: bernardi2013SDSSAngularPowerMaximumL=360
+  integer, parameter :: angularPowerMaximumL=360
 
 contains
 
@@ -161,7 +161,7 @@ contains
     class(surveyGeometryBernardi2013SDSS), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    bernardi2013SDSSAngularPowerMaximumDegree=bernardi2013SDSSAngularPowerMaximumL
+    bernardi2013SDSSAngularPowerMaximumDegree=angularPowerMaximumL
     return
   end function bernardi2013SDSSAngularPowerMaximumDegree
 

@@ -59,7 +59,7 @@
      module procedure independentLikelihoodsSequentialConstructorInternal
   end interface posteriorSampleLikelihoodIndpndntLklhdsSqntl
 
-  double precision, parameter :: indpndntLklhdsSqntLogLikelihoodIncrement=1.0d2
+  double precision, parameter :: logLikelihoodIncrement=1.0d2
 
 contains
 
@@ -283,7 +283,7 @@ contains
           !! Scale by a multiplying factor to steepen the likelihood function.
           logLikelihood=logLikelihood*self%likelihoodMultiplier(likelihoodCount)
           !! If likelihood is positive, fix it to our likelihood increment value.
-          if (logLikelihood >= 0.0d0) logLikelihood=indpndntLklhdsSqntLogLikelihoodIncrement
+          if (logLikelihood >= 0.0d0) logLikelihood=logLikelihoodIncrement
        end if
        ! Accumulate the likelihood unless our local proposed prior is impossible (in which case we did not actually need to
        ! compute this likelihood, but were calling the evaluate method just to ensure MPI synchronization).
@@ -350,7 +350,7 @@ contains
     !$GLC attributes unused :: simulationState
 
     ! Detect the sequential state jumping to the next level.
-    if (logLikelihood-dble(self%evaluateCount)*indpndntLklhdsSqntLogLikelihoodIncrement > 0.0d0 .and. self%restoreLevels) then
+    if (logLikelihood-dble(self%evaluateCount)*logLikelihoodIncrement > 0.0d0 .and. self%restoreLevels) then
        ! Increment the record of the level achieved.
        self%evaluateCount=self%evaluateCount+1
        self%   forceCount=self%   forceCount+1

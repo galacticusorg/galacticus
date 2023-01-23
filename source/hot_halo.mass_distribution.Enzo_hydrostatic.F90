@@ -46,7 +46,7 @@ An implementation of the hot halo mass distribution class which uses the ``hydro
      An implementation of the hot halo mass distribution class which uses the ``hydrostatic'' profile used by the Enzo simulation code.
      !!}
      private
-     class(hotHaloTemperatureProfileClass        ), pointer :: hotHaloTemperatureProfile_ => null()
+     class(hotHaloTemperatureProfileClass        ), pointer :: hotHaloTemperatureProfile_         => null()
      class(hotHaloMassDistributionCoreRadiusClass), pointer :: hotHaloMassDistributionCoreRadius_ => null()
    contains
      !![
@@ -71,10 +71,10 @@ An implementation of the hot halo mass distribution class which uses the ``hydro
      module procedure enzoHydrostaticConstructorInternal
   end interface hotHaloMassDistributionEnzoHydrostatic
 
-  type            (treeNode                      ), pointer :: enzoHydrostaticNode
-  double precision                                          :: enzoHydrostaticRadiusScale
-  class           (hotHaloTemperatureProfileClass), pointer :: enzoHydrostaticNodeHotHaloTemperatureProfile
-  !$omp threadprivate(enzoHydrostaticNode,enzoHydrostaticRadiusScale,enzoHydrostaticNodeHotHaloTemperatureProfile)
+  type            (treeNode                      ), pointer :: node_
+  double precision                                          :: radiusScale
+  class           (hotHaloTemperatureProfileClass), pointer :: hotHaloTemperatureProfile_
+  !$omp threadprivate(node_,radiusScale,hotHaloTemperatureProfile_)
 
 contains
 
@@ -145,10 +145,10 @@ contains
     type            (integrator                            )                         :: integrator_
     double precision                                                                 :: radiusInner             , radiusOuter
 
-    enzoHydrostaticRadiusScale                   =  self%hotHaloMassDistributionCoreRadius_%radius                    (node)
-    enzoHydrostaticNodeHotHaloTemperatureProfile => self                                   %hotHaloTemperatureProfile_
-    enzoHydrostaticNode                          => node
-    hotHalo                                      => node                                    %hotHalo                   (    )
+    radiusScale                =  self%hotHaloMassDistributionCoreRadius_%radius                    (node)
+    hotHaloTemperatureProfile_ => self                                   %hotHaloTemperatureProfile_
+    node_                      => node
+    hotHalo                    => node                                   %hotHalo                   (    )
     if     (                                &
          &   hotHalo%mass       () <= 0.0d0 &
          &  .or.                            &
@@ -177,8 +177,8 @@ contains
     if (radius <= 0.0d0) then
        enzoHydrostaticEnclosedMassIntegrand=0.0d0
     else
-       radiusEffective                     =max(radius,enzoHydrostaticRadiusScale)
-       temperature                         =enzoHydrostaticNodeHotHaloTemperatureProfile%temperature(enzoHydrostaticNode,radiusEffective)
+       radiusEffective                     =max(radius,radiusScale)
+       temperature                         =hotHaloTemperatureProfile_%temperature(node_,radiusEffective)
        enzoHydrostaticEnclosedMassIntegrand=+4.0d0              &
             &                               *Pi                 &
             &                               /temperature        &
@@ -248,14 +248,14 @@ contains
     if (radius > hotHalo%outerRadius()) then
        enzoHydrostaticEnclosedMass=hotHalo%mass()
     else
-       enzoHydrostaticRadiusScale                   =   self%hotHaloMassDistributionCoreRadius_%radius(node)
-       enzoHydrostaticNodeHotHaloTemperatureProfile =>  self%hotHaloTemperatureProfile_
-       enzoHydrostaticNode                          =>  node
-       radiusInner                                  =  +0.0d0
-       radiusOuter                                  =  +radius
-       integrator_                                  =   integrator                      (enzoHydrostaticEnclosedMassIntegrand,toleranceRelative=toleranceRelative)
-       enzoHydrostaticEnclosedMass                  =  +self       %densityNormalization(node                                                                    ) &
-            &                                          *integrator_%integrate           (radiusInner                         ,radiusOuter                        )
+       radiusScale                 =   self%hotHaloMassDistributionCoreRadius_%radius(node)
+       hotHaloTemperatureProfile_  =>  self%hotHaloTemperatureProfile_
+       node_                       =>  node
+       radiusInner                 =  +0.0d0
+       radiusOuter                 =  +radius
+       integrator_                 =   integrator                      (enzoHydrostaticEnclosedMassIntegrand,toleranceRelative=toleranceRelative)
+       enzoHydrostaticEnclosedMass =  +self       %densityNormalization(node                                                                    ) &
+            &                         *integrator_%integrate           (radiusInner                         ,radiusOuter                        )
     end if
     return
   end function enzoHydrostaticEnclosedMass
@@ -302,7 +302,7 @@ contains
          enzoHydrostaticRadialMomentIntegrand=0.0d0
       else
          radiusEffective                     =max(radius,radiusScale)
-         temperature                         =self%hotHaloTemperatureProfile_%temperature(enzoHydrostaticNode,radiusEffective)
+         temperature                         =self%hotHaloTemperatureProfile_%temperature(node_,radiusEffective)
          enzoHydrostaticRadialMomentIntegrand=+radius         **moment &
               &                               /radiusEffective**3      &
               &                               /temperature

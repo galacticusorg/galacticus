@@ -88,8 +88,8 @@ contains
     
     ! Convert from a model defined in terms of particle number (in which the fractional error is 1.2/sqrt(N)) to one defined in
     ! terms of halo mass as used in our parent class.
-    nbodyHaloMassErrorFriendsOfFriendsInternal%normalizationSquared          =(normalization*(powerLawMassReference/massParticle)**exponent)**2
+    nbodyHaloMassErrorFriendsOfFriendsInternal%normalizationSquared          =(normalization*(massReference/massParticle)**exponent)**2
     nbodyHaloMassErrorFriendsOfFriendsInternal%exponent                      =exponent
-    nbodyHaloMassErrorFriendsOfFriendsInternal%fractionalErrorHighMassSquared=errorHighMass                                                 **2
+    nbodyHaloMassErrorFriendsOfFriendsInternal%fractionalErrorHighMassSquared=errorHighMass                                         **2
     return
   end function nbodyHaloMassErrorFriendsOfFriendsInternal

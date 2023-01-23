@@ -84,10 +84,10 @@ Implements the geometry of the ZFOURGE survey used by \cite{tomczak_galaxy_2014}
   end interface surveyGeometryTomczak2014ZFOURGE
 
   ! Paths and file names for mangle polygon files.
-  integer, parameter :: tomczak2014ZFOURGEFields       =   2
+  integer, parameter :: countFields         =   2
 
   ! Angular power spectra.
-  integer, parameter :: tomczak2014AngularPowerMaximumL=5000
+  integer, parameter :: angularPowerMaximumL=5000
 
 contains
 
@@ -197,7 +197,7 @@ contains
     class(surveyGeometryTomczak2014ZFOURGE), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    tomczak2014ZFOURGEFieldCount=tomczak2014ZFOURGEFields
+    tomczak2014ZFOURGEFieldCount=countFields
     return
   end function tomczak2014ZFOURGEFieldCount
 
@@ -318,7 +318,7 @@ contains
     class(surveyGeometryTomczak2014ZFOURGE), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    tomczak2014ZFOURGEAngularPowerMaximumDegree=tomczak2014AngularPowerMaximumL
+    tomczak2014ZFOURGEAngularPowerMaximumDegree=angularPowerMaximumL
     return
   end function tomczak2014ZFOURGEAngularPowerMaximumDegree
 

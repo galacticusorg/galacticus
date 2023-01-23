@@ -52,9 +52,9 @@
   end interface distributionFunction1DBeta
 
   ! Module-scope variables used in finding the inverse of the distribution.
-  class           (distributionFunction1DBeta), pointer :: betaSelf
-  double precision                                      :: betaP
-  !$omp threadprivate(betaSelf,betaP)
+  class           (distributionFunction1DBeta), pointer :: self_
+  double precision                                      :: probabilityCumulative
+  !$omp threadprivate(self_,probabilityCumulative)
 
 contains
 
@@ -169,9 +169,9 @@ contains
             &            {introspection:location}     &
             &           )
     else
-       betaSelf    => self
-       betaP       =  p
-       betaInverse =  self%finder%find(rootRange=[0.0d0,1.0d0])
+       self_                 => self
+       probabilityCumulative =  p
+       betaInverse           =  self%finder%find(rootRange=[0.0d0,1.0d0])
     end if
     return
   end function betaInverse
@@ -183,7 +183,7 @@ contains
     implicit none
     double precision, intent(in   ) :: x
 
-    betaRoot=betaSelf%cumulative(x)-betaP
+    betaRoot=self_%cumulative(x)-probabilityCumulative
     return
   end function betaRoot
 

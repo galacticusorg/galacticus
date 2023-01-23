@@ -61,9 +61,9 @@
   end interface stellarFeedbackStandard
 
   ! Module-scope variables used in integrands.
-  class           (stellarFeedbackStandard), pointer :: standardSelf
-  double precision                                   :: standardMassInitial, standardMetallicity
-  !$omp threadprivate(standardSelf,standardMassInitial,standardMetallicity)
+  class           (stellarFeedbackStandard), pointer :: self_
+  double precision                                   :: massInitial_, metallicity_
+  !$omp threadprivate(self_,massInitial_,metallicity_)
 
 contains
 
@@ -186,9 +186,9 @@ contains
          &                        +self%supernovaeTypeIa_%number         (initialMass,age,metallicity) &
          &                        *self                  %supernovaEnergy
     ! Add in the contribution from stellar winds.
-    standardSelf                  =>  self
-    standardMassInitial           =   initialMass
-    standardMetallicity           =   metallicity
+    self_                         =>  self
+    massInitial_                  =   initialMass
+    metallicity_                  =   metallicity
     integrator_                   =   integrator           (standardWindEnergyIntegrand,toleranceAbsolute=1.0d-3*standardEnergyInputCumulative,toleranceRelative=1.0d-3)
     energyWinds                   =   integrator_%integrate(0.0d0,age)
     standardEnergyInputCumulative =  +standardEnergyInputCumulative &
@@ -203,8 +203,8 @@ contains
     implicit none
     double precision, intent(in   ) :: age
 
-    standardWindEnergyIntegrand=+0.5d0                                                                                       &
-         &                      *standardSelf%stellarWinds_%rateMassLoss    (standardMassInitial,age,standardMetallicity)    &
-         &                      *standardSelf%stellarWinds_%velocityTerminal(standardMassInitial,age,standardMetallicity)**2
+    standardWindEnergyIntegrand=+0.5d0                                                                  &
+         &                      *self_%stellarWinds_%rateMassLoss    (massInitial_,age,metallicity_)    &
+         &                      *self_%stellarWinds_%velocityTerminal(massInitial_,age,metallicity_)**2
     return
   end function standardWindEnergyIntegrand

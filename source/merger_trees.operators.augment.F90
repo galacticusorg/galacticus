@@ -75,7 +75,7 @@
 
   ! A tree index counter used since the tree index is used in initializing the random number
   ! sequence for each tree.
-  integer :: augmentNewTreeIndex=-1
+  integer :: indexNewTree=-1
 
   !![
   <enumeration>
@@ -577,8 +577,8 @@ contains
     newTree%nodeBase               => nodeBase
     newTree%randomNumberGenerator_ => node%hostTree%randomNumberGenerator_
     !$omp atomic
-    augmentNewTreeIndex =  augmentNewTreeIndex+1
-    newTree%index       =  augmentNewTreeIndex
+    indexNewTree =indexNewTree+1
+    newTree%index=indexNewTree
     ! Determine the mass to use for the base mass of the new tree. This will be the mass of the node in the original tree if this
     ! exceeds the scale mass of the child nodes, otherwise, set to the scaled mass of the child nodes.
     newTreeBaseMass=max(basic%mass(),massInChildren)

@@ -94,13 +94,13 @@
   end type evolveForestsBranchList
 
   ! Copies of objects used by each thread.
-  class(mergerTreeOutputterClass  ), pointer :: evolveForestsMergerTreeOutputter_   => null()
-  class(mergerTreeInitializorClass), pointer :: evolveForestsMergerTreeInitializor_ => null()
-  class(mergerTreeEvolverClass    ), pointer :: evolveForestsMergerTreeEvolver_     => null()
-  class(mergerTreeConstructorClass), pointer :: evolveForestsMergerTreeConstructor_ => null()
-  class(mergerTreeOperatorClass   ), pointer :: evolveForestsMergerTreeOperator_    => null()
-  class(nodeOperatorClass         ), pointer :: evolveForestsNodeOperator_          => null()
-  !$omp threadprivate(evolveForestsMergerTreeOutputter_,evolveForestsMergerTreeInitializor_,evolveForestsMergerTreeEvolver_,evolveForestsMergerTreeConstructor_,evolveForestsMergerTreeOperator_,evolveForestsNodeOperator_)
+  class(mergerTreeOutputterClass  ), pointer :: mergerTreeOutputter_   => null()
+  class(mergerTreeInitializorClass), pointer :: mergerTreeInitializor_ => null()
+  class(mergerTreeEvolverClass    ), pointer :: mergerTreeEvolver_     => null()
+  class(mergerTreeConstructorClass), pointer :: mergerTreeConstructor_ => null()
+  class(mergerTreeOperatorClass   ), pointer :: mergerTreeOperator_    => null()
+  class(nodeOperatorClass         ), pointer :: nodeOperator_          => null()
+  !$omp threadprivate(mergerTreeOutputter_,mergerTreeInitializor_,mergerTreeEvolver_,mergerTreeConstructor_,mergerTreeOperator_,nodeOperator_)
 
 contains
 
@@ -270,12 +270,12 @@ contains
     integer(c_size_t         ), intent(in   ) :: stateOperationID
     !$GLC attributes unused :: self
 
-    call evolveForestsMergerTreeEvolver_    %stateStore(stateFile,gslStateFile,stateOperationID)
-    call evolveForestsMergerTreeOutputter_  %stateStore(stateFile,gslStateFile,stateOperationID)
-    call evolveForestsMergerTreeInitializor_%stateStore(stateFile,gslStateFile,stateOperationID)
-    call evolveForestsMergerTreeConstructor_%stateStore(stateFile,gslStateFile,stateOperationID)
-    call evolveForestsMergerTreeOperator_   %stateStore(stateFile,gslStateFile,stateOperationID)
-    call evolveForestsNodeOperator_         %stateStore(stateFile,gslStateFile,stateOperationID)
+    call mergerTreeEvolver_    %stateStore(stateFile,gslStateFile,stateOperationID)
+    call mergerTreeOutputter_  %stateStore(stateFile,gslStateFile,stateOperationID)
+    call mergerTreeInitializor_%stateStore(stateFile,gslStateFile,stateOperationID)
+    call mergerTreeConstructor_%stateStore(stateFile,gslStateFile,stateOperationID)
+    call mergerTreeOperator_   %stateStore(stateFile,gslStateFile,stateOperationID)
+    call nodeOperator_         %stateStore(stateFile,gslStateFile,stateOperationID)
     return
   end subroutine evolveForestsStateStore
 
@@ -291,12 +291,12 @@ contains
     integer(c_size_t         ), intent(in   ) :: stateOperationID
     !$GLC attributes unused :: self
 
-    call evolveForestsMergerTreeEvolver_    %stateRestore(stateFile,gslStateFile,stateOperationID)
-    call evolveForestsMergerTreeOutputter_  %stateRestore(stateFile,gslStateFile,stateOperationID)
-    call evolveForestsMergerTreeInitializor_%stateRestore(stateFile,gslStateFile,stateOperationID)
-    call evolveForestsMergerTreeConstructor_%stateRestore(stateFile,gslStateFile,stateOperationID)
-    call evolveForestsMergerTreeOperator_   %stateRestore(stateFile,gslStateFile,stateOperationID)
-    call evolveForestsNodeOperator_         %stateRestore(stateFile,gslStateFile,stateOperationID)
+    call mergerTreeEvolver_    %stateRestore(stateFile,gslStateFile,stateOperationID)
+    call mergerTreeOutputter_  %stateRestore(stateFile,gslStateFile,stateOperationID)
+    call mergerTreeInitializor_%stateRestore(stateFile,gslStateFile,stateOperationID)
+    call mergerTreeConstructor_%stateRestore(stateFile,gslStateFile,stateOperationID)
+    call mergerTreeOperator_   %stateRestore(stateFile,gslStateFile,stateOperationID)
+    call nodeOperator_         %stateRestore(stateFile,gslStateFile,stateOperationID)
     return
   end subroutine evolveForestsStateRestore
 
@@ -446,22 +446,22 @@ contains
 
     ! Begin parallel processing of trees until all work is done.
     !$omp parallel copyin(finished)
-    allocate(evolveForestsMergerTreeOutputter_  ,mold=self%mergerTreeOutputter_  )
-    allocate(evolveForestsMergerTreeInitializor_,mold=self%mergerTreeInitializor_)
-    allocate(evolveForestsMergerTreeEvolver_    ,mold=self%mergerTreeEvolver_    )
-    allocate(evolveForestsMergerTreeConstructor_,mold=self%mergerTreeConstructor_)
-    allocate(evolveForestsMergerTreeOperator_   ,mold=self%mergerTreeOperator_   )
-    allocate(evolveForestsNodeOperator_         ,mold=self%nodeOperator_         )
+    allocate(mergerTreeOutputter_  ,mold=self%mergerTreeOutputter_  )
+    allocate(mergerTreeInitializor_,mold=self%mergerTreeInitializor_)
+    allocate(mergerTreeEvolver_    ,mold=self%mergerTreeEvolver_    )
+    allocate(mergerTreeConstructor_,mold=self%mergerTreeConstructor_)
+    allocate(mergerTreeOperator_   ,mold=self%mergerTreeOperator_   )
+    allocate(nodeOperator_         ,mold=self%nodeOperator_         )
     !$omp critical(evolveForestsDeepCopy)
     !![
     <deepCopyReset variables="self%mergerTreeEvolver_ self%mergerTreeOutputter_ self%mergerTreeInitializor_ self%mergerTreeConstructor_ self%mergerTreeOperator_ self%nodeOperator_"/>
-    <deepCopy source="self%mergerTreeEvolver_"     destination="evolveForestsMergerTreeEvolver_"    />
-    <deepCopy source="self%mergerTreeOutputter_"   destination="evolveForestsMergerTreeOutputter_"  />
-    <deepCopy source="self%mergerTreeInitializor_" destination="evolveForestsMergerTreeInitializor_"/>
-    <deepCopy source="self%mergerTreeConstructor_" destination="evolveForestsMergerTreeConstructor_"/>
-    <deepCopy source="self%mergerTreeOperator_"    destination="evolveForestsMergerTreeOperator_"   />
-    <deepCopy source="self%nodeOperator_"          destination="evolveForestsNodeOperator_"         />
-    <deepCopyFinalize variables="evolveForestsMergerTreeEvolver_ evolveForestsMergerTreeOutputter_ evolveForestsMergerTreeInitializor_ evolveForestsMergerTreeConstructor_ evolveForestsMergerTreeOperator_"/>  
+    <deepCopy source="self%mergerTreeEvolver_"     destination="mergerTreeEvolver_"    />
+    <deepCopy source="self%mergerTreeOutputter_"   destination="mergerTreeOutputter_"  />
+    <deepCopy source="self%mergerTreeInitializor_" destination="mergerTreeInitializor_"/>
+    <deepCopy source="self%mergerTreeConstructor_" destination="mergerTreeConstructor_"/>
+    <deepCopy source="self%mergerTreeOperator_"    destination="mergerTreeOperator_"   />
+    <deepCopy source="self%nodeOperator_"          destination="nodeOperator_"         />
+    <deepCopyFinalize variables="mergerTreeEvolver_ mergerTreeOutputter_ mergerTreeInitializor_ mergerTreeConstructor_ mergerTreeOperator_"/>  
     !!]
     !$omp end critical(evolveForestsDeepCopy)
     ! Call routines to perform initializations which must occur for all threads if run in parallel.
@@ -489,14 +489,14 @@ contains
           ! Attempt to get a new tree to process. We first try to get a new tree. If no new trees exist, we will look for a tree on
           ! the stack waiting to be processed.
           ! Perform any pre-tree construction tasks.
-          call evolveForestsMergerTreeOperator_%operatePreConstruction()
+          call mergerTreeOperator_%operatePreConstruction()
           ! Get a tree.
           treesFinished =  .false.
           tree          => null()
           do while (.not.associated(tree).and..not.treesFinished)
              ! Get the number of the next tree to process.
              treeNumber=self%evolveForestsWorkShare_%forestNumber(utilizeOpenMPThreads=.not.self%evolveSingleForest)
-             tree => evolveForestsMergerTreeConstructor_%construct(treeNumber,treesFinished)
+             tree => mergerTreeConstructor_%construct(treeNumber,treesFinished)
           end do
           if (associated(tree)) tree%hostUniverse => self%universeWaiting
           finished                                =  finished.or..not.associated(tree)
@@ -526,12 +526,12 @@ contains
                 ! the static structure of the tree (e.g. assign scale radii, merging orbits, etc.). Initializations related to
                 ! evolution of the tree (e.g. growth rates of scale radii, baryonic component initialization) are typically handled
                 ! by the mergerTreeInitializor class which is called later.
-                call    evolveForestsMergerTreeOperator_%operatePreInitialization(tree)
+                call    mergerTreeOperator_%operatePreInitialization(tree)
                 treeWalkerAll=mergerTreeWalkerAllNodes(tree,spanForest=.true.)
                 do while (treeWalkerAll%next(node))
-                   call evolveForestsNodeOperator_      %nodeTreeInitialize (node)
+                   call nodeOperator_      %nodeTreeInitialize (node)
                 end do
-                call    evolveForestsMergerTreeOperator_%operatePreEvolution(tree)
+                call    mergerTreeOperator_%operatePreEvolution(tree)
                 message="Evolving tree number "
              else
                 message="Resuming tree number "
@@ -572,8 +572,6 @@ contains
           end if
           ! Iterate evolving the tree until no more outputs are required.
           treeEvolveLoop : do while (iOutput <= self%outputTimes_%count())
-             ! Ping the work-share object.
-             call self%evolveForestsWorkShare_%ping()
              ! For single forest evolution, maximum evolution time is determined by the master thread only.
              singleForestMaximumTime : if (OMP_Get_Thread_Num() == 0 .or. .not.self%evolveSingleForest) then
                 ! We want to find the maximum time to which we can evolve this tree. This will be the minimum of the next output
@@ -656,7 +654,7 @@ contains
                          if (associated(currentTree%nodeBase)) then
                             do while (associated(currentTree))
                                basic => currentTree%nodeBase%basic()
-                               call evolveForestsMergerTreeInitializor_%initialize(currentTree,basic%time())
+                               call mergerTreeInitializor_%initialize(currentTree,basic%time())
                                currentTree => currentTree%nextTree
                             end do
                          end if
@@ -683,7 +681,7 @@ contains
                          end do
                          branchNew%branch%nodeBase%parent =>                           null ()
                          basic                            => branchNew%branch%nodeBase%basic()
-                         call evolveForestsMergerTreeEvolver_%evolve(                                        &
+                         call mergerTreeEvolver_%evolve(                                        &
                               &                                          branchNew    %branch              , &
                               &                                      min(                                    &
                               &                                          basic        %time              (), &
@@ -727,7 +725,7 @@ contains
              ! For single forest evolution, only the master thread should finalize evolution of the merger tree.
              singleForestFinalizeEvolution : if (OMP_Get_Thread_Num() == 0 .or. .not.self%evolveSingleForest) then
                 ! Evolve the tree to the computed time.
-                call evolveForestsMergerTreeEvolver_%evolve(tree,evolveToTime,treeDidEvolve,suspendTree,deadlockReport,systemClockMaximum,status=status)
+                call mergerTreeEvolver_%evolve(tree,evolveToTime,treeDidEvolve,suspendTree,deadlockReport,systemClockMaximum,status=status)
                 if (present(status)) then
                    if (status /= errorStatusSuccess) then
                       ! Tree evolution failed - abort further evolution and return the failure code.
@@ -819,7 +817,7 @@ contains
                    write (label,'(f7.2)') evolveToTime
                    message="Output tree data at t="//trim(label)//" Gyr"
                    call displayMessage(message)
-                   call evolveForestsMergerTreeOutputter_%outputTree(tree,iOutput,evolveToTime)
+                   call mergerTreeOutputter_%outputTree(tree,iOutput,evolveToTime)
                    ! Perform any extra output and post-output processing on nodes.
                    treeWalkerAll=mergerTreeWalkerAllNodes(tree,spanForest=.true.)
                    do while (treeWalkerAll%next(node))
@@ -886,7 +884,7 @@ contains
              nullify(tree)
           end if
           ! Perform any post-evolution operations on the tree.
-          if (treeIsFinished) call evolveForestsMergerTreeOperator_%operatePostEvolution()
+          if (treeIsFinished) call mergerTreeOperator_%operatePostEvolution()
        end if singleForestTreeDestroy
        ! For single forest evolution, block all threads until tree destruction is completed by the master thread.
        if (self%evolveSingleForest) then
@@ -982,17 +980,17 @@ contains
        end if
     end do treeProcess
     ! Finalize any merger tree operator.
-    call evolveForestsMergerTreeOperator_ %finalize(                         )
+    call mergerTreeOperator_ %finalize(                         )
     ! Reduce outputs back into the original outputter object.
-    call evolveForestsMergerTreeOutputter_%reduce  (self%mergerTreeOutputter_)
+    call mergerTreeOutputter_%reduce  (self%mergerTreeOutputter_)
     ! Explicitly deallocate objects.
     !![
-    <objectDestructor name="evolveForestsMergerTreeOutputter_"  />
-    <objectDestructor name="evolveForestsMergerTreeInitializor_"/>
-    <objectDestructor name="evolveForestsMergerTreeEvolver_"    />
-    <objectDestructor name="evolveForestsMergerTreeConstructor_"/>
-    <objectDestructor name="evolveForestsMergerTreeOperator_"   />
-    <objectDestructor name="evolveForestsNodeOperator_"         />
+    <objectDestructor name="mergerTreeOutputter_"  />
+    <objectDestructor name="mergerTreeInitializor_"/>
+    <objectDestructor name="mergerTreeEvolver_"    />
+    <objectDestructor name="mergerTreeConstructor_"/>
+    <objectDestructor name="mergerTreeOperator_"   />
+    <objectDestructor name="nodeOperator_"         />
     !!]
     call Node_Components_Thread_Uninitialize()
     !$omp barrier

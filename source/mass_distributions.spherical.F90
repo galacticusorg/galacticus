@@ -48,9 +48,9 @@
   end type massDistributionSpherical
 
   ! Module scope variables used in integration and root finding.
-  class           (massDistributionSpherical), pointer :: sphericalActive
-  double precision                                     :: sphericalMassTarget
-  !$omp threadprivate(sphericalActive,sphericalMassTarget)
+  class           (massDistributionSpherical), pointer :: self_
+  double precision                                     :: massTarget
+  !$omp threadprivate(self_,massTarget)
 
 contains
 
@@ -85,7 +85,7 @@ contains
        sphericalMassEnclosedBySphere=0.0d0
        return
     end if
-    sphericalActive               =>  self
+    self_                         =>  self
     integrator_                   =   integrator(sphericalMassEnclosedBySphereIntegrand,toleranceRelative=1.0d-6)
     sphericalMassEnclosedBySphere =  +4.0d0                              &
          &                           *Pi                                 &
@@ -103,8 +103,8 @@ contains
     type            (coordinateSpherical)                :: position
 
     position                              =[radius,0.0d0,0.0d0]
-    sphericalMassEnclosedBySphereIntegrand=+radius                           **2 &
-         &                                 *sphericalActive%density(position)
+    sphericalMassEnclosedBySphereIntegrand=+radius                 **2 &
+         &                                 *self_%density(position)
     return
   end function sphericalMassEnclosedBySphereIntegrand
 
@@ -142,8 +142,8 @@ contains
             &                      )
        finderConstructed=.true.
     end if
-    sphericalActive              => self
-    sphericalMassTarget          =  mass
+    self_              => self
+    massTarget          =  mass
     sphericalRadiusEnclosingMass =  finder%find(rootGuess=1.0d0)
     return
   end function sphericalRadiusEnclosingMass
@@ -172,8 +172,8 @@ contains
     implicit none
     double precision, intent(in   ) :: radius
 
-    sphericalMassRoot=+sphericalActive%massEnclosedBySphere(radius) &
-         &            -sphericalMassTarget
+    sphericalMassRoot=+self_%massEnclosedBySphere(radius) &
+         &            -      massTarget
     return
   end function sphericalMassRoot
   

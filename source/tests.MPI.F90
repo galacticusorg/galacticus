@@ -38,27 +38,48 @@ program Test_MPI
   implicit none
 #ifdef USEMPI
   type   (mpiCounter) :: counter
-  integer(c_size_t  ) :: i
+  integer(c_size_t  ) :: i             , counterSum, &
+       &                 counterSumOver, counters  , &
+       &                 counterMaxOver, j
 #endif
   
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
+
 #ifdef USEMPI
   call mpiInitialize        (MPI_Thread_Multiple)
   call eventsHooksInitialize(                   )
   if (mpiSelf%rank() == 0) call Unit_Tests_Begin_Group("MPI")
   ! Test MPI/OpenMP counters.
-  counter=mpiCounter()
-  !$omp parallel
-  i=counter%increment()
+  counters  =int(OMP_Get_Max_Threads()*mpiSelf%count(),kind=c_size_t)
+  counter   =mpiCounter()
+  counterSum=0_c_size_t
+  j         =0_c_size_t
+  call counter%reset()
+  !$omp parallel private(i) reduction(max : j)
+  do while (.true.)
+     i=counter%increment()
+     if (i >= counters) exit
+     j=i
+     !$omp atomic
+     counterSum=counterSum+i
+  end do
   !$omp end parallel
   call mpiBarrier()
-  if (mpiSelf%rank() == 0)                                                        &
-       & call Assert(                                                             &
-       &             "MPI/OpenMP counter"                                       , &
-       &                                       counter%get   ()                 , &
-       &             int(OMP_Get_Max_Threads()*mpiSelf %count()-1,kind=c_size_t)  &
-       &            )
+  counterMaxOver=mpiSelf%maxval(         j)
+  counterSumOver=mpiSelf%sum   (counterSum)
+  if (mpiSelf%rank() == 0) then
+     call Assert(                            &
+          &      "MPI/OpenMP counter total", &
+          &       counterMaxOver           , &
+          &       counters-1                 &
+          &     )
+     call Assert(                            &
+          &      "MPI/OpenMP counter sum"  , &
+          &       counterSumOver           , &
+          &       counters*(counters-1)/2    &
+          &     )
+  end if
   ! Finished tests.
   if (mpiSelf%rank() == 0) then
      call Unit_Tests_End_Group()

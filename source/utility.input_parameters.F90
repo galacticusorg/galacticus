@@ -279,29 +279,30 @@ contains
     character(len=*             ), dimension(:), intent(in   ), optional :: allowedParameterNames
     type     (hdf5Object        ), target      , intent(in   ), optional :: outputParametersGroup
     logical                                    , intent(in   ), optional :: noOutput
-    type     (node              ), pointer                               :: parameterNode
+    type     (node              ), pointer                               :: doc                  , parameterNode
 
     ! Check if we have been passed XML or a file name.
     if (extract(xmlString,1,1) == "<") then
        ! Parse the string.
        !$omp critical (FoX_DOM_Access)
-       parameterNode => parseString(char(xmlString))
+       doc           => parseString(char(xmlString))
+       parameterNode => XML_Get_First_Element_By_Tag_Name(              &
+            &                                             doc         , &
+            &                                             'parameters'  &
+            &                                            ) 
        !$omp end critical (FoX_DOM_Access)
-       self=inputParameters(                                                 &
-            &               XML_Get_First_Element_By_Tag_Name(               &
-            &                                                 parameterNode, &
-            &                                                 'parameters'   &
-            &                                                )             , &
-            &               allowedParameterNames                          , &
-            &               outputParametersGroup                          , &
-            &               noOutput                                         &
+       self=inputParameters(                       &
+            &               parameterNode        , &
+            &               allowedParameterNames, &
+            &               outputParametersGroup, &
+            &               noOutput               &
             &              )
     else
-       self=inputParameters(                                                 &
-            &               char(xmlString)                                , &
-            &               allowedParameterNames                          , &
-            &               outputParametersGroup                          , &
-            &               noOutput                                         &
+       self=inputParameters(                       &
+            &               char(xmlString)      , &
+            &               allowedParameterNames, &
+            &               outputParametersGroup, &
+            &               noOutput               &
             &              )
     end if
     return
@@ -322,14 +323,14 @@ contains
     character(len=*          ), dimension(:), intent(in   ), optional :: allowedParameterNames
     type     (hdf5Object     ), target      , intent(in   ), optional :: outputParametersGroup
     logical                                 , intent(in   ), optional :: noOutput
-    type     (node           ), pointer                               :: parameterNode
+    type     (node           ), pointer                               :: doc                  , parameterNode
     integer                                                           :: errorStatus
 
     ! Check that the file exists.
     if (.not.File_Exists(fileName)) call Error_Report("parameter file '"//trim(fileName)//"' does not exist"//{introspection:location})
     ! Open and parse the data file.
     !$omp critical (FoX_DOM_Access)
-    parameterNode => XML_Parse(fileName,iostat=errorStatus)
+    doc => XML_Parse(fileName,iostat=errorStatus)
     if (errorStatus /= 0) then
        if (File_Exists(fileName)) then
           call Error_Report('Unable to parse parameter file: "'//trim(fileName)//'"'//{introspection:location})
@@ -337,15 +338,16 @@ contains
           call Error_Report('Unable to find parameter file: "' //trim(fileName)//'"'//{introspection:location})
        end if
     end if
+    parameterNode => XML_Get_First_Element_By_Tag_Name(              &
+         &                                             doc         , &
+         &                                             'parameters'  &
+         &                                            )
     !$omp end critical (FoX_DOM_Access)
-    self=inputParameters(                                                 &
-         &               XML_Get_First_Element_By_Tag_Name(               &
-         &                                                 parameterNode, &
-         &                                                 'parameters'   &
-         &                                                )             , &
-         &               allowedParameterNames                          , &
-         &               outputParametersGroup                          , &
-         &               noOutput                                         &
+    self=inputParameters(                       &
+         &               parameterNode        , &
+         &               allowedParameterNames, &
+         &               outputParametersGroup, &
+         &               noOutput               &
          &              )
     return
   end function inputParametersConstructorFileChar
@@ -1430,10 +1432,10 @@ contains
     !!{
     Return the value of the parameter specified by name.
     !!}
-    use :: FoX_dom           , only : hasAttribute, getNodeName
     use :: Error             , only : Error_Report, Warn
     use :: HDF5_Access       , only : hdf5Access
     use :: ISO_Varying_String, only : char
+    use :: MPI_Utilities     , only : mpiSelf
     implicit none
     class           (inputParameters                         ), intent(inout), target   :: self
     character       (len=*                                   ), intent(in   )           :: parameterName
@@ -1460,7 +1462,7 @@ contains
        parameterPath=self%path()
        call parametersRoot%lock%set()
        if (.not.parametersRoot%warnedDefaults%exists(parameterPath)) then
-          call Warn("Using default value for parameter '["//char(parameterPath)//parameterName//"]'")
+          if (mpiSelf%isMaster()) call Warn("Using default value for parameter '["//char(parameterPath)//parameterName//"]'")
           call parametersRoot%warnedDefaults%set(parameterPath,1)
        end if
        call parametersRoot%lock%unset()
@@ -1543,8 +1545,9 @@ contains
        else
           valueElement => XML_Get_First_Element_By_Tag_Name(parameterNode%content,"value",directChildrenOnly=.true.)
        end if
+       content=getTextContent(valueElement)
        !$omp end critical (FoX_DOM_Access)
-       if (trim(getTextContent(valueElement)) == "") then
+       if (trim(content) == "") then
           if (present(errorStatus)) then
              errorStatus=inputParameterErrorStatusEmptyValue
           else

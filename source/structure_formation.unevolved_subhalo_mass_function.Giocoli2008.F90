@@ -46,7 +46,7 @@ Contains a module which implements a \cite{giocoli_population_2008} unevolved da
   end interface unevolvedSubhaloMassFunctionGiocoli2008
 
   ! Coefficient in the exponential term.
-  double precision, parameter :: giocoli2008Coefficient=6.283d0
+  double precision, parameter :: coefficientExponential=6.283d0
 
 contains
 
@@ -116,7 +116,7 @@ contains
          &                  /massHost                    &
          &                  /x**(1.0d0+self%exponent)    &
          &                  /exp(                        &
-         &                       -giocoli2008Coefficient &
+         &                       -coefficientExponential &
          &                       *x**3                   &
          &                      )
     return
@@ -142,10 +142,10 @@ contains
     giocoli2008Integrated=+self%normalization                                            &
          &                /3.0d0                                                         &
          &                *(                                                             &
-         &                  +(giocoli2008Coefficient*xLow **3)**(self%exponent/3.0d0)    &
+         &                  +(coefficientExponential*xLow **3)**(self%exponent/3.0d0)    &
          &                  /                        xLow     ** self%exponent           &
          &                  *gammaIncomplete(        xLow )                              &
-         &                  -(giocoli2008Coefficient*xHigh**3)**(self%exponent/3.0d0)    &
+         &                  -(coefficientExponential*xHigh**3)**(self%exponent/3.0d0)    &
          &                  /                        xHigh    ** self%exponent           &
          &                  *gammaIncomplete(        xHigh)                              &
          &                 )
@@ -165,7 +165,7 @@ contains
       if      (self%exponent < 0.0d0) then
          gammaIncomplete=+Gamma_Function_Incomplete(                                               &
               &                                           -self%exponent/3.0d0                   , &
-              &                                     +giocoli2008Coefficient*x**3                   &
+              &                                     +coefficientExponential*x**3                   &
               &                                    )                                               &
               &          *Gamma_Function           (                                               &
               &                                           -self%exponent/3.0d0                     &
@@ -173,15 +173,15 @@ contains
       else if (self%exponent < 3.0d0) then
          gammaIncomplete=+Gamma_Function_Incomplete(                                               &
               &                                     +1.0d0-self%exponent/3.0d0                   , &
-              &                                     +giocoli2008Coefficient*x**3                   &
+              &                                     +coefficientExponential*x**3                   &
               &                                    )                                               &
               &          *Gamma_Function           (                                               &
               &                                     +1.0d0-self%exponent/3.0d0                     &
               &                                    )                                               &
               &          *exp                      (                                               &
-              &                                     -giocoli2008Coefficient*x**3                   &
+              &                                     -coefficientExponential*x**3                   &
               &                                    )                                               &
-              &          /                           giocoli2008Coefficient**(self%exponent/3.0d0) &
+              &          /                           coefficientExponential**(self%exponent/3.0d0) &
               &          /                           x                     ** self%exponent
       else
          gammaIncomplete=0.0d0

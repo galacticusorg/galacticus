@@ -140,11 +140,11 @@
   end interface cosmologicalMassVarianceFilteredPower
 
   ! Number of points per decade to use in tabulation of σ(M).
-  integer                         , parameter :: filteredPowerTablePointsPerDecade=10, filteredPowerTimePointsPerDecade=100
+  integer                         , parameter :: pointsPerDecade=10, timePointsPerDecade=100
 
   ! Module-scope time used in integrals.
-  double precision                            :: filteredPowerTime
-  !$omp threadprivate(filteredPowerTime)
+  double precision                            :: time__
+  !$omp threadprivate(time__)
 
 contains
 
@@ -779,22 +779,22 @@ contains
                 massMaximum     =    mass*10.0d0
              end if
              ! Determine how many points the table must be extended by in each direction to span the new required range.
-             if (self%massMinimum > massMinimum) countNewLower=int(+log10(self%massMinimum/massMinimum)*dble(filteredPowerTablePointsPerDecade)+1.0d0)
-             if (self%massMaximum < massMaximum) countNewUpper=int(-log10(self%massMaximum/massMaximum)*dble(filteredPowerTablePointsPerDecade)+1.0d0)
+             if (self%massMinimum > massMinimum) countNewLower=int(+log10(self%massMinimum/massMinimum)*dble(pointsPerDecade)+1.0d0)
+             if (self%massMaximum < massMaximum) countNewUpper=int(-log10(self%massMaximum/massMaximum)*dble(pointsPerDecade)+1.0d0)
              ! Adjust the limits of the table by an integer number of steps.
-             self%massMinimum=self%massMinimum/10.0d0**(dble(countNewLower)/dble(filteredPowerTablePointsPerDecade))
-             self%massMaximum=self%massMaximum*10.0d0**(dble(countNewUpper)/dble(filteredPowerTablePointsPerDecade))
+             self%massMinimum=self%massMinimum/10.0d0**(dble(countNewLower)/dble(pointsPerDecade))
+             self%massMaximum=self%massMaximum*10.0d0**(dble(countNewUpper)/dble(pointsPerDecade))
           else if (.not.self%initialized) then
              ! No mass was given, but the tables are not initialized. Must provide some mass range.
              self%massMinimum=1.0d10
              self%massMaximum=1.0d15
           end if
-          rootVarianceTableCount=int(                                         &
-               &                     +log10(                                  &
-               &                            +self%massMaximum                 &
-               &                            /self%massMinimum                 &
-               &                           )                                  &
-               &                     *dble(filteredPowerTablePointsPerDecade) &
+          rootVarianceTableCount=int(                         &
+               &                     +log10(                  &
+               &                            +self%massMaximum &
+               &                            /self%massMinimum &
+               &                           )                  &
+               &                     *dble(pointsPerDecade)   &
                &                    )
           ! Find suitable range of times to tabulate.
           if (self%growthIsMassDependent_) then
@@ -811,22 +811,22 @@ contains
                    timeMaximum     =    time*2.0d0
                 end if
                 ! Determine how many points the table must be extended by in each direction to span the new required range.
-                if (self%timeMinimum > timeMinimum) countNewLower=int(+log10(self%timeMinimum/timeMinimum)*dble(filteredPowerTimePointsPerDecade)+1.0d0)
-                if (self%timeMaximum < timeMaximum) countNewUpper=int(-log10(self%timeMaximum/timeMaximum)*dble(filteredPowerTimePointsPerDecade)+1.0d0)
+                if (self%timeMinimum > timeMinimum) countNewLower=int(+log10(self%timeMinimum/timeMinimum)*dble(timePointsPerDecade)+1.0d0)
+                if (self%timeMaximum < timeMaximum) countNewUpper=int(-log10(self%timeMaximum/timeMaximum)*dble(timePointsPerDecade)+1.0d0)
                 ! Adjust the limits of the table by an integer number of steps.
-                self%timeMinimum=self%timeMinimum/10.0d0**(dble(countNewLower)/dble(filteredPowerTimePointsPerDecade))
-                self%timeMaximum=self%timeMaximum*10.0d0**(dble(countNewUpper)/dble(filteredPowerTimePointsPerDecade))
+                self%timeMinimum=self%timeMinimum/10.0d0**(dble(countNewLower)/dble(timePointsPerDecade))
+                self%timeMaximum=self%timeMaximum*10.0d0**(dble(countNewUpper)/dble(timePointsPerDecade))
              else if (.not.self%initialized) then
                 ! No time was given, but the tables are not initialized. Must provide some time range.
                 self%timeMinimum=self%cosmologyFunctions_%cosmicTime(0.5d0)
                 self%timeMaximum=self%cosmologyFunctions_%cosmicTime(1.0d0)
              end if
-             rootVarianceTimeCount =int(                                         &
-                  &                     +log10(                                  &
-                  &                            +self%timeMaximum                 &
-                  &                            /self%timeMinimum                 &
-                  &                           )                                  &
-                  &                     *dble(filteredPowerTimePointsPerDecade ) &
+             rootVarianceTimeCount =int(                           &
+                  &                     +log10(                    &
+                  &                            +self%timeMaximum   &
+                  &                            /self%timeMinimum   &
+                  &                           )                    &
+                  &                     *dble(timePointsPerDecade) &
                   &                    )
              self%timeMinimumLogarithmic     =                              log(                 self%timeMinimum)
              self%timeLogarithmicDeltaInverse=dble(rootVarianceTimeCount-1)/log(self%timeMaximum/self%timeMinimum)
@@ -987,17 +987,17 @@ contains
       logical                                                  :: computeLogarithmically
       type            (integrator)                             :: integrator_            , integratorLogarithmic_
 
-      filteredPowerTime=time_
-      topHatRadius     =(                                             &
-           &             +(                                           &
-           &               +3.0d0                                     &
-           &               /4.0d0                                     &
-           &               /Pi                                        &
-           &              )                                           &
-           &             *smoothingMass                               &
-           &             /self%cosmologyParameters_%OmegaMatter    () &
-           &             /self%cosmologyParameters_%densityCritical() &
-           &            )**(1.0d0/3.0d0)
+      time__      =time_
+      topHatRadius=(                                             &
+           &        +(                                           &
+           &          +3.0d0                                     &
+           &          /4.0d0                                     &
+           &          /Pi                                        &
+           &         )                                           &
+           &        *smoothingMass                               &
+           &        /self%cosmologyParameters_%OmegaMatter    () &
+           &        /self%cosmologyParameters_%densityCritical() &
+           &       )**(1.0d0/3.0d0)
       ! Find the minimum wavenumber for the integral.
       if (self%truncateAtParticleHorizon) then
          wavenumberMinimum=+1.0d0                                                                                                &
@@ -1103,10 +1103,10 @@ contains
 
       ! Return power spectrum multiplied by window function and volume element in k-space. Factors of 2 and π are included
       ! elsewhere.
-      varianceIntegrand=+  self%powerSpectrumPrimordialTransferred_%power(wavenumber,filteredPowerTime) &
-           &            *(                                                                              &
-           &              +self%powerSpectrumWindowFunction_       %value(wavenumber,smoothingMass    ) &
-           &              *                                               wavenumber                    &
+      varianceIntegrand=+  self%powerSpectrumPrimordialTransferred_%power(wavenumber,time__       ) &
+           &            *(                                                                          &
+           &              +self%powerSpectrumWindowFunction_       %value(wavenumber,smoothingMass) &
+           &              *                                               wavenumber                &
            &             )**2
       return
     end function varianceIntegrand
@@ -1123,11 +1123,11 @@ contains
       ! Return power spectrum multiplied by window function and volume element in k-space. Factors of 2 and π are included
       ! elsewhere.
       wavenumber                  =+exp(wavenumberLogarithmic)
-      varianceIntegrandLogarithmic=+  self%powerSpectrumPrimordialTransferred_%power(wavenumber,filteredPowerTime) &
-           &                       *(                                                                              &
-           &                         +self%powerSpectrumWindowFunction_       %value(wavenumber,smoothingMass    ) &
-           &                         *                                               wavenumber                    &
-           &                        )**2                                                                           &
+      varianceIntegrandLogarithmic=+  self%powerSpectrumPrimordialTransferred_%power(wavenumber,time__       ) &
+           &                       *(                                                                          &
+           &                         +self%powerSpectrumWindowFunction_       %value(wavenumber,smoothingMass) &
+           &                         *                                               wavenumber                &
+           &                        )**2                                                                       &
            &                       *                                                 wavenumber
       return
     end function varianceIntegrandLogarithmic
@@ -1141,10 +1141,10 @@ contains
 
       ! Return power spectrum multiplied by window function and volume element in k-space. Factors of 2 and π are included
       ! elsewhere.
-      varianceIntegrandTopHat=+  self%powerSpectrumPrimordialTransferred_%power(wavenumber,filteredPowerTime) &
-           &                  *(                                                                              &
-           &                    +self%powerSpectrumWindowFunctionTopHat_ %value(wavenumber,smoothingMass    ) &
-           &                    *                                               wavenumber                    &
+      varianceIntegrandTopHat=+  self%powerSpectrumPrimordialTransferred_%power(wavenumber,time__       ) &
+           &                  *(                                                                          &
+           &                    +self%powerSpectrumWindowFunctionTopHat_ %value(wavenumber,smoothingMass) &
+           &                    *                                               wavenumber                &
            &                   )**2
       return
     end function varianceIntegrandTopHat
@@ -1160,11 +1160,11 @@ contains
       ! Return power spectrum multiplied by window function and volume element in k-space. Factors of 2 and π are included
       ! elsewhere.
       wavenumber                        =+exp(wavenumberLogarithmic)
-      varianceIntegrandTopHatLogarithmic=+  self%powerSpectrumPrimordialTransferred_%power(wavenumber,filteredPowerTime) &
-           &                             *(                                                                              &
-           &                               +self%powerSpectrumWindowFunctionTopHat_ %value(wavenumber,smoothingMass    ) &
-           &                               *                                               wavenumber                    &
-           &                              )**2                                                                           &
+      varianceIntegrandTopHatLogarithmic=+  self%powerSpectrumPrimordialTransferred_%power(wavenumber,time__       ) &
+           &                             *(                                                                          &
+           &                               +self%powerSpectrumWindowFunctionTopHat_ %value(wavenumber,smoothingMass) &
+           &                               *                                               wavenumber                &
+           &                              )**2                                                                       &
            &                             *                                                 wavenumber
       return
     end function varianceIntegrandTopHatLogarithmic
@@ -1382,23 +1382,23 @@ contains
     parameters=descriptor%subparameters('cosmologicalMassVariance')
     if (self%normalizationSigma8) then
        write (parameterLabel,'(e17.10)') self%sigma8Value
-       call parameters%addParameter('sigma_8'                            ,trim(adjustl(parameterLabel)))
+       call parameters%addParameter('sigma_8'                ,trim(adjustl(parameterLabel)))
     else
        write (parameterLabel,'(e17.10)') self%wavenumberReference
-       call parameters%addParameter('wavenumberReference'                ,trim(adjustl(parameterLabel)))
+       call parameters%addParameter('wavenumberReference'    ,trim(adjustl(parameterLabel)))
        call parameters%addParameter('reference','')
        referenceParameters=parameters%subparameters('reference')
        call self%cosmologicalMassVarianceReference          %descriptor(referenceParameters)
        call self%powerSpectrumPrimordialTransferredReference%descriptor(referenceParameters)
     end if
     write    (parameterLabel,'(e17.10)') self%toleranceTopHat
-    call    parameters%addParameter('toleranceTopHat'                    ,trim(adjustl(parameterLabel)))
+    call    parameters%addParameter('toleranceTopHat'       ,trim(adjustl(parameterLabel)))
     write    (parameterLabel,'(e17.10)') self%tolerance
-    call    parameters%addParameter('tolerance'                          ,trim(adjustl(parameterLabel)))
+    call    parameters%addParameter('tolerance'             ,trim(adjustl(parameterLabel)))
     write    (parameterLabel,'(l1)'    ) self%nonMonotonicIsFatal
-    call    parameters%addParameter('nonMonotonicIsFatal'                ,trim(adjustl(parameterLabel)))
+    call    parameters%addParameter('nonMonotonicIsFatal'   ,trim(adjustl(parameterLabel)))
     write    (parameterLabel,'(l1)'    ) self%monotonicInterpolation
-    call    parameters%addParameter('monotonicInterpolation'             ,trim(adjustl(parameterLabel)))
+    call    parameters%addParameter('monotonicInterpolation',trim(adjustl(parameterLabel)))
     call    self%cosmologyParameters_                       %descriptor(parameters)
     call    self%cosmologyFunctions_                        %descriptor(parameters)
     call    self%powerSpectrumPrimordialTransferred_        %descriptor(parameters)

@@ -76,14 +76,14 @@ Implements the gravitational lensing distributions of \cite{takahashi_probabilit
   end interface gravitationalLensingTakahashi2011
 
   ! Smallest variance for which calculations are stable.
-  double precision, parameter :: takahashi2011ConvergenceVarianceSmall=1.0d-5
+  double precision, parameter :: convergenceVarianceSmall=1.0d-5
 
   ! Smallest redshift for which to compute lensing.
-  double precision, parameter :: takahashi2011RedshiftTiny            =1.5d-2
+  double precision, parameter :: redshiftTiny            =1.5d-2
 
   ! CDF tabulation range.
-  double precision, parameter :: takahashi2011MagnificationMinimum    =   1.0d-2
-  double precision, parameter :: takahashi2011MagnificationMaximum    =1000.0d+0
+  double precision, parameter :: magnificationMinimum    =   1.0d-2
+  double precision, parameter :: magnificationMaximum    =1000.0d+0
 
 contains
 
@@ -160,7 +160,7 @@ contains
          &                                                                scaleSource
 
     ! Handle redshift zero case.
-    if (redshift <= takahashi2011RedshiftTiny) then
+    if (redshift <= redshiftTiny) then
        if (magnification == 1.0d0) then
           takahashi2011MagnificationPDF=1.0d0
        else
@@ -172,7 +172,7 @@ contains
        ! Construct the distribution.
        call self%lensingDistributionConstruct(redshift,scaleSource)
        ! Approximate a δ-function for small redshifts.
-       if (self%convergenceVariance < takahashi2011ConvergenceVarianceSmall) then
+       if (self%convergenceVariance < convergenceVarianceSmall) then
           if (magnification == 1.0d0) then
              takahashi2011MagnificationPDF=0.0d0
           else
@@ -199,7 +199,7 @@ contains
          &                                                                scaleSource
 
     ! Handle redshift zero case.
-    if (redshift <= takahashi2011RedshiftTiny) then
+    if (redshift <= redshiftTiny) then
        if (magnification < 1.0d0) then
           takahashi2011MagnificationCDF=0.0d0
        else
@@ -211,7 +211,7 @@ contains
        ! Construct the distribution.
        call self%lensingDistributionConstruct(redshift,scaleSource)
        ! Approximate a δ-function for small redshifts.
-       if (self%convergenceVariance < takahashi2011ConvergenceVarianceSmall) then
+       if (self%convergenceVariance < convergenceVarianceSmall) then
           if (magnification < 1.0d0) then
              takahashi2011MagnificationCDF=0.0d0
           else
@@ -221,9 +221,9 @@ contains
           return
        end if
        ! Interpolate in the tabulated cumulative distribution function.
-       if      (magnification < takahashi2011MagnificationMinimum) then
+       if      (magnification < magnificationMinimum) then
           takahashi2011MagnificationCDF=0.0d0
-       else if (magnification > takahashi2011MagnificationMaximum) then
+       else if (magnification > magnificationMaximum) then
           takahashi2011MagnificationCDF=1.0d0
        else
           takahashi2011MagnificationCDF=self%magnificationCDFTable%interpolate(magnification)/self%magnificationCDFTable%y(-1)
@@ -514,7 +514,7 @@ contains
                & /magnificationPdfMoment0
           ! Tabulate the cumulative distribution function if table does not yet exist.
           if (self%cdfInitialized) call self%magnificationCDFTable%destroy()
-          call self%magnificationCDFTable%create(takahashi2011MagnificationMinimum,takahashi2011MagnificationMaximum,cdfMagnificationCount,tableCount=1)
+          call self%magnificationCDFTable%create(magnificationMinimum,magnificationMaximum,cdfMagnificationCount,tableCount=1)
           do i=1,cdfMagnificationCount
              if (i == 1 ) then
                 magnificationLower=0.0d0

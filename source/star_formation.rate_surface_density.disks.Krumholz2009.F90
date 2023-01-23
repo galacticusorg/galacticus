@@ -114,12 +114,12 @@
   end interface starFormationRateSurfaceDensityDisksKrumholz2009
 
   ! Module-scope pointer to the active node.
-  class           (starFormationRateSurfaceDensityDisksKrumholz2009), pointer   :: krumholz2009Self
-  type            (treeNode                                        ), pointer   :: krumholz2009Node
-  !$omp threadprivate(krumholz2009Self,krumholz2009Node)
+  class           (starFormationRateSurfaceDensityDisksKrumholz2009), pointer   :: self_
+  type            (treeNode                                        ), pointer   :: node_
+  !$omp threadprivate(self_,node_)
 
   ! Range of s-parameter to tabulate.
-  double precision                                                  , parameter :: sMinimum                            =0.0d+0, sMaximum=10.0d0
+  double precision                                                  , parameter :: sMinimum=0.0d+0, sMaximum=10.0d0
 
 contains
 
@@ -485,8 +485,8 @@ contains
        ! First, if using the fast molecular fraction calculation, check if this truncates to zero somewhere in range.
        radiusMaximum=radiusOuter
        if (self%molecularFractionFast) then
-          krumholz2009Self => self
-          krumholz2009Node => node
+          self_ => self
+          node_ => node
           if (krumholz2009MolecularFractionRoot(radiusInner) <= 0.0d0) then
              ! The entire disk has no molecules, so the star formation rate is zero everywhere. Set zero intervals.
              allocate(krumholz2009Intervals(2,0))
@@ -522,8 +522,8 @@ contains
           else
              ! The disk transitions the critical surface density - attempt to locate the radius at which this happens and use two
              ! intervals split at this point.
-             krumholz2009Self => self
-             krumholz2009Node => node
+             self_ => self
+             node_ => node
              if (self%radiusCriticalPrevious > 0.0d0) then
                 radiusCritical=self%finderCritical%find(rootGuess=self%radiusCriticalPrevious)
              else
@@ -557,13 +557,13 @@ contains
          &                             sigmaMolecularComplex        , s                             , &
          &                             molecularFraction
     
-    call krumholz2009Self%surfaceDensityFactors(krumholz2009Node,radius,surfaceDensityGas,surfaceDensityGasDimensionless)
-    sigmaMolecularComplex            =+krumholz2009Self%sigmaMolecularComplexNormalization &
-         &                            *                 surfaceDensityGas
-    s                                =+krumholz2009Self%sNormalization                     &
-         &                            /                 sigmaMolecularComplex
-    molecularFraction                =+krumholz2009Self%molecularFraction    (s)
-    krumholz2009MolecularFractionRoot=+molecularFraction                                   &
+    call self_%surfaceDensityFactors(node_,radius,surfaceDensityGas,surfaceDensityGasDimensionless)
+    sigmaMolecularComplex            =+self_%sigmaMolecularComplexNormalization &
+         &                            *      surfaceDensityGas
+    s                                =+self_%sNormalization                     &
+         &                            /      sigmaMolecularComplex
+    molecularFraction                =+self_%molecularFraction    (s)
+    krumholz2009MolecularFractionRoot=+molecularFraction                        &
          &                            -molecularFractionTiny
     return
   end function krumholz2009MolecularFractionRoot
@@ -577,7 +577,7 @@ contains
     double precision, intent(in   ) :: radius
     double precision                :: surfaceDensityGas, surfaceDensityGasDimensionless
 
-    call krumholz2009Self%surfaceDensityFactors(krumholz2009Node,radius,surfaceDensityGas,surfaceDensityGasDimensionless)
+    call self_%surfaceDensityFactors(node_,radius,surfaceDensityGas,surfaceDensityGasDimensionless)
     krumholz2009CriticalDensityRoot=surfaceDensityGasDimensionless-1.0d0
     return
   end function krumholz2009CriticalDensityRoot

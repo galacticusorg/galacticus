@@ -128,7 +128,7 @@ contains
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (powerSpectrumWindowFunctionHyperbolicTangent), intent(inout) :: self
-    double precision                                              , intent(in   ) :: smoothingMass   , wavenumber
+    double precision                                              , intent(in   ) :: smoothingMass, wavenumber
     double precision                                                              :: radius
 
     radius =+(                                             &
