@@ -4961,11 +4961,10 @@
       <likelihoodPoisson      value="true"       />
     </posteriorSampleLikelihood>
     <!-- Zoom-in: Milky Way FDM 25.9*10^{-22} eV Halo004 -->
-    <parameterMap value="haloMassFunctionParameters::a             haloMassFunctionParameters::b
-			 haloMassFunctionParameters::p             haloMassFunctionParameters::q 
-			 haloMassFunctionParameters::normalization haloMassFunctionParameters::c
-			 haloMassFunctionParameters::d
-			 haloMassFunctionParameters::cW            haloMassFunctionParameters::beta"/>
+    <parameterMap value="haloMassFunctionParameters::a             haloMassFunctionParameters::p
+			 haloMassFunctionParameters::normalization haloMassFunctionParameters::q
+			 haloMassFunctionParameters::cW            haloMassFunctionParameters::beta
+			 haloMassFunctionParameters::alpha"/>
     <parameterInactiveMap value="" ignoreWarnings="true"/>
     <posteriorSampleLikelihood value="haloMassFunction">
       <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
@@ -4978,11 +4977,10 @@
       <likelihoodPoisson      value="true"       />
     </posteriorSampleLikelihood>
     <!-- Zoom-in: Milky Way FDM 25.9*10^{-22} eV Halo023 -->
-    <parameterMap value="haloMassFunctionParameters::a             haloMassFunctionParameters::b
-			 haloMassFunctionParameters::p             haloMassFunctionParameters::q 
-			 haloMassFunctionParameters::normalization haloMassFunctionParameters::c
-			 haloMassFunctionParameters::d
-			 haloMassFunctionParameters::cW            haloMassFunctionParameters::beta"/>
+    <parameterMap value="haloMassFunctionParameters::a             haloMassFunctionParameters::p
+			 haloMassFunctionParameters::normalization haloMassFunctionParameters::q
+			 haloMassFunctionParameters::cW            haloMassFunctionParameters::beta
+			 haloMassFunctionParameters::alpha"/>
     <parameterInactiveMap value="" ignoreWarnings="true"/>
     <posteriorSampleLikelihood value="haloMassFunction">
       <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
@@ -4995,11 +4993,10 @@
       <likelihoodPoisson      value="true"       />
     </posteriorSampleLikelihood>
     <!-- Zoom-in: Milky Way FDM 25.9*10^{-22} eV Halo113 -->
-    <parameterMap value="haloMassFunctionParameters::a             haloMassFunctionParameters::b
-			 haloMassFunctionParameters::p             haloMassFunctionParameters::q 
-			 haloMassFunctionParameters::normalization haloMassFunctionParameters::c
-			 haloMassFunctionParameters::d
-			 haloMassFunctionParameters::cW            haloMassFunctionParameters::beta"/>
+    <parameterMap value="haloMassFunctionParameters::a             haloMassFunctionParameters::p
+			 haloMassFunctionParameters::normalization haloMassFunctionParameters::q
+			 haloMassFunctionParameters::cW            haloMassFunctionParameters::beta
+			 haloMassFunctionParameters::alpha"/>
     <parameterInactiveMap value="" ignoreWarnings="true"/>
     <posteriorSampleLikelihood value="haloMassFunction">
       <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
@@ -5012,11 +5009,10 @@
       <likelihoodPoisson      value="true"       />
     </posteriorSampleLikelihood>
     <!-- Zoom-in: Milky Way FDM 185*10^{-22} eV Halo004 -->
-    <parameterMap value="haloMassFunctionParameters::a             haloMassFunctionParameters::b
-			 haloMassFunctionParameters::p             haloMassFunctionParameters::q 
-			 haloMassFunctionParameters::normalization haloMassFunctionParameters::c
-			 haloMassFunctionParameters::d
-			 haloMassFunctionParameters::cW            haloMassFunctionParameters::beta"/>
+    <parameterMap value="haloMassFunctionParameters::a             haloMassFunctionParameters::p
+			 haloMassFunctionParameters::normalization haloMassFunctionParameters::q
+			 haloMassFunctionParameters::cW            haloMassFunctionParameters::beta
+			 haloMassFunctionParameters::alpha"/>
     <parameterInactiveMap value="" ignoreWarnings="true"/>
     <posteriorSampleLikelihood value="haloMassFunction">
       <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
@@ -5029,11 +5025,10 @@
       <likelihoodPoisson      value="true"       />
     </posteriorSampleLikelihood>
     <!-- Zoom-in: Milky Way FDM 185*10^{-22} eV Halo023 -->
-    <parameterMap value="haloMassFunctionParameters::a             haloMassFunctionParameters::b
-			 haloMassFunctionParameters::p             haloMassFunctionParameters::q 
-			 haloMassFunctionParameters::normalization haloMassFunctionParameters::c
-			 haloMassFunctionParameters::d
-			 haloMassFunctionParameters::cW            haloMassFunctionParameters::beta"/>
+    <parameterMap value="haloMassFunctionParameters::a             haloMassFunctionParameters::p
+			 haloMassFunctionParameters::normalization haloMassFunctionParameters::q
+			 haloMassFunctionParameters::cW            haloMassFunctionParameters::beta
+			 haloMassFunctionParameters::alpha"/>
     <parameterInactiveMap value="" ignoreWarnings="true"/>
     <posteriorSampleLikelihood value="haloMassFunction">
       <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
@@ -5046,11 +5041,10 @@
       <likelihoodPoisson      value="true"       />
     </posteriorSampleLikelihood>
     <!-- Zoom-in: Milky Way FDM 185*10^{-22} eV Halo113 -->
-    <parameterMap value="haloMassFunctionParameters::a             haloMassFunctionParameters::b
-			 haloMassFunctionParameters::p             haloMassFunctionParameters::q 
-			 haloMassFunctionParameters::normalization haloMassFunctionParameters::c
-			 haloMassFunctionParameters::d
-			 haloMassFunctionParameters::cW            haloMassFunctionParameters::beta"/>
+    <parameterMap value="haloMassFunctionParameters::a             haloMassFunctionParameters::p
+			 haloMassFunctionParameters::normalization haloMassFunctionParameters::q
+			 haloMassFunctionParameters::cW            haloMassFunctionParameters::beta
+			 haloMassFunctionParameters::alpha"/>
     <parameterInactiveMap value="" ignoreWarnings="true"/>
     <posteriorSampleLikelihood value="haloMassFunction">
       <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
@@ -5063,11 +5057,10 @@
       <likelihoodPoisson      value="true"       />
     </posteriorSampleLikelihood>
     <!-- Zoom-in: Milky Way FDM 490*10^{-22} eV Halo004 -->
-    <parameterMap value="haloMassFunctionParameters::a             haloMassFunctionParameters::b
-			 haloMassFunctionParameters::p             haloMassFunctionParameters::q 
-			 haloMassFunctionParameters::normalization haloMassFunctionParameters::c
-			 haloMassFunctionParameters::d
-			 haloMassFunctionParameters::cW            haloMassFunctionParameters::beta"/>
+    <parameterMap value="haloMassFunctionParameters::a             haloMassFunctionParameters::p
+			 haloMassFunctionParameters::normalization haloMassFunctionParameters::q
+			 haloMassFunctionParameters::cW            haloMassFunctionParameters::beta
+			 haloMassFunctionParameters::alpha"/>
     <parameterInactiveMap value="" ignoreWarnings="true"/>
     <posteriorSampleLikelihood value="haloMassFunction">
       <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
@@ -5080,11 +5073,10 @@
       <likelihoodPoisson      value="true"       />
     </posteriorSampleLikelihood>
     <!-- Zoom-in: Milky Way FDM 490*10^{-22} eV Halo023 -->
-    <parameterMap value="haloMassFunctionParameters::a             haloMassFunctionParameters::b
-			 haloMassFunctionParameters::p             haloMassFunctionParameters::q 
-			 haloMassFunctionParameters::normalization haloMassFunctionParameters::c
-			 haloMassFunctionParameters::d
-			 haloMassFunctionParameters::cW            haloMassFunctionParameters::beta"/>
+    <parameterMap value="haloMassFunctionParameters::a             haloMassFunctionParameters::p
+			 haloMassFunctionParameters::normalization haloMassFunctionParameters::q
+			 haloMassFunctionParameters::cW            haloMassFunctionParameters::beta
+			 haloMassFunctionParameters::alpha"/>
     <parameterInactiveMap value="" ignoreWarnings="true"/>
     <posteriorSampleLikelihood value="haloMassFunction">
       <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
@@ -5097,11 +5089,10 @@
       <likelihoodPoisson      value="true"       />
     </posteriorSampleLikelihood>
     <!-- Zoom-in: Milky Way FDM 490*10^{-22} eV Halo113 -->
-    <parameterMap value="haloMassFunctionParameters::a             haloMassFunctionParameters::b
-			 haloMassFunctionParameters::p             haloMassFunctionParameters::q 
-			 haloMassFunctionParameters::normalization haloMassFunctionParameters::c
-			 haloMassFunctionParameters::d
-			 haloMassFunctionParameters::cW            haloMassFunctionParameters::beta"/>
+    <parameterMap value="haloMassFunctionParameters::a             haloMassFunctionParameters::p
+			 haloMassFunctionParameters::normalization haloMassFunctionParameters::q
+			 haloMassFunctionParameters::cW            haloMassFunctionParameters::beta
+			 haloMassFunctionParameters::alpha"/>
     <parameterInactiveMap value="" ignoreWarnings="true"/>
     <posteriorSampleLikelihood value="haloMassFunction">
       <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
