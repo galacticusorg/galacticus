@@ -4118,16 +4118,6 @@
 			 haloMassFunctionParameters::cW            haloMassFunctionParameters::beta
 			 haloMassFunctionParameters::alpha"/>
     <parameterInactiveMap value="" ignoreWarnings="true"/>
-    <posteriorSampleLikelihood value="haloMassFunction">
-      <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
-      <baseParametersFileName value="constraints/pipelines/darkMatter/haloMassFunctionBase_MilkyWay_WDM1_Halo416_z0.000.xml"/>
-      <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_MilkyWay_WDM1_Halo416_z0.000.hdf5"/>
-      <redshift               value="0.00000e+00"/>
-      <massRangeMinimum       value="1.20849e+09"/> <!-- 3000 times zoom-in Milky Way 1 keV WDM particle mass -->
-      <massRangeMaximum       value="1.52143e+11"/> <!-- 1/10 of the target halo mass             -->
-      <binCountMinimum        value="0"          />    
-      <likelihoodPoisson      value="true"       />
-    </posteriorSampleLikelihood>
     <!-- Zoom-in: Milky Way 3 keV WDM Halo004 -->
     <parameterMap value="haloMassFunctionParameters::a             haloMassFunctionParameters::p
 			 haloMassFunctionParameters::normalization haloMassFunctionParameters::q
@@ -4368,22 +4358,6 @@
       <binCountMinimum        value="0"          />    
       <likelihoodPoisson      value="true"       />
     </posteriorSampleLikelihood>
-    <!-- Zoom-in: Milky Way 5 keV WDM Halo416 -->
-    <parameterMap value="haloMassFunctionParameters::a             haloMassFunctionParameters::p
-			 haloMassFunctionParameters::normalization haloMassFunctionParameters::q
-			 haloMassFunctionParameters::cW            haloMassFunctionParameters::beta
-			 haloMassFunctionParameters::alpha"/>
-    <parameterInactiveMap value="" ignoreWarnings="true"/>
-    <posteriorSampleLikelihood value="haloMassFunction">
-      <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
-      <baseParametersFileName value="constraints/pipelines/darkMatter/haloMassFunctionBase_MilkyWay_WDM5_Halo416_z0.000.xml"/>
-      <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_MilkyWay_WDM5_Halo416_z0.000.hdf5"/>
-      <redshift               value="0.00000e+00"/>
-      <massRangeMinimum       value="1.20849e+09"/> <!-- 3000 times zoom-in Milky Way 5 keV WDM particle mass -->
-      <massRangeMaximum       value="1.66000e+11"/> <!-- 1/10 of the target halo mass             -->
-      <binCountMinimum        value="0"          />    
-      <likelihoodPoisson      value="true"       />
-    </posteriorSampleLikelihood>
     <!-- Zoom-in: Milky Way 6.5 keV WDM Halo004 -->
     <parameterMap value="haloMassFunctionParameters::a             haloMassFunctionParameters::p
 			 haloMassFunctionParameters::normalization haloMassFunctionParameters::q
@@ -4621,70 +4595,6 @@
       <redshift               value="3.98400e+00"/>
       <massRangeMinimum       value="1.20849e+09"/> <!-- 3000 times zoom-in Milky Way 6.5 keV WDM particle mass -->
       <massRangeMaximum       value="1.06043e+11"/> <!-- 1/10 of the target halo mass             -->
-      <binCountMinimum        value="0"          />    
-      <likelihoodPoisson      value="true"       />
-    </posteriorSampleLikelihood>
-    <!-- Zoom-in: Milky Way 10 keV WDM Halo416 -->
-    <parameterMap value="haloMassFunctionParameters::a             haloMassFunctionParameters::p
-			 haloMassFunctionParameters::normalization haloMassFunctionParameters::q
-			 haloMassFunctionParameters::cW            haloMassFunctionParameters::beta
-			 haloMassFunctionParameters::alpha"/>
-    <parameterInactiveMap value="" ignoreWarnings="true"/>
-    <posteriorSampleLikelihood value="haloMassFunction">
-      <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
-      <baseParametersFileName value="constraints/pipelines/darkMatter/haloMassFunctionBase_MilkyWay_WDM10_Halo416_z0.000.xml"/>
-      <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_MilkyWay_WDM10_Halo416_z0.000.hdf5"/>
-      <redshift               value="0.00000e+00"/>
-      <massRangeMinimum       value="1.20849e+09"/> <!-- 3000 times zoom-in Milky Way 10 keV WDM particle mass -->
-      <massRangeMaximum       value="1.66000e+11"/> <!-- 1/10 of the target halo mass             -->
-      <binCountMinimum        value="0"          />    
-      <likelihoodPoisson      value="true"       />
-    </posteriorSampleLikelihood>
-    <!-- Zoom-in: Milky Way 10^-22 eV axion Halo416 -->
-    <parameterMap value="haloMassFunctionParameters::a             haloMassFunctionParameters::p
-			 haloMassFunctionParameters::normalization haloMassFunctionParameters::q
-			 haloMassFunctionParameters::cW            haloMassFunctionParameters::beta
-			 haloMassFunctionParameters::alpha"/>
-    <parameterInactiveMap value="" ignoreWarnings="true"/>
-    <posteriorSampleLikelihood value="haloMassFunction">
-      <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
-      <baseParametersFileName value="constraints/pipelines/darkMatter/haloMassFunctionBase_MilkyWay_Axion22_Halo416_z0.000.xml"/>
-      <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_MilkyWay_Axion22_Halo416_z0.000.hdf5"/>
-      <redshift               value="0.00000e+00"/>
-      <massRangeMinimum       value="1.20849e+09"/> <!-- 3000 times zoom-in Milky Way 10^-22 eV axion particle mass -->
-      <massRangeMaximum       value="1.68857e+11"/> <!-- 1/10 of the target halo mass             -->
-      <binCountMinimum        value="0"          />    
-      <likelihoodPoisson      value="true"       />
-    </posteriorSampleLikelihood>
-    <!-- Zoom-in: Milky Way 10^-21 eV axion Halo416 -->
-    <parameterMap value="haloMassFunctionParameters::a             haloMassFunctionParameters::p
-			 haloMassFunctionParameters::normalization haloMassFunctionParameters::q
-			 haloMassFunctionParameters::cW            haloMassFunctionParameters::beta
-			 haloMassFunctionParameters::alpha"/>
-    <parameterInactiveMap value="" ignoreWarnings="true"/>
-    <posteriorSampleLikelihood value="haloMassFunction">
-      <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
-      <baseParametersFileName value="constraints/pipelines/darkMatter/haloMassFunctionBase_MilkyWay_Axion21_Halo416_z0.000.xml"/>
-      <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_MilkyWay_Axion21_Halo416_z0.000.hdf5"/>
-      <redshift               value="0.00000e+00"/>
-      <massRangeMinimum       value="1.20849e+09"/> <!-- 3000 times zoom-in Milky Way 10^-21 eV axion particle mass -->
-      <massRangeMaximum       value="1.69143e+11"/> <!-- 1/10 of the target halo mass             -->
-      <binCountMinimum        value="0"          />    
-      <likelihoodPoisson      value="true"       />
-    </posteriorSampleLikelihood>
-    <!-- Zoom-in: Milky Way 10^-20 eV axion Halo416 -->
-    <parameterMap value="haloMassFunctionParameters::a             haloMassFunctionParameters::p
-			 haloMassFunctionParameters::normalization haloMassFunctionParameters::q
-			 haloMassFunctionParameters::cW            haloMassFunctionParameters::beta
-			 haloMassFunctionParameters::alpha"/>
-    <parameterInactiveMap value="" ignoreWarnings="true"/>
-    <posteriorSampleLikelihood value="haloMassFunction">
-      <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
-      <baseParametersFileName value="constraints/pipelines/darkMatter/haloMassFunctionBase_MilkyWay_Axion20_Halo416_z0.000.xml"/>
-      <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_MilkyWay_Axion20_Halo416_z0.000.hdf5"/>
-      <redshift               value="0.00000e+00"/>
-      <massRangeMinimum       value="1.20849e+09"/> <!-- 3000 times zoom-in Milky Way 10^-20 eV axion particle mass -->
-      <massRangeMaximum       value="1.68286e+11"/> <!-- 1/10 of the target halo mass             -->
       <binCountMinimum        value="0"          />    
       <likelihoodPoisson      value="true"       />
     </posteriorSampleLikelihood>
@@ -8250,7 +8160,7 @@
 
   <!-- MCMC -->
   <posteriorSampleSimulation value="differentialEvolution">
-    <stepsMaximum           value="  1000"/>
+    <stepsMaximum           value="  4000"/>
     <acceptanceAverageCount value="    10"/>
     <stateSwapCount         value="    10"/>
     <logFileRoot            value="chains"/>
