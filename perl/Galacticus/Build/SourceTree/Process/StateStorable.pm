@@ -151,7 +151,7 @@ CODE
 	my $rankMaximum      = 0;
 	# Scan all known classes, finding all which derive from the base class.
 	foreach my $className ( sort(keys(%classes)) ) {
-	    my $matches = 0;
+	    my $matches         = 0;
 	    my $parentClassName = $className;
 	    while ( defined($parentClassName) ) {
 		if ( $parentClassName eq $directive->{'class'} ) {
@@ -415,6 +415,19 @@ CODE
 	# Build the class restore functions.
 	if ( $classFunctionsRequired ) {
 	    foreach $code::parentClassName ( sort(keys(%classes)) ) {
+		# Skip non-matching classes.
+		my $matches         = 0;
+		my $parentClassName = $code::parentClassName;
+		while ( defined($parentClassName) ) {
+		    if ( $parentClassName eq $directive->{'class'} ) {
+			$matches = 1;
+			last;
+		    }
+		    $parentClassName = $classes{$parentClassName}->{'extends'};
+		}
+		next
+		    unless ( $matches );
+		# Build class restore functions for rank-0 and rank-1.
 		for(my $rank=0;$rank<=1;++$rank) {
 		    $code::rankSuffix  = $rank > 0 ? $rank."D"      : "";
 		    $code::storedShape = $rank > 0 ? ",storedShape" : "";
