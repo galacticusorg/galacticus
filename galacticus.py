@@ -234,6 +234,10 @@ c_lib.intergalacticMediumStateInstantReionizationL.restype  = c_void_p
 c_lib.intergalacticMediumStateInstantReionizationL.argtypes = [ c_void_p, c_int, c_void_p, c_int, c_void_p, c_int, c_double, c_double ]
 c_lib.intergalacticMediumStateInternalL.restype  = c_void_p
 c_lib.intergalacticMediumStateInternalL.argtypes = [ c_void_p, c_int, c_void_p, c_int ]
+c_lib.intergalacticMediumStateMetallicityAstraeusVL.restype  = c_void_p
+c_lib.intergalacticMediumStateMetallicityAstraeusVL.argtypes = [ c_void_p, c_int, c_void_p, c_int ]
+c_lib.intergalacticMediumStateMetallicityFixedL.restype  = c_void_p
+c_lib.intergalacticMediumStateMetallicityFixedL.argtypes = [ c_double, c_void_p, c_int ]
 c_lib.intergalacticMediumStateSimpleL.restype  = c_void_p
 c_lib.intergalacticMediumStateSimpleL.argtypes = [ c_double, c_double, c_double, c_void_p, c_int, c_void_p, c_int ]
 c_lib.intergalacticMediumStateDoublyIonizedHeliumFractionL.restype  = c_double
@@ -246,6 +250,8 @@ c_lib.intergalacticMediumStateElectronScatteringTimeL.restype  = c_double
 c_lib.intergalacticMediumStateElectronScatteringTimeL.argtypes = [ c_void_p, c_int, c_double ]
 c_lib.intergalacticMediumStateMassJeansL.restype  = c_double
 c_lib.intergalacticMediumStateMassJeansL.argtypes = [ c_void_p, c_int, c_double ]
+c_lib.intergalacticMediumStateMetallicityL.restype  = c_double
+c_lib.intergalacticMediumStateMetallicityL.argtypes = [ c_void_p, c_int, c_double ]
 c_lib.intergalacticMediumStateNeutralHeliumFractionL.restype  = c_double
 c_lib.intergalacticMediumStateNeutralHeliumFractionL.argtypes = [ c_void_p, c_int, c_double ]
 c_lib.intergalacticMediumStateNeutralHydrogenFractionL.restype  = c_double
@@ -377,22 +383,24 @@ c_lib.excursionSetBarrierBarrierGradientL.restype  = c_double
 c_lib.excursionSetBarrierBarrierGradientL.argtypes = [ c_void_p, c_int, c_double, c_double, c_void_p, c_bool ]
 c_lib.excursionSetBarrierDestructorL.argtypes = [ c_void_p, c_int ]
 c_lib.excursionSetFirstCrossingFarahiL.restype  = c_void_p
-c_lib.excursionSetFirstCrossingFarahiL.argtypes = [ c_double, c_char_p, c_int, c_int, c_int, c_int, c_void_p, c_int, c_void_p, c_int, c_void_p, c_int ]
+c_lib.excursionSetFirstCrossingFarahiL.argtypes = [ c_double, c_char_p, c_int, c_int, c_int, c_int, c_int, c_bool, c_void_p, c_int, c_void_p, c_int, c_void_p, c_int ]
+c_lib.excursionSetFirstCrossingFarahiMidpointBrownianBridgeL.restype  = c_void_p
+c_lib.excursionSetFirstCrossingFarahiMidpointBrownianBridgeL.argtypes = [ c_double, c_double, c_double, c_char_p, c_int, c_int, c_int, c_int, c_int, c_bool, c_void_p, c_int, c_void_p, c_int, c_void_p, c_int, c_void_p, c_int, c_void_p, c_int, c_void_p, c_int ]
 c_lib.excursionSetFirstCrossingFarahiMidpointL.restype  = c_void_p
-c_lib.excursionSetFirstCrossingFarahiMidpointL.argtypes = [ c_double, c_char_p, c_int, c_int, c_int, c_int, c_void_p, c_int, c_void_p, c_int, c_void_p, c_int ]
+c_lib.excursionSetFirstCrossingFarahiMidpointL.argtypes = [ c_double, c_char_p, c_int, c_int, c_int, c_int, c_int, c_bool, c_void_p, c_int, c_void_p, c_int, c_void_p, c_int ]
 c_lib.excursionSetFirstCrossingZhangHuiL.restype  = c_void_p
 c_lib.excursionSetFirstCrossingZhangHuiL.argtypes = [ c_void_p, c_int ]
 c_lib.excursionSetFirstCrossingZhangHuiHighOrderL.restype  = c_void_p
 c_lib.excursionSetFirstCrossingZhangHuiHighOrderL.argtypes = [ c_void_p, c_int ]
 c_lib.excursionSetFirstCrossingLinearBarrierL.restype  = c_void_p
-c_lib.excursionSetFirstCrossingLinearBarrierL.argtypes = [ c_void_p, c_int, c_void_p, c_int ]
+c_lib.excursionSetFirstCrossingLinearBarrierL.argtypes = [ c_double, c_void_p, c_int, c_void_p, c_int ]
 c_lib.excursionSetFirstCrossingCoordinatedMPIL.argtypes = [ c_void_p, c_int, c_bool ]
 c_lib.excursionSetFirstCrossingProbabilityL.restype  = c_double
 c_lib.excursionSetFirstCrossingProbabilityL.argtypes = [ c_void_p, c_int, c_double, c_double, c_void_p ]
 c_lib.excursionSetFirstCrossingRateL.restype  = c_double
 c_lib.excursionSetFirstCrossingRateL.argtypes = [ c_void_p, c_int, c_double, c_double, c_double, c_void_p ]
 c_lib.excursionSetFirstCrossingRateNonCrossingL.restype  = c_double
-c_lib.excursionSetFirstCrossingRateNonCrossingL.argtypes = [ c_void_p, c_int, c_double, c_double, c_void_p ]
+c_lib.excursionSetFirstCrossingRateNonCrossingL.argtypes = [ c_void_p, c_int, c_double, c_double, c_double, c_void_p ]
 c_lib.excursionSetFirstCrossingDestructorL.argtypes = [ c_void_p, c_int ]
 c_lib.haloMassFunctionBhattacharya2011L.restype  = c_void_p
 c_lib.haloMassFunctionBhattacharya2011L.argtypes = [ c_void_p, c_int, c_void_p, c_int, c_void_p, c_int, c_double, c_double, c_double, c_double ]
@@ -472,6 +480,8 @@ c_lib.powerSpectrumWindowFunctionETHOSL.restype  = c_void_p
 c_lib.powerSpectrumWindowFunctionETHOSL.argtypes = [ c_double, c_double, c_void_p, c_int ]
 c_lib.powerSpectrumWindowFunctionLagrangianChan2017L.restype  = c_void_p
 c_lib.powerSpectrumWindowFunctionLagrangianChan2017L.argtypes = [ c_void_p, c_int, c_double ]
+c_lib.powerSpectrumWindowFunctionHyperbolicTangentL.restype  = c_void_p
+c_lib.powerSpectrumWindowFunctionHyperbolicTangentL.argtypes = [ c_void_p, c_int, c_double, c_double ]
 c_lib.powerSpectrumWindowFunctionSharpKSpaceL.restype  = c_void_p
 c_lib.powerSpectrumWindowFunctionSharpKSpaceL.argtypes = [ c_void_p, c_int, c_double ]
 c_lib.powerSpectrumWindowFunctionSmoothKSpaceL.restype  = c_void_p
@@ -512,9 +522,9 @@ c_lib.transferFunctionHu2000FDML.argtypes = [ c_void_p, c_int, c_double, c_void_
 c_lib.transferFunctionMurgia2017L.restype  = c_void_p
 c_lib.transferFunctionMurgia2017L.argtypes = [ c_void_p, c_int, c_double, c_double, c_double, c_double, c_void_p, c_int, c_void_p, c_int ]
 c_lib.transferFunctionAcceleratorL.restype  = c_void_p
-c_lib.transferFunctionAcceleratorL.argtypes = [ c_void_p, c_int, c_int ]
+c_lib.transferFunctionAcceleratorL.argtypes = [ c_void_p, c_int, c_void_p, c_int, c_int ]
 c_lib.transferFunctionEnvelopeL.restype  = c_void_p
-c_lib.transferFunctionEnvelopeL.argtypes = [ c_int, c_double, c_double, c_bool, c_void_p, c_int, c_void_p, c_int ]
+c_lib.transferFunctionEnvelopeL.argtypes = [ c_int, c_double, c_double, c_bool, c_bool, c_void_p, c_int, c_void_p, c_int ]
 c_lib.transferFunctionFileL.restype  = c_void_p
 c_lib.transferFunctionFileL.argtypes = [ c_char_p, c_double, c_void_p, c_int, c_void_p, c_int ]
 c_lib.transferFunctionFileFuzzyDarkMatterL.restype  = c_void_p
@@ -522,7 +532,7 @@ c_lib.transferFunctionFileFuzzyDarkMatterL.argtypes = [ c_char_p, c_double, c_vo
 c_lib.transferFunctionFuzzyDML.restype  = c_void_p
 c_lib.transferFunctionFuzzyDML.argtypes = [ c_void_p, c_int, c_double, c_double, c_double, c_void_p, c_int, c_void_p, c_int, c_void_p, c_int ]
 c_lib.transferFunctionIdentityL.restype  = c_void_p
-c_lib.transferFunctionIdentityL.argtypes = [ c_double ]
+c_lib.transferFunctionIdentityL.argtypes = [ c_double, c_void_p, c_int ]
 c_lib.transferFunctionEpochTimeL.restype  = c_double
 c_lib.transferFunctionEpochTimeL.argtypes = [ c_void_p, c_int ]
 c_lib.transferFunctionFractionModeMassL.restype  = c_double
@@ -535,6 +545,8 @@ c_lib.transferFunctionQuarterModeMassL.restype  = c_double
 c_lib.transferFunctionQuarterModeMassL.argtypes = [ c_void_p, c_int ]
 c_lib.transferFunctionValueL.restype  = c_double
 c_lib.transferFunctionValueL.argtypes = [ c_void_p, c_int, c_double ]
+c_lib.transferFunctionWavenumberFromMassL.restype  = c_double
+c_lib.transferFunctionWavenumberFromMassL.argtypes = [ c_void_p, c_int, c_double ]
 c_lib.transferFunctionDestructorL.argtypes = [ c_void_p, c_int ]
 c_lib.virialDensityContrastBryanNorman1998L.restype  = c_void_p
 c_lib.virialDensityContrastBryanNorman1998L.argtypes = [ c_void_p, c_int, c_void_p, c_int ]
@@ -1092,8 +1104,8 @@ class excursionSetFirstCrossing:
     def __del__(self):
         c_lib.excursionSetFirstCrossingDestructorL(self._glcObj,self._classID)
 
-    def rateNonCrossing(self,variance,time,node):
-        return c_lib.excursionSetFirstCrossingRateNonCrossingL(self._glcObj,self._classID,variance,time,node)
+    def rateNonCrossing(self,variance,massMinimum,time,node):
+        return c_lib.excursionSetFirstCrossingRateNonCrossingL(self._glcObj,self._classID,variance,massMinimum,time,node)
 
     def rate(self,variance,varianceProgenitor,time,node):
         return c_lib.excursionSetFirstCrossingRateL(self._glcObj,self._classID,variance,varianceProgenitor,time,node)
@@ -1114,6 +1126,9 @@ class transferFunction:
     # Destructor
     def __del__(self):
         c_lib.transferFunctionDestructorL(self._glcObj,self._classID)
+
+    def wavenumberFromMass(self,mass):
+        return c_lib.transferFunctionWavenumberFromMassL(self._glcObj,self._classID,mass)
 
     def value(self,wavenumber):
         return c_lib.transferFunctionValueL(self._glcObj,self._classID,wavenumber)
@@ -1537,6 +1552,58 @@ class darkMatterParticle:
 
     def mass(self):
         return c_lib.darkMatterParticleMassL(self._glcObj,self._classID)
+
+class intergalacticMediumState:
+
+    # Constructor
+    def __init__(self):
+        # Assign class ID to a negative number - indicating this is not a concrete class.
+        self._classID = -1
+
+    # Destructor
+    def __del__(self):
+        c_lib.intergalacticMediumStateDestructorL(self._glcObj,self._classID)
+
+    def temperature(self,time):
+        return c_lib.intergalacticMediumStateTemperatureL(self._glcObj,self._classID,time)
+
+    def singlyIonizedHydrogenFraction(self,time):
+        return c_lib.intergalacticMediumStateSinglyIonizedHydrogenFractionL(self._glcObj,self._classID,time)
+
+    def singlyIonizedHeliumFraction(self,time):
+        return c_lib.intergalacticMediumStateSinglyIonizedHeliumFractionL(self._glcObj,self._classID,time)
+
+    def neutralHydrogenFraction(self,time):
+        return c_lib.intergalacticMediumStateNeutralHydrogenFractionL(self._glcObj,self._classID,time)
+
+    def neutralHeliumFraction(self,time):
+        return c_lib.intergalacticMediumStateNeutralHeliumFractionL(self._glcObj,self._classID,time)
+
+    def metallicity(self,time):
+        return c_lib.intergalacticMediumStateMetallicityL(self._glcObj,self._classID,time)
+
+    def massJeans(self,time):
+        return c_lib.intergalacticMediumStateMassJeansL(self._glcObj,self._classID,time)
+
+    def electronScatteringTime(self,opticalDepth,assumeFullyIonized=None):
+        if not assumeFullyIonized:
+            return c_lib.intergalacticMediumStateElectronScatteringTimeL(self._glcObj,self._classID,opticalDepth,None)
+        elif assumeFullyIonized:
+            return c_lib.intergalacticMediumStateElectronScatteringTimeL(self._glcObj,self._classID,opticalDepth,byref(c_bool(assumeFullyIonized)))
+    
+
+    def electronScatteringOpticalDepth(self,time,assumeFullyIonized=None):
+        if not assumeFullyIonized:
+            return c_lib.intergalacticMediumStateElectronScatteringOpticalDepthL(self._glcObj,self._classID,time,None)
+        elif assumeFullyIonized:
+            return c_lib.intergalacticMediumStateElectronScatteringOpticalDepthL(self._glcObj,self._classID,time,byref(c_bool(assumeFullyIonized)))
+    
+
+    def electronFraction(self,time):
+        return c_lib.intergalacticMediumStateElectronFractionL(self._glcObj,self._classID,time)
+
+    def doublyIonizedHeliumFraction(self,time):
+        return c_lib.intergalacticMediumStateDoublyIonizedHeliumFractionL(self._glcObj,self._classID,time)
 
 class virialDensityContrast:
 
@@ -2016,55 +2083,6 @@ class cosmologicalMassVariance:
     def growthIsMassDependent(self):
         return c_lib.cosmologicalMassVarianceGrowthIsMassDependentL(self._glcObj,self._classID)
 
-class intergalacticMediumState:
-
-    # Constructor
-    def __init__(self):
-        # Assign class ID to a negative number - indicating this is not a concrete class.
-        self._classID = -1
-
-    # Destructor
-    def __del__(self):
-        c_lib.intergalacticMediumStateDestructorL(self._glcObj,self._classID)
-
-    def temperature(self,time):
-        return c_lib.intergalacticMediumStateTemperatureL(self._glcObj,self._classID,time)
-
-    def singlyIonizedHydrogenFraction(self,time):
-        return c_lib.intergalacticMediumStateSinglyIonizedHydrogenFractionL(self._glcObj,self._classID,time)
-
-    def singlyIonizedHeliumFraction(self,time):
-        return c_lib.intergalacticMediumStateSinglyIonizedHeliumFractionL(self._glcObj,self._classID,time)
-
-    def neutralHydrogenFraction(self,time):
-        return c_lib.intergalacticMediumStateNeutralHydrogenFractionL(self._glcObj,self._classID,time)
-
-    def neutralHeliumFraction(self,time):
-        return c_lib.intergalacticMediumStateNeutralHeliumFractionL(self._glcObj,self._classID,time)
-
-    def massJeans(self,time):
-        return c_lib.intergalacticMediumStateMassJeansL(self._glcObj,self._classID,time)
-
-    def electronScatteringTime(self,opticalDepth,assumeFullyIonized=None):
-        if not assumeFullyIonized:
-            return c_lib.intergalacticMediumStateElectronScatteringTimeL(self._glcObj,self._classID,opticalDepth,None)
-        elif assumeFullyIonized:
-            return c_lib.intergalacticMediumStateElectronScatteringTimeL(self._glcObj,self._classID,opticalDepth,byref(c_bool(assumeFullyIonized)))
-    
-
-    def electronScatteringOpticalDepth(self,time,assumeFullyIonized=None):
-        if not assumeFullyIonized:
-            return c_lib.intergalacticMediumStateElectronScatteringOpticalDepthL(self._glcObj,self._classID,time,None)
-        elif assumeFullyIonized:
-            return c_lib.intergalacticMediumStateElectronScatteringOpticalDepthL(self._glcObj,self._classID,time,byref(c_bool(assumeFullyIonized)))
-    
-
-    def electronFraction(self,time):
-        return c_lib.intergalacticMediumStateElectronFractionL(self._glcObj,self._classID,time)
-
-    def doublyIonizedHeliumFraction(self,time):
-        return c_lib.intergalacticMediumStateDoublyIonizedHeliumFractionL(self._glcObj,self._classID,time)
-
 class powerSpectrumPrimordialTransferred:
 
     # Constructor
@@ -2162,11 +2180,11 @@ class transferFunctionAxionCAMB(transferFunction):
 class transferFunctionAccelerator(transferFunction):
 
     # Constructor
-    def __init__(self,transferFunction_,tablePointsPerDecade):
+    def __init__(self,transferFunction_,cosmologyParameters_,tablePointsPerDecade):
         # Assign class ID so relevant pointers can be constructed on the Fortran side.
         self._classID = 11
     
-        self._glcObj = c_lib.transferFunctionAcceleratorL(transferFunction_._glcObj,transferFunction_._classID,tablePointsPerDecade)
+        self._glcObj = c_lib.transferFunctionAcceleratorL(transferFunction_._glcObj,transferFunction_._classID,cosmologyParameters_._glcObj,cosmologyParameters_._classID,tablePointsPerDecade)
 
 class virialDensityContrastSphericalCollapseClsnlssMttrDrkEnrgy(virialDensityContrast):
 
@@ -2182,7 +2200,7 @@ class powerSpectrumWindowFunctionTopHatSmoothed(powerSpectrumWindowFunction):
     # Constructor
     def __init__(self,cosmologyParameters_,sigma):
         # Assign class ID so relevant pointers can be constructed on the Fortran side.
-        self._classID = 8
+        self._classID = 9
     
         self._glcObj = c_lib.powerSpectrumWindowFunctionTopHatSmoothedL(cosmologyParameters_._glcObj,cosmologyParameters_._classID,sigma)
 
@@ -2191,7 +2209,7 @@ class powerSpectrumWindowFunctionTopHatSharpKHybrid(powerSpectrumWindowFunction)
     # Constructor
     def __init__(self,cosmologyParameters_,normalization,radiiRatio):
         # Assign class ID so relevant pointers can be constructed on the Fortran side.
-        self._classID = 7
+        self._classID = 8
     
         self._glcObj = c_lib.powerSpectrumWindowFunctionTopHatSharpKHybridL(cosmologyParameters_._glcObj,cosmologyParameters_._classID,normalization,radiiRatio)
 
@@ -2200,7 +2218,7 @@ class powerSpectrumWindowFunctionTopHatGeneralized(powerSpectrumWindowFunction):
     # Constructor
     def __init__(self,mu,cosmologyParameters_):
         # Assign class ID so relevant pointers can be constructed on the Fortran side.
-        self._classID = 6
+        self._classID = 7
     
         self._glcObj = c_lib.powerSpectrumWindowFunctionTopHatGeneralizedL(mu,cosmologyParameters_._glcObj,cosmologyParameters_._classID)
 
@@ -2209,7 +2227,7 @@ class powerSpectrumWindowFunctionTopHat(powerSpectrumWindowFunction):
     # Constructor
     def __init__(self,cosmologyParameters_):
         # Assign class ID so relevant pointers can be constructed on the Fortran side.
-        self._classID = 5
+        self._classID = 6
     
         self._glcObj = c_lib.powerSpectrumWindowFunctionTopHatL(cosmologyParameters_._glcObj,cosmologyParameters_._classID)
 
@@ -2218,7 +2236,7 @@ class powerSpectrumWindowFunctionSmoothKSpace(powerSpectrumWindowFunction):
     # Constructor
     def __init__(self,cosmologyParameters_,beta,normalization):
         # Assign class ID so relevant pointers can be constructed on the Fortran side.
-        self._classID = 4
+        self._classID = 5
     
         self._glcObj = c_lib.powerSpectrumWindowFunctionSmoothKSpaceL(cosmologyParameters_._glcObj,cosmologyParameters_._classID,beta,normalization)
 
@@ -2227,7 +2245,7 @@ class powerSpectrumWindowFunctionSharpKSpace(powerSpectrumWindowFunction):
     # Constructor
     def __init__(self,cosmologyParameters_,normalization):
         # Assign class ID so relevant pointers can be constructed on the Fortran side.
-        self._classID = 3
+        self._classID = 4
     
         self._glcObj = c_lib.powerSpectrumWindowFunctionSharpKSpaceL(cosmologyParameters_._glcObj,cosmologyParameters_._classID,normalization)
 
@@ -2239,6 +2257,15 @@ class powerSpectrumWindowFunctionLagrangianChan2017(powerSpectrumWindowFunction)
         self._classID = 2
     
         self._glcObj = c_lib.powerSpectrumWindowFunctionLagrangianChan2017L(cosmologyParameters_._glcObj,cosmologyParameters_._classID,f)
+
+class powerSpectrumWindowFunctionHyperbolicTangent(powerSpectrumWindowFunction):
+
+    # Constructor
+    def __init__(self,cosmologyParameters_,c,beta):
+        # Assign class ID so relevant pointers can be constructed on the Fortran side.
+        self._classID = 3
+    
+        self._glcObj = c_lib.powerSpectrumWindowFunctionHyperbolicTangentL(cosmologyParameters_._glcObj,cosmologyParameters_._classID,c,beta)
 
 class powerSpectrumWindowFunctionETHOS(powerSpectrumWindowFunction):
 
@@ -2404,14 +2431,24 @@ class nbodyHaloMassErrorFriendsOfFriends(nbodyHaloMassError):
     
         self._glcObj = c_lib.nbodyHaloMassErrorFriendsOfFriendsL(massParticle)
 
-class transferFunctionFileFuzzyDarkMatter(transferFunction):
+class transferFunctionFile(transferFunction):
 
     # Constructor
-    def __init__(self,fileName,redshift,cosmologyParameters_,cosmologyFunctions_,darkMatterParticle_):
+    def __init__(self,fileName,redshift,cosmologyParameters_,cosmologyFunctions_,transferFunctionReference=None):
         # Assign class ID so relevant pointers can be constructed on the Fortran side.
-        self._classID = 14
+        self._classID = 13
+        if transferFunctionReference:
+            transferFunctionReference_glcObj =transferFunctionReference._glcObj
+            transferFunctionReference_classID=transferFunctionReference._classID
+        else:
+            transferFunctionReference_glcObj =None
+            transferFunctionReference_classID=None
     
-        self._glcObj = c_lib.transferFunctionFileFuzzyDarkMatterL(fileName,redshift,cosmologyParameters_._glcObj,cosmologyParameters_._classID,cosmologyFunctions_._glcObj,cosmologyFunctions_._classID,darkMatterParticle_._glcObj,darkMatterParticle_._classID)
+        if not transferFunctionReference:
+            self._glcObj = c_lib.transferFunctionFileL(fileName,redshift,cosmologyParameters_._glcObj,cosmologyParameters_._classID,cosmologyFunctions_._glcObj,cosmologyFunctions_._classID,None,None)
+        elif transferFunctionReference:
+            self._glcObj = c_lib.transferFunctionFileL(fileName,redshift,cosmologyParameters_._glcObj,cosmologyParameters_._classID,cosmologyFunctions_._glcObj,cosmologyFunctions_._classID,byref(c_void_p(transferFunctionReference_glcObj)),byref(c_int(transferFunctionReference_classID)))
+    
 
 class linearGrowthNonClusteringBaryonsDarkMatter(linearGrowth):
 
@@ -2440,31 +2477,21 @@ class linearGrowthBaryonsDarkMatter(linearGrowth):
     
         self._glcObj = c_lib.linearGrowthBaryonsDarkMatterL(redshiftInitial,redshiftInitialDelta,cambCountPerDecade,cosmologyParameters_._glcObj,cosmologyParameters_._classID,cosmologyFunctions_._glcObj,cosmologyFunctions_._classID,intergalacticMediumState_._glcObj,intergalacticMediumState_._classID)
 
-class transferFunctionEnvelope(transferFunction):
+class transferFunctionEisensteinHu1999(transferFunction):
 
     # Constructor
-    def __init__(self,tablePointsPerDecade,wavenumberMinimum,wavenumberMaximum,envelopeModeMassesOnly,cosmologyParameters_,transferFunction_,transferFunctionReference=None):
+    def __init__(self,neutrinoNumberEffective,neutrinoMassSummed,darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_):
         # Assign class ID so relevant pointers can be constructed on the Fortran side.
-        self._classID = 12
-        if transferFunctionReference:
-            transferFunctionReference_glcObj =transferFunctionReference._glcObj
-            transferFunctionReference_classID=transferFunctionReference._classID
-        else:
-            transferFunctionReference_glcObj =None
-            transferFunctionReference_classID=None
+        self._classID = 8
     
-        if not transferFunctionReference:
-            self._glcObj = c_lib.transferFunctionEnvelopeL(tablePointsPerDecade,wavenumberMinimum,wavenumberMaximum,envelopeModeMassesOnly,cosmologyParameters_._glcObj,cosmologyParameters_._classID,transferFunction_._glcObj,transferFunction_._classID,None,None)
-        elif transferFunctionReference:
-            self._glcObj = c_lib.transferFunctionEnvelopeL(tablePointsPerDecade,wavenumberMinimum,wavenumberMaximum,envelopeModeMassesOnly,cosmologyParameters_._glcObj,cosmologyParameters_._classID,transferFunction_._glcObj,transferFunction_._classID,byref(c_void_p(transferFunctionReference_glcObj)),byref(c_int(transferFunctionReference_classID)))
-    
+        self._glcObj = c_lib.transferFunctionEisensteinHu1999L(neutrinoNumberEffective,neutrinoMassSummed,darkMatterParticle_._glcObj,darkMatterParticle_._classID,cosmologyParameters_._glcObj,cosmologyParameters_._classID,cosmologyFunctions_._glcObj,cosmologyFunctions_._classID)
 
 class intergalacticMediumStateSimple(intergalacticMediumState):
 
     # Constructor
     def __init__(self,reionizationRedshift,reionizationTemperature,preReionizationTemperature,cosmologyFunctions_,cosmologyParameters_):
         # Assign class ID so relevant pointers can be constructed on the Fortran side.
-        self._classID = 5
+        self._classID = 7
     
         self._glcObj = c_lib.intergalacticMediumStateSimpleL(reionizationRedshift,reionizationTemperature,preReionizationTemperature,cosmologyFunctions_._glcObj,cosmologyFunctions_._classID,cosmologyParameters_._glcObj,cosmologyParameters_._classID)
 
@@ -2476,6 +2503,24 @@ class intergalacticMediumStateRecFast(intergalacticMediumState):
         self._classID = 1
     
         self._glcObj = c_lib.intergalacticMediumStateRecFastL(cosmologyFunctions_._glcObj,cosmologyFunctions_._classID,cosmologyParameters_._glcObj,cosmologyParameters_._classID)
+
+class intergalacticMediumStateMetallicityFixed(intergalacticMediumState):
+
+    # Constructor
+    def __init__(self,metallicity,intergalacticMediumState_):
+        # Assign class ID so relevant pointers can be constructed on the Fortran side.
+        self._classID = 6
+    
+        self._glcObj = c_lib.intergalacticMediumStateMetallicityFixedL(metallicity,intergalacticMediumState_._glcObj,intergalacticMediumState_._classID)
+
+class intergalacticMediumStateMetallicityAstraeusV(intergalacticMediumState):
+
+    # Constructor
+    def __init__(self,cosmologyFunctions_,intergalacticMediumState_):
+        # Assign class ID so relevant pointers can be constructed on the Fortran side.
+        self._classID = 5
+    
+        self._glcObj = c_lib.intergalacticMediumStateMetallicityAstraeusVL(cosmologyFunctions_._glcObj,cosmologyFunctions_._classID,intergalacticMediumState_._glcObj,intergalacticMediumState_._classID)
 
 class intergalacticMediumStateInternal(intergalacticMediumState):
 
@@ -2512,14 +2557,14 @@ class intergalacticMediumStateFile(intergalacticMediumState):
     
         self._glcObj = c_lib.intergalacticMediumStateFileL(fileName,cosmologyFunctions_._glcObj,cosmologyFunctions_._classID,cosmologyParameters_._glcObj,cosmologyParameters_._classID)
 
-class transferFunctionCLASSCDM(transferFunction):
+class transferFunctionFileFuzzyDarkMatter(transferFunction):
 
     # Constructor
-    def __init__(self,darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_,redshift,countPerDecade):
+    def __init__(self,fileName,redshift,cosmologyParameters_,cosmologyFunctions_,darkMatterParticle_):
         # Assign class ID so relevant pointers can be constructed on the Fortran side.
-        self._classID = 6
+        self._classID = 14
     
-        self._glcObj = c_lib.transferFunctionCLASSCDML(darkMatterParticle_._glcObj,darkMatterParticle_._classID,cosmologyParameters_._glcObj,cosmologyParameters_._classID,cosmologyFunctions_._glcObj,cosmologyFunctions_._classID,redshift,countPerDecade)
+        self._glcObj = c_lib.transferFunctionFileFuzzyDarkMatterL(fileName,redshift,cosmologyParameters_._glcObj,cosmologyParameters_._classID,cosmologyFunctions_._glcObj,cosmologyFunctions_._classID,darkMatterParticle_._glcObj,darkMatterParticle_._classID)
 
 class intergalacticMediumFilteringMassGnedin2000(intergalacticMediumFilteringMass):
 
@@ -2686,11 +2731,11 @@ class haloMassFunctionBhattacharya2011(haloMassFunction):
 class transferFunctionIdentity(transferFunction):
 
     # Constructor
-    def __init__(self,time):
+    def __init__(self,time,cosmologyParameters_):
         # Assign class ID so relevant pointers can be constructed on the Fortran side.
         self._classID = 16
     
-        self._glcObj = c_lib.transferFunctionIdentityL(time)
+        self._glcObj = c_lib.transferFunctionIdentityL(time,cosmologyParameters_._glcObj,cosmologyParameters_._classID)
 
 class haloEnvironmentUniform(haloEnvironment):
 
@@ -2744,12 +2789,12 @@ class haloEnvironmentFixed(haloEnvironment):
             self._glcObj = c_lib.haloEnvironmentFixedL(cosmologyFunctions_._glcObj,cosmologyFunctions_._classID,linearGrowth_._glcObj,linearGrowth_._classID,overdensity,byref(c_double(radiusEnvironment)),byref(c_double(massEnvironment)))
     
 
-class transferFunctionFile(transferFunction):
+class transferFunctionEnvelope(transferFunction):
 
     # Constructor
-    def __init__(self,fileName,redshift,cosmologyParameters_,cosmologyFunctions_,transferFunctionReference=None):
+    def __init__(self,tablePointsPerDecade,wavenumberMinimum,wavenumberMaximum,envelopeRatio,envelopeModeMassesOnly,cosmologyParameters_,transferFunction_,transferFunctionReference=None):
         # Assign class ID so relevant pointers can be constructed on the Fortran side.
-        self._classID = 13
+        self._classID = 12
         if transferFunctionReference:
             transferFunctionReference_glcObj =transferFunctionReference._glcObj
             transferFunctionReference_classID=transferFunctionReference._classID
@@ -2758,9 +2803,9 @@ class transferFunctionFile(transferFunction):
             transferFunctionReference_classID=None
     
         if not transferFunctionReference:
-            self._glcObj = c_lib.transferFunctionFileL(fileName,redshift,cosmologyParameters_._glcObj,cosmologyParameters_._classID,cosmologyFunctions_._glcObj,cosmologyFunctions_._classID,None,None)
+            self._glcObj = c_lib.transferFunctionEnvelopeL(tablePointsPerDecade,wavenumberMinimum,wavenumberMaximum,envelopeRatio,envelopeModeMassesOnly,cosmologyParameters_._glcObj,cosmologyParameters_._classID,transferFunction_._glcObj,transferFunction_._classID,None,None)
         elif transferFunctionReference:
-            self._glcObj = c_lib.transferFunctionFileL(fileName,redshift,cosmologyParameters_._glcObj,cosmologyParameters_._classID,cosmologyFunctions_._glcObj,cosmologyFunctions_._classID,byref(c_void_p(transferFunctionReference_glcObj)),byref(c_int(transferFunctionReference_classID)))
+            self._glcObj = c_lib.transferFunctionEnvelopeL(tablePointsPerDecade,wavenumberMinimum,wavenumberMaximum,envelopeRatio,envelopeModeMassesOnly,cosmologyParameters_._glcObj,cosmologyParameters_._classID,transferFunction_._glcObj,transferFunction_._classID,byref(c_void_p(transferFunctionReference_glcObj)),byref(c_int(transferFunctionReference_classID)))
     
 
 class excursionSetFirstCrossingZhangHuiHighOrder(excursionSetFirstCrossing):
@@ -2768,7 +2813,7 @@ class excursionSetFirstCrossingZhangHuiHighOrder(excursionSetFirstCrossing):
     # Constructor
     def __init__(self,excursionSetBarrier_):
         # Assign class ID so relevant pointers can be constructed on the Fortran side.
-        self._classID = 4
+        self._classID = 5
     
         self._glcObj = c_lib.excursionSetFirstCrossingZhangHuiHighOrderL(excursionSetBarrier_._glcObj,excursionSetBarrier_._classID)
 
@@ -2777,36 +2822,45 @@ class excursionSetFirstCrossingZhangHui(excursionSetFirstCrossing):
     # Constructor
     def __init__(self,excursionSetBarrier_):
         # Assign class ID so relevant pointers can be constructed on the Fortran side.
-        self._classID = 3
+        self._classID = 4
     
         self._glcObj = c_lib.excursionSetFirstCrossingZhangHuiL(excursionSetBarrier_._glcObj,excursionSetBarrier_._classID)
 
 class excursionSetFirstCrossingLinearBarrier(excursionSetFirstCrossing):
 
     # Constructor
-    def __init__(self,excursionSetBarrier_,cosmologicalMassVariance_):
+    def __init__(self,fractionalTimeStep,excursionSetBarrier_,cosmologicalMassVariance_):
         # Assign class ID so relevant pointers can be constructed on the Fortran side.
-        self._classID = 5
+        self._classID = 6
     
-        self._glcObj = c_lib.excursionSetFirstCrossingLinearBarrierL(excursionSetBarrier_._glcObj,excursionSetBarrier_._classID,cosmologicalMassVariance_._glcObj,cosmologicalMassVariance_._classID)
+        self._glcObj = c_lib.excursionSetFirstCrossingLinearBarrierL(fractionalTimeStep,excursionSetBarrier_._glcObj,excursionSetBarrier_._classID,cosmologicalMassVariance_._glcObj,cosmologicalMassVariance_._classID)
+
+class excursionSetFirstCrossingFarahiMidpointBrownianBridge(excursionSetFirstCrossing):
+
+    # Constructor
+    def __init__(self,varianceConstrained,criticalOverdensityConstrained,fractionalTimeStep,fileName,varianceNumberPerUnitProbability,varianceNumberPerUnit,varianceNumberPerDecade,varianceNumberPerDecadeNonCrossing,timeNumberPerDecade,varianceIsUnlimited,cosmologyFunctions_,excursionSetBarrier_,cosmologicalMassVariance_,criticalOverdensity_,linearGrowth_,excursionSetFirstCrossing_):
+        # Assign class ID so relevant pointers can be constructed on the Fortran side.
+        self._classID = 2
+    
+        self._glcObj = c_lib.excursionSetFirstCrossingFarahiMidpointBrownianBridgeL(varianceConstrained,criticalOverdensityConstrained,fractionalTimeStep,fileName,varianceNumberPerUnitProbability,varianceNumberPerUnit,varianceNumberPerDecade,varianceNumberPerDecadeNonCrossing,timeNumberPerDecade,varianceIsUnlimited,cosmologyFunctions_._glcObj,cosmologyFunctions_._classID,excursionSetBarrier_._glcObj,excursionSetBarrier_._classID,cosmologicalMassVariance_._glcObj,cosmologicalMassVariance_._classID,criticalOverdensity_._glcObj,criticalOverdensity_._classID,linearGrowth_._glcObj,linearGrowth_._classID,excursionSetFirstCrossing_._glcObj,excursionSetFirstCrossing_._classID)
 
 class excursionSetFirstCrossingFarahiMidpoint(excursionSetFirstCrossing):
 
     # Constructor
-    def __init__(self,timeStepFractional,fileName,varianceNumberPerUnitProbability,varianceNumberPerUnit,varianceNumberPerDecade,timeNumberPerDecade,cosmologyFunctions_,excursionSetBarrier_,cosmologicalMassVariance_):
+    def __init__(self,fractionalTimeStep,fileName,varianceNumberPerUnitProbability,varianceNumberPerUnit,varianceNumberPerDecade,varianceNumberPerDecadeNonCrossing,timeNumberPerDecade,varianceIsUnlimited,cosmologyFunctions_,excursionSetBarrier_,cosmologicalMassVariance_):
         # Assign class ID so relevant pointers can be constructed on the Fortran side.
-        self._classID = 2
+        self._classID = 3
     
-        self._glcObj = c_lib.excursionSetFirstCrossingFarahiMidpointL(timeStepFractional,fileName,varianceNumberPerUnitProbability,varianceNumberPerUnit,varianceNumberPerDecade,timeNumberPerDecade,cosmologyFunctions_._glcObj,cosmologyFunctions_._classID,excursionSetBarrier_._glcObj,excursionSetBarrier_._classID,cosmologicalMassVariance_._glcObj,cosmologicalMassVariance_._classID)
+        self._glcObj = c_lib.excursionSetFirstCrossingFarahiMidpointL(fractionalTimeStep,fileName,varianceNumberPerUnitProbability,varianceNumberPerUnit,varianceNumberPerDecade,varianceNumberPerDecadeNonCrossing,timeNumberPerDecade,varianceIsUnlimited,cosmologyFunctions_._glcObj,cosmologyFunctions_._classID,excursionSetBarrier_._glcObj,excursionSetBarrier_._classID,cosmologicalMassVariance_._glcObj,cosmologicalMassVariance_._classID)
 
 class excursionSetFirstCrossingFarahi(excursionSetFirstCrossing):
 
     # Constructor
-    def __init__(self,timeStepFractional,fileName,varianceNumberPerUnitProbability,varianceNumberPerUnit,varianceNumberPerDecade,timeNumberPerDecade,cosmologyFunctions_,excursionSetBarrier_,cosmologicalMassVariance_):
+    def __init__(self,fractionalTimeStep,fileName,varianceNumberPerUnitProbability,varianceNumberPerUnit,varianceNumberPerDecade,varianceNumberPerDecadeNonCrossing,timeNumberPerDecade,varianceIsUnlimited,cosmologyFunctions_,excursionSetBarrier_,cosmologicalMassVariance_):
         # Assign class ID so relevant pointers can be constructed on the Fortran side.
         self._classID = 1
     
-        self._glcObj = c_lib.excursionSetFirstCrossingFarahiL(timeStepFractional,fileName,varianceNumberPerUnitProbability,varianceNumberPerUnit,varianceNumberPerDecade,timeNumberPerDecade,cosmologyFunctions_._glcObj,cosmologyFunctions_._classID,excursionSetBarrier_._glcObj,excursionSetBarrier_._classID,cosmologicalMassVariance_._glcObj,cosmologicalMassVariance_._classID)
+        self._glcObj = c_lib.excursionSetFirstCrossingFarahiL(fractionalTimeStep,fileName,varianceNumberPerUnitProbability,varianceNumberPerUnit,varianceNumberPerDecade,varianceNumberPerDecadeNonCrossing,timeNumberPerDecade,varianceIsUnlimited,cosmologyFunctions_._glcObj,cosmologyFunctions_._classID,excursionSetBarrier_._glcObj,excursionSetBarrier_._classID,cosmologicalMassVariance_._glcObj,cosmologicalMassVariance_._classID)
 
 class virialDensityContrastKitayamaSuto1996(virialDensityContrast):
 
@@ -3201,14 +3255,14 @@ class darkMatterHaloScaleVirialDensityContrastDefinition(darkMatterHaloScale):
             self._glcObj = c_lib.darkMatterHaloScaleVirialDensityContrastDefinitionL(cosmologyParameters_._glcObj,cosmologyParameters_._classID,cosmologyFunctions_._glcObj,cosmologyFunctions_._classID,virialDensityContrast_._glcObj,virialDensityContrast_._classID,byref(c_bool(recursiveConstruct)),byref(c_void_p(recursiveSelf_glcObj)),byref(c_int(recursiveSelf_classID)))
     
 
-class transferFunctionEisensteinHu1999(transferFunction):
+class transferFunctionETHOSDM(transferFunction):
 
     # Constructor
-    def __init__(self,neutrinoNumberEffective,neutrinoMassSummed,darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_):
+    def __init__(self,transferFunctionCDM,alpha,beta,gamma,sigma,tau,kPeak,hPeak,h2,time,cosmologyParameters_,cosmologyFunctions_):
         # Assign class ID so relevant pointers can be constructed on the Fortran side.
-        self._classID = 8
+        self._classID = 7
     
-        self._glcObj = c_lib.transferFunctionEisensteinHu1999L(neutrinoNumberEffective,neutrinoMassSummed,darkMatterParticle_._glcObj,darkMatterParticle_._classID,cosmologyParameters_._glcObj,cosmologyParameters_._classID,cosmologyFunctions_._glcObj,cosmologyFunctions_._classID)
+        self._glcObj = c_lib.transferFunctionETHOSDML(transferFunctionCDM._glcObj,transferFunctionCDM._classID,alpha,beta,gamma,sigma,tau,kPeak,hPeak,h2,time,cosmologyParameters_._glcObj,cosmologyParameters_._classID,cosmologyFunctions_._glcObj,cosmologyFunctions_._classID)
 
 class criticalOverdensitySphericalCollapseClsnlssMttrDrkEnrgy(criticalOverdensity):
 
@@ -3552,12 +3606,12 @@ class cosmologicalMassVarianceFilteredPower(cosmologicalMassVariance):
             self._glcObj = c_lib.cosmologicalMassVarianceFilteredPowerL(byref(c_double(sigma8)),byref(c_void_p(cosmologicalMassVarianceReference_glcObj)),byref(c_int(cosmologicalMassVarianceReference_classID)),byref(c_void_p(powerSpectrumPrimordialTransferredReference_glcObj)),byref(c_int(powerSpectrumPrimordialTransferredReference_classID)),byref(c_double(wavenumberReference)),c_double(tolerance),c_double(toleranceTopHat),c_bool(nonMonotonicIsFatal),c_bool(monotonicInterpolation),c_bool(truncateAtParticleHorizon),c_void_p(cosmologyParameters_._glcObj),c_int(cosmologyParameters_._classID),c_void_p(cosmologyFunctions_._glcObj),c_int(cosmologyFunctions_._classID),c_void_p(linearGrowth_._glcObj),c_int(linearGrowth_._classID),byref(c_void_p(transferFunction__glcObj)),byref(c_int(transferFunction__classID)),c_void_p(powerSpectrumPrimordialTransferred_._glcObj),c_int(powerSpectrumPrimordialTransferred_._classID),c_void_p(powerSpectrumWindowFunction_._glcObj),c_int(powerSpectrumWindowFunction_._classID),byref(c_void_p(powerSpectrumWindowFunctionTopHat__glcObj)),byref(c_int(powerSpectrumWindowFunctionTopHat__classID)))
     
 
-class transferFunctionETHOSDM(transferFunction):
+class transferFunctionCLASSCDM(transferFunction):
 
     # Constructor
-    def __init__(self,transferFunctionCDM,alpha,beta,gamma,sigma,tau,kPeak,hPeak,h2,time,cosmologyParameters_,cosmologyFunctions_):
+    def __init__(self,darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_,redshift,countPerDecade):
         # Assign class ID so relevant pointers can be constructed on the Fortran side.
-        self._classID = 7
+        self._classID = 6
     
-        self._glcObj = c_lib.transferFunctionETHOSDML(transferFunctionCDM._glcObj,transferFunctionCDM._classID,alpha,beta,gamma,sigma,tau,kPeak,hPeak,h2,time,cosmologyParameters_._glcObj,cosmologyParameters_._classID,cosmologyFunctions_._glcObj,cosmologyFunctions_._classID)
+        self._glcObj = c_lib.transferFunctionCLASSCDML(darkMatterParticle_._glcObj,darkMatterParticle_._classID,cosmologyParameters_._glcObj,cosmologyParameters_._classID,cosmologyFunctions_._glcObj,cosmologyFunctions_._classID,redshift,countPerDecade)
 

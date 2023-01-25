@@ -142,20 +142,18 @@
     <massSplitting value="0.0001" />
     <lifetime value="20" />
     <heating value="true" />
-    <massLoss value="true" />
-    <gamma value="1.0" />
+    <massLoss value="false" />
+    <gamma value="0.0" />
   </darkMatterParticle>
 
   <!-- Dark matter halo structure options -->
   <darkMatterProfile value="darkMatterOnly"/>
-  <darkMatterProfileDMO value="decaying">
-    <darkMatterProfileDMO value="heatedMonotonic">
-      <darkMatterProfileDMO value="NFW" />
-      <nonAnalyticSolver value="numerical" />
-      <toleranceRelativeVelocityDispersion value="1.0e-6"/>
-      <toleranceRelativeVelocityDispersionMaximum value="0.1"/>
-      <toleranceRelativePotential value="1.0e-3"/>
-    </darkMatterProfileDMO>
+  <darkMatterProfileDMO value="heatedMonotonic">
+    <darkMatterProfileDMO value="NFW" />
+    <nonAnalyticSolver value="numerical" />
+    <toleranceRelativeVelocityDispersion value="1.0e-6"/>
+    <toleranceRelativeVelocityDispersionMaximum value="0.1"/>
+    <toleranceRelativePotential value="1.0e-3"/>
   </darkMatterProfileDMO>
   <darkMatterProfileHeating value="summation">
     <darkMatterProfileHeating value="tidal"/>
@@ -236,8 +234,8 @@
       <radiusVirialFraction      value="0.01"/>
     </nodeOperator>
     <nodeOperator value="satelliteDestructionMassThreshold" >
-      <massDestruction           value="=[mergerTreeMassResolution::massResolution]"/>
-      <massDestructionFractional value="0.0e0"/>
+      <massDestruction           value="3.0e5"/>
+      <massDestructionFractional value="0.0"/>
     </nodeOperator>
   </nodeOperator>
 
@@ -559,10 +557,12 @@
                          "/>
     </nodePropertyExtractor>
   </nodePropertyExtractor>
+  <nodePropertyExtractor value="indicesTree"/>
+
 
   <mergingStatistics value="standard"/>
 
-  <outputFileName value="Data/MW_halos2v2.hdf5"/>
+  <outputFileName value="Data/DDM_HALOS_LOW_RES_MS1_LT20.hdf5"/>
 
   <!-- Merger trees -->
   <!--
