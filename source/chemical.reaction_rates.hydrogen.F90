@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -111,16 +111,16 @@
   end interface chemicalReactionRateHydrogenNetwork
 
   ! Module-scope pointer to self used in integrations.
-  class(chemicalReactionRateHydrogenNetwork), pointer   :: hydrogenNetworkSelf
-  !$omp threadprivate(hydrogenNetworkSelf)
+  class(chemicalReactionRateHydrogenNetwork), pointer   :: self_
+  !$omp threadprivate(self_)
 
   ! Pointers to cross-section functions.
-  procedure(crossSectionFunctionTemplate   ), pointer   :: hydrogenNetworkCrossSection_H_Gamma_to_Hplus_Electron_       => hydrogenNetworkCrossSection_H_Gamma_to_Hplus_Electron
-  procedure(crossSectionFunctionTemplate   ), pointer   :: hydrogenNetworkCrossSection_H2_Gamma_to_2H_                  => hydrogenNetworkCrossSection_H2_Gamma_to_2H
-  procedure(crossSectionFunctionTemplate   ), pointer   :: hydrogenNetworkCrossSection_H2plus_Gamma_to_2Hplus_Electron_ => hydrogenNetworkCrossSection_H2plus_Gamma_to_2Hplus_Electron
-  procedure(crossSectionFunctionTemplate   ), pointer   :: hydrogenNetworkCrossSection_H2_Gamma_to_H2plus_Electron_     => hydrogenNetworkCrossSection_H2_Gamma_to_H2plus_Electron
-  procedure(crossSectionFunctionTemplate   ), pointer   :: hydrogenNetworkCrossSection_H2plus_Gamma_to_H_Hplus_         => hydrogenNetworkCrossSection_H2plus_Gamma_to_H_Hplus
-  procedure(crossSectionFunctionTemplate   ), pointer   :: hydrogenNetworkCrossSection_Hminus_Gamma_to_H_Electron_      => hydrogenNetworkCrossSection_Hminus_Gamma_to_H_Electron
+  procedure(crossSectionFunctionTemplate   ), pointer   :: crossSection_H_Gamma_to_Hplus_Electron_       => crossSection_H_Gamma_to_Hplus_Electron
+  procedure(crossSectionFunctionTemplate   ), pointer   :: crossSection_H2_Gamma_to_2H_                  => crossSection_H2_Gamma_to_2H
+  procedure(crossSectionFunctionTemplate   ), pointer   :: crossSection_H2plus_Gamma_to_2Hplus_Electron_ => crossSection_H2plus_Gamma_to_2Hplus_Electron
+  procedure(crossSectionFunctionTemplate   ), pointer   :: crossSection_H2_Gamma_to_H2plus_Electron_     => crossSection_H2_Gamma_to_H2plus_Electron
+  procedure(crossSectionFunctionTemplate   ), pointer   :: crossSection_H2plus_Gamma_to_H_Hplus_         => crossSection_H2plus_Gamma_to_H_Hplus
+  procedure(crossSectionFunctionTemplate   ), pointer   :: crossSection_Hminus_Gamma_to_H_Electron_      => crossSection_Hminus_Gamma_to_H_Electron
   
 contains
 
@@ -1353,7 +1353,7 @@ contains
        class is (radiationFieldCosmicMicrowaveBackground)
           rateCoefficient=0.144d0*(radiation%temperature()**2.13d0)*exp(-8650.0d0/radiation%temperature())
        class default
-          rateCoefficient=radiation%integrateOverCrossSection([0.0d0,crossSectionWavelengthHigh],hydrogenNetworkCrossSection_Hminus_Gamma_to_H_Electron_,node)
+          rateCoefficient=radiation%integrateOverCrossSection([0.0d0,crossSectionWavelengthHigh],crossSection_Hminus_Gamma_to_H_Electron_,node)
        end select
        ! Compute rate.
        rate=rateCoefficient*self%densityAtomicHydrogenAnion
@@ -1371,7 +1371,7 @@ contains
     return
   end subroutine hydrogenNetworkRateHminus_Gamma_to_H_Electron
 
-  double precision function hydrogenNetworkCrossSection_Hminus_Gamma_to_H_Electron(wavelength)
+  double precision function crossSection_Hminus_Gamma_to_H_Electron(wavelength)
     !!{
     Compute the cross-section (in units of cm$^{2}$) for the reaction $\hbox{H}^- + \gamma \rightarrow \hbox{H} + \hbox{e}^-$
     using the fitting function given by \cite{shapiro_hydrogen_1987}, renormalized\footnote{It seems unclear what units were
@@ -1410,9 +1410,9 @@ contains
     ! Convert from wavelength (in Angstroms) to energy (in eV).
     energy=plancksConstant*speedLight*angstromsPerMeter/electronVolt/wavelength
     ! Evaluate the cross section.
-    hydrogenNetworkCrossSection_Hminus_Gamma_to_H_Electron=interpolator_%interpolate(energy)
+    crossSection_Hminus_Gamma_to_H_Electron=interpolator_%interpolate(energy)
     return
-  end function hydrogenNetworkCrossSection_Hminus_Gamma_to_H_Electron
+  end function crossSection_Hminus_Gamma_to_H_Electron
 
   subroutine hydrogenNetworkRateH2plus_Gamma_to_H_Hplus(self,temperature,radiation,chemicalDensity,chemicalRates,node)
     !!{
@@ -1465,7 +1465,7 @@ contains
        class is (radiationFieldCosmicMicrowaveBackground)
           rateCoefficient=6.36d5*exp(-71600.0d0/radiation%temperature())
        class default
-          rateCoefficient=radiation%integrateOverCrossSection([crossSectionWavelengthLow,crossSectionWavelengthHigh],hydrogenNetworkCrossSection_H2plus_Gamma_to_H_Hplus_,node)
+          rateCoefficient=radiation%integrateOverCrossSection([crossSectionWavelengthLow,crossSectionWavelengthHigh],crossSection_H2plus_Gamma_to_H_Hplus_,node)
        end select
        ! Compute rate.
        rate=rateCoefficient*chemicalDensity%abundance(chemicalHydrogenCationChemicalIndex)
@@ -1483,7 +1483,7 @@ contains
     return
   end subroutine hydrogenNetworkRateH2plus_Gamma_to_H_Hplus
 
-  double precision function hydrogenNetworkCrossSection_H2plus_Gamma_to_H_Hplus(wavelength)
+  double precision function crossSection_H2plus_Gamma_to_H_Hplus(wavelength)
     !!{
     Compute the cross-section (in units of cm$^{2}$) for the reaction $\hbox{H}_2^+ + \gamma \rightarrow \hbox{H} + \hbox{H}^+$
     as given by \cite{shapiro_hydrogen_1987}.
@@ -1529,9 +1529,9 @@ contains
     ! Convert from wavelength (in Angstroms) to energy (in eV).
     energy=plancksConstant*speedLight*angstromsPerMeter/electronVolt/wavelength
     ! Evaluate the cross-section.
-    hydrogenNetworkCrossSection_H2plus_Gamma_to_H_Hplus=interpolator_%interpolate(energy)
+    crossSection_H2plus_Gamma_to_H_Hplus=interpolator_%interpolate(energy)
     return
-  end function hydrogenNetworkCrossSection_H2plus_Gamma_to_H_Hplus
+  end function crossSection_H2plus_Gamma_to_H_Hplus
 
   subroutine hydrogenNetworkRateH2_Gamma_to_H2star_to_2H(self,lengthColumn,temperature,radiation,chemicalDensity,chemicalRates,node)
     !!{
@@ -1674,7 +1674,7 @@ contains
     ! Do calculation if this reaction is active.
     if (reactionActive) then
        ! Compute rate coefficient.
-       rateCoefficient=radiation%integrateOverCrossSection([0.0d0,crossSectionEdgeWavelength],hydrogenNetworkCrossSection_H2_Gamma_to_H2plus_Electron_,node)
+       rateCoefficient=radiation%integrateOverCrossSection([0.0d0,crossSectionEdgeWavelength],crossSection_H2_Gamma_to_H2plus_Electron_,node)
        ! Compute rate.
        rate=rateCoefficient*chemicalDensity%abundance(chemicalHydrogenChemicalIndex)
        ! Record rate.
@@ -1692,7 +1692,7 @@ contains
     return
   end subroutine hydrogenNetworkRateH2_Gamma_to_H2plus_Electron
 
-  double precision function hydrogenNetworkCrossSection_H2_Gamma_to_H2plus_Electron(wavelength)
+  double precision function crossSection_H2_Gamma_to_H2plus_Electron(wavelength)
     !!{
     Compute the cross-section (in units of cm$^{2}$) for the reaction $\hbox{H}_2 + \gamma \rightarrow \hbox{H}_2^+ +
     \hbox{e}^-$ as given by\footnote{\protect\cite{abel_modeling_1997} cite ``O'Neil \& Reinhardt (1978)'' as the source for
@@ -1734,9 +1734,9 @@ contains
     ! Convert from wavelength (in Angstroms) to energy (in eV).
     energy=plancksConstant*speedLight*angstromsPerMeter/electronVolt/wavelength
     ! Evaluate the cross-section.
-    hydrogenNetworkCrossSection_H2_Gamma_to_H2plus_Electron=interpolator_%interpolate(energy)
+    crossSection_H2_Gamma_to_H2plus_Electron=interpolator_%interpolate(energy)
     return
-  end function hydrogenNetworkCrossSection_H2_Gamma_to_H2plus_Electron
+  end function crossSection_H2_Gamma_to_H2plus_Electron
 
   subroutine hydrogenNetworkRateH2plus_Gamma_to_2Hplus_Electron(self,temperature,radiation,chemicalDensity,chemicalRates,node)
     !!{
@@ -1788,7 +1788,7 @@ contains
     ! Do calculation if this reaction is active.
     if (reactionActive) then
        ! Compute rate coefficient.
-       rateCoefficient=radiation%integrateOverCrossSection([crossSectionWavelengthLow,crossSectionWavelengthHigh],hydrogenNetworkCrossSection_H2plus_Gamma_to_2Hplus_Electron_,node)
+       rateCoefficient=radiation%integrateOverCrossSection([crossSectionWavelengthLow,crossSectionWavelengthHigh],crossSection_H2plus_Gamma_to_2Hplus_Electron_,node)
        ! Compute rate.
        rate=rateCoefficient*chemicalDensity%abundance(chemicalHydrogenCationChemicalIndex)
        ! Record rate.
@@ -1805,7 +1805,7 @@ contains
     return
   end subroutine hydrogenNetworkRateH2plus_Gamma_to_2Hplus_Electron
 
-  double precision function hydrogenNetworkCrossSection_H2plus_Gamma_to_2Hplus_Electron(wavelength)
+  double precision function crossSection_H2plus_Gamma_to_2Hplus_Electron(wavelength)
     !!{
     Compute the cross-section (in units of cm$^{2}$) for the reaction $\hbox{H}_2^+ + \gamma \rightarrow 2\hbox{H}^+ +
     \hbox{e}^-$ as given by \cite{shapiro_hydrogen_1987}.
@@ -1846,9 +1846,9 @@ contains
     ! Convert from wavelength (in Angstroms) to energy (in eV).
     energy=plancksConstant*speedLight*angstromsPerMeter/electronVolt/wavelength
     ! Evaluate the cross-section.
-    hydrogenNetworkCrossSection_H2plus_Gamma_to_2Hplus_Electron=interpolator_%interpolate(energy)
+    crossSection_H2plus_Gamma_to_2Hplus_Electron=interpolator_%interpolate(energy)
     return
-  end function hydrogenNetworkCrossSection_H2plus_Gamma_to_2Hplus_Electron
+  end function crossSection_H2plus_Gamma_to_2Hplus_Electron
 
   subroutine hydrogenNetworkRateH2_Gamma_to_2H(self,temperature,radiation,chemicalDensity,chemicalRates,node)
     !!{
@@ -1895,7 +1895,7 @@ contains
     ! Do calculation if this reaction is active.
     if (reactionActive) then
        ! Compute rate coefficient.
-       rateCoefficient=radiation%integrateOverCrossSection([crossSectionWavelengthLow,crossSectionWavelengthHigh],hydrogenNetworkCrossSection_H2_Gamma_to_2H_,node)
+       rateCoefficient=radiation%integrateOverCrossSection([crossSectionWavelengthLow,crossSectionWavelengthHigh],crossSection_H2_Gamma_to_2H_,node)
        ! Compute rate.
        rate=rateCoefficient*chemicalDensity%abundance(chemicalHydrogenChemicalIndex)
        ! Record rate.
@@ -1909,7 +1909,7 @@ contains
     return
   end subroutine hydrogenNetworkRateH2_Gamma_to_2H
 
-  double precision function hydrogenNetworkCrossSection_H2_Gamma_to_2H(wavelength)
+  double precision function crossSection_H2_Gamma_to_2H(wavelength)
     !!{
     Compute the cross-section (in units of cm$^{2}$) for the reaction $\hbox{H}_2 + \gamma \rightarrow 2\hbox{H}$ as given by
     \cite{abel_modeling_1997}.
@@ -1975,9 +1975,9 @@ contains
     ! Convert from wavelength (in Angstroms) to energy (in eV).
     energy=plancksConstant*speedLight*angstromsPerMeter/electronVolt/wavelength
     ! Evaluate the cross-section.
-    hydrogenNetworkCrossSection_H2_Gamma_to_2H=interpolator_%interpolate(energy)
+    crossSection_H2_Gamma_to_2H=interpolator_%interpolate(energy)
     return
-  end function hydrogenNetworkCrossSection_H2_Gamma_to_2H
+  end function crossSection_H2_Gamma_to_2H
 
   subroutine hydrogenNetworkRateH_Gamma_to_Hplus_Electron(self,temperature,radiation,chemicalDensity,chemicalRates,node)
     !!{
@@ -2025,8 +2025,8 @@ contains
     ! Do calculation if this reaction is active.
     if (reactionActive) then
        ! Compute rate coefficient.
-       hydrogenNetworkSelf => self
-       rateCoefficient=radiation%integrateOverCrossSection([0.0d0,crossSectionWavelengthHigh],hydrogenNetworkCrossSection_H_Gamma_to_Hplus_Electron_,node)
+       self_           => self
+       rateCoefficient =  radiation%integrateOverCrossSection([0.0d0,crossSectionWavelengthHigh],crossSection_H_Gamma_to_Hplus_Electron_,node)
        ! Compute rate.
        rate=rateCoefficient*chemicalDensity%abundance(atomicHydrogenChemicalIndex)
        ! Record rate.
@@ -2043,7 +2043,7 @@ contains
     return
   end subroutine hydrogenNetworkRateH_Gamma_to_Hplus_Electron
 
-  double precision function hydrogenNetworkCrossSection_H_Gamma_to_Hplus_Electron(wavelength)
+  double precision function crossSection_H_Gamma_to_Hplus_Electron(wavelength)
     !!{
     Compute the cross-section (in units of cm$^{2}$) for the reaction $\hbox{H}_2 + \gamma \rightarrow 2\hbox{H}$ as given by
     \cite{abel_modeling_1997}.
@@ -2065,12 +2065,12 @@ contains
        call interpolator_%create(wavelengthFactor*lymanSeriesLimitWavelengthHydrogen,lymanSeriesLimitWavelengthHydrogen,wavelengthCount,extrapolationType=[extrapolationTypeZero,extrapolationTypeZero])
        do i=1,wavelengthCount
           ! Use the hydrogen photoionization cross section method.
-          crossSection=hydrogenNetworkSelf%atomicCrossSectionIonizationPhoto_%crossSection(1,1,1,interpolator_%x(i))
+          crossSection=self_%atomicCrossSectionIonizationPhoto_%crossSection(1,1,1,interpolator_%x(i))
           call interpolator_%populate(crossSection,i)
        end do
        initialized=.true.
     end if
     ! Evaluate the cross-section.
-    hydrogenNetworkCrossSection_H_Gamma_to_Hplus_Electron=interpolator_%interpolate(wavelength)
+    crossSection_H_Gamma_to_Hplus_Electron=interpolator_%interpolate(wavelength)
     return
-  end function hydrogenNetworkCrossSection_H_Gamma_to_Hplus_Electron
+  end function crossSection_H_Gamma_to_Hplus_Electron

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -171,19 +171,20 @@ contains
     double precision                                                            :: alpha  , nu          , &
          &                                                                         nuPrime, massVariance
 
+    ! Set a default value.
+    bhattacharya2011Differential=0.0d0
     ! Determine the mass variance. If zero, return zero mass function.
     massVariance=self%cosmologicalMassVariance_%rootVariance(mass,time)
-    if (massVariance <= 0.0d0) then
-       bhattacharya2011Differential=0.0d0
-       return
-    end if
+    if (massVariance <=    0.0d0) return
     ! Compute the mass function.
     nu                     =+(                                                                &
          &                    +self%criticalOverdensity_%value(time=time,mass=mass,node=node) &
          &                    /massVariance                                                   &
          &                   )**2
+    if (nu           <=    0.0d0) return
     nuPrime                =+self%a(time,mass)                                                &
          &                  *nu
+    if (nuPrime      >  1500.0d0) return ! Exponential term will be zero beyond this point.
     alpha                  =+abs(self%cosmologicalMassVariance_%rootVarianceLogarithmicGradient(mass,time))
     bhattacharya2011Differential=+self%cosmologyParameters_%OmegaMatter    () &
          &                       *self%cosmologyParameters_%densityCritical() &

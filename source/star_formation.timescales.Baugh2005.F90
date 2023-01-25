@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -57,7 +57,7 @@
      module procedure baugh2005ConstructorInternal
   end interface starFormationTimescaleBaugh2005
 
-  double precision, parameter :: baugh2005VelocityVirialNormalization=200.0d0
+  double precision, parameter :: velocityVirialNormalization=200.0d0
 
 contains
 
@@ -162,9 +162,9 @@ contains
        basic              =>  component%hostNode%basic                              (    )
        time               =  +basic             %time                               (    )
        expansionFactor    =  +self              %cosmologyFunctions_%expansionFactor(time)
-       baugh2005Timescale =  +                                                       self%timescale_               &
-            &                *(velocity       /baugh2005VelocityVirialNormalization)**self%exponentVelocity        &
-            &                * expansionFactor                                      **self%exponentExpansionFactor
+       baugh2005Timescale =  +                                               self%timescale_              &
+            &                *(velocity       /velocityVirialNormalization)**self%exponentVelocity        &
+            &                * expansionFactor                             **self%exponentExpansionFactor
     end if
     return
   end function baugh2005Timescale

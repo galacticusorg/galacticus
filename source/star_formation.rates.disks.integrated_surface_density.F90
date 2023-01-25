@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -60,9 +60,9 @@
   end interface starFormationRateDisksIntgrtdSurfaceDensity
 
   ! Pointer to active node used in integral functions, plus variables needed by integral function.
-  class(starFormationRateDisksIntgrtdSurfaceDensity), pointer :: intgrtdSurfaceDensitySelf
-  type (treeNode                                   ), pointer :: intgrtdSurfaceDensityNode
-  !$omp threadprivate(intgrtdSurfaceDensitySelf,intgrtdSurfaceDensityNode)
+  class(starFormationRateDisksIntgrtdSurfaceDensity), pointer :: self_
+  type (treeNode                                   ), pointer :: node_
+  !$omp threadprivate(self_,node_)
     
 contains
 
@@ -161,8 +161,8 @@ contains
           intgrtdSurfaceDensityRate=0.0d0
        else
           ! Set a pointer to self and to the node that is accessible by the integrand function.
-          intgrtdSurfaceDensitySelf => self
-          intgrtdSurfaceDensityNode => node
+          self_ => self
+          node_ => node
           ! Compute suitable limits for the integration.
           radiusInner=radiusDisk*radiusInnerDimensionless
           radiusOuter=radiusDisk*radiusOuterDimensionless
@@ -198,8 +198,8 @@ contains
     implicit none
     double precision, intent(in   ) :: radius
     
-    intgrtdSurfaceDensityIntegrand=+                                                                                               radius  &
-         &                         *intgrtdSurfaceDensitySelf%starFormationRateSurfaceDensityDisks_%rate(intgrtdSurfaceDensityNode,radius)
+    intgrtdSurfaceDensityIntegrand=+                                                       radius  &
+         &                         *self_%starFormationRateSurfaceDensityDisks_%rate(node_,radius)
     return
   end function intgrtdSurfaceDensityIntegrand
   

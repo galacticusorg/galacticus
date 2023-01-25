@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -86,10 +86,10 @@ Implements the geometry of the ULTRAVISTA survey used by \cite{muzzin_evolution_
   end interface surveyGeometryMuzzin2013ULTRAVISTA
 
   ! Paths and file names for mangle polygon files.
-  integer, parameter :: muzzin2013ULTRAVISTAFields    =   1
+  integer, parameter :: countFields         =   1
 
   ! Angular power spectra.
-  integer, parameter :: muzzin2013AngularPowerMaximumL=3600
+  integer, parameter :: angularPowerMaximumL=3600
 
 contains
 
@@ -197,7 +197,7 @@ contains
     class(surveyGeometryMuzzin2013ULTRAVISTA), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    muzzin2013ULTRAVISTAFieldCount=muzzin2013ULTRAVISTAFields
+    muzzin2013ULTRAVISTAFieldCount=countFields
     return
   end function muzzin2013ULTRAVISTAFieldCount
 
@@ -313,7 +313,7 @@ contains
     class(surveyGeometryMuzzin2013ULTRAVISTA), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    muzzin2013ULTRAVISTAAngularPowerMaximumDegree=muzzin2013AngularPowerMaximumL
+    muzzin2013ULTRAVISTAAngularPowerMaximumDegree=angularPowerMaximumL
     return
   end function muzzin2013ULTRAVISTAAngularPowerMaximumDegree
 

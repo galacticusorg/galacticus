@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -71,7 +71,7 @@
   end interface mergerTreeOperatorTreeProcessingTimer
 
   ! Array size increment.
-  integer, parameter :: treeProcessingTimerIncrement=100
+  integer, parameter :: countIncrement=100
 
 contains
 
@@ -225,12 +225,12 @@ contains
     if (self%timePreEvolution > 0.0d0) then
        ! Ensure that record arrays are sufficiently sized.
        if (.not.allocated(self%masses)) then
-          allocate(self%masses          (treeProcessingTimerIncrement))
-          allocate(self%timesConstruct  (treeProcessingTimerIncrement))
-          allocate(self%timesEvolve     (treeProcessingTimerIncrement))
-          allocate(self%treeIDs         (treeProcessingTimerIncrement))
-          allocate(self%memoryUsagesPeak(treeProcessingTimerIncrement))
-          allocate(self%countsNodes     (treeProcessingTimerIncrement))
+          allocate(self%masses          (countIncrement))
+          allocate(self%timesConstruct  (countIncrement))
+          allocate(self%timesEvolve     (countIncrement))
+          allocate(self%treeIDs         (countIncrement))
+          allocate(self%memoryUsagesPeak(countIncrement))
+          allocate(self%countsNodes     (countIncrement))
        else if (self%countTrees >= size(self%masses)) then
           call Move_Alloc   (self%masses          ,massesTemporary          )
           call Move_Alloc   (self%timesConstruct  ,timesConstructTemporary  )
@@ -238,12 +238,12 @@ contains
           call Move_Alloc   (self%treeIDs         ,treeIDsTemporary         )
           call Move_Alloc   (self%memoryUsagesPeak,memoryUsagesPeakTemporary)
           call Move_Alloc   (self%countsNodes     ,countsNodesTemporary     )
-          allocate(self%masses          (size(massesTemporary)+treeProcessingTimerIncrement))
-          allocate(self%timesConstruct  (size(massesTemporary)+treeProcessingTimerIncrement))
-          allocate(self%timesEvolve     (size(massesTemporary)+treeProcessingTimerIncrement))
-          allocate(self%treeIDs         (size(massesTemporary)+treeProcessingTimerIncrement))
-          allocate(self%memoryUsagesPeak(size(massesTemporary)+treeProcessingTimerIncrement))
-          allocate(self%countsNodes     (size(massesTemporary)+treeProcessingTimerIncrement))
+          allocate(self%masses          (size(massesTemporary)+countIncrement))
+          allocate(self%timesConstruct  (size(massesTemporary)+countIncrement))
+          allocate(self%timesEvolve     (size(massesTemporary)+countIncrement))
+          allocate(self%treeIDs         (size(massesTemporary)+countIncrement))
+          allocate(self%memoryUsagesPeak(size(massesTemporary)+countIncrement))
+          allocate(self%countsNodes     (size(massesTemporary)+countIncrement))
           self%masses          (1:size(massesTemporary))=massesTemporary
           self%timesConstruct  (1:size(massesTemporary))=timesConstructTemporary
           self%timesEvolve     (1:size(massesTemporary))=timesEvolveTemporary

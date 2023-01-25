@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -64,7 +64,7 @@
      module procedure growingConstructorInternal
   end interface hotHaloMassDistributionCoreRadiusGrowing
 
-  integer, parameter :: growingTablePointsPerDecade=100
+  integer, parameter :: tablePointsPerDecade=100
 
 contains
 
@@ -203,7 +203,7 @@ contains
        if (makeTable) then
           self%coreRadiusMinimum   =min(self%coreRadiusOverScaleRadius,coreRadiusOverVirialRadiusInitial)
           self%coreRadiusMaximum   =self%coreRadiusOverVirialRadiusMaximum
-          self%coreRadiusTableCount=int(log10(self%coreRadiusMaximum/self%coreRadiusMinimum)*dble(growingTablePointsPerDecade))+1
+          self%coreRadiusTableCount=int(log10(self%coreRadiusMaximum/self%coreRadiusMinimum)*dble(tablePointsPerDecade))+1
           call self%coreRadiusTable%destroy (                                                                       )
           call self%coreRadiusTable%create  (self%coreRadiusMaximum,self%coreRadiusMinimum,self%coreRadiusTableCount)
           call self%coreRadiusTable%populate(growingCoreVirialDensityFunction(self%coreRadiusTable%xs())            )

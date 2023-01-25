@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -169,10 +169,10 @@ module Root_Finder
      !!{
      Type used to maintain a list of root finder objects when root finding is performed recursively.
      !!}
-     class           (rootFinder), pointer :: finder
-     logical                               :: lowInitialUsed, highInitialUsed
-     double precision                      :: xLowInitial   , xHighInitial   , &
-          &                                   fLowInitial   , fHighInitial
+     class           (rootFinder), pointer :: finder         => null()
+     logical                               :: lowInitialUsed          , highInitialUsed
+     double precision                      :: xLowInitial             , xHighInitial   , &
+          &                                   fLowInitial             , fHighInitial
   end type rootFinderList
 
   ! List of currently active root finders.

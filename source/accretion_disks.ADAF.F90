@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +22,7 @@
   !!}
 
   !$ use :: OMP_Lib, only : omp_lock_kind
-  use    :: Tables , only : table1DLogarithmicLinear
+  use :: Tables , only : table1DLogarithmicLinear
 
   !![
   <enumeration>
@@ -220,7 +220,7 @@
   end interface accretionDisksADAF
 
   ! Number of points to use in ADAF look-up tables.
-  integer, parameter :: adafTableCount=10000
+  integer, parameter :: countTable=10000
 
 contains
 
@@ -398,11 +398,11 @@ contains
     call self%tabulations%create (                                                                           &
          &                        spinBlackHoleInverseMinimum                                              , &
          &                        spinBlackHoleInverseMaximum                                              , &
-         &                        adafTableCount                                                           , &
+         &                        countTable                                                               , &
          &                        tableCount                   =2                                          , &
          &                        extrapolationType            =[extrapolationTypeFix,extrapolationTypeFix]  &
          &                       )
-    do iSpin=1,adafTableCount
+    do iSpin=1,countTable
        ! Get the black hole spin. The "inverse spin parameter" that we tabulate in is 1-j so that we can easily pack
        ! many points close to j=1.
        spinBlackHole=1.0d0-self%tabulations%x(iSpin)

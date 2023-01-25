@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -75,10 +75,10 @@
   end interface satelliteTidalStrippingRadiusKing1962
 
   ! Module-scope objects used for root finding.
-  class           (satelliteTidalStrippingRadiusKing1962), pointer :: king1962Self
-  type            (treeNode                             ), pointer :: king1962Node
-  double precision                                                 :: king1962TidalPull
-  !$omp threadprivate(king1962Node,king1962TidalPull,king1962Self)
+  class           (satelliteTidalStrippingRadiusKing1962), pointer :: self_
+  type            (treeNode                             ), pointer :: node_
+  double precision                                                 :: tidalPull
+  !$omp threadprivate(node_,tidalPull,self_)
 
 contains
 
@@ -269,13 +269,13 @@ contains
        ! Check if node differs from previous one for which we performed calculations.
        if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
        ! Initial estimate of the tidal radius.
-       king1962TidalPull=frequencyAngular**2-tidalFieldRadial
+       tidalPull=frequencyAngular**2-tidalFieldRadial
        if (self%radiusTidalPrevious <= 0.0d0) then
           self%radiusTidalPrevious=+sqrt(                                              &
                &                         +gravitationalConstantGalacticus              &
                &                         *massSatellite                                &
                &                         /self%darkMatterHaloScale_%radiusVirial(node) &
-               &                         /king1962TidalPull                            &
+               &                         /tidalPull                            &
                &                         *(kilo*gigaYear/megaParsec)**2                &
                &                        )
           self%expandMultiplier   =+2.0d0
@@ -291,8 +291,8 @@ contains
             &                       rangeDownwardLimit           = radiusLimitDownward          , &
             &                       rangeExpandType              = rangeExpandMultiplicative      &
             &                      )
-       king1962Self => self
-       king1962Node => node
+       self_ => self
+       node_ => node
        ! Find the tidal radius, using the previous result as an initial guess.
        self%radiusTidalPrevious=self%finder%find(rootGuess=self%radiusTidalPrevious,status=status)
        if (status == errorStatusSuccess) then
@@ -328,8 +328,8 @@ contains
     double precision                :: enclosedMass
 
     ! Get the satellite component.
-    enclosedMass             =+king1962Self%galacticStructure_%massEnclosed(king1962Node,radius)
-    king1962TidalRadiusSolver=+king1962TidalPull                  &
+    enclosedMass             =+self_%galacticStructure_%massEnclosed(node_,radius)
+    king1962TidalRadiusSolver=+tidalPull                          &
          &                    -gravitationalConstantGalacticus    &
          &                    *enclosedMass                       &
          &                    /radius                         **3 &

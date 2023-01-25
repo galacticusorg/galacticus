@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -53,7 +53,7 @@
   end interface stellarWindsLeitherer1992
 
   ! Minimum metallicity to which we trust Leitherer et al.'s metallicity scaling.
-  double precision, parameter :: leitherer1992MetallicityMinimum=1.0d-4*metallicitySolar
+  double precision, parameter :: metallicityMinimum=1.0d-4*metallicitySolar
 
 contains
 
@@ -132,7 +132,7 @@ contains
             &                              + 2.45d0*log10(    stellarLuminosity                                                             ) &
             &                              - 1.10d0*log10(    initialMass                                                                   ) &
             &                              + 1.31d0*log10(    stellarEffectiveTemperature                                                   ) &
-            &                              + 0.80d0*log10(max(metallicity                 ,leitherer1992MetallicityMinimum)/metallicitySolar) &
+            &                              + 0.80d0*log10(max(metallicity                 ,metallicityMinimum)/metallicitySolar) &
             &                             )
     else
        leitherer1992RateMassLoss=+ 0.0d0
@@ -157,12 +157,12 @@ contains
     stellarEffectiveTemperature=self%stellarTracks_%temperatureEffective(initialMass,metallicity,age)
     ! Compute mass loss rate using fitting formula.
     if (stellarLuminosity > 0.0d0 .and. stellarEffectiveTemperature > 0.0d0) then
-       leitherer1992VelocityTerminal=+10.0d0**(                                                                                                 &
-            &                                  +1.23d0                                                                                          &
-            &                                  -0.30d0*log10(    stellarLuminosity                                                            ) &
-            &                                  +0.55d0*log10(    initialMass                                                                  ) &
-            &                                  +0.64d0*log10(    stellarEffectiveTemperature                                                  ) &
-            &                                  +0.12d0*log10(max(metallicity                ,leitherer1992MetallicityMinimum)/metallicitySolar) &
+       leitherer1992VelocityTerminal=+10.0d0**(                                                                                    &
+            &                                  +1.23d0                                                                             &
+            &                                  -0.30d0*log10(    stellarLuminosity                                               ) &
+            &                                  +0.55d0*log10(    initialMass                                                     ) &
+            &                                  +0.64d0*log10(    stellarEffectiveTemperature                                     ) &
+            &                                  +0.12d0*log10(max(metallicity                ,metallicityMinimum)/metallicitySolar) &
             &                                 )
     else
        leitherer1992VelocityTerminal=+ 0.0d0

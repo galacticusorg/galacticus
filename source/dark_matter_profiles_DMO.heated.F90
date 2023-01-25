@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -100,10 +100,10 @@
   end interface darkMatterProfileDMOHeated
 
   ! Global variables used in root solving.
-  double precision                                      :: heatedRadiusFinal
-  type            (treeNode                  ), pointer :: heatedNode
-  type            (darkMatterProfileDMOHeated), pointer :: heatedSelf
-  !$omp threadprivate(heatedRadiusFinal,heatedNode,heatedSelf)
+  double precision                                      :: radiusFinal_
+  type            (treeNode                  ), pointer :: node_
+  type            (darkMatterProfileDMOHeated), pointer :: self_
+  !$omp threadprivate(radiusFinal_,node_,self_)
   
 contains
 
@@ -267,7 +267,7 @@ contains
     else if (self%darkMatterProfileHeating_%specificEnergyIsEverywhereZero(node,self%darkMatterProfileDMO_)) then
        ! No heating, the density is unchanged.
        heatedDensity =+densityInitial
-    else if (.not.self%noShellCrossingIsValid(heatedNode,radiusInitial,radius)) then
+    else if (.not.self%noShellCrossingIsValid(node_,radiusInitial,radius)) then
        ! Shell crossing assumption is broken - simply return the density unchanged.
        heatedDensity =+self%darkMatterProfileDMO_%density      (node,radius       )
     else
@@ -428,9 +428,9 @@ contains
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
     ! Find the initial radius in the unheated profile.
     if (radiusFinal /= self%radiusFinalPrevious) then
-       heatedSelf        => self
-       heatedNode        => node
-       heatedRadiusFinal =  radiusFinal
+       self_        => self
+       node_        => node
+       radiusFinal_ =  radiusFinal
        if (self%radiusFinalPrevious <= -huge(0.0d0) .or. radiusFinal < self%radiusInitialPrevious .or. radiusFinal > 10.0d0*self%radiusInitialPrevious) then
           ! No previous solution is available, or the requested final radius is smaller than the previous initial radius, or the
           ! final radius is much larger than the previous initial radius. In this case, our guess for the initial radius is the
@@ -511,24 +511,24 @@ contains
     double precision, parameter     :: fractionRadiusSmall=1.0d-3
     double precision                :: massEnclosed
     
-    if (radiusInitial < fractionRadiusSmall*heatedRadiusFinal) then
+    if (radiusInitial < fractionRadiusSmall*radiusFinal_) then
        ! The initial radius is a small fraction of the final radius. Check if the assumption of no shell crossing is locally
        ! broken. If the gradient of the heating term is less than that of the gravitational potential term then it is likely that
        ! no root exists. In this case shell crossing is likely to be occuring. Simply return a value of zero, which places the
        ! root at the current radius.
-       if (.not.heatedSelf%noShellCrossingIsValid(heatedNode,radiusInitial,heatedRadiusFinal)) then
+       if (.not.self_%noShellCrossingIsValid(node_,radiusInitial,radiusFinal_)) then
           heatedRadiusInitialRoot=0.0d0
           return
        end if
     end if
-    massEnclosed           =+heatedSelf%darkMatterProfileDMO_    %enclosedMass  (heatedNode,radiusInitial                                 )
-    heatedRadiusInitialRoot=+heatedSelf%darkMatterProfileHeating_%specificEnergy(heatedNode,radiusInitial,heatedSelf%darkMatterProfileDMO_) &
-         &                  +0.5d0                                                                                                          &
-         &                  *gravitationalConstantGalacticus                                                                                &
-         &                  *massEnclosed                                                                                                   &
-         &                  *(                                                                                                              &
-         &                    +1.0d0/heatedRadiusFinal                                                                                      &
-         &                    -1.0d0/radiusInitial                                                                                          &
+    massEnclosed           =+self_%darkMatterProfileDMO_    %enclosedMass  (node_,radiusInitial                            )
+    heatedRadiusInitialRoot=+self_%darkMatterProfileHeating_%specificEnergy(node_,radiusInitial,self_%darkMatterProfileDMO_) &
+         &                  +0.5d0                                                                                           &
+         &                  *gravitationalConstantGalacticus                                                                 &
+         &                  *massEnclosed                                                                                    &
+         &                  *(                                                                                               &
+         &                    +1.0d0/radiusFinal_                                                                            &
+         &                    -1.0d0/radiusInitial                                                                           &
          &                   )
     return
   end function heatedRadiusInitialRoot

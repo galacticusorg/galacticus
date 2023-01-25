@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -56,17 +56,17 @@
   end interface haloModelPowerSpectrumModifierTriaxiality
 
   ! Tabulated results read from figures in Smith et al. (2005).
-  double precision, parameter                  :: triaxialityWavenumberMinimum=1.0d-2
-  double precision, parameter                  :: triaxialityWavenumberMaximum=1.0d+2
-  integer         , parameter                  :: triaxialityWavenumberCount  =20
-  double precision, parameter, dimension(20  ) :: triaxialityTwoHalo      =                                             &
+  double precision, parameter                  :: wavenumberMinimum=1.0d-2
+  double precision, parameter                  :: wavenumberMaximum=1.0d+2
+  integer         , parameter                  :: countWavenumbers =20
+  double precision, parameter, dimension(20  ) :: factorTwoHalo    =                                                    &
        &                                                   [                                                            &
        &                                                    +1.00000d0, +1.00000d0, +1.00000d0, +1.00000d0, +0.99994d0, &
        &                                                    +0.99953d0, +0.99909d0, +0.99862d0, +0.99634d0, +0.99150d0, &
        &                                                    +0.98190d0, +0.97345d0, +0.96753d0, +0.96269d0, +0.95766d0, &
        &                                                    +0.95275d0, +0.94701d0, +0.94095d0, +0.93382d0, +0.92410d0  &
        &                                                   ]
-  double precision, parameter, dimension(20,4) :: triaxialityOneHalo      =                                             &
+  double precision, parameter, dimension(20,4) :: factorOneHalo    =                                                    &
        &                                           reshape(                                                             &
        &                                                   [                                                            &
        &                                                    +1.00000d0, +1.00000d0, +1.00000d0, +1.00000d0, +1.00000d0, & ! 1e11 < Mhalo/Msun < 1e12
@@ -88,7 +88,7 @@
        &                                                   ]                                                          , &
        &                                                   [20,4]                                                       &
        &                                                  )
-  double precision, parameter, dimension(   4) :: triaxialityMass         =[1.0d12,1.0d13,1.0d14,huge(1.0d0)]
+  double precision, parameter, dimension(   4) :: massTable         =[1.0d12,1.0d13,1.0d14,huge(1.0d0)]
 
 contains
 
@@ -128,16 +128,16 @@ contains
     !!]
 
     call self%triaxialityTable%create(                                          &
-         &                            triaxialityWavenumberMinimum            , &
-         &                            triaxialityWavenumberMaximum            , &
-         &                            triaxialityWavenumberCount              , &
+         &                            wavenumberMinimum                       , &
+         &                            wavenumberMaximum                       , &
+         &                            countWavenumbers                        , &
          &                            5                                       , &
          &                            spread(extrapolationTypeExtrapolate,1,2)  &
          &                           )
     do i=1,4
-       call self%triaxialityTable%populate(triaxialityOneHalo(:,i),i)
+       call self%triaxialityTable%populate(factorOneHalo(:,i),i)
     end do
-    call    self%triaxialityTable%populate(triaxialityTwoHalo     ,5)
+    call    self%triaxialityTable%populate(factorTwoHalo     ,5)
     return
   end function triaxialityConstructorInternal
 
@@ -178,7 +178,7 @@ contains
     select case (term%ID)
     case (haloModelTermOneHalo%ID)
        tableIndex=1
-       do while (mass*self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH) < triaxialityMass(tableIndex))
+       do while (mass*self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH) < massTable(tableIndex))
           tableIndex=tableIndex+1
        end do
     case (haloModelTermTwoHalo%ID)

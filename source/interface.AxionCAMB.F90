@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -153,8 +153,8 @@ contains
     integer         (hsize_t                 ), parameter                       :: chunkSize                   =100_hsize_t
     type            (lockDescriptor          )                                  :: fileLock
     character       (len=255                 )                                  :: hostName                                , axionCambTransferLine
-    type            (varying_string          )                                  :: command                                 , parameterFile                 , &
-         &                                                                         axionCambPath                           , axionCambVersion
+    type            (varying_string          )                                  :: axionCambVersion                        , parameterFile                 , &
+         &                                                                         axionCambPath
     double precision                                                            :: wavenumberAxionCAMB                     , coldDarkMatterDensityFraction , &
          &                                                                         fuzzyDarkMatterDensityFraction
     double precision                                                            :: transferFunctionUnused

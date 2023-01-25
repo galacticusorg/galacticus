@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -107,25 +107,25 @@
   end interface stellarPopulationStandard
 
   ! Module-scope variabes used in integrations.
-  class           (stellarPopulationStandard), pointer     :: standardSelf
-  double precision                                         :: standardLifetime            , standardMetallicity
-  integer                                                  :: standardElementIndex
-  class           (stellarAstrophysicsClass ), allocatable :: standardStellarAstrophysics_
-  class           (initialMassFunctionClass ), allocatable :: standardInitialMassFunction_
-  class           (stellarFeedbackClass     ), allocatable :: standardStellarFeedback_
-  class           (supernovaeTypeIaClass    ), allocatable :: standardSupernovaeTypeIa_
-  !$omp threadprivate(standardElementIndex,standardSelf,standardLifetime,standardMetallicity,standardStellarAstrophysics_,standardInitialMassFunction_,standardStellarFeedback_,standardSupernovaeTypeIa_)
+  class           (stellarPopulationStandard), pointer     :: self_
+  double precision                                         :: lifetime_                     , metallicity_
+  integer                                                  :: indexElement_
+  class           (stellarAstrophysicsClass ), allocatable :: stellarAstrophysics_
+  class           (initialMassFunctionClass ), allocatable :: initialMassFunction_
+  class           (stellarFeedbackClass     ), allocatable :: stellarFeedback_
+  class           (supernovaeTypeIaClass    ), allocatable :: supernovaeTypeIa_
+  !$omp threadprivate(indexElement_,self_,lifetime_,metallicity_,stellarAstrophysics_,initialMassFunction_,stellarFeedback_,supernovaeTypeIa_)
 
   ! Tabulation resolution.
-  integer         , parameter :: standardTableMetallicityCount  =10
-  integer         , parameter :: standardTableAgeCount          =50
-  double precision, parameter :: standardTableMetallicityMinimum=1.0d-4
-  double precision, parameter :: standardTableMetallicityMaximum=0.6d-1
-  double precision, parameter :: standardTableAgeMinimum        =1.0d-3
-  double precision, parameter :: standardTableAgeMaximum        =1.0d+2
+  integer                                    , parameter   :: tableMetallicityCount  =10
+  integer                                    , parameter   :: tableAgeCount          =50
+  double precision                           , parameter   :: tableMetallicityMinimum=1.0d-4
+  double precision                           , parameter   :: tableMetallicityMaximum=0.6d-1
+  double precision                           , parameter   :: tableAgeMinimum        =1.0d-3
+  double precision                           , parameter   :: tableAgeMaximum        =1.0d+2
 
   ! File format version.
-  integer, parameter :: standardFileFormatCurrent=1
+  integer                                    , parameter   :: fileFormatCurrent      =1
 
 contains
 
@@ -321,8 +321,8 @@ contains
     <optionalArgument name="elementIndex" defaultsTo="1"/>
     !!]
 
-    standardElementIndex=Abundances_Atomic_Index(elementIndex_)
-    standardRateYield   =self%interpolate(abundances_,ageMinimum,ageMaximum,self%yield(elementIndex_))
+    indexElement_    =Abundances_Atomic_Index(elementIndex_)
+    standardRateYield=self%interpolate(abundances_,ageMinimum,ageMaximum,self%yield(elementIndex_))
     return
   end function standardRateYield
 
@@ -399,7 +399,7 @@ contains
           !$ call hdf5Access%set          (                         )
           call    file      %openFile     (char(fileName)           )
           call    file      %readAttribute('fileFormat'  ,fileFormat)
-          if (fileFormat /= standardFileFormatCurrent) then
+          if (fileFormat /= fileFormatCurrent) then
              makeFile=.true.
              call file%close()
              call displayUnindent('done',verbosityLevelWorking)
@@ -418,12 +418,12 @@ contains
           !$ call hdf5Access%unset      (                                         )
           call displayUnindent('done',verbosityLevelWorking)
        else
-          allocate(property%age        (standardTableAgeCount                              ))
-          allocate(property%metallicity(standardTableMetallicityCount))
-          allocate(property%property   (standardTableAgeCount,standardTableMetallicityCount))
+          allocate(property%age        (tableAgeCount                      ))
+          allocate(property%metallicity(              tableMetallicityCount))
+          allocate(property%property   (tableAgeCount,tableMetallicityCount))
           property%metallicity(1                              )=0.0d0
-          property%metallicity(2:standardTableMetallicityCount)=Make_Range(standardTableMetallicityMinimum,standardTableMetallicityMaximum,standardTableMetallicityCount-1,rangeType=rangeTypeLogarithmic)
-          property%age                                         =Make_Range(standardTableAgeMinimum        ,standardTableAgeMaximum        ,standardTableAgeCount          ,rangeType=rangeTypeLogarithmic)
+          property%metallicity(2:tableMetallicityCount)=Make_Range(tableMetallicityMinimum,tableMetallicityMaximum,tableMetallicityCount-1,rangeType=rangeTypeLogarithmic)
+          property%age                                 =Make_Range(tableAgeMinimum        ,tableAgeMaximum        ,tableAgeCount          ,rangeType=rangeTypeLogarithmic)
           ! Open file to output the data to.
           descriptor=inputParameters()
           call self%descriptor(descriptor,includeClass=.true.)
@@ -431,7 +431,7 @@ contains
           call descriptor%destroy()
           !$ call hdf5Access%set           (                                                                                                               )
           call    file      %openFile      (char(fileName                 )                                                                                )
-          call    file      %writeAttribute(standardFileFormatCurrent                                                ,'fileFormat'                         )
+          call    file      %writeAttribute(fileFormatCurrent                                                        ,'fileFormat'                         )
           call    file      %writeAttribute(char(property%label           )                                          ,'description'                        )
           call    file      %writeAttribute('Computed by Galacticus'                                                 ,'source'                             )
           call    file      %writeAttribute(char(Formatted_Date_and_Time())                                          ,'date'                               )
@@ -446,23 +446,23 @@ contains
           ! Loop over ages and metallicities and compute the property.
           call displayIndent('Tabulating property: '//char(property%label),verbosityLevelWorking)
           call displayCounter(0,.true.,verbosityLevelWorking)
-          loopCountTotal=  +standardTableMetallicityCount &
-               &           *standardTableAgeCount
-          loopCount     =   0
-          standardSelf  =>  self
-          !$omp parallel private (iAge,iMetallicity,progressMessage,minimumMass,maximumMass,integrator_) copyin(standardSelf)
-          allocate(standardStellarAstrophysics_,mold=self%stellarAstrophysics_)
-          allocate(standardInitialMassFunction_,mold=self%initialMassFunction_)
-          allocate(standardStellarFeedback_    ,mold=self%stellarFeedback_    )
-          allocate(standardSupernovaeTypeIa_   ,mold=self%supernovaeTypeIa_   )
+          loopCountTotal =  +tableMetallicityCount &
+               &            *tableAgeCount
+          loopCount      =   0
+          self_          =>  self
+          !$omp parallel private (iAge,iMetallicity,progressMessage,minimumMass,maximumMass,integrator_) copyin(self_)
+          allocate(stellarAstrophysics_,mold=self%stellarAstrophysics_)
+          allocate(initialMassFunction_,mold=self%initialMassFunction_)
+          allocate(stellarFeedback_    ,mold=self%stellarFeedback_    )
+          allocate(supernovaeTypeIa_   ,mold=self%supernovaeTypeIa_   )
           !$omp critical(stellarPopulationsStandardDeepCopy)
           !![
           <deepCopyReset variables="self%stellarAstrophysics_ self%initialMassFunction_ self%stellarFeedback_ self%supernovaeTypeIa_"/>
-          <deepCopy source="self%stellarAstrophysics_" destination="standardStellarAstrophysics_"/>
-          <deepCopy source="self%initialMassFunction_" destination="standardInitialMassFunction_"/>
-          <deepCopy source="self%stellarFeedback_"     destination="standardStellarFeedback_"    />
-          <deepCopy source="self%supernovaeTypeIa_"    destination="standardSupernovaeTypeIa_"   />
-          <deepCopyFinalize variables="standardStellarAstrophysics_ standardInitialMassFunction_ standardStellarFeedback_ standardSupernovaeTypeIa_"/>
+          <deepCopy source="self%stellarAstrophysics_" destination="stellarAstrophysics_"/>
+          <deepCopy source="self%initialMassFunction_" destination="initialMassFunction_"/>
+          <deepCopy source="self%stellarFeedback_"     destination="stellarFeedback_"    />
+          <deepCopy source="self%supernovaeTypeIa_"    destination="supernovaeTypeIa_"   />
+          <deepCopyFinalize variables="stellarAstrophysics_ initialMassFunction_ stellarFeedback_ supernovaeTypeIa_"/>
           !!]
           !$omp end critical(stellarPopulationsStandardDeepCopy)
           call integrator_%initialize  (24                        ,61                        )
@@ -470,14 +470,14 @@ contains
           call integrator_%integrandSet(property%integrand                                   )
           !$omp do schedule(dynamic)
           do i=0,loopCountTotal-1
-             iMetallicity=mod( i                  ,standardTableMetallicityCount)+1
-             iAge        =    (i-(iMetallicity-1))/standardTableMetallicityCount +1
-             standardLifetime=property%age(iAge)
+             iMetallicity=mod( i                  ,tableMetallicityCount)+1
+             iAge        =    (i-(iMetallicity-1))/tableMetallicityCount +1
+             lifetime_=property%age(iAge)
              ! Set the metallicity. If using the instantaneous recycling approximation, assume Solar metallicity always.
              if (self%instantaneousRecyclingApproximation) then
-                standardMetallicity=metallicitySolar
+                metallicity_=metallicitySolar
              else
-                standardMetallicity=property%metallicity(iMetallicity)
+                metallicity_=property%metallicity(iMetallicity)
              end if
              ! Find the minimum and maximum masses to integrate over for this IMF.
              minimumMass=self%initialMassFunction_%massMinimum()
@@ -488,19 +488,19 @@ contains
              !$omp atomic
              loopCount=loopCount+1
              call displayCounter(                                                   &
-                  &                          int(100.0d0*dble(loopCount)/dble(loopCountTotal)), &
-                  &                          .false.                                          , &
-                  &                          verbosityLevelWorking                                   &
-                  &                         )
+                  &              int(100.0d0*dble(loopCount)/dble(loopCountTotal)), &
+                  &              .false.                                          , &
+                  &              verbosityLevelWorking                              &
+                  &             )
           end do
           !$omp end do
-          deallocate(standardStellarAstrophysics_)
-          deallocate(standardInitialMassFunction_)
-          deallocate(standardStellarFeedback_    )
-          deallocate(standardSupernovaeTypeIa_   )
+          deallocate(stellarAstrophysics_)
+          deallocate(initialMassFunction_)
+          deallocate(stellarFeedback_    )
+          deallocate(supernovaeTypeIa_   )
           !$omp end parallel
-          do iAge=1,standardTableAgeCount
-             do iMetallicity=1,standardTableMetallicityCount
+          do iAge=1,tableAgeCount
+             do iMetallicity=1,tableMetallicityCount
                 ! Enforce monotonicity in the cumulative property. Non-monotonicity can arise due to the vagaries of interpolating
                 ! stellar lifetimes in an irregular grid of stellar models.
                 if (iAge > 1 )                                        &
@@ -563,9 +563,9 @@ contains
     implicit none
     double precision, intent(in   ) :: massInitial
 
-    if (standardSelf%starIsEvolved(massInitial,standardMetallicity,standardLifetime)) then
-       standardIntegrandRecycledFraction=+standardInitialMassFunction_%phi        (massInitial                    ) &
-            &                            *standardStellarAstrophysics_%massEjected(massInitial,standardMetallicity)
+    if (self_%starIsEvolved(massInitial,metallicity_,lifetime_)) then
+       standardIntegrandRecycledFraction=+initialMassFunction_%phi        (massInitial             ) &
+            &                            *stellarAstrophysics_%massEjected(massInitial,metallicity_)
     else
        standardIntegrandRecycledFraction=+0.0d0
     end if
@@ -577,41 +577,41 @@ contains
     Integrand used in evaluating metal yields.
     !!}
     implicit none
-    double precision                          , intent(in   ) :: massInitial
-    double precision                                          :: sneIaLifetime       , yieldMass
+    double precision, intent(in   ) :: massInitial
+    double precision                :: sneIaLifetime, yieldMass
 
     ! Include yields from isolated stars.
-    if (standardSelf%starIsEvolved(massInitial,standardMetallicity,standardLifetime)) then
-       select case (standardElementIndex)
+    if (self_%starIsEvolved(massInitial,metallicity_,lifetime_)) then
+       select case (indexElement_)
        case (0)
           ! Total metallicity required.
-          yieldMass=standardStellarAstrophysics_%massYield(massInitial,standardMetallicity                     )
+          yieldMass=stellarAstrophysics_%massYield(massInitial,metallicity_              )
        case default
           ! Inidividual element required.
-          yieldMass=standardStellarAstrophysics_%massYield(massInitial,standardMetallicity,standardElementIndex)
+          yieldMass=stellarAstrophysics_%massYield(massInitial,metallicity_,indexElement_)
        end select
-       standardIntegrandYield=+standardInitialMassFunction_%phi(massInitial) &
+       standardIntegrandYield=+initialMassFunction_%phi(massInitial) &
             &                 *yieldMass
     else
        standardIntegrandYield=0.0d0
     end if
     ! Include yield from Type Ia supernovae.
-    if (standardSelf%instantaneousRecyclingApproximation) then
+    if (self_%instantaneousRecyclingApproximation) then
        ! In the instantaneous stellar evolution approximation use the effective age to compute the SneIa yield.
-       sneIaLifetime=standardSelf%ageEffective
+       sneIaLifetime=self_%ageEffective
     else
        ! In the standard calculation simply use the current age.
-       sneIaLifetime=standardLifetime
+       sneIaLifetime=lifetime_
     end if
-    select case (standardElementIndex)
+    select case (indexElement_)
     case (0)
        ! Total metallicity required.
-       yieldMass=standardSupernovaeTypeIa_%yield(massInitial,sneIaLifetime,standardMetallicity                     )
+       yieldMass=supernovaeTypeIa_%yield(massInitial,sneIaLifetime,metallicity_              )
     case default
-       yieldMass=standardSupernovaeTypeIa_%yield(massInitial,sneIaLifetime,standardMetallicity,standardElementIndex)
+       yieldMass=supernovaeTypeIa_%yield(massInitial,sneIaLifetime,metallicity_,indexElement_)
     end select
-    standardIntegrandYield=+standardIntegrandYield                        &
-         &                 +standardInitialMassFunction_%phi(massInitial) &
+    standardIntegrandYield=+standardIntegrandYield                &
+         &                 +initialMassFunction_%phi(massInitial) &
          &                 *yieldMass
     return
   end function standardIntegrandYield
@@ -624,21 +624,21 @@ contains
     double precision, intent(in   ) :: massInitial
     double precision                :: lifetime
 
-    if (standardSelf%instantaneousRecyclingApproximation) then
+    if (self_%instantaneousRecyclingApproximation) then
        ! In the instantaneous stellar evolution approximation, assume stars more massive than the long-lived star cut off
        ! contribute to the energy input (with an age equal to the specified effective age), while less massive stars contribute
        ! nothing.
-       if (massInitial > standardSelf%massLongLived) then
-          lifetime=standardSelf%ageEffective
+       if (massInitial > self_%massLongLived) then
+          lifetime=self_%ageEffective
        else
           lifetime=0.0d0
        end if
     else
        ! In the standard calculation, simply use the current lifetime.
-       lifetime=standardLifetime
+       lifetime=lifetime_
     end if
-    standardIntegrandEnergyOutput=+standardInitialMassFunction_%phi                  (massInitial                             ) &
-         &                        *standardStellarFeedback_    %energyInputCumulative(massInitial,lifetime,standardMetallicity)
+    standardIntegrandEnergyOutput=+initialMassFunction_%phi                  (massInitial                      ) &
+         &                        *stellarFeedback_    %energyInputCumulative(massInitial,lifetime,metallicity_)
     return
   end function standardIntegrandEnergyOutput
 
@@ -656,7 +656,7 @@ contains
        standardStarIsEvolved=                                      massInitial              > self%massLongLived
     else
        ! Standard calculation - star is evolved if its lifeltime is less than the supplied age.
-       standardStarIsEvolved=standardStellarAstrophysics_%lifetime(massInitial,metallicity) < age
+       standardStarIsEvolved=stellarAstrophysics_%lifetime(massInitial,metallicity) < age
     end if
     return
   end function standardStarIsEvolved

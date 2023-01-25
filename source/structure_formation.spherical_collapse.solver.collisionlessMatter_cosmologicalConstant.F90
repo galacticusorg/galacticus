@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -76,14 +76,14 @@
   !!]
 
   ! Resolution of tabulated solutions.
-  integer         , parameter :: cllsnlssMttCsmlgclCnstntTablePointsPerDecade=1000
+  integer         , parameter :: tablePointsPerDecade=1000
 
   ! Variables used in root finding.
-  double precision            :: cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal, cllsnlssMttCsmlgclCnstntOmegaMatterEpochal, &
-       &                         cllsnlssMttCsmlgclCnstntAmplitudePerturbation , cllsnlssMttCsmlgclCnstntHubbleTimeEpochal , &
-       &                         cllsnlssMttCsmlgclCnstntTime                  , cllsnlssMttCsmlgclCnstntTimeTarget        , &
-       &                         cllsnlssMttCsmlgclCnstntRadiusMaximum
-  !$omp threadprivate(cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal,cllsnlssMttCsmlgclCnstntOmegaMatterEpochal,cllsnlssMttCsmlgclCnstntAmplitudePerturbation,cllsnlssMttCsmlgclCnstntHubbleTimeEpochal,cllsnlssMttCsmlgclCnstntTime,cllsnlssMttCsmlgclCnstntTimeTarget,cllsnlssMttCsmlgclCnstntRadiusMaximum)
+  double precision            :: OmegaDarkEnergyEpochal, OmegaMatterEpochal, &
+       &                         amplitudePerturbation , hubbleTimeEpochal , &
+       &                         time_                 , timeTarget        , &
+       &                         radiusMaximum
+  !$omp threadprivate(OmegaDarkEnergyEpochal,OmegaMatterEpochal,amplitudePerturbation,hubbleTimeEpochal,time_,timeTarget,radiusMaximum)
 
 contains
 
@@ -274,7 +274,7 @@ contains
        if (timeMaximum > timeBigCrunch) timeMaximum=(1.0d0-timeToleranceRelativeBigCrunch)*timeBigCrunch
     end if
     ! Determine number of points to tabulate.
-    countTimes=int(log10(timeMaximum/timeMinimum)*dble(cllsnlssMttCsmlgclCnstntTablePointsPerDecade))
+    countTimes=int(log10(timeMaximum/timeMinimum)*dble(tablePointsPerDecade))
     ! Deallocate table if currently allocated.
     if (allocated(sphericalCollapse_)) then
        call sphericalCollapse_%destroy()
@@ -286,9 +286,9 @@ contains
        call sphericalCollapse_%create(timeMinimum,timeMaximum,countTimes)
        ! Solve ODE to get corresponding overdensities.
        do i=1,countTimes
-          cllsnlssMttCsmlgclCnstntTime=sphericalCollapse_%x(i)
+          time_=sphericalCollapse_%x(i)
           ! Get the current expansion factor.
-          expansionFactor=self%cosmologyFunctions_%expansionFactor(cllsnlssMttCsmlgclCnstntTime)
+          expansionFactor=self%cosmologyFunctions_%expansionFactor(time_)
           ! Determine the largest (i.e. least negative) value of ε for which a perturbation can collapse.
           if (self%cosmologyFunctions_%omegaDarkEnergyEpochal(expansionFactor=expansionFactor) > 0.0d0) then
              epsilonPerturbationMaximum=-(                                                                                     &
@@ -303,9 +303,9 @@ contains
           ! Estimate a suitably negative minimum value for ε.
           epsilonPerturbationMinimum=-10.0d0
           ! Compute epochal cosmological parameters.
-          cllsnlssMttCsmlgclCnstntOmegaMatterEpochal    =    self%cosmologyFunctions_%omegaMatterEpochal    (expansionFactor=expansionFactor)
-          cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal=    self%cosmologyFunctions_%omegaDarkEnergyEpochal(expansionFactor=expansionFactor)
-          cllsnlssMttCsmlgclCnstntHubbleTimeEpochal     =abs(self%cosmologyFunctions_%expansionRate         (                expansionFactor))
+          OmegaMatterEpochal    =    self%cosmologyFunctions_%omegaMatterEpochal    (expansionFactor=expansionFactor)
+          OmegaDarkEnergyEpochal=    self%cosmologyFunctions_%omegaDarkEnergyEpochal(expansionFactor=expansionFactor)
+          hubbleTimeEpochal     =abs(self%cosmologyFunctions_%expansionRate         (                expansionFactor))
           ! Find the value of ε for which the perturbation just collapses at this time.
           if (.not.finderConstructed) then
              finder=rootFinder(                                                                                &
@@ -326,31 +326,31 @@ contains
           case (cllsnlssMttCsmlgclCnstntClcltnCriticalOverdensity%ID)
              ! Critical linear overdensity.
              if (.not.associated(self%linearGrowth_)) call Error_Report('no linearGrowth object was supplied'//{introspection:location})
-             normalization=self%linearGrowth_%value(cllsnlssMttCsmlgclCnstntTime,normalize=normalizeMatterDominated)/expansionFactor
-             call sphericalCollapse_%populate(                                                   &
-                  &                           +normalization                                     &
-                  &                           *0.6d0                                             &
-                  &                           *(                                                 &
-                  &                             +1.0d0                                           &
-                  &                             -cllsnlssMttCsmlgclCnstntOmegaMatterEpochal      &
-                  &                             -cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal  &
-                  &                             -epsilonPerturbation                             &
-                  &                            )                                                 &
-                  &                           /cllsnlssMttCsmlgclCnstntOmegaMatterEpochal      , &
-                  &                           i                                                  &
+             normalization=self%linearGrowth_%value(time_,normalize=normalizeMatterDominated)/expansionFactor
+             call sphericalCollapse_%populate(                           &
+                  &                           +normalization             &
+                  &                           *0.6d0                     &
+                  &                           *(                         &
+                  &                             +1.0d0                   &
+                  &                             -OmegaMatterEpochal      &
+                  &                             -OmegaDarkEnergyEpochal  &
+                  &                             -epsilonPerturbation     &
+                  &                            )                         &
+                  &                           /OmegaMatterEpochal      , &
+                  &                           i                          &
                   &                           )
           case (cllsnlssMttCsmlgclCnstntClcltnVirialDensityContrast%ID,cllsnlssMttCsmlgclCnstntClcltnRadiusTurnaround%ID)
              ! Compute the maximum radius of the perturbation.
              radiusMaximum=+cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximum(epsilonPerturbation)
              ! Find the η-factor (see Lahav et al. 1991) which measures the dark energy contribution to the energy of the
              ! perturbation.
-             eta          =+2.0d0                                            &
-                  &        *(                                                &
-                  &          +cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal &
-                  &          /cllsnlssMttCsmlgclCnstntOmegaMatterEpochal     &
+             eta          =+2.0d0                    &
+                  &        *(                        &
+                  &          +OmegaDarkEnergyEpochal &
+                  &          /OmegaMatterEpochal     &
                   &         )*radiusMaximum**3
              ! Handle the open universe case separately.
-             if (cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal == 0.0d0) then
+             if (OmegaDarkEnergyEpochal == 0.0d0) then
                 radiiRatio=0.5d0
              else
                 ! Coefficients of the cubic energy equation.
@@ -396,7 +396,7 @@ contains
     double precision, intent(in   ) :: epsilonPerturbation
 
     ! Evaluate the root function.
-    cllsnlssMttCsmlgclCnstntPerturbationCollapseRoot=cllsnlssMttCsmlgclCnstntTimeCollapse(epsilonPerturbation)-cllsnlssMttCsmlgclCnstntTime
+    cllsnlssMttCsmlgclCnstntPerturbationCollapseRoot=time_Collapse(epsilonPerturbation)-time_
     return
   end function cllsnlssMttCsmlgclCnstntPerturbationCollapseRoot
 
@@ -413,19 +413,19 @@ contains
     !$omp threadprivate(finder,finderConstructed)
     double precision                            :: expansionFactorTurnaroundMaximum        , expansionFactorTurnaroundMinimum
 
-    if (cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal == 0.0d0) then
+    if (OmegaDarkEnergyEpochal == 0.0d0) then
        ! No cosmological constant - use the simple analytic solution.
-       cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximum=-cllsnlssMttCsmlgclCnstntOmegaMatterEpochal &
+       cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximum=-OmegaMatterEpochal &
             &                                            /epsilonPerturbation
     else
        ! Cosmological constant - use root finder.
-       cllsnlssMttCsmlgclCnstntAmplitudePerturbation=+epsilonPerturbation
-       expansionFactorTurnaroundMinimum =-cllsnlssMttCsmlgclCnstntOmegaMatterEpochal       &
-            &                            /cllsnlssMttCsmlgclCnstntAmplitudePerturbation
-       expansionFactorTurnaroundMaximum =+(                                                &
-            &                              +cllsnlssMttCsmlgclCnstntOmegaMatterEpochal     &
-            &                              /cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal &
-            &                              /2.0d0                                          &
+       amplitudePerturbation=+epsilonPerturbation
+       expansionFactorTurnaroundMinimum =-OmegaMatterEpochal       &
+            &                            /amplitudePerturbation
+       expansionFactorTurnaroundMaximum =+(                        &
+            &                              +OmegaMatterEpochal     &
+            &                              /OmegaDarkEnergyEpochal &
+            &                              /2.0d0                  &
             &                             )**(1.0d0/3.0d0)
        if      (cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximumRoot(expansionFactorTurnaroundMaximum) > 0.0d0) then
           ! If the root function is not negative at the upper limit for the expansion factor at turnaround it is due to rounding
@@ -459,15 +459,15 @@ contains
     !!}
     double precision, intent(in   ) :: radiusMaximum
 
-    cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximumRoot=+cllsnlssMttCsmlgclCnstntOmegaMatterEpochal     &
+    cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximumRoot=+OmegaMatterEpochal     &
          &                                                /radiusMaximum                                  &
-         &                                                +cllsnlssMttCsmlgclCnstntAmplitudePerturbation  &
-         &                                                +cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal &
+         &                                                +amplitudePerturbation  &
+         &                                                +OmegaDarkEnergyEpochal &
          &                                                *radiusMaximum**2
     return
   end function cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximumRoot
 
-  double precision function cllsnlssMttCsmlgclCnstntTimeCollapse(epsilonPerturbation)
+  double precision function time_Collapse(epsilonPerturbation)
     use :: Numerical_Integration, only : integrator
     implicit none
     real   (c_double  ), intent(in   ) :: epsilonPerturbation
@@ -486,34 +486,34 @@ contains
          &                )                       &
          &               *radiusTurnaround
     ! Share the ε parameter.
-    cllsnlssMttCsmlgclCnstntAmplitudePerturbation=epsilonPerturbation
+    amplitudePerturbation=epsilonPerturbation
     ! Integrate the perturbation equation from size zero to maximum size to get the time to maximum expansion.
     integrator_   = integrator           (cllsnlssMttCsmlgclCnstntPerturbationIntegrand,toleranceRelative   =1.0d-6,hasSingularities=.true.)
     timeTurnaround=+integrator_%integrate(radiusMinimum                                ,radiusUpperNumerical                               ) &
-         &         /                      cllsnlssMttCsmlgclCnstntHubbleTimeEpochal
+         &         /                      hubbleTimeEpochal
     ! Add on analytic correction for region close to the turnaround radius.
-    timeTurnaround=+timeTurnaround                                          &
-         &         -2.0d0                                                   &
-         &         *sqrt(                                                   &
-         &               +cllsnlssMttCsmlgclCnstntOmegaMatterEpochal        &
-         &               /radiusUpperNumerical                              &
-         &               +epsilonPerturbation                               &
-         &               +cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal    &
-         &               *radiusUpperNumerical                          **2 &
-         &              )                                                   &
-         &         /    (                                                   &
-         &               +2.0d0                                             &
-         &               *cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal    &
-         &               *radiusUpperNumerical                              &
-         &               -cllsnlssMttCsmlgclCnstntOmegaMatterEpochal        &
-         &               /radiusUpperNumerical                          **2 &
-         &              )                                                   &
-         &         /      cllsnlssMttCsmlgclCnstntHubbleTimeEpochal
+    timeTurnaround=+timeTurnaround                  &
+         &         -2.0d0                           &
+         &         *sqrt(                           &
+         &               +OmegaMatterEpochal        &
+         &               /radiusUpperNumerical      &
+         &               +epsilonPerturbation       &
+         &               +OmegaDarkEnergyEpochal    &
+         &               *radiusUpperNumerical  **2 &
+         &              )                           &
+         &         /    (                           &
+         &               +2.0d0                     &
+         &               *OmegaDarkEnergyEpochal    &
+         &               *radiusUpperNumerical      &
+         &               -OmegaMatterEpochal        &
+         &               /radiusUpperNumerical  **2 &
+         &              )                           &
+         &         /      hubbleTimeEpochal
     ! Time to collapse is twice the time to maximum expansion.
-    cllsnlssMttCsmlgclCnstntTimeCollapse=+2.0d0          &
-         &                               *timeTurnaround
+    time_Collapse=+2.0d0          &
+         &        *timeTurnaround
     return
-  end function cllsnlssMttCsmlgclCnstntTimeCollapse
+  end function time_Collapse
 
   double precision function cllsnlssMttCsmlgclCnstntPerturbationIntegrand(radius)
     !!{
@@ -524,9 +524,9 @@ contains
     double precision                :: sqrtArgument
 
     ! Compute the integrand.
-    sqrtArgument=+cllsnlssMttCsmlgclCnstntOmegaMatterEpochal               &
-         &       +cllsnlssMttCsmlgclCnstntAmplitudePerturbation *radius    &
-         &       +cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal*radius**3
+    sqrtArgument=+OmegaMatterEpochal               &
+         &       +amplitudePerturbation *radius    &
+         &       +OmegaDarkEnergyEpochal*radius**3
     if (sqrtArgument > 0.0d0) then
        cllsnlssMttCsmlgclCnstntPerturbationIntegrand=+sqrt(              &
             &                                              +radius       &
@@ -593,8 +593,8 @@ contains
     ! Iterate over times.
     do iTime=1,timeCount
        ! Get the current expansion factor.
-       cllsnlssMttCsmlgclCnstntTime           =times(iTime)
-       expansionFactor=self%cosmologyFunctions_%expansionFactor(cllsnlssMttCsmlgclCnstntTime)
+       time_           =times(iTime)
+       expansionFactor=self%cosmologyFunctions_%expansionFactor(time_)
        ! Determine the largest (i.e. least negative) value of ε for which a perturbation can collapse.
        if (self%cosmologyFunctions_%omegaDarkEnergyEpochal(expansionFactor=expansionFactor) > 0.0d0) then
           epsilonPerturbationMaximum=-(                                                                                     &
@@ -609,9 +609,9 @@ contains
        ! Estimate a suitably negative minimum value for ε.
        epsilonPerturbationMinimum=-10.0d0
        ! Compute cosmological parametrers at this epoch.
-       cllsnlssMttCsmlgclCnstntOmegaMatterEpochal    =self%cosmologyFunctions_%omegaMatterEpochal    (expansionFactor=expansionFactor)
-       cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal=self%cosmologyFunctions_%omegaDarkEnergyEpochal(expansionFactor=expansionFactor)
-       cllsnlssMttCsmlgclCnstntHubbleTimeEpochal     =self%cosmologyFunctions_%expansionRate         (                expansionFactor)
+       OmegaMatterEpochal    =self%cosmologyFunctions_%omegaMatterEpochal    (expansionFactor=expansionFactor)
+       OmegaDarkEnergyEpochal=self%cosmologyFunctions_%omegaDarkEnergyEpochal(expansionFactor=expansionFactor)
+       hubbleTimeEpochal     =self%cosmologyFunctions_%expansionRate         (                expansionFactor)
        ! Find the value of ε for which the perturbation just collapses at this time.
        if (.not.finderPerturbationConstructed) then
           finderPerturbation=rootFinder(                                                                                &
@@ -636,45 +636,45 @@ contains
           i                  =i                  +1
           epsilonPerturbation=epsilonPerturbation+1.0d-2*abs(epsilonPerturbationCollapsed)
           ! Share the ε parameter.
-          cllsnlssMttCsmlgclCnstntAmplitudePerturbation=epsilonPerturbation
+          amplitudePerturbation=epsilonPerturbation
           ! For collapsing perturbations, find the time of maximum radius.
           if (epsilonPerturbation > epsilonPerturbationMaximum) then
              ! This perturbation will not collapse. Maximum radius is reached at infinite time.
-             cllsnlssMttCsmlgclCnstntRadiusMaximum=huge(1.0d0)
-             cllsnlssMttCsmlgclCnstntTimeTarget   =     cllsnlssMttCsmlgclCnstntTime
+             radiusMaximum=huge(1.0d0)
+             timeTarget   =     time_
           else
              ! This perturbation will collapse. Find the maximum radius.
-             cllsnlssMttCsmlgclCnstntRadiusMaximum=cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximum(epsilonPerturbation)
+             radiusMaximum=cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximum(epsilonPerturbation)
              ! Compute maximum value of a for numerical integration.
-             radiusUpperLimit=(1.0d0-numericalLimitEpsilon)*cllsnlssMttCsmlgclCnstntRadiusMaximum
+             radiusUpperLimit=(1.0d0-numericalLimitEpsilon)*radiusMaximum
              ! Integrate the perturbation equation from size zero to maximum size to get the time to maximum expansion, adding on the
              ! analytic correction for the region close to maximum expansion.
-             timeMaximum     =+integrator_%integrate(0.0d0,radiusUpperLimit)        &
-                  &           /cllsnlssMttCsmlgclCnstntHubbleTimeEpochal            &
-                  &           -2.0d0                                                &
-                  &           *sqrt(                                                &
-                  &                 +cllsnlssMttCsmlgclCnstntOmegaMatterEpochal     &
-                  &                 /radiusUpperLimit                               &
-                  &                 +epsilonPerturbation                            &
-                  &                 +cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal &
-                  &                 *radiusUpperLimit                  **2          &
-                  &                )                                                &
-                  &           /(                                                    &
-                  &             +2.0d0                                              &
-                  &             *cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal     &
-                  &             *radiusUpperLimit                                   &
-                  &             -cllsnlssMttCsmlgclCnstntOmegaMatterEpochal         &
-                  &             /radiusUpperLimit                  **2              &
-                  &            )                                                    &
-                  &           /cllsnlssMttCsmlgclCnstntHubbleTimeEpochal
+             timeMaximum     =+integrator_%integrate(0.0d0,radiusUpperLimit) &
+                  &           /hubbleTimeEpochal                             &
+                  &           -2.0d0                                         &
+                  &           *sqrt(                                         &
+                  &                 +OmegaMatterEpochal                      &
+                  &                 /radiusUpperLimit                        &
+                  &                 +epsilonPerturbation                     &
+                  &                 +OmegaDarkEnergyEpochal                  &
+                  &                 *radiusUpperLimit      **2               &
+                  &                )                                         &
+                  &           /(                                             &
+                  &             +2.0d0                                       &
+                  &             *OmegaDarkEnergyEpochal                      &
+                  &             *radiusUpperLimit                            &
+                  &             -OmegaMatterEpochal                          &
+                  &             /radiusUpperLimit          **2               &
+                  &            )                                             &
+                  &           /hubbleTimeEpochal
              ! Set the target time
-             if (timeMaximum > cllsnlssMttCsmlgclCnstntTime) then
+             if (timeMaximum > time_) then
                 ! Expanding phase.
-                cllsnlssMttCsmlgclCnstntTimeTarget=+      cllsnlssMttCsmlgclCnstntTime
+                timeTarget=+      time_
              else
                 ! Collapsing phase.
-                cllsnlssMttCsmlgclCnstntTimeTarget=+2.0d0*timeMaximum      &
-                     &                 -      cllsnlssMttCsmlgclCnstntTime
+                timeTarget=+2.0d0*timeMaximum      &
+                     &                 -      time_
              end if
           end if
           ! Solve for the radius at the present time.
@@ -691,14 +691,14 @@ contains
                   &                 )
              finderRadiusConstructed=.true.
           end if
-          if (epsilonPerturbation <= epsilonPerturbationMaximum .and. cllsnlssMttCsmlgclCnstntRadiusRoot(cllsnlssMttCsmlgclCnstntRadiusMaximum) < 0.0d0) then
+          if (epsilonPerturbation <= epsilonPerturbationMaximum .and. cllsnlssMttCsmlgclCnstntRadiusRoot(radiusMaximum) < 0.0d0) then
              ! Perturbation is close to maximum radius. Adopt this as the solution.
-             radiusNow=cllsnlssMttCsmlgclCnstntRadiusMaximum
+             radiusNow=radiusMaximum
           else
              ! Find the current radius.
              radiusNow=finderRadius%find(rootGuess=1.0d0)
           end if
-          normalization=+self%linearGrowth_%value(cllsnlssMttCsmlgclCnstntTime,normalize=normalizeMatterDominated) &
+          normalization=+self%linearGrowth_%value(time_,normalize=normalizeMatterDominated) &
                &        /                         expansionFactor
           if (.not.allocated(overdensityLinear)) then
              allocate(overdensityLinear   (tableIncrement))
@@ -711,17 +711,17 @@ contains
              overdensityLinear   (1:size(overdensityLinearTmp   ))=overdensityLinearTmp
              overdensityNonLinear(1:size(overdensityNonLinearTmp))=overdensityNonLinearTmp
           end if
-          overdensityLinear   (i)=+normalization                                    &
-               &                  *0.6d0                                            &
-               &                  *(                                                &
-               &                    +1.0d0                                          &
-               &                    -cllsnlssMttCsmlgclCnstntOmegaMatterEpochal     &
-               &                    -cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal &
-               &                    -epsilonPerturbation                            &
-               &                   )                                                &
-               &                  /cllsnlssMttCsmlgclCnstntOmegaMatterEpochal
-          overdensityNonLinear(i)=+1.0d0                                            &
-               &                  /radiusNow**3                                     &
+          overdensityLinear   (i)=+normalization            &
+               &                  *0.6d0                    &
+               &                  *(                        &
+               &                    +1.0d0                  &
+               &                    -OmegaMatterEpochal     &
+               &                    -OmegaDarkEnergyEpochal &
+               &                    -epsilonPerturbation    &
+               &                   )                        &
+               &                  /OmegaMatterEpochal
+          overdensityNonLinear(i)=+1.0d0                    &
+               &                  /radiusNow**3             &
                &                  -1.0d0
           if (overdensityNonLinear(i) <= -0.99d0) exit
        end do
@@ -777,24 +777,24 @@ contains
     type            (integrator)                :: integrator_
     double precision                            :: radiusUpperLimit
 
-    radiusUpperLimit                  =min(                                                                      &
-         &                                 +(1.0d0-numericalLimitEpsilon)*cllsnlssMttCsmlgclCnstntRadiusMaximum, &
-         &                                 +                              radiusNow                              &
+    radiusUpperLimit                  =min(                                              &
+         &                                 +(1.0d0-numericalLimitEpsilon)*radiusMaximum, &
+         &                                 +                              radiusNow      &
          &                                )
     integrator_                       = integrator(cllsnlssMttCsmlgclCnstntPerturbationIntegrand,toleranceRelative=1.0d-6,hasSingularities =.true.)
     cllsnlssMttCsmlgclCnstntRadiusRoot=+integrator_%integrate(0.0d0,radiusUpperLimit) &
-         &                             /cllsnlssMttCsmlgclCnstntHubbleTimeEpochal     &
-         &                             -cllsnlssMttCsmlgclCnstntTimeTarget
+         &                             /hubbleTimeEpochal                             &
+         &                             -timeTarget
     if (radiusUpperLimit < radiusNow) then
-       cllsnlssMttCsmlgclCnstntRadiusRoot       =+cllsnlssMttCsmlgclCnstntRadiusRoot                                                                                                                                                     &
-            &                        -2.0d0*sqrt(+cllsnlssMttCsmlgclCnstntOmegaMatterEpochal/radiusUpperLimit   +      cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal*radiusUpperLimit**2+cllsnlssMttCsmlgclCnstntAmplitudePerturbation) &
-            &                        /          (-cllsnlssMttCsmlgclCnstntOmegaMatterEpochal/radiusUpperLimit**2+2.0d0*cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal*radiusUpperLimit                                                 ) &
-            &                        /cllsnlssMttCsmlgclCnstntHubbleTimeEpochal
-       if (radiusNow < cllsnlssMttCsmlgclCnstntRadiusMaximum)                                                                                                                                                                            &
-            & cllsnlssMttCsmlgclCnstntRadiusRoot=+cllsnlssMttCsmlgclCnstntRadiusRoot                                                                                                                                                     &
-            &                        + 2.0d0*sqrt(+cllsnlssMttCsmlgclCnstntOmegaMatterEpochal/radiusNow         +      cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal*radiusNow       **2+cllsnlssMttCsmlgclCnstntAmplitudePerturbation) &
-            &                        /(           -cllsnlssMttCsmlgclCnstntOmegaMatterEpochal/radiusNow      **2+2.0d0*cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal*radiusNow                                                        ) &
-            &                        /cllsnlssMttCsmlgclCnstntHubbleTimeEpochal
+       cllsnlssMttCsmlgclCnstntRadiusRoot       =+cllsnlssMttCsmlgclCnstntRadiusRoot                                                                             &
+            &                        -2.0d0*sqrt(+OmegaMatterEpochal/radiusUpperLimit   +      OmegaDarkEnergyEpochal*radiusUpperLimit**2+amplitudePerturbation) &
+            &                        /          (-OmegaMatterEpochal/radiusUpperLimit**2+2.0d0*OmegaDarkEnergyEpochal*radiusUpperLimit                         ) &
+            &                        /hubbleTimeEpochal
+       if (radiusNow < radiusMaximum)                                                                                                                            &
+            & cllsnlssMttCsmlgclCnstntRadiusRoot=+cllsnlssMttCsmlgclCnstntRadiusRoot                                                                             &
+            &                        + 2.0d0*sqrt(+OmegaMatterEpochal/radiusNow         +      OmegaDarkEnergyEpochal*radiusNow       **2+amplitudePerturbation) &
+            &                        /(           -OmegaMatterEpochal/radiusNow      **2+2.0d0*OmegaDarkEnergyEpochal*radiusNow                                ) &
+            &                        /hubbleTimeEpochal
     end if
     return
   end function cllsnlssMttCsmlgclCnstntRadiusRoot

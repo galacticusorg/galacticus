@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -47,7 +47,7 @@ Implements the geometry of the DES survey for Local Group dwarfs.
   end interface surveyGeometryLocalGroupDES
 
   ! Angular power spectra.
-  integer, parameter :: localGroupDESAngularPowerMaximumL=360
+  integer, parameter :: angularPowerMaximumL=360
 
 contains
 
@@ -131,7 +131,7 @@ contains
     class(surveyGeometryLocalGroupDES), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    localGroupDESAngularPowerMaximumDegree=localGroupDESAngularPowerMaximumL
+    localGroupDESAngularPowerMaximumDegree=angularPowerMaximumL
     return
   end function localGroupDESAngularPowerMaximumDegree
 

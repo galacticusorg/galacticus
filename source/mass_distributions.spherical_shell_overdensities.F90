@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -84,7 +84,8 @@ contains
     Constructor for the {\normalfont \ttfamily sphericalShellOverdensities} mass distribution class which builds the object from a parameter
     set.
     !!}
-    use :: Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters          , only : inputParameter                , inputParameters
+    use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
     implicit none
     type            (massDistributionSphericalShellOverdensities)                :: self
     type            (inputParameters                            ), intent(inout) :: parameters
@@ -93,6 +94,8 @@ contains
     double precision                                                             :: halfWidth             , densityContrast, &
           &                                                                         volumeFillingFactor   , radiusBoundary
     logical                                                                      :: dimensionless
+    type            (varying_string                             )                :: componentType
+    type            (varying_string                             )                :: massType
 
     !![
     <inputParameter>
@@ -121,10 +124,22 @@ contains
       <description>If true the shell overdensities profile is considered to be dimensionless.</description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter>
+      <name>componentType</name>
+      <defaultValue>var_str('unknown')</defaultValue>
+      <description>The component type that this mass distribution represents.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>massType</name>
+      <defaultValue>var_str('unknown')</defaultValue>
+      <description>The mass type that this mass distribution represents.</description>
+      <source>parameters</source>
+    </inputParameter>
     <objectBuilder class="massDistribution"      name="massDistribution_"      source="parameters"/>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     !!]
-    self=massDistributionSphericalShellOverdensities(halfWidth,densityContrast,volumeFillingFactor,radiusBoundary,massDistribution_,randomNumberGenerator_,dimensionless)
+    self=massDistributionSphericalShellOverdensities(halfWidth,densityContrast,volumeFillingFactor,radiusBoundary,massDistribution_,randomNumberGenerator_,dimensionless,enumerationComponentTypeEncode(componentType,includesPrefix=.false.),enumerationMassTypeEncode(massType,includesPrefix=.false.))
     !![
     <objectDestructor name="massDistribution_"     />
     <objectDestructor name="randomNumberGenerator_"/>
@@ -133,7 +148,7 @@ contains
     return
   end function sphericalShellOverdensitiesConstructorParameters
   
-  function sphericalShellOverdensitiesConstructorInternal(halfWidth,densityContrast,volumeFillingFactor,radiusBoundary,massDistribution_,randomNumberGenerator_,dimensionless) result(self)
+  function sphericalShellOverdensitiesConstructorInternal(halfWidth,densityContrast,volumeFillingFactor,radiusBoundary,massDistribution_,randomNumberGenerator_,dimensionless,componentType,massType) result(self)
     !!{
     Constructor for ``sphericalShellOverdensities'' mass distribution class.
     !!}
@@ -148,10 +163,12 @@ contains
     class           (massDistributionClass                      ), intent(in   ), target   :: massDistribution_
     class           (randomNumberGeneratorClass                 ), intent(in   ), target   :: randomNumberGenerator_
     logical                                                      , intent(in   ), optional :: dimensionless
+    type            (enumerationComponentTypeType               ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType                    ), intent(in   ), optional :: massType
     integer         (c_size_t                                   )                          :: i
     double precision                                                                       :: countShellsMean
     !![
-    <constructorAssign variables="halfWidth, densityContrast, volumeFillingFactor, radiusBoundary, *massDistribution_, *randomNumberGenerator_"/>
+    <constructorAssign variables="halfWidth, densityContrast, volumeFillingFactor, radiusBoundary, componentType, massType, *massDistribution_, *randomNumberGenerator_"/>
     !!]
 
     ! Determine if profile is dimensionless.
@@ -221,19 +238,25 @@ contains
     return
   end subroutine sphericalShellOverdensitiesDestructor
 
-  double precision function sphericalShellOverdensitiesDensity(self,coordinates)
+  double precision function sphericalShellOverdensitiesDensity(self,coordinates,componentType,massType)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in a cloud overdensities mass distribution.
     !!}
     use :: Arrays_Search, only : searchArrayClosest
     use :: Coordinates  , only : assignment(=)     , coordinateSpherical
     implicit none
-    class           (massDistributionSphericalShellOverdensities), intent(inout) :: self
-    class           (coordinate                                 ), intent(in   ) :: coordinates
-    integer         (c_size_t                                   )                :: i
-    type            (coordinateSpherical                        )                :: position
-    double precision                                                             :: densityContrast, radius
+    class           (massDistributionSphericalShellOverdensities), intent(inout)           :: self
+    class           (coordinate                                 ), intent(in   )           :: coordinates
+    type            (enumerationComponentTypeType               ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType                    ), intent(in   ), optional :: massType
+    integer         (c_size_t                                   )                          :: i
+    type            (coordinateSpherical                        )                          :: position
+    double precision                                                                       :: densityContrast, radius
 
+    if (.not.self%matches(componentType,massType)) then
+       sphericalShellOverdensitiesDensity=0.0d0
+       return
+    end if
     ! Extract the position.
     position=coordinates
     radius  =position   %r()

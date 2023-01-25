@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -61,9 +61,9 @@
   end interface haloSpinDistributionBett2007
 
   ! Tabulation parameters.
-  integer         , parameter :: bett2007TabulationPointsCount=1000
-  double precision, parameter :: bett2007SpinMaximum          =   0.2d+0
-  double precision, parameter :: bett2007SpinMinimum          =   1.0d-6
+  integer         , parameter :: countPointsTabulation=1000
+  double precision, parameter :: spinMaximum          =   0.2d+0
+  double precision, parameter :: spinMinimum          =   1.0d-6
 
 contains
 
@@ -127,17 +127,17 @@ contains
          &             *self%alpha**(self%alpha-1.0d0) &
          &             /Gamma_Function(self%alpha)
     ! Tabulate the cumulative distribution.
-    tableMaximum=(bett2007SpinMaximum/lambda0)**(3.0d0/alpha)
+    tableMaximum=(spinMaximum/lambda0)**(3.0d0/alpha)
     call self%distributionTable%destroy()
     call self%distributionTable%create (                                                                                        &
-         &                              lambda0*bett2007SpinMinimum**(alpha/3.0d0),                                             &
+         &                              lambda0*spinMinimum**(alpha/3.0d0),                                                     &
          &                              lambda0*tableMaximum       **(alpha/3.0d0)                                            , &
-         &                              bett2007TabulationPointsCount                                                         , &
+         &                              countPointsTabulation                                                                 , &
          &                              extrapolationType                         =[extrapolationTypeFix,extrapolationTypeFix]  &
          &                             )
     ! Compute the cumulative probability distribution.
     self%isInvertible=.true.
-    do iSpin=1,bett2007TabulationPointsCount
+    do iSpin=1,countPointsTabulation
        spinDimensionless=(                                 &
             &             +self%distributionTable%x(iSpin) &
             &             /lambda0                         &

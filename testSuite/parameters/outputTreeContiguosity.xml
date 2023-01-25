@@ -235,7 +235,7 @@
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
      <!-- Halo spins -->
     <nodeOperator value="haloAngularMomentumRandomWalk">
-      <spinVarianceSpecific value="1.0e-3"/>
+      <angularMomentumVarianceSpecific value="1.0e-3"/>
     </nodeOperator>
     <nodeOperator value="haloAngularMomentumInterpolate"/>
     <!-- Satellite evolution -->

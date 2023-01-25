@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -130,8 +130,8 @@ module Dark_Matter_Profiles_Generic
 
   ! Module-scope pointers used in integrand functions and root finding.
   type :: genericSolver
-     class(darkMatterProfileGeneric), pointer :: self
-     type (treeNode                ), pointer :: node
+     class(darkMatterProfileGeneric), pointer :: self => null()
+     type (treeNode                ), pointer :: node => null()
   end type genericSolver
   type            (genericSolver                 ), allocatable, dimension(:) :: solvers
   integer                                         , parameter                 :: solversIncrement              =10

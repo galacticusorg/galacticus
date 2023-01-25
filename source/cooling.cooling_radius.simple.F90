@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -89,12 +89,12 @@
   end interface coolingRadiusSimple
 
   ! Module scope variables used in root finding.
-  class           (coolingRadiusSimple), pointer :: simpleSelf_
-  type            (treeNode           ), pointer :: simpleNode_
-  double precision                               :: simpleCoolingTimeAvailable_
-  type            (abundances         )          :: simpleGasAbundances_
-  type            (chemicalAbundances )          :: simpleChemicalFractions_
-  !$omp threadprivate(simpleSelf_,simpleNode_,simpleCoolingTimeAvailable_,simpleGasAbundances_,simpleChemicalFractions_)
+  class           (coolingRadiusSimple), pointer :: self_
+  type            (treeNode           ), pointer :: node_
+  double precision                               :: coolingTimeAvailable_
+  type            (abundances         )          :: abundancesGas_
+  type            (chemicalAbundances )          :: fractionsChemical_
+  !$omp threadprivate(self_,node_,coolingTimeAvailable_,abundancesGas_,fractionsChemical_)
 
 contains
 
@@ -286,8 +286,8 @@ contains
           coolingTimeAvailable            =self%coolingTimeAvailable_%timeAvailable            (node)
           coolingTimeAvailableIncreaseRate=self%coolingTimeAvailable_%timeAvailableIncreaseRate(node)
           ! Get gradients of cooling time with density and temperature.
-          coolingTimeDensityLogSlope    =self%coolingTime_%gradientDensityLogarithmic    (node,temperature,density,simpleGasAbundances_,simpleChemicalFractions_*density,self%radiation)
-          coolingTimeTemperatureLogSlope=self%coolingTime_%gradientTemperatureLogarithmic(node,temperature,density,simpleGasAbundances_,simpleChemicalFractions_*density,self%radiation)
+          coolingTimeDensityLogSlope    =self%coolingTime_%gradientDensityLogarithmic    (node,temperature,density,abundancesGas_,fractionsChemical_*density,self%radiation)
+          coolingTimeTemperatureLogSlope=self%coolingTime_%gradientTemperatureLogarithmic(node,temperature,density,abundancesGas_,fractionsChemical_*density,self%radiation)
           ! Compute rate at which cooling radius grows.
           if (coolingRadius > 0.0d0) then
              self%radiusGrowthRateStored=+coolingRadius                                        &
@@ -329,17 +329,17 @@ contains
        ! Flag that cooling radius is now computed.
        self%radiusComputed=.true.
        ! Get the time available for cooling in node.
-       simpleCoolingTimeAvailable_=self%coolingTimeAvailable_%timeAvailable(node)
+       coolingTimeAvailable_=self%coolingTimeAvailable_%timeAvailable(node)
        ! Get node components.
        hotHalo => node%hotHalo()
        ! Get the abundances for this node.
-       simpleGasAbundances_=hotHalo%abundances()
-       call simpleGasAbundances_%massToMassFraction(hotHalo%mass())
+       abundancesGas_=hotHalo%abundances()
+       call abundancesGas_%massToMassFraction(hotHalo%mass())
        ! Get the chemicals for this node.
        if (self%chemicalsCount > 0) then
           chemicalMasses=hotHalo%chemicals()
           ! Scale all chemical masses by their mass in atomic mass units to get a number density.
-          call chemicalMasses%massToNumber(simpleChemicalFractions_)
+          call chemicalMasses%massToNumber(fractionsChemical_)
           ! Compute factor converting mass of chemicals in (M☉) to number density per unit total mass density (in cm⁻³ / M☉
           ! Mpc⁻³).
           if (hotHalo%mass() > 0.0d0) then
@@ -348,14 +348,14 @@ contains
              massToDensityConversion=0.0d0
           end if          
           ! Convert to number density per unit total mass density.
-          simpleChemicalFractions_=simpleChemicalFractions_*massToDensityConversion
+          fractionsChemical_=fractionsChemical_*massToDensityConversion
        end if
        ! Set epoch for radiation field.
        basic => node%basic()
        call self%radiation%timeSet(basic%time())
        ! Set module-scope pointers.
-       simpleSelf_ => self
-       simpleNode_ => node
+       self_ => self
+       node_ => node
        ! Check if cooling time at hot halo outer radius is reached.
        outerRadius=hotHalo%outerRadius()
        if (coolingRadiusRoot(outerRadius) < 0.0d0) then
@@ -391,13 +391,13 @@ contains
     !$omp threadprivate(densityChemicals)
     
     ! Compute density, temperature and abundances.
-    density         = simpleSelf_%hotHaloMassDistribution_  %density    (simpleNode_,radius)
-    temperature     = simpleSelf_%hotHaloTemperatureProfile_%temperature(simpleNode_,radius)
-    densityChemicals= simpleChemicalFractions_ &
+    density         = self_%hotHaloMassDistribution_  %density    (node_,radius)
+    temperature     = self_%hotHaloTemperatureProfile_%temperature(node_,radius)
+    densityChemicals= fractionsChemical_ &
          &           *density
     ! Compute the cooling time at the specified radius.
-    coolingTime=simpleSelf_%coolingTime_              %time       (simpleNode_,temperature,density,simpleGasAbundances_,densityChemicals,simpleSelf_%radiation)
+    coolingTime=self_%coolingTime_              %time       (node_,temperature,density,abundancesGas_,densityChemicals,self_%radiation)
     ! Return the difference between cooling time and time available.
-    coolingRadiusRoot=coolingTime-simpleCoolingTimeAvailable_
+    coolingRadiusRoot=coolingTime-coolingTimeAvailable_
     return
   end function coolingRadiusRoot

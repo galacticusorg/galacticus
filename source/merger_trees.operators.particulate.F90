@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -112,16 +112,16 @@
   integer                                           , parameter   :: energyDistributionTableMass           =5
 
   ! Tables used in construction of distribution functions.
-  class           (mergerTreeOperatorParticulate   ), allocatable :: particulateSelf
-  type            (treeNode                        ), pointer     :: particulateNode
-  logical                                                         :: particularEnergyDistributionInitialized
-  class           (table1D                         ), allocatable :: particulateRadiusDistribution
-  type            (table1DLogarithmicCSpline       )              :: particulateEnergyDistribution
-  type            (enumerationParticulateKernelType)              :: particulateSofteningKernel
-  double precision                                                :: particulateEnergy                , particulateRadiusTruncate, &
-       &                                                             particulateHeight                , particulateRadius        , &
-       &                                                             particulateLengthSoftening
-  !$omp threadprivate(particulateSelf,particulateNode,particulateRadiusDistribution,particulateEnergyDistribution,particularEnergyDistributionInitialized,particulateSofteningKernel,particulateEnergy,particulateRadiusTruncate,particulateHeight,particulateRadius,particulateLengthSoftening)
+  class           (mergerTreeOperatorParticulate   ), allocatable :: self_
+  type            (treeNode                        ), pointer     :: node_
+  logical                                                         :: energyDistributionInitialized
+  class           (table1D                         ), allocatable :: radiusDistribution
+  type            (table1DLogarithmicCSpline       )              :: energyDistribution
+  type            (enumerationParticulateKernelType)              :: softeningKernel
+  double precision                                                :: energy_                                 , radiusTruncate_, &
+       &                                                             height_                                 , radius_        , &
+       &                                                             lengthSoftening_
+  !$omp threadprivate(self_,node_,radiusDistribution,energyDistribution,energyDistributionInitialized,softeningKernel,energy_,radiusTruncate_,height_,radius_,lengthSoftening_)
 
 contains
 
@@ -470,7 +470,7 @@ contains
             &   )                                                             &
             & ) then
           ! Force the energy distribution tables to be rebuilt.
-          particularEnergyDistributionInitialized=.false.
+          energyDistributionInitialized=.false.
           ! Determine the virial radius.
           radiusVirial  =+self%darkMatterHaloScale_%radiusVirial(node)
           ! Determine the truncation radius.
@@ -499,23 +499,23 @@ contains
           position  => node%position ()
           satellite => node%satellite()
           ! Set pointers to module-scope variables.
-          particulateNode            => node
-          particulateRadiusTruncate  =  radiusTruncate
-          particulateLengthSoftening =  self%lengthSoftening
-          particulateSofteningKernel =  self%kernelSoftening
+          node_            => node
+          radiusTruncate_  =  radiusTruncate
+          lengthSoftening_ =  self%lengthSoftening
+          softeningKernel  =  self%kernelSoftening
           ! Iterate over particles.
           isNew               =.true.
           counter             =0
           positionRandomOffset=0.0d0
           velocityRandomOffset=0.0d0
-          !$omp parallel private(i,j,positionSpherical,positionCartesian,velocitySpherical,velocityCartesian,energy,energyPotential,speed,speedEscape,speedPrevious,distributionFunction,distributionFunctionMaximum,keepSample,radiusEnergy,positionVector,velocityVector,randomDeviates) copyin(particulateNode,particulateRadiusTruncate,particulateLengthSoftening,particulateSofteningKernel)
+          !$omp parallel private(i,j,positionSpherical,positionCartesian,velocitySpherical,velocityCartesian,energy,energyPotential,speed,speedEscape,speedPrevious,distributionFunction,distributionFunctionMaximum,keepSample,radiusEnergy,positionVector,velocityVector,randomDeviates) copyin(node_,radiusTruncate_,lengthSoftening_,softeningKernel)
           call Node_Components_Thread_Initialize(self%parameters)
-          allocate(particulateSelf,mold=self)
+          allocate(self_,mold=self)
           !$omp critical(mergerTreeOperatorsParticulateDeepCopy)
           !![
           <deepCopyReset variables="self"/>
-          <deepCopy source="self" destination="particulateSelf"/>
-          <deepCopyFinalize variables="particulateSelf"/>
+          <deepCopy source="self" destination="self_"/>
+          <deepCopyFinalize variables="self_"/>
           !!]
           !$omp end critical(mergerTreeOperatorsParticulateDeepCopy)
           !$omp do reduction(+: positionRandomOffset, velocityRandomOffset)
@@ -543,23 +543,23 @@ contains
              !$omp end critical (mergerTreeOperatorParticulateSample)
              call positionSpherical%  phiSet(     2.0d0*Pi*randomDeviates(1)       )
              call positionSpherical%thetaSet(acos(2.0d0   *randomDeviates(2)-1.0d0))
-             call positionSpherical%    rSet(                                                                                      &
-                  &                          particulateSelf%galacticStructure_%radiusEnclosingMass(                               &
-                  &                                                                                 node                         , &
-                  &                                                                                 mass      =+massTruncate       &
-                  &                                                                                            *randomDeviates(3), &
-                  &                                                                                 massType  =massTypeDark        &
-                  &                                                                                )                               &
+             call positionSpherical%    rSet(                                                                            &
+                  &                          self_%galacticStructure_%radiusEnclosingMass(                               &
+                  &                                                                       node                         , &
+                  &                                                                       mass      =+massTruncate       &
+                  &                                                                                  *randomDeviates(3), &
+                  &                                                                       massType  =massTypeDark        &
+                  &                                                                      )                               &
                   &                         )
              ! Get the corresponding cartesian coordinates.
              positionCartesian=positionSpherical
              ! Construct the energy distribution function encompassing this radius.
              call particulateTabulateEnergyDistribution(positionSpherical%r(),self%energyDistributionPointsPerDecade)
              ! Find the potential energy and escape speed (actually the speed to reach the truncation radius) at this radius.
-             energyPotential=+particulateEnergyDistribution%interpolate(                                        &
-                  &                                                           positionSpherical%r()           , &
-                  &                                                     table=energyDistributionTablePotential  &
-                  &                                                     )
+             energyPotential=+energyDistribution%interpolate(                                        &
+                  &                                                positionSpherical%r()           , &
+                  &                                          table=energyDistributionTablePotential  &
+                  &                                         )
              speedEscape    =+sqrt(                 &
                   &                +2.0d0           &
                   &                *energyPotential &
@@ -567,9 +567,9 @@ contains
              ! Estimate the maximum of the speed distribution function.
              distributionFunctionMaximum=+0.0d0
              speedPrevious              =-1.0d0
-             do j=1,particulateEnergyDistribution%size()
+             do j=1,energyDistribution%size()
                 ! Find the energy at this radius in the tabulated profile.
-                energy=particulateEnergyDistribution%y(j,table=energyDistributionTablePotential)
+                energy=energyDistribution%y(j,table=energyDistributionTablePotential)
                 ! Only consider points with positive kinetic energy and speed below the escape speed (i.e. the speed required
                 ! to reach the truncation radius).
                 if (-energy+energyPotential > 0.0d0 .and. speedPrevious < speedEscape) then
@@ -585,9 +585,9 @@ contains
                    ! Find the distribution function. This is v²f(E). The tabulated function is the anti-derivative of f(E), so
                    ! we need to take the derivative with respect to energy. We do this by taking the derivative with respect to
                    ! radius and dividing by dE/dr.
-                   distributionFunction       =+speed**2                                                                                                                        &
-                        &                      *particulateEnergyDistribution%interpolateGradient(particulateEnergyDistribution%x(j),table=energyDistributionTableDistribution) &
-                        &                      /particulateEnergyDistribution%interpolateGradient(particulateEnergyDistribution%x(j),table=energyDistributionTablePotential   )
+                   distributionFunction       =+speed**2                                                                                                  &
+                        &                      *energyDistribution%interpolateGradient(energyDistribution%x(j),table=energyDistributionTableDistribution) &
+                        &                      /energyDistribution%interpolateGradient(energyDistribution%x(j),table=energyDistributionTablePotential   )
                    ! Track the maximum of this distribution function.
                    distributionFunctionMaximum=+max(                             &
                         &                           distributionFunctionMaximum, &
@@ -614,20 +614,20 @@ contains
                      &               -0.5d0              &
                      &               *speed          **2
                 !$omp critical (mergerTreeOperatorParticulateRadius)
-                radiusEnergy        =+particulateRadiusDistribution%interpolate        (                                           &
-                     &                                                                        energy                             , &
-                     &                                                                  table=energyDistributionTablePotential     &
-                     &                                                                 )
+                radiusEnergy        =+radiusDistribution%interpolate        (                                           &
+                     &                                                             energy                             , &
+                     &                                                       table=energyDistributionTablePotential     &
+                     &                                                      )
                 !$omp end critical (mergerTreeOperatorParticulateRadius)
-                distributionFunction=+speed**2                                                                                     &
-                     &               *particulateEnergyDistribution%interpolateGradient(                                           &
-                     &                                                                        radiusEnergy                       , &
-                     &                                                                  table=energyDistributionTableDistribution  &
-                     &                                                                 )                                           &
-                     &               /particulateEnergyDistribution%interpolateGradient(                                           &
-                     &                                                                        radiusEnergy                       , &
-                     &                                                                  table=energyDistributionTablePotential     &
-                     &                                                                 )
+                distributionFunction=+speed**2                                                                          &
+                     &               *energyDistribution%interpolateGradient(                                           &
+                     &                                                             radiusEnergy                       , &
+                     &                                                       table=energyDistributionTableDistribution  &
+                     &                                                      )                                           &
+                     &               /energyDistribution%interpolateGradient(                                           &
+                     &                                                             radiusEnergy                       , &
+                     &                                                       table=energyDistributionTablePotential     &
+                     &                                                      )
                 if (distributionFunction > distributionFunctionMaximum) then
                    write (label,'(e12.6)') distributionFunction
                    message='distribution function ['//trim(label)//'] exceeds estimated maximum ['
@@ -692,7 +692,7 @@ contains
           end do
           !$omp end do
           call Node_Components_Thread_Uninitialize()
-          deallocate(particulateSelf)
+          deallocate(self_)
           !$omp end parallel
           call displayCounterClear(verbosity=verbosityLevelWorking)
           ! Subtract random offsets of the center-of-mass postion and velocity.
@@ -796,97 +796,97 @@ contains
          &                                                 integratorPotential                             , integratorEddington
 
     ! Determine the minimum of the given radius and some small fraction of the virial radius.
-    basic         =>                                                                      particulateNode%basic()
-    radiusMinimum =  min(                                                                                                                        &
-         &               +0.5d0*                                      radius                                                                   , &
-         &               +      particulateSelf%darkMatterProfileDMO_%radiusEnclosingMass(particulateNode        ,particulateSelf%massParticle)  &
+    basic         =>                                                            node_%basic()
+    radiusMinimum =  min(                                                                                          &
+         &               +0.5d0*                            radius                                               , &
+         &               +      self_%darkMatterProfileDMO_%radiusEnclosingMass(node_        ,self_%massParticle)  &
          &              )
     ! Rebuild the density vs. potential table to have sufficient range if necessary.
-    if (particularEnergyDistributionInitialized) then
-       tableRebuild=(radiusMinimum < (1.0d0-toleranceTabulation)*particulateEnergyDistribution%x(1))
-       if (tableRebuild) call particulateEnergyDistribution%destroy()
+    if (energyDistributionInitialized) then
+       tableRebuild=(radiusMinimum < (1.0d0-toleranceTabulation)*energyDistribution%x(1))
+       if (tableRebuild) call energyDistribution%destroy()
     else
-       tableRebuild                           =.true.
-       particularEnergyDistributionInitialized=.true.
+       tableRebuild                 =.true.
+       energyDistributionInitialized=.true.
     end if
     if (tableRebuild) then
        ! Build tables of potential and density.
-       radiusCount=int(energyDistributionPointsPerDecade*log10(particulateRadiusTruncate/radiusMinimum))+1
-       call particulateEnergyDistribution%create(                                                          &
-            &                                                +radiusMinimum                              , &
-            &                                                +particulateRadiusTruncate                  , &
-            &                                                 radiusCount                                , &
-            &                              tableCount       = 5                                          , &
-            &                              extrapolationType= [extrapolationTypeFix,extrapolationTypeFix]  &
-            &                             )
-       select case (particulateSofteningKernel%ID)
+       radiusCount=int(energyDistributionPointsPerDecade*log10(radiusTruncate_/radiusMinimum))+1
+       call energyDistribution%create(                                                                &
+            &                                           +radiusMinimum                              , &
+            &                                           +radiusTruncate_                            , &
+            &                                            radiusCount                                , &
+            &                         tableCount       = 5                                          , &
+            &                         extrapolationType= [extrapolationTypeFix,extrapolationTypeFix]  &
+            &                        )
+       select case (softeningKernel%ID)
        case (particulateKernelDelta%ID)
-          energyPotentialTruncate=+particulateSelf%darkMatterProfileDMO_%potential(                            &
-               &                                                                    particulateNode          , &
-               &                                                                   +particulateRadiusTruncate  &
+          energyPotentialTruncate=+self_%darkMatterProfileDMO_%potential(                            &
+               &                                                                    node_          , &
+               &                                                                   +radiusTruncate_  &
                &                                                                  )
        case default
           ! Potential will be computed directly from the smoothed density profile in these cases.
           energyPotentialTruncate=0.0d0
        end select
        do i=1,radiusCount
-          particulateRadius=particulateEnergyDistribution%x(i)
-          call particulateEnergyDistribution%populate(                                                                                             &
-               &                                              +particulateSelf%darkMatterProfileDMO_%density  (                                    &
-               &                                                                                               particulateNode                   , &
-               &                                                                                               particulateEnergyDistribution%x(i)  &
-               &                                                                                              )                                  , &
-               &                                                                                                                               i , &
-               &                                table        =energyDistributionTableDensity                                                     , &
-               &                                computeSpline=i==radiusCount                                                                       &
-               &                               )
-          select case (particulateSofteningKernel%ID)
+          radius_=energyDistribution%x(i)
+          call energyDistribution%populate(                                                                              &
+               &                                         +self_%darkMatterProfileDMO_%density  (                         &
+               &                                                                                node_                  , &
+               &                                                                                energyDistribution%x(i)  &
+               &                                                                               )                       , &
+               &                                                                                                     i , &
+               &                           table        =energyDistributionTableDensity                                , &
+               &                           computeSpline=i==radiusCount                                                  &
+               &                          )
+          select case (softeningKernel%ID)
           case (particulateKernelDelta%ID)
              ! No softening is applied, so use the actual density and potential.
-             call particulateEnergyDistribution%populate(                                                                                 &
-                  &                                              particulateEnergyDistribution%y(i,table=energyDistributionTableDensity), &
-                  &                                                                                                                   i , &
-                  &                                table        =energyDistributionTableDensitySmoothed                                 , &
-                  &                                computeSpline=i==radiusCount                                                           &
-                  &                               )
-             call particulateEnergyDistribution%populate(                                                                                             &
-                  &                                              -particulateSelf%darkMatterProfileDMO_%potential(                                    &
-                  &                                                                                               particulateNode                   , &
-                  &                                                                                               particulateEnergyDistribution%x(i)  &
-                  &                                                                                              )                                    &
-                  &                                              +energyPotentialTruncate                                                           , &
-                  &                                                                                                                               i , &
-                  &                                table        =energyDistributionTablePotential                                                   , &
-                  &                                computeSpline=i==radiusCount                                                                       &
-                  &                               )
+             call energyDistribution%populate(                                                                              &
+                  &                                         energyDistribution%y(i,table=energyDistributionTableDensity)  , &
+                  &                                                                                                     i , &
+                  &                           table        =energyDistributionTableDensitySmoothed                        , &
+                  &                           computeSpline=i==radiusCount                                                  &
+                  &                          )
+             call energyDistribution%populate(                                                                              &
+                  &                                         -self_%darkMatterProfileDMO_%potential(                         &
+                  &                                                                                node_                  , &
+                  &                                                                                energyDistribution%x(i)  &
+                  &                                                                               )                         &
+                  &                                         +energyPotentialTruncate                                      , &
+                  &                                                                                                     i , &
+                  &                           table        =energyDistributionTablePotential                              , &
+                  &                           computeSpline=i==radiusCount                                                  &
+                  &                          )
           case default
              ! Compute potential from a density field smoothed by the density distribution corresponding to the softened
              ! potential.
-             particulateSmoothingIntegrationRangeUpper=+particulateRadiusTruncate-particulateRadius
-             particulateSmoothingIntegrationRangeLower=-particulateRadiusTruncate-particulateRadius
-             select case (particulateSofteningKernel%ID)
+             particulateSmoothingIntegrationRangeUpper=+radiusTruncate_-radius_
+             particulateSmoothingIntegrationRangeLower=-radiusTruncate_-radius_
+             select case (softeningKernel%ID)
              case (particulateKernelGadget %ID)
-                particulateSmoothingIntegrationRangeUpper=min(particulateSmoothingIntegrationRangeUpper,+2.8d0*particulateLengthSoftening)
-                particulateSmoothingIntegrationRangeLower=max(particulateSmoothingIntegrationRangeLower,-2.8d0*particulateLengthSoftening)
+                particulateSmoothingIntegrationRangeUpper=min(particulateSmoothingIntegrationRangeUpper,+2.8d0*lengthSoftening_)
+                particulateSmoothingIntegrationRangeLower=max(particulateSmoothingIntegrationRangeLower,-2.8d0*lengthSoftening_)
              end select
              ! The integral here is performed in two parts - below and above the current radius where the integrand has a
              ! discontinuous gradient - for improved speed and stability.
-             intergatorSmoothingZ=integrator(particulateSmoothingIntegrandZ,toleranceRelative=particulateSelf%toleranceRelativeSmoothing)
-             if (particulateSmoothingIntegrationRangeLower < particulateRadius) then
+             intergatorSmoothingZ=integrator(particulateSmoothingIntegrandZ,toleranceRelative=self_%toleranceRelativeSmoothing)
+             if (particulateSmoothingIntegrationRangeLower < radius_) then
                 densitySmoothedIntegralLower=intergatorSmoothingZ%integrate(                                               &
                      &                                                          particulateSmoothingIntegrationRangeLower, &
                      &                                                      min(                                           &
-                     &                                                          particulateRadius                        , &
+                     &                                                          radius_                                  , &
                      &                                                          particulateSmoothingIntegrationRangeUpper  &
                      &                                                         )                                           &
                      &                                                     )
              else
                 densitySmoothedIntegralLower=0.0d0
              end if
-             if (particulateSmoothingIntegrationRangeUpper > particulateRadius) then
+             if (particulateSmoothingIntegrationRangeUpper > radius_) then
                 densitySmoothedIntegralUpper=intergatorSmoothingZ%integrate(                                               &
                      &                                                      max(                                           &
-                     &                                                          particulateRadius                        , &
+                     &                                                          radius_                                  , &
                      &                                                          particulateSmoothingIntegrationRangeLower  &
                      &                                                         )                                         , &
                      &                                                          particulateSmoothingIntegrationRangeUpper  &
@@ -894,72 +894,72 @@ contains
              else
                 densitySmoothedIntegralUpper=0.0d0
              end if
-             call particulateEnergyDistribution%populate(                                                       &
-                  &                                                    +densitySmoothedIntegralLower            &
-                  &                                                    +densitySmoothedIntegralUpper          , &
-                  &                                                     i                                     , &
-                  &                                      table        = energyDistributionTableDensitySmoothed, &
-                  &                                      computeSpline= i==radiusCount                          &
-                  &                                     )
+             call energyDistribution%populate(                                                       &
+                  &                                         +densitySmoothedIntegralLower            &
+                  &                                         +densitySmoothedIntegralUpper          , &
+                  &                                          i                                     , &
+                  &                           table        = energyDistributionTableDensitySmoothed, &
+                  &                           computeSpline= i==radiusCount                          &
+                  &                          )
           end select
        end do
        ! If necessary, compute the potential from the smoothed density profile.
-       if (particulateSofteningKernel /= particulateKernelDelta) then
-          integratorMass=integrator(particulateMassIntegrand,toleranceRelative=particulateSelf%toleranceMass)
+       if (softeningKernel /= particulateKernelDelta) then
+          integratorMass=integrator(particulateMassIntegrand,toleranceRelative=self_%toleranceMass)
           do i=1,radiusCount
-             particulateRadius=particulateEnergyDistribution%x(i)
-             if     (                                                                                    &
-                  &    i                                                                                 &
-                  &   >                                                                                  &
-                  &    1                                                                                 &
-                  &  .and.                                                                               &
-                  &    particulateEnergyDistribution%y(i  ,table=energyDistributionTableDensitySmoothed) &
-                  &   >                                                                                  &
-                  &    particulateEnergyDistribution%y(i-1,table=energyDistributionTableDensitySmoothed) &
-                  & ) call particulateEnergyDistribution%populate(particulateEnergyDistribution%y(i-1,table=energyDistributionTableDensitySmoothed),i,table=energyDistributionTableDensitySmoothed)
-             call particulateEnergyDistribution%populate(                                                            &
-                  &                                                    +integratorMass%integrate(                    &
-                  &                                                                              +0.0d0            , &
-                  &                                                                              +particulateRadius  &
-                  &                                                                             )                  , &
-                  &                                                    i                                           , &
-                  &                                      table        =energyDistributionTableMass                 , &
-                  &                                      computeSpline=i==radiusCount                                &
-                  &                                     )
+             radius_=energyDistribution%x(i)
+             if     (                                                                         &
+                  &    i                                                                      &
+                  &   >                                                                       &
+                  &    1                                                                      &
+                  &  .and.                                                                    &
+                  &    energyDistribution%y(i  ,table=energyDistributionTableDensitySmoothed) &
+                  &   >                                                                       &
+                  &    energyDistribution%y(i-1,table=energyDistributionTableDensitySmoothed) &
+                  & ) call energyDistribution%populate(energyDistribution%y(i-1,table=energyDistributionTableDensitySmoothed),i,table=energyDistributionTableDensitySmoothed)
+             call energyDistribution%populate(                                                  &
+                  &                                         +integratorMass%integrate(          &
+                  &                                                                   +0.0d0  , &
+                  &                                                                   +radius_  &
+                  &                                                                  )        , &
+                  &                                         i                                 , &
+                  &                           table        =energyDistributionTableMass       , &
+                  &                           computeSpline=i==radiusCount                      &
+                  &                          )
           end do
           integratorPotential=integrator(particulatePotentialIntegrand,toleranceRelative=1.0d-9)
           do i=1,radiusCount
-             particulateRadius=particulateEnergyDistribution%x(i)
-             call particulateEnergyDistribution%populate(                                                                       &
-                  &                                                    integratorPotential%integrate(                           &
-                  &                                                                                  particulateRadius        , &
-                  &                                                                                  particulateRadiusTruncate  &
-                  &                                                                                 )                         , &
-                  &                                                    i                                                      , &
-                  &                                      table        =energyDistributionTablePotential                       , &
-                  &                                      computeSpline=i==radiusCount                                           &
-                  &                                     )
+             radius_=energyDistribution%x(i)
+             call energyDistribution%populate(                                                             &
+                  &                                         integratorPotential%integrate(                 &
+                  &                                                                       radius_        , &
+                  &                                                                       radiusTruncate_  &
+                  &                                                                      )               , &
+                  &                                         i                                            , &
+                  &                           table        =energyDistributionTablePotential             , &
+                  &                           computeSpline=i==radiusCount                                 &
+                  &                          )
           end do
        end if
        ! Evaluate the integral in Eddington's formula. Ignore the normalization as we will simply use rejection sampling to draw
        ! from this distribution.
-       call particulateEnergyDistribution%populate(0.0d0,radiusCount,table=energyDistributionTableDistribution,computeSpline=.false.)
+       call energyDistribution%populate(0.0d0,radiusCount,table=energyDistributionTableDistribution,computeSpline=.false.)
        integratorEddington=integrator(particulateEddingtonIntegrand,toleranceRelative=1.0d-5)
        do i=1,radiusCount-1
-          particulateRadius=particulateEnergyDistribution%x(i)
-          particulateEnergy=particulateEnergyDistribution%y(i,table=energyDistributionTablePotential)
-          ! As the integrand diverges at particulateRadius we evaluate the integral analytically in a small region close to that radius. The
+          radius_=energyDistribution%x(i)
+          energy_=energyDistribution%y(i,table=energyDistributionTablePotential)
+          ! As the integrand diverges at radius_ we evaluate the integral analytically in a small region close to that radius. The
           ! size of this region is chosen such that the gradient of density with respect to potential changes very little over that range,
           ! ensuring that the approximation made in the analytic integral is valid.
-          gradientDensityPotentialLower=+particulateEnergyDistribution%interpolateGradient(particulateRadius,table=energyDistributionTableDensity  ) &
-               &                        /particulateEnergyDistribution%interpolateGradient(particulateRadius,table=energyDistributionTablePotential)
-          radiusFactorAsymptote        =+particulateEnergyDistribution%x(i+1) &
-               &                        /particulateEnergyDistribution%x(i  )
+          gradientDensityPotentialLower=+energyDistribution%interpolateGradient(radius_,table=energyDistributionTableDensity  ) &
+               &                        /energyDistribution%interpolateGradient(radius_,table=energyDistributionTablePotential)
+          radiusFactorAsymptote        =+energyDistribution%x(i+1) &
+               &                        /energyDistribution%x(i  )
           ! Iteratively reduce the size of the region to be integrated analytically until the density vs. potential gradient is
           ! sufficiently constant across that range.
           do while (.true.)
-             gradientDensityPotentialUpper=+particulateEnergyDistribution%interpolateGradient(particulateRadius*radiusFactorAsymptote,table=energyDistributionTableDensity  ) &
-                  &                        /particulateEnergyDistribution%interpolateGradient(particulateRadius*radiusFactorAsymptote,table=energyDistributionTablePotential)
+             gradientDensityPotentialUpper=+energyDistribution%interpolateGradient(radius_*radiusFactorAsymptote,table=energyDistributionTableDensity  ) &
+                  &                        /energyDistribution%interpolateGradient(radius_*radiusFactorAsymptote,table=energyDistributionTablePotential)
              if     (                                                                                           &
                   &                            abs(gradientDensityPotentialUpper-gradientDensityPotentialLower) &
                   &  <                                                                                          &
@@ -968,47 +968,47 @@ contains
              radiusFactorAsymptote=sqrt(radiusFactorAsymptote)
           end do
           ! Evaluate the asymptotic part of the integral analytically.
-          integralAsymptotic=+2.0d0                                                                                                                           &
-               &             *gradientDensityPotentialLower                                                                                                   &
-               &             *sqrt(                                                                                                                           &
-               &                   +particulateEnergyDistribution%y          (i                                      ,table=energyDistributionTablePotential) &
-               &                   -particulateEnergyDistribution%interpolate(particulateRadius*radiusFactorAsymptote,table=energyDistributionTablePotential) &
+          integralAsymptotic=+2.0d0                                                                                                      &
+               &             *gradientDensityPotentialLower                                                                              &
+               &             *sqrt(                                                                                                      &
+               &                   +energyDistribution%y          (i                            ,table=energyDistributionTablePotential) &
+               &                   -energyDistribution%interpolate(radius_*radiusFactorAsymptote,table=energyDistributionTablePotential) &
                &                  )
           ! Evaluate the remainder of the integral numerically and add on the asympototic part.
-          call particulateEnergyDistribution%populate(                                                                                                    &
-               &                                                    +integratorEddington%integrate(                                                       &
-               &                                                                                   +log(particulateRadiusTruncate                      ), &
-               &                                                                                   +log(particulateRadius        *radiusFactorAsymptote)  &
-               &                                                                                  )                                                       &
-               &                                                    +integralAsymptotic                                                                 , &
-               &                                                    i                                                                                   , &
-               &                                      table        =energyDistributionTableDistribution                                                 , &
-               &                                      computeSpline=i==radiusCount-1                                                                      &
+          call energyDistribution%populate(                                                                                                     &
+               &                                                    +integratorEddington%integrate(                                             &
+               &                                                                                   +log(radiusTruncate_                      ), &
+               &                                                                                   +log(radius_        *radiusFactorAsymptote)  &
+               &                                                                                  )                                             &
+               &                                                    +integralAsymptotic                                                       , &
+               &                                                    i                                                                         , &
+               &                                      table        =energyDistributionTableDistribution                                       , &
+               &                                      computeSpline=i==radiusCount-1                                                            &
                &                                     )
           ! Check that the distribution function is monotonically increasing.
-          if     (                                                                                 &
-               &    i                                                                              &
-               &   >                                                                               &
-               &    1                                                                              &
-               &  .and.                                                                            &
-               &    particulateEnergyDistribution%y(i  ,table=energyDistributionTableDistribution) &
-               &   >                                                                               &
-               &    particulateEnergyDistribution%y(i-1,table=energyDistributionTableDistribution) &
+          if     (                                                                      &
+               &    i                                                                   &
+               &   >                                                                    &
+               &    1                                                                   &
+               &  .and.                                                                 &
+               &    energyDistribution%y(i  ,table=energyDistributionTableDistribution) &
+               &   >                                                                    &
+               &    energyDistribution%y(i-1,table=energyDistributionTableDistribution) &
                & ) then
              ! Find the logarithmic derivative of potential with radius at this point.
-             derivativeLogarithmicPotential=+abs(                                                                                                                                                          &
-                  &                              +(+particulateEnergyDistribution%y(i,table=energyDistributionTablePotential)-particulateEnergyDistribution%y(i-1,table=energyDistributionTablePotential)) &
-                  &                              /(+particulateEnergyDistribution%x(i                                       )-particulateEnergyDistribution%x(i-1                                       )) &
-                  &                             )                                                                                                                                                          &
-                  &                         /       particulateEnergyDistribution%y(i,table=energyDistributionTablePotential)                                                                              &
-                  &                         *       particulateEnergyDistribution%x(i                                       )
+             derivativeLogarithmicPotential=+abs(                                                                                                                                    &
+                  &                              +(+energyDistribution%y(i,table=energyDistributionTablePotential)-energyDistribution%y(i-1,table=energyDistributionTablePotential)) &
+                  &                              /(+energyDistribution%x(i                                       )-energyDistribution%x(i-1                                       )) &
+                  &                             )                                                                                                                                    &
+                  &                         /       energyDistribution%y(i,table=energyDistributionTablePotential)                                                                   &
+                  &                         *       energyDistribution%x(i                                       )
              ! For profiles where the potential asymptotes to a finite value at zero radius we don't need to tabulate to
              ! arbitrarily small radii, just to radii small enough that we have approximately reached this asymptotic value. (This
              ! is useful to avoid numerical inaccuracies in the regime of very small radii where the potential is almost
              ! independent of radius.)
              if (derivativeLogarithmicPotential < derivativeLogarithmicPotentialTolerance) then
                 do j=i-1,1,-1
-                   call particulateEnergyDistribution%populate(particulateEnergyDistribution%y(j+1,table=energyDistributionTablePotential)*(1.0d0+epsilon(0.0d0)),j,table=energyDistributionTableDistribution,computeSpline=i==radiusCount-1)
+                   call energyDistribution%populate(energyDistribution%y(j+1,table=energyDistributionTablePotential)*(1.0d0+epsilon(0.0d0)),j,table=energyDistributionTableDistribution,computeSpline=i==radiusCount-1)
                 end do
              else
                 call Error_Report('unphysical distribution function'//{introspection:location})
@@ -1016,9 +1016,9 @@ contains
           end if
        end do
        ! Construct a reversed (radius vs. potential function) table.
-       call particulateEnergyDistribution%reverse(particulateRadiusDistribution,table=energyDistributionTablePotential)
+       call energyDistribution%reverse(radiusDistribution,table=energyDistributionTablePotential)
        ! Record that the distribution is initialized.
-       particularEnergyDistributionInitialized=.true.
+       energyDistributionInitialized=.true.
     end if
     return
   end subroutine particulateTabulateEnergyDistribution
@@ -1032,9 +1032,9 @@ contains
     double precision                :: potential        , radius
 
     radius=exp(radiusLogarithmic)
-    potential=particulateEnergyDistribution%interpolate(radius,table=energyDistributionTablePotential)
-    if (potential < particulateEnergy) then
-       particulateEddingtonIntegrand=radius*particulateEnergyDistribution%interpolateGradient(radius,table=energyDistributionTableDensity)/sqrt(particulateEnergy-potential)
+    potential=energyDistribution%interpolate(radius,table=energyDistributionTablePotential)
+    if (potential < energy_) then
+       particulateEddingtonIntegrand=radius*energyDistribution%interpolateGradient(radius,table=energyDistributionTableDensity)/sqrt(energy_-potential)
     else
        particulateEddingtonIntegrand=0.0d0
     end if
@@ -1053,19 +1053,19 @@ contains
     double precision                            :: radiusMaximum, heightOffset, &
          &                                         argumentSqrt
 
-    heightOffset=height-particulateRadius ! Height in the profile (not the kernel).
-    argumentSqrt=+particulateRadiusTruncate**2-heightOffset**2
+    heightOffset=height-radius_ ! Height in the profile (not the kernel).
+    argumentSqrt=+radiusTruncate_**2-heightOffset**2
     if (argumentSqrt <= 0.0d0) then
        particulateSmoothingIntegrandZ=0.0d0
     else
        radiusMaximum    =sqrt(argumentSqrt)
-       particulateHeight=     height
-       select case (particulateSofteningKernel%ID)
+       height_=     height
+       select case (softeningKernel%ID)
        case (particulateKernelGadget %ID)
-          radiusMaximum=min(radiusMaximum,sqrt(+(2.8d0*particulateLengthSoftening)**2-particulateHeight**2))
+          radiusMaximum=min(radiusMaximum,sqrt(+(2.8d0*lengthSoftening_)**2-height_**2))
        end select
-       integrator_                   =integrator           (particulateSmoothingIntegrandR,toleranceRelative=particulateSelf%toleranceRelativeSmoothing)
-       particulateSmoothingIntegrandZ=integrator_%integrate(0.0d0                         ,                                  radiusMaximum             )
+       integrator_                   =integrator           (particulateSmoothingIntegrandR,toleranceRelative=self_%toleranceRelativeSmoothing)
+       particulateSmoothingIntegrandZ=integrator_%integrate(0.0d0                         ,                        radiusMaximum             )
     end if
     return
   end function particulateSmoothingIntegrandZ
@@ -1079,35 +1079,35 @@ contains
     double precision, intent(in   ) :: radiusCylindrical
     double precision                :: radiusSplineKernel, lengthSplineKernel
 
-    particulateSmoothingIntegrandR=+radiusCylindrical                                                           &
-         &                         *particulateSelf%darkMatterProfileDMO_%density(                              &
-         &                                                                        particulateNode             , &
-         &                                                                        sqrt(                         &
-         &                                                                             +radiusCylindrical  **2  &
-         &                                                                             +(                       &
-         &                                                                               +particulateHeight     &
-         &                                                                               -particulateRadius     &
-         &                                                                              )                  **2  &
-         &                                                                            )                         &
-         &                                                                       )
+    particulateSmoothingIntegrandR=+radiusCylindrical                                               &
+         &                         *self_%darkMatterProfileDMO_%density(                            &
+         &                                                              node_                     , &
+         &                                                              sqrt(                       &
+         &                                                                   +radiusCylindrical**2  &
+         &                                                                   +(                     &
+         &                                                                     +height_             &
+         &                                                                     -radius_             &
+         &                                                                    )                **2  &
+         &                                                                  )                       &
+         &                                                             )
     ! Apply the softening kernel density distribution.
-    select case (particulateSofteningKernel%ID)
+    select case (softeningKernel%ID)
     case (particulateKernelPlummer%ID)
        particulateSmoothingIntegrandR=+particulateSmoothingIntegrandR &
             &                         *1.5d0                          &
-            &                         *particulateLengthSoftening **2 &
+            &                         *lengthSoftening_  **2          &
             &                         /(                              &
-            &                          +radiusCylindrical         **2 &
-            &                          +particulateHeight         **2 &
-            &                          +particulateLengthSoftening**2 &
+            &                          +radiusCylindrical**2          &
+            &                          +height_          **2          &
+            &                          +lengthSoftening_ **2          &
             &                         )**2.5d0
     case (particulateKernelGadget %ID)
        ! Compute the radius in units of the spline kernel length scale.
        lengthSplineKernel=+2.8d0                      &
-            &             *particulateLengthSoftening
+            &             *lengthSoftening_
        radiusSplineKernel=+sqrt(                      &
             &                   +radiusCylindrical**2 &
-            &                   +particulateHeight**2 &
+            &                   +height_          **2 &
             &                  )                      &
             &             /lengthSplineKernel
        if (radiusSplineKernel <= 0.5d0) then
@@ -1144,10 +1144,10 @@ contains
     double precision, intent(in   ) :: radius
 
     if (radius > 0.0d0) then
-       particulateMassIntegrand=+4.0d0                                                                                          &
-            &                   *Pi                                                                                             &
-            &                   *radius**2                                                                                      &
-            &                   *particulateEnergyDistribution%interpolate(radius,table=energyDistributionTableDensitySmoothed)
+       particulateMassIntegrand=+4.0d0                                                                               &
+            &                   *Pi                                                                                  &
+            &                   *radius**2                                                                           &
+            &                   *energyDistribution%interpolate(radius,table=energyDistributionTableDensitySmoothed)
     else
        particulateMassIntegrand=+0.0d0
     end if
@@ -1165,8 +1165,8 @@ contains
 
     ! Evaluate the integrand for gravitational potential. No minus sign here as we actually want the relative potential which will
     ! be positive.
-    particulatePotentialIntegrand=+gravitationalConstantGalacticus                                                     &
-         &                        *particulateEnergyDistribution%interpolate(radius,table=energyDistributionTableMass) &
+    particulatePotentialIntegrand=+gravitationalConstantGalacticus                                          &
+         &                        *energyDistribution%interpolate(radius,table=energyDistributionTableMass) &
          &                        /radius**2
     return
   end function particulatePotentialIntegrand

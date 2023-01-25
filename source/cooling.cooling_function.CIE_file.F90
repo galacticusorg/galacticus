@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -191,7 +191,7 @@
   end interface coolingFunctionCIEFile
 
   ! Current file format version for CIE cooling function files.
-  integer, parameter :: cieFileFormatVersionCurrent=1
+  integer, parameter :: fileFormatVersionCurrent=1
 
 contains
 
@@ -562,7 +562,7 @@ contains
     call coolingFunctionFile%openFile(char(File_Name_Expand(char(fileName))),readOnly=.true.)
     ! Check the file format version of the file.
     call coolingFunctionFile%readAttribute('fileFormat',fileFormatVersion)
-    if (fileFormatVersion /= cieFileFormatVersionCurrent) call Error_Report('file format version is out of date'//{introspection:location})
+    if (fileFormatVersion /= fileFormatVersionCurrent) call Error_Report('file format version is out of date'//{introspection:location})
     ! Read datasets.
     call coolingFunctionFile%readDataset('temperature',self%temperatures        )
     call coolingFunctionFile%readDataset('metallicity',self%metallicities       )

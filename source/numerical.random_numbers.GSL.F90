@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -60,7 +60,7 @@
   end interface randomNumberGeneratorGSL
 
   ! GSL RNG initialization status.
-  logical                                         :: gslRNGInitialized=.false.
+  logical                                         :: rngInitialized=.false.
   
   ! RNG types.
   type   (c_ptr), bind(C, name="gsl_rng_default") :: gsl_rng_default
@@ -219,11 +219,11 @@ contains
 
     self%ompThreadOffset         =ompThreadOffset_
     self%mpiRankOffset           =mpiRankOffset_
-    if (.not.gslRNGInitialized) then
+    if (.not.rngInitialized) then
        !$omp critical(GSL_RNG_Initialize)
-       if (.not.gslRNGInitialized) then
+       if (.not.rngInitialized) then
           call gsl_rng_env_setup()
-          gslRNGInitialized=.true.
+          rngInitialized=.true.
        end if
        !$omp end critical(GSL_RNG_Initialize)
     end if

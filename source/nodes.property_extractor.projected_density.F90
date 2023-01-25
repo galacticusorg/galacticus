@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -68,8 +68,8 @@
   end interface nodePropertyExtractorProjectedDensity
 
   ! Module-scope variables used in integrands.
-  double precision :: projectedDensityRadius
-  !$omp threadprivate(projectedDensityRadius)
+  double precision :: radius_
+  !$omp threadprivate(radius_)
 
 contains
 
@@ -218,25 +218,25 @@ contains
     if (self%darkMatterScaleRadiusIsNeeded) darkMatterProfile =>                                        node%darkMatterProfile()
     integrator_=integrator(projectedDensityIntegrand,toleranceRelative=1.0d-3,hasSingularities=.true.,integrationRule=GSL_Integ_Gauss15)
     do i=1,self%radiiCount
-       projectedDensityRadius=self%radii(i)%value
+       radius_=self%radii(i)%value
        select case (self%radii(i)%type%ID)
        case   (radiusTypeRadius                %ID)
           ! Nothing to do.
        case   (radiusTypeVirialRadius          %ID)
-          projectedDensityRadius=+projectedDensityRadius*radiusVirial
+          radius_=+radius_*radiusVirial
        case   (radiusTypeDarkMatterScaleRadius %ID)
-          projectedDensityRadius=+projectedDensityRadius*darkMatterProfile%         scale()
+          radius_=+radius_*darkMatterProfile%         scale()
        case   (radiusTypeDiskRadius            %ID)
-          projectedDensityRadius=+projectedDensityRadius*disk             %        radius()
+          radius_=+radius_*disk             %        radius()
        case   (radiusTypeSpheroidRadius        %ID)
-          projectedDensityRadius=+projectedDensityRadius*spheroid         %        radius()
+          radius_=+radius_*spheroid         %        radius()
        case   (radiusTypeDiskHalfMassRadius    %ID)
-          projectedDensityRadius=+projectedDensityRadius*disk             %halfMassRadius()
+          radius_=+radius_*disk             %halfMassRadius()
        case   (radiusTypeSpheroidHalfMassRadius%ID)
-          projectedDensityRadius=+projectedDensityRadius*spheroid         %halfMassRadius()
+          radius_=+radius_*spheroid         %halfMassRadius()
        case   (radiusTypeGalacticMassFraction  %ID,  &
             &  radiusTypeGalacticLightFraction %ID)
-          projectedDensityRadius=+projectedDensityRadius           &
+          radius_=+radius_                                         &
                & *self%galacticStructure_%radiusEnclosingMass      &
                &  (                                                &
                &   node                                         ,  &
@@ -247,7 +247,7 @@ contains
                &   weightIndex   =self%radii(i)%weightByIndex      &
                &  )
        case   (radiusTypeStellarMassFraction  %ID)
-          projectedDensityRadius=+projectedDensityRadius           &
+          radius_=+radius_                                         &
                & *self%galacticStructure_%radiusEnclosingMass      &
                &  (                                                &
                &   node                                         ,  &
@@ -261,17 +261,17 @@ contains
        radiusOuter                        =self       %darkMatterHaloScale_%radiusVirial(node                              )
        ! Cut out a small region round the coordinate singularity at the inner radius. This region will be integrated analytically
        ! assuming a constant density over this region. The region outside of this cut-out will be integrated numerically.
-       radiusSingularity=min(projectedDensityRadius*(1.0d0+epsilonSingularity),radiusOuter)
+       radiusSingularity=min(radius_*(1.0d0+epsilonSingularity),radiusOuter)
        !! Analytic integral within the cut-out.
        projectedDensityExtract       (i,1)=+2.0d0                                                                  &
             &                              *sqrt(                                                                  &
-            &                                    +radiusSingularity     **2                                        &
-            &                                    -projectedDensityRadius**2                                        &
+            &                                    +radiusSingularity**2                                             &
+            &                                    -radius_          **2                                             &
             &                                   )                                                                  &
             &                              *self%galacticStructure_%density(                                       &
             &                                                               node                                 , &
             &                                                               [                                      &
-            &                                                                projectedDensityRadius              , &
+            &                                                                radius_                             , &
             &                                                                0.0d0                               , &
             &                                                                0.0d0                                 &
             &                                                               ]                                    , &
@@ -283,7 +283,7 @@ contains
             & projectedDensityExtract(i,1)=+projectedDensityExtract(i,1)                                   &
             &                              +integrator_%integrate(log(radiusSingularity),log(radiusOuter))
        if (self%includeRadii)                                                                              &
-            & projectedDensityExtract(i,2)=projectedDensityRadius
+            & projectedDensityExtract(i,2)=radius_
     end do
     return
 
@@ -298,14 +298,14 @@ contains
       double precision                :: radius
 
       radius=exp(radiusLogarithmic)
-      if (radius <= projectedDensityRadius) then
+      if (radius <= radius_) then
          projectedDensityIntegrand=+0.0d0
       else
          projectedDensityIntegrand=+2.0d0                                                                  &
-              &                    *radius                      **2                                        &
+              &                    *radius       **2                                                       &
               &                    /sqrt(                                                                  &
-              &                          +radius                **2                                        &
-              &                          -projectedDensityRadius**2                                        &
+              &                          +radius **2                                                       &
+              &                          -radius_**2                                                       &
               &                    )                                                                       &
               &                    *self%galacticStructure_%density(                                       &
               &                                                     node                                 , &

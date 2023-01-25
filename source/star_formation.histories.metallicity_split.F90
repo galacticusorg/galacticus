@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -100,13 +100,13 @@ Contains a module which implements a star formation histories class which record
      A star formation histories class which records star formation split by metallicity.
      !!}
      private
-     class           (outputTimesClass), pointer :: outputTimes_            => null()
-     integer                                     :: countMetallicities
-     double precision                            :: timeStep                         , timeStepFine          , &
-          &                                         timeFine                         , metallicityMaximum    , &
-          &                                         metallicityMinimum
-     double precision, allocatable, dimension(:) :: metallicityTable                 , metallicityBoundaries_
-     logical                                     :: metallicityTableWritten
+     class           (outputTimesClass), pointer                   :: outputTimes_            => null()
+     integer                                                       :: countMetallicities
+     double precision                                              :: timeStep                         , timeStepFine          , &
+          &                                                           timeFine                         , metallicityMaximum    , &
+          &                                                           metallicityMinimum
+     double precision                  , allocatable, dimension(:) :: metallicityTable                 , metallicityBoundaries_
+     logical                                                       :: metallicityTableWritten
    contains
      !![
      <methods>
@@ -134,12 +134,12 @@ Contains a module which implements a star formation histories class which record
   type metallicitySplitTimeStepRange
      private
      integer                                                  :: count
-     double precision                                         :: timeBegin, timeEnd
-     type            (metallicitySplitTimeStepRange), pointer :: next
+     double precision                                         :: timeBegin          , timeEnd
+     type            (metallicitySplitTimeStepRange), pointer :: next      => null()
   end type metallicitySplitTimeStepRange
 
   ! Effective infinite metallicity.
-  double precision, parameter :: metallicitySplitMetallicityInfinite=huge(1.0d0)
+  double precision, parameter :: metallicityInfinite=huge(1.0d0)
 
 contains
 
@@ -256,7 +256,7 @@ contains
             & ) call Error_Report('specify either a list of metallicity boundaries, or a range, not both'//{introspection:location})
        allocate(self%metallicityTable(size(metallicityBoundaries)+1))
        self%metallicityTable      (1:size(metallicityBoundaries)  )=metallicityBoundaries
-       self%metallicityTable      (  size(metallicityBoundaries)+1)=metallicitySplitMetallicityInfinite
+       self%metallicityTable      (  size(metallicityBoundaries)+1)=metallicityInfinite
        self%metallicityBoundaries_                                 =metallicityBoundaries
     else
        if     (                                &
@@ -278,7 +278,7 @@ contains
        case default
           allocate(self%metallicityTable(countMetallicities+1))
           if (countMetallicities > 1) self%metallicityTable(1:countMetallicities)=Make_Range(metallicityMinimum,metallicityMaximum,countMetallicities,rangeType=rangeTypeLogarithmic)
-          self%metallicityTable(countMetallicities+1)=metallicitySplitMetallicityInfinite
+          self%metallicityTable(countMetallicities+1)=metallicityInfinite
        end select
        self%metallicityBoundaries_=self%metallicityTable(1:countMetallicities)
     end if

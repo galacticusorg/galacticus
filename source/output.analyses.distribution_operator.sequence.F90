@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,8 +22,8 @@ Contains a module which implements a sequence output analysis distribution opera
 !!}
 
   type, public :: distributionOperatorList
-     class(outputAnalysisDistributionOperatorClass), pointer :: operator_
-     type (distributionOperatorList               ), pointer :: next     => null()
+     class(outputAnalysisDistributionOperatorClass), pointer :: operator_ => null()
+     type (distributionOperatorList               ), pointer :: next      => null()
   end type distributionOperatorList
 
   !![

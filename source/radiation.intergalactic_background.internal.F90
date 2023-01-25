@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -99,8 +99,8 @@
   end type intergalacticBackgroundInternalState
 
   ! Module-scope pointer to self for ODE solving.
-  class(radiationFieldIntergalacticBackgroundInternal), pointer :: intergalacticBackgroundInternalSelf
-  !$omp threadprivate(intergalacticBackgroundInternalSelf)
+  class(radiationFieldIntergalacticBackgroundInternal), pointer :: self_
+  !$omp threadprivate(self_)
 
 contains
 
@@ -602,10 +602,10 @@ contains
              self%timeODE      (  0:1)=self%time_     (  iNow-1:iNow)
              self%emissivityODE(:,0  )=self%emissivity(:,iNow-1     )
              self%emissivityODE(:,  1)=self%emissivity(:,       iNow)
-             intergalacticBackgroundInternalSelf => self
-             timeStart=self%time_(iNow-1)
-             timeEnd  =self%time_(iNow  )
-             solver   =odeSolver(self%wavelengthCount,intergalacticBackgroundInternalODEs,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative)    
+             self_     => self
+             timeStart =  self%time_(iNow-1)
+             timeEnd   =  self%time_(iNow  )
+             solver    =  odeSolver(self%wavelengthCount,intergalacticBackgroundInternalODEs,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative)    
              call solver%solve(timeStart,timeEnd,self%spectrum)
              ! Convert
              !$omp critical (radiationFieldIntergalacticBackgroundInternalCritical)
@@ -721,74 +721,74 @@ contains
     double precision, intent(in   )               :: time
     double precision, intent(in   ), dimension(:) :: spectrum
     double precision, intent(  out), dimension(:) :: spectrumRateOfChange
-    double precision                              :: spectralGradient    (intergalacticBackgroundInternalSelf%wavelengthCount)
+    double precision                              :: spectralGradient    (self_%wavelengthCount)
     double precision                              :: expansionFactor
 
     ! Get the expansion factor.
-    expansionFactor=intergalacticBackgroundInternalSelf%cosmologyFunctions_%expansionFactor(time)
+    expansionFactor=self_%cosmologyFunctions_%expansionFactor(time)
     ! Add source terms, linearly interpolating between timesteps. Convert from emissivity units [L☉ Hz⁻¹ Mpc⁻³] to
     ! background units [photons m⁻³ Hz⁻¹].
-    spectrumRateOfChange(1:intergalacticBackgroundInternalSelf%wavelengthCount)                                                &
-         & =+(                                                                                                                 &
-         &    +                                                        intergalacticBackgroundInternalSelf%emissivityODE(:,0)  &
-         &    +(intergalacticBackgroundInternalSelf%emissivityODE(:,1)-intergalacticBackgroundInternalSelf%emissivityODE(:,0)) &
-         &    *(                                          time        -intergalacticBackgroundInternalSelf%      timeODE(  0)) &
-         &    /(intergalacticBackgroundInternalSelf%      timeODE(  1)-intergalacticBackgroundInternalSelf%      timeODE(  0)) &
-         &   )                                                                                                                 &
-         &  *intergalacticBackgroundInternalSelf%wavelength                                                                    &
-         &  *luminositySolar                                                                                                   &
-         &  *gigaYear                                                                                                          &
-         &  /angstromsPerMeter                                                                                                 &
-         &  /plancksConstant                                                                                                   &
-         &  /speedLight                                                                                                        &
+    spectrumRateOfChange(1:self_%wavelengthCount)                  &
+         & =+(                                                     &
+         &    +                          self_%emissivityODE(:,0)  &
+         &    +(self_%emissivityODE(:,1)-self_%emissivityODE(:,0)) &
+         &    *(            time        -self_%      timeODE(  0)) &
+         &    /(self_%      timeODE(  1)-self_%      timeODE(  0)) &
+         &   )                                                     &
+         &  *self_%wavelength                                      &
+         &  *luminositySolar                                       &
+         &  *gigaYear                                              &
+         &  /angstromsPerMeter                                     &
+         &  /plancksConstant                                       &
+         &  /speedLight                                            &
          &  /megaParsec**3
     ! Add expansion dilution: -3 H(t)      n_ν
-    spectrumRateOfChange(1:intergalacticBackgroundInternalSelf%wavelengthCount)=+spectrumRateOfChange(1:intergalacticBackgroundInternalSelf%wavelengthCount)            &
-         &                                                                      -spectrum            (1:intergalacticBackgroundInternalSelf%wavelengthCount)            &
-         &                                                                      *3.0d0                                                                                  &
-         &                                                                      *intergalacticBackgroundInternalSelf%cosmologyFunctions_%expansionRate(expansionFactor)
+    spectrumRateOfChange(1:self_%wavelengthCount)=+spectrumRateOfChange(1:self_%wavelengthCount)            &
+         &                                        -spectrum            (1:self_%wavelengthCount)            &
+         &                                        *3.0d0                                                    &
+         &                                        *self_%cosmologyFunctions_%expansionRate(expansionFactor)
     ! Add redshifting       : +  H(t) d(ν n_ν)/dν
-    spectralGradient    (1                                                    )=-  spectrum          (1                                                      )
-    spectralGradient    (2:intergalacticBackgroundInternalSelf%wavelengthCount)=-                                                                              intergalacticBackgroundInternalSelf%wavelength(2:intergalacticBackgroundInternalSelf%wavelengthCount  )**2 &
-         &                                                                      *(                                                                                                                                                                                        &
-         &                                                                        +spectrum          (2:intergalacticBackgroundInternalSelf%wavelengthCount  )/intergalacticBackgroundInternalSelf%wavelength(2:intergalacticBackgroundInternalSelf%wavelengthCount  )    &
-         &                                                                        -spectrum          (1:intergalacticBackgroundInternalSelf%wavelengthCount-1)/intergalacticBackgroundInternalSelf%wavelength(1:intergalacticBackgroundInternalSelf%wavelengthCount-1)    &
-         &                                                                       )                                                                                                                                                                                        &
-         &                                                                      /(                                                                                                                                                                                        &
-         &                                                                        +                                                                            intergalacticBackgroundInternalSelf%wavelength(2:intergalacticBackgroundInternalSelf%wavelengthCount  )    &
-         &                                                                        -                                                                            intergalacticBackgroundInternalSelf%wavelength(1:intergalacticBackgroundInternalSelf%wavelengthCount-1)    &
-         &                                                                      )
-    spectrumRateOfChange(1:intergalacticBackgroundInternalSelf%wavelengthCount)=+spectrumRateOfChange(1:intergalacticBackgroundInternalSelf%wavelengthCount  )                                                                                                            &
-         &                                                                      +spectralGradient                                                                                                                                                                         &
-         &                                                                      *intergalacticBackgroundInternalSelf%cosmologyFunctions_%expansionRate(expansionFactor)
+    spectralGradient    (1                      )=-  spectrum          (1                      )
+    spectralGradient    (2:self_%wavelengthCount)=-                                                self_%wavelength(2:self_%wavelengthCount  )**2 &
+         &                                        *(                                                                                              &
+         &                                          +spectrum          (2:self_%wavelengthCount  )/self_%wavelength(2:self_%wavelengthCount  )    &
+         &                                          -spectrum          (1:self_%wavelengthCount-1)/self_%wavelength(1:self_%wavelengthCount-1)    &
+         &                                         )                                                                                              &
+         &                                        /(                                                                                              &
+         &                                          +                                              self_%wavelength(2:self_%wavelengthCount  )    &
+         &                                          -                                              self_%wavelength(1:self_%wavelengthCount-1)    &
+         &                                         )
+    spectrumRateOfChange(1:self_%wavelengthCount)=+spectrumRateOfChange(1:self_%wavelengthCount)            &
+         &                                        +spectralGradient                                         &
+         &                                        *self_%cosmologyFunctions_%expansionRate(expansionFactor)
     ! Absorption.
-    where (spectrum(1:intergalacticBackgroundInternalSelf%wavelengthCount) > 0.0d0)
-       spectrumRateOfChange         (1:intergalacticBackgroundInternalSelf%wavelengthCount)                                &
-            & =+spectrumRateOfChange(1:intergalacticBackgroundInternalSelf%wavelengthCount)                                &
-            &  -spectrum            (1:intergalacticBackgroundInternalSelf%wavelengthCount)                                &
-            &  *gigaYear                                                                                                   &
-            &  *massSolar                                                                                                  &
-            &  /megaParsec                                                                                             **3 &
-            &  *centi                                                                                                  **2 &
-            &  *speedLight                                                                                                 &
-            &  /atomicMassUnit                                                                                             &
-            &  *(                                                                                                          &
-            &    +intergalacticBackgroundInternalSelf%crossSectionNeutralHydrogen                                          &
-            &    *hydrogenByMassPrimordial                                                                                 &
-            &    *intergalacticBackgroundInternalSelf%intergalacticMediumState_      %neutralHydrogenFraction    (time)    &
-            &    /atomicMassHydrogen                                                                                       &
-            &    +intergalacticBackgroundInternalSelf%crossSectionNeutralHelium                                            &
-            &    *heliumByMassPrimordial                                                                                   &
-            &    *intergalacticBackgroundInternalSelf%intergalacticMediumState_      %neutralHeliumFraction      (time)    &
-            &    /atomicMassHelium                                                                                         &
-            &    +intergalacticBackgroundInternalSelf%crossSectionSinglyIonizedHelium                                      &
-            &    *heliumByMassPrimordial                                                                                   &
-            &    *intergalacticBackgroundInternalSelf%intergalacticMediumState_      %singlyIonizedHeliumFraction(time)    &
-            &    /atomicMassHelium                                                                                         &
-            &   )                                                                                                          &
-            &  *  intergalacticBackgroundInternalSelf%cosmologyParameters_           %OmegaBaryon                (    )    &
-            &  *  intergalacticBackgroundInternalSelf%cosmologyParameters_           %densityCritical            (    )    &
-            &  /  intergalacticBackgroundInternalSelf%cosmologyFunctions_            %expansionFactor            (time)**3
+    where (spectrum(1:self_%wavelengthCount) > 0.0d0)
+       spectrumRateOfChange         (1:self_%wavelengthCount)                                &
+            & =+spectrumRateOfChange(1:self_%wavelengthCount)                                &
+            &  -spectrum            (1:self_%wavelengthCount)                                &
+            &  *gigaYear                                                                     &
+            &  *massSolar                                                                    &
+            &  /megaParsec                                                               **3 &
+            &  *centi                                                                    **2 &
+            &  *speedLight                                                                   &
+            &  /atomicMassUnit                                                               &
+            &  *(                                                                            &
+            &    +self_%crossSectionNeutralHydrogen                                          &
+            &    *hydrogenByMassPrimordial                                                   &
+            &    *self_%intergalacticMediumState_      %neutralHydrogenFraction    (time)    &
+            &    /atomicMassHydrogen                                                         &
+            &    +self_%crossSectionNeutralHelium                                            &
+            &    *heliumByMassPrimordial                                                     &
+            &    *self_%intergalacticMediumState_      %neutralHeliumFraction      (time)    &
+            &    /atomicMassHelium                                                           &
+            &    +self_%crossSectionSinglyIonizedHelium                                      &
+            &    *heliumByMassPrimordial                                                     &
+            &    *self_%intergalacticMediumState_      %singlyIonizedHeliumFraction(time)    &
+            &    /atomicMassHelium                                                           &
+            &   )                                                                            &
+            &  *  self_%cosmologyParameters_           %OmegaBaryon                (    )    &
+            &  *  self_%cosmologyParameters_           %densityCritical            (    )    &
+            &  /  self_%cosmologyFunctions_            %expansionFactor            (time)**3
     end where
     ! Return success.
     intergalacticBackgroundInternalODEs=GSL_Success

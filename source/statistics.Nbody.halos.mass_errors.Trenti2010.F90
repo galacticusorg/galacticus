@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -122,8 +122,8 @@ contains
     double precision                              , parameter                       :: particleNumberReference =+1.000d3
 
     self%massParticle                  =massParticle
-    self%normalizationSquared          =(normalization*(powerLawMassReference/particleNumberReference/massParticle)**exponent)**2
-    self%exponent                      =                                                                             exponent
+    self%normalizationSquared          =(normalization*(massReference/particleNumberReference/massParticle)**exponent)**2
+    self%exponent                      =                                                                     exponent
     self%fractionalErrorHighMassSquared=+0.0d0
     ! Set correlation properties.
     if (present(correlationNormalization).or.present(correlationMassExponent).or.present(correlationRedshiftExponent)) then

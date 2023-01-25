@@ -486,13 +486,13 @@ sub Process_FunctionClass {
 						$descriptor = $potentialDescriptor
 						    if ( grep {lc($_) eq lc($name)."_"} @{$potentialDescriptor->{'variableNames'}} );
 					    }
-					} elsif ( grep {$_ eq lc($name)} (map {@{$_->{'variables'}}} @{$potentialNames->{'enumerations'}}) ) {
+					} elsif ( grep {lc($_) eq lc($name)} (map {@{$_->{'variableNames'}}} @{$potentialNames->{'enumerations'}}) ) {
 					    push(@{$descriptorParameters->{'enumerations'}},{name => $name, inputName => $constructorNode->{'directive'}->{'name'}, source => $constructorNode->{'directive'}->{'source'}});
 					    # Find the matched variable.
 					    my $descriptor;
 					    foreach my $potentialDescriptor ( @{$potentialNames->{'enumerations'}} ) {
 						$descriptor = $potentialDescriptor
-						    if ( grep {$_ eq lc($name)} @{$potentialDescriptor->{'variables'}} );
+						    if ( grep {lc($_) eq lc($name)} @{$potentialDescriptor->{'variableNames'}} );
 					    }
 					} elsif ( grep {$_ eq lc($name)} (map {@{$_->{'variables'}}} @{$potentialNames->{'statefulTypes'}}) ) {
 					    push(@{$descriptorParameters->{'statefulTypes'}},{name => $name, inputName => $constructorNode->{'directive'}->{'name'}, source => $constructorNode->{'directive'}->{'source'}});

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -78,11 +78,11 @@ Contains a module which implements a property extractor class for the mass and r
   end interface nodePropertyExtractorDensityContrasts
 
   ! Module-scope variables used in root finding.
-  type            (treeNode                             ), pointer :: densityContrastsNode
-  class           (nodeComponentBasic                   ), pointer :: densityContrastsBasic
-  class           (nodePropertyExtractorDensityContrasts), pointer :: densityContrastsSelf
+  type            (treeNode                             ), pointer :: node_
+  class           (nodeComponentBasic                   ), pointer :: basic_
+  class           (nodePropertyExtractorDensityContrasts), pointer :: self_
   double precision                                                 :: densityTarget
-  !$omp threadprivate(densityContrastsNode,densityContrastsBasic,densityContrastsSelf,densityTarget)
+  !$omp threadprivate(node_,basic_,self_,densityTarget)
 
 contains
 
@@ -243,18 +243,18 @@ contains
 
     allocate(densityContrastsExtract(self%countDensityContrasts,self%elementCount_))
     ! Make the self, node, and basic component available to the root finding routine.
-    densityContrastsSelf  => self
-    densityContrastsNode  => node
-    densityContrastsBasic => node%basic()
+    self_  => self
+    node_  => node
+    basic_ => node%basic()
     ! Find the reference density at this epoch.
-    densityReference=self%cosmologyFunctions_%matterDensityEpochal(densityContrastsBasic%time())
+    densityReference=self%cosmologyFunctions_%matterDensityEpochal(basic_%time())
     select case (self%densityContrastRelativeTo%ID)
     case (densityCosmologicalMean    %ID)
        ! No modification required.
     case (densityCosmologicalCritical%ID)
        ! Modify reference density to be the critical density.
        densityReference=+densityReference                                                          &
-            &           /self%cosmologyFunctions_%OmegaMatterEpochal(densityContrastsBasic%time())
+            &           /self%cosmologyFunctions_%OmegaMatterEpochal(basic_%time())
     case default
        call Error_Report('unknown cosmological density'//{introspection:location})
     end select
@@ -364,12 +364,12 @@ contains
     double precision, intent(in   ) :: radius
     double precision                :: enclosedMass
     
-    enclosedMass        =densityContrastsSelf%galacticStructure_%massEnclosed(                                                         &
-         &                                                                                                       densityContrastsNode, &
-         &                                                                                                       radius              , &
-         &                                                                    componentType=                     componentTypeAll    , &
-         &                                                                    massType     =densityContrastsSelf%massTypeSelected      &
-         &                                                                   )
+    enclosedMass        =self_%galacticStructure_%massEnclosed(                                      &
+         &                                                                         node_           , &
+         &                                                                         radius          , &
+         &                                                     componentType=      componentTypeAll, &
+         &                                                     massType     =self_%massTypeSelected  &
+         &                                                    )
     densityContrastsRoot=+3.0d0         &
          &               *enclosedMass  &
          &               /4.0d0         &

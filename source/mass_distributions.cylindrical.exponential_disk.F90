@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +22,7 @@
   !!}
   
   !$ use :: OMP_Lib, only : omp_lock_kind
-  use    :: Tables , only : table1DLogarithmicLinear
+  use :: Tables , only : table1DLogarithmicLinear
 
   !![
   <massDistribution name="massDistributionExponentialDisk">
@@ -33,38 +33,38 @@
      !!{
      The exponential disk mass distribution: $\rho(r,z)=\rho_0 \exp(-r/r_\mathrm{s}) \hbox{sech}^2(z/z_\mathrm{s})$.
      !!}
-  private
-  double precision                                                        :: scaleRadius                                   , scaleHeight                                   , &
-       &                                                                     densityNormalization                          , surfaceDensityNormalization                   , &
-       &                                                                     mass
-  ! Tables used for rotation curves and potential.
-  logical                                                                 :: scaleLengthFactorSet                          , rotationCurveInitialized              =.false., &
-       &                                                                     rotationCurveGradientInitialized      =.false., potentialInitialized                  =.false., &
-       &                                                                     accelerationInitialized               =.false.
-  double precision                                                        :: scaleLengthFactor
-  double precision                                                        :: rotationCurveHalfRadiusMinimum                , rotationCurveHalfRadiusMaximum
-  double precision                                                        :: rotationCurveGradientHalfRadiusMinimum        , rotationCurveGradientHalfRadiusMaximum
-  type            (table1DLogarithmicLinear)                              :: rotationCurveTable                            , rotationCurveGradientTable                    , &
-       &                                                                     potentialTable
-  double precision                          , allocatable, dimension(:  ) :: accelerationRadii                             , accelerationHeights
-  double precision                          , allocatable, dimension(:,:) :: accelerationRadial                            , accelerationVertical                          , &
-       &                                                                     tidalTensorRadialRadial                       , tidalTensorVerticalVertical                   , &
-       &                                                                     tidalTensorCross
-  double precision                                                        :: accelerationRadiusMinimumLog                  , accelerationRadiusMaximumLog                  , &
-       &                                                                     accelerationHeightMinimumLog                  , accelerationHeightMaximumLog                  , &
-       &                                                                     accelerationRadiusInverseInterval             , accelerationHeightInverseInterval
-  ! Locks.
-  !$ integer      (omp_lock_kind           )                              :: factorComputeLock                             , rotationCurveLock                             , &
-  !$   &                                                                     rotationCurveGradientLock                     , potentialLock
-contains
+     private
+     double precision                                                        :: scaleRadius                                   , scaleHeight                                   , &
+          &                                                                     densityNormalization                          , surfaceDensityNormalization                   , &
+          &                                                                     mass
+     ! Tables used for rotation curves and potential.
+     logical                                                                 :: scaleLengthFactorSet                          , rotationCurveInitialized              =.false., &
+          &                                                                     rotationCurveGradientInitialized      =.false., potentialInitialized                  =.false., &
+          &                                                                     accelerationInitialized               =.false.
+     double precision                                                        :: scaleLengthFactor
+     double precision                                                        :: rotationCurveHalfRadiusMinimum                , rotationCurveHalfRadiusMaximum
+     double precision                                                        :: rotationCurveGradientHalfRadiusMinimum        , rotationCurveGradientHalfRadiusMaximum
+     type            (table1DLogarithmicLinear)                              :: rotationCurveTable                            , rotationCurveGradientTable                    , &
+          &                                                                     potentialTable
+     double precision                          , allocatable, dimension(:  ) :: accelerationRadii                             , accelerationHeights
+     double precision                          , allocatable, dimension(:,:) :: accelerationRadial                            , accelerationVertical                          , &
+          &                                                                     tidalTensorRadialRadial                       , tidalTensorVerticalVertical                   , &
+          &                                                                     tidalTensorCross
+     double precision                                                        :: accelerationRadiusMinimumLog                  , accelerationRadiusMaximumLog                  , &
+          &                                                                     accelerationHeightMinimumLog                  , accelerationHeightMaximumLog                  , &
+          &                                                                     accelerationRadiusInverseInterval             , accelerationHeightInverseInterval
+     ! Locks.
+     !$ integer      (omp_lock_kind           )                              :: factorComputeLock                             , rotationCurveLock                             , &
+     !$   &                                                                     rotationCurveGradientLock                     , potentialLock
+   contains
      !![
      <methods>
-       <method description="Tabulates the potential for an exponential disk mass distribution." method="tabulate" />
-       <method description="Compute the Bessel function factor appearing in the exponential disk rotation curve." method="besselFactorRotationCurve" />
-       <method description="Compute the Bessel function factor appearing in the exponential disk rotation curve gradient." method="besselFactorRotationCurveGradient" />
-       <method description="Compute the Bessel function factor appearing in the exponential disk potential." method="besselFactorPotential" />
-       <method description="Tabulate the gravitational acceleration and tidal tensor due to the disk." method="accelerationTabulate" />
-       <method description="Interpolate in the tabulated gravitational acceleration and/or tidal tensor due to the disk." method="accelerationInterpolate" />
+       <method description="Tabulates the potential for an exponential disk mass distribution."                            method="tabulate"                         />
+       <method description="Compute the Bessel function factor appearing in the exponential disk rotation curve."          method="besselFactorRotationCurve"        />
+       <method description="Compute the Bessel function factor appearing in the exponential disk rotation curve gradient." method="besselFactorRotationCurveGradient"/>
+       <method description="Compute the Bessel function factor appearing in the exponential disk potential."               method="besselFactorPotential"            />
+       <method description="Tabulate the gravitational acceleration and tidal tensor due to the disk."                     method="accelerationTabulate"             />
+       <method description="Interpolate in the tabulated gravitational acceleration and/or tidal tensor due to the disk."  method="accelerationInterpolate"          />
      </methods>
      !!]
      final     ::                                      exponentialDiskDestructor
@@ -98,12 +98,12 @@ contains
 
   ! The radius (in units of the disk scale length) beyond which the disk is treated as a point mass for the purposes of computing
   ! rotation curves.
-  double precision, parameter :: exponentialDiskRadiusMaximum           =3.0d+1
+  double precision, parameter :: radiusMaximum           =3.0d+1
 
   ! Potential tabulation.
-  integer         , parameter :: exponentialDiskPotentialPointsPerDecade=10
-  double precision, parameter :: exponentialDiskPotentialRadiusMinimum  =1.0d-3
-  double precision, parameter :: exponentialDiskPotentialRadiusMaximum  =5.0d+2
+  integer         , parameter :: potentialPointsPerDecade=10
+  double precision, parameter :: potentialRadiusMinimum  =1.0d-3
+  double precision, parameter :: potentialRadiusMaximum  =5.0d+2
 
 contains
 
@@ -112,13 +112,16 @@ contains
     Constructor for the {\normalfont \ttfamily exponentialDisk} mass distribution class which builds the object from a parameter
     set.
     !!}
-    use :: Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters          , only : inputParameter                , inputParameters
+    use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
     implicit none
     type            (massDistributionExponentialDisk)                :: self
     type            (inputParameters                ), intent(inout) :: parameters
     double precision                                                 :: mass         , scaleRadius, &
          &                                                              scaleHeight
     logical                                                          :: dimensionless
+    type            (varying_string                 )                :: componentType
+    type            (varying_string                 )                :: massType
 
     !![
     <inputParameter>
@@ -146,8 +149,20 @@ contains
       <description>If true the exponential disk profile is considered to be dimensionless.</description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter>
+      <name>componentType</name>
+      <defaultValue>var_str('unknown')</defaultValue>
+      <description>The component type that this mass distribution represents.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>massType</name>
+      <defaultValue>var_str('unknown')</defaultValue>
+      <description>The mass type that this mass distribution represents.</description>
+      <source>parameters</source>
+    </inputParameter>
     <conditionalCall>
-     <call>self=massDistributionExponentialDisk(scaleHeight=scaleHeight{conditions})</call>
+     <call>self=massDistributionExponentialDisk(scaleHeight=scaleHeight,componentType=enumerationComponentTypeEncode(componentType,includesPrefix=.false.),massType=enumerationMassTypeEncode(massType,includesPrefix=.false.){conditions})</call>
      <argument name="mass"          value="mass"          parameterPresent="parameters"/>
      <argument name="scaleRadius"   value="scaleRadius"   parameterPresent="parameters"/>
      <argument name="dimensionless" value="dimensionless" parameterPresent="parameters"/>
@@ -157,7 +172,7 @@ contains
     return
   end function exponentialDiskConstructorParameters
 
-  function exponentialDiskConstructorInternal(scaleRadius,scaleHeight,mass,dimensionless) result(self)
+  function exponentialDiskConstructorInternal(scaleRadius,scaleHeight,mass,dimensionless,componentType,massType) result(self)
     !!{
     Internal constructor for ``exponentialDisk'' mass distribution class.
     !!}
@@ -169,7 +184,12 @@ contains
     double precision                                 , intent(in   ), optional :: scaleRadius                                 , scaleHeight                                 , &
          &                                                                        mass
     logical                                          , intent(in   ), optional :: dimensionless
+    type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType        ), intent(in   ), optional :: massType
     double precision                                 , parameter               :: rotationCurveHalfRadiusMaximumDefault=1.0d+1, rotationCurveHalfRadiusMinimumDefault=1.0d-6
+    !![
+    <constructorAssign variables="componentType, massType"/>
+    !!]
 
     ! Determine if profile is dimensionless.
     if (present(dimensionless)) then
@@ -189,7 +209,7 @@ contains
        self%mass                       =1.0d0
        self%surfaceDensityNormalization=1.0d0/2.0d0/Pi
     else
-       ! Set core radius.
+       ! Set scale radius.
        if (.not.present(scaleRadius)) call Error_Report('scale radius must be specified for dimensionful profiles'//{introspection:location})
        if (.not.present(mass       )) call Error_Report('mass must be specified for dimensionful profiles'        //{introspection:location})
        self%scaleRadius                =scaleRadius
@@ -257,10 +277,10 @@ contains
     ! Build table if necessary.
     if (.not.self%potentialInitialized) then
        ! Determine how many points to tabulate.
-       potentialPointsCount=int(log10(exponentialDiskPotentialRadiusMaximum/exponentialDiskPotentialRadiusMinimum)*dble(exponentialDiskPotentialPointsPerDecade))+1
+       potentialPointsCount=int(log10(potentialRadiusMaximum/potentialRadiusMinimum)*dble(potentialPointsPerDecade))+1
        ! Create the table.
        call self%potentialTable%destroy()
-       call self%potentialTable%create(exponentialDiskPotentialRadiusMinimum,exponentialDiskPotentialRadiusMaximum,potentialPointsCount,extrapolationType=spread(extrapolationTypeAbort,1,2))
+       call self%potentialTable%create(potentialRadiusMinimum,potentialRadiusMaximum,potentialPointsCount,extrapolationType=spread(extrapolationTypeAbort,1,2))
        ! Compute Bessel factors.
        do i=1,potentialPointsCount
           x=self%potentialTable%x(i)
@@ -279,33 +299,45 @@ contains
     return
   end subroutine exponentialDiskTabulate
 
-  double precision function exponentialDiskRadiusHalfMass(self)
+  double precision function exponentialDiskRadiusHalfMass(self,componentType,massType)
     !!{
     Return the half-mass radius in an exponential disk mass distribution.
     !!}
     implicit none
-    class           (massDistributionExponentialDisk), intent(inout) :: self
-    double precision                                 , parameter     :: radiusHalfMassToScaleRadius=1.678346990d0
+    class           (massDistributionExponentialDisk), intent(inout)           :: self
+    type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType        ), intent(in   ), optional :: massType
+    double precision                                 , parameter               :: radiusHalfMassToScaleRadius=1.678346990d0
 
+    if (.not.self%matches(componentType,massType)) then
+       exponentialDiskRadiusHalfMass=0.0d0
+       return
+    end if
     exponentialDiskRadiusHalfMass=+radiusHalfMassToScaleRadius &
          &                        *self%scaleRadius
     return
   end function exponentialDiskRadiusHalfMass
 
-  double precision function exponentialDiskDensity(self,coordinates)
+  double precision function exponentialDiskDensity(self,coordinates,componentType,massType)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in an exponential disk mass distribution.
     !!}
     use :: Coordinates, only : assignment(=), coordinateCylindrical
     use :: Error      , only : Error_Report
     implicit none
-    class           (massDistributionExponentialDisk), intent(inout) :: self
-    class           (coordinate                     ), intent(in   ) :: coordinates
-    type            (coordinateCylindrical          )                :: position
-    double precision                                 , parameter     :: coshArgumentMaximum=50.0d0
-    double precision                                                 :: r                         , z, &
-         &                                                              coshTerm
+    class           (massDistributionExponentialDisk), intent(inout)           :: self
+    class           (coordinate                     ), intent(in   )           :: coordinates
+    type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType        ), intent(in   ), optional :: massType
+    type            (coordinateCylindrical          )                          :: position
+    double precision                                 , parameter               :: coshArgumentMaximum=50.0d0
+    double precision                                                           :: r                         , z, &
+         &                                                                        coshTerm
 
+    if (.not.self%matches(componentType,massType)) then
+       exponentialDiskDensity=0.0d0
+       return
+    end if
     ! If disk is razor thin, density is undefined.
     if (self%scaleHeight <= 0.0d0) call Error_Report('density undefined for razor-thin disk'//{introspection:location})
     ! Get position in cylindrical coordinate system.
@@ -322,36 +354,48 @@ contains
     return
   end function exponentialDiskDensity
 
-  double precision function exponentialDiskDensitySphericalAverage(self,radius)
+  double precision function exponentialDiskDensitySphericalAverage(self,radius,componentType,massType)
     !!{
     Return the spherically-averaged density at the specified {\normalfont \ttfamily coordinates} in an exponential disk mass
     distribution. Note that this assumes the thin-disk approximation.
     !!}
     implicit none
-    class           (massDistributionExponentialDisk), intent(inout) :: self
-    double precision                                 , intent(in   ) :: radius
+    class           (massDistributionExponentialDisk), intent(inout)           :: self
+    double precision                                 , intent(in   )           :: radius
+    type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType        ), intent(in   ), optional :: massType
 
-    exponentialDiskDensitySphericalAverage=+0.5d0                              &
-         &                              *     self%surfaceDensityNormalization &
-         &                              /                               radius &
-         &                              *exp(                                  &
-         &                                   -                          radius &
-         &                                   /self                %scaleRadius &
-         &                                  )
+    if (.not.self%matches(componentType,massType)) then
+       exponentialDiskDensitySphericalAverage=0.0d0
+       return
+    end if
+    exponentialDiskDensitySphericalAverage=+0.5d0                                 &
+         &                                 *     self%surfaceDensityNormalization &
+         &                                 /                               radius &
+         &                                 *exp(                                  &
+         &                                      -                          radius &
+         &                                      /self                %scaleRadius &
+         &                                     )
     return
   end function exponentialDiskDensitySphericalAverage
 
-  double precision function exponentialDiskMassEnclosedBySphere(self,radius)
+  double precision function exponentialDiskMassEnclosedBySphere(self,radius,componentType,massType)
     !!{
     Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for exponential disk mass
     distributions. Note that this assumes the thin-disk approximation.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    class           (massDistributionExponentialDisk), intent(inout), target :: self
-    double precision                                 , intent(in   )         :: radius
-    double precision                                                         :: fractionalRadius
+    class           (massDistributionExponentialDisk), intent(inout), target   :: self
+    double precision                                 , intent(in   )           :: radius
+    type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType        ), intent(in   ), optional :: massType
+    double precision                                                           :: fractionalRadius
 
+    if (.not.self%matches(componentType,massType)) then
+       exponentialDiskMassEnclosedBySphere=0.0d0
+       return
+    end if
     fractionalRadius                   =+radius                              &
          &                              /self%scaleRadius
     exponentialDiskMassEnclosedBySphere=+2.0d0                               &
@@ -369,16 +413,22 @@ contains
     return
   end function exponentialDiskMassEnclosedBySphere
 
-  double precision function exponentialDiskSurfaceDensity(self,coordinates)
+  double precision function exponentialDiskSurfaceDensity(self,coordinates,componentType,massType)
     !!{
     Return the surface density at the specified {\normalfont \ttfamily coordinates} in an exponential disk mass distribution.
     !!}
     use :: Coordinates, only : coordinate
     implicit none
-    class           (massDistributionExponentialDisk), intent(inout) :: self
-    class           (coordinate                     ), intent(in   ) :: coordinates
-    double precision                                                 :: r
+    class           (massDistributionExponentialDisk), intent(inout)           :: self
+    class           (coordinate                     ), intent(in   )           :: coordinates
+    type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType        ), intent(in   ), optional :: massType
+    double precision                                                           :: r
 
+    if (.not.self%matches(componentType,massType)) then
+       exponentialDiskSurfaceDensity=0.0d0
+       return
+    end if
     ! Get the radial coordinate.
     r=coordinates%rCylindrical()/self%scaleRadius
     ! Compute the density.
@@ -386,21 +436,27 @@ contains
     return
   end function exponentialDiskSurfaceDensity
 
-  double precision function exponentialDiskRotationCurve(self,radius)
+  double precision function exponentialDiskRotationCurve(self,radius,componentType,massType)
     !!{
     Return the mid-plane rotation curve for an exponential disk.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    class           (massDistributionExponentialDisk), intent(inout) :: self
-    double precision                                 , intent(in   ) :: radius
-    double precision                                                 :: r           , halfRadius, &
-         &                                                              radiusFactor
+    class           (massDistributionExponentialDisk), intent(inout)           :: self
+    double precision                                 , intent(in   )           :: radius
+    type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType        ), intent(in   ), optional :: massType
+    double precision                                                           :: r           , halfRadius, &
+         &                                                                        radiusFactor
 
+    if (.not.self%matches(componentType,massType)) then
+       exponentialDiskRotationCurve=0.0d0
+       return
+    end if
     ! Get scale-free radius.
     r=radius/self%scaleRadius
     ! Compute rotation curve.
-    if (r > exponentialDiskRadiusMaximum) then
+    if (r > radiusMaximum) then
        ! Beyond some maximum radius, approximate the disk as a spherical distribution to avoid evaluating Bessel functions for
        ! very large arguments.
        exponentialDiskRotationCurve=sqrt(self%mass/radius)
@@ -430,17 +486,23 @@ contains
     return
   end function exponentialDiskRotationCurve
 
-  double precision function exponentialDiskRotationCurveGradient(self,radius)
+  double precision function exponentialDiskRotationCurveGradient(self,radius,componentType,massType)
     !!{
     Return the mid-plane rotation curve gradient for an exponential disk.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    class           (massDistributionExponentialDisk), intent(inout) :: self
-    double precision                                 , intent(in   ) :: radius
-    double precision                                 , parameter     :: fractionalRadiusMaximum=30.0d0
-    double precision                                                 :: besselArgument                , besselFactor
+    class           (massDistributionExponentialDisk), intent(inout)           :: self
+    double precision                                 , intent(in   )           :: radius
+    type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType        ), intent(in   ), optional :: massType
+    double precision                                 , parameter               :: fractionalRadiusMaximum=30.0d0
+    double precision                                                           :: besselArgument                , besselFactor
 
+    if (.not.self%matches(componentType,massType)) then
+       exponentialDiskRotationCurveGradient=0.0d0
+       return
+    end if
     ! Compute Bessel functions argument.
     besselArgument=+radius           &
          &         /2.0d0            &
@@ -463,25 +525,31 @@ contains
     return
   end function exponentialDiskRotationCurveGradient
 
-  double precision function exponentialDiskPotential(self,coordinates)
+  double precision function exponentialDiskPotential(self,coordinates,componentType,massType)
     !!{
     Return the gravitational potential for an exponential disk.
     !!}
     use :: Coordinates                     , only : assignment(=)                  , coordinateCylindrical
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    class           (massDistributionExponentialDisk), intent(inout) :: self
-    class           (coordinate                     ), intent(in   ) :: coordinates
-    type            (coordinateCylindrical          )                :: position
-    double precision                                                 :: correctionSmallRadius, halfRadius, &
-         &                                                              radius
+    class           (massDistributionExponentialDisk), intent(inout)           :: self
+    class           (coordinate                     ), intent(in   )           :: coordinates
+    type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType        ), intent(in   ), optional :: massType
+    type            (coordinateCylindrical          )                          :: position
+    double precision                                                           :: correctionSmallRadius, halfRadius, &
+         &                                                                        radius
 
+    if (.not.self%matches(componentType,massType)) then
+       exponentialDiskPotential=0.0d0
+       return
+    end if
     ! Get position in cylindrical coordinate system.
     position=coordinates
     ! Compute density.
     radius=position%r()
     ! If the radius is sufficiently large, treat the disk as a point mass.
-    if (radius > exponentialDiskPotentialRadiusMaximum*self%scaleRadius) then
+    if (radius > potentialRadiusMaximum*self%scaleRadius) then
        exponentialDiskPotential=-self%mass/radius
     else
        ! Radius is sufficiently small to use the full calculation.
@@ -523,9 +591,9 @@ contains
     double precision                                 , intent(in   ) :: halfRadius
 
     ! For small half-radii, use a series expansion for a more accurate result.
-    if      (halfRadius <=                                0.0d0) then
+    if      (halfRadius <=                 0.0d0) then
        exponentialDiskBesselFactorPotential=1.0d0
-    else if (halfRadius < exponentialDiskPotentialRadiusMinimum) then
+    else if (halfRadius < potentialRadiusMinimum) then
        exponentialDiskBesselFactorPotential=1.0d0+(eulersConstant-ln2+log(halfRadius))*halfRadius**2
     else
        !$ call OMP_Set_Lock(self%potentialLock)
@@ -670,7 +738,7 @@ contains
     return
   end function exponentialDiskBesselFactorRotationCurveGradient
 
-  double precision function exponentialDiskSurfaceDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
+  double precision function exponentialDiskSurfaceDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite,componentType,massType)
     !!{
     Compute radial moments of the exponential disk mass distribution surface density profile.
     !!}
@@ -681,8 +749,14 @@ contains
     double precision                                 , intent(in   )           :: moment
     double precision                                 , intent(in   ), optional :: radiusMinimum, radiusMaximum
     logical                                          , intent(  out), optional :: isInfinite
+    type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType        ), intent(in   ), optional :: massType
     double precision                                                           :: integralLow  , integralHigh
 
+    if (.not.self%matches(componentType,massType)) then
+       exponentialDiskSurfaceDensityRadialMoment=0.0d0
+       return
+    end if
     ! All moments n>-1 are finite.
     if (present(isInfinite)) isInfinite=(moment <= -1.0d0)
     if (moment <= -1.0d0) then
@@ -705,7 +779,7 @@ contains
     return
   end function exponentialDiskSurfaceDensityRadialMoment
 
-  function exponentialDiskAcceleration(self,coordinates)
+  function exponentialDiskAcceleration(self,coordinates,componentType,massType)
     !!{
     Computes the gravitational acceleration at {\normalfont \ttfamily coordinates} for exponential disk mass distributions.
     !!}
@@ -713,14 +787,20 @@ contains
     use :: Numerical_Constants_Astronomical, only : gigaYear     , gravitationalConstantGalacticus, megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
-    double precision                                 , dimension(3  ) :: exponentialDiskAcceleration
-    class           (massDistributionExponentialDisk), intent(inout)  :: self
-    class           (coordinate                     ), intent(in   )  :: coordinates
-    double precision                                 , dimension(3  ) :: positionCartesian
-    type            (coordinateCylindrical          )                 :: coordinatesCylindrical
-    type            (coordinateCartesian            )                 :: coordinatesCartesian
-    double precision                                                  :: accelerationRadial        , accelerationVertical
+    double precision                                 , dimension(3  )           :: exponentialDiskAcceleration
+    class           (massDistributionExponentialDisk), intent(inout)            :: self
+    class           (coordinate                     ), intent(in   )            :: coordinates
+    type            (enumerationComponentTypeType   ), intent(in   ) , optional :: componentType
+    type            (enumerationMassTypeType        ), intent(in   ) , optional :: massType
+    double precision                                 , dimension(3  )           :: positionCartesian
+    type            (coordinateCylindrical          )                           :: coordinatesCylindrical
+    type            (coordinateCartesian            )                           :: coordinatesCartesian
+    double precision                                                            :: accelerationRadial        , accelerationVertical
     
+    if (.not.self%matches(componentType,massType)) then
+       exponentialDiskAcceleration=0.0d0
+       return
+    end if
     ! Get position in cylindrical and Cartesian coordinate systems.
     coordinatesCylindrical=coordinates
     coordinatesCartesian  =coordinates
@@ -751,24 +831,31 @@ contains
     return
   end function exponentialDiskAcceleration
 
-  function exponentialDiskTidalTensor(self,coordinates)
+  function exponentialDiskTidalTensor(self,coordinates,componentType,massType)
     !!{
     Computes the gravitational tidal tensor at {\normalfont \ttfamily coordinates} for exponential disk mass distributions.
     !!}
     use :: Coordinates                     , only : assignment(=)                  , coordinateCartesian, coordinateCylindrical
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Tensors                         , only : tensorNullR2D3Sym
     implicit none
-    type            (tensorRank2Dimension3Symmetric )                 :: exponentialDiskTidalTensor
-    class           (massDistributionExponentialDisk), intent(inout)  :: self
-    class           (coordinate                     ), intent(in   )  :: coordinates
-    double precision                                 , dimension(3  ) :: positionCartesian
-    double precision                                 , parameter      :: radiusCylindricalSmall    =1.0d-6
-    type            (coordinateCartesian            )                 :: coordinatesCartesian
-    type            (coordinateCylindrical          )                 :: coordinatesCylindrical
-    double precision                                                  :: accelerationRadial               , accelerationVertical       , &
-         &                                                               tidalTensorRadialRadial          , tidalTensorVerticalVertical, &
-         &                                                               tidalTensorCross                 , radiusCylindrical
+    type            (tensorRank2Dimension3Symmetric )                          :: exponentialDiskTidalTensor
+    class           (massDistributionExponentialDisk), intent(inout)           :: self
+    class           (coordinate                     ), intent(in   )           :: coordinates
+    type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType        ), intent(in   ), optional :: massType
+    double precision                                 , dimension(3  )          :: positionCartesian
+    double precision                                 , parameter               :: radiusCylindricalSmall    =1.0d-6
+    type            (coordinateCartesian            )                          :: coordinatesCartesian
+    type            (coordinateCylindrical          )                          :: coordinatesCylindrical
+    double precision                                                           :: accelerationRadial               , accelerationVertical       , &
+         &                                                                        tidalTensorRadialRadial          , tidalTensorVerticalVertical, &
+         &                                                                        tidalTensorCross                 , radiusCylindrical
 
+    if (.not.self%matches(componentType,massType)) then
+       exponentialDiskTidalTensor=tensorNullR2D3Sym
+       return
+    end if
     ! Get position in cylindrical and Cartesian coordinate systems.
     coordinatesCylindrical=coordinates
     coordinatesCartesian  =coordinatesCylindrical
@@ -1485,19 +1572,25 @@ contains
     
   end subroutine exponentialDiskAccelerationTabulate
   
-  function exponentialDiskPositionSample(self,randomNumberGenerator_)
+  function exponentialDiskPositionSample(self,randomNumberGenerator_,componentType,massType)
     !!{
     Sample a position from an exponential disk distribution.
     !!}
     use :: Lambert_Ws              , only : Lambert_Wm1
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    double precision                                 , dimension(3)  :: exponentialDiskPositionSample
-    class           (massDistributionExponentialDisk), intent(inout) :: self
-    class           (randomNumberGeneratorClass     ), intent(inout) :: randomNumberGenerator_
-    double precision                                                 :: radius                       , height, &
-         &                                                              phi
+    double precision                                 , dimension(3)            :: exponentialDiskPositionSample
+    class           (massDistributionExponentialDisk), intent(inout)           :: self
+    class           (randomNumberGeneratorClass     ), intent(inout)           :: randomNumberGenerator_
+    type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType        ), intent(in   ), optional :: massType
+    double precision                                                           :: radius                       , height, &
+         &                                                                        phi
 
+    if (.not.self%matches(componentType,massType)) then
+       exponentialDiskPositionSample=0.0d0
+       return
+    end if
     ! Select a radial coordinate.
     radius=(-1.0d0-Lambert_Wm1((-1.0d0+      randomNumberGenerator_%uniformSample())/exp(1.0d0)))*self%scaleRadius
     ! Select a vertical coordinate.

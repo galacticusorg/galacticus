@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -140,11 +140,11 @@
   end interface cosmologicalMassVarianceFilteredPower
 
   ! Number of points per decade to use in tabulation of σ(M).
-  integer                         , parameter :: filteredPowerTablePointsPerDecade=10, filteredPowerTimePointsPerDecade=100
+  integer                         , parameter :: pointsPerDecade=10, timePointsPerDecade=100
 
   ! Module-scope time used in integrals.
-  double precision                            :: filteredPowerTime
-  !$omp threadprivate(filteredPowerTime)
+  double precision                            :: time__
+  !$omp threadprivate(time__)
 
 contains
 
@@ -368,10 +368,10 @@ contains
                &                   )**(1.0d0/3.0d0)                              &
                &                  *Pi
        else
-          self%wavenumberHalfMode=huge(0.0d0)/5.0d0
+          self%wavenumberHalfMode=-1.0d0
        end if
     else
-       self%wavenumberHalfMode=huge(0.0d0)/5.0d0
+       self%wavenumberHalfMode=-1.0d0
     end if
     return
   end function filteredPowerConstructorInternal
@@ -508,14 +508,22 @@ contains
     use :: Display                 , only : displayGreen, displayBlue, displayYellow, displayReset
     use :: Error                   , only : Error_Report
     use :: Numerical_Constants_Math, only : Pi
+    use :: HDF5_Access             , only : hdf5Access
+    use :: IO_HDF5                 , only : hdf5Object
+    use :: String_Handling         , only : operator(//)
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
-    double precision                                       , intent(in   ) :: mass        , time
-    double precision                                       , intent(  out) :: rootVariance, rootVarianceLogarithmicGradient
-    double precision                                                       :: wavenumber  , rootVarianceGradient           , &
-         &                                                                    interpolant , h
-    integer                                                                :: i           , j
-
+    double precision                                       , intent(in   ) :: mass         , time
+    double precision                                       , intent(  out) :: rootVariance , rootVarianceLogarithmicGradient
+    type            (hdf5Object                           ), save          :: errorFile
+    type            (varying_string                       ), save          :: errorFileName
+    !$omp threadprivate(errorFile,errorFileName)
+    character       (len=1                                )                :: label
+    double precision                                                       :: wavenumber   , rootVarianceGradient           , &
+         &                                                                    interpolant  , h                              , &
+         &                                                                    linearGrowth
+    integer                                                                :: i            , j
+    
     call self%retabulate(mass,time)
     if (self%growthIsMassDependent_) then
        call self%interpolantsTime(time,i,h)
@@ -569,7 +577,37 @@ contains
        ! Logarithmic gradient is positive, which should not happen.
        if (self%monotonicInterpolation) then
           ! Monotonic interpolation is being used - a positive logarithmic gradient should be impossible.
-          call Error_Report('dlogσ/dlogM > 0 detected, but monotonic interpolation was used - this should not happen'//{introspection:location})
+          ! Write a file with the interpolating data.
+          if (.not.self%powerSpectrumWindowFunction_%amplitudeIsMassIndependent()) then
+             errorFileName=self%fileName//".error."//GetPID()
+             !$ call hdf5Access%set()
+             call    errorFile%openFile(char(errorFileName),overWrite=.true.,objectsOverwritable=.true.)
+             call    errorFile%writeAttribute(mass                           ,'mass'                           )
+             call    errorFile%writeAttribute(rootVariance                   ,'rootVariance'                   )
+             call    errorFile%writeAttribute(rootVarianceGradient           ,'rootVarianceGradient'           )
+             call    errorFile%writeAttribute(rootVarianceLogarithmicGradient,'rootVarianceLogarithmicGradient')
+             if (.not.self%growthIsMassDependent_) then
+                linearGrowth=self%linearGrowth_%value(time)
+                call errorFile%writeAttribute(linearGrowth                   ,'linearGrowth'                   )
+             end if
+             do j=i,i+1
+                if (j == i) then
+                   interpolant=1.0d0-h
+                else
+                   interpolant=      h
+                end if
+                if (interpolant == 0.0d0) cycle
+                write (label,'(i1)') j-i+1
+                rootVarianceGradient=self%rootVarianceTable(j)%interpolateGradient(mass)
+                call errorFile%writeAttribute(     interpolant                 ,'interpolant'         //trim(adjustl(label)))
+                call errorFile%writeAttribute(     rootVarianceGradient        ,'rootVarianceGradient'//trim(adjustl(label)))
+                call errorFile%writeDataset  (self%rootVarianceTable   (j)%xs(),'massTable'           //trim(adjustl(label)))
+                call errorFile%writeDataset  (self%rootVarianceTable   (j)%ys(),'rootVarianceTable'   //trim(adjustl(label)))
+             end do
+          end if
+          call errorFile%close()
+          !$ call hdf5Access%unset()
+          call Error_Report('dlogσ/dlogM > 0 detected, but monotonic interpolation was used - this should not happen'//char(10)//'  table data written to:'//char(10)//'    '//char(errorFileName)//{introspection:location})
        else
           ! Recommend that monotonic interpolation be used.
           call Error_Report(                                                                                                                                                                                                                  &
@@ -673,10 +711,12 @@ contains
     integer                                                                              :: i                         , rootVarianceTableCount , &
          &                                                                                  j                         , rootVarianceUniqueCount, &
          &                                                                                  rootVarianceTimeCount     , k                      , &
-         &                                                                                  countNewLower             , countNewUpper
+         &                                                                                  countNewLower             , countNewUpper          , &
+         &                                                                                  iMinimum
     double precision                                                                     :: sigma                     , smoothingMass          , &
          &                                                                                  massMinimum               , massMaximum            , &
-         &                                                                                  timeMinimum               , timeMaximum
+         &                                                                                  timeMinimum               , timeMaximum            , &
+         &                                                                                  sigmaMinimum
     logical                                                , allocatable  , dimension(:) :: rootVarianceIsUnique
     type            (varying_string                       ), save                        :: message
     character       (len=12                               )                              :: label                     , labelLow               , &
@@ -739,22 +779,22 @@ contains
                 massMaximum     =    mass*10.0d0
              end if
              ! Determine how many points the table must be extended by in each direction to span the new required range.
-             if (self%massMinimum > massMinimum) countNewLower=int(+log10(self%massMinimum/massMinimum)*dble(filteredPowerTablePointsPerDecade)+1.0d0)
-             if (self%massMaximum < massMaximum) countNewUpper=int(-log10(self%massMaximum/massMaximum)*dble(filteredPowerTablePointsPerDecade)+1.0d0)
+             if (self%massMinimum > massMinimum) countNewLower=int(+log10(self%massMinimum/massMinimum)*dble(pointsPerDecade)+1.0d0)
+             if (self%massMaximum < massMaximum) countNewUpper=int(-log10(self%massMaximum/massMaximum)*dble(pointsPerDecade)+1.0d0)
              ! Adjust the limits of the table by an integer number of steps.
-             self%massMinimum=self%massMinimum/10.0d0**(dble(countNewLower)/dble(filteredPowerTablePointsPerDecade))
-             self%massMaximum=self%massMaximum*10.0d0**(dble(countNewUpper)/dble(filteredPowerTablePointsPerDecade))
+             self%massMinimum=self%massMinimum/10.0d0**(dble(countNewLower)/dble(pointsPerDecade))
+             self%massMaximum=self%massMaximum*10.0d0**(dble(countNewUpper)/dble(pointsPerDecade))
           else if (.not.self%initialized) then
              ! No mass was given, but the tables are not initialized. Must provide some mass range.
              self%massMinimum=1.0d10
              self%massMaximum=1.0d15
           end if
-          rootVarianceTableCount=int(                                         &
-               &                     +log10(                                  &
-               &                            +self%massMaximum                 &
-               &                            /self%massMinimum                 &
-               &                           )                                  &
-               &                     *dble(filteredPowerTablePointsPerDecade) &
+          rootVarianceTableCount=int(                         &
+               &                     +log10(                  &
+               &                            +self%massMaximum &
+               &                            /self%massMinimum &
+               &                           )                  &
+               &                     *dble(pointsPerDecade)   &
                &                    )
           ! Find suitable range of times to tabulate.
           if (self%growthIsMassDependent_) then
@@ -771,22 +811,22 @@ contains
                    timeMaximum     =    time*2.0d0
                 end if
                 ! Determine how many points the table must be extended by in each direction to span the new required range.
-                if (self%timeMinimum > timeMinimum) countNewLower=int(+log10(self%timeMinimum/timeMinimum)*dble(filteredPowerTimePointsPerDecade)+1.0d0)
-                if (self%timeMaximum < timeMaximum) countNewUpper=int(-log10(self%timeMaximum/timeMaximum)*dble(filteredPowerTimePointsPerDecade)+1.0d0)
+                if (self%timeMinimum > timeMinimum) countNewLower=int(+log10(self%timeMinimum/timeMinimum)*dble(timePointsPerDecade)+1.0d0)
+                if (self%timeMaximum < timeMaximum) countNewUpper=int(-log10(self%timeMaximum/timeMaximum)*dble(timePointsPerDecade)+1.0d0)
                 ! Adjust the limits of the table by an integer number of steps.
-                self%timeMinimum=self%timeMinimum/10.0d0**(dble(countNewLower)/dble(filteredPowerTimePointsPerDecade))
-                self%timeMaximum=self%timeMaximum*10.0d0**(dble(countNewUpper)/dble(filteredPowerTimePointsPerDecade))
+                self%timeMinimum=self%timeMinimum/10.0d0**(dble(countNewLower)/dble(timePointsPerDecade))
+                self%timeMaximum=self%timeMaximum*10.0d0**(dble(countNewUpper)/dble(timePointsPerDecade))
              else if (.not.self%initialized) then
                 ! No time was given, but the tables are not initialized. Must provide some time range.
                 self%timeMinimum=self%cosmologyFunctions_%cosmicTime(0.5d0)
                 self%timeMaximum=self%cosmologyFunctions_%cosmicTime(1.0d0)
              end if
-             rootVarianceTimeCount =int(                                         &
-                  &                     +log10(                                  &
-                  &                            +self%timeMaximum                 &
-                  &                            /self%timeMinimum                 &
-                  &                           )                                  &
-                  &                     *dble(filteredPowerTimePointsPerDecade ) &
+             rootVarianceTimeCount =int(                           &
+                  &                     +log10(                    &
+                  &                            +self%timeMaximum   &
+                  &                            /self%timeMinimum   &
+                  &                           )                    &
+                  &                     *dble(timePointsPerDecade) &
                   &                    )
              self%timeMinimumLogarithmic     =                              log(                 self%timeMinimum)
              self%timeLogarithmicDeltaInverse=dble(rootVarianceTimeCount-1)/log(self%timeMaximum/self%timeMinimum)
@@ -842,7 +882,9 @@ contains
              allocate(rootVarianceIsUnique(rootVarianceTableCount))
              rootVarianceIsUnique=.true.
              ! Compute σ(M) at each tabulated point.
-             massMinimum=-1.0d0
+             massMinimum =-1.0d0
+             sigmaMinimum=-1.0d0
+             iMinimum    =-1
              do i=1,rootVarianceTableCount
                 smoothingMass=+self        %rootVarianceTable(k)%x(                                    i)
                 sigma        =+rootVariance                       (time_=self%times(k),useTopHat=.false.) &
@@ -850,8 +892,9 @@ contains
                 ! Enforce monotonicity.
                 if (i > 1) then
                    if (sigma >= self%rootVarianceTable(k)%y(i-1)) then
+                      iMinimum              =i
                       massMinimum            =smoothingMass
-                      rootVarianceIsUnique(i)=.false.
+                      rootVarianceIsUnique(i)=.false.                      
                    end if
                    sigma=min(sigma,self%rootVarianceTable(k)%y(i-1))
                 end if
@@ -882,10 +925,31 @@ contains
                 message=         "σ(M) is non-increasing below mass M="//label//"M☉"
                 write (label,'(e12.6)') self%times(k)
                 message=message//" at time t="//label//"Gyr."//char(10)
+                message=message//"                 M  ="
+                do i=max(1,iMinimum-2),min(rootVarianceTableCount,iMinimum+2)
+                   write (label,'(e12.6)') self%rootVarianceTable(k)%x(i)
+                   message=message//" "//label
+                end do
+                message=message//char(10)
+                message=message//"   monotonized σ(M) ="
+                do i=max(1,iMinimum-2),min(rootVarianceTableCount,iMinimum+2)
+                   write (label,'(e12.6)') self%rootVarianceTable(k)%y(i)
+                   message=message//" "//label
+                end do
+                message=message//char(10)
+                message=message//"      original σ(M) ="
+                do i=max(1,iMinimum-2),min(rootVarianceTableCount,iMinimum+2)
+                   if (i == iMinimum) then
+                      write (label,'(e12.6)') sigmaMinimum
+                   else
+                      write (label,'(a    )') repeat(" ",12)
+                   end if
+                   message=message//" "//label
+                end do
                 if (self%nonMonotonicIsFatal) then
                    call Error_Report(message//{introspection:location})
                 else
-                   message=message//"         If problems occur consider not attempting to model structure below this mass scale."
+                   message=message//char(10)//"         If problems occur consider not attempting to model structure below this mass scale."
                    call Warn        (message                          )
                 end if
              end if
@@ -906,129 +970,127 @@ contains
       !!{
       Compute the root-variance of mass in spheres enclosing the given {\normalfont \ttfamily mass} from the power spectrum.
       !!}
-      use :: Interface_GSL           , only : GSL_EBadTol      , GSL_ETol
+      use :: Interface_GSL           , only : GSL_EBadTol      , GSL_ETol  , GSL_ERound, GSL_Success
       use :: Numerical_Constants_Math, only : Pi
       use :: Numerical_Integration   , only : GSL_Integ_Gauss15, integrator
+      use :: Sorting, only : sort
       implicit none
-      double precision            , intent(in   ) :: time_
-      logical                     , intent(in   ) :: useTopHat
-      double precision            , parameter     :: wavenumberBAO    =5.0d0 ! The wavenumber above which baryon acoustic oscillations are small - used to split the integral allowing the oscillating part to be handled robustly.
-      double precision                            :: topHatRadius           , wavenumberMaximum     , &
-           &                                         wavenumberMinimum      , integrandLow          , &
-           &                                         integrandMedium        , integrandHigh
-      integer                                     :: status
-      type            (integrator)                :: integrator_            , integratorLogarithmic_
+      double precision                         , intent(in   ) :: time_
+      logical                                  , intent(in   ) :: useTopHat
+      double precision                         , parameter     :: wavenumberBAO    =5.0d0 ! The wavenumber above which baryon acoustic oscillations are small - used to split the integral allowing the oscillating part to be handled robustly.
+      double precision            , allocatable, dimension(:)  :: wavenumbers            , wavenumbersRestricted
+      double precision                                         :: wavenumberMinimum      , wavenumberMaximum     , &
+           &                                                      integrand              , integrandInterval     , &
+           &                                                      wavenumberLower        , wavenumberUpper       , &
+           &                                                      topHatRadius
+      integer                                                  :: i                      , status
+      logical                                                  :: computeLogarithmically
+      type            (integrator)                             :: integrator_            , integratorLogarithmic_
 
-      filteredPowerTime=time_
-      topHatRadius     =(                                             &
-           &             +(                                           &
-           &               +3.0d0                                     &
-           &               /4.0d0                                     &
-           &               /Pi                                        &
-           &              )                                           &
-           &             *smoothingMass                               &
-           &             /self%cosmologyParameters_%OmegaMatter    () &
-           &             /self%cosmologyParameters_%densityCritical() &
-           &            )**(1.0d0/3.0d0)
+      time__      =time_
+      topHatRadius=(                                             &
+           &        +(                                           &
+           &          +3.0d0                                     &
+           &          /4.0d0                                     &
+           &          /Pi                                        &
+           &         )                                           &
+           &        *smoothingMass                               &
+           &        /self%cosmologyParameters_%OmegaMatter    () &
+           &        /self%cosmologyParameters_%densityCritical() &
+           &       )**(1.0d0/3.0d0)
+      ! Find the minimum wavenumber for the integral.
       if (self%truncateAtParticleHorizon) then
          wavenumberMinimum=+1.0d0                                                                                                &
               &            /self%cosmologyFunctions_%distanceParticleHorizonComoving(self%cosmologyFunctions_%cosmicTime(1.0d0))
       else
          wavenumberMinimum=+0.0d0
       end if
-      ! The integral over the power spectrum is split at a wavenumber corresponding to the smallest scale at which BAO features
-      ! are significant (unless the upper limit of the integral is already below that wavenumber). This allows the oscillatory
-      ! part of the integral to be computed more accurately, without affecting the non-oscillatory part at larger wavenumbers, and
-      ! leads to an overall more accurate and robust determination of σ(M).
-      ! For non-cold dark matter models with suppressed power spectrum on small scales, another splitting is done around the
-      ! half-mode wavenumber so that σ(M) is better resolved near the saturation value. This is particularly useful if the transfer
-      ! function oscillates on small scales.
+      ! Find the maximum wavenumber for the integral (and establish the integrator).
       if (useTopHat) then
-         integrator_=integrator(varianceIntegrandTopHat,toleranceRelative=+self%tolerance,integrationRule=GSL_Integ_Gauss15)
-         wavenumberMaximum=min(1.0d3/topHatRadius,self%powerSpectrumWindowFunctionTopHat_%wavenumberMaximum(smoothingMass))
-         if      (                                                   &
-              &    wavenumberMaximum > 3.0d0*self%wavenumberHalfMode &
-              &   .and.                                              &
-              &    wavenumberBAO     < 3.0d0*self%wavenumberHalfMode &
-              &  ) then
-            integrandLow   =   integrator_%integrate(wavenumberMinimum            ,           wavenumberBAO     )
-            integrandMedium=   integrator_%integrate(wavenumberBAO                ,3.0d0*self%wavenumberHalfMode)
-            integrandHigh  =   integrator_%integrate(3.0d0*self%wavenumberHalfMode,           wavenumberMaximum )
-            rootVariance   =+(                                                            &
-                 &            +integrandLow                                               &
-                 &            +integrandMedium                                            &
-                 &            +integrandHigh                                              &
-                 &           )                                                            &
-                 &          /2.0d0                                                        &
-                 &          /Pi**2
-         else if (wavenumberMaximum > wavenumberBAO) then
-            integrandLow   =   integrator_%integrate(wavenumberMinimum,wavenumberBAO    )
-            integrandHigh  =   integrator_%integrate(wavenumberBAO    ,wavenumberMaximum)
-            rootVariance   =+(                                                            &
-                 &            +integrandLow                                               &
-                 &            +integrandHigh                                              &
-                 &           )                                                            &
-                 &          /2.0d0                                                        &
-                 &          /Pi**2
-         else
-            rootVariance =+  integrator_%integrate(wavenumberMinimum,wavenumberMaximum) &
-                 &       /2.0d0                                                         &
-                 &       /Pi**2
-         end if
+         wavenumberMaximum     =min(1.0d3/topHatRadius,self%powerSpectrumWindowFunctionTopHat_%wavenumberMaximum(smoothingMass))
+         integrator_           =integrator(varianceIntegrandTopHat           ,toleranceRelative=+self%toleranceTopHat,integrationRule=GSL_Integ_Gauss15)
+         integratorLogarithmic_=integrator(varianceIntegrandTopHatLogarithmic,toleranceRelative=+self%toleranceTopHat,integrationRule=GSL_Integ_Gauss15)
       else
-         integrator_=integrator(varianceIntegrand,toleranceRelative=+self%tolerance,integrationRule=GSL_Integ_Gauss15)
-         wavenumberMaximum=min(1.0d3/topHatRadius,self%powerSpectrumWindowFunction_      %wavenumberMaximum(smoothingMass))
-         if      (                                                   &
-              &    wavenumberMaximum > 3.0d0*self%wavenumberHalfMode &
-              &   .and.                                              &
-              &    wavenumberBAO     < 3.0d0*self%wavenumberHalfMode &
-              &  ) then
-            integrandLow   =   integrator_%integrate(           wavenumberMinimum ,           wavenumberBAO     )
-            integrandMedium=   integrator_%integrate(           wavenumberBAO     ,3.0d0*self%wavenumberHalfMode)
-            integrandHigh  =   integrator_%integrate(3.0d0*self%wavenumberHalfMode,           wavenumberMaximum )
-            if (integrandHigh <= 0.0d0) then
-               ! If there is no power in the high wavenumber integral this may be because the upper limit is large and the power
-               ! is confined to small wavenumbers near the lower limit. This can happen, for example, if attempting to compute
-               ! σ(M) for mass scales far below the cut off for power spectra with a small-scale cut off. In such cases attempt to
-               ! evaluate the integral again, but integrating over log(wavenumber) such that more points in the integrand are
-               ! placed at small wavenumber.
-               integratorLogarithmic_=integrator(varianceIntegrandLogarithmic,toleranceRelative=+self%tolerance,integrationRule=GSL_Integ_Gauss15)
-               integrandHigh         =integratorLogarithmic_%integrate(log(wavenumberBAO),log(wavenumberMaximum))
-               if (integrandHigh <= 0.0d0) call Error_Report('no power above BAO scale - unexpected'//{introspection:location})
-            end if
-            rootVariance   =+(                                                            &
-                 &            +integrandLow                                               &
-                 &            +integrandMedium                                            &
-                 &            +integrandHigh                                              &
-                 &           )                                                            &
-                 &          /2.0d0                                                        &
-                 &          /Pi**2
-         else if (wavenumberMaximum > wavenumberBAO) then
-            integrandLow =   integrator_%integrate(wavenumberMinimum,wavenumberBAO                  )
-            integrandHigh=   integrator_%integrate(wavenumberBAO    ,wavenumberMaximum,status=status)
-            if (status == GSL_EBadTol .or. status == GSL_ETol) then
-               ! If there is no power in the high wavenumber integral this may be because the upper limit is large and the power
-               ! is confined to small wavenumbers near the lower limit. This can happen, for example, if attempting to compute
-               ! σ(M) for mass scales far below the cut off for power spectra with a small-scale cut off. In such cases attempt to
-               ! evaluate the integral again, but integrating over log(wavenumber) such that more points in the integrand are
-               ! placed at small wavenumber.
-               integratorLogarithmic_=integrator(varianceIntegrandLogarithmic,toleranceRelative=+self%tolerance,integrationRule=GSL_Integ_Gauss15)
-               integrandHigh         =integratorLogarithmic_%integrate(log(wavenumberBAO),log(wavenumberMaximum))
-               if (integrandHigh <= 0.0d0) call Error_Report('no power above BAO scale - unexpected'//{introspection:location})
-            end if
-            rootVariance =+(                                                            &
-                 &          +integrandLow                                               &
-                 &          +integrandHigh                                              &
-                 &         )                                                            &
-                 &        /2.0d0                                                        &
-                 &        /Pi**2
-         else
-            rootVariance =+  integrator_%integrate(wavenumberMinimum,wavenumberMaximum) &
-                 &        /2.0d0                                                        &
-                 &        /Pi**2
-         end if
+         wavenumberMaximum     =min(1.0d3/topHatRadius,self%powerSpectrumWindowFunction_      %wavenumberMaximum(smoothingMass))
+         integrator_           =integrator(varianceIntegrand                 ,toleranceRelative=+self%tolerance     ,integrationRule=GSL_Integ_Gauss15)
+         integratorLogarithmic_=integrator(varianceIntegrandLogarithmic      ,toleranceRelative=+self%tolerance     ,integrationRule=GSL_Integ_Gauss15)
       end if
-      rootVariance=sqrt(rootVariance)
+      ! Split the integral into subsets of the wavenumber range
+      !
+      !!  1. The integral over the power spectrum is split at a wavenumber corresponding to the smallest scale at which BAO
+      !!  features are significant (unless the upper limit of the integral is already below that wavenumber). This allows the
+      !!  oscillatory part of the integral to be computed more accurately, without affecting the non-oscillatory part at larger
+      !!  wavenumbers, and leads to an overall more accurate and robust determination of σ(M).
+      !!
+      !!  2. The integral is split at a modest multiple of the inverse top hat radius. We would expect the window function to cut
+      !!  off above this scale, so it is useful to have a split just above this cut off.
+      !!
+      !!  3. For non-cold dark matter models with suppressed power spectrum on small scales, another splitting is done around the
+      !!  half-mode wavenumber so that σ(M) is better resolved near the saturation value. This is particularly useful if the
+      !!  transfer function oscillates on small scales.
+      wavenumbers=[                                &
+           &                   wavenumberMinimum , &
+           &       +3.0d0*self%wavenumberHalfMode, &
+           &       +3.0d0/     topHatRadius      , &
+           &                   wavenumberBAO       &
+           &      ]
+      ! Restrict the intervals to those between the minimum and maxmimum wavenumbers, and then sort them.
+      wavenumbersRestricted=pack(wavenumbers,wavenumbers >= wavenumberMinimum .and. wavenumbers < wavenumberMaximum)
+      call sort(wavenumbersRestricted)
+      ! Iterate over intervals, accumulation the integral.
+      integrand=0.0d0
+      do i=1,size(wavenumbersRestricted)
+         wavenumberLower=wavenumbersRestricted(i)
+         if (i < size(wavenumbersRestricted)) then
+            wavenumberUpper=wavenumbersRestricted(i+1)
+         else
+            wavenumberUpper=wavenumberMaximum
+         end if
+         integrandInterval=integrator_%integrate(wavenumberLower,wavenumberUpper,status=status)
+         ! Decide if we need to try a logarithmic integral instead.
+         if     (                         &
+              &   (                       &
+              &     status == GSL_EBadTol &
+              &    .or.                   &
+              &     status == GSL_ETol    &
+              &    .or.                   &
+              &     status == GSL_ERound  &
+              &   )                       &
+              &  .and.                    &
+              &   wavenumberLower > 0.0d0 &
+              & ) then
+            ! The integration failed numerically, and the lower limit is non-zero, so try a logarithmic integral instead.
+            computeLogarithmically=.true.
+         else if (status /= GSL_Success) then
+            ! Integration failed for some other reason, report an error.
+            computeLogarithmically=.false.
+            call Error_Report('integration over interval failed'//{introspection:location})
+         else if (integrandInterval <= 0.0d0 .and. wavenumberLower > 0.0d0) then
+            ! Integration gave a zero result, and the lower limit is non-zero. This may be because the upper limit is large and
+            ! the power is confined to small wavenumbers near the lower limit. This can happen, for example, if attempting to
+            ! compute σ(M) for mass scales far below the cut off for power spectra with a small-scale cut off. In such cases
+            ! attempt to evaluate the integral again, but integrating over log(wavenumber) such that more points in the integrand
+            ! are placed at small wavenumber.
+            computeLogarithmically=.true.
+         else
+            ! The integration was successful, no need to try a logarithmic integral.
+            computeLogarithmically=.false.
+         end if
+         ! Recompue the integral using a logarithmic integral if necessary.
+         if (computeLogarithmically) then
+            integrandInterval=integratorLogarithmic_%integrate(log(wavenumberLower),log(wavenumberUpper))
+            ! Check for zero power.
+            if (integrandInterval <= 0.0d0) call Error_Report('no power in interval integrand - unexpected'//{introspection:location})
+         end if
+         ! Accumulate the integral from this region.
+         integrand=+integrand         &
+              &    +integrandInterval
+      end do
+      ! Apply factors of 2 and π to compute the root variance.
+      rootVariance=+integrand          &
+           &       /2.0d0              &
+           &       /Pi**2
+      rootVariance=+sqrt(rootVariance)
       return
     end function rootVariance
 
@@ -1041,17 +1103,18 @@ contains
 
       ! Return power spectrum multiplied by window function and volume element in k-space. Factors of 2 and π are included
       ! elsewhere.
-      varianceIntegrand=+  self%powerSpectrumPrimordialTransferred_%power(wavenumber,filteredPowerTime) &
-           &            *(                                                                              &
-           &              +self%powerSpectrumWindowFunction_       %value(wavenumber,smoothingMass    ) &
-           &              *                                               wavenumber                    &
+      varianceIntegrand=+  self%powerSpectrumPrimordialTransferred_%power(wavenumber,time__       ) &
+           &            *(                                                                          &
+           &              +self%powerSpectrumWindowFunction_       %value(wavenumber,smoothingMass) &
+           &              *                                               wavenumber                &
            &             )**2
       return
     end function varianceIntegrand
 
     double precision function varianceIntegrandLogarithmic(wavenumberLogarithmic)
       !!{
-      Integrand function used in computing the variance in (real space) top-hat spheres from the power spectrum. This version integrates with respect to $\log(k)$.
+      Integrand function used in computing the variance in (real space) top-hat spheres from the power spectrum. This version
+      integrates with respect to $\log(k)$.
       !!}
       implicit none
       double precision, intent(in   ) :: wavenumberLogarithmic
@@ -1060,11 +1123,11 @@ contains
       ! Return power spectrum multiplied by window function and volume element in k-space. Factors of 2 and π are included
       ! elsewhere.
       wavenumber                  =+exp(wavenumberLogarithmic)
-      varianceIntegrandLogarithmic=+  self%powerSpectrumPrimordialTransferred_%power(wavenumber,filteredPowerTime) &
-           &                       *(                                                                              &
-           &                         +self%powerSpectrumWindowFunction_       %value(wavenumber,smoothingMass    ) &
-           &                         *                                               wavenumber                    &
-           &                        )**2                                                                           &
+      varianceIntegrandLogarithmic=+  self%powerSpectrumPrimordialTransferred_%power(wavenumber,time__       ) &
+           &                       *(                                                                          &
+           &                         +self%powerSpectrumWindowFunction_       %value(wavenumber,smoothingMass) &
+           &                         *                                               wavenumber                &
+           &                        )**2                                                                       &
            &                       *                                                 wavenumber
       return
     end function varianceIntegrandLogarithmic
@@ -1078,13 +1141,33 @@ contains
 
       ! Return power spectrum multiplied by window function and volume element in k-space. Factors of 2 and π are included
       ! elsewhere.
-      varianceIntegrandTopHat=+  self%powerSpectrumPrimordialTransferred_%power(wavenumber,filteredPowerTime) &
-           &                  *(                                                                              &
-           &                    +self%powerSpectrumWindowFunctionTopHat_ %value(wavenumber,smoothingMass    ) &
-           &                    *                                               wavenumber                    &
+      varianceIntegrandTopHat=+  self%powerSpectrumPrimordialTransferred_%power(wavenumber,time__       ) &
+           &                  *(                                                                          &
+           &                    +self%powerSpectrumWindowFunctionTopHat_ %value(wavenumber,smoothingMass) &
+           &                    *                                               wavenumber                &
            &                   )**2
       return
     end function varianceIntegrandTopHat
+
+    double precision function varianceIntegrandTopHatLogarithmic(wavenumberLogarithmic)
+      !!{
+      Integrand function used in computing the variance in (real space) top-hat spheres from the power spectrum.
+      !!}
+      implicit none
+      double precision, intent(in   ) :: wavenumberLogarithmic
+      double precision                :: wavenumber
+
+      ! Return power spectrum multiplied by window function and volume element in k-space. Factors of 2 and π are included
+      ! elsewhere.
+      wavenumber                        =+exp(wavenumberLogarithmic)
+      varianceIntegrandTopHatLogarithmic=+  self%powerSpectrumPrimordialTransferred_%power(wavenumber,time__       ) &
+           &                             *(                                                                          &
+           &                               +self%powerSpectrumWindowFunctionTopHat_ %value(wavenumber,smoothingMass) &
+           &                               *                                               wavenumber                &
+           &                              )**2                                                                       &
+           &                             *                                                 wavenumber
+      return
+    end function varianceIntegrandTopHatLogarithmic
 
   end subroutine filteredPowerRetabulate
 
@@ -1299,23 +1382,23 @@ contains
     parameters=descriptor%subparameters('cosmologicalMassVariance')
     if (self%normalizationSigma8) then
        write (parameterLabel,'(e17.10)') self%sigma8Value
-       call parameters%addParameter('sigma_8'                            ,trim(adjustl(parameterLabel)))
+       call parameters%addParameter('sigma_8'                ,trim(adjustl(parameterLabel)))
     else
        write (parameterLabel,'(e17.10)') self%wavenumberReference
-       call parameters%addParameter('wavenumberReference'                ,trim(adjustl(parameterLabel)))
+       call parameters%addParameter('wavenumberReference'    ,trim(adjustl(parameterLabel)))
        call parameters%addParameter('reference','')
        referenceParameters=parameters%subparameters('reference')
        call self%cosmologicalMassVarianceReference          %descriptor(referenceParameters)
        call self%powerSpectrumPrimordialTransferredReference%descriptor(referenceParameters)
     end if
     write    (parameterLabel,'(e17.10)') self%toleranceTopHat
-    call    parameters%addParameter('toleranceTopHat'                    ,trim(adjustl(parameterLabel)))
+    call    parameters%addParameter('toleranceTopHat'       ,trim(adjustl(parameterLabel)))
     write    (parameterLabel,'(e17.10)') self%tolerance
-    call    parameters%addParameter('tolerance'                          ,trim(adjustl(parameterLabel)))
+    call    parameters%addParameter('tolerance'             ,trim(adjustl(parameterLabel)))
     write    (parameterLabel,'(l1)'    ) self%nonMonotonicIsFatal
-    call    parameters%addParameter('nonMonotonicIsFatal'                ,trim(adjustl(parameterLabel)))
+    call    parameters%addParameter('nonMonotonicIsFatal'   ,trim(adjustl(parameterLabel)))
     write    (parameterLabel,'(l1)'    ) self%monotonicInterpolation
-    call    parameters%addParameter('monotonicInterpolation'             ,trim(adjustl(parameterLabel)))
+    call    parameters%addParameter('monotonicInterpolation',trim(adjustl(parameterLabel)))
     call    self%cosmologyParameters_                       %descriptor(parameters)
     call    self%cosmologyFunctions_                        %descriptor(parameters)
     call    self%powerSpectrumPrimordialTransferred_        %descriptor(parameters)

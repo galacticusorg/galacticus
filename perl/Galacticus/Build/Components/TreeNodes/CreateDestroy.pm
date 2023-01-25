@@ -81,7 +81,11 @@ else
    self%hostTree => null()
 end if
 ! Assign index if supplied.
-if (present(index)) call self%indexSet(index)
+if (present(index)) then
+ call self%indexSet(index)
+else
+ call self%indexSet(-1_kind_int8)
+end if
 ! Assign a unique ID.
 !$omp critical(UniqueID_Assign)
 uniqueIDCount=uniqueIDCount+1

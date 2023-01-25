@@ -27,6 +27,7 @@ sub Process_Allocate {
 	    if ( exists($node->{'directive'}->{'rank'}) ) {
 		$rank = $node->{'directive'}->{'rank'};
 	    } else {
+		$rank = 0;
 		my $declaration = &Galacticus::Build::SourceTree::Parse::Declarations::GetDeclaration($node->{'parent'},$node->{'directive'}->{'variable'});
 		foreach my $attribute ( @{$declaration->{'attributes'}} ) {
 		    if ( $attribute =~ m/^dimension/ ) {

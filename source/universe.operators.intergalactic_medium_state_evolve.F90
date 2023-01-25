@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -89,9 +89,9 @@
      module procedure intergalacticMediumStateEvolveConstructorInternal
   end interface universeOperatorIntergalacticMediumStateEvolve
 
-  class(universeOperatorIntergalacticMediumStateEvolve), pointer :: intergalacticMediumStateEvolveSelf
-  type (treeNode                                      ), pointer :: intergalacticMediumStateEvolveNode
-  !$omp threadprivate(intergalacticMediumStateEvolveSelf,intergalacticMediumStateEvolveNode)
+  class(universeOperatorIntergalacticMediumStateEvolve), pointer :: self_
+  type (treeNode                                      ), pointer :: node_
+  !$omp threadprivate(self_,node_)
 
 contains
 
@@ -439,8 +439,8 @@ contains
         ! Evolve the properties up to this timestep.
         if (iNow > 1) then
            ! Get required objects.
-           intergalacticMediumStateEvolveSelf => self
-           intergalacticMediumStateEvolveNode => universe_%trees%tree%nodeBase
+           self_ => self
+           node_ => universe_%trees%tree%nodeBase
            ! Map properties to a contiguous array.
            properties( 1   )=self%temperature           (iNow-1    )
            properties( 2: 3)=self%densityHydrogen       (iNow-1,1:2)
@@ -620,11 +620,11 @@ contains
              &            )                                        &
              &           /densityTotal
         ! Evaluate optical depth term.
-        opticalDepthRateOfChange=+speedLight                                                                                                                                         &
-             &                   *thomsonCrossSection                                                                                                                                &
-             &                   *densityElectron                                                                                                                                    &
-             &                   /intergalacticMediumStateEvolveSelf%cosmologyFunctions_%expansionRate(intergalacticMediumStateEvolveSelf%cosmologyFunctions_%expansionFactor(time)) &
-             &                   *                                                                     intergalacticMediumStateEvolveSelf%cosmologyFunctions_%expansionFactor(time)  &
+        opticalDepthRateOfChange=+speedLight                                                                               &
+             &                   *thomsonCrossSection                                                                      &
+             &                   *densityElectron                                                                          &
+             &                   /self_%cosmologyFunctions_%expansionRate(self_%cosmologyFunctions_%expansionFactor(time)) &
+             &                   *                                        self_%cosmologyFunctions_%expansionFactor(time)  &
              &                   *gigayear
      else
         massParticleMean        =0.0d0
@@ -633,12 +633,12 @@ contains
      ! Evaluate the rates of change for the filtering mass variables.
      massFilteringODEsProperties       (1:2)=massFilteringComposite_
      massFilteringODEsProperties       (3  )=massFiltering_
-     massFilteringODEsRateOfChange          =gnedin2000ODEs(intergalacticMediumStateEvolveSelf%cosmologyParameters_,intergalacticMediumStateEvolveSelf%cosmologyFunctions_,intergalacticMediumStateEvolveSelf%linearGrowth_,time,massParticleMean,temperature,massFilteringODEsProperties)
+     massFilteringODEsRateOfChange          =gnedin2000ODEs(self_%cosmologyParameters_,self_%cosmologyFunctions_,self_%linearGrowth_,time,massParticleMean,temperature,massFilteringODEsProperties)
      massFilteringCompositeRateOfChange     =massFilteringODEsRateOfChange(1:2)
      massFilteringRateOfChange              =massFilteringODEsRateOfChange(3  )
      ! Compute the clumping factor.
-     clumpingFactor=+1.0d0                                                                                             &
-          &         +intergalacticMediumStateEvolveSelf%cosmologicalMassVariance_%rootVariance(massFiltering_,time)**2
+     clumpingFactor=+1.0d0                                                                &
+          &         +self_%cosmologicalMassVariance_%rootVariance(massFiltering_,time)**2
      ! Build integrators.
      integratorPhotoionization=integrator(integrandPhotoionizationRate       ,toleranceRelative=1.0d-2)
      integratorPhotoheating   =integrator(integrandPhotoionizationHeatingRate,toleranceRelative=1.0d-3)
@@ -668,78 +668,78 @@ contains
            shellNumber=1
            ! Compute collisional ionization rates from this ion.
            if (electronNumber  > 0) then
-              collisionIonizationRateFrom=-intergalacticMediumStateEvolveSelf%atomicIonizationRateCollisional_%rate    (atomicNumber,ionizationState  ,temperature) &
-                   &                      *densityThisIon                                                                                                           &
+              collisionIonizationRateFrom=-self_%atomicIonizationRateCollisional_%rate     (atomicNumber,ionizationState  ,temperature) &
+                   &                      *densityThisIon                                                                               &
                    &                      *densityElectron
-              heatingRate                =+heatingRate                                                                                                              &
-                   &                      -intergalacticMediumStateEvolveSelf%atomicIonizationPotential_      %potential(atomicNumber,electronNumber+1            ) &
-                   &                      *electronVolt                                                                                                             &
-                   &                      *collisionIonizationRateFrom                                                                                              &
-                   &                      *gigaYear                                                                                                                 &
-                   &                      *centi**3                                                                                                                 &
+              heatingRate                =+heatingRate                                                                                  &
+                   &                      -self_%atomicIonizationPotential_      %potential(atomicNumber,electronNumber +1            ) &
+                   &                      *electronVolt                                                                                 &
+                   &                      *collisionIonizationRateFrom                                                                  &
+                   &                      *gigaYear                                                                                     &
+                   &                      *centi**3                                                                                     &
                    &                      *clumpingFactor
             else
               collisionIonizationRateFrom=+0.0d0
            end if
            ! Compute collisional ionization rates to this ion.
            if (ionizationState > 1) then
-              collisionIonizationRateTo  =+intergalacticMediumStateEvolveSelf%atomicIonizationRateCollisional_%rate     (atomicNumber,ionizationState-1,temperature) &
-                   &                      *densityLowerIon                                                                                                           &
+              collisionIonizationRateTo  =+self_%atomicIonizationRateCollisional_%rate     (atomicNumber,ionizationState-1,temperature) &
+                   &                      *densityLowerIon                                                                              &
                    &                      *densityElectron
            else
               collisionIonizationRateTo  =+0.0d0
            end if
            ! Compute recombination rates from this ion.
            if (ionizationState > 1) then
-              recombinationRateFrom      =-intergalacticMediumStateEvolveSelf%atomicRecombinationRateRadiative_%rate(atomicNumber,ionizationState-1,temperature,recombinationCaseB) &
-                   &                      *densityThisIon                                                                                                                           &
+              recombinationRateFrom      =-self_%atomicRecombinationRateRadiative_%rate(atomicNumber,ionizationState-1,temperature,recombinationCaseB) &
+                   &                      *densityThisIon                                                                                              &
                    &                      *densityElectron
            else
               recombinationRateFrom      =+0.0d0
            end if
            ! Compute recombination rates to this ion.
            if (electronNumber  > 0) then
-              recombinationRateTo        =+intergalacticMediumStateEvolveSelf%atomicRecombinationRateRadiative_       %rate(atomicNumber,ionizationState,temperature,recombinationCaseB) &
-                   &                      *densityUpperIon                                                                                                                               &
+              recombinationRateTo        =+self_%atomicRecombinationRateRadiative_       %rate(atomicNumber,ionizationState,temperature,recombinationCaseB) &
+                   &                      *densityUpperIon                                                                                                  &
                    &                      *densityElectron
-              heatingRate                =+heatingRate                                                                                                                                   &
-                   &                      -intergalacticMediumStateEvolveSelf%atomicRecombinationRateRadiativeCooling_%rate(atomicNumber,ionizationState,temperature,recombinationCaseB) &
-                   &                      *densityThisIon                                                                                                                                &
-                   &                      *densityElectron                                                                                                                               &
-                   &                      *gigaYear                                                                                                                                      &
-                   &                      *centi**3                                                                                                                                      &
-                   &                      *clumpingFactor                                                                                                                                &
-                   &                      *0.75d0                                                                                                                                        &
-                   &                      *boltzmannsConstant                                                                                                                            &
+              heatingRate                =+heatingRate                                                                                                      &
+                   &                      -self_%atomicRecombinationRateRadiativeCooling_%rate(atomicNumber,ionizationState,temperature,recombinationCaseB) &
+                   &                      *densityThisIon                                                                                                   &
+                   &                      *densityElectron                                                                                                  &
+                   &                      *gigaYear                                                                                                         &
+                   &                      *centi**3                                                                                                         &
+                   &                      *clumpingFactor                                                                                                   &
+                   &                      *0.75d0                                                                                                           &
+                   &                      *boltzmannsConstant                                                                                               &
                    &                      *temperature
            else
               recombinationRateTo        =+0.0d0
            end if
            ! Compute dielectronic recombination rates from this ion.
            if (ionizationState > 1) then
-              recombinationDielectronicRateFrom=-intergalacticMediumStateEvolveSelf%atomicRecombinationRateDielectronic_%rate(atomicNumber,electronNumber+1,temperature) &
-                   &                            *densityThisIon                                                                                                          &
+              recombinationDielectronicRateFrom=-self_%atomicRecombinationRateDielectronic_%rate(atomicNumber,electronNumber+1,temperature) &
+                   &                            *densityThisIon                                                                             &
                    &                            *densityElectron
            else
               recombinationDielectronicRateFrom=+0.0d0
            end if
            ! Compute dielectronic recombination rates to this ion.
            if (electronNumber  > 0) then
-              recombinationDielectronicRateTo  =+intergalacticMediumStateEvolveSelf%atomicRecombinationRateDielectronic_%rate(atomicNumber,electronNumber  ,temperature) &
-                   &                            *densityUpperIon                                                                                                         &
+              recombinationDielectronicRateTo  =+self_%atomicRecombinationRateDielectronic_%rate(atomicNumber,electronNumber  ,temperature) &
+                   &                            *densityUpperIon                                                                            &
                    &                            *densityElectron
-              heatingRate                      =+heatingRate                                                                                                             &
-                   &                            -dielectronicRecombinationRateHeIEnergyLoss                                                                              &
-                   &                            *electronVolt                                                                                                            &
-                   &                            *recombinationDielectronicRateFrom                                                                                       &
-                   &                            *gigaYear                                                                                                                &
-                   &                            *centi**3                                                                                                                &
+              heatingRate                      =+heatingRate                                                                                &
+                   &                            -dielectronicRecombinationRateHeIEnergyLoss                                                 &
+                   &                            *electronVolt                                                                               &
+                   &                            *recombinationDielectronicRateFrom                                                          &
+                   &                            *gigaYear                                                                                   &
+                   &                            *centi**3                                                                                   &
                    &                            *clumpingFactor
            else
               recombinationDielectronicRateTo  =+0.0d0
            end if
            ! Set the epoch for the intergalactic background radiation field.
-           select type (radiationField_ => intergalacticMediumStateEvolveSelf%radiationField_)
+           select type (radiationField_ => self_%radiationField_)
            class is (radiationFieldIntergalacticBackground)
               call radiationField_%timeSet(time)
            end select
@@ -749,10 +749,10 @@ contains
               photoionizationGroundIonizationState=ionizationState
               ! Set the minimum and maximum wavelengths for photoionization.
               wavelengthMinimum=+0.0d0
-              wavelengthMaximum=+plancksConstant                                                                                      &
-                   &            *speedLight                                                                                           &
-                   &            /intergalacticMediumStateEvolveSelf%atomicIonizationPotential_%potential(atomicNumber,electronNumber) &
-                   &            /electronVolt                                                                                         &
+              wavelengthMaximum=+plancksConstant                                                         &
+                   &            *speedLight                                                              &
+                   &            /self_%atomicIonizationPotential_%potential(atomicNumber,electronNumber) &
+                   &            /electronVolt                                                            &
                    &            *angstromsPerMeter
               ! Integrate photoionizations over wavelength.
               ionizationPhotoRateFrom=-integratorPhotoionization%integrate(wavelengthMinimum,wavelengthMaximum) &
@@ -766,10 +766,10 @@ contains
               photoionizationGroundElectronNumber =electronNumber +1
               ! Set the minimum and maximum wavelengths for photoionization.
               wavelengthMinimum=0.0d0
-              wavelengthMaximum=+plancksConstant                                                                                        &
-                   &            *speedLight                                                                                             &
-                   &            /intergalacticMediumStateEvolveSelf%atomicIonizationPotential_%potential(atomicNumber,electronNumber+1) &
-                   &            /electronVolt                                                                                           &
+              wavelengthMaximum=+plancksConstant                                                           &
+                   &            *speedLight                                                                &
+                   &            /self_%atomicIonizationPotential_%potential(atomicNumber,electronNumber+1) &
+                   &            /electronVolt                                                              &
                    &            *angstromsPerMeter
               ! Integrate photoionizations over wavelength.
               ionizationPhotoRateTo            =+integratorPhotoionization%integrate(wavelengthMinimum,wavelengthMaximum) &
@@ -783,42 +783,42 @@ contains
            end if
            ! Compute heating rate due to Bremsstrahlung.
            if (ionizationState > 1) then
-              heatingRate=+heatingRate                                                             &
-                   &      -16.0d0                                                                  &
-                   &      / 3.0d0                                                                  &
-                   &      *sqrt(                                                                   &
-                   &            +2.0d0                                                             &
-                   &            *Pi                                                                &
-                   &            /3.0d0                                                             &
-                   &           )                                                                   &
-                   &      *dble(ionizationState-1) **2                                             &
-                   &      *densityThisIon                                                          &
-                   &      *densityElectron                                                         &
-                   &      *electronRadius          **3                                             &
-                   &      *speedLight                                                              &
-                   &      /electronRadius                                                          &
-                   &      *sqrt(                                                                   &
-                   &            +electronMass                                                      &
-                   &            *speedLight        **2                                             &
-                   &            *boltzmannsConstant                                                &
-                   &            *temperature                                                       &
-                   &           )                                                                   &
-                   &      *fineStructure                                                           &
-                   &      *intergalacticMediumStateEvolveSelf%gauntFactor_%total(                  &
-                   &                                                             atomicNumber    , &
-                   &                                                             electronNumber+1, &
-                   &                                                             temperature       &
-                   &                                                            )                  &
-                   &      *gigaYear                                                                &
+              heatingRate=+heatingRate                                &
+                   &      -16.0d0                                     &
+                   &      / 3.0d0                                     &
+                   &      *sqrt(                                      &
+                   &            +2.0d0                                &
+                   &            *Pi                                   &
+                   &            /3.0d0                                &
+                   &           )                                      &
+                   &      *dble(ionizationState-1) **2                &
+                   &      *densityThisIon                             &
+                   &      *densityElectron                            &
+                   &      *electronRadius          **3                &
+                   &      *speedLight                                 &
+                   &      /electronRadius                             &
+                   &      *sqrt(                                      &
+                   &            +electronMass                         &
+                   &            *speedLight        **2                &
+                   &            *boltzmannsConstant                   &
+                   &            *temperature                          &
+                   &           )                                      &
+                   &      *fineStructure                              &
+                   &      *self_%gauntFactor_%total(                  &
+                   &                                atomicNumber    , &
+                   &                                electronNumber+1, &
+                   &                                temperature       &
+                   &                               )                  &
+                   &      *gigaYear                                   &
                    &      *clumpingFactor
            end if
            ! Add collisional excitation cooling rate.
-           heatingRate=+heatingRate                                                                                     &
-                &      -intergalacticMediumStateEvolveSelf%atomicExcitationRateCollisional_%coolingRate(                &
-                &                                                                                       atomicNumber  , &
-                &                                                                                       electronNumber, &
-                &                                                                                       temperature     &
-                &                                                                                      )                &
+           heatingRate=+heatingRate                                                        &
+                &      -self_%atomicExcitationRateCollisional_%coolingRate(                &
+                &                                                          atomicNumber  , &
+                &                                                          electronNumber, &
+                &                                                          temperature     &
+                &                                                         )                &
                 &      *clumpingFactor
            ! Compute net rate of change of density.
            propertiesRateOfChange(iProperty)=                                                   &
@@ -842,7 +842,7 @@ contains
                 & *gigaYear                                                                     &
                 ! Cosmological expansion.
                 & -3.0d0                                                                        &
-                & *intergalacticMediumStateEvolveSelf%cosmologyFunctions_%expansionRate(intergalacticMediumStateEvolveSelf%cosmologyFunctions_%expansionFactor(time)) &
+                & *self_%cosmologyFunctions_%expansionRate(self_%cosmologyFunctions_%expansionFactor(time)) &
                 & *densityThisIon
         end do
      end do
@@ -851,47 +851,47 @@ contains
           &                      +propertiesRateOfChange(5) &
           &                      +propertiesRateOfChange(6)
      ! Compute rate of change of temperature due to cosmological expansion.
-     propertiesRateOfChange(1)=-2.0d0                                                                        &
-          &                    *intergalacticMediumStateEvolveSelf%cosmologyFunctions_%expansionRate  (      &
-          &                     intergalacticMediumStateEvolveSelf%cosmologyFunctions_%expansionFactor (     &
-          &                                                                                             time &
-          &                                                                                            )     &
-          &                                                                                           )      &
+     propertiesRateOfChange(1)=-2.0d0                                           &
+          &                    *self_%cosmologyFunctions_%expansionRate  (      &
+          &                     self_%cosmologyFunctions_%expansionFactor (     &
+          &                                                                time &
+          &                                                               )     &
+          &                                                              )      &
           &                    * temperature
      ! Compute rate of change of temperature due to atomic processes.
-     if (densityTotal > 0.0d0)                                                                                         &
-          & propertiesRateOfChange(1)=                                                                                 &
-          &                    +propertiesRateOfChange(1)                                                              &
+     if (densityTotal > 0.0d0)                                                            &
+          & propertiesRateOfChange(1)=                                                    &
+          &                    +propertiesRateOfChange(1)                                 &
           ! Accumulated atomic process heating rate.
-          &                    +heatingRate                                                                            &
-          &                    /1.5d0                                                                                  &
-          &                    /boltzmannsConstant                                                                     &
-          &                    /densityTotal                                                                           &
+          &                    +heatingRate                                               &
+          &                    /1.5d0                                                     &
+          &                    /boltzmannsConstant                                        &
+          &                    /densityTotal                                              &
           ! CMB Compton scattering heating/cooling rate.
-          &                   +speedLight                                                                              &
-          &                   *densityElectron                                                                         &
-          &                   *4.0d0                                                                                   &
-          &                   *thomsonCrossSection                                                                     &
-          &                   *radiationConstant                                                                       &
-          &                   *  intergalacticMediumStateEvolveSelf%cosmologyFunctions_%temperatureCMBEpochal(time)**4 &
-          &                   *(                                                                                       &
-          &                     +intergalacticMediumStateEvolveSelf%cosmologyFunctions_%temperatureCMBEpochal(time)    &
-          &                     -temperature                                                                           &
-          &                    )                                                                                       &
-          &                   /electronMass                                                                            &
-          &                   /speedLight                                                                          **2 &
-          &                   /1.5d0                                                                                   &
-          &                   /densityTotal                                                                            &
-          &                   *gigaYear                                                                                &
+          &                   +speedLight                                                 &
+          &                   *densityElectron                                            &
+          &                   *4.0d0                                                      &
+          &                   *thomsonCrossSection                                        &
+          &                   *radiationConstant                                          &
+          &                   *  self_%cosmologyFunctions_%temperatureCMBEpochal(time)**4 &
+          &                   *(                                                          &
+          &                     +self_%cosmologyFunctions_%temperatureCMBEpochal(time)    &
+          &                     -temperature                                              &
+          &                    )                                                          &
+          &                   /electronMass                                               &
+          &                   /speedLight                                             **2 &
+          &                   /1.5d0                                                      &
+          &                   /densityTotal                                               &
+          &                   *gigaYear                                                   &
           ! Particle number rate of change.
-          &    +electronDensityRateOfChange                                                                            &
-          &    /densityTotal                                                                                           &
-          &    +3.0d0                                                                                                  &
-          &    *intergalacticMediumStateEvolveSelf%cosmologyFunctions_%expansionRate  (                                &
-          &     intergalacticMediumStateEvolveSelf%cosmologyFunctions_%expansionFactor (                               &
-          &                                                                             time                           &
-          &                                                                            )                               &
-          &                                                                           )
+          &    +electronDensityRateOfChange                                               &
+          &    /densityTotal                                                              &
+          &    +3.0d0                                                                     &
+          &    *self_%cosmologyFunctions_%expansionRate  (                                &
+          &     self_%cosmologyFunctions_%expansionFactor (                               &
+          &                                                time                           &
+          &                                               )                               &
+          &                                              )
      ! Transfer rates of change to contiguous array.
      propertiesRateOfChange( 7: 8)=massFilteringCompositeRateOfChange
      propertiesRateOfChange( 9   )=opticalDepthRateOfChange
@@ -913,23 +913,23 @@ contains
        if (wavelength <= 0.0d0) then
           integrandPhotoionizationRate=0.0d0
        else
-          photonFlux   =+intergalacticMediumStateEvolveSelf%radiationField_%flux(wavelength,intergalacticMediumStateEvolveNode) &
-               &        /centi**2                                                                                               &
+          photonFlux   =+self_%radiationField_%flux(wavelength,node_) &
+               &        /centi**2                                     &
                &        *ergs
-          photonDensity=+4.0d0                                                                                                  &
-               &        *Pi                                                                                                     &
-               &        *photonFlux                                                                                             &
-               &        /plancksConstant                                                                                        &
-               &        /speedLight                                                                                             &
+          photonDensity=+4.0d0                                        &
+               &        *Pi                                           &
+               &        *photonFlux                                   &
+               &        /plancksConstant                              &
+               &        /speedLight                                   &
                &        /wavelength
-          integrandPhotoionizationRate=+speedLight                                                                                                               &
-               &                       *intergalacticMediumStateEvolveSelf%atomicCrossSectionIonizationPhoto_%crossSection(                                      &
-               &                                                                                                           atomicNumber                        , &
-               &                                                                                                           photoionizationGroundIonizationState, &
-               &                                                                                                           shellNumber                         , &
-               &                                                                                                           wavelength                            &
-               &                                                                                                          )                                      &
-               &                       *centi**2                                                                                                                 &
+          integrandPhotoionizationRate=+speedLight                                                                                  &
+               &                       *self_%atomicCrossSectionIonizationPhoto_%crossSection(                                      &
+               &                                                                              atomicNumber                        , &
+               &                                                                              photoionizationGroundIonizationState, &
+               &                                                                              shellNumber                         , &
+               &                                                                              wavelength                            &
+               &                                                                             )                                      &
+               &                       *centi**2                                                                                    &
                &                       *photonDensity
        end if
        return
@@ -947,34 +947,34 @@ contains
        if (wavelength < 0.0d0) then
           integrandPhotoionizationHeatingRate=0.0d0
        else
-          photonFlux   =+intergalacticMediumStateEvolveSelf%radiationField_%flux(wavelength,intergalacticMediumStateEvolveNode) &
-               &        /centi**2                                                                                               &
+          photonFlux   =+self_%radiationField_%flux(wavelength,node_) &
+               &        /centi**2                                     &
                &        *ergs
-          photonDensity=+4.0d0                                                                                                  &
-               &        *Pi                                                                                                     &
-               &        *photonFlux                                                                                             &
-               &        /plancksConstant                                                                                        &
-               &        /speedLight                                                                                             &
+          photonDensity=+4.0d0                                        &
+               &        *Pi                                           &
+               &        *photonFlux                                   &
+               &        /plancksConstant                              &
+               &        /speedLight                                   &
                &        /wavelength
-          integrandPhotoionizationHeatingRate=+speedLight                                                                            &
-               &                              *intergalacticMediumStateEvolveSelf%atomicCrossSectionIonizationPhoto_%crossSection(   &
-               &                                                                               atomicNumber                        , &
-               &                                                                               photoionizationGroundIonizationState, &
-               &                                                                               shellNumber                         , &
-               &                                                                               wavelength                            &
-               &                                                                              )                                      &
-               &                              *centi**2                                                                              &
-               &                              *photonDensity                                                                         &
-               &                              *(                                                                                     &
-               &                                +plancksConstant                                                                     &
-               &                                *speedLight                                                                          &
-               &                                *angstromsPerMeter                                                                   &
-               &                                /wavelength                                                                          &
-               &                                -intergalacticMediumStateEvolveSelf%atomicIonizationPotential_      %potential   (   &
-               &                                                                               atomicNumber                        , &
-               &                                                                               photoionizationGroundElectronNumber   &
-               &                                                                              )                                      &
-               &                                *electronVolt                                                                        &
+          integrandPhotoionizationHeatingRate=+speedLight                                                                                  &
+               &                              *self_%atomicCrossSectionIonizationPhoto_%crossSection(                                      &
+               &                                                                                     atomicNumber                        , &
+               &                                                                                     photoionizationGroundIonizationState, &
+               &                                                                                     shellNumber                         , &
+               &                                                                                     wavelength                            &
+               &                                                                                    )                                      &
+               &                              *centi**2                                                                                    &
+               &                              *photonDensity                                                                               &
+               &                              *(                                                                                           &
+               &                                +plancksConstant                                                                           &
+               &                                *speedLight                                                                                &
+               &                                *angstromsPerMeter                                                                         &
+               &                                /wavelength                                                                                &
+               &                                -self_%atomicIonizationPotential_      %potential   (                                      &
+               &                                                                                     atomicNumber                        , &
+               &                                                                                     photoionizationGroundElectronNumber   &
+               &                                                                                    )                                      &
+               &                                *electronVolt                                                                              &
                &                               )
        end if
        return

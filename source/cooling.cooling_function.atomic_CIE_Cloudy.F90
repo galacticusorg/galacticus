@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -64,17 +64,17 @@
   end interface coolingFunctionAtomicCIECloudy
 
   ! File names for the cooling function and chemical state data.
-  character       (len=56)           :: atomicCIECloudyCoolingFunctionFileName='cooling/cooling_function_Atomic_CIE_Cloudy.hdf5'
-  character       (len=56)           :: atomicCIECloudyChemicalStateFileName  ='chemicalState/chemical_state_Atomic_CIE_Cloudy.hdf5'
+  character       (len=56)           :: coolingFunctionFileName='cooling/cooling_function_Atomic_CIE_Cloudy.hdf5'
+  character       (len=56)           :: chemicalStateFileName  ='chemicalState/chemical_state_Atomic_CIE_Cloudy.hdf5'
 
   ! Maximum tabulated metallicity.
-  double precision       , parameter :: atomicCIECloudyMetallicityMaximumDefault=30.0d0 ! Thirty times Solar.
+  double precision       , parameter :: metallicityMaximumDefault=30.0d0 ! Thirty times Solar.
 
   ! Maximum metallicity that we will ever tabulate. More than this should be physically implausible.
-  double precision       , parameter :: atomicCIECloudyMetallicityMaximumLimit  =30.0d0 ! Thirty times Solar.
+  double precision       , parameter :: metallicityMaximumLimit  =30.0d0 ! Thirty times Solar.
 
   ! Factor by which metallicity must exceed currently tabulated maximum before we retabulate.
-  double precision       , parameter :: atomicCIECloudyMetallicityTolerance     = 0.1d0
+  double precision       , parameter :: toleranceMetallicity     = 0.1d0
 
 contains
 
@@ -129,19 +129,19 @@ contains
        makeFile=.true.
     else
        if (Abundances_Get_Metallicity(gasAbundances,metallicityTypeLinearByMassSolar) > 0.0d0) then
-          makeFile=(                                                                      &
-               &     min(                                                                 &
-               &         Abundances_Get_Metallicity(gasAbundances,metallicityTypeLinearByMassSolar)    , &
-               &         atomicCIECloudyMetallicityMaximumLimit                           &
-               &        )                                                                 &
-               &    >                                                                     &
-               &     self%metallicityMaximum*(1.0d0+atomicCIECloudyMetallicityTolerance)  &
+          makeFile=(                                                                                 &
+               &     min(                                                                            &
+               &         Abundances_Get_Metallicity(gasAbundances,metallicityTypeLinearByMassSolar), &
+               &         metallicityMaximumLimit                                                     &
+               &        )                                                                            &
+               &    >                                                                                &
+               &     self%metallicityMaximum*(1.0d0+toleranceMetallicity)                            &
                &   )
        else
           makeFile=.false.
        end if
        ! Remove the cooling function file so that a new one will be created.
-       if (makeFile) call File_Remove(inputPath(pathTypeDataStatic)//trim(atomicCIECloudyCoolingFunctionFileName))
+       if (makeFile) call File_Remove(inputPath(pathTypeDataStatic)//trim(coolingFunctionFileName))
     end if
     ! Read the file if this module has not been initialized or if the metallicity is out of range.
     if (makeFile) then
@@ -149,24 +149,24 @@ contains
        if (Abundances_Get_Metallicity(gasAbundances,metallicityTypeLinearByMassSolar) > 0.0d0) then
           self%metallicityMaximum=min(                                                                                &
                &                      max(                                                                            &
-               &                           atomicCIECloudyMetallicityMaximumDefault                                 , &
+               &                           metallicityMaximumDefault                                                , &
                &                          +3.0d0                                                                      &
                &                          *Abundances_Get_Metallicity(gasAbundances,metallicityTypeLinearByMassSolar) &
                &                         )                                                                          , &
-               &                           atomicCIECloudyMetallicityMaximumLimit                                     &
+               &                           metallicityMaximumLimit                                                    &
                &                     )
        else
-          self%metallicityMaximum=atomicCIECloudyMetallicityMaximumDefault
+          self%metallicityMaximum=metallicityMaximumDefault
        end if
        ! Generate the file.
-       call Interface_Cloudy_CIE_Tabulate(                                                                                   &
-            &                             log10(self%metallicityMaximum                                                   ), &
-            &                                   inputPath(pathTypeDataStatic)//trim(atomicCIECloudyCoolingFunctionFileName), &
-            &                                   inputPath(pathTypeDataStatic)//trim(atomicCIECloudyChemicalStateFileName  ), &
-            &                                   cieFileFormatVersionCurrent                                                  &
+       call Interface_Cloudy_CIE_Tabulate(                                                                    &
+            &                             log10(self%metallicityMaximum                                    ), &
+            &                                   inputPath(pathTypeDataStatic)//trim(coolingFunctionFileName), &
+            &                                   inputPath(pathTypeDataStatic)//trim(chemicalStateFileName  ), &
+            &                                   fileFormatVersionCurrent                                      &
             &                            )
        ! Call routine to read in the tabulated data.
-       call self%readFile(inputPath(pathTypeDataStatic)//trim(atomicCIECloudyCoolingFunctionFileName))
+       call self%readFile(inputPath(pathTypeDataStatic)//trim(coolingFunctionFileName))
        ! Flag that cooling function is now initialized.
        self%initialized=.true.
     end if

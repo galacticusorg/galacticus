@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -81,7 +81,7 @@ module IO_HDF5
      A structure that holds properties of HDF5 objects.
      !!}
      private
-     logical                          :: isOpenValue   =.false.
+     logical                          :: isOpenValue      =  .false.
      logical                          :: isOverwritable
      logical                          :: readOnly
      integer(kind=HID_T    )          :: objectID
@@ -90,8 +90,8 @@ module IO_HDF5
      integer                          :: hdf5ObjectType
      integer(kind=HSIZE_T  )          :: chunkSize
      integer                          :: compressionLevel
-     logical                          :: chunkSizeSet          , compressionLevelSet
-     type   (hdf5Object    ), pointer :: parentObject
+     logical                          :: chunkSizeSet               , compressionLevelSet
+     type   (hdf5Object    ), pointer :: parentObject     => null()
    contains
      !![
      <methods>

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -92,11 +92,11 @@
   end interface virialOrbitJiang2014
 
   ! Module-scope variables used in root finding.
-  class           (virialOrbitJiang2014), pointer :: jiang2014Self
-  double precision                                :: jiang2014XTotal                       , jiang2014XRadial              , &
-       &                                             jiang204ProbabilityRadialNormalization, jiang2014VelocityTotalInternal
-  integer                                         :: jiang2014I                            , jiang2014J
-  !$omp threadprivate(jiang2014Self,jiang2014XTotal,jiang2014XRadial,jiang204ProbabilityRadialNormalization,jiang2014VelocityTotalInternal,jiang2014I,jiang2014J)
+  class           (virialOrbitJiang2014), pointer :: self_
+  double precision                                :: xTotal                        , xRadial              , &
+       &                                             probabilityRadialNormalization, velocityTotalInternal
+  integer                                         :: i_                            , j_
+  !$omp threadprivate(self_,xTotal,xRadial,probabilityRadialNormalization,velocityTotalInternal,i_,j_)
 
 contains
 
@@ -494,11 +494,11 @@ contains
     <objectDestructor name="virialDensityContrastDefinition_"/>
     !!]
     ! Select parameters appropriate for this host-satellite pair.
-    call self%parametersSelect(massHost,massSatellite,jiang2014I,jiang2014J)
+    call self%parametersSelect(massHost,massSatellite,i_,j_)
      ! Select an orbit.
     foundOrbit    =  .false.
     attempts      =  0
-    jiang2014Self => self
+    self_ => self
     do while (.not.foundOrbit .and. attempts < attemptsMaximum)
        ! Increment number of attempts.
        attempts=attempts+1
@@ -508,28 +508,28 @@ contains
        call jiang2014Orbit%massesSet(massSatellite,massHost      )
        call jiang2014Orbit%radiusSet(              radiusHostSelf)
        ! Solve for the total velocity.
-       jiang2014XTotal               =node%hostTree   %randomNumberGenerator_%uniformSample(               )
-       jiang2014VelocityTotalInternal=self%totalFinder                       %find         (rootGuess=1.0d0)
+       xTotal               =node%hostTree   %randomNumberGenerator_%uniformSample(               )
+       velocityTotalInternal=self%totalFinder                       %find         (rootGuess=1.0d0)
        ! If requested, check that the orbit is bound. We require it to have E<-boundTolerance to ensure that it is sufficiently
        ! bound that later rounding errors will not make it appear unbound.
        foundOrbit=.true.
        if (.not.acceptUnboundOrbits) then
-          energyInternal=-1.0d0+0.5d0*jiang2014VelocityTotalInternal**2*jiang2014Orbit%specificReducedMass()
+          energyInternal=-1.0d0+0.5d0*velocityTotalInternal**2*jiang2014Orbit%specificReducedMass()
           foundOrbit=(energyInternal < -boundTolerance)
        end if
        if (.not.foundOrbit) cycle
        ! Solve for the radial velocity.
-       jiang2014XRadial                      =+0.0d0
-       jiang204ProbabilityRadialNormalization=+1.0d0
-       jiang204ProbabilityRadialNormalization=+1.0d0                                                        &
-            &                                 /(                                                            &
-            &                                   +jiang2014RadialVelocityCDF(jiang2014VelocityTotalInternal) &
-            &                                   -jiang2014RadialVelocityCDF(0.0d0                         ) &
+       xRadial                      =+0.0d0
+       probabilityRadialNormalization=+1.0d0
+       probabilityRadialNormalization=+1.0d0                                                       &
+            &                                 /(                                                   &
+            &                                   +jiang2014RadialVelocityCDF(velocityTotalInternal) &
+            &                                   -jiang2014RadialVelocityCDF(0.0d0                ) &
             &                                  )
-       jiang2014XRadial                      =node%hostTree    %randomNumberGenerator_%uniformSample(                                                    )
-       velocityRadialInternal                =self%radialFinder                       %find         (rootGuess=sqrt(2.0d0)*jiang2014VelocityTotalInternal)
+       xRadial                      =node%hostTree    %randomNumberGenerator_%uniformSample(                                                    )
+       velocityRadialInternal                =self%radialFinder                       %find         (rootGuess=sqrt(2.0d0)*velocityTotalInternal)
        ! Compute tangential velocity.
-       velocityTangentialInternal=sqrt(max(0.0d0,jiang2014VelocityTotalInternal**2-velocityRadialInternal**2))
+       velocityTangentialInternal=sqrt(max(0.0d0,velocityTotalInternal**2-velocityRadialInternal**2))
        call jiang2014Orbit%velocityRadialSet    (velocityRadialInternal    *velocityHost)
        call jiang2014Orbit%velocityTangentialSet(velocityTangentialInternal*velocityHost)
        ! Propagate the orbit to the virial radius under the default density contrast definition.
@@ -553,7 +553,7 @@ contains
     implicit none
     double precision, intent(in   ) :: velocityTotal
 
-    jiang2014TotalVelocityCDF=jiang2014Self%voightDistributions(jiang2014I,jiang2014J)%interpolate(velocityTotal)-jiang2014XTotal
+    jiang2014TotalVelocityCDF=self_%voightDistributions(i_,j_)%interpolate(velocityTotal)-xTotal
     return
   end function jiang2014TotalVelocityCDF
 
@@ -564,21 +564,21 @@ contains
     implicit none
     double precision, intent(in   ) :: velocityRadial
 
-    jiang2014RadialVelocityCDF=+jiang204ProbabilityRadialNormalization                         &
-         &                     *(                                                              &
-         &                       +       jiang2014VelocityTotalInternal                        &
-         &                       /       jiang2014Self%B               (jiang2014I,jiang2014J) &
-         &                       *(                                                            &
-         &                         +exp(                                                       &
-         &                              +jiang2014Self%B               (jiang2014I,jiang2014J) &
-         &                              *         velocityRadial                               &
-         &                              /jiang2014VelocityTotalInternal                        &
-         &                             )                                                       &
-         &                         -1.0d0                                                      &
-         &                        )                                                            &
-         &                       -velocityRadial                                               &
-         &                      )                                                              &
-         &                     -jiang2014XRadial
+    jiang2014RadialVelocityCDF=+probabilityRadialNormalization         &
+         &                     *(                                      &
+         &                       +       velocityTotalInternal         &
+         &                       /       self_%B               (i_,j_) & 
+         &                       *(                                    &
+         &                         +exp(                               &
+         &                              +self_%B               (i_,j_) &
+         &                              *         velocityRadial       &
+         &                              /velocityTotalInternal         &
+         &                             )                               &
+         &                         -1.0d0                              &
+         &                        )                                    &
+         &                       -velocityRadial                       &
+         &                      )                                      &
+         &                     -xRadial
     return
   end function jiang2014RadialVelocityCDF
 
@@ -721,7 +721,7 @@ contains
     class           (virialDensityContrastClass), pointer       :: virialDensityContrastDefinition_
     double precision                                            :: massHost                        , radiusHost   , &
          &                                                         velocityHost                    , massSatellite
-    integer                                                     :: i                              , j
+    integer                                                     :: i                               , j
 
     !![
     <referenceAcquire target="virialDensityContrastDefinition_" source="self%densityContrastDefinition()"/>

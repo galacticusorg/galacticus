@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -52,8 +52,9 @@ contains
     Constructor for the {\normalfont \ttfamily nfw} mass distribution class which builds the object from a parameter
     set.
     !!}
-    use :: Input_Parameters        , only : inputParameter, inputParameters
-    use :: Numerical_Constants_Math, only : Pi
+     use :: Input_Parameters          , only : inputParameter                , inputParameters
+     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
+     use :: Numerical_Constants_Math  , only : Pi
     implicit none
     type            (massDistributionNFW)                :: self
     type            (inputParameters    ), intent(inout) :: parameters
@@ -61,6 +62,8 @@ contains
          &                                                  densityNormalization, concentration, &
          &                                                  virialRadius
     logical                                              :: dimensionless
+    type            (varying_string     )                :: componentType
+    type            (varying_string     )                :: massType
 
     !![
     <inputParameter>
@@ -99,8 +102,20 @@ contains
       <description>If true the NFW profile is considered to be dimensionless.</description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter>
+      <name>componentType</name>
+      <defaultValue>var_str('unknown')</defaultValue>
+      <description>The component type that this mass distribution represents.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>massType</name>
+      <defaultValue>var_str('unknown')</defaultValue>
+      <description>The mass type that this mass distribution represents.</description>
+      <source>parameters</source>
+    </inputParameter>
     <conditionalCall>
-     <call>self=massDistributionNFW({conditions})</call>
+     <call>self=massDistributionNFW(componentType=enumerationComponentTypeEncode(componentType,includesPrefix=.false.),massType=enumerationMassTypeEncode(massType,includesPrefix=.false.){conditions})</call>
      <argument name="densityNormalization" value="densityNormalization" parameterPresent="parameters"/>
      <argument name="mass"                 value="mass"                 parameterPresent="parameters"/>
      <argument name="scaleLength"          value="scaleLength"          parameterPresent="parameters"/>
@@ -113,19 +128,24 @@ contains
     return
   end function nfwConstructorParameters
 
-  function nfwConstructorInternal(scaleLength,concentration,densityNormalization,mass,virialRadius,dimensionless) result(self)
+  function nfwConstructorInternal(scaleLength,concentration,densityNormalization,mass,virialRadius,dimensionless,componentType,massType) result(self)
     !!{
     Internal constructor for ``nfw'' mass distribution class.
     !!}
     use :: Error                   , only : Error_Report
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    type            (massDistributionNFW)                          :: self
-    double precision                     , intent(in   ), optional :: scaleLength         , concentration, &
-         &                                                            densityNormalization, mass         , &
-         &                                                            virialRadius
-    logical                              , intent(in   ), optional :: dimensionless
-    double precision                                               :: r
+    type            (massDistributionNFW         )                          :: self
+    double precision                              , intent(in   ), optional :: scaleLength         , concentration, &
+         &                                                                     densityNormalization, mass         , &
+         &                                                                     virialRadius
+    logical                                       , intent(in   ), optional :: dimensionless
+    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    double precision                                                        :: r
+    !![
+    <constructorAssign variables="componentType, massType"/>
+    !!]
 
     ! Determine scale length
     if      (                            &
@@ -163,17 +183,23 @@ contains
     return
   end function nfwConstructorInternal
 
-  double precision function nfwDensity(self,coordinates)
+  double precision function nfwDensity(self,coordinates,componentType,massType)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in an NFW mass distribution.
     !!}
     use :: Coordinates, only : assignment(=), coordinate, coordinateSpherical
     implicit none
-    class           (massDistributionNFW), intent(inout) :: self
-    class           (coordinate         ), intent(in   ) :: coordinates
-    type            (coordinateSpherical)                :: position
-    double precision                                     :: r
+    class           (massDistributionNFW         ), intent(inout)           :: self
+    class           (coordinate                  ), intent(in   )           :: coordinates
+    type            (coordinateSpherical         )                          :: position
+    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    double precision                                                        :: r
 
+    if (.not.self%matches(componentType,massType)) then
+       nfwDensity=0.0d0
+       return
+    end if
     ! Get position in spherical coordinate system.
     position  = coordinates
     ! Compute the density at this position.

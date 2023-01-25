@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -66,7 +66,7 @@ code of \cite{lawrence_coyote_2010}.
   end interface powerSpectrumNonlinearCosmicEmu
 
   ! Wavenumber range used for testing shape of primordial power spectrum.
-  double precision, parameter :: cosmicEmuWavenumberLong=0.01d0, cosmicEmuWavenumberShort=1.0d0
+  double precision, parameter :: wavenumberLong=0.01d0, wavenumberShort=1.0d0
 
 contains
 
@@ -122,30 +122,30 @@ contains
     ! Initialize state.
     self%timePrevious=-1.0d0
     ! Check that this is a flat cosmology.
-    if     (                                                                                                 &
-         &  Values_Differ(                                                                                   &
-         &                +self%cosmologyParameters_%OmegaMatter    ()                                       &
-         &                +self%cosmologyParameters_%OmegaDarkEnergy()                                    ,  &
-         &                       1.0d+0                                                                   ,  &
-         &                absTol=1.0d-3                                                                      &
-         &               )                                                                                   &
-         & )                                                                                                 &
+    if     (                                                                                      &
+         &  Values_Differ(                                                                        &
+         &                +self%cosmologyParameters_%OmegaMatter    ()                            &
+         &                +self%cosmologyParameters_%OmegaDarkEnergy()                         ,  &
+         &                       1.0d+0                                                        ,  &
+         &                absTol=1.0d-3                                                           &
+         &               )                                                                        &
+         & )                                                                                      &
          & call Error_Report(                                                                     &
-         &                              'this method is applicable only to flat matter+dark energy models'// &
-         &                               {introspection:location}                                            &
-         &                             )
+         &                   'this method is applicable only to flat matter+dark energy models'// &
+         &                    {introspection:location}                                            &
+         &                  )
     ! Check that the primordial power spectrum has no running of the spectral index.
-    if     (                                                                                                               &
-         &  Values_Differ(                                                                                                 &
-         &                self%powerSpectrumPrimordial_%logarithmicDerivative(cosmicEmuWavenumberShort),                   &
-         &                self%powerSpectrumPrimordial_%logarithmicDerivative(cosmicEmuWavenumberLong ),                   &
-         &                relTol=1.0d-3                                                                                    &
-         &               )                                                                                                 &
-         & )                                                                                                               &
+    if     (                                                                                                    &
+         &  Values_Differ(                                                                                      &
+         &                self%powerSpectrumPrimordial_%logarithmicDerivative(wavenumberShort),                 &
+         &                self%powerSpectrumPrimordial_%logarithmicDerivative(wavenumberLong ),                 &
+         &                relTol=1.0d-3                                                                         &
+         &               )                                                                                      &
+         & )                                                                                                    &
          & call Error_Report(                                                                                   &
-         &                              'this method is applicable only to models with no running of the spectral index'// &
-         &                               {introspection:location}                                                          &
-         &                             )
+         &                   'this method is applicable only to models with no running of the spectral index'// &
+         &                    {introspection:location}                                                          &
+         &                  )
    return
   end function cosmicEmuConstructorInternal
 
@@ -201,25 +201,25 @@ contains
        powerSpectrumFile=inputPath(pathTypeDataDynamic)//"largeScaleStructure/powerSpectrumCosmicEmu"
        parameterFile    =File_Name_Temporary("cosmicEmuParameters")
        parameters       =''
-       write (parameterLabel,'(f5.3)') +self%cosmologyParameters_     %OmegaMatter              (                                        )
+       write (parameterLabel,'(f5.3)') +self%cosmologyParameters_     %OmegaMatter              (                                  )
        powerSpectrumFile=powerSpectrumFile//"_OmegaMatter"//trim(adjustl(parameterLabel))
-       write (parameterLabel,'(f5.3)') +self%cosmologyParameters_     %OmegaMatter              (                                        )    &
-            &                          *self%cosmologyParameters_     %HubbleConstant           (                hubbleUnitsLittleH      )**2
+       write (parameterLabel,'(f5.3)') +self%cosmologyParameters_     %OmegaMatter              (                                  )    &
+            &                          *self%cosmologyParameters_     %HubbleConstant           (                hubbleUnitsLittleH)**2
        parameters=parameters//trim(adjustl(parameterLabel))//char(10)
-       write (parameterLabel,'(f6.4)') +self%cosmologyParameters_     %OmegaBaryon              (                                        )
+       write (parameterLabel,'(f6.4)') +self%cosmologyParameters_     %OmegaBaryon              (                                  )
        powerSpectrumFile=powerSpectrumFile//"_OmegaBaryon"//trim(adjustl(parameterLabel))
-       write (parameterLabel,'(f5.3)') +self%cosmologyParameters_     %OmegaBaryon              (                                        )    &
-            &                          *self%cosmologyParameters_     %HubbleConstant           (                hubbleUnitsLittleH      )**2
+       write (parameterLabel,'(f5.3)') +self%cosmologyParameters_     %OmegaBaryon              (                                  )    &
+            &                          *self%cosmologyParameters_     %HubbleConstant           (                hubbleUnitsLittleH)**2
        parameters=parameters//trim(adjustl(parameterLabel))//char(10)
-       write (parameterLabel,'(f7.4)') +self%cosmologyParameters_     %HubbleConstant           (                                        )
+       write (parameterLabel,'(f7.4)') +self%cosmologyParameters_     %HubbleConstant           (                                  )
        powerSpectrumFile=powerSpectrumFile//"_HubbleConstant"//trim(adjustl(parameterLabel))
-       write (parameterLabel,'(f6.4)') +self%powerSpectrumPrimordial_ %logarithmicDerivative    (                cosmicEmuWavenumberShort)
+       write (parameterLabel,'(f6.4)') +self%powerSpectrumPrimordial_ %logarithmicDerivative    (                wavenumberShort   )
        powerSpectrumFile=powerSpectrumFile//"_powerSpectrumIndex"//trim(adjustl(parameterLabel))
        parameters=parameters//trim(adjustl(parameterLabel))//char(10)
-       write (parameterLabel,'(f6.4)') +self%cosmologicalMassVariance_%sigma8                   (                                        )
+       write (parameterLabel,'(f6.4)') +self%cosmologicalMassVariance_%sigma8                   (                                  )
        powerSpectrumFile=powerSpectrumFile//"_sigma8"//trim(adjustl(parameterLabel))
        parameters=parameters//trim(adjustl(parameterLabel))//char(10)
-       write (parameterLabel,'(f6.3)') +self%cosmologyFunctions_      %equationOfStateDarkEnergy(expansionFactor=1.0d0                   )
+       write (parameterLabel,'(f6.3)') +self%cosmologyFunctions_      %equationOfStateDarkEnergy(expansionFactor=1.0d0             )
        powerSpectrumFile=powerSpectrumFile//"_w"//trim(adjustl(parameterLabel))
        parameters=parameters//trim(adjustl(parameterLabel))//char(10)
        write (parameterLabel,'(f7.4)') +redshift

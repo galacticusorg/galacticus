@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -143,7 +143,7 @@
   end interface starFormationHistoryAdaptive
 
   ! Effective infinite metallicity.
-  double precision, parameter :: adaptiveMetallicityInfinite=huge(1.0d0)
+  double precision, parameter :: metallicityInfinite=huge(1.0d0)
 
 contains
 
@@ -189,7 +189,7 @@ contains
          <cardinality>0..*</cardinality>
        </inputParameter>
        !!]
-       metallicityBoundaries(size(metallicityBoundaries))=adaptiveMetallicityInfinite
+       metallicityBoundaries(size(metallicityBoundaries))=metallicityInfinite
     else
        !![
        <inputParameter>
@@ -292,7 +292,7 @@ contains
        case default
           allocate(self%metallicityTable(countMetallicities+1))
           if (countMetallicities > 1) self%metallicityTable(1:countMetallicities)=Make_Range(metallicityMinimum,metallicityMaximum,int(countMetallicities),rangeType=rangeTypeLogarithmic)
-          self%metallicityTable(countMetallicities+1)=adaptiveMetallicityInfinite
+          self%metallicityTable(countMetallicities+1)=metallicityInfinite
        end select
     end if
     ! Construct the time bins and rebinning strategy to be used for each output.

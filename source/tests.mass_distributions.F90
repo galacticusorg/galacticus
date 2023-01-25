@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -25,19 +25,20 @@ program Test_Mass_Distributions
   !!{
   Tests mass distributions.
   !!}
-  use :: Coordinates             , only : assignment(=)                    , coordinateSpherical                , coordinateCartesian
-  use :: Display                 , only : displayVerbositySet              , verbosityLevelStandard
-  use :: Error_Functions         , only : Error_Function
-  use :: Error                   , only : Error_Report
-  use :: Events_Hooks            , only : eventsHooksInitialize
-  use :: Linear_Algebra          , only : assignment(=)                    , vector
-  use :: Mass_Distributions      , only : massDistributionBetaProfile      , massDistributionClass              , massDistributionExponentialDisk        , massDistributionGaussianEllipsoid, &
-       &                                  massDistributionHernquist        , massDistributionSersic             , massDistributionSpherical              , massDistributionComposite        , &
-       &                                  massDistributionList             , massDistributionSymmetryCylindrical, enumerationMassDistributionSymmetryType, massDistributionSphericalScaler  , &
-       &                                  massDistributionCylindricalScaler, massDistributionCylindrical
-  use :: Numerical_Constants_Math, only : Pi
-  use :: Tensors                 , only : assignment(=)
-  use :: Unit_Tests              , only : Assert                           , Unit_Tests_Begin_Group             , Unit_Tests_End_Group                   , Unit_Tests_Finish
+  use :: Coordinates               , only : assignment(=)                    , coordinateSpherical                , coordinateCartesian
+  use :: Display                   , only : displayVerbositySet              , verbosityLevelStandard
+  use :: Error_Functions           , only : Error_Function
+  use :: Error                     , only : Error_Report
+  use :: Events_Hooks              , only : eventsHooksInitialize
+  use :: Galactic_Structure_Options, only : componentTypeSpheroid            , componentTypeDisk
+  use :: Linear_Algebra            , only : assignment(=)                    , vector
+  use :: Mass_Distributions        , only : massDistributionBetaProfile      , massDistributionClass              , massDistributionExponentialDisk        , massDistributionGaussianEllipsoid, &
+       &                                    massDistributionHernquist        , massDistributionSersic             , massDistributionSpherical              , massDistributionComposite        , &
+       &                                    massDistributionList             , massDistributionSymmetryCylindrical, enumerationMassDistributionSymmetryType, massDistributionSphericalScaler  , &
+       &                                    massDistributionCylindricalScaler, massDistributionCylindrical
+  use :: Numerical_Constants_Math  , only : Pi
+  use :: Tensors                   , only : assignment(=)
+  use :: Unit_Tests                , only : Assert                           , Unit_Tests_Begin_Group             , Unit_Tests_End_Group                   , Unit_Tests_Finish
   implicit none
   class           (massDistributionClass                  )                             , allocatable :: massDistribution_                                                                                               , massDistributionRotated       , &
        &                                                                                                 massDistributionDisk                                                                                            , massDistributionSpheroid
@@ -390,6 +391,7 @@ program Test_Mass_Distributions
   end select
   deallocate(massDistribution_)
   call Unit_Tests_End_Group()
+  
   ! Composite profile.
   call Unit_Tests_Begin_Group("Composite profile (Hernquist + Exponential disk)")
   allocate(                                   massDistributions                       )
@@ -398,11 +400,11 @@ program Test_Mass_Distributions
   allocate(massDistributionExponentialDisk :: massDistributions%next%massDistribution_)
   select type (massDistribution_ => massDistributions     %massDistribution_)
   type is (massDistributionHernquist      )
-     massDistribution_=massDistributionHernquist      (mass=9.0d09,scaleLength=0.7d-3                   )
+     massDistribution_=massDistributionHernquist      (mass=9.0d09,scaleLength=0.7d-3                   ,componentType=componentTypeSpheroid)
   end select
   select type (massDistribution_ => massDistributions%next%massDistribution_)
   type is (massDistributionExponentialDisk)
-     massDistribution_=massDistributionExponentialDisk(mass=5.7d10,scaleRadius=2.9d-3,scaleHeight=0.3d-3)
+     massDistribution_=massDistributionExponentialDisk(mass=5.7d10,scaleRadius=2.9d-3,scaleHeight=0.3d-3,componentType=componentTypeDisk    )
   end select
   allocate(massDistributionComposite :: massDistribution_)
   select type (massDistribution_)
@@ -410,12 +412,15 @@ program Test_Mass_Distributions
      massDistribution_=massDistributionComposite(massDistributions)
   end select
   symmetry_=massDistribution_%symmetry()
-  call Assert("Maximal symmetry [cylindrical]",symmetry_        %ID                        ,massDistributionSymmetryCylindrical%ID              )
+  call Assert("Maximal symmetry [cylindrical]"         ,symmetry_        %ID                                                            ,massDistributionSymmetryCylindrical%ID              )
   positionCartesian=[1.0d-3,0.0d0,0.0d0]
-  call Assert("Density at (x,y,z)=(1,0,0) kpc",massDistribution_%density(positionCartesian),1.47756308872d18                      ,relTol=1.0d-6)
+  call Assert("Density at (x,y,z)=(1,0,0) kpc"         ,massDistribution_%density(positionCartesian                                    ),1.47756308872d18                      ,relTol=1.0d-6)
+  call Assert("Spheroid density at (x,y,z)=(1,0,0) kpc",massDistribution_%density(positionCartesian,componentType=componentTypeSpheroid),2.04086330446d17                      ,relTol=1.0d-6)
+  call Assert("Disk density at (x,y,z)=(1,0,0) kpc"    ,massDistribution_%density(positionCartesian,componentType=componentTypeDisk    ),1.27347675828d18                      ,relTol=1.0d-6)
   nullify   (massDistributions)
   deallocate(massDistribution_)
   call Unit_Tests_End_Group()
+  
   ! Composite profile with scaled components.
   call Unit_Tests_Begin_Group("Composite profile (Hernquist + Exponential disk; scaled)")
   allocate(massDistributionExponentialDisk   :: massDistributionDisk                    )

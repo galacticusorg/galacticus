@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -31,8 +31,8 @@ Contains a module which implements a depth-first merger tree walker over all iso
      A merger tree walker which iterates depth-first over all isolated nodes in a given branch.
      !!}
      private
-     type            (treeNode), pointer :: branchHead  , node
-     logical                             :: nodesRemain_, timeLimited
+     type            (treeNode), pointer :: branchHead   => null(), node        => null()
+     logical                             :: nodesRemain_          , timeLimited
      double precision                    :: timeEarliest
    contains
      procedure :: next        => isolatedNodesBranchNext

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -518,7 +518,7 @@ contains
           end if
 #endif
 #ifdef USEMPI
-          if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
+          if (mpiSelf%isMaster() .and. self%coordinatedMPI_) then
              loopCountTotal=(int(self%countTime,kind=c_size_t)/int(mpiSelf%count(),kind=c_size_t)+1_c_size_t)*(int(self%countVariance-1,kind=c_size_t)*int(self%countVariance,kind=c_size_t))/2_c_size_t
           else
 #endif
@@ -1039,7 +1039,7 @@ contains
                   &         +int(self%countTimeRate,kind=c_size_t)*int(self%countVarianceCurrentRate           +1,kind=c_size_t)
           end if
 #ifdef USEMPI
-          if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
+          if (mpiSelf%isMaster() .and. self%coordinatedMPI_) then
              loopCountTotal= loopCountTotal/int(mpiSelf%count(),kind=c_size_t)+1_c_size_t
           end if
 #endif

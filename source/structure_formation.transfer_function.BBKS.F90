@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -39,11 +39,11 @@
      A bbks transfer function class.
      !!}
      private
-     class           (darkMatterParticleClass ), pointer :: darkMatterParticle_  => null()
-     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
-     double precision                                    :: Gamma                         , time
+     class           (darkMatterParticleClass ), pointer :: darkMatterParticle_ => null()
+     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_ => null()
+     double precision                                    :: Gamma                        , time
    contains
-     final     ::                          bbksDestructor
+     final     ::                          destructor
      procedure :: value                 => bbksValue
      procedure :: logarithmicDerivative => bbksLogarithmicDerivative
      procedure :: halfModeMass          => bbksHalfModeMass
@@ -55,16 +55,16 @@
      !!{
      Constructors for the ``BBKS'' transfer function class.
      !!}
-     module procedure bbksConstructorParameters
-     module procedure bbksConstructorInternal
+     module procedure constructorParameters
+     module procedure constructorInternal
   end interface transferFunctionBBKS
 
   ! Fitting function parameters.
-  double precision, parameter :: bbksP=2.34d0, bbksA=3.89d0, bbksB=16.10d0, bbksC=5.46d0, bbksD=6.71d0
+  double precision, parameter :: p=2.34d0, a=3.89d0, b=16.10d0, c=5.46d0, d=6.71d0
 
 contains
 
-  function bbksConstructorParameters(parameters) result(self)
+  function constructorParameters(parameters) result(self)
     !!{
     Constructor for the ``BBKS'' transfer function class which takes a parameter set as input.
     !!}
@@ -81,7 +81,7 @@ contains
     <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     !!]
-    self=bbksConstructorInternal(darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_)
+    self=constructorInternal(darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"/>
@@ -89,9 +89,9 @@ contains
     <objectDestructor name="cosmologyFunctions_" />
     !!]
     return
-  end function bbksConstructorParameters
+  end function constructorParameters
 
-  function bbksConstructorInternal(darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_) result(self)
+  function constructorInternal(darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_) result(self)
     !!{
     Internal constructor for the ``BBKS'' transfer function class.
     !!}
@@ -135,9 +135,9 @@ contains
          &       /2.7d0                                                                   &
          &      )**2
     return
-  end function bbksConstructorInternal
+  end function constructorInternal
 
-  subroutine bbksDestructor(self)
+  subroutine destructor(self)
     !!{
     Destructor for the ``BBKS'' transfer function class.
     !!}
@@ -150,7 +150,7 @@ contains
     <objectDestructor name="self%darkMatterParticle_" />
     !!]
     return
-  end subroutine bbksDestructor
+  end subroutine destructor
 
   double precision function bbksValue(self,wavenumber)
     !!{
@@ -167,21 +167,21 @@ contains
          &           /self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)
     q               =+wavenumberHUnits &
          &           /self%Gamma
-    bbksValue       =+(              &
-         &             +log(         &
-         &                  +1.00d0  &
-         &                  +bbksP   &
-         &                  *q       &
-         &                 )         &
-         &             /bbksP        &
-         &             /q            &
-         &            )              &
-         &           /(              &
-         &             +1.0d0        &
-         &             +(bbksA*q)    &
-         &             +(bbksB*q)**2 &
-         &             +(bbksC*q)**3 &
-         &             +(bbksD*q)**4 &
+    bbksValue       =+(             &
+         &             +log(        &
+         &                  +1.00d0 &
+         &                  +p      &
+         &                  *q      &
+         &                 )        &
+         &             /p           &
+         &             /q           &
+         &            )             &
+         &           /(             &
+         &             +1.0d0       &
+         &             +(a*q)       &
+         &             +(b*q)**2    &
+         &             +(c*q)**3    &
+         &             +(d*q)**4    &
          &            )**0.25d0
     return
   end function bbksValue
@@ -201,48 +201,48 @@ contains
          &           /self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)
     q               =+wavenumberHUnits &
          &           /self%Gamma
-    bbksLogarithmicDerivative=-2.0d0                &
-         &                    +(                    &
-         &                      +4.0d0              &
-         &                      +3.0d0*(bbksA*q)    &
-         &                      +2.0d0*(bbksB*q)**2 &
-         &                      +      (bbksC*q)**3 &
-         &                    )                     &
-         &                    /(                    &
-         &                      +4.0d0              &
-         &                      *(                  &
-         &                        +1.0d0            &
-         &                        +      q          &
-         &                        *(                &
-         &                          +    bbksA      &
-         &                          +    q          &
-         &                          *(              &
-         &                            +  bbksB**2   &
-         &                            +  q          &
-         &                            *(            &
-         &                              +bbksC**3   &
-         &                              +bbksD**4   &
-         &                              *q          &
-         &                             )            &
-         &                           )              &
-         &                         )                &
-         &                       )                  &
-         &                     )                    &
-         &                    +(                    &
-         &                      +bbksP              &
-         &                      *q                  &
-         &                     )                    &
-         &                    /(                    &
-         &                      +(                  &
-         &                        +1.0d0            &
-         &                        +bbksP            &
-         &                        *q                &
-         &                       )                  &
-         &                      *log(               &
-         &                           +1.0d0         &
-         &                           +bbksP         &
-         &                           *q             &
-         &                          )               &
+    bbksLogarithmicDerivative=-2.0d0            &
+         &                    +(                &
+         &                      +4.0d0          &
+         &                      +3.0d0*(a*q)    &
+         &                      +2.0d0*(b*q)**2 &
+         &                      +      (c*q)**3 &
+         &                    )                 &
+         &                    /(                &
+         &                      +4.0d0          &
+         &                      *(              &
+         &                        +1.0d0        &
+         &                        +      q      &
+         &                        *(            &
+         &                          +    a      &
+         &                          +    q      &
+         &                          *(          &
+         &                            +  b**2   &
+         &                            +  q      &
+         &                            *(        &
+         &                              +c**3   &
+         &                              +d**4   &
+         &                              *q      &
+         &                             )        &
+         &                           )          &
+         &                         )            &
+         &                       )              &
+         &                     )                &
+         &                    +(                &
+         &                      +p              &
+         &                      *q              &
+         &                     )                &
+         &                    /(                &
+         &                      +(              &
+         &                        +1.0d0        &
+         &                        +p            &
+         &                        *q            &
+         &                       )              &
+         &                      *log(           &
+         &                           +1.0d0     &
+         &                           +p         &
+         &                           *q         &
+         &                          )           &
          &                     )
     return
   end function bbksLogarithmicDerivative

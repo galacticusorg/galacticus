@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -29,7 +29,7 @@ Contains a module which implements a sequence of operators on merger trees.
   !!]
 
   type, public :: operatorList
-     class(mergerTreeOperatorClass), pointer :: operator_
+     class(mergerTreeOperatorClass), pointer :: operator_ => null()
      type (operatorList           ), pointer :: next      => null()
   end type operatorList
 

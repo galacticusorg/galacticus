@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +22,7 @@ Contains a module which implements an N-body data operator which applies a seque
 !!}
 
   type, public :: nbodyOperatorList
-     class(nbodyOperatorClass), pointer :: operator_
+     class(nbodyOperatorClass), pointer :: operator_ => null()
      type (nbodyOperatorList ), pointer :: next      => null()
   end type nbodyOperatorList
 

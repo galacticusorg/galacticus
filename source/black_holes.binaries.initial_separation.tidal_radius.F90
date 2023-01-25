@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -62,10 +62,10 @@
   end interface blackHoleBinaryInitialSeparationTidalRadius
 
   ! Module-scope variables used in root finding.
-  double precision                                                       :: tidalRadiusMassHalf, tidalRadiusRadiusHalfMass
-  type            (treeNode                                   ), pointer :: tidalRadiusNode
+  double precision                                                       :: massHalf, radiusMassHalf
+  type            (treeNode                                   ), pointer :: node_
   class           (blackHoleBinaryInitialSeparationTidalRadius), pointer :: self_
-  !$omp threadprivate(tidalRadiusRadiusHalfMass,tidalRadiusMassHalf,tidalRadiusNode,self_)
+  !$omp threadprivate(radiusMassHalf,massHalf,node_,self_)
 
 contains
 
@@ -147,14 +147,14 @@ contains
     ! If the primary black hole has zero mass (i.e. has been ejected), then return immediately.
     if (blackHole%mass() <= 0.0d0) return
     ! Get the half-mass radius of the satellite galaxy.
-    tidalRadiusRadiusHalfMass=self%galacticStructure_%radiusEnclosingMass(node,massFractional=0.5d0                    ,massType=massTypeGalactic)
+    radiusMassHalf=self%galacticStructure_%radiusEnclosingMass(node,massFractional=0.5d0         ,massType=massTypeGalactic)
     ! Get the mass within the half-mass radius.
-    tidalRadiusMassHalf      =self%galacticStructure_%massEnclosed       (node,               tidalRadiusRadiusHalfMass,massType=massTypeGalactic)
+    massHalf      =self%galacticStructure_%massEnclosed       (node,               radiusMassHalf,massType=massTypeGalactic)
     ! Return zero radius for massless galaxy.
-    if (tidalRadiusRadiusHalfMass <= 0.0d0 .or. tidalRadiusMassHalf <= 0.0d0) return
+    if (radiusMassHalf <= 0.0d0 .or. massHalf <= 0.0d0) return
     ! Solve for the radius around the host at which the satellite gets disrupted.
     self_                        => self
-    tidalRadiusNode              => nodeHost
+    node_                        => nodeHost
     tidalRadiusSeparationInitial =  self%finder%find(                                                                                 &
          &                                           rootGuess=self%galacticStructure_%radiusEnclosingMass(                           &
          &                                                                                                 nodeHost                 , &
@@ -174,11 +174,11 @@ contains
     double precision, intent(in   ) :: radius
 
     ! Evaluate the root function.
-    tidalRadiusRoot=+self_%galacticStructure_%massEnclosed(tidalRadiusNode,radius,massType=massTypeGalactic) &
-         &          /tidalRadiusMassHalf                                                                     &
-         &          -(                                                                                       &
-         &            +radius                                                                                &
-         &            /tidalRadiusRadiusHalfMass                                                             &
+    tidalRadiusRoot=+self_%galacticStructure_%massEnclosed(node_,radius,massType=massTypeGalactic) &
+         &          /massHalf                                                                      &
+         &          -(                                                                             &
+         &            +radius                                                                      &
+         &            /radiusMassHalf                                                              &
          &           )**3
     return
   end function tidalRadiusRoot

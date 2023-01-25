@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -136,11 +136,11 @@ Implements a class for the conditional mass functions using the \cite{behroozi_c
   end interface conditionalMassFunctionBehroozi2010
 
   ! Table resolution.
-  integer                                              , parameter :: behroozi2010MassTablePointsPerDecade=10
+  integer                                              , parameter :: massTablePointsPerDecade=10
 
   ! Module scope pointer to the current object.
-  class           (conditionalMassFunctionBehroozi2010), pointer   :: behroozi2010Self
-  !$omp threadprivate(behroozi2010Self)
+  class           (conditionalMassFunctionBehroozi2010), pointer   :: self_
+  !$omp threadprivate(self_)
 
 contains
 
@@ -361,7 +361,7 @@ contains
     double precision                                                             :: fMassHalo               , massCut         , &
          &                                                                          massSatellite
 
-    behroozi2010Self => self
+    self_ => self
     do while (                                            &
          &     .not.allocated(self%fMassHaloTable)        &
          &    .or.                                        &
@@ -377,7 +377,7 @@ contains
           if (massHalo < self%fMassHaloTableMinimum) self%fMassTableMinimum=0.5d0*self%fMassTableMinimum
           if (massHalo > self%fMassHaloTableMaximum) self%fMassTableMaximum=2.0d0*self%fMassTableMaximum
        end if
-       self%fMassTableCount=int(log10(self%fMassTableMaximum/self%fMassTableMinimum)*behroozi2010MassTablePointsPerDecade)+1
+       self%fMassTableCount=int(log10(self%fMassTableMaximum/self%fMassTableMinimum)*massTablePointsPerDecade)+1
        call          self%fMassTable    %destroy()
        if (allocated(self%fMassHaloTable)) then
           call       self%fMassHaloTable%destroy()
@@ -454,15 +454,15 @@ contains
     double precision                :: argument
 
     ! Compute the logarithmic halo mass for the given mass.
-    argument=                                                                                       &
-         &    behroozi2010Self%log10M1                                                              &
-         &   +behroozi2010Self%beta   *log10(mass/behroozi2010Self%Mstar0)                          &
-         &   +                              (mass/behroozi2010Self%Mstar0)**behroozi2010Self%delta  &
-         &   /(                                                                                     &
-         &     +1.0d0                                                                               &
-         &     +1.0d0                                                                               &
-         &     /                            (mass/behroozi2010Self%Mstar0)**behroozi2010Self%gamma  &
-         &    )                                                                                     &
+    argument=                                                      &
+         &    self_%log10M1                                        &
+         &   +self_%beta   *log10(mass/self_%Mstar0)               &
+         &   +                   (mass/self_%Mstar0)**self_%delta  &
+         &   /(                                                    &
+         &     +1.0d0                                              &
+         &     +1.0d0                                              &
+         &     /                 (mass/self_%Mstar0)**self_%gamma  &
+         &    )                                                    &
          &   -0.5d0
     ! For some parameter choices, the halo mass can grow unreasonably large. Therefore, above a transition value, allow the
     ! logarithmic halo mass to grow only logarithmically. Halo masses this high are irrelevant anyway (since the halo mass

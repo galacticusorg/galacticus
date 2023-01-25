@@ -1,6 +1,5 @@
-
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -159,6 +158,10 @@ contains
     propertyCount=chemicalsCount
     ! If tracking chemicals, read names of which ones to track.
     if (chemicalsCount > 0) then
+       if (allocated(chemicalsToTrack)) deallocate(chemicalsToTrack)
+       if (allocated(chemicalsIndices)) deallocate(chemicalsIndices)
+       if (allocated(chemicalsCharges)) deallocate(chemicalsCharges)
+       if (allocated(chemicalsMasses )) deallocate(chemicalsMasses )
        allocate(chemicalsToTrack(chemicalsCount))
        allocate(chemicalsIndices(chemicalsCount))
        allocate(chemicalsCharges(chemicalsCount))

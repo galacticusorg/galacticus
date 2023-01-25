@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -32,9 +32,9 @@
      A merger tree walker which iterates depth-first over all all nodes.
      !!}
      private
-     type   (mergerTree), pointer :: tree      , treePrevious
-     type   (treeNode  ), pointer :: node      , nodePrevious
-     logical                      :: spanForest, nodesRemain_
+     type   (mergerTree), pointer :: tree       => null(), treePrevious => null()
+     type   (treeNode  ), pointer :: node       => null(), nodePrevious => null()
+     logical                      :: spanForest          , nodesRemain_
    contains
      !![
      <methods>

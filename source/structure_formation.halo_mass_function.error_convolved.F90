@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -55,10 +55,10 @@ with a mass-dependent error.
   end interface haloMassFunctionErrorConvolved
 
   ! Mass error scale used in convolution integral.
-  class           (haloMassFunctionClass), pointer :: errorConvolvedIntrinsicMassFunction
-  double precision                                 :: errorConvolvedErrorMass            , errorConvolvedTime, &
-       &                                              errorConvolvedMass
-  !$omp threadprivate(errorConvolvedErrorMass,errorConvolvedTime,errorConvolvedMass, errorConvolvedIntrinsicMassFunction)
+  class           (haloMassFunctionClass), pointer :: massFunctionIntrinsic
+  double precision                                 :: massError            , time_, &
+       &                                              mass_
+  !$omp threadprivate(massError,time_,mass_, massFunctionIntrinsic)
 
 contains
 
@@ -157,17 +157,17 @@ contains
     call basic%massSet(mass)
     call basic%timeSet(time)
     ! Get the error at this mass scale.
-    errorConvolvedErrorMass=+mass                                                       &
+    massError=+mass                                                                     &
          &                  *min(                                                       &
          &                       self%nbodyHaloMassError_   %errorFractional(nodeWork), &
          &                       self%errorFractionalMaximum                            &
          &                      )
     ! Perform the convolution integral.
-    massLow                             =  max(1.0d-3*mass,mass-rangeIntegralSigma*errorConvolvedErrorMass)
-    massHigh                            =                  mass+rangeIntegralSigma*errorConvolvedErrorMass    
-    errorConvolvedIntrinsicMassFunction => self%massFunctionIntrinsic
-    errorConvolvedTime                  =  time
-    errorConvolvedMass                  =  mass
+    massLow                             =  max(1.0d-3*mass,mass-rangeIntegralSigma*massError)
+    massHigh                            =                  mass+rangeIntegralSigma*massError    
+    massFunctionIntrinsic => self%massFunctionIntrinsic
+    time_                  =  time
+    mass_                  =  mass
     integrator_                         =  integrator                         (                                               &
          &                                                                                       errorConvolvedConvolution  , &
          &                                                                     toleranceAbsolute=1.0d-100                   , &
@@ -203,28 +203,28 @@ contains
 
       ! Get the error at this mass scale.
       call basic%massSet(massPrime)
-      errorConvolvedErrorMass=+massPrime                                                  &
+      massError=+massPrime                                                                &
            &                  *min(                                                       &
            &                       self%nbodyHaloMassError_   %errorFractional(nodeWork), &
            &                       self%errorFractionalMaximum                            &
            &                      )
       ! Return the convolution integrand.
-      errorConvolvedConvolution=+errorConvolvedIntrinsicMassFunction%differential(errorConvolvedTime,massPrime,node=node) &
-           &                    *exp(                                                                                     &
-           &                         -0.5d0                                                                               &
-           &                         *(                                                                                   &
-           &                           +(                                                                                 &
-           &                             +massPrime                                                                       &
-           &                             -errorConvolvedMass                                                              &
-           &                            )                                                                                 &
-           &                           /errorConvolvedErrorMass                                                           &
-           &                          )**2                                                                                &
-           &                        )                                                                                     &
-           &                    /sqrt(                                                                                    &
-           &                          +2.0d0                                                                              &
-           &                          *Pi                                                                                 &
-           &                         )                                                                                    &
-           &                    /errorConvolvedErrorMass
+      errorConvolvedConvolution=+massFunctionIntrinsic%differential(time_,massPrime,node=node) &
+           &                    *exp(                                                          &
+           &                         -0.5d0                                                    &
+           &                         *(                                                        &
+           &                           +(                                                      &
+           &                             +massPrime                                            &
+           &                             -mass_                                                &
+           &                            )                                                      &
+           &                           /massError                                              &
+           &                          )**2                                                     &
+           &                        )                                                          &
+           &                    /sqrt(                                                         &
+           &                          +2.0d0                                                   &
+           &                          *Pi                                                      &
+           &                         )                                                         &
+           &                    /massError
       return
     end function errorConvolvedConvolution
 
@@ -238,7 +238,7 @@ contains
 
       ! Get the error at this mass scale.
       call basic%massSet(massPrime)
-      errorConvolvedErrorMass=+massPrime                                                  &
+      massError=+massPrime                                                                &
            &                  *min(                                                       &
            &                       self%nbodyHaloMassError_   %errorFractional(nodeWork), &
            &                       self%errorFractionalMaximum                            &
@@ -249,16 +249,16 @@ contains
            &                           *(                                                 &
            &                             +(                                               &
            &                               +massPrime                                     &
-           &                               -errorConvolvedMass                            &
+           &                               -mass_                                         &
            &                              )                                               &
-           &                             /errorConvolvedErrorMass                         &
+           &                             /massError                                       &
            &                            )**2                                              &
            &                          )                                                   &
            &                      /sqrt(                                                  &
            &                            +2.0d0                                            &
            &                            *Pi                                               &
            &                           )                                                  &
-           &                      /errorConvolvedErrorMass
+           &                      /massError
       return
     end function errorConvolvedNormalization
 

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -199,7 +199,7 @@ module Numerical_ODE_Solvers
      procedure(postStepTemplate           ), pointer    , nopass :: postStep                => null()
      procedure(errorAnalyzerTemplate      ), pointer    , nopass :: errorAnalyzer           => null()
      procedure(errorHandlerTemplate       ), pointer    , nopass :: errorHandler            => null()
-     class    (integratorMultiVectorized1D), pointer             :: integrator
+     class    (integratorMultiVectorized1D), pointer             :: integrator              => null()
      type     (c_ptr                      ), allocatable         :: gsl_odeiv2_driver                , gsl_odeiv2_system, &
           &                                                         gsl_odeiv2_step_type
      integer                                                     :: stepperType

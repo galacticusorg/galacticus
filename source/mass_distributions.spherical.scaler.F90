@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -115,6 +115,8 @@ contains
     <constructorAssign variables="factorScalingLength, factorScalingMass, *massDistribution_"/>
     !!]
  
+    self%componentType=self%massDistribution_%componentType
+    self%     massType=self%massDistribution_%     massType
     return
   end function sphericalScalerConstructorInternal
 
@@ -142,24 +144,28 @@ contains
     return
   end function sphericalScalerIsDimensionless
 
-  double precision function sphericalScalerDensity(self,coordinates)
+  double precision function sphericalScalerDensity(self,coordinates,componentType,massType)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in a scaled spherical mass distribution.
     !!}
     implicit none
-    class(massDistributionSphericalScaler), intent(inout) :: self
-    class(coordinate                     ), intent(in   ) :: coordinates
+    class(massDistributionSphericalScaler), intent(inout)           :: self
+    class(coordinate                     ), intent(in   )           :: coordinates
+    type (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
+    type (enumerationMassTypeType        ), intent(in   ), optional :: massType
 
-    sphericalScalerDensity=+self%massDistribution_%density          (                          &
-         &                                                                 coordinates         &
-         &                                                           /self%factorScalingLength &
-         &                                                          )                          &
-         &                 *self                  %factorScalingMass                           &
+    sphericalScalerDensity=+self%massDistribution_%density          (                           &
+         &                                                                 coordinates          &
+         &                                                           /self%factorScalingLength, &
+         &                                                           componentType            , &
+         &                                                           massType                   &
+         &                                                          )                           &
+         &                 *self                  %factorScalingMass                            &
          &                 /self                  %factorScalingLength**3
     return
   end function sphericalScalerDensity
 
-  double precision function sphericalScalerDensityGradientRadial(self,coordinates,logarithmic)
+  double precision function sphericalScalerDensityGradientRadial(self,coordinates,logarithmic,componentType,massType)
     !!{
     Return the density gradient in the radial direction in a scaled spherical mass distribution.
     !!}
@@ -167,6 +173,8 @@ contains
     class  (massDistributionSphericalScaler), intent(inout)           :: self
     class  (coordinate                     ), intent(in   )           :: coordinates
     logical                                 , intent(in   ), optional :: logarithmic
+    type   (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
+    type   (enumerationMassTypeType        ), intent(in   ), optional :: massType
     !![
     <optionalArgument name="logarithmic" defaultsTo=".false."/>
     !!]
@@ -174,7 +182,9 @@ contains
     sphericalScalerDensityGradientRadial=+self%massDistribution_%densityGradientRadial(                           &
          &                                                                                   coordinates          &
          &                                                                             /self%factorScalingLength, &
-         &                                                                             logarithmic                &
+         &                                                                             logarithmic              , &
+         &                                                                             componentType            , &
+         &                                                                             massType                   &
          &                                                                            )
     if (.not.logarithmic)                                                             &
          & sphericalScalerDensityGradientRadial=+sphericalScalerDensityGradientRadial &
@@ -183,40 +193,48 @@ contains
     return
   end function sphericalScalerDensityGradientRadial
 
-  double precision function sphericalScalerMassEnclosedBySphere(self,radius)
+  double precision function sphericalScalerMassEnclosedBySphere(self,radius,componentType,massType)
     !!{
     Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for a scaled spherical mass distribution.
     !!}
     implicit none
-    class           (massDistributionSphericalScaler), intent(inout), target :: self
-    double precision                                 , intent(in   )         :: radius
+    class           (massDistributionSphericalScaler), intent(inout), target   :: self
+    double precision                                 , intent(in   )           :: radius
+    type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType        ), intent(in   ), optional :: massType
 
-    sphericalScalerMassEnclosedBySphere=+self%massDistribution_%massEnclosedBySphere(                          &
-         &                                                                                 radius              &
-         &                                                                           /self%factorScalingLength &
-         &                                                                          )                          &
+    sphericalScalerMassEnclosedBySphere=+self%massDistribution_%massEnclosedBySphere(                           &
+         &                                                                                 radius               &
+         &                                                                           /self%factorScalingLength, &
+         &                                                                           componentType            , &
+         &                                                                           massType                   &
+         &                                                                          )                           &
          &                              *self                  %factorScalingMass
     return
   end function sphericalScalerMassEnclosedBySphere
 
-  double precision function sphericalScalerPotential(self,coordinates)
+  double precision function sphericalScalerPotential(self,coordinates,componentType,massType)
     !!{
     Return the potential at the specified {\normalfont \ttfamily coordinates} in a scaled spherical mass distribution.
     !!}
     implicit none
-    class(massDistributionSphericalScaler), intent(inout) :: self
-    class(coordinate                     ), intent(in   ) :: coordinates
+    class(massDistributionSphericalScaler), intent(inout)           :: self
+    class(coordinate                     ), intent(in   )           :: coordinates
+    type (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
+    type (enumerationMassTypeType        ), intent(in   ), optional :: massType
 
-    sphericalScalerPotential=+self%massDistribution_%potential         (                          &
-         &                                                                    coordinates         &
-         &                                                              /self%factorScalingLength &
-         &                                                             )                          &
-         &                  *self                  %factorScalingMass                             &
+    sphericalScalerPotential=+self%massDistribution_%potential         (                           &
+         &                                                                    coordinates          &
+         &                                                              /self%factorScalingLength, &
+         &                                                              componentType            , &
+         &                                                              massType                   &
+         &                                                             )                           &
+         &                  *self                  %factorScalingMass                              &
          &                  /self                  %factorScalingLength
     return
   end function sphericalScalerPotential
 
-  double precision function sphericalScalerDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
+  double precision function sphericalScalerDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite,componentType,massType)
     !!{
     Computes radial moments of the density in a scaled spherical mass distribution.
     !!}
@@ -225,11 +243,13 @@ contains
     double precision                                 , intent(in   )           :: moment
     double precision                                 , intent(in   ), optional :: radiusMinimum, radiusMaximum
     logical                                          , intent(  out), optional :: isInfinite
-    
+    type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType        ), intent(in   ), optional :: massType
+
     sphericalScalerDensityRadialMoment=0.0d0
     !![
     <conditionalCall>
-      <call>sphericalScalerDensityRadialMoment=self%massDistribution_%densityRadialMoment(moment=moment,isInfinite=isInfinite{conditions})</call>
+      <call>sphericalScalerDensityRadialMoment=self%massDistribution_%densityRadialMoment(moment=moment,isInfinite=isInfinite,componentType=componentType,massType=massType{conditions})</call>
       <argument name="radiusMinimum" value="radiusMinimum/self%factorScalingLength" condition="present(radiusMinimum)"/>
       <argument name="radiusMaximum" value="radiusMaximum/self%factorScalingLength" condition="present(radiusMaximum)"/>
     </conditionalCall>
@@ -240,35 +260,41 @@ contains
     return    
   end function sphericalScalerDensityRadialMoment
 
-  double precision function sphericalScalerRadiusEnclosingMass(self,mass)
+  double precision function sphericalScalerRadiusEnclosingMass(self,mass,componentType,massType)
     !!{
     Computes the radius enclosing a given mass in a scaled spherical mass distribution.
     !!}
     implicit none
-    class           (massDistributionSphericalScaler), intent(inout), target :: self
-    double precision                                 , intent(in   )         :: mass
+    class           (massDistributionSphericalScaler), intent(inout), target   :: self
+    double precision                                 , intent(in   )           :: mass
+    type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType        ), intent(in   ), optional :: massType
 
-   sphericalScalerRadiusEnclosingMass=+self%massDistribution_%radiusEnclosingMass(                        &
-         &                                                                        +     mass              &
-         &                                                                        /self%factorScalingMass &
-         &                                                                       )                        &
+   sphericalScalerRadiusEnclosingMass=+self%massDistribution_%radiusEnclosingMass(                         &
+         &                                                                        +     mass               &
+         &                                                                        /self%factorScalingMass, &
+         &                                                                        componentType          , &
+         &                                                                        massType                 &
+         &                                                                       )                         &
          &                            *self                  %factorScalingLength
     return
   end function sphericalScalerRadiusEnclosingMass
 
-  double precision function sphericalScalerRadiusHalfMass(self)
+  double precision function sphericalScalerRadiusHalfMass(self,componentType,massType)
     !!{
     Computes the half-mass radius in a scaled spherical mass distribution.
     !!}
     implicit none
-    class(massDistributionSphericalScaler), intent(inout) :: self
+    class(massDistributionSphericalScaler), intent(inout)           :: self
+    type (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
+    type (enumerationMassTypeType        ), intent(in   ), optional :: massType
 
-    sphericalScalerRadiusHalfMass=+self%massDistribution_%radiusHalfMass     () &
+    sphericalScalerRadiusHalfMass=+self%massDistribution_%radiusHalfMass     (componentType,massType) &
          &                        *self                  %factorScalingLength
     return
   end function sphericalScalerRadiusHalfMass
 
-  function sphericalScalerAcceleration(self,coordinates)
+  function sphericalScalerAcceleration(self,coordinates,componentType,massType)
     !!{
     Computes the gravitational acceleration at {\normalfont \ttfamily coordinates} for spherically-symmetric mass
     distributions.
@@ -277,44 +303,54 @@ contains
     double precision                                 , dimension(3)  :: sphericalScalerAcceleration
     class           (massDistributionSphericalScaler), intent(inout) :: self
     class           (coordinate                     ), intent(in   ) :: coordinates
+       type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
+       type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
 
-    sphericalScalerAcceleration=+self%massDistribution_%acceleration   (                          &
-         &                                                                    coordinates         &
-         &                                                              /self%factorScalingLength &
-         &                                                             )                          &
-         &                  *self                  %factorScalingMass                             &
+    sphericalScalerAcceleration=+self%massDistribution_%acceleration   (                           &
+         &                                                                    coordinates          &
+         &                                                              /self%factorScalingLength, &
+         &                                                                    componentType      , &
+         &                                                                    massType             &
+         &                                                             )                           &
+         &                  *self                  %factorScalingMass                              &
          &                  /self                  %factorScalingLength**2
     return
   end function sphericalScalerAcceleration
 
-  function sphericalScalerTidalTensor(self,coordinates)
+  function sphericalScalerTidalTensor(self,coordinates,componentType,massType)
     !!{
     Computes the gravitational tidal tensor at {\normalfont \ttfamily coordinates} in a scaled spherical mass distribution.
     !!}
     implicit none
-    type (tensorRank2Dimension3Symmetric )                :: sphericalScalerTidalTensor
-    class(massDistributionSphericalScaler), intent(inout) :: self
-    class(coordinate                     ), intent(in   ) :: coordinates
+    type (tensorRank2Dimension3Symmetric )                          :: sphericalScalerTidalTensor
+    class(massDistributionSphericalScaler), intent(inout)           :: self
+    class(coordinate                     ), intent(in   )           :: coordinates
+    type (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
+    type (enumerationMassTypeType        ), intent(in   ), optional :: massType
 
-    sphericalScalerTidalTensor=+self%massDistribution_%tidalTensor     (                          &
-         &                                                                    coordinates         &
-         &                                                              /self%factorScalingLength &
-         &                                                             )                          &
-         &                  *self                  %factorScalingMass                             &
+    sphericalScalerTidalTensor=+self%massDistribution_%tidalTensor     (                           &
+         &                                                                    coordinates          &
+         &                                                              /self%factorScalingLength, &
+         &                                                              componentType            , &
+         &                                                              massType                   &
+         &                                                             )                           &
+         &                  *self                  %factorScalingMass                              &
          &                  /self                  %factorScalingLength**3
     return
   end function sphericalScalerTidalTensor
   
-  function sphericalScalerPositionSample(self,randomNumberGenerator_)
+  function sphericalScalerPositionSample(self,randomNumberGenerator_,componentType,massType)
     !!{
     Computes the half-mass radius of a spherically symmetric mass distribution in a scaled spherical mass distribution.
     !!}
     implicit none
-    double precision                                 , dimension(3)  :: sphericalScalerPositionSample
-    class           (massDistributionSphericalScaler), intent(inout) :: self
-    class           (randomNumberGeneratorClass     ), intent(inout) :: randomNumberGenerator_
+    double precision                                 , dimension(3)            :: sphericalScalerPositionSample
+    class           (massDistributionSphericalScaler), intent(inout)           :: self
+    class           (randomNumberGeneratorClass     ), intent(inout)           :: randomNumberGenerator_
+    type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType        ), intent(in   ), optional :: massType
 
-    sphericalScalerPositionSample=+self%massDistribution_%positionSample     (randomNumberGenerator_) &
+    sphericalScalerPositionSample=+self%massDistribution_%positionSample     (randomNumberGenerator_,componentType,massType) &
          &                        *self                  %factorScalingLength
     return
   end function sphericalScalerPositionSample

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -480,6 +480,7 @@ program Test_Dark_Matter_Profiles
      &amp;                                             A                                   =0.85d0                                           , &amp;
      &amp;                                             omega                               =0.80d0                                           , &amp;
      &amp;                                             radiusFractionalPivot               =1.00d0                                           , &amp;
+     &amp;                                             toleranceRelative                   =1.0d-2                                           , &amp;
      &amp;                                             nonAnalyticSolver                   =nonAnalyticSolversNumerical                      , &amp;
      &amp;                                             cosmologyParameters_                =cosmologyParametersPippin_                       , &amp;
      &amp;                                             darkMatterHaloScale_                =darkMatterHaloScalePippin_                       , &amp;

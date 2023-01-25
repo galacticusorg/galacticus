@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -82,7 +82,7 @@ velocity.
   end interface hotHaloOutflowReincorporationVelocityMaximumScaling
 
   ! Normalization parameter.
-  double precision, parameter :: velocityMaximumScalingVelocityNormalization=200.0d0
+  double precision, parameter :: velocityNormalization=200.0d0
 
 contains
 
@@ -165,7 +165,7 @@ contains
          &    {introspection:location}                                                                     &
          &   )
     ! Construct the object.
-    self%timeScaleNormalization =timeScale/velocityMaximumScalingVelocityNormalization**velocityExponent
+    self%timeScaleNormalization =timeScale/velocityNormalization**velocityExponent
     self%lastUniqueID           =-1_kind_int8
     self%velocityMaximumFactor  =-1.0d0
     self%expansionFactorFactor  =-1.0d0

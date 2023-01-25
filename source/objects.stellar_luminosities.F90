@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -145,7 +145,7 @@ module Stellar_Luminosities_Structure
   type            (stellarPopulationSpectraPostprocessorList        ), allocatable, dimension(:) :: luminosityPostprocessor
   type            (varying_string                                   ), allocatable, dimension(:) :: luminosityFilter                                     , luminosityName                , &
        &                                                                                            luminosityPostprocessSet                             , luminosityType                , &
-       &                                                                                            luminosityRedshiftText
+       &                                                                                            luminosityRedshiftText                               , luminosityBandRedshiftText
 
   ! Luminosity output options.
   integer                                                                                        :: luminosityOutputOption
@@ -237,20 +237,22 @@ contains
     end if
 
     if (luminosityCount > 0) then
-       if (allocated(luminosityMap           )) deallocate(luminosityMap           )
-       if (allocated(luminosityRedshift      )) deallocate(luminosityRedshift      )
-       if (allocated(luminosityBandRedshift  )) deallocate(luminosityBandRedshift  )
-       if (allocated(luminosityFilter        )) deallocate(luminosityFilter        )
-       if (allocated(luminosityType          )) deallocate(luminosityType          )
-       if (allocated(luminosityPostprocessSet)) deallocate(luminosityPostprocessSet)
-       if (allocated(luminosityRedshiftText  )) deallocate(luminosityRedshiftText  )       
-       allocate(luminosityMap           (luminosityCount))
-       allocate(luminosityRedshift      (luminosityCount))
-       allocate(luminosityBandRedshift  (luminosityCount))
-       allocate(luminosityFilter        (luminosityCount))
-       allocate(luminosityType          (luminosityCount))
-       allocate(luminosityPostprocessSet(luminosityCount))
-       allocate(luminosityRedshiftText  (luminosityCount))
+       if (allocated(luminosityMap             )) deallocate(luminosityMap             )
+       if (allocated(luminosityRedshift        )) deallocate(luminosityRedshift        )
+       if (allocated(luminosityBandRedshift    )) deallocate(luminosityBandRedshift    )
+       if (allocated(luminosityFilter          )) deallocate(luminosityFilter          )
+       if (allocated(luminosityType            )) deallocate(luminosityType            )
+       if (allocated(luminosityPostprocessSet  )) deallocate(luminosityPostprocessSet  )
+       if (allocated(luminosityRedshiftText    )) deallocate(luminosityRedshiftText    )       
+       if (allocated(luminosityBandRedshiftText)) deallocate(luminosityBandRedshiftText)       
+       allocate(luminosityMap             (luminosityCount))
+       allocate(luminosityRedshift        (luminosityCount))
+       allocate(luminosityBandRedshift    (luminosityCount))
+       allocate(luminosityFilter          (luminosityCount))
+       allocate(luminosityType            (luminosityCount))
+       allocate(luminosityPostprocessSet  (luminosityCount))
+       allocate(luminosityRedshiftText    (luminosityCount))
+       allocate(luminosityBandRedshiftText(luminosityCount))
        !![
        <inputParameter>
          <name>luminosityRedshift</name>
@@ -275,8 +277,19 @@ contains
             <name>luminosityBandRedshift</name>
 	    <description>If present, force filters to be shifted to this redshift rather than that specified by {\normalfont \ttfamily [luminosityRedshift]}. Allows sampling of the SED at wavelengths corresponding to other redshifts.</description>
 	    <source>parameters_</source>
+            <variable>luminosityBandRedshiftText</variable>
           </inputParameter>
           !!]
+       do iLuminosity=1,size(luminosityBandRedshiftText)
+          if (luminosityBandRedshiftText(iLuminosity) /= "all") then
+             if (luminosityRedshiftText(iLuminosity) == "all") call Error_Report('luminosityBandRedshift=="all" only allowed where luminosityRedshift=="all"'//{introspection:location})
+             redshiftLabel=char(luminosityBandRedshiftText(iLuminosity))
+             read (redshiftLabel,*) luminosityBandRedshift(iLuminosity)
+          else
+             if (luminosityRedshiftText(iLuminosity) /= "all") call Error_Report('luminosityBandRedshift=="all" required where luminosityRedshift=="all"'    //{introspection:location})
+             luminosityBandRedshift(iLuminosity)=-2.0d0
+          end if
+       end do
        else
           luminosityBandRedshift=luminosityRedshift
        end if
@@ -1300,6 +1313,8 @@ contains
           deallocate(luminosityMapTmp           )
           deallocate(luminosityRedshiftTmp      )
           deallocate(luminosityBandRedshiftTmp  )
+          ! Update count of luminosities.
+          luminosityCount=size(luminosityMap)
        end if
        ! Alias for filters required for emission line calculations.
        if (luminosityFilter(i) == "emissionLineFilters") then
@@ -1353,6 +1368,8 @@ contains
           deallocate(luminosityMapTmp           )
           deallocate(luminosityRedshiftTmp      )
           deallocate(luminosityBandRedshiftTmp  )
+          ! Update count of luminosities.
+          luminosityCount=size(luminosityMap)
        end if
        ! Arrays of top-hat filters.
        if (extract(luminosityFilter(i),1,27) == "fixedResolutionTopHatArray_") then
@@ -1432,6 +1449,8 @@ contains
           deallocate(luminosityMapTmp           )
           deallocate(luminosityRedshiftTmp      )
           deallocate(luminosityBandRedshiftTmp  )
+          ! Update count of luminosities.
+          luminosityCount=size(luminosityMap)
        end if
        ! Arrays of top-hat filters for SEDs
        if (extract(luminosityFilter(i),1,30) == "adaptiveResolutionTopHatArray_") then
@@ -1536,6 +1555,8 @@ contains
           deallocate(luminosityMapTmp           )
           deallocate(luminosityRedshiftTmp      )
           deallocate(luminosityBandRedshiftTmp  )
+          ! Update count of luminosities.
+          luminosityCount=size(luminosityMap)
        end if
        ! Arrays of top-hat filters for equivalent width calculations
        if (extract(luminosityFilter(i),1,26) == "emissionLineContinuumPair_") then
@@ -1624,6 +1645,8 @@ contains
           deallocate(luminosityMapTmp           )
           deallocate(luminosityRedshiftTmp      )
           deallocate(luminosityBandRedshiftTmp  )
+          ! Update count of luminosities.
+          luminosityCount=size(luminosityMap)
        end if
        ! Next luminosity.
        i=i+1

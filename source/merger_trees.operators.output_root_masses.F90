@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -41,10 +41,10 @@
      A merger tree operator class which outputs a file of tree root masses (and weights).
      !!}
      private
-     class           (cosmologyFunctionsClass), pointer                               :: cosmologyFunctions_
-     integer                                                                          :: nodeHierarchyLevelMaximumID, treeCount
-     double precision                                                                 :: time                       , redshift
-     double precision                         , dimension(outputRootMassesBufferSize) :: mass                       , weight
+     class           (cosmologyFunctionsClass), pointer                               :: cosmologyFunctions_         => null()
+     integer                                                                          :: nodeHierarchyLevelMaximumID          , treeCount
+     double precision                                                                 :: time                                 , redshift
+     double precision                         , dimension(outputRootMassesBufferSize) :: mass                                 , weight
      type            (varying_string         )                                        :: fileName
      logical                                                                          :: alwaysIsolatedHalosOnly
    contains

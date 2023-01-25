@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -77,9 +77,9 @@
   end type concentrationState
 
   ! State stack.
-  type   (concentrationState), allocatable, dimension(:) :: concentrationState_
-  integer                                                :: concentrationStateCount=0
-  !$omp threadprivate(concentrationStateCount,concentrationState_)
+  type   (concentrationState), allocatable, dimension(:) :: state_
+  integer                                                :: stateCount=0
+  !$omp threadprivate(stateCount,state_)
 
 contains
 
@@ -203,12 +203,12 @@ contains
     integer                                                                                   :: i
 
     ! Increment the state stack.
-    if (.not.allocated(concentrationState_)) then
-       allocate(concentrationState_(1))
-    else if (concentrationStateCount == size(concentrationState_)) then
-       call move_alloc(concentrationState_,concentrationStateTmp)
-       allocate(concentrationState_(size(concentrationStateTmp)+1))
-       concentrationState_(1:size(concentrationStateTmp))=concentrationStateTmp
+    if (.not.allocated(state_)) then
+       allocate(state_(1))
+    else if (stateCount == size(state_)) then
+       call move_alloc(state_,concentrationStateTmp)
+       allocate(state_(size(concentrationStateTmp)+1))
+       state_(1:size(concentrationStateTmp))=concentrationStateTmp
        do i=1,size(concentrationStateTmp)
           nullify(concentrationStateTmp(i)%self             )
           nullify(concentrationStateTmp(i)%nodeWork         )
@@ -217,18 +217,18 @@ contains
           nullify(concentrationStateTmp(i)%darkMatterProfile)
        end do
     end if
-    concentrationStateCount=concentrationStateCount+1
+    stateCount=stateCount+1
     ! Find the original concentration.
     if (self%useMeanConcentration) then
-       concentrationState_(concentrationStateCount)%concentrationOriginal=self%darkMatterProfileConcentration_%concentrationMean(node)
+       state_(stateCount)%concentrationOriginal=self%darkMatterProfileConcentration_%concentrationMean(node)
     else
-       concentrationState_(concentrationStateCount)%concentrationOriginal=self%darkMatterProfileConcentration_%concentration    (node)
+       state_(stateCount)%concentrationOriginal=self%darkMatterProfileConcentration_%concentration    (node)
     end if
     ! Determine if concentration must be corrected.
     if (self%correctForConcentrationDefinition) then
        ! Get the basic component of the supplied node and extract its mass.
        basic                                             => node %basic()
-       concentrationState_(concentrationStateCount)%mass =  basic%mass ()
+       state_(stateCount)%mass =  basic%mass ()
        ! If there is no difference between the alt and non-alt virial density contrasts, then no correction need be made.
        if     (                                                                                                      &
             &  Values_Differ(                                                                                        &
@@ -238,14 +238,14 @@ contains
             &               )                                                                                        &
             & ) then
           ! Create a node and set the mass and time.
-          concentrationState_(concentrationStateCount)%self                       => self
-          concentrationState_(concentrationStateCount)%node                       => node
-          concentrationState_(concentrationStateCount)%nodeWork                   => treeNode                                                               (                 )
-          concentrationState_(concentrationStateCount)%nodeWork         %hostTree => node%hostTree
-          concentrationState_(concentrationStateCount)%basic                      => concentrationState_(concentrationStateCount)%nodeWork%basic            (autoCreate=.true.)
-          concentrationState_(concentrationStateCount)%darkMatterProfile          => concentrationState_(concentrationStateCount)%nodeWork%darkMatterProfile(autoCreate=.true.)
-          call concentrationState_(concentrationStateCount)%basic%timeSet            (basic%time())
-          call concentrationState_(concentrationStateCount)%basic%timeLastIsolatedSet(basic%time())
+          state_(stateCount)%self                       => self
+          state_(stateCount)%node                       => node
+          state_(stateCount)%nodeWork                   => treeNode                                     (                 )
+          state_(stateCount)%nodeWork         %hostTree => node%hostTree
+          state_(stateCount)%basic                      => state_(stateCount)%nodeWork%basic            (autoCreate=.true.)
+          state_(stateCount)%darkMatterProfile          => state_(stateCount)%nodeWork%darkMatterProfile(autoCreate=.true.)
+          call state_(stateCount)%basic%timeSet            (basic%time())
+          call state_(stateCount)%basic%timeLastIsolatedSet(basic%time())
           ! The finder is initialized each time as it is allocated on the stack - this allows this function to be called recursively.
           finder=rootFinder(                                                             &
                &            rootFunction                 =concentrationMassRoot        , &
@@ -256,13 +256,13 @@ contains
                &            rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
                &            rangeExpandType              =rangeExpandMultiplicative      &
                &           )
-          massDefinition=finder%find(rootGuess=concentrationState_(concentrationStateCount)%mass)
+          massDefinition=finder%find(rootGuess=state_(stateCount)%mass)
           ! Find the ratio of the recovered mass under the given definition to the input mass, defined to be always greater than
           ! unity. This will be used as the basis of the range expansion for the next solution.
-          if (massDefinition > concentrationState_(concentrationStateCount)%mass) then
-             massRatio=1.0d0*(massDefinition/concentrationState_(concentrationStateCount)%mass)
+          if (massDefinition > state_(stateCount)%mass) then
+             massRatio=1.0d0*(massDefinition/state_(stateCount)%mass)
           else
-             massRatio=1.0d0/(massDefinition/concentrationState_(concentrationStateCount)%mass)
+             massRatio=1.0d0/(massDefinition/state_(stateCount)%mass)
           end if
           ! Increase this mass ratio by a small factor.
           massRatio=massRatioBuffer*massRatio
@@ -274,39 +274,39 @@ contains
              self%massRatioPrevious=massRatioShrink*self%massRatioPrevious
           end if
           ! Update the work node properties and computed concentration.
-          call concentrationState_(concentrationStateCount)%basic%massSet(massDefinition)
-          call Calculations_Reset(concentrationState_(concentrationStateCount)%nodeWork)
+          call state_(stateCount)%basic%massSet(massDefinition)
+          call Calculations_Reset(state_(stateCount)%nodeWork)
           ! Find the concentration.
           if (self%useMeanConcentration) then
              ! We are simply using the mean concentration-mass relation here.
-             concentration=+self%darkMatterProfileConcentration_%concentrationMean(concentrationState_(concentrationStateCount)%nodeWork)
+             concentration=+self%darkMatterProfileConcentration_%concentrationMean(state_(stateCount)%nodeWork)
           else
              ! In this case we need to allow for possible scatter in the concentration mass relation. Therefore, we take the original
              ! concentration (which may include some scatter away from the mean relation) and scale it by the ratio of the mean
              ! concentrations for the corrected and original nodes.
-             concentration=+                                                       concentrationState_(concentrationStateCount)%concentrationOriginal  &
-                  &        *self%darkMatterProfileConcentration_%concentrationMean(concentrationState_(concentrationStateCount)%nodeWork             ) &
-                  &        /self%darkMatterProfileConcentration_%concentrationMean(                                             node                 )
+             concentration=+                                                       state_(stateCount)%concentrationOriginal  &
+                  &        *self%darkMatterProfileConcentration_%concentrationMean(state_(stateCount)%nodeWork             ) &
+                  &        /self%darkMatterProfileConcentration_%concentrationMean(                   node                 )
           end if
-          concentrationRadius=+self%darkMatterHaloScaleDefinition%radiusVirial (concentrationState_(concentrationStateCount)%nodeWork) &
+          concentrationRadius=+self%darkMatterHaloScaleDefinition%radiusVirial (state_(stateCount)%nodeWork) &
                &              /                                   concentration
-          call concentrationState_(concentrationStateCount)%nodeWork%destroy()
-          deallocate(concentrationState_(concentrationStateCount)%nodeWork)
+          call state_(stateCount)%nodeWork%destroy()
+          deallocate(state_(stateCount)%nodeWork)
        else
           concentrationRadius=+self%darkMatterHaloScale_%radiusVirial(node) &
-               &              /concentrationState_(concentrationStateCount)%concentrationOriginal
+               &              /state_(stateCount)%concentrationOriginal
        end if
     else
        concentrationRadius=+self%darkMatterHaloScale_%radiusVirial(node) &
-            &              /concentrationState_(concentrationStateCount)%concentrationOriginal
+            &              /state_(stateCount)%concentrationOriginal
     end if
     ! Release stack.
-    nullify(concentrationState_(concentrationStateCount)%self             )
-    nullify(concentrationState_(concentrationStateCount)%nodeWork         )
-    nullify(concentrationState_(concentrationStateCount)%node             )
-    nullify(concentrationState_(concentrationStateCount)%basic            )
-    nullify(concentrationState_(concentrationStateCount)%darkMatterProfile)
-    concentrationStateCount=concentrationStateCount-1
+    nullify(state_(stateCount)%self             )
+    nullify(state_(stateCount)%nodeWork         )
+    nullify(state_(stateCount)%node             )
+    nullify(state_(stateCount)%basic            )
+    nullify(state_(stateCount)%darkMatterProfile)
+    stateCount=stateCount-1
     return
   end function concentrationRadius
 
@@ -322,35 +322,35 @@ contains
          &                             radiusOuter          , densityOuter
 
     ! Set the mass of the worker node.
-    call concentrationState_(concentrationStateCount)%basic%massSet(massDefinitionTrial)
-    call Calculations_Reset(concentrationState_(concentrationStateCount)%nodeWork)
+    call state_(stateCount)%basic%massSet(massDefinitionTrial)
+    call Calculations_Reset(state_(stateCount)%nodeWork)
     ! Get outer radius for this trial definition mass.
-    radiusOuterDefinition=concentrationState_(concentrationStateCount)%self%darkMatterHaloScaleDefinition%radiusVirial(concentrationState_(concentrationStateCount)%nodeWork)
+    radiusOuterDefinition=state_(stateCount)%self%darkMatterHaloScaleDefinition%radiusVirial(state_(stateCount)%nodeWork)
     ! Get concentration for this a trial definition mass.
-    if (concentrationState_(concentrationStateCount)%self%useMeanConcentration) then
+    if (state_(stateCount)%self%useMeanConcentration) then
        ! We are simply using the mean concentration-mass relation here.
-       concentrationDefinition=concentrationState_(concentrationStateCount)%self%darkMatterProfileConcentration_%concentrationMean(concentrationState_(concentrationStateCount)%nodeWork)
+       concentrationDefinition=state_(stateCount)%self%darkMatterProfileConcentration_%concentrationMean(state_(stateCount)%nodeWork)
     else
        ! In this case we need to allow for possible scatter in the concentration mass relation. Therefore, we take the original
        ! concentration (which may include some scatter away from the mean relation) and scale it by the ratio of the mean
        ! concentrations for the corrected and original nodes.
-       concentrationDefinition=+concentrationState_(concentrationStateCount)                                     %concentrationOriginal                                                        &
-            &                  *concentrationState_(concentrationStateCount)%self%darkMatterProfileConcentration_%concentrationMean    (concentrationState_(concentrationStateCount)%nodeWork) &
-            &                  /concentrationState_(concentrationStateCount)%self%darkMatterProfileConcentration_%concentrationMean    (concentrationState_(concentrationStateCount)%node    )
+       concentrationDefinition=+state_(stateCount)                                     %concentrationOriginal                              &
+            &                  *state_(stateCount)%self%darkMatterProfileConcentration_%concentrationMean    (state_(stateCount)%nodeWork) &
+            &                  /state_(stateCount)%self%darkMatterProfileConcentration_%concentrationMean    (state_(stateCount)%node    )
     end if
     ! Get core radius.
     radiusCore=radiusOuterDefinition/concentrationDefinition
-    call concentrationState_(concentrationStateCount)%darkMatterProfile%scaleSet(radiusCore)
-    call Calculations_Reset(concentrationState_(concentrationStateCount)%nodeWork)
+    call state_(stateCount)%darkMatterProfile%scaleSet(radiusCore)
+    call Calculations_Reset(state_(stateCount)%nodeWork)
     ! Find the non-alt density.
-    densityOuter=+concentrationState_(concentrationStateCount)%self%cosmologyFunctions_   %matterDensityEpochal(                                                          concentrationState_(concentrationStateCount)%basic%time()) &
-         &       *concentrationState_(concentrationStateCount)%self%virialDensityContrast_%densityContrast     (concentrationState_(concentrationStateCount)%basic%mass(),concentrationState_(concentrationStateCount)%basic%time())
+    densityOuter=+state_(stateCount)%self%cosmologyFunctions_   %matterDensityEpochal(                                                          state_(stateCount)%basic%time()) &
+         &       *state_(stateCount)%self%virialDensityContrast_%densityContrast     (state_(stateCount)%basic%mass(),state_(stateCount)%basic%time())
     ! Solve for radius which encloses required non-alt density.
-    radiusOuter=concentrationState_(concentrationStateCount)%self%darkMatterProfileDMODefinition%radiusEnclosingDensity(concentrationState_(concentrationStateCount)%nodeWork,densityOuter)
+    radiusOuter=state_(stateCount)%self%darkMatterProfileDMODefinition%radiusEnclosingDensity(state_(stateCount)%nodeWork,densityOuter)
     ! Get the mass within this radius.
-    massOuter  =concentrationState_(concentrationStateCount)%self%darkMatterProfileDMODefinition%enclosedMass          (concentrationState_(concentrationStateCount)%nodeWork, radiusOuter)
+    massOuter  =state_(stateCount)%self%darkMatterProfileDMODefinition%enclosedMass          (state_(stateCount)%nodeWork, radiusOuter)
     ! Return root function.
-    concentrationMassRoot=massOuter-concentrationState_(concentrationStateCount)%mass
+    concentrationMassRoot=massOuter-state_(stateCount)%mass
     return
   end function concentrationMassRoot
 

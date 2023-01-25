@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -89,7 +89,7 @@
      module procedure virialDensityContrastDefinitionInternal
   end interface darkMatterHaloScaleVirialDensityContrastDefinition
 
-  integer, parameter :: virialDensityContrastDefinitionMeanDensityTablePointsPerDecade=100
+  integer, parameter :: meanDensityTablePointsPerDecade=100
 
 contains
 
@@ -444,7 +444,7 @@ contains
              self%densityMeanTimeMinimum=min(self%densityMeanTimeMinimum,time/2.0d0)
              self%densityMeanTimeMaximum=max(self%densityMeanTimeMaximum,time*2.0d0)
           end if
-          densityMeanTablePoints=int(log10(self%densityMeanTimeMaximum/self%densityMeanTimeMinimum)*dble(virialDensityContrastDefinitionMeanDensityTablePointsPerDecade))+1
+          densityMeanTablePoints=int(log10(self%densityMeanTimeMaximum/self%densityMeanTimeMinimum)*dble(meanDensityTablePointsPerDecade))+1
           call self%densityMeanTable%destroy()
           call self%densityMeanTable%create(self%densityMeanTimeMinimum,self%densityMeanTimeMaximum,densityMeanTablePoints)
           do i=1,densityMeanTablePoints

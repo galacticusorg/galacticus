@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -70,11 +70,6 @@
      module procedure zentner2005ConstructorParameters
      module procedure zentner2005ConstructorInternal
   end interface satelliteTidalStrippingZentner2005
-
-  ! Module-scope objects used for root finding.
-  type            (treeNode), pointer :: zentner2005Node
-  double precision                    :: zentner2005TidalPull
-  !$omp threadprivate(zentner2005Node,zentner2005TidalPull)
 
 contains
 

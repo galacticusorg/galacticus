@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -71,7 +71,7 @@
   end interface linearGrowthCollisionlessMatter
 
   ! Tolerance parameter used to ensure times do not exceed that at the Big Crunch.
-  double precision, parameter :: collisionlessMatterTimeToleranceRelative=1.0d-4
+  double precision, parameter :: timeToleranceRelative=1.0d-4
 
 contains
 
@@ -120,8 +120,8 @@ contains
     timeBigCrunch         =self%cosmologyFunctions_%timeBigCrunch()
     if (timeBigCrunch > 0.0d0) then
        ! A Big Crunch exists - avoid attempting to tabulate times beyond this epoch.
-       if (self%tableTimeMinimum > timeBigCrunch) self%tableTimeMinimum= 0.5d0                                          *timeBigCrunch
-       if (self%tableTimeMaximum > timeBigCrunch) self%tableTimeMaximum=(1.0d0-collisionlessMatterTimeToleranceRelative)*timeBigCrunch
+       if (self%tableTimeMinimum > timeBigCrunch) self%tableTimeMinimum= 0.5d0                       *timeBigCrunch
+       if (self%tableTimeMaximum > timeBigCrunch) self%tableTimeMaximum=(1.0d0-timeToleranceRelative)*timeBigCrunch
     end if
     return
   end function collisionlessMatterConstructorInternal
@@ -193,8 +193,8 @@ contains
        timeBigCrunch        =self%cosmologyFunctions_%timeBigCrunch()
        if (timeBigCrunch > 0.0d0) then
           ! A Big Crunch exists - avoid attempting to tabulate times beyond this epoch.
-          if (self%tableTimeMinimum > timeBigCrunch) self%tableTimeMinimum= 0.5d0                             *timeBigCrunch
-          if (self%tableTimeMaximum > timeBigCrunch) self%tableTimeMaximum=(1.0d0-collisionlessMatterTimeToleranceRelative)*timeBigCrunch
+          if (self%tableTimeMinimum > timeBigCrunch) self%tableTimeMinimum= 0.5d0                       *timeBigCrunch
+          if (self%tableTimeMaximum > timeBigCrunch) self%tableTimeMaximum=(1.0d0-timeToleranceRelative)*timeBigCrunch
        end if
        ! Determine number of points to tabulate.
        growthTableNumberPoints=int(log10(self%tableTimeMaximum/self%tableTimeMinimum)*dble(growthTablePointsPerDecade))

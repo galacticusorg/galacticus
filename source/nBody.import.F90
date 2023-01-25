@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -52,7 +52,7 @@ module NBody_Importers
      !!{
      Class used to build linked list of N-body data importers.
      !!}
-     class(nbodyImporterClass), pointer                   :: importer_
+     class(nbodyImporterClass), pointer                   :: importer_   => null()
      type (nbodyImporterList ), pointer                   :: next        => null()
      type (nBodyData         ), allocatable, dimension(:) :: simulations
   end type nbodyImporterList

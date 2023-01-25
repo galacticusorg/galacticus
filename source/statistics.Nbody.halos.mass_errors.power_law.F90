@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -49,7 +49,7 @@ errors are a power-law in halo mass.
   end interface nbodyHaloMassErrorPowerLaw
 
   ! Reference mass used in the error model.
-  double precision :: powerLawMassReference=1.0d12
+  double precision :: massReference=1.0d12
 
 contains
 
@@ -128,8 +128,8 @@ contains
     powerLawErrorFractional =   sqrt(                                     &
          &                           +self%normalizationSquared           &
          &                           *(                                   &
-         &                             +basic%mass()                      &
-         &                             /powerLawMassReference             &
+         &                             +basic%mass         ()             &
+         &                             /      massReference               &
          &                            )**(2.0d0*self%exponent)            &
          &                           +self%fractionalErrorHighMassSquared &
          &                          )

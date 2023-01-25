@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -84,10 +84,10 @@ Implements the geometry of the GAMA survey used by \cite{baldry_galaxy_2012}.
   end interface surveyGeometryBaldry2012GAMA
 
   ! Number of fields.
-  integer, parameter :: baldry2012GAMAFields              =  3
+  integer, parameter :: countFields         =  3
 
   ! Maximum degree for angular power spectrum
-  integer, parameter :: baldry2012GAMAAngularPowerMaximumL=360
+  integer, parameter :: angularPowerMaximumL=360
 
 contains
 
@@ -154,7 +154,7 @@ contains
     class(surveyGeometryBaldry2012GAMA), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    baldry2012GAMAFieldCount=baldry2012GAMAFields
+    baldry2012GAMAFieldCount=countFields
     return
   end function baldry2012GAMAFieldCount
 
@@ -235,7 +235,7 @@ contains
     class(surveyGeometryBaldry2012GAMA), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    baldry2012GAMAAngularPowerMaximumDegree=baldry2012GAMAAngularPowerMaximumL
+    baldry2012GAMAAngularPowerMaximumDegree=angularPowerMaximumL
     return
   end function baldry2012GAMAAngularPowerMaximumDegree
 
