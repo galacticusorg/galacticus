@@ -238,7 +238,6 @@ module Numerical_Interpolation
        <method description="Interpolate in the tabulated function." method="interpolate"  />
        <method description="Allocate GSL objects."                  method="gslAllocate"  />
        <method description="Reallocate GSL objects."                method="gslReallocate"/>
-       <method description="Initialize GSL interpolator."           method="gslInitialize"/>
      </methods>
      !!]
      final     ::                  interpolator2DDestructorRank0
