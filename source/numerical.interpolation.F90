@@ -37,7 +37,7 @@ module Numerical_Interpolation
   use            :: Table_Labels , only : enumerationExtrapolationTypeType
   implicit none
   private
-  public :: interpolator
+  public :: interpolator, interpolator2D
 
   ! Interpolator types.
   integer, public, parameter :: gsl_interp_linear          =1
@@ -148,9 +148,6 @@ module Numerical_Interpolation
     <methodCall method="GSLReallocate" arguments="gslFree=.true." />
    </interpolator>
   </stateStorable>
-  !!]
-
-  !![
   <deepCopyActions class="interpolator">
    <interpolator>
     <methodCall method="GSLReallocate" arguments="gslFree=.false."/>
@@ -173,15 +170,15 @@ module Numerical_Interpolation
    contains
      !![
      <methods>
-       <method description="Interpolate in the tabulated function." method="interpolate" />
-       <method description="Interpolate the derivative in the tabulated function." method="derivative" />
-       <method description="Locate the position in the array corresponding to the given {\normalfont \ttfamily x}." method="locate" />
-       <method description="Return factors required to perform a linear interpolation." method="linearFactors" />
-       <method description="Return weights required to perform a linear interpolation." method="linearWeights" />
-       <method description="Allocate GSL objects." method="gslAllocate" />
-       <method description="Reallocate GSL objects." method="gslReallocate" />
-       <method description="Initialize GSL interpolator." method="gslInitialize" />
-       <method description="Assert that the data is interpolatable." method="assertInterpolatable" />
+       <method description="Interpolate in the tabulated function."                                                 method="interpolate"         />
+       <method description="Interpolate the derivative in the tabulated function."                                  method="derivative"          />
+       <method description="Locate the position in the array corresponding to the given {\normalfont \ttfamily x}." method="locate"              />
+       <method description="Return factors required to perform a linear interpolation."                             method="linearFactors"       />
+       <method description="Return weights required to perform a linear interpolation."                             method="linearWeights"       />
+       <method description="Allocate GSL objects."                                                                  method="gslAllocate"         />
+       <method description="Reallocate GSL objects."                                                                method="gslReallocate"       />
+       <method description="Initialize GSL interpolator."                                                           method="gslInitialize"       />
+       <method description="Assert that the data is interpolatable."                                                method="assertInterpolatable"/>
      </methods>
      !!]
      final     ::                         interpolatorDestructorRank0       , &
@@ -210,7 +207,52 @@ module Numerical_Interpolation
      !!}
      module procedure interpolatorConstructor
   end interface interpolator
-  
+
+  !![
+  <stateStorable class="interpolator2D">
+   <interpolator2D>
+    <methodCall method="GSLReallocate" arguments="gslFree=.true." />
+   </interpolator2D>
+  </stateStorable>
+  <deepCopyActions class="interpolator2D">
+   <interpolator2D>
+    <methodCall method="GSLReallocate" arguments="gslFree=.false."/>
+   </interpolator2D>
+  </deepCopyActions>
+  !!]
+
+  type :: interpolator2D
+     !!{
+     Type providing interpolation in 2-D arrays.
+     !!}
+     private
+     type            (c_ptr   ), allocatable                 :: gsl_interp_X   , gsl_interp_accel_X, &
+          &                                                     gsl_interp_Y   , gsl_interp_accel_Y, &
+          &                                                     gsl_interp_type
+     integer         (c_size_t)                              :: countArrayX    , countArrayY
+     double precision          , allocatable, dimension(:  ) :: x              , y 
+     double precision          , allocatable, dimension(:,:) :: z
+   contains
+     !![
+     <methods>
+       <method description="Interpolate in the tabulated function." method="interpolate"  />
+       <method description="Allocate GSL objects."                  method="gslAllocate"  />
+       <method description="Reallocate GSL objects."                method="gslReallocate"/>
+     </methods>
+     !!]
+     final     ::                  interpolator2DDestructorRank0
+     procedure :: interpolate   => interpolator2DInterpolate
+     procedure :: gslAllocate   => interpolator2DGSLAllocate
+     procedure :: gslReallocate => interpolator2DGSLReallocate
+  end type interpolator2D
+
+  interface interpolator2D
+     !!{
+     Constructor for the {\normalfont \ttfamily interpolator2D} class.
+     !!}
+     module procedure interpolator2DConstructor
+  end interface interpolator2D
+
 contains
 
   function interpolatorConstructor(x,y,interpolationType,extrapolationType) result(self)
@@ -644,4 +686,187 @@ contains
     return
   end function interpolatorLocate
 
+  function interpolator2DConstructor(x,y,z) result(self)
+    !!{
+    Constructor for {\normalfont \ttfamily interpolator2D} obejcts.
+    !!}
+    use :: Error, only : Error_Report
+    implicit none
+    type            (interpolator2D)                                :: self
+    double precision                , intent(in   ), dimension(:  ) :: x   , y
+    double precision                , intent(in   ), dimension(:,:) :: z
+    
+    ! Validate data.
+    if     (                                                                                         &
+         &   size(x      ) <       2                                                                 &
+         & ) call Error_Report('"x" must contain at least 2 datapoints'  //{introspection:location})
+    if     (                                                                                         &
+         &   size(y      ) <       2                                                                 &
+         & ) call Error_Report('"y" must contain at least 2 datapoints'  //{introspection:location})
+    if     (                                                                                         &
+         &   size(z,dim=1) /= size(x)                                                                &
+         &  .or.                                                                                     &
+         &   size(z,dim=2) /= size(y)                                                                &
+         & ) call Error_Report('"z" must be of same shape as "x" and "y"'//{introspection:location})
+    ! Get the interpolator type.
+    self%gsl_interp_type=gsl_interp_type_get(gsl_interp_linear)
+    ! Store data.
+    self%countArrayX=size(x)
+    self%countArrayY=size(y)
+    allocate(self%x(self%countArrayX                 ))
+    allocate(self%y(                 self%countArrayY))
+    allocate(self%z(self%countArrayX,self%countArrayY))
+    self%x=x
+    self%y=y
+    self%z=z
+    ! Allocate GSL interpolation objects.
+    call self%GSLAllocate()
+    return
+  end function interpolator2DConstructor
+
+  subroutine interpolator2DDestructorRank0(self)
+    !!{
+    Destructor for rank-0 {\normalfont \ttfamily interpolator2D} objects.
+    !!}
+    implicit none
+    type(interpolator2D), intent(inout) :: self
+
+    if (allocated (self%gsl_interp_X      )) then
+       call gsl_interp_free      (self%gsl_interp_X      )
+       deallocate(self%gsl_interp_X      )
+    end if
+    if (allocated (self%gsl_interp_Y      )) then
+       call gsl_interp_free      (self%gsl_interp_Y      )
+       deallocate(self%gsl_interp_Y      )
+    end if
+    if (allocated (self%gsl_interp_accel_X)) then
+       call gsl_interp_accel_free(self%gsl_interp_accel_X)
+       deallocate(self%gsl_interp_accel_X)
+    end if
+    if (allocated (self%gsl_interp_accel_Y)) then
+       call gsl_interp_accel_free(self%gsl_interp_accel_Y)
+       deallocate(self%gsl_interp_accel_Y)
+    end if
+    return
+  end subroutine interpolator2DDestructorRank0
+
+  subroutine interpolator2DGSLAllocate(self)
+    !!{
+    Allocate GSL objects.
+    !!}
+    implicit none
+    class(interpolator2D), intent(inout) :: self
+
+    if (.not.allocated(self%gsl_interp_X      )) then
+       allocate(self%gsl_interp_X      )
+       self%gsl_interp_X=gsl_interp_alloc            (self%gsl_interp_type,self%countArrayX)
+    end if
+    if (.not.allocated(self%gsl_interp_Y      )) then
+       allocate(self%gsl_interp_Y      )
+       self%gsl_interp_Y=gsl_interp_alloc            (self%gsl_interp_type,self%countArrayY)
+    end if
+    if (.not.allocated(self%gsl_interp_accel_X)) then
+       allocate(self%gsl_interp_accel_X)
+       self%gsl_interp_accel_X=gsl_interp_accel_alloc(                                     )
+    end if
+    if (.not.allocated(self%gsl_interp_accel_Y)) then
+       allocate(self%gsl_interp_accel_Y)
+       self%gsl_interp_accel_Y=gsl_interp_accel_alloc(                                     )
+    end if   
+    return
+  end subroutine interpolator2DGSLAllocate
+
+  subroutine interpolator2DGSLReallocate(self,gslFree)
+    !!{
+    Reallocate GSL objects.
+    !!}
+    use, intrinsic :: ISO_C_Binding, only : c_null_ptr
+    implicit none
+    class  (interpolator2D), intent(inout) :: self
+    logical                , intent(in   ) :: gslFree
+    
+    if (allocated(self%gsl_interp_X      )) then
+       if (gslFree) then
+          call gsl_interp_free      (self%gsl_interp_X      )
+       else
+          self%gsl_interp_X=c_null_ptr
+       end if
+       deallocate(self%gsl_interp_X      )
+    end if
+    if (allocated(self%gsl_interp_Y      )) then
+       if (gslFree) then
+          call gsl_interp_free      (self%gsl_interp_Y      )
+       else
+          self%gsl_interp_Y=c_null_ptr
+       end if
+       deallocate(self%gsl_interp_Y      )
+    end if
+    if (allocated(self%gsl_interp_accel_X)) then
+       if (gslFree) then
+          call gsl_interp_accel_free(self%gsl_interp_accel_X)
+       else
+          self%gsl_interp_accel_X=c_null_ptr
+       end if
+       deallocate(self%gsl_interp_accel_X)
+    end if
+    if (allocated(self%gsl_interp_accel_Y)) then
+       if (gslFree) then
+          call gsl_interp_accel_free(self%gsl_interp_accel_Y)
+       else
+          self%gsl_interp_accel_Y=c_null_ptr
+       end if
+       deallocate(self%gsl_interp_accel_Y)
+    end if
+    ! Re-establish the interpolation type if necessary.
+    if (.not.allocated(self%gsl_interp_type)) then
+       allocate(self%gsl_interp_type)
+       self%gsl_interp_type=gsl_interp_type_get(gsl_interp_linear)
+    end if
+    call self%GSLAllocate()
+    return
+  end subroutine interpolator2DGSLReallocate
+
+  double precision function interpolator2DInterpolate(self,x,y)
+    !!{
+    Interpolate a function to {\normalfont \ttfamily (x,y)}.
+    !!}
+    use :: Error, only : Error_Report
+    implicit none
+    class           (interpolator2D), intent(inout)  :: self
+    double precision                , intent(in   )  ::  x  ,  y
+    integer         (c_size_t      )                 :: ix  , iy, &
+         &                                              jx  , jy
+    double precision                , dimension(0:1) :: hx  , hy
+    ! Check for out of range values.
+    if     (                                                             &
+         &   x < self%x(               1)                                &
+         &  .or.                                                         &
+         &   x > self%x(self%countArrayX)                                &
+         &  .or.                                                         &
+         &   y < self%y(               1)                                &
+         &  .or.                                                         &
+         &   y > self%y(self%countArrayY)                                &
+         & ) call Error_Report('out of range'//{introspection:location})
+    ! Find the interpolating factors.
+    ix=gsl_interp_accel_find(self%gsl_interp_accel_X,self%x,self%countArrayX,x)+1_c_size_t
+    iy=gsl_interp_accel_find(self%gsl_interp_accel_Y,self%y,self%countArrayY,y)+1_c_size_t
+    hx(0)  =+(self%x(ix+1)-     x   )   &
+         &   /(self%x(ix+1)-self%x(ix))
+    hy(0)  =+(self%y(iy+1)-     y   )   &
+         &  /(self%y(iy+1)-self%y(iy))
+    hx(1)  =+1.0d0-hx(0)
+    hy(1)  =+1.0d0-hy(0)
+    ! Do the interpolation.
+    interpolator2DInterpolate=0.0d0
+    do jx=0,1
+       do jy=0,1
+          interpolator2DInterpolate=+interpolator2DInterpolate &
+               &                    +self%z(ix+jx,iy+jy)       &
+               &                    *hx    (   jx      )       &
+               &                    *hy    (         jy)
+       end do
+    end do
+    return
+  end function interpolator2DInterpolate
+  
 end module Numerical_Interpolation

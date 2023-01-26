@@ -78,6 +78,7 @@
      !![
      <methods>
        <method description="Reset memoized calculations."                                                                                                    method="calculationReset"       />
+       <method description="Initialize the object after construction."                                                                                       method="initialize"             />
        <method description="Returns the fraction of potential accretion onto a halo from the \gls{igm} which succeeded."                                     method="filteredFraction"       />
        <method description="Returns the fraction of potential accretion rate onto a halo from the \gls{igm} which succeeds."                                 method="filteredFractionRate"   />
        <method description="Returns the fraction of potential accretion onto a halo from the \gls{igm} which succeeded given the halo and filtering masses." method="filteredFractionCompute"/>
