@@ -3,7 +3,7 @@
 <parameters>
   <formatVersion>2</formatVersion>
 
-  <verbosityLevel value="2"/>
+  <verbosityLevel value="working"/>
 
   <!-- Random number generation -->
   <randomNumberGenerator value="GSL">
