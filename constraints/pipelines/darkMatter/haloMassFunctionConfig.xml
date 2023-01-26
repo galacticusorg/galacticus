@@ -4732,7 +4732,7 @@
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_MilkyWay_WDM10_Halo023_z2.031.hdf5"/>
       <redshift               value="2.03100e+00"/>
       <massRangeMinimum       value="1.20849e+09"/> <!-- 3000 times zoom-in Milky Way 10 keV WDM particle mass -->
-      <massRangeMaximum       value="8.82143e+06"/> <!-- 1/10 of the target halo mass             -->
+      <massRangeMaximum       value="1.13600e+11"/> <!-- 1/10 of the target halo mass             -->
       <binCountMinimum        value="0"          />    
       <likelihoodPoisson      value="true"       />
     </posteriorSampleLikelihood>
@@ -4748,7 +4748,7 @@
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_MilkyWay_WDM10_Halo023_z3.984.hdf5"/>
       <redshift               value="3.98400e+00"/>
       <massRangeMinimum       value="1.20849e+09"/> <!-- 3000 times zoom-in Milky Way 10 keV WDM particle mass -->
-      <massRangeMaximum       value="8.82143e+06"/> <!-- 1/10 of the target halo mass             -->
+      <massRangeMaximum       value="1.13600e+11"/> <!-- 1/10 of the target halo mass             -->
       <binCountMinimum        value="0"          />    
       <likelihoodPoisson      value="true"       />
     </posteriorSampleLikelihood>
@@ -4812,7 +4812,7 @@
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_MilkyWay_WDM10_Halo113_z2.031.hdf5"/>
       <redshift               value="2.03100e+00"/>
       <massRangeMinimum       value="1.20849e+09"/> <!-- 3000 times zoom-in Milky Way 10 keV WDM particle mass -->
-      <massRangeMaximum       value="8.06857e+07"/> <!-- 1/10 of the target halo mass             -->
+      <massRangeMaximum       value="1.06457e+11"/> <!-- 1/10 of the target halo mass             -->
       <binCountMinimum        value="0"          />    
       <likelihoodPoisson      value="true"       />
     </posteriorSampleLikelihood>
@@ -4828,7 +4828,7 @@
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_MilkyWay_WDM10_Halo113_z3.984.hdf5"/>
       <redshift               value="3.98400e+00"/>
       <massRangeMinimum       value="1.20849e+09"/> <!-- 3000 times zoom-in Milky Way 10 keV WDM particle mass -->
-      <massRangeMaximum       value="8.06857e+07"/> <!-- 1/10 of the target halo mass             -->
+      <massRangeMaximum       value="1.06457e+11"/> <!-- 1/10 of the target halo mass             -->
       <binCountMinimum        value="0"          />    
       <likelihoodPoisson      value="true"       />
     </posteriorSampleLikelihood>
