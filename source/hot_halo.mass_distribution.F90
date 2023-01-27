@@ -266,11 +266,14 @@ module Hot_Halo_Mass_Distributions
     double precision                                                            :: radius                                              , velocity         , &
          &                                                                         density                                             , xV
     !$GLC attributes unused :: radiusHalfMass, nodeSatellite
-    
+
+    hotHaloMassDistributionChandrasekharIntegral=0.0d0
     radius                                      = sqrt(sum(positionCartesian**2))
     velocity                                    = sqrt(sum(velocityCartesian**2))
+    if (velocity <= 0.0d0) return
     positionSpherical                           = [radius,0.0d0,0.0d0]
     density                                     = hotHaloMassDistributionDensity(node,positionSpherical,componentType,massType,weightByMass,weightIndexNull)
+    if (density  <= 0.0d0) return
     xV                                          =+velocity                                                                       &
          &                                       /Ideal_Gas_Sound_Speed(hotHaloTemperatureProfile_%temperature(node,radius)) &
          &                                       /sqrt(2.0d0)
