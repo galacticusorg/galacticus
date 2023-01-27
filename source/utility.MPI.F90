@@ -105,8 +105,10 @@ module MPI_Utilities
      procedure ::                   mpiAllLogicalScalar
      generic   :: all            => mpiAllLogicalScalar
      procedure :: maxloc         => mpiMaxloc
-     procedure ::                   mpiMaxvalScalar            , mpiMaxvalArray
-     generic   :: maxval         => mpiMaxvalScalar            , mpiMaxvalArray
+     procedure ::                   mpiMaxvalScalar            , mpiMaxvalArray         , &
+          &                         mpiMaxvalScalarSizeT       , mpiMaxvalArraySizeT
+     generic   :: maxval         => mpiMaxvalScalar            , mpiMaxvalArray         , &
+          &                         mpiMaxvalScalarSizeT       , mpiMaxvalArraySizeT
      procedure :: minloc         => mpiMinloc
      procedure ::                   mpiMinvalScalar            , mpiMinvalArray         , &
           &                         mpiMinValIntScalar         , mpiMinvalIntArray
@@ -132,6 +134,8 @@ module MPI_Utilities
      type   (MPI_Win     ) :: window
      type   (MPI_Datatype) :: typeClass
      type   (c_ptr       ) :: counter
+     integer(c_size_t    ) :: countThreadsWaiting, countIncrementsHeld, &
+          &                   counterHeld
 #else
      integer(c_size_t    ) :: counter
 #endif
@@ -142,14 +146,12 @@ module MPI_Utilities
      <methods>
        <method description="Increment the counter and return the new value." method="increment"/>
        <method description="Decrement the counter and return the new value." method="decrement"/>
-       <method description="Get the current value of the counter."           method="get"      />
        <method description="Reset the counter."                              method="reset"    />
      </methods>
      !!]
      final     ::              counterDestructor
      procedure :: increment => counterIncrement
      procedure :: decrement => counterDecrement
-     procedure :: get       => counterGet
      procedure :: reset     => counterReset
   end type mpiCounter
 
@@ -1470,6 +1472,67 @@ contains
     return
   end function mpiMaxvalScalar
 
+  function mpiMaxvalArraySizeT(self,array,mask)
+    !!{
+    Find the maximum values of an array over all processes, returning it to all processes.
+    !!}
+    use :: Error, only : Error_Report
+#ifdef USEMPI
+    use :: MPI  , only : MPI_AllReduce, MPI_Integer8, MPI_Max, MPI_Comm_World
+#endif
+    implicit none
+    class  (mpiObject), intent(in   )                                    :: self
+    integer(c_size_t ), intent(in   ), dimension( :          )           :: array
+    logical           , intent(in   ), dimension(0:          ), optional :: mask
+    integer(c_size_t )               , dimension(size(array) )           :: mpiMaxvalArraySizeT
+#ifdef USEMPI
+    integer(c_size_t )               , dimension(size(array) )           :: maskedArray
+    integer                                                              :: iError
+#endif
+
+#ifdef USEMPI
+    ! Find the maximum over all processes.
+    maskedArray=array
+    if (present(mask)) then
+       if (.not.mask(self%rank())) maskedArray=-huge(1_c_size_t)
+    end if
+    call MPI_AllReduce(maskedArray,mpiMaxvalArraySizeT,size(array),MPI_Integer8,MPI_Max,MPI_Comm_World,iError)
+    if (iError /= 0) call Error_Report('MPI all reduce failed'//{introspection:location})
+#else
+    !$GLC attributes unused :: self, array, mask
+    mpiMaxvalArraySizeT=0_c_size_t
+    call Error_Report('code was not compiled for MPI'//{introspection:location})
+#endif
+    return
+  end function mpiMaxvalArraySizeT
+
+  function mpiMaxvalScalarSizeT(self,scalar,mask)
+    !!{
+    Find the maximum values of a {\normalfont \ttfamily size\_t} scalar over all processes, returning it to all processes.
+    !!}
+#ifndef USEMPI
+    use :: Error, only : Error_Report
+#endif
+    implicit none
+    integer(c_size_t )                                        :: mpiMaxvalScalarSizeT
+    class  (mpiObject), intent(in   )                         :: self
+    integer(c_size_t ), intent(in   )                         :: scalar
+    logical           , intent(in   ), dimension(:), optional :: mask
+#ifdef USEMPI
+    integer(c_size_t )               , dimension(1)           :: array
+#endif
+
+#ifdef USEMPI
+    array=self%maxval([scalar],mask)
+    mpiMaxvalScalarSizeT=array(1)
+#else
+    !$GLC attributes unused :: self, scalar, mask
+    mpiMaxvalScalarSizeT=0.0d0
+    call Error_Report('code was not compiled for MPI'//{introspection:location})
+#endif
+    return
+  end function mpiMaxvalScalarSizeT
+
   function mpiMaxloc(self,array,mask)
     !!{
     Find the rank of the process having maximum values of an array over all processes, returning it to all processes.
@@ -1938,6 +2001,9 @@ contains
        if (iError /= 0) call Error_Report('failed to unlock RMA window'//{introspection:location})
        !$omp end master
     end if
+    self%countThreadsWaiting=0_c_size_t
+    self%countIncrementsHeld=0_c_size_t
+    call mpiBarrier()
 #else
     self%counter=0
 #endif
@@ -1973,30 +2039,53 @@ contains
     !!}
 #ifdef USEMPI
     use :: Error  , only : Error_Report
-    use :: MPI_F08, only : MPI_Win_Lock    , MPI_Get_Accumulate, MPI_Win_Unlock, MPI_Lock_Exclusive, &
+    use :: MPI_F08, only : MPI_Win_Lock    , MPI_Get_Accumulate, MPI_Win_Unlock, MPI_Lock_Shared, &
          &                 MPI_Address_Kind, MPI_Sum
 #endif
     implicit none
     integer(c_size_t  )                :: counterIncrement
     class  (mpiCounter), intent(inout) :: self
 #ifdef USEMPI
-    integer(c_size_t  ), dimension(1)  :: counterIn       , counterOut
+    integer(c_size_t  ), dimension(1)  :: counterIn          , counterOut
+    integer(c_size_t  )                :: countThreadsWaiting
     integer                            :: iError
-
-    counterIn=1
+    
+    ! Increment the count of the number of OpenMP threads waiting to obtain the lock.
+    !$omp atomic
+    self%countThreadsWaiting=self%countThreadsWaiting+1_c_size_t
     !$ call self%ompLock_%  set()
-    call MPI_Win_Lock(MPI_Lock_Exclusive,0,0,self%window,iError)
-    if (iError /= 0) call Error_Report('failed to lock RMA window'          //{introspection:location})
-    call MPI_Get_Accumulate(counterIn,1,self%typeClass,counterOut,1,self%typeClass,0,0_MPI_Address_Kind,1,self%typeClass,MPI_Sum,self%window,iError)
-    if (iError /= 0) call Error_Report('failed to accumulate to MPI counter'//{introspection:location})
-    call MPI_Win_Unlock(0,self%window,iError)
-    if (iError /= 0) call Error_Report('failed to unlock RMA window'        //{introspection:location})
+    ! If we are currently not holding any increments from the counter, we need to get some now.
+    if (self%countIncrementsHeld == 0_c_size_t) then
+       ! Begin a lock on the MPI shared window.
+       call MPI_Win_Lock(MPI_Lock_Shared,0,0,self%window,iError)
+       if (iError /= 0) call Error_Report('failed to lock RMA window'          //{introspection:location})
+       ! Take a snapshot of the number of OpenMP threads that are currently waiting on the lock (plus the current thread). This is
+       ! done without locking, so is subject to race conditions, but this doesn't matter - we just want a good estimate of the
+       ! number of increments that we need to obtain.
+       countThreadsWaiting=self%countThreadsWaiting
+       counterIn          =countThreadsWaiting
+       ! Increment the counter by the number of waiting OpenMP threads.
+       call MPI_Get_Accumulate(counterIn,1,self%typeClass,counterOut,1,self%typeClass,0,0_MPI_Address_Kind,1,self%typeClass,MPI_Sum,self%window,iError)
+       if (iError /= 0) call Error_Report('failed to accumulate to MPI counter'//{introspection:location})
+       ! Unlock the MPI shared window to force synchronization to local variables.
+       call MPI_Win_Unlock(0,self%window,iError)
+       if (iError /= 0) call Error_Report('failed to unlock RMA window'        //{introspection:location})
+       ! Record the current value of the counter for this MPI process, and the number of increments of it that we have held.
+       self%countIncrementsHeld=countThreadsWaiting
+       self%counterHeld        =counterOut(1)
+    end if
+    ! Return the current value of the counter on this process, increment the counter on this process, and decrement the number of
+    ! held increments.
+    counterIncrement        =self%counterHeld
+    self%counterHeld        =self%counterHeld        +1_c_size_t
+    self%countIncrementsHeld=self%countIncrementsHeld-1_c_size_t
     !$ call self%ompLock_%unset()
-    counterIncrement=counterOut(1)
+    ! Decrement the count of OpenMP threads waiting on the lock.
+    self%countThreadsWaiting=self%countThreadsWaiting-1_c_size_t
 #else
     !$ call self%ompLock_%  set()
     counterIncrement=self%counter
-    self%counter=self%counter+1_c_size_t
+    self%counter    =self%counter+1_c_size_t
     !$ call self%ompLock_%unset()
 #endif
     return
@@ -2018,7 +2107,7 @@ contains
     integer(c_size_t  ), dimension(1)  :: counterIn       , counterOut
     integer                            :: iError
 
-    counterIn=-1
+    counterIn=-1_c_size_t
     !$ call self%ompLock_%  set()
     call MPI_Win_Lock(MPI_Lock_Exclusive,0,0,self%window,iError)
     if (iError /= 0) call Error_Report('failed to lock RMA window'          //{introspection:location})
@@ -2036,38 +2125,5 @@ contains
 #endif
     return
   end function counterDecrement
-
-  function counterGet(self)
-    !!{
-    Return the current value of an MPI counter.
-    !!}
-#ifdef USEMPI
-    use :: Error  , only : Error_Report
-    use :: MPI_F08, only : MPI_Win_Lock    , MPI_Get, MPI_Win_Unlock, MPI_Lock_Exclusive, &
-    &                      MPI_Address_Kind
-#endif
-    implicit none
-    integer(c_size_t  )                :: counterGet
-    class  (mpiCounter), intent(inout) :: self
-#ifdef USEMPI
-    integer(c_size_t  ), dimension(1)  :: counterOut
-    integer                            :: iError
-
-    !$ call self%ompLock_%  set()
-    call MPI_Win_Lock(MPI_Lock_Exclusive,0,0,self%window,iError)
-    if (iError /= 0) call Error_Report('failed to lock RMA window'           //{introspection:location})
-    call MPI_Get(counterOut,1,self%typeClass,0,0_MPI_Address_Kind,1,self%typeClass,self%window,iError)
-    if (iError /= 0) call Error_Report('failed to get value from MPI counter'//{introspection:location})
-    call MPI_Win_Unlock(0,self%window,iError)
-    if (iError /= 0) call Error_Report('failed to unlock RMA window'         //{introspection:location})
-    !$ call self%ompLock_%unset()
-    counterGet=counterOut(1)-1_c_size_t
-#else
-    !$ call self%ompLock_%  set()
-    counterGet=self%counter-1_c_size_t
-    !$ call self%ompLock_%unset()
-#endif
-    return
-  end function counterGet
 
 end module MPI_Utilities

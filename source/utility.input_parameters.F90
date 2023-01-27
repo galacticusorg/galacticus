@@ -1430,10 +1430,10 @@ contains
     !!{
     Return the value of the parameter specified by name.
     !!}
-    use :: FoX_dom           , only : hasAttribute, getNodeName
     use :: Error             , only : Error_Report, Warn
     use :: HDF5_Access       , only : hdf5Access
     use :: ISO_Varying_String, only : char
+    use :: MPI_Utilities     , only : mpiSelf
     implicit none
     class           (inputParameters                         ), intent(inout), target   :: self
     character       (len=*                                   ), intent(in   )           :: parameterName
@@ -1460,7 +1460,7 @@ contains
        parameterPath=self%path()
        call parametersRoot%lock%set()
        if (.not.parametersRoot%warnedDefaults%exists(parameterPath)) then
-          call Warn("Using default value for parameter '["//char(parameterPath)//parameterName//"]'")
+          if (mpiSelf%isMaster()) call Warn("Using default value for parameter '["//char(parameterPath)//parameterName//"]'")
           call parametersRoot%warnedDefaults%set(parameterPath,1)
        end if
        call parametersRoot%lock%unset()
@@ -1543,8 +1543,9 @@ contains
        else
           valueElement => XML_Get_First_Element_By_Tag_Name(parameterNode%content,"value",directChildrenOnly=.true.)
        end if
+       content=getTextContent(valueElement)
        !$omp end critical (FoX_DOM_Access)
-       if (trim(getTextContent(valueElement)) == "") then
+       if (trim(content) == "") then
           if (present(errorStatus)) then
              errorStatus=inputParameterErrorStatusEmptyValue
           else

@@ -228,6 +228,7 @@ contains
     use :: Numerical_Constants_Physical    , only : boltzmannsConstant
     use :: Numerical_Constants_Prefixes    , only : giga                     , hecto                        , kilo                         , mega
     use :: Root_Finder                     , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
+    use :: Hashes_Cryptographic            , only : Hash_MD5
     implicit none
     type            (starFormationRateSurfaceDensityDisksBlitz2006)                        :: self
     class           (galacticStructureClass                       ), intent(in   ), target :: galacticStructure_
@@ -237,9 +238,11 @@ contains
          &                                                                                    pressureExponent
     logical                                                        , intent(in   )         :: assumeMonotonicSurfaceDensity      , assumeExponentialDisk  , &
          &                                                                                    useTabulation
-     !![
-     <constructorAssign variables="velocityDispersionDiskGas, heightToRadialScaleDisk, surfaceDensityCritical, surfaceDensityExponent, starFormationFrequencyNormalization, pressureCharacteristic, pressureExponent, assumeMonotonicSurfaceDensity, assumeExponentialDisk, useTabulation, *galacticStructure_"/>
-     !!]
+    type            (varying_string                               )                        :: descriptorString
+    character       (len=17                                       )                        :: parameterLabel
+    !![
+    <constructorAssign variables="velocityDispersionDiskGas, heightToRadialScaleDisk, surfaceDensityCritical, surfaceDensityExponent, starFormationFrequencyNormalization, pressureCharacteristic, pressureExponent, assumeMonotonicSurfaceDensity, assumeExponentialDisk, useTabulation, *galacticStructure_"/>
+    !!]
 
     self%lastUniqueID   =-1_kind_int8
     self%factorsComputed=.false.
@@ -289,11 +292,17 @@ contains
     self%coefficientFactorBoostStellarMaximum=-huge(0.0d0)
     self%radiusScaleFreeMinimum              =+huge(0.0d0)
     self%radiusScaleFreeMaximum              =-huge(0.0d0)
-    self%filenameTable                       =     inputPath       (                    pathTypeDataDynamic)// &
-         &                                    'starFormation/'                                              // &
-         &                                    self%objectType      ()                                       // &
-         &                                    '_'                                                           // &
-         &                                    self%hashedDescriptor(includeSourceDigest=.true.)             // &
+    ! Generate a file name for the table using the two parameters upon which it depends to create a hashed descriptor suffix.
+    descriptorString=""
+    write (parameterLabel,'(e17.10)') self%pressureExponent
+    descriptorString=descriptorString//parameterLabel//" "
+    write (parameterLabel,'(e17.10)') self%surfaceDensityExponent
+    descriptorString=descriptorString//parameterLabel//" "
+    self%filenameTable                       =     inputPath  (pathTypeDataDynamic)// &
+         &                                    'starFormation/'                     // &
+         &                                    self%objectType (                   )// &
+         &                                    '_'                                  // &
+         &                                    Hash_MD5        (descriptorString   )// &
          &                                    '.hdf5'
     return
   end function blitz2006ConstructorInternal

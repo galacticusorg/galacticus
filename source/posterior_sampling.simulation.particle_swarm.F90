@@ -375,7 +375,8 @@ contains
     double precision                                                                                      :: timeEvaluateInitial            , logPosterior                     , &
          &                                                                                                   logPosteriorBestPersonal       , logPosteriorBestGlobal           , &
          &                                                                                                   logLikelihoodVariance          , logLikelihoodVarianceBestPersonal, &
-         &                                                                                                   logLikelihoodVarianceBestGlobal, logLikelihood
+         &                                                                                                   logLikelihoodVarianceBestGlobal, logLikelihood                    , &
+         &                                                                                                   positionStep
     type            (varying_string                        )                                              :: logFileName                    , message                          , &
          &                                                                                                   interactionFileName
     integer                                                                                               :: logFileUnit                    , convergedAtStep                  , &
@@ -490,16 +491,22 @@ contains
        ! Get the current particle state.
        stateVector=self%posteriorSampleState_%get()
        ! Update the state vector
-       stateVector=stateVector+velocityParticle
        do i=1,self%parameterCount
-          if (stateVector(i) <= positionMinimum(i)) then
-             velocityParticle(i)=-velocityParticle(i)
-             stateVector     (i)=+positionMinimum (i)
-          end if
-          if (stateVector(i) >= positionMaximum(i)) then
-             velocityParticle(i)=-velocityParticle(i)
-             stateVector     (i)=+positionMaximum (i)
-          end if
+          positionStep=velocityParticle(i)
+          do while (positionStep /= 0.0d0)
+             stateVector(i)=stateVector(i)+positionStep
+             if (stateVector(i) <= positionMinimum(i)) then
+                positionStep       =+positionMinimum (i)-stateVector(i)
+                stateVector     (i)=+positionMinimum (i)
+                velocityParticle(i)=-velocityParticle(i)
+             else if (stateVector(i) >= positionMaximum(i)) then
+                positionStep       =+positionMaximum (i)-stateVector(i)
+                stateVector     (i)=+positionMaximum (i)
+                velocityParticle(i)=-velocityParticle(i)
+             else
+                positionStep       =+0.0d0
+             end if
+          end do
        end do
        ! If simulation is interactive, check for any interaction file.
        if (self%isInteractive) then
