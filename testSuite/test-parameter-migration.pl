@@ -8,7 +8,7 @@ use Data::Dumper;
 # Andrew Benson (27-January-2023)
 
 # Migrate the test parameter file.
-system("mkdir outputs; cd ..; scripts/aux/parametersMigrate.pl testSuite/parameters/parameterMigration.xml testSuite/outputs/parameterMigrated.xml");
+system("mkdir -p outputs; cd ..; scripts/aux/parametersMigrate.pl testSuite/parameters/parameterMigration.xml testSuite/outputs/parameterMigrated.xml");
 if ( $? == 0 ) {
     print "PASSED: migration of parameter file\n";
 } else {
@@ -22,7 +22,7 @@ my $parameters = $xml->XMLin("outputs/parameterMigrated.xml");
 # Check expected state.
 print "FAILED: missing parameter 'massDestructionAbsolute'\n"
     unless ( exists($parameters->{'nodeOperator'}->{'nodeOperator'}->{'massDestructionAbsolute'}) );
-print "FAILED: unremoved parameter spheroidVerySimpleTrackLuminosities''\n"
+print "FAILED: unremoved parameter 'spheroidVerySimpleTrackLuminosities'\n"
     if ( exists($parameters->{'spheroidVerySimpleTrackLuminosities'}) );
 
 exit;
