@@ -174,10 +174,13 @@ contains
          &                                                                         velocityDispersion
     !$GLC attributes unused :: nodeSatellite
 
+    Dark_Matter_Profile_Chandrasekhar_Integral_Task=0.0d0
     radius            =sqrt(sum(positionCartesian**2))
     velocity          =sqrt(sum(velocityCartesian**2))
+    if (velocity <= 0.0d0) return
     positionSpherical =[radius,0.0d0,0.0d0]
     density           =Dark_Matter_Profile_Density_Task(node,positionSpherical,componentType,massType,weightByMass,weightIndexNull)
+    if (density  <= 0.0d0) return
     velocityDispersion=darkMatterProfile_%radialVelocityDispersion(node,radius)
     if (velocityDispersion > 0.0d0) then    
        xV     =+velocity           &

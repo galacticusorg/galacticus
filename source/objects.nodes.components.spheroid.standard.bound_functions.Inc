@@ -188,10 +188,11 @@ function Node_Component_Spheroid_Standard_Chandrasekhar_Integral(self,nodeSatell
   ! Compute the integral.
   radius                                                  =  sqrt(sum(positionCartesian**2))
   velocity                                                =  sqrt(sum(velocityCartesian**2))
+  if (velocity <= 0.0d0) return
   positionSpherical                                       =  [radius,0.0d0,0.0d0]
   velocityRotation                                        =  Node_Component_Spheroid_Standard_Rotation_Curve(self,radius           ,componentType,massType                             )
   density                                                 =  Node_Component_Spheroid_Standard_Density       (self,positionSpherical,componentType,massType,weightByMass,weightIndexNull)
-  if (density <= 0.0d0) return
+  if (density  <= 0.0d0) return
   velocityDispersion                                      = +velocityRotation   &
        &                                                    /sqrt(2.0d0)
   xV                                                      = +velocity           &
