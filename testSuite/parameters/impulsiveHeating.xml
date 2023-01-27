@@ -379,8 +379,9 @@
     </nodeOperator>
     <nodeOperator value="satelliteDestructionMassThreshold">
       <!-- Subhalos will be removed if they fall below the merger tree mass resolution limit. -->
-      <massDestruction value="=[mergerTreeMassResolution::massResolution]"/>
-      <massDestructionFractional value="0.0"/>
+      <massDestructionAbsolute       value="=[mergerTreeMassResolution::massResolution]"/>
+      <massDestructionInfallFraction value="0.0"                                        />
+      <massDestructionTreeFraction   value="0.0"                                        />
     </nodeOperator>
     <!-- Star formation -->
     <nodeOperator value="starFormationDisks"/>
