@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1674764761980,
+  "lastUpdate": 1674799576170,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
@@ -7004,6 +7004,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 26366.2430061311,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "f6d60ffbc3145e9bb417842402d4b1262efbbdb2",
+          "message": "fix: Fix the `mergerTreeBuildMassesUnion` class\n\n* Correctly handle deep copy and state store of member classes;\n\n* Mark that multiple `mergerTreeBuildMasses` members are allowed;\n\n* Fix typo which caused double allocation of one of the masses arrays.",
+          "timestamp": "2023-01-27T00:50:53Z",
+          "tree_id": "5eab63d7834b71dea95ddf5b49e823f0dbca1c07",
+          "url": "https://github.com/galacticusorg/galacticus/commit/f6d60ffbc3145e9bb417842402d4b1262efbbdb2"
+        },
+        "date": 1674799574195,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 51.901,
+            "unit": "seconds",
+            "range": 0.0214685816921121
           }
         ]
       }
