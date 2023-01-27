@@ -41,7 +41,7 @@
      class           (virialDensityContrastClass), pointer                   :: virialDensityContrast_               => null()
      class           (outputTimesClass          ), pointer                   :: outputTimes_                         => null()
      logical                                                                 :: computeScatter
-     integer         (c_size_t                  )                            :: likelihoodBin
+     integer         (c_size_t                  ), allocatable, dimension(:) :: likelihoodBins
      integer                                                                 :: redshiftInterval
      double precision                            , allocatable, dimension(:) :: systematicErrorPolynomialCoefficient
      type            (varying_string            )                            :: analysisLabel
@@ -85,13 +85,25 @@ contains
     class           (outputTimesClass                                    ), pointer                     :: outputTimes_
     integer                                                                                             :: redshiftInterval
     logical                                                                                             :: computeScatter
-    integer         (c_size_t                                            )                              :: likelihoodBin
+    integer         (c_size_t                                            ), allocatable  , dimension(:) :: likelihoodBins
 
     ! Check and read parameters.
     if (parameters%isPresent('systematicErrorPolynomialCoefficient')) then
        allocate(systematicErrorPolynomialCoefficient(parameters%count('systematicErrorPolynomialCoefficient')))
     else
        allocate(systematicErrorPolynomialCoefficient(1                                                       ))
+    end if
+    if (parameters%isPresent('likelihoodBins')) then
+       allocate(likelihoodBins(parameters%count('likelihoodBins')))
+       !![
+       <inputParameter>
+	 <name>likelihoodBins</name>
+	 <source>parameters</source>
+	 <description>If $>0$ then use only the mass bin given by this value in the likelihood calculation.</description>
+       </inputParameter>
+       !!]
+    else
+       allocate(likelihoodBins(               0                  ))
     end if
     !![
     <inputParameter>
@@ -114,12 +126,6 @@ contains
       <defaultValue>[0.0d0]</defaultValue>
       <description>The coefficients of the systematic error polynomial for stellar vs halo mass relation.</description>
     </inputParameter>
-    <inputParameter>
-      <name>likelihoodBin</name>
-      <source>parameters</source>
-      <defaultValue>0_c_size_t</defaultValue>
-      <description>If $>0$ then use only the mass bin given by this value in the likelihood calculation.</description>
-    </inputParameter>
     <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"   source="parameters"/>
     <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"  source="parameters"/>
@@ -128,7 +134,7 @@ contains
     <objectBuilder class="outputTimes"           name="outputTimes_"           source="parameters"/>
     !!]
     ! Build the object.
-    self=outputAnalysisStellarVsHaloMassRelationLeauthaud2012(redshiftInterval,likelihoodBin,computeScatter,systematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,virialDensityContrast_,galacticStructure_,outputTimes_)
+    self=outputAnalysisStellarVsHaloMassRelationLeauthaud2012(redshiftInterval,likelihoodBins,computeScatter,systematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,virialDensityContrast_,galacticStructure_,outputTimes_)
     !![
     <inputParametersValidate source="parameters" />
     <objectDestructor name="cosmologyParameters_"  />
@@ -141,7 +147,7 @@ contains
     return
   end function stellarVsHaloMassRelationLeauthaud2012ConstructorParameters
 
-  function stellarVsHaloMassRelationLeauthaud2012ConstructorInternal(redshiftInterval,likelihoodBin,computeScatter,systematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,virialDensityContrast_,galacticStructure_,outputTimes_) result (self)
+  function stellarVsHaloMassRelationLeauthaud2012ConstructorInternal(redshiftInterval,likelihoodBins,computeScatter,systematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,virialDensityContrast_,galacticStructure_,outputTimes_) result (self)
     !!{
     Constructor for the ``stellarVsHaloMassRelationLeauthaud2012'' output analysis class for internal use.
     !!}
@@ -171,7 +177,7 @@ contains
     type            (outputAnalysisStellarVsHaloMassRelationLeauthaud2012)                                :: self
     integer                                                               , intent(in   )                 :: redshiftInterval
     logical                                                               , intent(in   )                 :: computeScatter
-    integer         (c_size_t                                            ), intent(in   )                 :: likelihoodBin
+    integer         (c_size_t                                            ), intent(in   ), dimension(:  ) :: likelihoodBins
     double precision                                                      , intent(in   ), dimension(:  ) :: systematicErrorPolynomialCoefficient
     class           (cosmologyParametersClass                            ), intent(in   ), target         :: cosmologyParameters_
     class           (cosmologyFunctionsClass                             ), intent(inout), target         :: cosmologyFunctions_
@@ -207,7 +213,8 @@ contains
     type            (cosmologyFunctionsMatterLambda                      ), pointer                       :: cosmologyFunctionsData
     type            (virialDensityContrastFixed                          ), pointer                       :: virialDensityContrastDefinition_
     type            (surveyGeometryFullSky                               ), pointer                       :: surveyGeometry_
-    double precision                                                      , parameter                     :: errorPolynomialZeroPoint                              =11.3d00
+    double precision                                                      , parameter                     :: errorPolynomialZeroPoint                              =11.3d0
+    double precision                                                      , parameter                     :: covarianceLarge                                       = 1.0d4
     logical                                                               , parameter                     :: likelihoodNormalize                                   =.false.
     integer         (c_size_t                                            )                                :: iBin
     double precision                                                                                      :: massStellarLimit                                              , redshiftMinimum                              , &
@@ -219,9 +226,9 @@ contains
     type            (table1DGeneric                                      )                                :: interpolator
     character       (len=4                                               )                                :: redshiftMinimumLabel                                          , redshiftMaximumLabel
     !![
-    <constructorAssign variables="redshiftInterval, likelihoodBin, computeScatter, systematicErrorPolynomialCoefficient, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterProfileDMO_, *virialDensityContrast_, *galacticStructure_, *outputTimes_"/>
+    <constructorAssign variables="redshiftInterval, likelihoodBins, computeScatter, systematicErrorPolynomialCoefficient, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterProfileDMO_, *virialDensityContrast_, *galacticStructure_, *outputTimes_"/>
     !!]
-    
+
     ! Construct survey geometry.
     select case (redshiftInterval)
     case (1)
@@ -315,12 +322,15 @@ contains
     call interpolator%destroy()
     massStellarLogarithmicTarget          =massStellarLogarithmicTarget          /log(10.0d0)
     massStellarLogarithmicCovarianceTarget=massStellarLogarithmicCovarianceTarget/log(10.0d0)**2
-    if (self%likelihoodBin > 0_c_size_t) then
-       ! Assume that only a single bin of the relation is to be populated. Set the target dataset in all other bins to zero so
-       ! that they do not contribute to the likelihood.
-       if (self%likelihoodBin > massHaloCount) call Error_Report('likelihoodBin is out of range'//{introspection:location})
+    if (size(self%likelihoodBins) > 0) then
+       ! Assume that only a subset of bins of the relation are to be populated. Set the target dataset in all other bins to zero
+       ! so that they do not contribute to the likelihood.
+       if (any(self%likelihoodBins > massHaloCount .or. self%likelihoodBins < 1_c_size_t)) call Error_Report('likelihoodBins is out of range'//{introspection:location})
        do iBin=1,massHaloCount
-          if (iBin /= self%likelihoodBin) massStellarLogarithmicTarget(iBin)=0.0d0
+          if (.not.any(self%likelihoodBins == iBin)) then
+             massStellarLogarithmicTarget          (iBin     )=0.0d0
+             massStellarLogarithmicCovarianceTarget(iBin,iBin)=covarianceLarge
+          end if
        end do
     end if
     ! Build a filter which select central galaxies with stellar mass above some coarse lower limit suitable for this sample.
@@ -420,7 +430,7 @@ contains
        ! For the scatter we need to set an appropriate target and covariance for likelihood calculation. This measurement is based
        ! on the constraint on σ_{log₁₀L}=0.16±0.04 from More et al. (2009; MNRAS; 392; 801) for SDSS galaxies.
        do iBin=1,massHaloCount
-          if (self%likelihoodBin <= 0_c_size_t .or. self%likelihoodBin == iBin) then
+          if (size(self%likelihoodBins) == 0 .or. any(self%likelihoodBins == iBin)) then
              massStellarLogarithmicTarget          (iBin     )=0.16d0
              massStellarLogarithmicCovarianceTarget(iBin,iBin)=0.04d0**2
           end if
@@ -630,10 +640,10 @@ contains
     select type (outputAnalysis_ => self%outputAnalysis_)
     class is (outputAnalysisMeanFunction1D)
        call outputAnalysis_%results(meanValue=massStellarLogarithmicMean)
-       if     (                                                                                                                            &
-            &   (self%likelihoodBin == 0_c_size_t .and. any(massStellarLogarithmicMean                     <= massStellarLogarithmicTiny)) &
-            &  .or.                                                                                                                        &
-            &                                               massStellarLogarithmicMean(self%likelihoodBin) <= massStellarLogarithmicTiny   &
+       if     (                                                                                                                           &
+            &   (size(self%likelihoodBins) == 0 .and. any(massStellarLogarithmicMean                      <= massStellarLogarithmicTiny)) &
+            &  .or.                                                                                                                       &
+            &                                         any(massStellarLogarithmicMean(self%likelihoodBins) <= massStellarLogarithmicTiny)  &
             & ) then
           ! If any active bins contain zero galaxies, judge this model to be improbable.
           stellarVsHaloMassRelationLeauthaud2012LogLikelihood=                     logImprobable
