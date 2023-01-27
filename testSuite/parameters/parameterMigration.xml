@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<parameters>
+  <formatVersion>2</formatVersion>
+
+  <spheroidVerySimpleTrackLuminosities value="false"/>
+
+  <nodeOperator value="multi">
+    <nodeOperator value="satelliteDestructionMassThreshold" >
+      <massDestruction           value="1.0"/>
+      <massDestructionFractional value="0.0"/>
+    </nodeOperator>
+  </nodeOperator>
+  
+</parameters>
