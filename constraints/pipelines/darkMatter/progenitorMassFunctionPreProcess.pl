@@ -164,7 +164,7 @@ sub cosmoSimBuilder {
 		# Generate a job.
 		my $job;
 		$job->{'command'   } =
-		    "Galacticus.exe ".$parameterFileName;
+		    "./Galacticus.exe ".$parameterFileName;
 		$job->{'launchFile'} = $simulation->{'path'}."identifyAlwaysIsolated_progenitors_".$i."_".$j."_".$k.".sh" ;
 		$job->{'logFile'   } = $simulation->{'path'}."identifyAlwaysIsolated_progenitors_".$i."_".$j."_".$k.".log";
 		$job->{'label'     } =                       "identifyAlwaysIsolated_progenitors_".$i."_".$j."_".$k       ;
@@ -220,7 +220,7 @@ sub cosmoSimBuilder {
 	    ## Construct the job.
 	    my $job;
 	    $job->{'command'   } =
-		"Galacticus.exe ".$parameterFileName;
+		"./Galacticus.exe ".$parameterFileName;
 	    $job->{'launchFile'} = $simulation->{'path'}."progenitorMassFunctions.sh" ;
 	    $job->{'logFile'   } = $simulation->{'path'}."progenitorMassFunctions.log";
 	    $job->{'label'     } =                       "progenitorMassFunctions"    ;
@@ -361,7 +361,7 @@ sub caterpillarBuilder {
 	# Generate a job.
 	my $job;
 	$job->{'command'   } =
-	    "Galacticus.exe ".$parameterFileName;
+	    "./Galacticus.exe ".$parameterFileName;
 	$job->{'launchFile'} = $simulation->{'path'}.$parentDirectoryName."identifyAlwaysIsolated_progenitors.sh" ;
 	$job->{'logFile'   } = $simulation->{'path'}.$parentDirectoryName."identifyAlwaysIsolated_progenitors.log";
 	$job->{'label'     } = "Caterpillar_H".$parent->{'ID'}."_LX".$parent->{'levelMax'};
@@ -454,7 +454,7 @@ sub caterpillarBuilder {
 	## Construct the job.
 	my $job;
 	$job->{'command'   } =
-	    "Galacticus.exe ".$parameterFileName;
+	    "./Galacticus.exe ".$parameterFileName;
 	$job->{'launchFile'} = $simulation->{'path'}."progenitorMassFunctions_LX".$resolution.".sh" ;
 	$job->{'logFile'   } = $simulation->{'path'}."progenitorMassFunctions_LX".$resolution.".log";
 	$job->{'label'     } =                       "progenitorMassFunctions_LX".$resolution       ;
