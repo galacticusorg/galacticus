@@ -63,7 +63,9 @@ my $hashHead;
 }
 ## Find last modified hash.
 my $hashLastModified;
-if ( $isInGit ) {
+if ( exists($options{'lastModified'}) ) {
+    $hashLastModified = $options{'lastModified'};
+} elsif ( $isInGit ) {
     # File is in git index, use git to determine the last revision at which it was modified.
     ## Find the hash at which the file was last modified.
     {
