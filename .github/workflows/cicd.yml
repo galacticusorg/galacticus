@@ -6478,6 +6478,8 @@ jobs:
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - name: Check out repository datasets
         uses: actions/checkout@v3      
         with:
