@@ -344,7 +344,8 @@ contains
     !!{
     Construct the lensing distribution function for the \cite{takahashi_probability_2011} formalism.
     !!}
-    use :: File_Utilities       , only : Directory_Make              , File_Exists
+    use :: File_Utilities       , only : Directory_Make              , File_Exists                 , File_Lock            , File_Unlock, &
+         &                               lockDescriptor
     use :: Error                , only : Error_Report
     use :: Input_Paths          , only : inputPath                   , pathTypeDataDynamic
     use :: HDF5_Access          , only : hdf5Access
@@ -381,6 +382,7 @@ contains
          &                                                                              magnificationLower                        , magnificationUpper            , &
          &                                                                              cdfPrevious                               , cdf
     type            (hdf5Object                       )                              :: parametersFile
+    type            (lockDescriptor                   )                              :: fileLock
 
     ! Construct tabulation of convergence distribution function parameters if necessary.
     if (.not.self%tableInitialized) then
@@ -389,6 +391,7 @@ contains
           ! Determine the parameters, A_κ and ω_κ, of the convergence distribution (eq. 8
           ! of Takahashi et al.). To do this, we use a look-up table of precomputed values.
           ! Check if a precomputed file exists.
+          call File_Lock(char(inputPath(pathTypeDataDynamic))//"largeScaleStructure/gravitationalLensingConvergenceTakahashi2011.hdf5",fileLock,lockIsShared=.true.)
           if (File_Exists(inputPath(pathTypeDataDynamic)//"largeScaleStructure/gravitationalLensingConvergenceTakahashi2011.hdf5")) then
              ! Read the results from file.
              !$ call hdf5Access%set()
@@ -400,6 +403,8 @@ contains
              call parametersFile%close      (                                              )
              !$ call hdf5Access%unset()
           else
+             call File_Unlock(fileLock)
+             call File_Lock(char(inputPath(pathTypeDataDynamic))//"largeScaleStructure/gravitationalLensingConvergenceTakahashi2011.hdf5",fileLock,lockIsShared=.false.)
              ! Create a root-finder to solve the parameters.
              finder=rootFinder(&
                   &            rootFunction                 =convergencePdfParameterSolver         , &
@@ -462,6 +467,7 @@ contains
              call parametersFile%close()
              !$ call hdf5Access%unset()
           end if
+          call File_Unlock(fileLock)
           ! Create a table. We fix the extrapolation for large scaled variances. In these cases, the convergence distribution is
           ! extremely narrow (effectively a delta-function) so it doesn't matter much what we do. If we do allow extrapolation, the
           ! values obtained for the parameter result in convergence distributions which have secondary peaks at κ≅2, which results in
