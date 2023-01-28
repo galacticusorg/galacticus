@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1674882117015,
+  "lastUpdate": 1674897007338,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
@@ -6820,6 +6820,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 4.62058430371848,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a8a286ec1628d80447bafa24fa50974574b3fbf7",
+          "message": "Merge pull request #365 from galacticusorg/takahashi2011FileLock\n\nAdd file locking to the `gravitationalLensingTakahashi2011` class to avoid conflicts between processes",
+          "timestamp": "2023-01-27T22:20:25-08:00",
+          "tree_id": "add031ae1efa8288047b8bb200decc3f61dca0fe",
+          "url": "https://github.com/galacticusorg/galacticus/commit/a8a286ec1628d80447bafa24fa50974574b3fbf7"
+        },
+        "date": 1674897006415,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 218.419,
+            "unit": "seconds",
+            "range": 0.0669096405610489
           }
         ]
       }
