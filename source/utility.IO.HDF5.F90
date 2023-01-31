@@ -901,7 +901,7 @@ contains
     return
   end function IO_HDF5_Character_Types
 
-  elemental subroutine hdf5VarDoubleDestructor(self)
+  impure elemental subroutine hdf5VarDoubleDestructor(self)
     !!{
     Destructor for the variable-length double type.
     !!}
@@ -912,7 +912,7 @@ contains
     return
   end subroutine hdf5VarDoubleDestructor
 
-  elemental subroutine hdf5VarInteger8Destructor(self)
+  impure elemental subroutine hdf5VarInteger8Destructor(self)
     !!{
     Destructor for the variable-length integer-8 type.
     !!}
