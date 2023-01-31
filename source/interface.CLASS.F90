@@ -147,6 +147,7 @@ contains
     use               :: ISO_Varying_String              , only : assignment(=)               , char               , extract       , len           , &
           &                                                       operator(//)                , operator(==)       , varying_string
     use               :: Input_Parameters                , only : inputParameters
+    use               :: MPI_Utilities                   , only : mpiSelf
     use               :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial
     use               :: Numerical_Interpolation         , only : GSL_Interp_cSpline
     !$ use            :: OMP_Lib                         , only : OMP_Get_Thread_Num
@@ -309,7 +310,11 @@ contains
        ! Construct input file for CLASS.
        call Get_Environment_Variable('HOSTNAME',hostName)
        workPath     =inputPath(pathTypeDataDynamic)//'largeScaleStructure/class_transfer_function_'//trim(hostName)//'_'//GetPID()
+       !$ workPath     =workPath     //'_'//OMP_Get_Thread_Num()
        !$ parameterFile=parameterFile//'_'//OMP_Get_Thread_Num()
+#ifdef USEMPI
+       workPath        =workPath     //'_'//mpiSelf%rankLabel()
+#endif
        parameterFile=workPath//'/parameters.ini'
        call Directory_Make(workPath)
        open(newunit=classParameterFile,file=char(parameterFile),status='unknown',form='formatted')
