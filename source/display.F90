@@ -154,35 +154,13 @@ contains
           call MPI_Comm_Rank(MPI_Comm_World,mpiRank ,iError)
           if (iError /= 0) mpiRank =0
           mpiDigitsMaximum=int(log10(float(mpiCount  )))+1
-          !![
-          <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-           <description>Internal file I/O in gfortran can be non-thread safe.</description>
-          </workaround>
-          !!]
-#ifdef THREADSAFEIO
-          !$omp critical(gfortranInternalIO)
-#endif
           write (threadHyperFormat,'(a,i1,a,i1,a)'  ) '(a,i',mpiDigitsMaximum,'.',mpiDigitsMaximum,',a,i1,a)'
           write (masterHyperFormat,'(a,i1,a,i1,a)'  ) '(a,i',mpiDigitsMaximum,'.',mpiDigitsMaximum,',a,a ,a)'
           write (threadFormat     ,threadHyperFormat) '("',mpiRank,':",i'        ,ompDigitsMaximum ,' ,a2,$)'
           write (masterFormat     ,masterHyperFormat) '("',mpiRank,':',repeat("M",ompDigitsMaximum),'",a2,$)'
-#ifdef THREADSAFEIO
-          !$omp end critical(gfortranInternalIO)
-#endif
 #else
-          !![
-          <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-           <description>Internal file I/O in gfortran can be non-thread safe.</description>
-          </workaround>
-          !!]
-#ifdef THREADSAFEIO
-          !$omp critical(gfortranInternalIO)
-#endif
           write (threadFormat     ,'(a,i1,a)'       ) '(i'           ,ompDigitsMaximum ,' ,a2,$)'
           write (masterFormat     ,'(a,a ,a)'       ) '("',repeat("M",ompDigitsMaximum),'",a2,$)'
-#ifdef THREADSAFEIO
-          !$omp end critical(gfortranInternalIO)
-#endif
 #endif
           ! Determine if stdout is connected to a file or pipe.
           stdOutIsFile=.not.stdOutIsATTY()
@@ -220,14 +198,6 @@ contains
     !$omp critical(Display_Lock)
     call initialize()
     if (showMessage(verbosity)) then
-       !![
-       <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-        <description>Internal file I/O in gfortran can be non-thread safe.</description>
-       </workaround>
-       !!]
-#ifdef THREADSAFEIO
-       !$omp critical(gfortranInternalIO)
-#endif
        !$ if (omp_in_parallel()) then
        !$    write (0,threadFormat) omp_get_thread_num(),": "
        !$ else
@@ -237,9 +207,6 @@ contains
        !$ if (omp_in_parallel()) threadNumber=omp_get_thread_num()+1
        write (0,indentationFormatNoNewLine(threadNumber)) '-> '
        write (0,'(a)') trim(message)
-#ifdef THREADSAFEIO
-       !$omp end critical(gfortranInternalIO)
-#endif
        !$ if (omp_in_parallel()) then
        !$    indentationLevel(omp_get_thread_num()+1)=indentationLevel(omp_get_thread_num()+1)+1
        !$ else
@@ -283,14 +250,6 @@ contains
        indentationLevel=max(indentationLevel-1,0)
        !$ end if
        call formatIndentationCreate()
-       !![
-       <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-        <description>Internal file I/O in gfortran can be non-thread safe.</description>
-       </workaround>
-       !!]
-#ifdef THREADSAFEIO
-       !$omp critical(gfortranInternalIO)
-#endif
        !$ if (omp_in_parallel()) then
        !$    write (0,threadFormat) omp_get_thread_num(),": "
        !$ else
@@ -300,9 +259,6 @@ contains
        !$ if (omp_in_parallel()) threadNumber=omp_get_thread_num()+1
        write (0,indentationFormatNoNewLine(threadNumber)) '<- '
        write (0,'(a)') trim(message)
-#ifdef THREADSAFEIO
-       !$omp end critical(gfortranInternalIO)
-#endif
     end if
     !$omp end critical(Display_Lock)
     return
@@ -322,14 +278,6 @@ contains
     call initialize()
     if (showMessage(verbosity)) then
        if (barVisible) call counterClearLockless()
-       !![
-       <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-        <description>Internal file I/O in gfortran can be non-thread safe.</description>
-       </workaround>
-       !!]
-#ifdef THREADSAFEIO
-       !$omp critical(gfortranInternalIO)
-#endif
        !$ if (omp_in_parallel()) then
        !$    write (0,threadFormat) omp_get_thread_num(),": "
        !$ else
@@ -338,9 +286,6 @@ contains
        threadNumber=1
        !$ if (omp_in_parallel()) threadNumber=omp_get_thread_num()+1
        write (0,indentationFormat(threadNumber)) trim(message)
-#ifdef THREADSAFEIO
-       !$omp end critical(gfortranInternalIO)
-#endif
        if (barVisible) call displayCounterLockless(barPercentage,.true.)
     end if
     !$omp end critical(Display_Lock)
@@ -362,14 +307,6 @@ contains
     call initialize()
     if (showMessage(verbosity)) then
        if (barVisible) call counterClearLockless()
-       !![
-       <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-        <description>Internal file I/O in gfortran can be non-thread safe.</description>
-       </workaround>
-       !!]
-#ifdef THREADSAFEIO
-       !$omp critical(gfortranInternalIO)
-#endif
        !$ if (omp_in_parallel()) then
        !$    write (0,threadFormat) omp_get_thread_num(),": "
        !$ else
@@ -378,9 +315,6 @@ contains
        threadNumber=1
        !$ if (omp_in_parallel()) threadNumber=omp_get_thread_num()+1
        write (0,indentationFormat(threadNumber)) char(message)
-#ifdef THREADSAFEIO
-       !$omp end critical(gfortranInternalIO)
-#endif
        if (barVisible) call displayCounterLockless(barPercentage,.true.)
     end if
     !$omp end critical(Display_Lock)
@@ -398,14 +332,6 @@ contains
 
     threadNumber=1
     !$ if (omp_in_parallel()) threadNumber=omp_get_thread_num()+1
-    !![
-    <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-     <description>Internal file I/O in gfortran can be non-thread safe.</description>
-    </workaround>
-    !!]
-#ifdef THREADSAFEIO
-    !$omp critical(gfortranInternalIO)
-#endif
     select case (indentationLevel(threadNumber)*indentSpaces)
     case (0)
        write (indentationFormat         (threadNumber),'(a)'     ) '(a)'
@@ -417,9 +343,6 @@ contains
        write (indentationFormat         (threadNumber),'(a,i2,a)') '(',indentationLevel(threadNumber)*indentSpaces,'x,a)'
        write (indentationFormatNoNewLine(threadNumber),'(a,i2,a)') '(',indentationLevel(threadNumber)*indentSpaces,'x,a,$)'
     end select
-#ifdef THREADSAFEIO
-    !$omp end critical(gfortranInternalIO)
-#endif
     !$ if (.not.omp_in_parallel()) then
     !$    indentationLevel          =indentationLevel          (1)
     !$    indentationFormat         =indentationFormat         (1)
@@ -462,20 +385,9 @@ contains
        majorCount=percentage/2
        minorCount=percentage-majorCount*2
        bar=repeat("=",majorCount)//repeat("-",minorCount)//repeat(" ",50-majorCount-minorCount)
-       !![
-       <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-        <description>Internal file I/O in gfortran can be non-thread safe.</description>
-       </workaround>
-       !!]
-#ifdef THREADSAFEIO
-       !$omp critical(gfortranInternalIO)
-#endif
        write (0,'(1x,i3,"% [",a50,"]",$)') percentage,bar
        ! For output to a file, add a newline, since we will not be deleting the bar.
        if (stdOutIsFile) write (0,*)
-#ifdef THREADSAFEIO
-       !$omp end critical(gfortranInternalIO)
-#endif
        barVisible   =.true.
        barPercentage=percentageComplete
     end if
@@ -508,20 +420,9 @@ contains
     ! If output is to a file we do not attempt to clear the bar (which is useful only on a TTY).
     if (stdOutIsFile) return
     if (showMessage(verbosity)) then
-       !![
-       <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-        <description>Internal file I/O in gfortran can be non-thread safe.</description>
-       </workaround>
-       !!]
-#ifdef THREADSAFEIO
-       !$omp critical(gfortranInternalIO)
-#endif
        write (0,'(a58,$)') repeat(char(8),58)
        write (0,'(a58,$)') repeat(" "    ,58)
        write (0,'(a58,$)') repeat(char(8),58)
-#ifdef THREADSAFEIO
-       !$omp end critical(gfortranInternalIO)
-#endif
     end if
     return
   end subroutine counterClearLockless

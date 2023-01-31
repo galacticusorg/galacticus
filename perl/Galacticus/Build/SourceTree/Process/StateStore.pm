@@ -6,7 +6,6 @@ use warnings;
 use utf8;
 use Cwd;
 use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
-use Galacticus::Build::SourceTree::Process::Utils qw(performIO);
 use Galacticus::Build::SourceTree::Process::SourceIntrospection;
 use Galacticus::Build::SourceTree::Parse::Declarations;
 
@@ -29,7 +28,7 @@ sub Process_StateStore {
 	    my @variables = split(" ",$node->{'directive'}->{'variables'});
 	    my $code;
 	    foreach my $variable ( @variables ) {
-		$code .= &performIO("write (stateFile) associated(".$variable.")\n");
+		$code .= "write (stateFile) associated(".$variable.")\n";
 		$code .= "if (associated(".$variable.")) call ".$variable."%stateStore(stateFile,gslStateFile,stateOperationID)\n";
 	    }
 	    # Create a new node.
@@ -48,7 +47,7 @@ sub Process_StateStore {
 	    my @variables = split(" ",$node->{'directive'}->{'variables'});
 	    my $code;
 	    foreach my $variable ( @variables ) {
-		$code .= &performIO("read (stateFile) wasAllocated_\n");
+		$code .= "read (stateFile) wasAllocated_\n";
 		$code .= "if (wasAllocated_) then\n";
 		$code .= "   if (.not.associated(".$variable.")) call Error_Report(\"'".$variable."' was stored, but is now not allocated\"//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
 		$code .= "   call ".$variable."%stateRestore(stateFile,gslStateFile,stateOperationID)\n";

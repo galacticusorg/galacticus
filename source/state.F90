@@ -106,34 +106,12 @@ contains
        fileNameLog =fileNameLog_
 #endif
        if (present(logMessage)) then
-          !![
-          <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-           <description>Internal file I/O in gfortran can be non-thread safe.</description>
-          </workaround>
-          !!]
-#ifdef THREADSAFEIO
-          !$omp critical(gfortranInternalIO)
-#endif
           open(newunit=stateUnit,file=char(fileNameLog),form='formatted',status='unknown',access='append')
           write (stateUnit,*) char(logMessage)
           close(stateUnit)
-#ifdef THREADSAFEIO
-          !$omp end critical(gfortranInternalIO)
-#endif
        end if
 
-       !![
-       <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-        <description>Internal file I/O in gfortran can be non-thread safe.</description>
-       </workaround>
-       !!]
-#ifdef THREADSAFEIO
-       !$omp critical(gfortranInternalIO)
-#endif
        open(newunit=stateUnit,file=char(fileName),form='unformatted',status='unknown')
-#ifdef THREADSAFEIO
-       !$omp end critical(gfortranInternalIO)
-#endif
        gslStateFile=gslFileOpen(char(fileNameGSL),'w')
 
        !$omp critical(stateOperationID)
@@ -153,33 +131,11 @@ contains
        !!]
 
        ! Close the state files.
-       !![
-       <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-        <description>Internal file I/O in gfortran can be non-thread safe.</description>
-       </workaround>
-       !!]
-#ifdef THREADSAFEIO
-       !$omp critical(gfortranInternalIO)
-#endif
        close(stateUnit)
-#ifdef THREADSAFEIO
-       !$omp end critical(gfortranInternalIO)
-#endif
        call gslFileClose(gslStateFile)
 
        ! Flush standard output to ensure that any output log has a record of where the code reached at the last state store.
-       !![
-       <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-        <description>Internal file I/O in gfortran can be non-thread safe.</description>
-       </workaround>
-       !!]
-#ifdef THREADSAFEIO
-       !$omp critical(gfortranInternalIO)
-#endif
        call Flush(0)
-#ifdef THREADSAFEIO
-       !$omp end critical(gfortranInternalIO)
-#endif
 
     end if
     return
@@ -240,18 +196,7 @@ contains
              fileName    =fileName_
              fileNameGSL =fileNameGSL_
 #endif
-             !![
-             <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-              <description>Internal file I/O in gfortran can be non-thread safe.</description>
-             </workaround>
-             !!]
-#ifdef THREADSAFEIO
-             !$omp critical(gfortranInternalIO)
-#endif
              open(newunit=stateUnit,file=char(fileName),form='unformatted',status='old')
-#ifdef THREADSAFEIO
-             !$omp end critical(gfortranInternalIO)
-#endif
              gslStateFile=gslFileOpen(char(fileNameGSL),'r')
              
              !$omp critical(stateOperationID)
@@ -271,18 +216,7 @@ contains
              !!]
       
              ! Close the state files.
-             !![
-             <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-	      <description>Internal file I/O in gfortran can be non-thread safe.</description>
-             </workaround>
-             !!]
-#ifdef THREADSAFEIO
-             !$omp critical(gfortranInternalIO)
-#endif
              close(stateUnit)
-#ifdef THREADSAFEIO
-             !$omp end critical(gfortranInternalIO)
-#endif
              call gslFileClose(gslStateFile)
 
           end if
