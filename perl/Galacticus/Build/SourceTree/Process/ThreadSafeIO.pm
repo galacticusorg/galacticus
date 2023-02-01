@@ -62,6 +62,8 @@ sub Lock_IO {
 		$newContent .= $rawLine;
 	    }
 	    close($content);
+	    $newContent .= "    !\$omp end critical(gfortranInternalIO)\n"
+		if ( $inIO && ! $inCritical );
 	    $node->{'content'} = $newContent;
 	}
 	$node = &Galacticus::Build::SourceTree::Walk_Tree($node,\$depth);
