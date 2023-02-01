@@ -237,15 +237,21 @@ contains
     double precision                                           :: massHost                                   , massSatellite   , &
          &                                                        propertyValue
     logical                                                    :: massHostSet                                , massSatelliteSet
-
+    character       (len=32     )                              :: nodeName
+    
     ! Get the radius.
     do i=1,size(propertyNames)
+       !$omp critical (FoX_DOM_Access)
        call XML_Get_Elements_By_Tag_Name(keplerOrbitDefinition,trim(propertyNames(i)),propertyList)
+       !$omp end critical (FoX_DOM_Access)
        if (size(propertyList) >  1) call Error_Report('multiple '//trim(propertyNames(i))//' values specified'//{introspection:location})
        if (size(propertyList) == 1) then
+          !$omp critical (FoX_DOM_Access)
           property => propertyList(0)%element
           call extractDataContent(property,propertyValue)
-          select case (getNodeName(property))
+          nodeName=getNodeName(property)
+          !$omp end critical (FoX_DOM_Access)
+          select case (trim(nodeName))
           case ( 'radius'             )
              call self%            radiusSet(propertyValue)
           case ( 'velocityRadial'     )
