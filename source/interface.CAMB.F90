@@ -129,7 +129,8 @@ contains
     !!}
     use               :: Cosmology_Parameters            , only : cosmologyParametersClass    , hubbleUnitsLittleH
     use               :: File_Utilities                  , only : Count_Lines_In_File         , Directory_Make     , File_Exists   , File_Lock     , &
-          &                                                       File_Path                   , File_Remove        , File_Unlock   , lockDescriptor
+         &                                                        File_Path                   , File_Remove        , File_Unlock   , lockDescriptor, &
+         &                                                        File_Name_Temporary
     use               :: Error                           , only : Error_Report
     use               :: Input_Paths                     , only : inputPath                   , pathTypeDataDynamic
     use               :: HDF5                            , only : hsize_t
@@ -140,9 +141,12 @@ contains
     use               :: ISO_Varying_String              , only : assignment(=)               , char               , extract       , len           , &
           &                                                       operator(//)                , operator(==)       , varying_string
     use               :: Input_Parameters                , only : inputParameters
+#ifdef USEMPI
+    use               :: MPI_Utilities                   , only : mpiSelf
+#endif
     use               :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial
     use               :: Numerical_Interpolation         , only : GSL_Interp_cSpline
-    !$ use            :: OMP_Lib                         , only : OMP_Get_Thread_Num
+    !$ use            :: OMP_Lib                         , only : OMP_Get_Thread_Num          , OMP_In_Parallel
     use               :: Sorting                         , only : sortIndex
     use               :: String_Handling                 , only : String_C_To_Fortran         , operator(//)
     use               :: System_Command                  , only : System_Command_Do
@@ -167,6 +171,9 @@ contains
     character       (len=255                 )                                  :: hostName                                , cambTransferLine
     type            (varying_string          )                                  :: cambPath                                , cambVersion             , &
          &                                                                         parameterFile
+#ifdef USEMPI
+    type            (varying_string          )                                  :: mpiRankLabel
+#endif
     double precision                                                            :: wavenumberCAMB
     integer                                                                     :: status                                  , cambParameterFile       , &
          &                                                                         i                                       , cambTransferFile        , &
@@ -176,7 +183,8 @@ contains
          &                                                                         extrapolationWavenumberGroup            , extrapolationGroup      , &
          &                                                                         speciesGroup
     character       (len=32                  )                                  :: parameterLabel                          , datasetName             , &
-         &                                                                         redshiftLabel                           , indexLabel
+         &                                                                         redshiftLabel                           , indexLabel              , &
+         &                                                                         fileSuffix
     type            (varying_string          )                                  :: uniqueLabel                             , workPath                , &
          &                                                                         transferFileName                        , fileName_
     type            (inputParameters         )                                  :: descriptor
@@ -302,9 +310,22 @@ contains
        ! Construct input file for CAMB.
        call Get_Environment_Variable('HOSTNAME',hostName)
        workPath     =inputPath(pathTypeDataDynamic)//'largeScaleStructure/'
-       parameterFile=workPath//'transfer_function_parameters'//'_'//trim(hostName)//'_'//GetPID()
-       !$ parameterFile=parameterFile//'_'//OMP_Get_Thread_Num()
+       parameterFile=File_Name_Temporary('transfer_function_parameters',char(workPath))
        parameterFile=parameterFile//'.txt'
+#ifdef USEMPI
+       mpiRankLabel=mpiSelf%rankLabel()
+       !$ if (OMP_In_Parallel()) then
+       !$ write (fileSuffix,'(a1,i8.8,a1,i4.4,a1,a)') '.',GetPID(),".",OMP_Get_Thread_Num(),".",char(mpiRankLabel)
+       !$ else
+       write    (fileSuffix,'(a1,i8.8,        a1,a)') '.',GetPID()                         ,".",char(mpiRankLabel)
+       !$ end if
+#else
+       !$ if (OMP_In_Parallel()) then
+       !$ write (fileSuffix,'(a1,i8.8,a1,i4.4     )') '.',GetPID(),".",OMP_Get_Thread_Num()
+       !$ else
+       write    (fileSuffix,'(a1,i8.8             )') '.',GetPID()
+       !$ end if
+#endif
        call Directory_Make(workPath)
        open(newunit=cambParameterFile,file=char(parameterFile),status='unknown',form='formatted')
        write (cambParameterFile,'(a,1x,"=",1x,a    )') 'output_root                  ','camb'
@@ -362,9 +383,9 @@ contains
        write (cambParameterFile,'(a,1x,"=",1x,a    )') 'transfer_interp_matterpower  ','T'
        do i=countRedshiftsUnique,1,-1
           write (indexLabel,'(i4)') countRedshiftsUnique+1-i
-          write (cambParameterFile,'(a,a,a,1x,"=",1x,a    )') 'transfer_redshift('   ,trim(adjustl(indexLabel)),')'               ,trim(adjustl(redshiftLabelsCombined(i)))
-          write (cambParameterFile,'(a,a,a,1x,"=",1x,a,a,a)') 'transfer_filename('   ,trim(adjustl(indexLabel)),')','transfer_'   ,trim(adjustl(redshiftLabelsCombined(i))),'.dat'
-          write (cambParameterFile,'(a,a,a,1x,"=",1x,a,a,a)') 'transfer_matterpower(',trim(adjustl(indexLabel)),')','matterpower_',trim(adjustl(redshiftLabelsCombined(i))),'.dat'
+          write (cambParameterFile,'(a,a,a,1x,"=",1x,a      )') 'transfer_redshift('   ,trim(adjustl(indexLabel)),')'               ,trim(adjustl(redshiftLabelsCombined(i)))
+          write (cambParameterFile,'(a,a,a,1x,"=",1x,a,a,a,a)') 'transfer_filename('   ,trim(adjustl(indexLabel)),')','transfer_'   ,trim(adjustl(redshiftLabelsCombined(i))),trim(adjustl(fileSuffix)),'.dat'
+          write (cambParameterFile,'(a,a,a,1x,"=",1x,a,a,a,a)') 'transfer_matterpower(',trim(adjustl(indexLabel)),')','matterpower_',trim(adjustl(redshiftLabelsCombined(i))),trim(adjustl(fileSuffix)),'.dat'
        end do
        write (cambParameterFile,'(a,1x,"=",1x,a    )') 'scalar_output_file           ','scalCls.dat'
        write (cambParameterFile,'(a,1x,"=",1x,a    )') 'vector_output_file           ','vecCls.dat'
@@ -412,7 +433,7 @@ contains
        allocate(wavenumbers      (0    ))
        allocate(transferFunctions(0,0,0))
        do j=1,countRedshiftsUnique
-          transferFileName='camb_transfer_'//trim(adjustl(redshiftLabelsCombined(j)))//'.dat'
+          transferFileName='camb_transfer_'//trim(adjustl(redshiftLabelsCombined(j)))//trim(adjustl(fileSuffix))//'.dat'
           if (j == 1) then
              countWavenumber=Count_Lines_In_File(transferFileName,"#")
              if (allocated(wavenumbers      )) deallocate(wavenumbers      )
@@ -438,8 +459,8 @@ contains
        ! Remove temporary files.
        call File_Remove(parameterFile)
        do i=1,countRedshiftsUnique
-          call File_Remove('camb_transfer_'   //trim(adjustl(redshiftLabelsCombined(i)))//'.dat')
-          call File_Remove('camb_matterpower_'//trim(adjustl(redshiftLabelsCombined(i)))//'.dat')
+          call File_Remove('camb_transfer_'   //trim(adjustl(redshiftLabelsCombined(i)))//trim(adjustl(fileSuffix))//'.dat')
+          call File_Remove('camb_matterpower_'//trim(adjustl(redshiftLabelsCombined(i)))//trim(adjustl(fileSuffix))//'.dat')
        end do
        ! Convert from CAMB units to Galacticus units.
        wavenumbers=+wavenumbers                                                   &
