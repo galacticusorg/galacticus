@@ -75,10 +75,10 @@
    contains
      !![
      <methods>
-       <method description="Compute the cooling function due to H--H$_2$." method="coolingFunctionH_H2" />
-       <method description="Compute the cooling function due to H$_2^+$--e$^-$." method="coolingFunctionH2Plus_Electron" />
-       <method description="Compute the cooling function due to H--H$_2^+$." method="coolingFunctionH_H2Plus" />
-       <method description="Compute common factors." method="commonFactors" />
+       <method description="Compute the cooling function due to H--H$_2$."       method="coolingFunctionH_H2"           />
+       <method description="Compute the cooling function due to H$_2^+$--e$^-$." method="coolingFunctionH2Plus_Electron"/>
+       <method description="Compute the cooling function due to H--H$_2^+$."     method="coolingFunctionH_H2Plus"       />
+       <method description="Compute common factors."                             method="commonFactors"                 />
      </methods>
      !!]
      procedure :: coolingFunction                    => molecularHydrogenGalliPallaCoolingFunction
@@ -100,27 +100,34 @@
   end interface coolingFunctionMolecularHydrogenGalliPalla
 
   ! Parameters for Hollenbach & McKee cooling function fits.
-  double precision                , parameter :: rotationalLambda1         =9.50d-22
-  double precision                , parameter :: rotationalLambda2         =3.00d-24
-  double precision                , parameter :: rotationalTemperature1    =0.13d+00
-  double precision                , parameter :: rotationalTemperature2    =0.51d+00
-  double precision                , parameter :: rotationalExponent1       =3.76d+00
-  double precision                , parameter :: rotationalExponent2       =2.10d+00
-  double precision                , parameter :: rotationalCoefficient1    =0.12d+00
-  double precision                , parameter :: vibrationalLambda1        =6.70d-19
-  double precision                , parameter :: vibrationalLambda2        =1.60d-18
-  double precision                , parameter :: vibrationalTemperature1   =5.86d+00
-  double precision                , parameter :: vibrationalTemperature2   =1.17d+01
+  double precision                , parameter :: rotationalLambda1           =9.50d-22
+  double precision                , parameter :: rotationalLambda2           =3.00d-24
+  double precision                , parameter :: rotationalTemperature1      =0.13d+00
+  double precision                , parameter :: rotationalTemperature2      =0.51d+00
+  double precision                , parameter :: rotationalExponent1         =3.76d+00
+  double precision                , parameter :: rotationalExponent2         =2.10d+00
+  double precision                , parameter :: rotationalCoefficient1      =0.12d+00
+  double precision                , parameter :: vibrationalLambda1          =6.70d-19
+  double precision                , parameter :: vibrationalLambda2          =1.60d-18
+  double precision                , parameter :: vibrationalTemperature1     =5.86d+00
+  double precision                , parameter :: vibrationalTemperature2     =1.17d+01
 
   ! Parameters for low-density limit cooling function.
-  double precision, dimension(0:4), parameter :: lowDensityLimitCoefficient=[-103.0000d0,+97.59000d0,-48.05000d+0,+10.8000d0,-0.9032d0]
+  double precision, dimension(0:4), parameter :: lowDensityLimitCoefficient  =[-103.0000d0,+97.59000d0,-48.05000d+0,+10.8000d0,-0.9032d0]
 
   ! Parameters for H₂⁺ - e⁻ cooling function.
-  double precision, dimension(0:2), parameter :: H2PlusElectronCoefficient =[ -33.3299d0, +5.56465d0, -4.67461d-1                     ]
+  double precision, dimension(0:2), parameter :: H2PlusElectronCoefficient   =[ -33.3299d0, +5.56465d0, -4.67461d-1                     ]
 
   ! Parameters for H₂⁺ - H cooling function.
-  double precision, dimension(0:2), parameter :: H2PlusHCoefficient        =[ -35.2804d0, +5.86234d0, -5.12276d-1                     ]
+  double precision, dimension(0:2), parameter :: H2PlusHCoefficient          =[ -35.2804d0, +5.86234d0, -5.12276d-1                     ]
 
+  ! Maximum temperature for this cooling function. Above this we assume molecular hydrogen will be dissociated, and the rate
+  ! coefficients are, in any case, not valid in this regime.
+  double precision                , parameter :: temperatureMaximum          =1.00d+06
+  
+  ! Minimum hydrogen density for which we will attempt to compute cooling functions.
+  double precision                , parameter :: numberDensityHydrogenMinimum=1.00d-20
+  
 contains
 
   function molecularHydrogenGalliPallaConstructorParameters(parameters) result(self)
@@ -183,8 +190,8 @@ contains
     class           (radiationFieldClass                       ), intent(inout) :: radiation
     !$GLC attributes unused :: node, radiation, gasAbundances
 
-    ! Check if the hydrogen density is positive.
-    if (numberDensityHydrogen > 0.0d0) then
+    ! Check if the hydrogen density is sufficiently large and temperature is below the maximum.
+    if (numberDensityHydrogen > numberDensityHydrogenMinimum .and. temperature < temperatureMaximum) then
        molecularHydrogenGalliPallaCoolingFunction=+self%coolingFunctionH_H2           (numberDensityHydrogen,temperature,chemicalDensities) & ! H   - H₂ cooling function.
             &                                     +self%coolingFunctionH2Plus_Electron(                      temperature,chemicalDensities) & ! H₂⁺ - e⁻ cooling function.
             &                                     +self%coolingFunctionH_H2Plus       (                      temperature,chemicalDensities)   ! H₂⁺ - H  cooling function.
@@ -238,8 +245,8 @@ contains
          &                                                                         coolingFunctionCumulative
     !$GLC attributes unused :: node, radiation, gasAbundances
 
-    ! Check if the hydrogen density is positive.
-    if (numberDensityHydrogen > 0.0d0) then
+    ! Check if the hydrogen density is sufficiently large and temperature is below the maximum.
+    if (numberDensityHydrogen > numberDensityHydrogenMinimum .and. temperature < temperatureMaximum) then
        ! Initialize cumulative cooling function to zero.
        coolingFunctionCumulative=0.0d0
        ! H - H₂ cooling function.
@@ -316,8 +323,8 @@ contains
          &                                                                         coolingFunctionCumulative
     !$GLC attributes unused :: node, gasAbundances, radiation
 
-    ! Check if the hydrogen density is positive.
-    if (numberDensityHydrogen > 0.0d0) then
+    ! Check if the hydrogen density is sufficiently large and temperature is below the maximum.
+    if (numberDensityHydrogen > numberDensityHydrogenMinimum .and. temperature < temperatureMaximum) then
        coolingFunctionCumulative=0.0d0
        ! H - H₂ cooling function.
        coolingFunction          =+self%coolingFunctionH_H2(numberDensityHydrogen,temperature,chemicalDensities)

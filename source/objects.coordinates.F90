@@ -44,11 +44,15 @@ module Coordinates
    contains
      !![
      <methods>
-       <method description="Return the coordinates in a Cartesian system as a 3-element array." method="toCartesian" />
-       <method description="Set the coordinates from a Cartesian system specified as a 3-element array." method="fromCartesian" />
-       <method description="Return the cylindrical radial coordinate." method="rCylindrical" />
-       <method description="Return the spherical radial coordinate." method="rSpherical" />
-       <method description="Return the square of the spherical radial coordinate." method="rSphericalSquared" />
+       <method description="Return the coordinates in a Cartesian system as a 3-element array."          method="toCartesian"      />
+       <method description="Set the coordinates from a Cartesian system specified as a 3-element array." method="fromCartesian"    />
+       <method description="Return the cylindrical radial coordinate."                                   method="rCylindrical"     />
+       <method description="Return the spherical radial coordinate."                                     method="rSpherical"       />
+       <method description="Return the square of the spherical radial coordinate."                       method="rSphericalSquared"/>
+       <method description="Multiply the coordinate by a scalar."                                        method="operator(*)"      />
+       <method description="Divide the coordinate by a scalar."                                          method="operator(/)"      />
+       <method description="Multiply the coordinate by a scalar."                                        method="scalarMultiply"   />
+       <method description="Divide the coordinate by a scalar."                                          method="scalarDivide"     />
      </methods>
      !!]
      procedure                                      :: toCartesian       => Coordinates_Null_To
@@ -69,12 +73,12 @@ module Coordinates
    contains
      !![
      <methods>
-       <method description="Get the $x$-coordinate." method="x" />
-       <method description="Get the $y$-coordinate." method="y" />
-       <method description="Get the $z$-coordinate." method="z" />
-       <method description="set the $x$-coordinate." method="xSet" />
-       <method description="set the $y$-coordinate." method="ySet" />
-       <method description="set the $z$-coordinate." method="zSet" />
+       <method description="Get the $x$-coordinate." method="x"   />
+       <method description="Get the $y$-coordinate." method="y"   />
+       <method description="Get the $z$-coordinate." method="z"   />
+       <method description="set the $x$-coordinate." method="xSet"/>
+       <method description="set the $y$-coordinate." method="ySet"/>
+       <method description="set the $z$-coordinate." method="zSet"/>
      </methods>
      !!]
      procedure :: toCartesian       => Coordinates_Cartesian_To_Cartesian

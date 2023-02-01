@@ -107,6 +107,8 @@ sub Process_ClassDocumentation {
 								if ( lc($methodName) eq lc($functionName) ) {
 								    $functionName = $boundFunction;
 								}
+							    } elsif ( lc($siblingFunction->{'variables'}->[0]) eq lc($functionName) && defined($siblingFunction->{'type'}) && grep {$_ eq "deferred"} @{$siblingFunction->{'attributes'}} ) {
+								$functionName = $siblingFunction->{'type'};
 							    }
 							}
 						    }

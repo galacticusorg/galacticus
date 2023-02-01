@@ -27,22 +27,30 @@ program Test_Interpolation
   !!}
   use            :: Display                , only : displayVerbositySet         , verbosityLevelStandard
   use, intrinsic :: ISO_C_Binding          , only : c_size_t
-  use            :: Numerical_Interpolation, only : interpolator
+  use            :: Numerical_Interpolation, only : interpolator                , interpolator2D
   use            :: Table_Labels           , only : extrapolationTypeExtrapolate, extrapolationTypeFix
   use            :: Unit_Tests             , only : Assert                      , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish, &
           &                                         compareGreaterThan          , compareLessThan
   implicit none
-  type            (interpolator), allocatable   :: interpolator_
-  double precision              , dimension(10) :: xArray       =[1.0d0,3.0d0,3.3d0,4.3d0,6.7d0,7.2d0,8.9d0,9.1d0,12.0d0,13.0d0]
-  double precision              , dimension(10) :: yArray       =[2.0d0,3.0d0,-23.0d0,4.0d0,6.0d0,-1.0d0,-5.0d0,-0.1d0,5.0d0,9.0d0]
-  double precision                              :: x                                                                               , y
-  integer         (c_size_t    )                :: i
+  type            (interpolator  ), allocatable     :: interpolator_
+  type            (interpolator2D), allocatable     :: interpolator2D_
+  double precision                , dimension(  10) :: xArray         =[1.0d0,3.0d0,  3.3d0,4.3d0,6.7d0, 7.2d0, 8.9d0, 9.1d0,12.0d0,13.0d0]
+  double precision                , dimension(  10) :: yArray         =[2.0d0,3.0d0,-23.0d0,4.0d0,6.0d0,-1.0d0,-5.0d0,-0.1d0, 5.0d0, 9.0d0]
+  double precision                , dimension(   3) :: x2Array        =[1.0d0,3.0d0,4.3d0]
+  double precision                , dimension(   3) :: y2Array        =[2.0d0,3.0d0,6.0d0]
+  double precision                , dimension(3, 3) :: z2Array        =reshape([1.0d0,2.0d0,3.0d0,4.0d0,5.0d0,6.0d0,7.0d0,8.0d0,9.0d0],[3,3])
+  double precision                                  :: x                                                                                     , y, &
+       &                                               z
+  integer         (c_size_t      )                  :: i
   
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Numerical interpolation")
+
+  ! Begin tests of 1D interpolator.
+  call Unit_Tests_Begin_Group("1D interpolator")
 
   ! Test location.
   allocate(interpolator_)
@@ -84,6 +92,24 @@ program Test_Interpolation
   y=interpolator_%interpolate(x)
   deallocate(interpolator_)
   call Assert("fixed extrapolation",y,9.0d0)
+
+  ! Done 1D.
+  call Unit_Tests_End_Group()
+
+  ! Begin tests of 2D interpolator.
+  call Unit_Tests_Begin_Group("2D interpolator")
+
+  ! Test interpolations.
+  allocate(interpolator2D_)
+  interpolator2D_=interpolator2D(x2Array,y2Array,z2Array)
+  x=3.4d0
+  y=2.7d0
+  z=interpolator2D_%interpolate(x,y)
+  deallocate(interpolator2D_)
+  call Assert("linear interpolation",z,4.407692307692d0,relTol=1.0d-6)
+
+  ! Done 2D.
+  call Unit_Tests_End_Group()
 
   ! End unit tests.
   call Unit_Tests_End_Group()

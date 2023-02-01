@@ -29,6 +29,7 @@
   !![
   <mergerTreeBuildMasses name="mergerTreeBuildMassesUnion">
    <description>A merger tree masses class which constructs the union of other classes.</description>
+   <linkedList type="mergerTreeBuildMassesList" variable="mergerTreeBuildMasses_" next="next" object="mergerTreeBuildMasses_" objectType="mergerTreeBuildMassesClass"/>
   </mergerTreeBuildMasses>
   !!]
   type, extends(mergerTreeBuildMassesClass) :: mergerTreeBuildMassesUnion
@@ -74,7 +75,7 @@ contains
        mergerTreeBuildMasses_%mergerTreeBuildMasses_ => mergerTreeBuildMasses(parameters,i)
     end do
     !![
-    <inputParametersValidate source="parameters"/>
+    <inputParametersValidate source="parameters" multiParameters="mergerTreeBuildMasses"/>
     !!]
     return
   end function unionConstructorParameters
@@ -165,18 +166,18 @@ contains
           useWeight=allocated(weightMember)
           allocate(mass,mold=massMaximumMember)
           if (useWeight) then
-             allocate(weight,mold=weightMember)
+             allocate(weight     ,mold=     weightMember)
           else
-             allocate(massMaximum,mold=massMaximumMember)
+             allocate(massMinimum,mold=massMinimumMember)
              allocate(massMaximum,mold=massMaximumMember)
           end if
        end if
-       mass(treeCount:treeCount+size(massMember))=massMember
+       mass          (treeCount+1_c_size_t:treeCount+size(       massMember))=       massMember
        if (useWeight) then
-          weight(treeCount:treeCount+size(weightMember))=weightMember
+          weight     (treeCount+1_c_size_t:treeCount+size(     weightMember))=     weightMember
        else
-          massMinimum(treeCount:treeCount+size(massMinimumMember))=massMinimumMember
-          massMaximum(treeCount:treeCount+size(massMaximumMember))=massMaximumMember
+          massMinimum(treeCount+1_c_size_t:treeCount+size(massMinimumMember))=massMinimumMember
+          massMaximum(treeCount+1_c_size_t:treeCount+size(massMaximumMember))=massMaximumMember
        end if
        treeCount=treeCount+size(massMember)
        mergerTreeBuildMasses_ => mergerTreeBuildMasses_%next
