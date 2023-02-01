@@ -227,18 +227,7 @@ contains
     type     (varying_string    )                :: Concatenate_VarStr_Integer
     character(len=maxIntegerSize)                :: intString
 
-    !![
-    <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-     <description>Internal file I/O in gfortran can be non-thread safe.</description>
-    </workaround>
-    !!]
-#ifdef THREADSAFEIO
-    !$omp critical(gfortranInternalIO)
-#endif
     write (intString,maxIntegerFormat) intVariable
-#ifdef THREADSAFEIO
-    !$omp end critical(gfortranInternalIO)
-#endif
     Concatenate_VarStr_Integer=varStrVariable//trim(adjustl(intString))
     return
   end function Concatenate_VarStr_Integer
@@ -255,18 +244,7 @@ contains
     type     (varying_string    )                :: Concatenate_VarStr_Integer8
     character(len=maxIntegerSize)                :: intString
 
-    !![
-    <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-     <description>Internal file I/O in gfortran can be non-thread safe.</description>
-    </workaround>
-    !!]
-#ifdef THREADSAFEIO
-    !$omp critical(gfortranInternalIO)
-#endif
     write (intString,maxIntegerFormat) intVariable
-#ifdef THREADSAFEIO
-    !$omp end critical(gfortranInternalIO)
-#endif
     Concatenate_VarStr_Integer8=varStrVariable//trim(adjustl(intString))
     return
   end function Concatenate_VarStr_Integer8

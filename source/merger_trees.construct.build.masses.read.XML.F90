@@ -125,7 +125,13 @@ contains
     integer                                                                                  :: ioErr
 
     !$omp critical (FoX_DOM_Access)
+#ifdef THREADSAFEIO
+    !$omp critical(gfortranInternalIO)
+#endif
     doc => parseFile(char(File_Name_Expand(char(self%fileName))),iostat=ioErr)
+#ifdef THREADSAFEIO
+    !$omp end critical(gfortranInternalIO)
+#endif
     if (ioErr /= 0) call Error_Report('unable to read or parse merger tree root mass file'//{introspection:location})
     rootNode => getDocumentElement(doc)
     ! Read all tree masses.

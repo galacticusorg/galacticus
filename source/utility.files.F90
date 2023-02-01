@@ -336,44 +336,11 @@ contains
     !!]
 
     if (sync_) then
-       !![
-       <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-        <description>Internal file I/O in gfortran can be non-thread safe.</description>
-       </workaround>
-       !!]
-#ifdef THREADSAFEIO
-       !$omp critical(gfortranInternalIO)
-#endif
        open(newUnit=fileUnit,file=char(lock%fileName),status='unknown',iostat=errorStatus)
-#ifdef THREADSAFEIO
-       !$omp end critical(gfortranInternalIO)
-#endif
        if (errorStatus == 0) then
-          !![
-          <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-           <description>Internal file I/O in gfortran can be non-thread safe.</description>
-          </workaround>
-          !!]
-#ifdef THREADSAFEIO
-          !$omp critical(gfortranInternalIO)
-#endif
           fileDescriptor=fnum(fileUnit)
-#ifdef THREADSAFEIO
-          !$omp end critical(gfortranInternalIO)
-#endif
           if (fsync(fileDescriptor) /= 0) call Error_Report('error syncing file at unlock'//{introspection:location})
-          !![
-          <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-           <description>Internal file I/O in gfortran can be non-thread safe.</description>
-          </workaround>
-          !!]
-#ifdef THREADSAFEIO
-          !$omp critical(gfortranInternalIO)
-#endif
           close(fileUnit)
-#ifdef THREADSAFEIO
-          !$omp end critical(gfortranInternalIO)
-#endif
       end if
     end if
     ! First unlock the file.

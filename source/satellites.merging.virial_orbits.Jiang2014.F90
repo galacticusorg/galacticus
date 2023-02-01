@@ -337,7 +337,7 @@ contains
              self%velocityTotalRootMeanSquared_(i,j)=sqrt(integratorTotal     %integrate(limitLower,limitUpper))
              ! Store this table for later reuse.
              !$omp critical(virialOrbitJiang2014ReUse)
-             previousInitialized(i,j)=.true.
+             previousInitialized                 (i,j)=.true.
              previousB                           (i,j)=self%B                            (i,j)
              previousGamma                       (i,j)=self%gamma                        (i,j)
              previousSigma                       (i,j)=self%sigma                        (i,j)

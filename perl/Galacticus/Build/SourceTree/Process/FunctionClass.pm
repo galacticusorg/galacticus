@@ -18,7 +18,6 @@ use Fortran::Utils;
 use Text::Template 'fill_in_string';
 use Storable qw(dclone);
 use Galacticus::Build::SourceTree::Process::SourceIntrospection;
-use Galacticus::Build::SourceTree::Process::Utils qw(performIO);
 use Galacticus::Build::SourceTree::Process::FunctionClass::Utils;
 use Galacticus::Build::SourceTree::Parse::Declarations;
 
@@ -612,7 +611,7 @@ sub Process_FunctionClass {
 							$descriptorCode .= "  parameterLabel='false'\n";
 							$descriptorCode .= "end if\n";
 						    } else {
-							$descriptorCode .= &performIO("write (parameterLabel,'(".$format.")') self%".$parameter->{'name'}."(".join(",",map {"i".$_} 1..$rank).")\n");
+							$descriptorCode .= "write (parameterLabel,'(".$format.")') self%".$parameter->{'name'}."(".join(",",map {"i".$_} 1..$rank).")\n";
 						    }
 						    $descriptorCode .= " parameterValues=parameterValues//trim(adjustl(parameterLabel))\n";
 						}
@@ -636,7 +635,7 @@ sub Process_FunctionClass {
 							$descriptorCode .= "  parameterLabel='false'\n";
 							$descriptorCode .= "end if\n";
 						    } else {
-							$descriptorCode .= &performIO("write (parameterLabel,'(".$format.")') self%".$parameter->{'name'}."\n");
+							$descriptorCode .= "write (parameterLabel,'(".$format.")') self%".$parameter->{'name'}."\n";
 						    }
 						    $descriptorCode .= "call ".$parameter->{'source'}."%addParameter('".$parameter->{'inputName'}."',trim(adjustl(parameterLabel)))\n";
 						}
@@ -664,7 +663,7 @@ sub Process_FunctionClass {
 						    $descriptorCode .= " parameterValues=parameterValues//'['\n";
 						    $descriptorCode .= "do i".$i."=lbound(self%".$parameter->{'name'}.",dim=".$i."),ubound(self%".$parameter->{'name'}.",dim=".$i.")\n";
 						}
-						$descriptorCode .= &performIO("write (parameterLabel,'(".$format.")') self%".$parameter->{'name'}."(".join(",",map {"i".$_} 1..$rank).")%ID\n");
+						$descriptorCode .= "write (parameterLabel,'(".$format.")') self%".$parameter->{'name'}."(".join(",",map {"i".$_} 1..$rank).")%ID\n";
 						$descriptorCode .= " parameterValues=parameterValues//trim(adjustl(parameterLabel))\n";
 						$descriptorCode .= " if (i".$rank." /= size(self%".$parameter->{'name'}.",dim=".$rank.")) parameterValues=parameterValues//','\n";
 						for(my $i=1;$i<=$rank;++$i) {
@@ -676,7 +675,7 @@ sub Process_FunctionClass {
 						$descriptorCode .= "call ".$parameter->{'source'}."%addParameter('".$parameter->{'inputName'}."',char(parameterValues))\n";
 					    } else {
 						# Scalar parameter.
-						$descriptorCode .= &performIO("write (parameterLabel,'(".$format.")') self%".$parameter->{'name'}."%ID\n");
+						$descriptorCode .= "write (parameterLabel,'(".$format.")') self%".$parameter->{'name'}."%ID\n";
 						$descriptorCode .= "call ".$parameter->{'source'}."%addParameter('".$parameter->{'inputName'}."',trim(adjustl(parameterLabel)))\n";
 					    }
 					}
@@ -719,7 +718,7 @@ sub Process_FunctionClass {
 						    $descriptorCode .= "  parameterLabel='false'\n";
 						    $descriptorCode .= "end if\n";
 						} else {
-						    $descriptorCode .= &performIO("write (parameterLabel,'(".$format.")') self%".$parameter->{'name'}."(".join(",",map {"i".$_} 1..$rank).")%value\n");
+						    $descriptorCode .= "write (parameterLabel,'(".$format.")') self%".$parameter->{'name'}."(".join(",",map {"i".$_} 1..$rank).")%value\n";
 						}
 						$descriptorCode .= " else\n";
 						$descriptorCode .= "  parameterLabel='?'\n";
@@ -743,7 +742,7 @@ sub Process_FunctionClass {
 						    $descriptorCode .= "  parameterLabel='false'\n";
 						    $descriptorCode .= "end if\n";
 						} else {
-						    $descriptorCode .= &performIO("write (parameterLabel,'(".$format.")') self%".$parameter->{'name'}."%value\n");
+						    $descriptorCode .= "write (parameterLabel,'(".$format.")') self%".$parameter->{'name'}."%value\n";
 						}
 						$descriptorCode .= " else\n";
 						$descriptorCode .= "  parameterLabel='?'\n";
@@ -1790,8 +1789,8 @@ CODE
 	    my $stateFileUsed          = 0;
 	    my $labelUsed              = 0;
 	    $rankMaximum               = 0;
-	    $stateStoreCode   .= &performIO("position=FTell(stateFile)\n");
-	    $stateRestoreCode .= &performIO("position=FTell(stateFile)\n");
+	    $stateStoreCode   .= "position=FTell(stateFile)\n";
+	    $stateRestoreCode .= "position=FTell(stateFile)\n";
 	    $stateStoreCode   .= "call displayIndent(var_str('storing state for \""  .$directive->{'name'}."\" [position: ')//position//']',verbosity=verbosityLevelWorking)\n";
 	    $stateRestoreCode .= "call displayIndent(var_str('restoring state for \"".$directive->{'name'}."\" [position: ')//position//']',verbosity=verbosityLevelWorking)\n";
 	    $stateStoreCode   .= "select type (self)\n";
@@ -1880,8 +1879,8 @@ CODE
 					    #   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
 					    #  </description>
 					    # </workaround>
-					    $outputCode .= &performIO("   write (label,'(i16)') 0\n");
-					    #$outputCode .= &performIO("   write (label,'(i16)') sizeof(c__)\n");
+					    $outputCode .= "   write (label,'(i16)') 0\n";
+					    #$outputCode .= "   write (label,'(i16)') sizeof(c__)\n";
 					    $outputCode .= "  end select\n";
 					    $outputCode .= "  call displayMessage('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
 					    $outputCode .= " end if\n";
@@ -1904,13 +1903,13 @@ CODE
 					    #   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
 					    #  </description>
 					    # </workaround>
-					    $outputCode .= &performIO("   write (label,'(i16)') 0\n");
-					    #$outputCode .= &performIO("   write (label,'(i16)') sizeof(".$_.")\n");
+					    $outputCode .= "   write (label,'(i16)') 0\n";
+					    #$outputCode .= "   write (label,'(i16)') sizeof(".$_.")\n";
 					    $outputCode .= "  call displayMessage('storing \"".$_."\" with size '//trim(adjustl(label))//' bytes')\n";
 					}
 					$outputCode .= " end if\n";
-					$outputCode .= &performIO("  write (stateFile) ".join(",",map {"self%".$_."%ID"} @{$declaration->{'variableNames'}})."\n");
-					$inputCode  .= &performIO("  read  (stateFile) ".join(",",map {"self%".$_."%ID"} @{$declaration->{'variableNames'}})."\n");
+					$outputCode .= "  write (stateFile) ".join(",",map {"self%".$_."%ID"} @{$declaration->{'variableNames'}})."\n";
+					$inputCode  .= "  read  (stateFile) ".join(",",map {"self%".$_."%ID"} @{$declaration->{'variableNames'}})."\n";
 
 				    } elsif (
 					(  grep {$_->{'type'} eq $type    } &List::ExtraUtils::as_array($stateStorables->{'stateStorables'        }))
@@ -1943,15 +1942,15 @@ CODE
 						$dimensionalsFound  = 1
 						    if ( $rank > 0 );
 						$outputCode .= " if (allocated(self%".$variableName.")) then\n";
-						$outputCode .= &performIO("  write (stateFile) .true.\n");
-						$outputCode .= &performIO("  write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n")
+						$outputCode .= "  write (stateFile) .true.\n";
+						$outputCode .= "  write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n"
 						    if ( $rank > 0 );
-						$inputCode  .= &performIO(" read (stateFile) wasAllocated\n");
+						$inputCode  .= " read (stateFile) wasAllocated\n";
 						$inputCode  .= " if (allocated(self%".$variableName.")) deallocate(self%".$variableName.")\n";
 						$inputCode  .= " if (wasAllocated) then\n";
 						if ( $rank > 0 ) {
 						    $inputCode  .= "  allocate(storedShape(".$rank."))\n";
-						    $inputCode  .= &performIO("  read (stateFile) storedShape\n");
+						    $inputCode  .= "  read (stateFile) storedShape\n";
 						}
 						if ( $declaration->{'intrinsic'} eq "class" ) {
 						    (my $storable) = grep {$_->{'type'} eq $type} @{$stateStorables->{'stateStorables'}};
@@ -1980,8 +1979,8 @@ CODE
 						#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
 						#  </description>
 						# </workaround>
-						$outputCode .= &performIO("   write (label,'(i16)') 0\n");
-						#$outputCode .= &performIO("   write (label,'(i16)') sizeof(c__)\n");
+						$outputCode .= "   write (label,'(i16)') 0\n";
+						#$outputCode .= "   write (label,'(i16)') sizeof(c__)\n";
 						$outputCode .= "  end select\n";
 					    } else {
 						# <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
@@ -1989,8 +1988,8 @@ CODE
 						#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
 						#  </description>
 						# </workaround>
-						$outputCode .= &performIO("   write (label,'(i16)') 0\n");
-						#$outputCode .= &performIO("   write (label,'(i16)') sizeof(self%".$variableName.")\n");
+						$outputCode .= "   write (label,'(i16)') 0\n";
+						#$outputCode .= "   write (label,'(i16)') sizeof(self%".$variableName.")\n";
 					    }
 					    $outputCode .= "  call displayMessage('storing \"".$variableName.$arrayElement."\" with size '//trim(adjustl(label))//' bytes')\n";
 					    $outputCode .= " end if\n";
@@ -2004,7 +2003,7 @@ CODE
 					    if ( grep {$_ eq "allocatable"} @{$declaration->{'attributes'}} ) {
 						$inputCode  .= " end if\n";
 						$outputCode .= " else\n";
-						$outputCode .= &performIO("  write (stateFile) .false.\n");
+						$outputCode .= "  write (stateFile) .false.\n";
 						$outputCode .= " end if\n";
 					    }
 					    $stateFileUsed    = 1;
@@ -2035,25 +2034,25 @@ CODE
 					    #   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
 					    #  </description>
 					    # </workaround>
-					    $outputCode .= &performIO("   write (label,'(i16)') 0\n");
-					    #$outputCode        .= &performIO("   write (label,'(i16)') sizeof(self%".$variableName.")\n");
+					    $outputCode .= "   write (label,'(i16)') 0\n";
+					    #$outputCode        .= "   write (label,'(i16)') sizeof(self%".$variableName.")\n";
 					    $outputCode        .= "   call displayMessage('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
 					    $outputCode        .= "  end if\n";
-					    $outputCode        .= &performIO("  write (stateFile) .true.\n"
+					    $outputCode        .= "  write (stateFile) .true.\n"
 							       . "  write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n"
-					                       . "  write (stateFile) self%".$variableName."\n");
+					                       . "  write (stateFile) self%".$variableName."\n";
 					    $outputCode        .= " else\n";
-					    $outputCode        .= &performIO("  write (stateFile) .false.\n");
+					    $outputCode        .= "  write (stateFile) .false.\n";
 					    $outputCode        .= " end if\n";
-					    $inputCode         .= &performIO(" read (stateFile) wasAllocated\n");
+					    $inputCode         .= " read (stateFile) wasAllocated\n";
 					    $inputCode         .= " if (allocated(self%".$variableName.")) deallocate(self%".$variableName.")\n";
 					    $inputCode         .= " if (wasAllocated) then\n";
 					    $inputCode         .= "  call displayMessage('restoring \"".$variableName."\"',verbosity=verbosityLevelWorking)\n";
 					    $inputCode         .= "  allocate(storedShape(".$rank."))\n";
-					    $inputCode         .= &performIO("  read (stateFile) storedShape\n");
+					    $inputCode         .= "  read (stateFile) storedShape\n";
 					    $inputCode         .= "  allocate(self%".$variableName."(".join(",",map {"storedShape(".$_.")"} 1..$rank)."))\n";
 					    $inputCode         .= "  deallocate(storedShape)\n";
-					    $inputCode         .= &performIO("  read (stateFile) self%".$variableName."\n");
+					    $inputCode         .= "  read (stateFile) self%".$variableName."\n";
 					    $inputCode         .= " end if\n";
 					}
 				    } else {
@@ -2154,8 +2153,8 @@ CODE
 				#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
 				#  </description>
 				# </workaround>
-				$outputCode .= &performIO("   write (label,'(i16)') 0\n");
-				#$outputCode .=&performIO( "   write (label,'(i16)') sizeof(c__)\n");
+				$outputCode .= "   write (label,'(i16)') 0\n";
+				#$outputCode .= "   write (label,'(i16)') sizeof(c__)\n";
 				$outputCode .= "  end select\n";
 				$outputCode .= "  call displayMessage('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
 				$outputCode .= " end if\n";
@@ -2178,13 +2177,13 @@ CODE
 				#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
 				#  </description>
 				# </workaround>
-				$outputCode .= &performIO("   write (label,'(i16)') 0\n");
-				#$outputCode .= &performIO("   write (label,'(i16)') sizeof(".$_.")\n");
+				$outputCode .= "   write (label,'(i16)') 0\n";
+				#$outputCode .= "   write (label,'(i16)') sizeof(".$_.")\n";
 				$outputCode .= "  call displayMessage('storing \"".$_."\" with size '//trim(adjustl(label))//' bytes')\n";
 			    }
 			    $outputCode .= " end if\n";
-			    $outputCode .= &performIO("  write (stateFile) ".join(",",map {"self%".$_."%ID"} @{$declaration->{'variableNames'}})."\n");
-			    $inputCode  .= &performIO("  read  (stateFile) ".join(",",map {"self%".$_."%ID"} @{$declaration->{'variableNames'}})."\n");
+			    $outputCode .= "  write (stateFile) ".join(",",map {"self%".$_."%ID"} @{$declaration->{'variableNames'}})."\n";
+			    $inputCode  .= "  read  (stateFile) ".join(",",map {"self%".$_."%ID"} @{$declaration->{'variableNames'}})."\n";
 			} elsif (
 			    (  grep {$_->{'type'} eq $type    } &List::ExtraUtils::as_array($stateStorables->{'stateStorables'        }))
 			    ||
@@ -2215,15 +2214,15 @@ CODE
 				    $dimensionalsFound  = 1
 					if ( $rank > 0 );
 				    $outputCode .= " if (allocated(self%".$variableName.")) then\n";
-				    $outputCode .= &performIO("  write (stateFile) .true.\n");
-				    $outputCode .= &performIO("  write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n")
+				    $outputCode .= "  write (stateFile) .true.\n";
+				    $outputCode .= "  write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n"
 					if ( $rank > 0 );
-				    $inputCode  .= &performIO(" read (stateFile) wasAllocated\n");
+				    $inputCode  .= " read (stateFile) wasAllocated\n";
 				    $inputCode  .= " if (allocated(self%".$variableName.")) deallocate(self%".$variableName.")\n";
 				    $inputCode  .= " if (wasAllocated) then\n";
 				    if ( $rank > 0 ) {
 					$inputCode  .= "  allocate(storedShape(".$rank."))\n";
-					$inputCode  .= &performIO("  read (stateFile) storedShape\n");
+					$inputCode  .= "  read (stateFile) storedShape\n";
 				    }
 				    if ( $declaration->{'intrinsic'} eq "class" ) {
 					(my $storable) = grep {$_->{'type'} eq $type} &List::ExtraUtils::as_array($stateStorables->{'stateStorables'});
@@ -2252,8 +2251,8 @@ CODE
 				    #   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
 				    #  </description>
 				    # </workaround>
-				    $outputCode .= &performIO("   write (label,'(i16)') 0\n");
-				    #$outputCode .= &performIO("   write (label,'(i16)') sizeof(c__)\n");
+				    $outputCode .= "   write (label,'(i16)') 0\n";
+				    #$outputCode .= "   write (label,'(i16)') sizeof(c__)\n";
 				    $outputCode .= "  end select\n";
 				} else {
 				    # <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
@@ -2261,8 +2260,8 @@ CODE
 				    #   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
 				    #  </description>
 				    # </workaround>
-				    $outputCode .= &performIO("   write (label,'(i16)') 0\n");
-				    #$outputCode .= &performIO("   write (label,'(i16)') sizeof(self%".$variableName.$arrayElement.")\n");
+				    $outputCode .= "   write (label,'(i16)') 0\n";
+				    #$outputCode .= "   write (label,'(i16)') sizeof(self%".$variableName.$arrayElement.")\n";
 				}
 				$outputCode .= "  call displayMessage('storing \"".$variableName.$arrayElement."\" with size '//trim(adjustl(label))//' bytes')\n";
 				$outputCode .= " end if\n";
@@ -2276,7 +2275,7 @@ CODE
 				if ( grep {$_ eq "allocatable"} @{$declaration->{'attributes'}} ) {
 				    $inputCode  .= " end if\n";
 				    $outputCode .= " else\n";
-				    $outputCode .= &performIO("  write (stateFile) .false.\n");
+				    $outputCode .= "  write (stateFile) .false.\n";
 				    $outputCode .= " end if\n";
 				}
 				$stateFileUsed    = 1;
@@ -2307,25 +2306,25 @@ CODE
 				#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
 				#  </description>
 				# </workaround>
-				$outputCode        .= &performIO("   write (label,'(i16)') 0\n");
-				#$outputCode        .= &performIO("   write (label,'(i16)') sizeof(self%".$variableName.")\n");
+				$outputCode        .= "   write (label,'(i16)') 0\n";
+				#$outputCode        .= "   write (label,'(i16)') sizeof(self%".$variableName.")\n";
 				$outputCode        .= "   call displayMessage('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
 				$outputCode        .= "  end if\n";
-				$outputCode        .= &performIO("  write (stateFile) .true.\n"
+				$outputCode        .= "  write (stateFile) .true.\n"
 						   .  "  write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n"
-			                           .  "  write (stateFile) self%".$variableName."\n");
+			                           .  "  write (stateFile) self%".$variableName."\n";
 				$outputCode        .= " else\n";
-				$outputCode        .= &performIO("  write (stateFile) .false.\n");
+				$outputCode        .= "  write (stateFile) .false.\n";
 				$outputCode        .= " end if\n";
-				$inputCode         .= &performIO(" read (stateFile) wasAllocated\n");
+				$inputCode         .= " read (stateFile) wasAllocated\n";
 				$inputCode         .= " if (allocated(self%".$variableName.")) deallocate(self%".$variableName.")\n";
 				$inputCode         .= " if (wasAllocated) then\n";
 				$inputCode         .= "  call displayMessage('restoring \"".$variableName."\"',verbosity=verbosityLevelWorking)\n";
 				$inputCode         .= "  allocate(storedShape(".$rank."))\n";
-				$inputCode         .= &performIO("  read (stateFile) storedShape\n");
+				$inputCode         .= "  read (stateFile) storedShape\n";
 				$inputCode         .= "  allocate(self%".$variableName."(".join(",",map {"storedShape(".$_.")"} 1..$rank)."))\n";
 				$inputCode         .= "  deallocate(storedShape)\n";
-				$inputCode         .= &performIO("  read (stateFile) self%".$variableName."\n");
+				$inputCode         .= "  read (stateFile) self%".$variableName."\n";
 				$inputCode         .= " end if\n";
 			    }
 			} else {
@@ -2370,8 +2369,8 @@ CODE
 					    #   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
 					    #  </description>
 					    # </workaround>
-					    $outputCode .= &performIO("   write (label,'(i16)') 0\n");
-					    #$outputCode .= &performIO("   write (label,'(i16)') sizeof(c__)\n");
+					    $outputCode .= "   write (label,'(i16)') 0\n";
+					    #$outputCode .= "   write (label,'(i16)') sizeof(c__)\n";
 					    $outputCode .= "  end select\n";
 					    $outputCode .= "  call displayMessage('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
 					    $outputCode .= " end if\n";
@@ -2394,13 +2393,13 @@ CODE
 					    #   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
 					    #  </description>
 					    # </workaround>
-					    $outputCode .= &performIO("   write (label,'(i16)') 0\n");
-					    #$outputCode .= &performIO("   write (label,'(i16)') sizeof(".$_.")\n");
+					    $outputCode .= "   write (label,'(i16)') 0\n";
+					    #$outputCode .= "   write (label,'(i16)') sizeof(".$_.")\n";
 					    $outputCode .= "  call displayMessage('storing \"".$_."\" with size '//trim(adjustl(label))//' bytes')\n";
 					}
 					$outputCode .= " end if\n";
-					$outputCode .= &performIO("  write (stateFile) ".join(",",map {"self%".$_."%ID"} @{$declaration->{'variableNames'}})."\n");
-					$inputCode  .= &performIO("  read  (stateFile) ".join(",",map {"self%".$_."%ID"} @{$declaration->{'variableNames'}})."\n");
+					$outputCode .= "  write (stateFile) ".join(",",map {"self%".$_."%ID"} @{$declaration->{'variableNames'}})."\n";
+					$inputCode  .= "  read  (stateFile) ".join(",",map {"self%".$_."%ID"} @{$declaration->{'variableNames'}})."\n";
 				    } elsif (
 					(
 					 (  grep {$_->{'type'} eq $type    } &List::ExtraUtils::as_array($stateStorables->{'stateStorables'        }))
@@ -2438,15 +2437,15 @@ CODE
 						$dimensionalsFound  = 1
 						    if ( $rank > 0 );
 						$outputCode .= " if (allocated(self%".$variableName.")) then\n";
-						$outputCode .= &performIO("  write (stateFile) .true.\n");
-						$outputCode .= &performIO("  write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n")
+						$outputCode .= "  write (stateFile) .true.\n";
+						$outputCode .= "  write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n"
 						    if ( $rank > 0 );
-						$inputCode  .= &performIO(" read (stateFile) wasAllocated\n");
+						$inputCode  .= " read (stateFile) wasAllocated\n";
 						$inputCode  .= " if (allocated(self%".$variableName.")) deallocate(self%".$variableName.")\n";
 						$inputCode  .= " if (wasAllocated) then\n";
 						if ( $rank > 0 ) {
 						    $inputCode  .= "  allocate(storedShape(".$rank."))\n";
-						    $inputCode  .= &performIO("  read (stateFile) storedShape\n");
+						    $inputCode  .= "  read (stateFile) storedShape\n";
 						}
 						if ( $declaration->{'intrinsic'} eq "class" ) {
 						    (my $storable) = grep {$_->{'type'} eq $type} &List::ExtraUtils::as_array($stateStorables->{'stateStorables'});
@@ -2475,8 +2474,8 @@ CODE
 						#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
 						#  </description>
 						# </workaround>
-						$outputCode .= &performIO("   write (label,'(i16)') 0\n");
-						#$outputCode .= &performIO("   write (label,'(i16)') sizeof(c__)\n");
+						$outputCode .= "   write (label,'(i16)') 0\n";
+						#$outputCode .= "   write (label,'(i16)') sizeof(c__)\n";
 						$outputCode .= "  end select\n";
 					    } else {
 						# <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
@@ -2484,8 +2483,8 @@ CODE
 						#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
 						#  </description>
 						# </workaround>
-						$outputCode .= &performIO("   write (label,'(i16)') 0\n");
-						#$outputCode .= &performIO("   write (label,'(i16)') sizeof(self%".$variableName.")\n");
+						$outputCode .= "   write (label,'(i16)') 0\n";
+						#$outputCode .= "   write (label,'(i16)') sizeof(self%".$variableName.")\n";
 					    }
 					    $outputCode .= "  call displayMessage('storing \"".$variableName.$arrayElement."\" with size '//trim(adjustl(label))//' bytes')\n";
 					    $outputCode .= " end if\n";
@@ -2499,7 +2498,7 @@ CODE
 					    if ( grep {$_ eq "allocatable"} @{$declaration->{'attributes'}} ) {
 						$inputCode  .= " end if\n";
 						$outputCode .= " else\n";
-						$outputCode .= &performIO("  write (stateFile) .false.\n");
+						$outputCode .= "  write (stateFile) .false.\n";
 						$outputCode .= " end if\n";
 					    }
 					    $stateFileUsed    = 1;
@@ -2530,25 +2529,25 @@ CODE
 					    #   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
 					    #  </description>
 					    # </workaround>
-					    $outputCode        .= &performIO("   write (label,'(i16)') 0\n");
-					    #$outputCode        .= &performIO("   write (label,'(i16)') sizeof(self%".$variableName.")\n");
+					    $outputCode        .= "   write (label,'(i16)') 0\n";
+					    #$outputCode        .= "   write (label,'(i16)') sizeof(self%".$variableName.")\n";
 					    $outputCode        .= "   call displayMessage('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
 					    $outputCode        .= "  end if\n";
-					    $outputCode        .= &performIO("  write (stateFile) .true.\n"
+					    $outputCode        .= "  write (stateFile) .true.\n"
 					                       .  "  write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n"
-					                       .  "  write (stateFile) self%".$variableName."\n");
+					                       .  "  write (stateFile) self%".$variableName."\n";
 					    $outputCode        .= " else\n";
-					    $outputCode        .= &performIO("  write (stateFile) .false.\n");
+					    $outputCode        .= "  write (stateFile) .false.\n";
 					    $outputCode        .= " end if\n";
-					    $inputCode         .= &performIO(" read (stateFile) wasAllocated\n");
+					    $inputCode         .= " read (stateFile) wasAllocated\n";
 					    $inputCode         .= " if (allocated(self%".$variableName.")) deallocate(self%".$variableName.")\n";
 					    $inputCode         .= " if (wasAllocated) then\n";
 					    $inputCode         .= "  call displayMessage('restoring \"".$variableName."\"',verbosity=verbosityLevelWorking)\n";
 					    $inputCode         .= "  allocate(storedShape(".$rank."))\n";
-					    $inputCode         .= &performIO("  read (stateFile) storedShape\n");
+					    $inputCode         .= "  read (stateFile) storedShape\n";
 					    $inputCode         .= "  allocate(self%".$variableName."(".join(",",map {"storedShape(".$_.")"} 1..$rank)."))\n";
 					    $inputCode         .= "  deallocate(storedShape)\n";
-					    $inputCode         .= &performIO("  read (stateFile) self%".$variableName."\n");
+					    $inputCode         .= "  read (stateFile) self%".$variableName."\n";
 					    $inputCode         .= " end if\n";
 					}
 				    } else {
@@ -2607,12 +2606,12 @@ CODE
 			#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
 			#  </description>
 			# </workaround>
-			$stateStoreCode .= &performIO("   write (label,'(i16)') 0\n");
-			#$stateStoreCode .= &performIO("  write (label,'(i16)') sizeof(self%".$_.")\n");
+			$stateStoreCode .= "   write (label,'(i16)') 0\n";
+			#$stateStoreCode .= "  write (label,'(i16)') sizeof(self%".$_.")\n";
 			$stateStoreCode .= "  call displayMessage('storing \"".$_."\" with size '//trim(adjustl(label))//' bytes')\n";
 			$stateStoreCode .= " end if\n";
 		    }
-		    $stateStoreCode .= &performIO(" write (stateFile) ".join(", &\n  & ",map {"self%".$_} @staticVariables)."\n")
+		    $stateStoreCode .= " write (stateFile) ".join(", &\n  & ",map {"self%".$_} @staticVariables)."\n"
 			if ( scalar(@staticVariables) > 0 );
 		    $stateStoreCode .= $outputCode
 			if ( defined($outputCode) );
@@ -2625,7 +2624,7 @@ CODE
 		    foreach ( @staticVariables ) {
 			$stateRestoreCode .= " call displayMessage('restoring \"".$_."\"',verbosity=verbosityLevelWorking)\n";
 		    }
-		    $stateRestoreCode .= &performIO(" read (stateFile) ".join(", &\n  & ",map {"self%".$_} @staticVariables)."\n")
+		    $stateRestoreCode .= " read (stateFile) ".join(", &\n  & ",map {"self%".$_} @staticVariables)."\n"
 			if ( scalar(@staticVariables) > 0 );
 		    $stateRestoreCode .= $inputCode
 			if ( defined($inputCode) );

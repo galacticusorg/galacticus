@@ -269,12 +269,12 @@ contains
     double precision                               , dimension(self%parameterCount) :: stateVector
     type            (multiCounter                 )                                 :: counter
     real                                                                            :: timeEvaluate
-    double precision                                                                :: logPosterior , logLikelihood
-    type            (varying_string               )                                 :: logFileName  , message 
+    double precision                                                                :: logPosterior, logLikelihood
+    type            (varying_string               )                                 :: logFileName , message 
     integer                                                                         :: logFileUnit
-    integer         (c_size_t                     )                                 :: i            , j
-    
-    ! Write start-up message.
+    integer         (c_size_t                     )                                 :: i           , j
+
+   ! Write start-up message.
     message="Process "//mpiSelf%rankLabel()//" [PID: "
     message=message//getPID()//"] is running on host '"//mpiSelf%hostAffinity()//"'"
     call displayMessage(message)
@@ -288,7 +288,7 @@ contains
     ! Iterate over the grid.
     if (mod(self%countGrid**self%parameterCount,mpiSelf%count()) /= 0) call Error_Report('MPI count must be a divisor of number of grid points'//{introspection:location})
     counter=multiCounter(spread(self%countGrid,1,self%parameterCount))
-    j      =-1
+    j      =-1    
     do while (counter%increment())
        j=j+1
        if (mod(j,mpiSelf%count()) /= mpiSelf%rank()) cycle
