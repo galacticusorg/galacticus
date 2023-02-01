@@ -141,7 +141,9 @@ contains
     use               :: ISO_Varying_String              , only : assignment(=)               , char               , extract       , len           , &
           &                                                       operator(//)                , operator(==)       , varying_string
     use               :: Input_Parameters                , only : inputParameters
+#ifdef USEMPI
     use               :: MPI_Utilities                   , only : mpiSelf
+#endif
     use               :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial
     use               :: Numerical_Interpolation         , only : GSL_Interp_cSpline
     !$ use            :: OMP_Lib                         , only : OMP_Get_Thread_Num          , OMP_In_Parallel
@@ -321,7 +323,7 @@ contains
        !$ if (OMP_In_Parallel()) then
        !$ write (fileSuffix,'(a1,i8.8,a1,i4.4     )') '.',GetPID(),".",OMP_Get_Thread_Num()
        !$ else
-       write    (fileSuffix,'(a1,i8.8,            )') '.',GetPID()
+       write    (fileSuffix,'(a1,i8.8             )') '.',GetPID()
        !$ end if
 #endif
        call Directory_Make(workPath)

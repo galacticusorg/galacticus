@@ -147,7 +147,9 @@ contains
     use               :: ISO_Varying_String              , only : assignment(=)               , char               , extract       , len           , &
           &                                                       operator(//)                , operator(==)       , varying_string
     use               :: Input_Parameters                , only : inputParameters
+#ifdef USEMPI
     use               :: MPI_Utilities                   , only : mpiSelf
+#endif
     use               :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial
     use               :: Numerical_Interpolation         , only : GSL_Interp_cSpline
     !$ use            :: OMP_Lib                         , only : OMP_Get_Thread_Num
