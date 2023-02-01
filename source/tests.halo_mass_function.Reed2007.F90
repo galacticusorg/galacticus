@@ -41,7 +41,7 @@ program Tests_Halo_Mass_Function_Reed2007
   use :: Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunctionTopHat
   use :: Transfer_Functions                  , only : transferFunctionFile
   use :: Unit_Tests                          , only : Assert                                  , Unit_Tests_Begin_Group               , Unit_Tests_End_Group, Unit_Tests_Finish
-  use :: ISO_Varying_String                  , only : var_str                                 , operator(//)                         , char
+  use :: ISO_Varying_String                  , only : var_str                                 , operator(//)                         , char                , varying_string
   use :: String_Handling                     , only : operator(//)
   implicit none
   integer                                                                               :: fUnit                              , i           , &
@@ -63,6 +63,7 @@ program Tests_Halo_Mass_Function_Reed2007
   type            (darkMatterParticleCDM                   )                            :: darkMatterParticle_
   type            (criticalOverdensityFixed                )                            :: criticalOverdensity_
   type            (haloMassFunctionReed2007                )                            :: haloMassFunction_
+  type            (varying_string                          )                            :: fileName
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -194,7 +195,8 @@ program Tests_Halo_Mass_Function_Reed2007
      allocate(massFunctionReed(massCount))
      allocate(success         (massCount))
      ! Compute mass function for each reference mass.
-     open(newUnit=fUnit,file=char(var_str('testSuite/data/haloMassFunction/reed2007MassFunction_z')//int(redshift)//'.txt'),status='old',form='formatted')
+     fileName=var_str('testSuite/data/haloMassFunction/reed2007MassFunction_z')//int(redshift)//'.txt'
+     open(newUnit=fUnit,file=char(fileName),status='old',form='formatted')
      read (fUnit,*)
      do i=1,massCount
         read (fUnit,*) mass(i),massFunctionReed(i)
