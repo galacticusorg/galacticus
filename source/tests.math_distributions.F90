@@ -30,18 +30,19 @@ program Test_Math_Distributions
   use            :: Input_Parameters                   , only : inputParameters
   use            :: Math_Distributions_Poisson_Binomial, only : Poisson_Binomial_Distribution, Poisson_Binomial_Distribution_Mean_Pairs
   use            :: Numerical_Random_Numbers           , only : randomNumberGeneratorGSL
-  use            :: Statistics_Distributions           , only : distributionFunction1DGamma  , distributionFunction1DVoight
-  use            :: Unit_Tests                         , only : Assert                       , Unit_Tests_Begin_Group                  , Unit_Tests_End_Group, Unit_Tests_Finish
+  use            :: Statistics_Distributions           , only : distributionFunction1DGamma  , distributionFunction1DVoight            , distributionFunction1DNonCentralChiDegree3
+  use            :: Unit_Tests                         , only : Assert                       , Unit_Tests_Begin_Group                  , Unit_Tests_End_Group                      , Unit_Tests_Finish
   implicit none
-  double precision                              , dimension(  10) :: p                  , x           , y
-  integer                                       , dimension(0:10) :: trials
-  double precision                              , dimension(0:10) :: Pk                 , PkMonteCarlo, errorMonteCarlo
-  integer                                       , parameter       :: trialCount=100000
-  type            (distributionFunction1DGamma )                  :: distributionGamma_
-  type            (distributionFunction1DVoight)                  :: distributionVoight_
-  integer                                                         :: i                  , j           , k
-  type            (randomNumberGeneratorGSL    )                  :: prng
-  type            (inputParameters             )                  :: parameters
+  double precision                                            , dimension(  10) :: p                                          , x           , y
+  integer                                                     , dimension(0:10) :: trials
+  double precision                                            , dimension(0:10) :: Pk                                         , PkMonteCarlo, errorMonteCarlo
+  integer                                                     , parameter       :: trialCount=100000
+  type            (distributionFunction1DGamma               )                  :: distributionGamma_
+  type            (distributionFunction1DVoight              )                  :: distributionVoight_
+  type            (distributionFunction1DNonCentralChiDegree3)                  :: distributionFunction1DNonCentralChiDegree3_
+  integer                                                                       :: i                                          , j           , k
+  type            (randomNumberGeneratorGSL                  )                  :: prng
+  type            (inputParameters                           )                  :: parameters
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -93,6 +94,16 @@ program Test_Math_Distributions
      y(i)=distributionVoight_%inverse   (p(i))
   end do
   call Assert("Voight: inversion",x,y,relTol=1.0d-4)
+
+  ! Degree-3 non-central χ² distribution.
+  distributionFunction1DNonCentralChiDegree3_=distributionFunction1DNonCentralChiDegree3(2.0d0)
+  x=[0.3d0,0.8d0,1.3d0,1.8d0,2.3d0,2.8d0,3.3d0,3.8d0,5.0d0,5.9d0]
+  do i=1,10
+     y(i)=distributionFunction1DNonCentralChiDegree3_%density   (x(i))
+     p(i)=distributionFunction1DNonCentralChiDegree3_%cumulative(x(i))
+  end do
+  call Assert("Degree-3 non-central χ²: pdf",y,[7.63176d-2,1.13407d-1,1.30448d-1,1.37513d-1,1.38387d-1,1.35191d-1,1.29316d-1,1.21737d-1,1.00442d-1,8.41979d-2],relTol=1.0d-4)
+  call Assert("Degree-3 non-central χ²: cdf",p,[1.55904d-2,6.4311d-2,1.25813d-1,1.93121d-1,2.62302d-1,3.30833d-1,3.97048d-1,4.59866d-1,5.93405d-1,6.76438d-1],relTol=1.0d-4)
 
   ! End unit tests.
   call Unit_Tests_End_Group()
