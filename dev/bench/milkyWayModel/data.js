@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1675210345809,
+  "lastUpdate": 1675306358594,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
@@ -6988,6 +6988,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 4.51293095561443,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "558eac414f363eda8870ebf6922b8b21386aace6",
+          "message": "fix: Correct parameter names for subhalo destruction mass thresholds",
+          "timestamp": "2023-02-02T00:02:39Z",
+          "tree_id": "245e18a0dbce1212e9525f1b9913c0e8d5c53dc1",
+          "url": "https://github.com/galacticusorg/galacticus/commit/558eac414f363eda8870ebf6922b8b21386aace6"
+        },
+        "date": 1675306357575,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 210.372,
+            "unit": "seconds",
+            "range": 0.174938846460426
           }
         ]
       }
