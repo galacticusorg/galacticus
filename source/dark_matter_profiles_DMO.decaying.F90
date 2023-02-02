@@ -20,8 +20,7 @@
   !!{
   An implementation of decaying dark matter halo profiles.
   !!}
-  use :: Dark_Matter_Particles       , only : darkMatterParticleClass
-  use :: Statistics_Distributions    , only : distributionFunction1DNonCentralChi
+  use :: Dark_Matter_Particles, only : darkMatterParticleClass
 
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMODecaying">
@@ -188,7 +187,7 @@ contains
 
   subroutine decayingDecayingFactor(self, node, radius, factor)
     !!{
-    Return the change in mass factor.
+    Return the remaining mass fraction in the profile.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
@@ -197,44 +196,80 @@ contains
     double precision                              , intent(in   ) :: radius
     double precision                              , intent(  out) :: factor
     class           (nodeComponentBasic          ), pointer       :: basic
-    double precision                                              :: fe
-    basic             => node%basic()
+    double precision                                              :: fractionEscaped, fractionDecayed
+
     if (self%massLoss_) then
-      call self%escapeFraction(radius, node, fe)
-      factor = +1.0d0 - (fe - self%massSplitting_ * (1 - fe)) &
-        &    *(+1.0d0 - exp(-basic%time() / self%lifetime_))
+       basic           =>  node%basic         (           )
+       fractionEscaped =  +self%escapeFraction(radius,node)
+       fractionDecayed =  +1.0d0                  &
+            &             -exp(                   &
+            &                  -basic%time     () &
+            &                  /self %lifetime_   &
+            &                 )
+       factor          =  +(+1.0d0-fractionDecayed    ) & ! { Fraction of particles undecayed - have 100% of their original mass.
+            &             +        fractionDecayed      & ! ⎧ Fraction of particles decayed...
+            &             *(+1.0d0-fractionEscaped    ) & ! ⎨  ...but not escaped...
+            &             *(+1.0d0-self%massSplitting_)   ! ⎩  ...have 1-ε of their original mass.
     else
-      factor = +1.0d0
+       factor          = +1.0d0                           !   Mass loss is being ignored.
     end if
     return
   end subroutine decayingDecayingFactor
 
-  subroutine decayingEscapeFraction(self, radius, node, fraction)
+  double precision function decayingEscapeFraction(self,radius,node)
     !!{
-    Return the fraction of the particles that escape at a given radius.
+    Return the fraction of the particles that escape after decaying at a given radius.
     !!}
     use :: Numerical_Constants_Physical, only : speedLight
     use :: Numerical_Constants_Prefixes, only : kilo
+    use :: Statistics_Distributions    , only : distributionFunction1DNonCentralChiDegree3
     implicit none
-    class            (darkMatterProfileDMODecaying       ), intent(inout) :: self
-    type            (treeNode                    ), intent(inout), target :: node
-    type             (distributionFunction1DNonCentralChi)                :: nonCentralChi
-    double precision                                      , intent(in   ) :: radius
-    double precision                                      , intent(  out) :: fraction
-    double precision                                                      :: sigma, vEsc
-    sigma = self%darkMatterProfileDMO_%radialVelocityDispersion(node, radius)
-    if (sigma > 0.0d0) then
-      vEsc = +2.0d0 * abs(self%darkMatterProfileDMO_%potential(node, radius) - self%darkMatterProfileDMO_%potential(node, +1.0d3 * self%darkMatterHaloScale_%radiusVirial(node))) !! Check sign
-      nonCentralChi = distributionFunction1DNonCentralChi(       &
-                    & (self%massSplitting_/(speedLight/kilo))**2 &
-                    & / sigma**2)
-      fraction = +1.0d0 - nonCentralChi%cumulative(vEsc / sigma**2)
+    class           (darkMatterProfileDMODecaying              ), intent(inout) :: self
+    type            (treeNode                                  ), intent(inout) :: node
+    double precision                                            , intent(in   ) :: radius
+    double precision                                            , parameter     :: fractionRadiusVirialMaximum=1.0d3
+    type            (distributionFunction1DNonCentralChiDegree3)                :: distributionSpeed
+    double precision                                                            :: velocityDispersion               , velocityEscape
+    
+    velocityDispersion=self%darkMatterProfileDMO_%radialVelocityDispersion(node,radius)
+    if (velocityDispersion > 0.0d0) then
+       ! Find the escape velocity.
+       if (radius < fractionRadiusVirialMaximum*self%darkMatterHaloScale_%radiusVirial(node)) then
+          velocityEscape=+sqrt(                                                                                                                       &
+               &               +2.0d0                                                                                                                 &
+               &               *(                                                                                                                     &
+               &                 +self%darkMatterProfileDMO_%potential(node,fractionRadiusVirialMaximum*self%darkMatterHaloScale_%radiusVirial(node)) &
+               &                 -self%darkMatterProfileDMO_%potential(node,                                                      radius            ) &
+               &                )                                                                                                                     &
+               &              )
+       else
+          velocityEscape=+0.0d0
+       end if
+       ! To find the escaping fraction, we assume that the particles initially have a Gaussian velocity distribution in each
+       ! direction, with isotropic dispersion, σ. When a particle decays, it receives a kick with velocity εc isotropically. The
+       ! resulting distribution of speeds will follow a degree-3 non-central χ² distribution with non-centrality parameter
+       ! λ=(εc/σ)². The fraction of that distribution with speed above the escape velocity then gives us the escaping fraction.
+       distributionSpeed     =distributionFunction1DNonCentralChiDegree3(                       &
+            &                                                            +(                     &
+            &                                                              +self%massSplitting_ &
+            &                                                              *speedLight          &
+            &                                                              /kilo                &
+            &                                                              /velocityDispersion  &
+            &                                                             )**2                  &
+            &                                                           )
+       decayingEscapeFraction=+1.0d0                                             &
+            &                 -distributionSpeed%cumulative(                     &
+            &                                               (                    &
+            &                                                +velocityEscape     &
+            &                                                /velocityDispersion &
+            &                                               )**2                 &
+            &                                              )
     else
-      fraction = +1.0d0
+       ! Non-positive velocity dispersion - assume that all particles escape.
+       decayingEscapeFraction = +1.0d0
     end if
     return
-  end subroutine decayingEscapeFraction
-
+  end function decayingEscapeFraction
 
   double precision function decayingDensity(self,node,radius)
     !!{
