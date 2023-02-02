@@ -146,9 +146,9 @@
       <radiusVirialFraction      value="0.01"/>
     </nodeOperator>
     <nodeOperator value="satelliteDestructionMassThreshold" >
-      <massDestructionAbsolute       value="0.0e+0"/>
-      <massDestructionInfallFraction value="1.0e-9"/>
-      <massDestructionTreeFraction   value="0.0e+0"/>
+      <massDestructionAbsolute           value="0.0e+0"/>
+      <massDestructionMassInfallFraction value="1.0e-9"/>
+      <massDestructionMassTreeFraction   value="0.0e+0"/>
     </nodeOperator>
   </nodeOperator>
   
