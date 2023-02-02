@@ -157,7 +157,13 @@ contains
     parameterFileName=inputPath(pathTypeDataStatic)//"darkMatter/Halo_Mass_Function_Parameters_Tinker_2008.xml"
     if (.not.File_Exists(parameterFileName)) call Error_Report('Unable to find data file "'//parameterFileName//'"'//{introspection:location})
     !$omp critical (FoX_DOM_Access)
+#ifdef THREADSAFEIO
+       !$omp critical(gfortranInternalIO)
+#endif
     doc => parseFile(char(parameterFileName),ioStat=ioStatus)
+#ifdef THREADSAFEIO
+       !$omp end critical(gfortranInternalIO)
+#endif
     if (ioStatus /= 0) call Error_Report('Unable to parse data file "'//parameterFileName//'"'//{introspection:location})
     columnsElement => XML_Get_First_Element_By_Tag_Name(doc           ,"columns"        )
     columnElement  => XML_Get_First_Element_By_Tag_Name(columnsElement,"densityContrast")

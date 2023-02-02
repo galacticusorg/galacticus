@@ -8,7 +8,6 @@ use Cwd;
 use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use Data::Dumper;
 use Text::Template 'fill_in_string';
-use Galacticus::Build::SourceTree::Process::Utils qw(performIO);
 
 # Insert hooks for our functions.
 $Galacticus::Build::SourceTree::Hooks::processHooks       {'stateStorable'} = \&Process_StateStorable;
@@ -166,7 +165,7 @@ CODE
 		$classIdentifiers{$className} = $classIdentifier;
 		$outputCode .= " type is (".$className.")\n";
 		$inputCode  .= " type is (".$className.")\n";
-		$outputCode .= &performIO("  if (present(storeIdentifier).and.storeIdentifier) write (stateFile) ".$classIdentifier."\n");
+		$outputCode .= "  if (present(storeIdentifier).and.storeIdentifier) write (stateFile) ".$classIdentifier."\n";
 		# Search the class node for declarations.
 		my @staticVariables;
 		my @methodCalls;
@@ -201,17 +200,17 @@ CODE
 					    $labelUsed   = 1;
 					    if ( $allocatable ) {
 						$outputCode .= "  if (allocated(self%".$variableName.")) then\n";
-						$outputCode .= &performIO("   write (stateFile) .true.\n"
-							    .             "   write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n");
+						$outputCode .= "   write (stateFile) .true.\n"
+							    .  "   write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n";
 					    }
 					    $outputCode .= " if (displayVerbosity() >= verbosityLevelWorking) then\n";
 					    if ( $declaration->{'intrinsic'} eq "class" ) {
 						$outputCode .= "  select type (c__ => self%".$variableName.")\n";
 						$outputCode .= "  class is (".$declaration->{'type'}.")\n";
-						$outputCode .= &performIO("   write (label,'(i16)') sizeof(c__)\n");
+						$outputCode .= "   write (label,'(i16)') sizeof(c__)\n";
 						$outputCode .= "  end select\n";
 					    } else {
-						$outputCode .= &performIO("   write (label,'(i16)') sizeof(self%".$variableName.")\n");
+						$outputCode .= "   write (label,'(i16)') sizeof(self%".$variableName.")\n";
 					    }
 					    $outputCode .= "  call displayMessage('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
 					    $outputCode .= " end if\n";
@@ -228,12 +227,12 @@ CODE
 					    }					    
 					    if ( $allocatable ) {
 						$outputCode .= "  else\n";
-						$outputCode .= &performIO("   write (stateFile) .false.\n");
+						$outputCode .= "   write (stateFile) .false.\n";
 						$outputCode .= "  end if\n";
 					    }
 					    if ( $allocatable ) {
 						$wasAllocatedRequired =1;
-						$inputCode  .= &performIO(" read (stateFile) wasAllocated\n");
+						$inputCode  .= " read (stateFile) wasAllocated\n";
 						$inputCode  .= " if (allocated(self%".$variableName.")) deallocate(self%".$variableName.")\n";
 						$inputCode  .= " if (wasAllocated) then\n";
 					    }
@@ -241,7 +240,7 @@ CODE
 					    if ( $allocatable ) {
 						$storedShapeRequired = 1;
 						$inputCode  .= "  allocate(storedShape(".$rank."))\n";
-						$inputCode  .= &performIO("  read (stateFile) storedShape\n");
+						$inputCode  .= "  read (stateFile) storedShape\n";
 						$inputCode  .= "  allocate(self%".$variableName."(".join(",",map {"storedShape(".$_.")"} 1..$rank)."))\n";
 						$inputCode  .= "  deallocate(storedShape)\n";
 					    }
@@ -283,24 +282,24 @@ CODE
 					    $labelUsed            = 1;
 					    $outputCode .= "  if (allocated(self%".$variableName.")) then\n";
 					    $outputCode .= "   if (displayVerbosity() >= verbosityLevelWorking) then\n";
-					    $outputCode .= &performIO("    write (label,'(i16)') sizeof(self%".$variableName.")\n");
+					    $outputCode .= "    write (label,'(i16)') sizeof(self%".$variableName.")\n";
 					    $outputCode .= "    call displayMessage('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
 					    $outputCode .= "   end if\n";
-					    $outputCode .= &performIO("   write (stateFile) .true.\n"
+					    $outputCode .= "   write (stateFile) .true.\n"
 					                .  "   write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n"
-					                .  "   write (stateFile) self%".$variableName."\n");
+					                .  "   write (stateFile) self%".$variableName."\n";
 					    $outputCode .= "  else\n";
-					    $outputCode .= &performIO("   write (stateFile) .false.\n");
+					    $outputCode .= "   write (stateFile) .false.\n";
 					    $outputCode .= "  end if\n";
-		    			    $inputCode  .= &performIO(" read (stateFile) wasAllocated\n");
+		    			    $inputCode  .= " read (stateFile) wasAllocated\n";
 					    $inputCode  .= " if (allocated(self%".$variableName.")) deallocate(self%".$variableName.")\n";
 					    $inputCode  .= " if (wasAllocated) then\n";
 					    $inputCode  .= "  call displayMessage('restoring \"".$variableName."\"',verbosity=verbosityLevelWorking)\n";
 					    $inputCode  .= "  allocate(storedShape(".$rank."))\n";
-		    			    $inputCode  .= &performIO("  read (stateFile) storedShape\n");
+		    			    $inputCode  .= "  read (stateFile) storedShape\n";
 					    $inputCode  .= "  allocate(self%".$variableName."(".join(",",map {"storedShape(".$_.")"} 1..$rank)."))\n";
 		    			    $inputCode  .= "  deallocate(storedShape)\n";
-		    			    $inputCode  .= &performIO("  read (stateFile) self%".$variableName."\n");
+		    			    $inputCode  .= "  read (stateFile) self%".$variableName."\n";
 		    			    $inputCode  .= " end if\n";
 					}
 				    } else {
@@ -339,16 +338,16 @@ CODE
 		foreach ( @staticVariables ) {
 		    $labelUsed   = 1;
 		    $outputCode .= " if (displayVerbosity() >= verbosityLevelWorking) then\n";
-		    $outputCode .= &performIO("  write (label,'(i16)') sizeof(self%".$_.")\n");
+		    $outputCode .= "  write (label,'(i16)') sizeof(self%".$_.")\n";
 		    $outputCode .= "  call displayMessage('storing \"".$_."\" with size '//trim(adjustl(label))//' bytes')\n";
 		    $outputCode .= " end if\n";
 		}
 		foreach ( @staticVariables ) {
 		    $inputCode .= " call displayMessage('restoring \"".$_."\"',verbosity=verbosityLevelWorking)\n";
 		}
-		$outputCode .= &performIO("  write (stateFile) ".join(", &\n  & ",map {"self%".$_} @staticVariables)."\n")
+		$outputCode .= "  write (stateFile) ".join(", &\n  & ",map {"self%".$_} @staticVariables)."\n"
 		    if ( scalar(@staticVariables) > 0 );
-		$inputCode  .= &performIO("  read  (stateFile) ".join(", &\n  & ",map {"self%".$_} @staticVariables)."\n")
+		$inputCode  .= "  read  (stateFile) ".join(", &\n  & ",map {"self%".$_} @staticVariables)."\n"
 		    if ( scalar(@staticVariables) > 0 );
 		$inputCode  .= join("\n",@methodCalls)."\n"
 		    if ( @methodCalls );
@@ -446,7 +445,7 @@ subroutine {$parentClassName}ClassRestore{$rankSuffix}(self,stateFile{$storedSha
 CODE
 		    $classRestoreCode .= "integer(c_size_t), intent(in   ), dimension(".join(",",map {":"} 1..$rank).") :: storedShape\n"
 			if ( $rank > 0 );
-		    $classRestoreCode .= &performIO(" read (stateFile) classIdentifier\n");
+		    $classRestoreCode .= " read (stateFile) classIdentifier\n";
 		    $classRestoreCode .= " select case (classIdentifier)\n";
 		    foreach my $childClassName( sort(keys(%classIdentifiers)) ) {
 			my $parentClassName = $childClassName;

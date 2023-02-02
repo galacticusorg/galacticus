@@ -696,42 +696,13 @@ contains
                 ! Output tree progress information.
                 if (treeWalkCount > int(treeWalkCountPreviousOutput*1.1d0)+1) then
                    if (displayVerbosity() >= verbosityLevel) then
-                      !![
-                      <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-                       <description>Internal file I/O in gfortran can be non-thread safe.</description>
-                      </workaround>
-                      !!]
-#ifdef THREADSAFEIO
-                      !$omp critical(gfortranInternalIO)
-#endif
                       write (message,'(a,i9,a )') 'Evolving tree [',treeWalkCount,']'
-#ifdef THREADSAFEIO
-                      !$omp end critical(gfortranInternalIO)
-#endif
                       call displayIndent(message,verbosityLevel)
-#ifdef THREADSAFEIO
-                      !$omp critical(gfortranInternalIO)
-#endif
                       write (message,'(a,i9   )') 'Nodes in tree:         ',nodesTotalCount
-#ifdef THREADSAFEIO
-                      !$omp end critical(gfortranInternalIO)
-#endif
                       call displayMessage(message,verbosityLevel)
-#ifdef THREADSAFEIO
-                      !$omp critical(gfortranInternalIO)
-#endif
                       write (message,'(a,i9   )') 'Nodes evolved:         ',nodesEvolvedCount
-#ifdef THREADSAFEIO
-                      !$omp end critical(gfortranInternalIO)
-#endif
                       call displayMessage(message,verbosityLevel)
-#ifdef THREADSAFEIO
-                      !$omp critical(gfortranInternalIO)
-#endif
                       write (message,'(a,e10.4)') 'Earliest time in tree: ',earliestTimeInTree
-#ifdef THREADSAFEIO
-                      !$omp end critical(gfortranInternalIO)
-#endif
                       call displayMessage(message,verbosityLevel)
                       call displayUnindent('done',verbosityLevel)
                       treeWalkCountPreviousOutput=treeWalkCount

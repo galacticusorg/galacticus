@@ -86,23 +86,39 @@ contains
 
     ! Get the elements
     do i=1,6
+       !$omp critical (FoX_DOM_Access)
        call XML_Get_Elements_By_Tag_Name(tensorDefinition,elementNames(i),elementList)
+       !$omp end critical (FoX_DOM_Access)
        if (size(elementList) > 1) call Error_Report('multiple "'//elementNames(i)//'" values specified'//{introspection:location})
        if (size(elementList) < 1) call Error_Report('no "'//elementNames(i)//'" value specified'       //{introspection:location})
+       !$omp critical (FoX_DOM_Access)
        element => elementList(0)%element
+       !$omp end critical (FoX_DOM_Access)
        select case (elementNames(i))
        case ( 'x00' )
+          !$omp critical (FoX_DOM_Access)
           call extractDataContent(element,self%x00)
+          !$omp end critical (FoX_DOM_Access)
        case ( 'x01' )
+          !$omp critical (FoX_DOM_Access)
           call extractDataContent(element,self%x01)
+          !$omp end critical (FoX_DOM_Access)
        case ( 'x02' )
+          !$omp critical (FoX_DOM_Access)
           call extractDataContent(element,self%x02)
+          !$omp end critical (FoX_DOM_Access)
        case ( 'x11' )
+          !$omp critical (FoX_DOM_Access)
           call extractDataContent(element,self%x11)
+          !$omp end critical (FoX_DOM_Access)
        case ( 'x12' )
+          !$omp critical (FoX_DOM_Access)
           call extractDataContent(element,self%x12)
+          !$omp end critical (FoX_DOM_Access)
        case ( 'x22' )
+          !$omp critical (FoX_DOM_Access)
           call extractDataContent(element,self%x22)
+          !$omp end critical (FoX_DOM_Access)
        end select
     end do
     return

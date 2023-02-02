@@ -144,34 +144,12 @@ contains
     if (accretionRateThinDiskMinimum == "none") then
        accretionRateThinDiskMinimum_=-huge(0.0d0)
     else
-       !![
-       <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-        <description>Internal file I/O in gfortran can be non-thread safe.</description>
-       </workaround>
-       !!]
-#ifdef THREADSAFEIO
-       !$omp critical(gfortranInternalIO)
-#endif
        read (accretionRateThinDiskMinimum,*) accretionRateThinDiskMinimum_
-#ifdef THREADSAFEIO
-       !$omp end critical(gfortranInternalIO)
-#endif
     end if
     if (accretionRateThinDiskMaximum == "none") then
        accretionRateThinDiskMaximum_=+huge(0.0d0)
     else
-       !![
-       <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-        <description>Internal file I/O in gfortran can be non-thread safe.</description>
-       </workaround>
-       !!]
-#ifdef THREADSAFEIO
-       !$omp critical(gfortranInternalIO)
-#endif
        read (accretionRateThinDiskMaximum,*) accretionRateThinDiskMaximum_
-#ifdef THREADSAFEIO
-       !$omp end critical(gfortranInternalIO)
-#endif       
     end if
     ! Build the object.
     self=accretionDisksSwitched(accretionDisksADAF_,accretionDisksShakuraSunyaev_,accretionRateThinDiskMinimum_,accretionRateThinDiskMaximum_,accretionRateTransitionWidth,scaleADAFRadiativeEfficiency)
