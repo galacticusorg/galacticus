@@ -113,7 +113,7 @@ my @types =
 	 suite        => "Symphony",
 	 transfer     => "IDM1e-4GeV_halfmode",
 	 name         => "Milky Way IDM 10^{-4} GeV half-mode",
-	 redshifts    => [ 0.000  ],
+	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
 	 massParticle => 4.02830e05
      },
      {
@@ -131,7 +131,7 @@ my @types =
 	 suite        => "Symphony",
 	 transfer     => "fdm_185e-22eV",
 	 name         => "Milky Way FDM 185*10^{-22} eV",
-	 redshifts    => [ 0.000  ],
+	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
 	 massParticle => 4.02830e05
      },
      {
@@ -230,7 +230,7 @@ my @types =
 	 suite        => "Symphony",
 	 transfer     => "IDM1e-4GeV_halfmode",
 	 name         => "Milky Way IDM 10^{-4} GeV half-mode",
-	 redshifts    => [ 0.000  ],
+	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
 	 massParticle => 5.03538e04
      },
      {
@@ -248,7 +248,7 @@ my @types =
 	 suite        => "Symphony",
 	 transfer     => "fdm_185e-22eV",
 	 name         => "Milky Way FDM 185*10^{-22} eV",
-	 redshifts    => [ 0.000  ],
+	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
 	 massParticle => 5.03538e04
      },
      {
