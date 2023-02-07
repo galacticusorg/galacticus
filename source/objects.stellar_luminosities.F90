@@ -477,11 +477,15 @@ contains
     integer                                                  :: i
 
     ! Get the luminosities.
+    !$omp critical (FoX_DOM_Access)
     call XML_Get_Elements_By_Tag_Name(stellarLuminositiesDefinition,'luminosity',luminosityList)
+    !$omp end critical (FoX_DOM_Access)
     if (luminosityCount > 0) then
        do i=0,luminosityCount-1
+          !$omp critical (FoX_DOM_Access)
           luminosity => luminosityList(i)%element
           call extractDataContent(luminosity,self%luminosityValue(i+1))
+          !$omp end critical (FoX_DOM_Access)
        end do
     end if
     return
@@ -1801,31 +1805,9 @@ contains
 
     call displayIndent  (var_str('storing state for "stellar luminosities" [position: ')//FTell(stateFile)//']',verbosity=verbosityLevelWorking)
     call displayMessage(var_str('storing "luminosityCount" [position: ')//FTell(stateFile)//']',verbosity=verbosityLevelWorking)
-    !![
-    <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-     <description>Internal file I/O in gfortran can be non-thread safe.</description>
-    </workaround>
-    !!]
-#ifdef THREADSAFEIO
-    !$omp critical(gfortranInternalIO)
-#endif
     write (stateFile) luminosityCount
-#ifdef THREADSAFEIO
-    !$omp end critical(gfortranInternalIO)
-#endif
     call displayMessage(var_str('storing luminosities [position: ')//FTell(stateFile)//']',verbosity=verbosityLevelWorking)
-    !![
-    <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-     <description>Internal file I/O in gfortran can be non-thread safe.</description>
-    </workaround>
-    !!]
-#ifdef THREADSAFEIO
-    !$omp critical(gfortranInternalIO)
-#endif
     write (stateFile) luminosityIndex,luminosityCosmicTime,luminosityRedshift,luminosityBandRedshift
-#ifdef THREADSAFEIO
-    !$omp end critical(gfortranInternalIO)
-#endif
     do i=1,luminosityCount
        call displayMessage(var_str('storing luminosity ')//i//' of '//luminosityCount//' [position: '//FTell(stateFile)//']',verbosity=verbosityLevelWorking)
        call luminosityName          (i)%stateStore(stateFile)
@@ -1872,18 +1854,7 @@ contains
     if (allocated(unitStellarLuminosities%luminosityValue)) deallocate(unitStellarLuminosities%luminosityValue)
     if (allocated(zeroStellarLuminosities%luminosityValue)) deallocate(zeroStellarLuminosities%luminosityValue)
     call displayMessage(var_str('restoring "luminosityCount" [position: ')//FTell(stateFile)//']',verbosity=verbosityLevelWorking)
-    !![
-    <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-     <description>Internal file I/O in gfortran can be non-thread safe.</description>
-    </workaround>
-    !!]
-#ifdef THREADSAFEIO
-    !$omp critical(gfortranInternalIO)
-#endif
     read (stateFile) luminosityCount
-#ifdef THREADSAFEIO
-    !$omp end critical(gfortranInternalIO)
-#endif
     allocate(luminosityFilterIndex                  (luminosityCount))
     allocate(luminosityIndex                        (luminosityCount))
     allocate(luminosityPostprocessor                (luminosityCount))
@@ -1899,18 +1870,7 @@ contains
     unitStellarLuminosities%luminosityValue=1.0d0
     zeroStellarLuminosities%luminosityValue=0.0d0
     call displayMessage(var_str('restoring luminosities [position: ')//FTell(stateFile)//']',verbosity=verbosityLevelWorking)
-    !![
-    <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-     <description>Internal file I/O in gfortran can be non-thread safe.</description>
-    </workaround>
-    !!]
-#ifdef THREADSAFEIO
-    !$omp critical(gfortranInternalIO)
-#endif
     read (stateFile) luminosityIndex,luminosityCosmicTime,luminosityRedshift,luminosityBandRedshift
-#ifdef THREADSAFEIO
-    !$omp end critical(gfortranInternalIO)
-#endif
     do i=1,luminosityCount
        call displayMessage(var_str('restoring luminosity ')//i//' of '//luminosityCount//' [position: '//FTell(stateFile)//']',verbosity=verbosityLevelWorking)
        call luminosityName          (i)%stateRestore(stateFile)

@@ -247,19 +247,19 @@ contains
 
     allocate(self%warnedDefaults)
     allocate(self%lock          )
+    !$omp critical (FoX_DOM_Access)
     self%document       => createDocument    (                                  &
          &                                    getImplementation()             , &
          &                                    qualifiedName      ="parameters", &
          &                                    docType            =null()        &
          &                                   )
     self%rootNode       => getDocumentElement(self%document)
+    call setLiveNodeLists(self%document,.false.)
+    !$omp end critical (FoX_DOM_Access)
     self%parameters     => null              (             )
     self%warnedDefaults =  integerHash       (             )
     self%lock           =  ompLock           (             )
     self%isNull         = .true.
-    !$omp critical (FoX_DOM_Access)
-    call setLiveNodeLists(self%document,.false.)
-    !$omp end critical (FoX_DOM_Access)
    return
   end function inputParametersConstructorNull
 
@@ -410,12 +410,12 @@ contains
     allocate(self%warnedDefaults)
     allocate(self%lock          )
     self%isNull         =  .false.
-    self%document       => getOwnerDocument(parametersNode)
     self%rootNode       =>                  parametersNode
     self%parent         => null            (              )
     self%warnedDefaults =  integerHash     (              )
     self%lock           =  ompLock         (              )
     !$omp critical (FoX_DOM_Access)
+    self%document       => getOwnerDocument(parametersNode)
     call setLiveNodeLists(self%document,.false.)
     if (.not.noBuild_) then
        allocate(self%parameters)
@@ -540,7 +540,7 @@ contains
     return
   end subroutine inputParametersBuildTree
 
-   subroutine inputParametersResolveReferences(self)
+  subroutine inputParametersResolveReferences(self)
     !!{
     Build a tree representation of the input parameter file.
     !!}
@@ -893,8 +893,10 @@ contains
     character       (len=24        )                :: valueText
 
     write (valueText,'(e24.16)') value
+    !$omp critical (FoX_DOM_Access)
     call setAttribute(self%content,"value",trim(valueText))
-   return
+    !$omp end critical (FoX_DOM_Access)
+    return
   end subroutine inputParameterSetDouble
 
  subroutine inputParameterSetVarStr(self,value)
@@ -907,7 +909,9 @@ contains
     class    (inputParameter), intent(inout) :: self
     type     (varying_string), intent(in   ) :: value
 
+    !$omp critical (FoX_DOM_Access)
     call setAttribute(self%content,"value",char(value))
+    !$omp end critical (FoX_DOM_Access)
     return
   end subroutine inputParameterSetVarStr
 
@@ -964,7 +968,7 @@ contains
     !$omp threadprivate(regEx_)
     logical                                                                                    :: warningsFound             , parameterMatched    , &
          &                                                                                        verbose                   , ignoreWarnings      , &
-         &                                                                                        isException
+         &                                                                                        isException               , hasAttribute_
     type     (enumerationInputParameterErrorStatusType)                                        :: errorStatus
     integer                                                                                    :: allowedParametersCount    , status              , &
          &                                                                                        distance                  , distanceMinimum     , &
@@ -994,12 +998,18 @@ contains
              call self%value(currentParameter,parameterValue,errorStatus,writeOutput=.false.)
              ! Determine if warnings should be ignored for this parameter.
              ignoreWarnings=.false.
-             if (hasAttribute(node_,'ignoreWarnings')) then
+             !$omp critical (FoX_DOM_Access)
+             hasAttribute_=hasAttribute(node_,'ignoreWarnings')
+             !$omp end critical (FoX_DOM_Access)
+             if (hasAttribute_) then
+                !$omp critical (FoX_DOM_Access)
                 ignoreWarningsNode => getAttributeNode(node_,'ignoreWarnings')
                 call extractDataContent(ignoreWarningsNode,ignoreWarnings,iostat=status,ex=exception)
                 isException=inException(exception)
+                unknownName=getNodeName(node_)
+                !$omp end critical (FoX_DOM_Access)
                 if (isException .or. status /= 0) &
-                     & call Error_Report("unable to parse attribute 'ignoreWarnings' in parameter ["//getNodeName(node_)//"]"//{introspection:location})
+                     & call Error_Report("unable to parse attribute 'ignoreWarnings' in parameter ["//trim(unknownName)//"]"//{introspection:location})
              end if
              ! Check for a match with allowed parameter names.
              allowedParametersCount=0
@@ -1011,10 +1021,14 @@ contains
                    allowedParameterName=allowedParameterNames(j)
                    if (allowedParameterName(1:6) == "regEx:") then
                       regEx_=regEx(allowedParameterName(7:len_trim(allowedParameterName)))
+                      !$omp critical (FoX_DOM_Access)
                       parameterMatched=regEx_%matches(getNodeName(node_))
+                      !$omp end critical (FoX_DOM_Access)
                       call regEx_%destroy()
                    else
+                      !$omp critical (FoX_DOM_Access)
                       parameterMatched=(getNodeName(node_) == trim(allowedParameterName))
+                      !$omp end critical (FoX_DOM_Access)
                    end if
                    j=j+1
                 end do
@@ -1519,7 +1533,7 @@ contains
          &                                                                                    isException
     character       (len=parameterLengthMaximum              )                             :: expression         , parameterName  , &
          &                                                                                    workText           , content
-    type            (varying_string                          )                             :: attributeName
+    type            (varying_string                          )                             :: attributeName      , nodeName
     double precision                                                                       :: workValue
     {Type¦match¦^Long.*¦character(len=parameterLengthMaximum) :: parameterText¦}
     {Type¦match¦^(Character|VarStr)Rank1$¦type(varying_string) :: parameterText¦}
@@ -1551,11 +1565,14 @@ contains
           if (present(errorStatus)) then
              errorStatus=inputParameterErrorStatusEmptyValue
           else
-             call Error_Report(                                       &
-                  &            'empty value in parameter ['        // &
-                  &             getNodeName(parameterNode%content) // &
-                  &            ']'                                 // &
-                  &            {introspection:location}               &
+             !$omp critical (FoX_DOM_Access)
+             nodeName=getNodeName(parameterNode%content)
+             !$omp end critical (FoX_DOM_Access)
+             call Error_Report(                               &
+                  &            'empty value in parameter ['// &
+                  &             nodeName                   // &
+                  &            ']'                         // &
+                  &            {introspection:location}       &
                   &           )
           end if
        else
@@ -1608,9 +1625,9 @@ contains
                 evaluator=Evaluator_Create_(trim(expression))
                 workValue=Evaluator_Evaluate_(evaluator,0,"",0.0d0)
                 call Evaluator_Destroy_(evaluator)
-                !$omp critical (FoX_DOM_Access)
                 call parameterNode%set(workValue)
-                valueElement => getAttributeNode                 (parameterNode%content,"value"                          )
+                !$omp critical (FoX_DOM_Access)
+                valueElement => getAttributeNode(parameterNode%content,"value")
                 !$omp end critical (FoX_DOM_Access)
 #else
                 call Error_Report('derived parameters require libmatheval, but it is not installed'//{introspection:location})
@@ -1758,7 +1775,7 @@ contains
     type   (node                                    ), pointer                 :: node_
     type   (inputParameter                          ), pointer                 :: currentParameter
     type   (enumerationInputParameterErrorStatusType)                          :: errorStatus
-    type   (varying_string                          )                          :: parameterValue
+    type   (varying_string                          )                          :: parameterValue  , nodeName
     logical                                                                    :: firstParameter
     type   (inputParameters                         )                          :: subParameters
     !![
@@ -1773,11 +1790,17 @@ contains
           if (.not.firstParameter) inputParametersSerializeToString=inputParametersSerializeToString//"_"
           call self%value(currentParameter,parameterValue,errorStatus,writeOutput=.false.)
           node_ => currentParameter%content
+          !$omp critical (FoX_DOM_Access)
+          nodeName=getNodeName(node_)
+          !$omp end critical (FoX_DOM_Access)
           inputParametersSerializeToString=inputParametersSerializeToString// &
-               &                           getNodeName(node_)              // &
+               &                           nodeName                        // &
                &                           ":"                             // &
                &                           adjustl(char(parameterValue))
-          subParameters=self%subParameters(getNodeName(node_))
+          !$omp critical (FoX_DOM_Access)
+          nodeName=getNodeName(node_)
+          !$omp end critical (FoX_DOM_Access)
+          subParameters=self%subParameters(char(nodeName))
           if (associated(subParameters%parameters%firstChild)) inputParametersSerializeToString=inputParametersSerializeToString // &
                &                                                                                "{"                              // &
                &                                                                                subParameters%serializeToString()// &
@@ -1800,7 +1823,9 @@ contains
     class(inputParameters), intent(in   ) :: self
     type (varying_string ), intent(in   ) :: parameterFile
 
+    !$omp critical (FoX_DOM_Access)
     call serialize(self%document,char(parameterFile))
+    !$omp end critical (FoX_DOM_Access)
     return
   end subroutine inputParametersSerializeToXML
 

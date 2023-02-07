@@ -1405,8 +1405,9 @@
   	<radiusVirialFraction value="0.01"/>
       </nodeOperator>
       <nodeOperator value="satelliteDestructionMassThreshold" iterable="no">
-  	<massDestruction value="0.00"/>
-  	<massDestructionFractional value="0.01"/>
+  	<massDestructionAbsolute           value="0.00"/>
+  	<massDestructionMassInfallFraction value="0.01"/>
+  	<massDestructionMassTreeFraction   value="0.00"/>
       </nodeOperator>
     </nodeOperator>
     <satelliteDynamicalFriction value="chandrasekhar1943"/>

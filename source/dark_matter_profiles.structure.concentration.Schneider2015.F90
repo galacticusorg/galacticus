@@ -225,7 +225,7 @@ contains
     ! Compute time of collapse in the reference model, assuming same redshift of collapse in both models.
     timeCollapseReference=self%referenceCosmologyFunctions%cosmicTime(self%cosmologyFunctions_%expansionFactor(timeCollapse))
     ! Find the mass of a halo collapsing at the same time in the reference model.
-    self_                  => self
+    self_                 => self
     massReferencePrevious =  -1.0d0
     if (schneider2015ReferenceCollapseMassRoot(massReferenceMaximum) > 0.0d0) then
        ! No solution can be found even at the maximum allowed mass. Simply set the reference mass to the maximum allowed mass -

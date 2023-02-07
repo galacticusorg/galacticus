@@ -31,7 +31,8 @@
      A node operator class that triggers destruction of satellites based on their mass.
      !!}
      private
-     double precision :: massDestruction, massDestructionFractional
+     double precision :: massDestructionAbsolute        , massDestructionMassInfallFraction, &
+         &               massDestructionMassTreeFraction
    contains
      !![
      <methods>
@@ -64,38 +65,46 @@ contains
     implicit none
     type            (nodeOperatorSatelliteDestructionMassThreshold)                :: self
     type            (inputParameters                              ), intent(inout) :: parameters
-    double precision                                                               :: massDestruction, massDestructionFractional
+    double precision                                                               :: massDestructionAbsolute        , massDestructionMassInfallFraction, &
+         &                                                                            massDestructionMassTreeFraction
 
     !![
     <inputParameter>
-      <name>massDestruction</name>
+      <name>massDestructionAbsolute</name>
       <defaultValue>0.00d0</defaultValue>
       <description>The absolute mass below which satellites are destroyed.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
-      <name>massDestructionFractional</name>
+      <name>massDestructionMassInfallFraction</name>
       <defaultValue>0.01d0</defaultValue>
       <description>The fraction of the infall mass below which satellites are destroyed.</description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter>
+      <name>massDestructionMassTreeFraction</name>
+      <defaultValue>0.00d0</defaultValue>
+      <description>The fraction of the tree mass below which satellites are destroyed.</description>
+      <source>parameters</source>
+    </inputParameter>
     !!]
-    self=nodeOperatorSatelliteDestructionMassThreshold(massDestruction, massDestructionFractional)
+    self=nodeOperatorSatelliteDestructionMassThreshold(massDestructionAbsolute,massDestructionMassInfallFraction,massDestructionMassTreeFraction)
     !![
     <inputParametersValidate source="parameters"/>
     !!]
     return
   end function satelliteDestructionMassThresholdConstructorParameters
 
-  function satelliteDestructionMassThresholdConstructorInternal(massDestruction, massDestructionFractional) result(self)
+  function satelliteDestructionMassThresholdConstructorInternal(massDestructionAbsolute,massDestructionMassInfallFraction,massDestructionMassTreeFraction) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily satelliteDestructionMassThreshold} node operator class.
     !!}
     implicit none
-    type            (nodeOperatorSatelliteDestructionMassThreshold)                        :: self
-    double precision                                               , intent(in   )         :: massDestruction, massDestructionFractional
+    type            (nodeOperatorSatelliteDestructionMassThreshold)                :: self
+    double precision                                               , intent(in   ) :: massDestructionAbsolute        , massDestructionMassInfallFraction, &
+         &                                                                            massDestructionMassTreeFraction
     !![
-    <constructorAssign variables="massDestruction, massDestructionFractional"/>
+    <constructorAssign variables="massDestructionAbsolute, massDestructionMassInfallFraction, massDestructionMassTreeFraction"/>
     !!]
     
     return
@@ -154,18 +163,29 @@ contains
     !!}
     use :: Galacticus_Nodes, only : treeNode, nodeComponentBasic
     implicit none
-    class(nodeOperatorSatelliteDestructionMassThreshold), intent(inout) :: self
-    type (treeNode                                     ), intent(inout) :: node
-    class(nodeComponentBasic                           ), pointer       :: basic
+    class           (nodeOperatorSatelliteDestructionMassThreshold), intent(inout) :: self
+    type            (treeNode                                     ), intent(inout) :: node
+    class           (nodeComponentBasic                           ), pointer       :: basic
+    double precision                                                               :: massDestructionAbsolute, massDestructionInfall, &
+         &                                                                            massDestructionTree
     
-    satelliteDestructionMassThresholdMassDestroy=self%massDestruction
-    if (self%massDestructionFractional > 0.0d0) then
-       basic                                        => node%basic()
-       satelliteDestructionMassThresholdMassDestroy =  max(                                                       &
-            &                                              +      satelliteDestructionMassThresholdMassDestroy  , &
-            &                                              +basic%mass                                        ()  &
-            &                                              *self %massDestructionFractional                       &
-            &                                             )
+    massDestructionAbsolute=self%massDestructionAbsolute
+    massDestructionInfall  =0.0d0
+    massDestructionTree    =0.0d0
+    if (self%massDestructionMassInfallFraction > 0.0d0) then
+       basic                 =>  node                   %basic                            ()
+       massDestructionInfall =  +basic                  %mass                             () &
+            &                   *self                   %massDestructionMassInfallFraction
     end if
+    if (self%massDestructionMassTreeFraction > 0.0d0)  then
+       basic                 =>  node %hostTree%nodeBase%basic                            ()
+       massDestructionTree   =  +basic                  %mass                             () &
+            &                   *self                   %massDestructionMassTreeFraction
+    end if
+    satelliteDestructionMassThresholdMassDestroy=max(                         &
+         &                                           massDestructionAbsolute, &
+         &                                           massDestructionInfall  , &
+         &                                           massDestructionTree      &
+         &                                          )
     return
   end function satelliteDestructionMassThresholdMassDestroy

@@ -325,7 +325,7 @@ sub Implementation_Builder {
 	     },
 	     {
 		 intrinsic  => "integer",
-		 variables  => [ "i", "j" ]
+		 variables  => [ "i", "j", "propertyListLength" ]
 	     }
 	    ]
 	};
@@ -345,7 +345,6 @@ call self%nodeComponent{ucfirst($code::member->{'extends'}->{'class'}).ucfirst($
 CODE
 	}
  	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-!$omp critical (FoX_DOM_Access)
 CODE
 	# Iterate over properties.
 	foreach $code::property ( &List::ExtraUtils::hashList($code::member->{'properties'}->{'property'}) ) {
@@ -353,13 +352,20 @@ CODE
 	    next
 		if ( $code::property->{'attributes'}->{'isVirtual'} );
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+!$omp critical (FoX_DOM_Access)
 propertyList => getElementsByTagName(componentDefinition,'{$property->{'name'}}')
+!$omp end critical (FoX_DOM_Access)
 CODE
 	    if ( $code::property->{'data'}->{'rank'} == 0 ) {
 		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-if (getLength(propertyList) > 1) call Error_Report('scalar property must have precisely one value'//\{introspection:location\})
-if (getLength(propertyList) == 1) then
+!$omp critical (FoX_DOM_Access)
+propertyListLength=getLength(propertyList)
+!$omp end critical (FoX_DOM_Access)
+if (propertyListLength > 1) call Error_Report('scalar property must have precisely one value'//\{introspection:location\})
+if (propertyListLength == 1) then
+  !$omp critical (FoX_DOM_Access)
   property => item(propertyList,0)
+  !$omp end critical (FoX_DOM_Access)
 CODE
 		if (
 		    $code::property->{'data'}->{'type'} eq "double"
@@ -369,7 +375,9 @@ CODE
 		    $code::property->{'data'}->{'type'} eq "logical"
 		    ) {
 		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+  !$omp critical (FoX_DOM_Access)
   call extractDataContent(property,self%{$property->{'name'}}Data)
+  !$omp end critical (FoX_DOM_Access)
 CODE
 		} elsif ( $code::property->{'data'}->{'type'} eq "longInteger" ) {
 		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
@@ -385,7 +393,10 @@ end if
 CODE
 	    } elsif ( $code::property->{'data'}->{'rank'} == 1 ) {
 		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-if (getLength(propertyList) >= 1) then
+!$omp critical (FoX_DOM_Access)
+propertyListLength=getLength(propertyList)
+!$omp end critical (FoX_DOM_Access)
+if (propertyListLength >= 1) then
 CODE
 		if (
 		    $code::property->{'data'}->{'type'} eq "double"
@@ -396,10 +407,12 @@ CODE
 		    ) {
 		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
   if (allocated(self%{$property->{'name'}}Data)) deallocate(self%{$property->{'name'}}Data)
-  allocate(self%{$property->{'name'}}Data(getLength(propertyList)))
-  do i=1,getLength(propertyList)
+  allocate(self%{$property->{'name'}}Data(propertyListLength))
+  do i=1,propertyListLength
+    !$omp critical (FoX_DOM_Access)
     property => item(propertyList,i-1)
     call extractDataContent(property,self%{$property->{'name'}}Data(i))
+    !$omp end critical (FoX_DOM_Access)
   end do
 CODE
 		} elsif ( $code::property->{'data'}->{'type'} eq "longInteger" ) {
@@ -409,9 +422,11 @@ CODE
 		} else {
 		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
   if (allocated(self%{$property->{'name'}})) deallocate(self%{$property->{'name'}})
-  allocate(self%{$property->{'name'}}(getLength(propertyList)))
-  do i=1,getLength(propertyList)
+  allocate(self%{$property->{'name'}}(propertyListLength))
+  do i=1,propertyListLength
+    !$omp critical (FoX_DOM_Access)
     property => item(propertyList,i-1)
+    !$omp end critical (FoX_DOM_Access)
     call self%{$property->{'name'}}Data(i)%builder(property)
   end do
 CODE
@@ -422,7 +437,6 @@ CODE
 	    }
 	}
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-!$omp end critical (FoX_DOM_Access)
 CODE
     }
     # Build any meta-properties.
@@ -433,13 +447,15 @@ CODE
 	    $code::prefix   = ucfirst($metaPropertyType->{'label'})."Rank".$metaPropertyType->{'rank' };
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated({$class->{'name'}.$prefix}MetaPropertyNames)) then
- !$omp critical (FoX_DOM_Access)
  do i=1,size(({$class->{'name'}.$prefix}MetaPropertyNames))
+  !$omp critical (FoX_DOM_Access)
   propertyList => getElementsByTagName(componentDefinition,char({$class->{'name'}.$prefix}MetaPropertyNames(i)))
+  propertyListLength=getLength(propertyList)
+  !$omp end critical (FoX_DOM_Access)
 CODE
 	    if      ( $metaPropertyType->{'rank'} == 0 ) {
 		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-  if (getLength(propertyList) > 1) call Error_Report('meta-property must have precisely one value'//\{introspection:location\})
+  if (propertyListLength > 1) call Error_Report('meta-property must have precisely one value'//\{introspection:location\})
 CODE
 		if ( $metaPropertyType->{'intrinsic'} eq "integer" && defined($metaPropertyType->{'type'}) && $metaPropertyType->{'type'} eq "kind_int8" ) {
 		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
@@ -447,9 +463,11 @@ CODE
 CODE
 		} else {
 		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-  if (getLength(propertyList) == 1) then
+  if (propertyListLength == 1) then
+    !$omp critical (FoX_DOM_Access)
     property => item(propertyList,0)
     call extractDataContent(property,self%{$prefix}MetaProperties(i))
+    !$omp end critical (FoX_DOM_Access)
   end if
 CODE
 		}
@@ -460,12 +478,14 @@ CODE
 CODE
 		} else {
 		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-  if (getLength(propertyList) >= 1) then
+  if (propertyListLength >= 1) then
     if (allocated(self%{$prefix}MetaProperties(i)%values)) deallocate(self%{$prefix}MetaProperties(i)%values)
-    allocate(self%{$prefix}MetaProperties(i)%values(getLength(propertyList)))
-    do j=1,getLength(propertyList)
+    allocate(self%{$prefix}MetaProperties(i)%values(propertyListLength))
+    do j=1,propertyListLength
+     !$omp critical (FoX_DOM_Access)
      property => item(propertyList,j-1)
      call extractDataContent(property,self%{$prefix}MetaProperties(i)%values(j))
+     !$omp end critical (FoX_DOM_Access)
     end do
   end if
 CODE
@@ -475,7 +495,6 @@ CODE
 	    }
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
  end do
- !$omp end critical (FoX_DOM_Access)
 end if
 CODE
 	}

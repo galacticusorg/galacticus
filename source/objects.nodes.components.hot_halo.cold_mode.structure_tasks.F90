@@ -351,8 +351,10 @@ contains
     if (.not.defaultHotHaloComponent%coldModeIsActive() ) return
     radius                                                   =  sqrt(sum(positionCartesian**2))
     velocity                                                 =  sqrt(sum(velocityCartesian**2))
+    if (velocity <= 0.0d0) return
     positionSpherical                                        =  [radius,0.0d0,0.0d0]
     density                                                  =  Node_Component_Hot_Halo_Cold_Mode_Density_Task(node,positionSpherical,componentType,massType,weightByMass,weightIndexNull)
+    if (density  <= 0.0d0) return
     xV                                                       = +                           velocity       &
          &                                                     /darkMatterHaloScale_%velocityVirial(node) &
          &                                                     /sqrt(2.0d0)
