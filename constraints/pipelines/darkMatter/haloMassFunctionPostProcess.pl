@@ -149,7 +149,7 @@ my @simulations =
      color               => "#0bf7f4",
      plotModify          => \&zoomInsPlotModify,
      validate            => \&zoomInsValidate
- ,
+ },
  {
      label               => "MilkyWay_fdm_25.9e-22eV",
      description         => "Halo mass function for non-backsplash z=0 halos from Milky Way FDM 25.9e-22 eV zoom-in simulations.",
