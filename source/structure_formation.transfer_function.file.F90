@@ -134,28 +134,30 @@
      A transfer function class which interpolates a transfer function given in a file.
      !!}
      private
-     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_                => null()
-     class           (transferFunctionClass   ), pointer :: transferFunctionReference          => null()
-     type            (varying_string          )          :: fileName
-     type            (table1DGeneric          )          :: transfer
-     logical                                             :: massHalfModeAvailable                       , massQuarterModeAvailable, &
-          &                                                 transferFunctionReferenceAvailable
-     double precision                                    :: time                                        , redshift                , &
-          &                                                 massHalfMode                                , massQuarterMode
+     class           (cosmologyFunctionsClass ), pointer                   :: cosmologyFunctions_                => null()
+     class           (transferFunctionClass   ), pointer                   :: transferFunctionReference          => null()
+     type            (varying_string          )                            :: fileName
+     type            (table1DGeneric          )                            :: transfer
+     logical                                                               :: massHalfModeAvailable                       , massQuarterModeAvailable, &
+          &                                                                   transferFunctionReferenceAvailable
+     double precision                                                      :: time                                        , redshift                , &
+          &                                                                   massHalfMode                                , massQuarterMode
+     double precision                          , allocatable, dimension(:) :: wavenumbersLocalMinima_
    contains
      !![
      <methods>
        <method description="Read the named transfer function file." method="readFile" />
      </methods>
      !!]
-     final     ::                          fileDestructor
-     procedure :: readFile              => fileReadFile
-     procedure :: value                 => fileValue
-     procedure :: logarithmicDerivative => fileLogarithmicDerivative
-     procedure :: halfModeMass          => fileHalfModeMass
-     procedure :: quarterModeMass       => fileQuarterModeMass
-     procedure :: fractionModeMass      => fileFractionModeMass
-     procedure :: epochTime             => fileEpochTime
+     final     ::                           fileDestructor
+     procedure :: readFile               => fileReadFile
+     procedure :: value                  => fileValue
+     procedure :: logarithmicDerivative  => fileLogarithmicDerivative
+     procedure :: wavenumbersLocalMinima => fileWavenumbersLocalMinima
+     procedure :: halfModeMass           => fileHalfModeMass
+     procedure :: quarterModeMass        => fileQuarterModeMass
+     procedure :: fractionModeMass       => fileFractionModeMass
+     procedure :: epochTime              => fileEpochTime
   end type transferFunctionFile
 
   interface transferFunctionFile
@@ -280,7 +282,8 @@ contains
          &                                                                           OmegaMatter                    , OmegaDarkEnergy          , &
          &                                                                           temperatureCMB
     type            (enumerationExtrapolationTypeType)                            :: extrapolateWavenumberLow       , extrapolateWavenumberHigh
-    integer                                                                       :: versionNumber
+    integer                                                                       :: versionNumber                  , i                        , &
+         &                                                                           countLocalMinima
     character       (len=32                          )                            :: datasetName
     type            (varying_string                  )                            :: limitTypeVar
     type            (hdf5Object                      )                            :: fileObject                     , parametersObject         , &
@@ -351,6 +354,31 @@ contains
     call self%transfer%populate(                                                    &
          &                      transferLogarithmic                                 &
          &                     )
+    ! Determine local minima of the transfer function.
+    if (size(transferLogarithmic) > 2) then
+       countLocalMinima=0
+       do i=2,size(transferLogarithmic)-1
+          if     (                                                   &
+               &   transferLogarithmic(i) < transferLogarithmic(i-1) &
+               &  .and.                                              &
+               &   transferLogarithmic(i) < transferLogarithmic(i+1) &
+               & ) countLocalMinima=countLocalMinima+1
+       end do
+       allocate(self%wavenumbersLocalMinima_(countLocalMinima))
+       countLocalMinima=0
+       do i=2,size(transferLogarithmic)-1
+          if     (                                                   &
+               &   transferLogarithmic(i) < transferLogarithmic(i-1) &
+               &  .and.                                              &
+               &   transferLogarithmic(i) < transferLogarithmic(i+1) &
+               & ) then
+             countLocalMinima=countLocalMinima+1
+             self%wavenumbersLocalMinima_(countLocalMinima)=wavenumber(i)
+          end if
+       end do
+    else
+       allocate(self%wavenumbersLocalMinima_(               0))
+    end if
     return
   end subroutine fileReadFile
 
@@ -399,7 +427,19 @@ contains
 
     return
   end function fileLogarithmicDerivative
+  
+  subroutine fileWavenumbersLocalMinima(self,wavenumbers)
+    !!{
+    Return a list of wavenumbers corresponding to local minima in the transfer function.
+    !!}
+    implicit none
+    class           (transferFunctionFile), intent(inout)                            :: self
+    double precision                      , intent(  out), allocatable, dimension(:) :: wavenumbers
 
+    wavenumbers=self%wavenumbersLocalMinima_
+    return
+  end subroutine fileWavenumbersLocalMinima
+  
   double precision function fileHalfModeMass(self,status)
     !!{
     Compute the mass corresponding to the wavenumber at which the transfer function is
