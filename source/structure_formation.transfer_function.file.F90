@@ -364,6 +364,7 @@ contains
                &   transferLogarithmic(i) < transferLogarithmic(i+1) &
                & ) countLocalMinima=countLocalMinima+1
        end do
+       if (allocated(self%wavenumbersLocalMinima_)) deallocate(self%wavenumbersLocalMinima_)
        allocate(self%wavenumbersLocalMinima_(countLocalMinima))
        countLocalMinima=0
        do i=2,size(transferLogarithmic)-1
