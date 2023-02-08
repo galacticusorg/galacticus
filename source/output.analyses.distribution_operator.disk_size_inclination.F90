@@ -50,8 +50,8 @@
   end interface outputAnalysisDistributionOperatorDiskSizeInclntn
 
   ! Module-scope variables used in root finding and integrations.
-  double precision :: diskSizeInclntnXIntegrate, diskSizeInclntnAngle
-  !$omp threadprivate(diskSizeInclntnXIntegrate,diskSizeInclntnAngle)
+  double precision :: xIntegrate, angle
+  !$omp threadprivate(xIntegrate,angle)
 
 contains
 
@@ -125,12 +125,12 @@ contains
             &            rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
             &            rangeExpandType              =rangeExpandMultiplicative      &
             &           )
-       diskSizeInclntnAngle =acos(self%inclinationTable%x(1))
+       angle =acos(self%inclinationTable%x(1))
        halfLightRadiusFaceOn=finder%find(rootGuess=1.0d0)
        call self%inclinationTable%populate(0.0d0,1)
        !$omp parallel do private (i,halfLightRadius) copyin (finder)
        do i=2,inclinationAngleCount
-          diskSizeInclntnAngle=acos(self%inclinationTable%x(i))
+          angle=acos(self%inclinationTable%x(i))
           halfLightRadius =finder%find(rootGuess=1.0d0)
           call self%inclinationTable%populate(log10(halfLightRadius/halfLightRadiusFaceOn),i)
        end do
@@ -179,7 +179,7 @@ contains
 
     integrator_        =integrator           (diskSizeInclntnIntegrandX,toleranceRelative=1.0d-6)
     integralHalf       =integrator_%integrate(0.0d0                    ,                  xHalf )
-    diskSizeInclntnRoot=integralHalf/2.0d0/Pi/cos(diskSizeInclntnAngle)-0.5d0
+    diskSizeInclntnRoot=integralHalf/2.0d0/Pi/cos(angle)-0.5d0
     return
   end function diskSizeInclntnRoot
 
@@ -193,7 +193,7 @@ contains
     double precision            , intent(in   ) :: x
     type            (integrator)                :: integrator_
 
-    diskSizeInclntnXIntegrate=+x
+    xIntegrate               =+x
     integrator_              = integrator           (diskSizeInclntnIntegrandPhi,toleranceRelative=1.0d-6   )
     diskSizeInclntnIntegrandX=+integrator_%integrate(0.0d0                      ,                  2.0d+0*Pi) &
          &                    *x
@@ -207,7 +207,7 @@ contains
     implicit none
     double precision, intent(in   ) :: phi
 
-    diskSizeInclntnIntegrandPhi=exp(-diskSizeInclntnXIntegrate*sqrt((sin(phi)/cos(diskSizeInclntnAngle))**2+cos(phi)**2))
+    diskSizeInclntnIntegrandPhi=exp(-xIntegrate*sqrt((sin(phi)/cos(angle))**2+cos(phi)**2))
     return
   end function diskSizeInclntnIntegrandPhi
 

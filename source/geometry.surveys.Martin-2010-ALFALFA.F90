@@ -83,7 +83,7 @@ Implements the survey geometry used by \cite{martin_arecibo_2010}.
   end interface surveyGeometryMartin2010ALFALFA
 
   ! Minimum and maximum recession velocities for a galaxy to be admitted to the sample.
-  double precision, parameter :: martin2010ALFALFASampleVelocityMinimum=0.0d0, martin2010ALFALFASampleVelocityMaximum=15.0d3
+  double precision, parameter :: sampleVelocityMinimum=0.0d0, sampleVelocityMaximum=15.0d3
 
 contains
 
@@ -179,7 +179,7 @@ contains
     end if
     ! Convert from mass and limiting integrated flux to maximum distance using relation given in text of section 2.2 of Martin et
     ! al. (2010). Limit by the maximum velocity allowed for galaxies to make it into the sample.
-    martin2010ALFALFADistanceMaximum=min(sqrt(mass/massNormalization/integratedFluxLimit),martin2010ALFALFASampleVelocityMaximum/self%cosmologyParameters_%hubbleConstant())
+    martin2010ALFALFADistanceMaximum=min(sqrt(mass/massNormalization/integratedFluxLimit),sampleVelocityMaximum/self%cosmologyParameters_%hubbleConstant())
     return
   end function martin2010ALFALFADistanceMaximum
 

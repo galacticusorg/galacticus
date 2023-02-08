@@ -50,10 +50,11 @@ Contains a module which implements a transfer function class using the CAMB code
        <method description="Check that the provided wavenumber is within the tabulated range of the transfer function." method="checkRange" />
      </methods>
      !!]
-     final     ::                          cambDestructor
-     procedure :: checkRange            => cambCheckRange
-     procedure :: value                 => cambValue
-     procedure :: logarithmicDerivative => cambLogarithmicDerivative
+     final     ::                           cambDestructor
+     procedure :: checkRange             => cambCheckRange
+     procedure :: value                  => cambValue
+     procedure :: logarithmicDerivative  => cambLogarithmicDerivative
+     procedure :: wavenumbersLocalMinima => cambWavenumbersLocalMinima
   end type transferFunctionCAMB
 
   interface transferFunctionCAMB
@@ -65,7 +66,7 @@ Contains a module which implements a transfer function class using the CAMB code
   end interface transferFunctionCAMB
 
   ! Smallest maximum wavenumber to tabulate.
-  double precision, parameter :: cambWavenumberMaximumLimit=50000.0d0
+  double precision, parameter :: wavenumberMaximumLimit=50000.0d0
 
 contains
 
@@ -147,7 +148,7 @@ contains
     ! Set the epoch time for this transfer function.
     self%time=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(redshift))
     ! Set maximum wavenumber.
-    self%wavenumberMaximum=+cambWavenumberMaximumLimit                                         &
+    self%wavenumberMaximum=+wavenumberMaximumLimit                                             &
          &                 *self%cosmologyParameters_%hubbleConstant(units=hubbleUnitsLittleH)
     self%wavenumberMaximumReached=.false.
     return
@@ -233,3 +234,16 @@ contains
     cambLogarithmicDerivative=self%transferFunctionFile%logarithmicDerivative(wavenumber)
     return
   end function cambLogarithmicDerivative
+
+  subroutine cambWavenumbersLocalMinima(self,wavenumbers)
+    !!{
+    Return a list of wavenumbers corresponding to local minima in the transfer function.
+    !!}
+    implicit none
+    class           (transferFunctionCAMB), intent(inout)                            :: self
+    double precision                      , intent(  out), allocatable, dimension(:) :: wavenumbers
+
+    call self%checkRange(wavenumber=1.0d0)
+    wavenumbers=self%wavenumbersLocalMinima_
+    return
+  end subroutine cambWavenumbersLocalMinima

@@ -125,6 +125,9 @@
   class           (nodeOperatorCGMChemistry    ), pointer   :: self_                              => null()
   !$omp threadprivate(self_)
   
+  ! Minimum hydrogen number density for which we perform calculations.
+  double precision                              , parameter :: numberDensityHydrogenMinimum       =  1.0d-20
+  
 contains
 
   function cgmChemistryConstructorParameters(parameters) result(self)
@@ -353,19 +356,20 @@ contains
     use :: Numerical_Constants_Prefixes     , only : centi
     use :: Numerical_Constants_Math         , only : Pi
     implicit none
-    class           (nodeOperatorCGMChemistry), intent(inout), target  :: self
-    type            (treeNode                ), intent(inout)          :: node
-    logical                                   , intent(inout)          :: interrupt
-    procedure       (interruptTask           ), intent(inout), pointer :: functionInterrupt
-    integer                                   , intent(in   )          :: propertyType
-    class           (nodeComponentHotHalo    )               , pointer :: hotHalo
-    type            (chemicalAbundances      ), save                   :: chemicalDensitiesRates , chemicalMassesRates, &
-         &                                                                chemicalDensities
+    class           (nodeOperatorCGMChemistry), intent(inout), target    :: self
+    type            (treeNode                ), intent(inout)            :: node
+    logical                                   , intent(inout)            :: interrupt
+    procedure       (interruptTask           ), intent(inout), pointer   :: functionInterrupt
+    integer                                   , intent(in   )            :: propertyType
+    class           (nodeComponentHotHalo    )               , pointer   :: hotHalo
+    double precision                                         , parameter :: massHotHaloTiny        =1.0d-6
+    type            (chemicalAbundances      ), save                     :: chemicalDensitiesRates        , chemicalMassesRates, &
+         &                                                                  chemicalDensities
     !$omp threadprivate(chemicalDensities,chemicalDensitiesRates,chemicalMassesRates)
-    double precision                                                   :: temperature            , lengthColumn       , &
-         &                                                                massToDensityConversion, radiusOuter        , &
-         &                                                                factorBoostColumn      , massHotHalo        , &
-         &                                                                factorClumping
+    double precision                                                     :: temperature                   , lengthColumn       , &
+         &                                                                  massToDensityConversion       , radiusOuter        , &
+         &                                                                  factorBoostColumn             , massHotHalo        , &
+         &                                                                  factorClumping
 
     ! Return instantly if no chemicals are tracked.
     if (.not.self%chemicalsPresent) return
@@ -377,7 +381,7 @@ contains
     hotHalo => node%hotHalo()
     ! Compute the column length through the halo (in cm).
     massHotHalo=hotHalo%mass()
-    if (massHotHalo > 0.0d0) then
+    if (massHotHalo > massHotHaloTiny) then
        radiusOuter      =+hotHalo                         %outerRadius           (                      )
        factorBoostColumn=+self   %hotHaloMassDistribution_%radialMoment          (node,0.0d0,radiusOuter) &
             &            *4.0d0                                                                           &
@@ -483,14 +487,14 @@ contains
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear
     implicit none
-    class           (nodeOperatorCGMChemistry), intent(inout), target  :: self
-    type            (treeNode                ), intent(inout)          :: node
-    double precision                          , intent(  out)          :: timescaleCollisionalIonization       , timescaleRadiativeRecombination     , &
-         &                                                                timescalePhotoionization
-    type            (chemicalAbundances      ), save                   :: chemicalDensities
-    double precision                                                   :: temperature                          , rateCoefficientCollisionalIonization, &
-         &                                                                rateCoefficientRadiativeRecombination, rateCoefficientPhotoionization      , &
-         &                                                                numberDensityHydrogen
+    class           (nodeOperatorCGMChemistry), intent(inout), target :: self
+    type            (treeNode                ), intent(inout)         :: node
+    double precision                          , intent(  out)         :: timescaleCollisionalIonization       , timescaleRadiativeRecombination     , &
+         &                                                               timescalePhotoionization
+    type            (chemicalAbundances      ), save                  :: chemicalDensities
+    double precision                                                  :: temperature                          , rateCoefficientCollisionalIonization, &
+         &                                                               rateCoefficientRadiativeRecombination, rateCoefficientPhotoionization      , &
+         &                                                               numberDensityHydrogen
     !$omp threadprivate(chemicalDensities)
 
     call self%computeState(node,temperature,chemicalDensities)
@@ -500,7 +504,7 @@ contains
     rateCoefficientPhotoionization        =   self             %radiation_                       %integrateOverCrossSection([0.0d0,wavelengthIonizationAtomicHydrogen],crossSectionPhotoionization_,node)
     numberDensityHydrogen                 =  +chemicalDensities                                  %abundance                (self%atomicHydrogenIndex      ) &
          &                                   +chemicalDensities                                  %abundance                (self%atomicHydrogenCationIndex)
-    if (numberDensityHydrogen > 0.0d0) then
+    if (numberDensityHydrogen > numberDensityHydrogenMinimum) then
        if (rateCoefficientCollisionalIonization  > 0.0d0) then
           timescaleCollisionalIonization =+1.0d0/rateCoefficientCollisionalIonization /numberDensityHydrogen/gigaYear
        else

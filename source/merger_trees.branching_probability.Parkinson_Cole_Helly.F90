@@ -108,14 +108,14 @@ Implements a merger tree branching probability class using the algorithm of \cit
   end interface mergerTreeBranchingProbabilityParkinsonColeHelly
 
   ! Module-scope pointer to self used for root-finding.
-  class           (mergerTreeBranchingProbabilityParkinsonColeHelly), pointer   :: parkinsonColeHellySelf
-  !$omp threadprivate(parkinsonColeHellySelf)
+  class           (mergerTreeBranchingProbabilityParkinsonColeHelly), pointer   :: self_
+  !$omp threadprivate(self_)
 
   ! Branching probability integrand integration tolerance.
-  double precision                                                  , parameter :: parkinsonColeHellyIntegrandToleranceRelative=1.0d-3
+  double precision                                                  , parameter :: toleranceIntegralRelative=1.0d-3
 
   ! Limit on α for use in effective γ parameters.
-  double precision                                                  , parameter :: parkinsonColeHellyAlphaMinimum              =5.0d-3
+  double precision                                                  , parameter :: alphaMinimum             =5.0d-3
 
 contains
 
@@ -221,7 +221,7 @@ contains
     self%probabilityPrevious                   =-1.0d0
     self%integrator_                           =integrator(                                                                     &
             &                                                                parkinsonColeHellyProbabilityIntegrandLogarithmic, &
-            &                                              toleranceRelative=parkinsonColeHellyIntegrandToleranceRelative     , &
+            &                                              toleranceRelative=toleranceIntegralRelative                        , &
             &                                              integrationRule  =GSL_Integ_Gauss15                                  &
             &                                             )
     return
@@ -379,11 +379,11 @@ contains
 
       ! Initialize global variables.
       call self%computeCommonFactors(deltaCritical,time,haloMass,node)
-      parkinsonColeHellySelf                           => self
-      self                  %probabilityMinimumMass    =            massResolution
-      self                  %probabilityMinimumMassLog =  log(      massResolution)
-      self                  %probabilityMaximumMassLog =  log(0.5d0*haloMass      )
-      self                  %probabilitySeek           =  probabilityFraction
+      self_                            => self
+      self  %probabilityMinimumMass    =            massResolution
+      self  %probabilityMinimumMassLog =  log(      massResolution)
+      self  %probabilityMaximumMassLog =  log(0.5d0*haloMass      )
+      self  %probabilitySeek           =  probabilityFraction
       ! Check the sign of the root function at half the halo mass.
       if (parkinsonColeHellyMassBranchRoot(self%probabilityMaximumMassLog) >= 0.0d0) then
          ! The root function is zero, or very close to it (which can happen due to rounding errors
@@ -401,11 +401,11 @@ contains
             finderConstructed=.true.
          end if
          ! Split is not binary - seek the actual mass of the smaller progenitor.
-         logMassMinimum                                   =log(      massResolution)
-         logMassMaximum                                   =log(0.5d0*haloMass      )
-         parkinsonColeHellySelf%probabilityGradientMinimum=parkinsonColeHellyMassBranchRootDerivative(logMassMinimum)
-         parkinsonColeHellySelf%probabilityGradientMaximum=parkinsonColeHellyMassBranchRootDerivative(logMassMaximum)
-         parkinsonColeHellySelf%probabilityMaximum        =parkinsonColeHellyMassBranchRoot          (logMassMaximum)
+         logMassMinimum                  =log(      massResolution)
+         logMassMaximum                  =log(0.5d0*haloMass      )
+         self_%probabilityGradientMinimum=parkinsonColeHellyMassBranchRootDerivative(logMassMinimum)
+         self_%probabilityGradientMaximum=parkinsonColeHellyMassBranchRootDerivative(logMassMaximum)
+         self_%probabilityMaximum        =parkinsonColeHellyMassBranchRoot          (logMassMaximum)
          massBranchGeneric=exp(finder%find(rootRange=[logMassMinimum,logMassMaximum]))
       end if
       return
@@ -439,15 +439,15 @@ contains
     double precision, intent(in   ) :: logMassMaximum
     double precision                :: integral      , massMaximum
 
-    if      (logMassMaximum < parkinsonColeHellySelf%probabilityMinimumMassLog) then
-       parkinsonColeHellyMassBranchRoot=parkinsonColeHellySelf%probabilitySeek   +parkinsonColeHellySelf%probabilityGradientMinimum*(logMassMaximum-parkinsonColeHellySelf%probabilityMinimumMassLog)
-    else if (logMassMaximum > parkinsonColeHellySelf%probabilityMaximumMassLog) then
-       parkinsonColeHellyMassBranchRoot=parkinsonColeHellySelf%probabilityMaximum+parkinsonColeHellySelf%probabilityGradientMaximum*(logMassMaximum-parkinsonColeHellySelf%probabilityMaximumMassLog)
+    if      (logMassMaximum < self_%probabilityMinimumMassLog) then
+       parkinsonColeHellyMassBranchRoot=self_%probabilitySeek   +self_%probabilityGradientMinimum*(logMassMaximum-self_%probabilityMinimumMassLog)
+    else if (logMassMaximum > self_%probabilityMaximumMassLog) then
+       parkinsonColeHellyMassBranchRoot=self_%probabilityMaximum+self_%probabilityGradientMaximum*(logMassMaximum-self_%probabilityMaximumMassLog)
     else
        massMaximum=+exp(logMassMaximum)
-       integral   =+parkinsonColeHellySelf%branchingProbabilityPreFactor                                                                            &
-            &      *parkinsonColeHellySelf%integrator_                  %integrate(parkinsonColeHellySelf%probabilityMinimumMassLog,logMassMaximum)
-       parkinsonColeHellyMassBranchRoot=parkinsonColeHellySelf%probabilitySeek-integral
+       integral   =+self_%branchingProbabilityPreFactor                                                           &
+            &      *self_%integrator_                  %integrate(self_%probabilityMinimumMassLog,logMassMaximum)
+       parkinsonColeHellyMassBranchRoot=self_%probabilitySeek-integral
     end if
     return
   end function parkinsonColeHellyMassBranchRoot
@@ -460,13 +460,13 @@ contains
     double precision, intent(in   ) :: logMassMaximum
     double precision                :: integral
 
-    integral=+parkinsonColeHellySelf%branchingProbabilityPreFactor                                              &
-         &   *parkinsonColeHellyProbabilityIntegrandLogarithmic(                                                &
-         &                                                max(                                                  &
-         &                                                    logMassMaximum                                  , &
-         &                                                    parkinsonColeHellySelf%probabilityMinimumMassLog  &
-         &                                                   )                                                  &
-         &                                               )
+    integral=+self_%branchingProbabilityPreFactor                                                    &
+         &   *parkinsonColeHellyProbabilityIntegrandLogarithmic(                                     &
+         &                                                      max(                                 &
+         &                                                          logMassMaximum                 , &
+         &                                                          self_%probabilityMinimumMassLog  &
+         &                                                         )                                 &
+         &                                                     )
     parkinsonColeHellyMassBranchRootDerivative=-integral
     return
   end function parkinsonColeHellyMassBranchRootDerivative
@@ -521,7 +521,7 @@ contains
        massBranch_=     +massBranch
     end if
     call self%computeCommonFactors(deltaCritical,time,mass,node)
-    parkinsonColeHellySelf =>  self
+    self_                  =>  self
     parkinsonColeHellyRate =  +self%branchingProbabilityPreFactor                                  &
          &                    *parkinsonColeHellyProbabilityIntegrandLogarithmic(log(massBranch_)) &
          &                    /massBranch_
@@ -549,10 +549,10 @@ contains
          &  .or.                                           &
          &   massResolution /= self%massResolutionPrevious &
          & ) then
-       parkinsonColeHellySelf      => self
-       self%haloMassPrevious       =  haloMass
-       self%deltaCriticalPrevious  =  deltaCritical
-       self%massResolutionPrevious =  massResolution
+       self_                        => self
+       self %haloMassPrevious       =  haloMass
+       self %deltaCriticalPrevious  =  deltaCritical
+       self %massResolutionPrevious =  massResolution
        ! Get σ and δ_critical for the parent halo.
        if (haloMass > 2.0d0*massResolution) then
           call self%computeCommonFactors(deltaCritical,time,haloMass,node)
@@ -581,7 +581,7 @@ contains
          &                             childHaloMass
 
     childHaloMass=exp(logChildHaloMass)
-    call parkinsonColeHellySelf%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(childHaloMass,parkinsonColeHellySelf%timeParent,childSigma,childAlpha)
+    call self_%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(childHaloMass,self_%timeParent,childSigma,childAlpha)
     parkinsonColeHellyProbabilityIntegrandLogarithmic=+parkinsonColeHellyProgenitorMassFunction(childHaloMass,childSigma,childAlpha)&
          &                                            *                                         childHaloMass
     return
@@ -595,9 +595,9 @@ contains
     implicit none
     double precision, intent(in   ) :: childAlpha, childHaloMass, childSigma
 
-    parkinsonColeHellyProgenitorMassFunction=+parkinsonColeHellyMergingRate  (childSigma   ,childAlpha)    &
-         &                                   *parkinsonColeHellySelf%modifier(childSigma              )    &
-         &                                   /                                childHaloMass            **2
+    parkinsonColeHellyProgenitorMassFunction=+      parkinsonColeHellyMergingRate(childSigma   ,childAlpha)    &
+         &                                   *self_%modifier                     (childSigma              )    &
+         &                                   /                                    childHaloMass            **2
     return
   end function parkinsonColeHellyProgenitorMassFunction
 
@@ -611,8 +611,8 @@ contains
     double precision                :: childSigmaSquared
 
     childSigmaSquared=childSigma**2
-    if (childSigmaSquared > parkinsonColeHellySelf%sigmaParentSquared .and. childAlpha < 0.0d0) then
-       parkinsonColeHellyMergingRate=(childSigmaSquared/((childSigmaSquared-parkinsonColeHellySelf%sigmaParentSquared)**1.5d0))*abs(childAlpha)
+    if (childSigmaSquared > self_%sigmaParentSquared .and. childAlpha < 0.0d0) then
+       parkinsonColeHellyMergingRate=(childSigmaSquared/((childSigmaSquared-self_%sigmaParentSquared)**1.5d0))*abs(childAlpha)
     else
        parkinsonColeHellyMergingRate=0.0d0
     end if
@@ -695,13 +695,13 @@ contains
              ! Determine if CDM assumptions can be used. Do this only is these have been explicitly allowed, if this is our first
              ! pass through the bounds evaluation, and if both αs are sufficiently large. (This last condition is required
              ! since we raise quantities to the power of 1/α which can cause problems for very small α.)
-             usingCDMAssumptions= self%cdmAssumptions                                         &
-                  &              .and.                                                        &
-                  &               iBound                    == 1                              &
-                  &              .and.                                                        &
-                  &               abs(self%resolutionAlpha) >  parkinsonColeHellyAlphaMinimum &
-                  &              .and.                                                        &
-                  &               abs(     halfParentAlpha) >  parkinsonColeHellyAlphaMinimum
+             usingCDMAssumptions= self%cdmAssumptions                       &
+                  &              .and.                                      &
+                  &               iBound                    == 1            &
+                  &              .and.                                      &
+                  &               abs(self%resolutionAlpha) >  alphaMinimum &
+                  &              .and.                                      &
+                  &               abs(     halfParentAlpha) >  alphaMinimum
              ! Compute the effective value of γ.
              gammaEffective=self%gamma1
              if (usingCDMAssumptions) then

@@ -484,11 +484,15 @@ contains
 
     if (chemicalsCount > 0) then
        do i=1,chemicalsCount
+          !$omp critical (FoX_DOM_Access)
           call XML_Get_Elements_By_Tag_Name(chemicalsDefinition,char(chemicalsToTrack(i)),chemicalAbundanceList)
+          !$omp end critical (FoX_DOM_Access)
           if (size(chemicalAbundanceList) >  1) call Error_Report('multiple '//char(chemicalsToTrack(i))//' values specified'//{introspection:location})
           if (size(chemicalAbundanceList) == 1) then
+             !$omp critical (FoX_DOM_Access)
              chemical => chemicalAbundanceList(0)%element
              call extractDataContent(chemical,self%chemicalValue(i))
+             !$omp end critical (FoX_DOM_Access)
           end if
        end do
     end if

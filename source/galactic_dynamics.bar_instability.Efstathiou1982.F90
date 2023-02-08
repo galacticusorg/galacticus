@@ -71,7 +71,7 @@
      module procedure efstathiou1982ConstructorInternal
   end interface galacticDynamicsBarInstabilityEfstathiou1982
 
-  double precision, parameter :: efstathiou1982StabilityDiskIsolated=0.6221297315d0
+  double precision, parameter :: stabilityDiskIsolated=0.6221297315d0
 
 contains
 
@@ -184,7 +184,7 @@ contains
        timeDynamical=(megaParsec/kilo/gigaYear)*disk%radius()/min(disk%velocity(),speedLight/kilo)
        ! Simple scaling which gives infinite timescale at the threshold, decreasing to dynamical time for a maximally unstable
        ! disk.
-       stabilityIsolatedRelative =stabilityThreshold-efstathiou1982StabilityDiskIsolated
+       stabilityIsolatedRelative =stabilityThreshold-stabilityDiskIsolated
        stabilityEstimatorRelative=stabilityThreshold-stabilityEstimator
        if (stabilityIsolatedRelative > timescaleDimensionlessMaximum*stabilityEstimatorRelative) then
           timescaleDimensionless=timescaleDimensionlessMaximum
@@ -233,11 +233,11 @@ contains
          &   exponent(velocityBoostFactor*disk%velocity())-exponent(velocitySelf) > maxExponent(0.0d0) &
          & ) return
     ! Compute the stability estimator for this node.
-    efstathiou1982Estimator=max(                                       &
-         &                      +efstathiou1982StabilityDiskIsolated , &
-         &                      +     velocityBoostFactor              &
-         &                      *disk%velocity          ()             &
-         &                      /     velocitySelf                     &
+    efstathiou1982Estimator=max(                            &
+         &                      +stabilityDiskIsolated    , &
+         &                      +     velocityBoostFactor   &
+         &                      *disk%velocity          ()  &
+         &                      /     velocitySelf          &
          &                     )
     return
   end function efstathiou1982Estimator

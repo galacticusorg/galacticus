@@ -98,12 +98,12 @@
 
   ! The radius (in units of the disk scale length) beyond which the disk is treated as a point mass for the purposes of computing
   ! rotation curves.
-  double precision, parameter :: exponentialDiskRadiusMaximum           =3.0d+1
+  double precision, parameter :: radiusMaximum           =3.0d+1
 
   ! Potential tabulation.
-  integer         , parameter :: exponentialDiskPotentialPointsPerDecade=10
-  double precision, parameter :: exponentialDiskPotentialRadiusMinimum  =1.0d-3
-  double precision, parameter :: exponentialDiskPotentialRadiusMaximum  =5.0d+2
+  integer         , parameter :: potentialPointsPerDecade=10
+  double precision, parameter :: potentialRadiusMinimum  =1.0d-3
+  double precision, parameter :: potentialRadiusMaximum  =5.0d+2
 
 contains
 
@@ -277,10 +277,10 @@ contains
     ! Build table if necessary.
     if (.not.self%potentialInitialized) then
        ! Determine how many points to tabulate.
-       potentialPointsCount=int(log10(exponentialDiskPotentialRadiusMaximum/exponentialDiskPotentialRadiusMinimum)*dble(exponentialDiskPotentialPointsPerDecade))+1
+       potentialPointsCount=int(log10(potentialRadiusMaximum/potentialRadiusMinimum)*dble(potentialPointsPerDecade))+1
        ! Create the table.
        call self%potentialTable%destroy()
-       call self%potentialTable%create(exponentialDiskPotentialRadiusMinimum,exponentialDiskPotentialRadiusMaximum,potentialPointsCount,extrapolationType=spread(extrapolationTypeAbort,1,2))
+       call self%potentialTable%create(potentialRadiusMinimum,potentialRadiusMaximum,potentialPointsCount,extrapolationType=spread(extrapolationTypeAbort,1,2))
        ! Compute Bessel factors.
        do i=1,potentialPointsCount
           x=self%potentialTable%x(i)
@@ -456,7 +456,7 @@ contains
     ! Get scale-free radius.
     r=radius/self%scaleRadius
     ! Compute rotation curve.
-    if (r > exponentialDiskRadiusMaximum) then
+    if (r > radiusMaximum) then
        ! Beyond some maximum radius, approximate the disk as a spherical distribution to avoid evaluating Bessel functions for
        ! very large arguments.
        exponentialDiskRotationCurve=sqrt(self%mass/radius)
@@ -549,7 +549,7 @@ contains
     ! Compute density.
     radius=position%r()
     ! If the radius is sufficiently large, treat the disk as a point mass.
-    if (radius > exponentialDiskPotentialRadiusMaximum*self%scaleRadius) then
+    if (radius > potentialRadiusMaximum*self%scaleRadius) then
        exponentialDiskPotential=-self%mass/radius
     else
        ! Radius is sufficiently small to use the full calculation.
@@ -591,9 +591,9 @@ contains
     double precision                                 , intent(in   ) :: halfRadius
 
     ! For small half-radii, use a series expansion for a more accurate result.
-    if      (halfRadius <=                                0.0d0) then
+    if      (halfRadius <=                 0.0d0) then
        exponentialDiskBesselFactorPotential=1.0d0
-    else if (halfRadius < exponentialDiskPotentialRadiusMinimum) then
+    else if (halfRadius < potentialRadiusMinimum) then
        exponentialDiskBesselFactorPotential=1.0d0+(eulersConstant-ln2+log(halfRadius))*halfRadius**2
     else
        !$ call OMP_Set_Lock(self%potentialLock)

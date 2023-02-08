@@ -75,10 +75,10 @@
    contains
      !![
      <methods>
-       <method description="Compute the cooling function due to H--H$_2$." method="coolingFunctionH_H2" />
-       <method description="Compute the cooling function due to H$_2^+$--e$^-$." method="coolingFunctionH2Plus_Electron" />
-       <method description="Compute the cooling function due to H--H$_2^+$." method="coolingFunctionH_H2Plus" />
-       <method description="Compute common factors." method="commonFactors" />
+       <method description="Compute the cooling function due to H--H$_2$."       method="coolingFunctionH_H2"           />
+       <method description="Compute the cooling function due to H$_2^+$--e$^-$." method="coolingFunctionH2Plus_Electron"/>
+       <method description="Compute the cooling function due to H--H$_2^+$."     method="coolingFunctionH_H2Plus"       />
+       <method description="Compute common factors."                             method="commonFactors"                 />
      </methods>
      !!]
      procedure :: coolingFunction                    => molecularHydrogenGalliPallaCoolingFunction
@@ -100,27 +100,34 @@
   end interface coolingFunctionMolecularHydrogenGalliPalla
 
   ! Parameters for Hollenbach & McKee cooling function fits.
-  double precision                , parameter :: molecularHydrogenGalliPallaRotationalLambda1         =9.50d-22
-  double precision                , parameter :: molecularHydrogenGalliPallaRotationalLambda2         =3.00d-24
-  double precision                , parameter :: molecularHydrogenGalliPallaRotationalTemperature1    =0.13d+00
-  double precision                , parameter :: molecularHydrogenGalliPallaRotationalTemperature2    =0.51d+00
-  double precision                , parameter :: molecularHydrogenGalliPallaRotationalExponent1       =3.76d+00
-  double precision                , parameter :: molecularHydrogenGalliPallaRotationalExponent2       =2.10d+00
-  double precision                , parameter :: molecularHydrogenGalliPallaRotationalCoefficient1    =0.12d+00
-  double precision                , parameter :: molecularHydrogenGalliPallaVibrationalLambda1        =6.70d-19
-  double precision                , parameter :: molecularHydrogenGalliPallaVibrationalLambda2        =1.60d-18
-  double precision                , parameter :: molecularHydrogenGalliPallaVibrationalTemperature1   =5.86d+00
-  double precision                , parameter :: molecularHydrogenGalliPallaVibrationalTemperature2   =1.17d+01
+  double precision                , parameter :: rotationalLambda1           =9.50d-22
+  double precision                , parameter :: rotationalLambda2           =3.00d-24
+  double precision                , parameter :: rotationalTemperature1      =0.13d+00
+  double precision                , parameter :: rotationalTemperature2      =0.51d+00
+  double precision                , parameter :: rotationalExponent1         =3.76d+00
+  double precision                , parameter :: rotationalExponent2         =2.10d+00
+  double precision                , parameter :: rotationalCoefficient1      =0.12d+00
+  double precision                , parameter :: vibrationalLambda1          =6.70d-19
+  double precision                , parameter :: vibrationalLambda2          =1.60d-18
+  double precision                , parameter :: vibrationalTemperature1     =5.86d+00
+  double precision                , parameter :: vibrationalTemperature2     =1.17d+01
 
   ! Parameters for low-density limit cooling function.
-  double precision, dimension(0:4), parameter :: molecularHydrogenGalliPallaLowDensityLimitCoefficient=[-103.0000d0,+97.59000d0,-48.05000d+0,+10.8000d0,-0.9032d0]
+  double precision, dimension(0:4), parameter :: lowDensityLimitCoefficient  =[-103.0000d0,+97.59000d0,-48.05000d+0,+10.8000d0,-0.9032d0]
 
   ! Parameters for H₂⁺ - e⁻ cooling function.
-  double precision, dimension(0:2), parameter :: molecularHydrogenGalliPallaH2PlusElectronCoefficient =[ -33.3299d0, +5.56465d0, -4.67461d-1                     ]
+  double precision, dimension(0:2), parameter :: H2PlusElectronCoefficient   =[ -33.3299d0, +5.56465d0, -4.67461d-1                     ]
 
   ! Parameters for H₂⁺ - H cooling function.
-  double precision, dimension(0:2), parameter :: molecularHydrogenGalliPallaH2PlusHCoefficient        =[ -35.2804d0, +5.86234d0, -5.12276d-1                     ]
+  double precision, dimension(0:2), parameter :: H2PlusHCoefficient          =[ -35.2804d0, +5.86234d0, -5.12276d-1                     ]
 
+  ! Maximum temperature for this cooling function. Above this we assume molecular hydrogen will be dissociated, and the rate
+  ! coefficients are, in any case, not valid in this regime.
+  double precision                , parameter :: temperatureMaximum          =1.00d+06
+  
+  ! Minimum hydrogen density for which we will attempt to compute cooling functions.
+  double precision                , parameter :: numberDensityHydrogenMinimum=1.00d-20
+  
 contains
 
   function molecularHydrogenGalliPallaConstructorParameters(parameters) result(self)
@@ -183,8 +190,8 @@ contains
     class           (radiationFieldClass                       ), intent(inout) :: radiation
     !$GLC attributes unused :: node, radiation, gasAbundances
 
-    ! Check if the hydrogen density is positive.
-    if (numberDensityHydrogen > 0.0d0) then
+    ! Check if the hydrogen density is sufficiently large and temperature is below the maximum.
+    if (numberDensityHydrogen > numberDensityHydrogenMinimum .and. temperature < temperatureMaximum) then
        molecularHydrogenGalliPallaCoolingFunction=+self%coolingFunctionH_H2           (numberDensityHydrogen,temperature,chemicalDensities) & ! H   - H₂ cooling function.
             &                                     +self%coolingFunctionH2Plus_Electron(                      temperature,chemicalDensities) & ! H₂⁺ - e⁻ cooling function.
             &                                     +self%coolingFunctionH_H2Plus       (                      temperature,chemicalDensities)   ! H₂⁺ - H  cooling function.
@@ -238,8 +245,8 @@ contains
          &                                                                         coolingFunctionCumulative
     !$GLC attributes unused :: node, radiation, gasAbundances
 
-    ! Check if the hydrogen density is positive.
-    if (numberDensityHydrogen > 0.0d0) then
+    ! Check if the hydrogen density is sufficiently large and temperature is below the maximum.
+    if (numberDensityHydrogen > numberDensityHydrogenMinimum .and. temperature < temperatureMaximum) then
        ! Initialize cumulative cooling function to zero.
        coolingFunctionCumulative=0.0d0
        ! H - H₂ cooling function.
@@ -316,8 +323,8 @@ contains
          &                                                                         coolingFunctionCumulative
     !$GLC attributes unused :: node, gasAbundances, radiation
 
-    ! Check if the hydrogen density is positive.
-    if (numberDensityHydrogen > 0.0d0) then
+    ! Check if the hydrogen density is sufficiently large and temperature is below the maximum.
+    if (numberDensityHydrogen > numberDensityHydrogenMinimum .and. temperature < temperatureMaximum) then
        coolingFunctionCumulative=0.0d0
        ! H - H₂ cooling function.
        coolingFunction          =+self%coolingFunctionH_H2(numberDensityHydrogen,temperature,chemicalDensities)
@@ -333,11 +340,11 @@ contains
        ! Check if we need to recompute the low density limit cooling function gradient.
        if (temperature /= self%temperaturePrevious1) then
           logarithmic10Temperature=log10(temperature)
-          self%coolingFunctionLowDensityLimitTemperatureLogGradient=                                                        &
-               &                    +                          molecularHydrogenGalliPallaLowDensityLimitCoefficient(1)     &
-               &                    +logarithmic10Temperature*(molecularHydrogenGalliPallaLowDensityLimitCoefficient(2)     &
-               &                    +logarithmic10Temperature*(molecularHydrogenGalliPallaLowDensityLimitCoefficient(3)     &
-               &                    +logarithmic10Temperature*(molecularHydrogenGalliPallaLowDensityLimitCoefficient(4))))
+          self%coolingFunctionLowDensityLimitTemperatureLogGradient=                             &
+               &                    +                          lowDensityLimitCoefficient(1)     &
+               &                    +logarithmic10Temperature*(lowDensityLimitCoefficient(2)     &
+               &                    +logarithmic10Temperature*(lowDensityLimitCoefficient(3)     &
+               &                    +logarithmic10Temperature*(lowDensityLimitCoefficient(4))))
           self%temperaturePrevious1=temperature
        end if
        if (coolingFunctionLowDensityLimit > 0.0d0) then
@@ -350,63 +357,63 @@ contains
              ! Get the temperature gradient of the LTE cooling function.
              temperatureThousand                          =+temperature & ! Convert to units of 1,000K.
                   &                                        *milli
-             self%coolingFunctionRotationalTemperatureGradient =                                     &
-                  & +(                                                                               &
-                  &   +  molecularHydrogenGalliPallaRotationalLambda1                                &
-                  &   *  temperatureThousand**(molecularHydrogenGalliPallaRotationalExponent1-1.0d0) &
-                  &   /(                                                                             &
-                  &     +1.0d0                                                                       &
-                  &     +molecularHydrogenGalliPallaRotationalCoefficient1                           &
-                  &     *temperatureThousand** molecularHydrogenGalliPallaRotationalExponent2        &
-                  &    )                                                                             &
-                  &  )                                                                               &
-                  & *exp(                                                                            &
-                  &      -(                                                                          &
-                  &        +molecularHydrogenGalliPallaRotationalTemperature1                        &
-                  &        /temperatureThousand                                                      &
-                  &       )**3                                                                       &
-                  &     )                                                                            &
-                  & *(                                                                               &
-                  &   +3.0d0                                                                         &
-                  &   *(                                                                             &
-                  &     +molecularHydrogenGalliPallaRotationalTemperature1                           &
-                  &     /temperatureThousand                                                         &
-                  &    )**3                                                                          &
-                  &   +molecularHydrogenGalliPallaRotationalExponent1                                &
-                  &   -molecularHydrogenGalliPallaRotationalExponent2                                &
-                  &   *molecularHydrogenGalliPallaRotationalCoefficient1                             &
-                  &   *temperatureThousand**molecularHydrogenGalliPallaRotationalExponent2           &
-                  &   /(                                                                             &
-                  &     +1.0d0                                                                       &
-                  &     +molecularHydrogenGalliPallaRotationalCoefficient1                           &
-                  &     *temperatureThousand**molecularHydrogenGalliPallaRotationalExponent2         &
-                  &    )                                                                             &
-                  &  )                                                                               &
-                  & +molecularHydrogenGalliPallaRotationalLambda2                                    &
-                  & /temperatureThousand                                                             &
-                  & *molecularHydrogenGalliPallaRotationalTemperature2                               &
-                  & /temperatureThousand                                                             &
-                  & *exp(                                                                            &
-                  &      -molecularHydrogenGalliPallaRotationalTemperature2                          &
-                  &      /temperatureThousand                                                        &
+             self%coolingFunctionRotationalTemperatureGradient =          &
+                  & +(                                                    &
+                  &   +  rotationalLambda1                                &
+                  &   *  temperatureThousand**(rotationalExponent1-1.0d0) &
+                  &   /(                                                  &
+                  &     +1.0d0                                            &
+                  &     +rotationalCoefficient1                           &
+                  &     *temperatureThousand** rotationalExponent2        &
+                  &    )                                                  &
+                  &  )                                                    &
+                  & *exp(                                                 &
+                  &      -(                                               &
+                  &        +rotationalTemperature1                        &
+                  &        /temperatureThousand                           &
+                  &       )**3                                            &
+                  &     )                                                 &
+                  & *(                                                    &
+                  &   +3.0d0                                              &
+                  &   *(                                                  &
+                  &     +rotationalTemperature1                           &
+                  &     /temperatureThousand                              &
+                  &    )**3                                               &
+                  &   +rotationalExponent1                                &
+                  &   -rotationalExponent2                                &
+                  &   *rotationalCoefficient1                             &
+                  &   *temperatureThousand**rotationalExponent2           &
+                  &   /(                                                  &
+                  &     +1.0d0                                            &
+                  &     +rotationalCoefficient1                           &
+                  &     *temperatureThousand**rotationalExponent2         &
+                  &    )                                                  &
+                  &  )                                                    &
+                  & +rotationalLambda2                                    &
+                  & /temperatureThousand                                  &
+                  & *rotationalTemperature2                               &
+                  & /temperatureThousand                                  &
+                  & *exp(                                                 &
+                  &      -rotationalTemperature2                          &
+                  &      /temperatureThousand                             &
                   &     )
-             self%coolingFunctionVibrationalTemperatureGradient=                                     &
-                  & +(                                                                               &
-                  &   +molecularHydrogenGalliPallaVibrationalLambda1                                 &
-                  &   *molecularHydrogenGalliPallaVibrationalTemperature1                            &
-                  &   /temperatureThousand                                                           &
-                  &   *exp(                                                                          &
-                  &        -molecularHydrogenGalliPallaVibrationalTemperature1                       &
-                  &        /temperatureThousand                                                      &
-                  &       )                                                                          &
-                  &   +molecularHydrogenGalliPallaVibrationalLambda2                                 &
-                  &   *molecularHydrogenGalliPallaVibrationalTemperature2                            &
-                  &   /temperatureThousand                                                           &
-                  &   *exp(                                                                          &
-                  &        -molecularHydrogenGalliPallaVibrationalTemperature2                       &
-                  &        /temperatureThousand                                                      &
-                  &       )                                                                          &
-                  &  )                                                                               &
+             self%coolingFunctionVibrationalTemperatureGradient=          &
+                  & +(                                                    &
+                  &   +vibrationalLambda1                                 &
+                  &   *vibrationalTemperature1                            &
+                  &   /temperatureThousand                                &
+                  &   *exp(                                               &
+                  &        -vibrationalTemperature1                       &
+                  &        /temperatureThousand                           &
+                  &       )                                               &
+                  &   +vibrationalLambda2                                 &
+                  &   *vibrationalTemperature2                            &
+                  &   /temperatureThousand                                &
+                  &   *exp(                                               &
+                  &        -vibrationalTemperature2                       &
+                  &        /temperatureThousand                           &
+                  &       )                                               &
+                  &  )                                                    &
                   & /temperatureThousand
              self%temperaturePrevious2=temperature
           end if
@@ -449,11 +456,11 @@ contains
           coolingFunctionCumulative=+coolingFunctionCumulative &
                &                    +coolingFunction
           if (temperature /= self%temperaturePrevious3) then
-             logarithmic10Temperature                                =       &
+             logarithmic10Temperature                                = &
                   & +log10(temperature)
-             self%coolingFunctionH2PlusElectronTemperatureLogGradient=       &
-                  & +molecularHydrogenGalliPallaH2PlusElectronCoefficient(1) &
-                  & +molecularHydrogenGalliPallaH2PlusElectronCoefficient(2) &
+             self%coolingFunctionH2PlusElectronTemperatureLogGradient= &
+                  & +H2PlusElectronCoefficient(1)                      &
+                  & +H2PlusElectronCoefficient(2)                      &
                   & *logarithmic10Temperature
              self%temperaturePrevious3=temperature
           end if
@@ -469,11 +476,11 @@ contains
           coolingFunctionCumulative=+coolingFunctionCumulative &
                &                    +coolingFunction
           if (temperature /= self%temperaturePrevious4) then
-             logarithmic10Temperature                         =       &
+             logarithmic10Temperature                         = &
                   & +log10(temperature)
-             self%coolingFunctionH2PlusHTemperatureLogGradient=       &
-                  & +molecularHydrogenGalliPallaH2PlusHCoefficient(1) &
-                  & +molecularHydrogenGalliPallaH2PlusHCoefficient(2) &
+             self%coolingFunctionH2PlusHTemperatureLogGradient= &
+                  & +H2PlusHCoefficient(1)                      &
+                  & +H2PlusHCoefficient(2)                      &
                   & *logarithmic10Temperature
              self%temperaturePrevious4=temperature
           end if
@@ -504,53 +511,53 @@ contains
     implicit none
     class           (coolingFunctionMolecularHydrogenGalliPalla), intent(inout) :: self
     double precision                                            , intent(in   ) :: numberDensityHydrogen                         , temperature
-    double precision                                            , intent(  out) :: coolingFunctionLocalThermodynamicEquilibrium  , coolingFunctionLowDensityLimit                 , &
+    double precision                                            , intent(  out) :: coolingFunctionLocalThermodynamicEquilibrium  , coolingFunctionLowDensityLimit, &
          &                                                                         numberDensityCriticalOverNumberDensityHydrogen
     double precision                                                            :: logarithmic10Temperature                      , temperatureThousand
 
     if (temperature /= self%temperatureCommonPrevious) then
        ! The expression from Galli & Palla (1998), assumes an equilibrium (1:3) ratio of para:ortho.
        logarithmic10Temperature=log10(temperature)
-       self%coolingFunctionLowDensityLimit=                                                                     &
-            & +10.0d0**(                                                                                        &
-            &                                      molecularHydrogenGalliPallaLowDensityLimitCoefficient(0)     &
-            &           +logarithmic10Temperature*(molecularHydrogenGalliPallaLowDensityLimitCoefficient(1)     &
-            &           +logarithmic10Temperature*(molecularHydrogenGalliPallaLowDensityLimitCoefficient(2)     &
-            &           +logarithmic10Temperature*(molecularHydrogenGalliPallaLowDensityLimitCoefficient(3)     &
-            &           +logarithmic10Temperature*(molecularHydrogenGalliPallaLowDensityLimitCoefficient(4))))) &
+       self%coolingFunctionLowDensityLimit=                                          &
+            & +10.0d0**(                                                             &
+            &                                      lowDensityLimitCoefficient(0)     &
+            &           +logarithmic10Temperature*(lowDensityLimitCoefficient(1)     &
+            &           +logarithmic10Temperature*(lowDensityLimitCoefficient(2)     &
+            &           +logarithmic10Temperature*(lowDensityLimitCoefficient(3)     &
+            &           +logarithmic10Temperature*(lowDensityLimitCoefficient(4))))) &
             &                                 )
        ! Rotational and vibrational cooling functions from Hollenbach & McKee (1979; their equations 6.37 and 6.38).
        temperatureThousand                           =+temperature & ! Convert to units of 1,000K.
             &                                         *milli
-       self%coolingFunctionRotationalTemperaturePart =                               &
-            & +molecularHydrogenGalliPallaRotationalLambda1                          &
-            & *temperatureThousand**molecularHydrogenGalliPallaRotationalExponent1   &
-            & /(                                                                     &
-            &   +1.0d0                                                               &
-            &   +molecularHydrogenGalliPallaRotationalCoefficient1                   &
-            &   *temperatureThousand**molecularHydrogenGalliPallaRotationalExponent2 &
-            &  )                                                                     &
-            & *exp(                                                                  &
-            &      -(                                                                &
-            &        +molecularHydrogenGalliPallaRotationalTemperature1              &
-            &        /temperatureThousand                                            &
-            &       )**3                                                             &
-            &     )                                                                  &
-            & +molecularHydrogenGalliPallaRotationalLambda2                          &
-            & *exp(                                                                  &
-            &      -molecularHydrogenGalliPallaRotationalTemperature2                &
-            &      /temperatureThousand                                              &
+       self%coolingFunctionRotationalTemperaturePart =             &
+            & +rotationalLambda1                                   &
+            & *temperatureThousand**rotationalExponent1            &
+            & /(                                                   &
+            &   +1.0d0                                             &
+            &   +rotationalCoefficient1                            &
+            &   *temperatureThousand**rotationalExponent2          &
+            &  )                                                   &
+            & *exp(                                                &
+            &      -(                                              &
+            &        +rotationalTemperature1                       &
+            &        /temperatureThousand                          &
+            &       )**3                                           &
+            &     )                                                &
+            & +rotationalLambda2                                   &
+            & *exp(                                                &
+            &      -rotationalTemperature2                         &
+            &      /temperatureThousand                            &
             &     )
-       self%coolingFunctionVibrationalTemperaturePart=                               &
-            & +molecularHydrogenGalliPallaVibrationalLambda1                         &
-            & *exp(                                                                  &
-            &      -molecularHydrogenGalliPallaVibrationalTemperature1               &
-            &      /temperatureThousand                                              &
-            &     )                                                                  &
-            & +molecularHydrogenGalliPallaVibrationalLambda2                         &
-            & *exp(                                                                  &
-            &      -molecularHydrogenGalliPallaVibrationalTemperature2               &
-            &      /temperatureThousand                                              &
+       self%coolingFunctionVibrationalTemperaturePart=             &
+            & +vibrationalLambda1                                  &
+            & *exp(                                                &
+            &      -vibrationalTemperature1                        &
+            &      /temperatureThousand                            &
+            &     )                                                &
+            & +vibrationalLambda2                                  &
+            & *exp(                                                &
+            &      -vibrationalTemperature2                        &
+            &      /temperatureThousand                            &
             &     )
        ! Record the temperature used.
        self%temperatureCommonPrevious=temperature
@@ -606,9 +613,9 @@ contains
                & +log10(temperature)
           self%coolingFunctionElectronMolecularHydrogenCation=                                                  &
                & +10.0d0**(                                                                                     &
-               &           +molecularHydrogenGalliPallaH2PlusElectronCoefficient(0)*logarithmic10Temperature**0 &
-               &           +molecularHydrogenGalliPallaH2PlusElectronCoefficient(1)*logarithmic10Temperature**1 &
-               &           +molecularHydrogenGalliPallaH2PlusElectronCoefficient(2)*logarithmic10Temperature**2 &
+               &           +H2PlusElectronCoefficient(0)*logarithmic10Temperature**0 &
+               &           +H2PlusElectronCoefficient(1)*logarithmic10Temperature**1 &
+               &           +H2PlusElectronCoefficient(2)*logarithmic10Temperature**2 &
                &          )
           self%temperatureH2PlusElectronPrevious=temperature
        end if
@@ -650,13 +657,13 @@ contains
     if (temperature > 1.0d3 .and. temperature < 1.0d4) then
        ! Recompute the temperature dependent part if necessary.
        if (temperature /= self%temperatureHH2PlusPrevious) then
-          logarithmic10Temperature                            =                                          &
+          logarithmic10Temperature                            =               &
                & +log10(temperature)
-          self%coolingFunctionAtomicHydrogenMolecularHydrogenCation=                                     &
-               & +10.0d0**(                                                                              &
-               &           +molecularHydrogenGalliPallaH2PlusHCoefficient(0)*logarithmic10Temperature**0 &
-               &           +molecularHydrogenGalliPallaH2PlusHCoefficient(1)*logarithmic10Temperature**1 &
-               &           +molecularHydrogenGalliPallaH2PlusHCoefficient(2)*logarithmic10Temperature**2 &
+          self%coolingFunctionAtomicHydrogenMolecularHydrogenCation=          &
+               & +10.0d0**(                                                   &
+               &           +H2PlusHCoefficient(0)*logarithmic10Temperature**0 &
+               &           +H2PlusHCoefficient(1)*logarithmic10Temperature**1 &
+               &           +H2PlusHCoefficient(2)*logarithmic10Temperature**2 &
                &          )
           self%temperatureHH2PlusPrevious=temperature
        end if

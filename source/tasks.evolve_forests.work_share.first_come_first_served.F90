@@ -43,8 +43,8 @@
   end interface evolveForestsWorkShareFCFS
 
   ! Global counter of forests assigned.
-  type   (mpiCounter) :: fcfsForestCounter
-  logical             :: fcfsForestCounterInitialized=.false.
+  type   (mpiCounter) :: forestCounter
+  logical             :: forestCounterInitialized=.false.
 
 contains
 
@@ -92,11 +92,11 @@ contains
     integer                                                                    :: i
 #endif
     
-    if (.not.fcfsForestCounterInitialized) then
-       fcfsForestCounter=mpiCounter()
-       fcfsForestCounterInitialized=.true.
+    if (.not.forestCounterInitialized) then
+       forestCounter=mpiCounter()
+       forestCounterInitialized=.true.
     end if
-    call fcfsForestCounter%reset()
+    call forestCounter%reset()
 #ifdef USEMPI
     if (present(activeProcessRanks)) then
        allocate(self%activeProcessRanks(size(activeProcessRanks)))
@@ -127,7 +127,7 @@ contains
 #ifdef USEMPI
     if (any(self%activeProcessRanks == mpiSelf%rank())) then
 #endif
-       fcfsForestNumber=fcfsForestCounter%increment()+1_c_size_t
+       fcfsForestNumber=forestCounter%increment()+1_c_size_t
 #ifdef USEMPI
     else
        fcfsForestNumber=huge(0_c_size_t)

@@ -71,10 +71,10 @@
   end interface hotHaloRamPressureStrippingFont2008
 
   ! Global variables used in root finding.
-  class           (hotHaloRamPressureStrippingFont2008), pointer :: font2008Self
-  type            (treeNode                           ), pointer :: font2008Node
-  double precision                                               :: font2008ForceRamPressure
-  !$omp threadprivate(font2008Self,font2008Node,font2008ForceRamPressure)
+  class           (hotHaloRamPressureStrippingFont2008), pointer :: self_
+  type            (treeNode                           ), pointer :: node_
+  double precision                                               :: forceRamPressure
+  !$omp threadprivate(self_,node_,forceRamPressure)
 
 contains
 
@@ -183,10 +183,10 @@ contains
     ! Test whether node is a satellite.
     if (node%isSatellite()) then
        ! Set a pointer to the satellite node.
-       font2008Self             => self
-       font2008Node             =>                                     node
+       self_            => self
+       node_            =>                                     node
        ! Get the ram pressure force due to the hot halo.
-       font2008ForceRamPressure =  self%hotHaloRamPressureForce_%force(node)
+       forceRamPressure =  self%hotHaloRamPressureForce_%force(node)
        ! Find the radial range within which the ram pressure radius must lie.
        radiusVirialRoot=font2008RadiusSolver(radiusVirial)
        if      (radiusVirialRoot >= 0.0d0) then
@@ -272,17 +272,17 @@ contains
          &                             densityHotHalo
 
     ! Get the hot halo mass distribution.
-    massEnclosed             =+font2008Self%galacticStructure_      %massEnclosed(font2008Node,radius,massType=massTypeAll,componentType=componentTypeAll)
-    densityHotHalo           =+font2008Self%hotHaloMassDistribution_%density     (font2008Node,radius                                                    )
-    forceBindingGravitational=+font2008Self%formFactor         &
+    massEnclosed             =+self_%galacticStructure_      %massEnclosed(node_,radius,massType=massTypeAll,componentType=componentTypeAll)
+    densityHotHalo           =+self_%hotHaloMassDistribution_%density     (node_,radius                                                    )
+    forceBindingGravitational=+self_%formFactor                &
          &                    *gravitationalConstantGalacticus &
          &                    *massEnclosed                    &
          &                    *densityHotHalo                  &
          &                    /radius
     if (forceBindingGravitational >= 0.0d0) then
-       font2008RadiusSolver=forceBindingGravitational-font2008ForceRamPressure
+       font2008RadiusSolver=forceBindingGravitational-forceRamPressure
     else
-       font2008RadiusSolver=                         -font2008ForceRamPressure
+       font2008RadiusSolver=                         -forceRamPressure
     end if
     return
   end function font2008RadiusSolver

@@ -89,13 +89,13 @@
   end interface haloSpinDistributionNbodyErrors
 
   ! Tabulation parameters.
-  integer         , parameter :: nbodyErrorsSpinPointsPerDecade=33    , nbodyErrorsMassPointsPerDecade=5
-  double precision, parameter :: nbodyErrorsSpinMaximum        =0.5d+0, nbodyErrorsMassMaximum        =1.0d15
-  double precision, parameter :: nbodyErrorsSpinMinimum        =3.0d-4, nbodyErrorsMassMinimum        =1.0d11
+  integer         , parameter :: spinPointsPerDecade=33    , massPointsPerDecade=5
+  double precision, parameter :: spinMaximum        =0.5d+0, massMaximum        =1.0d15
+  double precision, parameter :: spinMinimum        =3.0d-4, massMinimum        =1.0d11
 
   ! Module-scope variable used in root finding.
-  double precision :: nbodyErrorsNonCentralChiSquareChi
-  !$omp threadprivate(nbodyErrorsNonCentralChiSquareChi)
+  double precision :: nonCentralChiSquareChi
+  !$omp threadprivate(nonCentralChiSquareChi)
 
 contains
 
@@ -217,10 +217,10 @@ contains
     ! Set default ranges of spin and mass for tabulation.
     self%fixedPoint =.false.
     self%spinFixed  =-huge(0.0d0)
-    self%spinMinimum=nbodyErrorsSpinMinimum
-    self%spinMaximum=nbodyErrorsSpinMaximum
-    self%massMinimum=nbodyErrorsMassMinimum
-    self%massMaximum=nbodyErrorsMassMaximum
+    self%spinMinimum=spinMinimum
+    self%spinMaximum=spinMaximum
+    self%massMinimum=massMinimum
+    self%massMaximum=massMaximum
     ! Build a root finder.
     self%finder=rootFinder(                                                                      &
          &                 rootFunction                 =nbodyErrorsNonCentralChiSquareModeRoot, &
@@ -338,10 +338,10 @@ contains
        self%massCount=    1
        self%massDelta=    0.0d0
     else
-       self%massCount=int(log10(self%massMaximum/self%massMinimum)*dble(nbodyErrorsMassPointsPerDecade))+1
+       self%massCount=int(log10(self%massMaximum/self%massMinimum)*dble(massPointsPerDecade))+1
        self%massDelta=    log10(self%massMaximum/self%massMinimum)/dble(self%massCount-1)
     end if
-    self   %spinCount=int(log10(self%spinMaximum/self%spinMinimum)*dble(nbodyErrorsSpinPointsPerDecade))+1
+    self   %spinCount=int(log10(self%spinMaximum/self%spinMinimum)*dble(spinPointsPerDecade))+1
     self   %spinDelta=    log10(self%spinMaximum/self%spinMinimum)/dble(self%spinCount-1)
     allocate(self%distributionTable(self%massCount,self%spinCount))
     ! Build a work node.
@@ -664,7 +664,7 @@ contains
       implicit none
       double precision, intent(in   ) :: chi
       
-      nbodyErrorsNonCentralChiSquareChi =                                     chi
+      nonCentralChiSquareChi            =                                     chi
       nbodyErrorsNonCentralChiSquareMode=self%finder%find(rootGuess=max(1.0d0,chi))
       return
     end function nbodyErrorsNonCentralChiSquareMode
@@ -693,9 +693,9 @@ contains
            &                  +spinUnscaled           &
            &                  /errorSpinIndependent1D &
            &                 )**2
-      sinhArgument          =+sqrt(                  &
-           &                       +x                &
-           &                       *nonCentrality    &
+      sinhArgument          =+sqrt(                   &
+           &                       +x                 &
+           &                       *nonCentrality     &
            &                      )
       if (sinhArgument < 50.0d0) then
          distributionNonCentral=+exp (                     &
@@ -940,16 +940,16 @@ contains
     implicit none
     double precision, intent(in   ) :: x
     
-    nbodyErrorsNonCentralChiSquareModeRoot=+      sqrt(                                   &
-         &                                             +x                                 &
-         &                                             *nbodyErrorsNonCentralChiSquareChi &
-         &                                            )                                   &
-         &                                 *tanh(                                         &
-         &                                       +sqrt(                                   &
-         &                                             +x                                 &
-         &                                             *nbodyErrorsNonCentralChiSquareChi &
-         &                                            )                                   &
-         &                                      )                                         &
-         &                                 -            nbodyErrorsNonCentralChiSquareChi
+    nbodyErrorsNonCentralChiSquareModeRoot=+      sqrt(                        &
+         &                                             +x                      &
+         &                                             *nonCentralChiSquareChi &
+         &                                            )                        &
+         &                                 *tanh(                              &
+         &                                       +sqrt(                        &
+         &                                             +x                      &
+         &                                             *nonCentralChiSquareChi &
+         &                                            )                        &
+         &                                      )                              &
+         &                                 -            nonCentralChiSquareChi
     return
   end function nbodyErrorsNonCentralChiSquareModeRoot

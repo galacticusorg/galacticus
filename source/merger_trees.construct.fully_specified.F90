@@ -208,7 +208,13 @@ contains
     !$omp critical (FoX_DOM_Access)
     if (.not.associated(self%document)) allocate(self%document)
     ! Parse the merger tree file.
+#ifdef THREADSAFEIO
+       !$omp critical(gfortranInternalIO)
+#endif
     self%document%doc => parseFile(char(self%fileName),iostat=ioErr)
+#ifdef THREADSAFEIO
+       !$omp end critical(gfortranInternalIO)
+#endif
     if (ioErr /= 0) call Error_Report('unable to read or parse fully-specified merger tree file'//{introspection:location})
     self%document%copyCount = 1
     ! Get the list of trees.

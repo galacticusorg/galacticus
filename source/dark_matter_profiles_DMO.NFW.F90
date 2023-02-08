@@ -142,12 +142,12 @@
   end interface darkMatterProfileDMONFW
 
   ! Number of points per decade of concentration in NFW tabulations.
-  integer, parameter   :: nfwTablePointsPerDecade               =100
-  integer, parameter   :: nfwInverseTablePointsPerDecade        =100
-  integer, parameter   :: nfwFreefallTablePointsPerDecade       =300
-  integer, parameter   :: nfwEnclosedDensityTablePointsPerDecade=100
+  integer, parameter   :: tablePointsPerDecade               =100
+  integer, parameter   :: inverseTablePointsPerDecade        =100
+  integer, parameter   :: freefallTablePointsPerDecade       =300
+  integer, parameter   :: enclosedDensityTablePointsPerDecade=100
   ! Indices for tabulated quantities.
-  integer, parameter   :: nfwConcentrationEnergyIndex           =  1, nfwConcentrationRotationNormalizationIndex=2
+  integer, parameter   :: concentrationEnergyIndex           =  1, concentrationRotationNormalizationIndex=2
 
 contains
 
@@ -315,14 +315,14 @@ contains
     end if
     if (retabulate) then
        ! Decide how many points to tabulate and allocate table arrays.
-       self%nfwTableNumberPoints=int(log10(self%concentrationMaximum/self%concentrationMinimum)*dble(nfwTablePointsPerDecade))+1
+       self%nfwTableNumberPoints=int(log10(self%concentrationMaximum/self%concentrationMinimum)*dble(tablePointsPerDecade))+1
        call self%nfwConcentrationTable%destroy()
        call self%nfwConcentrationTable%create(self%concentrationMinimum,self%concentrationMaximum,self%nfwTableNumberPoints,2)
        ! Loop over concentrations and populate tables.
        do iConcentration=1,self%nfwTableNumberPoints
           tableConcentration=self%nfwConcentrationTable%x(iConcentration)
-          call self%nfwConcentrationTable%populate(                   self%profileEnergy           (tableConcentration),iConcentration,table=nfwConcentrationEnergyIndex              )
-          call self%nfwConcentrationTable%populate(tableConcentration/self%angularMomentumScaleFree(tableConcentration),iConcentration,table=nfwConcentrationRotationNormalizationIndex)
+          call self%nfwConcentrationTable%populate(                   self%profileEnergy           (tableConcentration),iConcentration,table=concentrationEnergyIndex               )
+          call self%nfwConcentrationTable%populate(tableConcentration/self%angularMomentumScaleFree(tableConcentration),iConcentration,table=concentrationRotationNormalizationIndex)
        end do
        ! Specify that tabulation has been made.
        self%nfwTableInitialized=.true.
@@ -361,7 +361,7 @@ contains
     end if
     if (retabulate) then
        ! Decide how many points to tabulate and allocate table arrays.
-       self%nfwInverseTableNumberPoints=int(log10(self%radiusMaximum/self%radiusMinimum)*dble(nfwInverseTablePointsPerDecade))+1
+       self%nfwInverseTableNumberPoints=int(log10(self%radiusMaximum/self%radiusMinimum)*dble(inverseTablePointsPerDecade))+1
        ! Create a range of radii.
        call self%nfwSpecificAngularMomentum%destroy(                                                                      )
        call self%nfwSpecificAngularMomentum%create (self%radiusMinimum,self%radiusMaximum,self%nfwInverseTableNumberPoints)
@@ -771,7 +771,7 @@ contains
 
     ! Find the rotation normalization by interpolation.
     nfwRotationNormalization=self%nfwConcentrationTable%interpolate(concentration,table&
-         &=nfwConcentrationRotationNormalizationIndex)/self%darkMatterHaloScale_%radiusVirial(node)
+         &=concentrationRotationNormalizationIndex)/self%darkMatterHaloScale_%radiusVirial(node)
     return
   end function nfwRotationNormalization
 
@@ -798,9 +798,9 @@ contains
     call self%tabulate(concentration)
 
     ! Find the energy by interpolation.
-    nfwEnergy=+self %nfwConcentrationTable%interpolate   (concentration,table=nfwConcentrationEnergyIndex)    &
-         &    *self %darkMatterHaloScale_ %velocityVirial(node                                           )**2 &
-         &    *basic                      %mass          (                                               )
+    nfwEnergy=+self %nfwConcentrationTable%interpolate   (concentration,table=concentrationEnergyIndex)    &
+         &    *self %darkMatterHaloScale_ %velocityVirial(node                                        )**2 &
+         &    *basic                      %mass          (                                            )
     return
   end function nfwEnergy
 
@@ -1068,7 +1068,7 @@ contains
     end do
     if (retabulate) then
        ! Decide how many points to tabulate and allocate table arrays.
-       self%nfwEnclosedDensityTableNumberPoints=int(log10(self%enclosedDensityRadiusMaximum/self%enclosedDensityRadiusMinimum)*dble(nfwEnclosedDensityTablePointsPerDecade))+1
+       self%nfwEnclosedDensityTableNumberPoints=int(log10(self%enclosedDensityRadiusMaximum/self%enclosedDensityRadiusMinimum)*dble(enclosedDensityTablePointsPerDecade))+1
        ! Create the table.
        call self%nfwEnclosedDensity%destroy(                                                                                                            )
        call self%nfwEnclosedDensity%create (self%enclosedDensityRadiusMinimum,self%enclosedDensityRadiusMaximum,self%nfwEnclosedDensityTableNumberPoints)
@@ -1523,7 +1523,7 @@ contains
     end do
     if (retabulate) then
        ! Decide how many points to tabulate and allocate table arrays.
-       self%nfwFreefallTableNumberPoints=int(log10(self%freefallRadiusMaximum/self%freefallRadiusMinimum)*dble(nfwFreefallTablePointsPerDecade))+1
+       self%nfwFreefallTableNumberPoints=int(log10(self%freefallRadiusMaximum/self%freefallRadiusMinimum)*dble(freefallTablePointsPerDecade))+1
        ! Create the table.
        call self%nfwFreefall%destroy(                                                                        )
        call self%nfwFreefall%create (self%freefallRadiusMinimum,self%freefallRadiusMaximum,self%nfwFreefallTableNumberPoints)

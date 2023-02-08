@@ -97,7 +97,7 @@
   end interface stellarTracksFile
 
   ! The current file format version.
-  integer, parameter:: fileFormatVersionCurrent=1
+  integer, parameter :: fileFormatVersionCurrent=1
 
 contains
 

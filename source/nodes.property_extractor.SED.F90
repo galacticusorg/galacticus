@@ -469,21 +469,10 @@ contains
     allocate(descriptions(self%size(time)))
     allocate(wavelengths (self%size(time)))
     wavelengths=self%wavelengths(time)
-    !![
-    <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-     <description>Internal file I/O in gfortran can be non-thread safe.</description>
-    </workaround>
-    !!]
-#ifdef THREADSAFEIO
-    !$omp critical(gfortranInternalIO)
-#endif
     do i=1,size(descriptions)      
        write (label,'(a2,1x,e12.6,1x,a1)') "λ=",wavelengths(i),"Å"
        descriptions(i)=trim(label)
     end do
-#ifdef THREADSAFEIO
-    !$omp end critical(gfortranInternalIO)
-#endif
     return
   end subroutine sedColumnDescriptions
 

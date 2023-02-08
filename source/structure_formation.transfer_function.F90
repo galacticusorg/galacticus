@@ -47,6 +47,15 @@ module Transfer_Functions
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: wavenumber</argument>
    </method>
+   <method name="wavenumbersLocalMinima" >
+    <description>Return an array of wavenumbers at which the transfer function reaches a local minimum. (Or a zero-length array if no such local minima exist.)</description>
+    <type>void</type>
+    <pass>yes</pass>
+    <argument>double precision, intent(  out), allocatable, dimension(:) :: wavenumbers</argument>
+    <code>
+      allocate(wavenumbers(0))
+    </code>
+   </method>
    <method name="epochTime" >
     <description>Return the cosmic time corresponding to the epoch for which this transfer function is defined.</description>
     <type>double precision</type>

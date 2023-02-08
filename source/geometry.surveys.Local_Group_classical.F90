@@ -47,10 +47,10 @@ Implements a geometry corresponding to the detectability of classical Local Grou
   end interface surveyGeometryLocalGroupClassical
 
   ! Number of fields.
-  integer, parameter :: localGroupClassicalFields              =  1
+  integer, parameter :: countFields         =  1
 
   ! Maximum degree for angular power spectrum
-  integer, parameter :: localGroupClassicalAngularPowerMaximumL=360
+  integer, parameter :: angularPowerMaximumL=360
 
 contains
 
@@ -108,7 +108,7 @@ contains
     class(surveyGeometryLocalGroupClassical), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    localGroupClassicalFieldCount=localGroupClassicalFields
+    localGroupClassicalFieldCount=countFields
     return
   end function localGroupClassicalFieldCount
 
@@ -170,7 +170,7 @@ contains
     class(surveyGeometryLocalGroupClassical), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    localGroupClassicalAngularPowerMaximumDegree=localGroupClassicalAngularPowerMaximumL
+    localGroupClassicalAngularPowerMaximumDegree=angularPowerMaximumL
     return
   end function localGroupClassicalAngularPowerMaximumDegree
 

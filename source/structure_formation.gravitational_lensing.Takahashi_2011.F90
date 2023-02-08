@@ -76,14 +76,14 @@ Implements the gravitational lensing distributions of \cite{takahashi_probabilit
   end interface gravitationalLensingTakahashi2011
 
   ! Smallest variance for which calculations are stable.
-  double precision, parameter :: takahashi2011ConvergenceVarianceSmall=1.0d-5
+  double precision, parameter :: convergenceVarianceSmall=1.0d-5
 
   ! Smallest redshift for which to compute lensing.
-  double precision, parameter :: takahashi2011RedshiftTiny            =1.5d-2
+  double precision, parameter :: redshiftTiny            =1.5d-2
 
   ! CDF tabulation range.
-  double precision, parameter :: takahashi2011MagnificationMinimum    =   1.0d-2
-  double precision, parameter :: takahashi2011MagnificationMaximum    =1000.0d+0
+  double precision, parameter :: magnificationMinimum    =   1.0d-2
+  double precision, parameter :: magnificationMaximum    =1000.0d+0
 
 contains
 
@@ -160,7 +160,7 @@ contains
          &                                                                scaleSource
 
     ! Handle redshift zero case.
-    if (redshift <= takahashi2011RedshiftTiny) then
+    if (redshift <= redshiftTiny) then
        if (magnification == 1.0d0) then
           takahashi2011MagnificationPDF=1.0d0
        else
@@ -172,7 +172,7 @@ contains
        ! Construct the distribution.
        call self%lensingDistributionConstruct(redshift,scaleSource)
        ! Approximate a δ-function for small redshifts.
-       if (self%convergenceVariance < takahashi2011ConvergenceVarianceSmall) then
+       if (self%convergenceVariance < convergenceVarianceSmall) then
           if (magnification == 1.0d0) then
              takahashi2011MagnificationPDF=0.0d0
           else
@@ -199,7 +199,7 @@ contains
          &                                                                scaleSource
 
     ! Handle redshift zero case.
-    if (redshift <= takahashi2011RedshiftTiny) then
+    if (redshift <= redshiftTiny) then
        if (magnification < 1.0d0) then
           takahashi2011MagnificationCDF=0.0d0
        else
@@ -211,7 +211,7 @@ contains
        ! Construct the distribution.
        call self%lensingDistributionConstruct(redshift,scaleSource)
        ! Approximate a δ-function for small redshifts.
-       if (self%convergenceVariance < takahashi2011ConvergenceVarianceSmall) then
+       if (self%convergenceVariance < convergenceVarianceSmall) then
           if (magnification < 1.0d0) then
              takahashi2011MagnificationCDF=0.0d0
           else
@@ -221,9 +221,9 @@ contains
           return
        end if
        ! Interpolate in the tabulated cumulative distribution function.
-       if      (magnification < takahashi2011MagnificationMinimum) then
+       if      (magnification < magnificationMinimum) then
           takahashi2011MagnificationCDF=0.0d0
-       else if (magnification > takahashi2011MagnificationMaximum) then
+       else if (magnification > magnificationMaximum) then
           takahashi2011MagnificationCDF=1.0d0
        else
           takahashi2011MagnificationCDF=self%magnificationCDFTable%interpolate(magnification)/self%magnificationCDFTable%y(-1)
@@ -344,7 +344,8 @@ contains
     !!{
     Construct the lensing distribution function for the \cite{takahashi_probability_2011} formalism.
     !!}
-    use :: File_Utilities       , only : Directory_Make              , File_Exists
+    use :: File_Utilities       , only : Directory_Make              , File_Exists                 , File_Lock            , File_Unlock, &
+         &                               lockDescriptor
     use :: Error                , only : Error_Report
     use :: Input_Paths          , only : inputPath                   , pathTypeDataDynamic
     use :: HDF5_Access          , only : hdf5Access
@@ -381,6 +382,7 @@ contains
          &                                                                              magnificationLower                        , magnificationUpper            , &
          &                                                                              cdfPrevious                               , cdf
     type            (hdf5Object                       )                              :: parametersFile
+    type            (lockDescriptor                   )                              :: fileLock
 
     ! Construct tabulation of convergence distribution function parameters if necessary.
     if (.not.self%tableInitialized) then
@@ -389,6 +391,7 @@ contains
           ! Determine the parameters, A_κ and ω_κ, of the convergence distribution (eq. 8
           ! of Takahashi et al.). To do this, we use a look-up table of precomputed values.
           ! Check if a precomputed file exists.
+          call File_Lock(char(inputPath(pathTypeDataDynamic))//"largeScaleStructure/gravitationalLensingConvergenceTakahashi2011.hdf5",fileLock,lockIsShared=.true.)
           if (File_Exists(inputPath(pathTypeDataDynamic)//"largeScaleStructure/gravitationalLensingConvergenceTakahashi2011.hdf5")) then
              ! Read the results from file.
              !$ call hdf5Access%set()
@@ -400,6 +403,8 @@ contains
              call parametersFile%close      (                                              )
              !$ call hdf5Access%unset()
           else
+             call File_Unlock(fileLock)
+             call File_Lock(char(inputPath(pathTypeDataDynamic))//"largeScaleStructure/gravitationalLensingConvergenceTakahashi2011.hdf5",fileLock,lockIsShared=.false.)
              ! Create a root-finder to solve the parameters.
              finder=rootFinder(&
                   &            rootFunction                 =convergencePdfParameterSolver         , &
@@ -462,6 +467,7 @@ contains
              call parametersFile%close()
              !$ call hdf5Access%unset()
           end if
+          call File_Unlock(fileLock)
           ! Create a table. We fix the extrapolation for large scaled variances. In these cases, the convergence distribution is
           ! extremely narrow (effectively a delta-function) so it doesn't matter much what we do. If we do allow extrapolation, the
           ! values obtained for the parameter result in convergence distributions which have secondary peaks at κ≅2, which results in
@@ -514,7 +520,7 @@ contains
                & /magnificationPdfMoment0
           ! Tabulate the cumulative distribution function if table does not yet exist.
           if (self%cdfInitialized) call self%magnificationCDFTable%destroy()
-          call self%magnificationCDFTable%create(takahashi2011MagnificationMinimum,takahashi2011MagnificationMaximum,cdfMagnificationCount,tableCount=1)
+          call self%magnificationCDFTable%create(magnificationMinimum,magnificationMaximum,cdfMagnificationCount,tableCount=1)
           do i=1,cdfMagnificationCount
              if (i == 1 ) then
                 magnificationLower=0.0d0

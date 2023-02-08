@@ -3,7 +3,7 @@
 <parameters>
   <formatVersion>2</formatVersion>
 
-  <verbosityLevel value="2"/>
+  <verbosityLevel value="working"/>
 
   <!-- Random number generation -->
   <randomNumberGenerator value="GSL">
@@ -252,8 +252,9 @@
       <radiusVirialFraction      value="0.01"/>
     </nodeOperator>
     <nodeOperator value="satelliteDestructionMassThreshold" >
-      <massDestruction           value="=[mergerTreeMassResolution::massResolution]"/>
-      <massDestructionFractional value="0.0e0"/>
+      <massDestructionAbsolute           value="=[mergerTreeMassResolution::massResolution]"/>
+      <massDestructionMassInfallFraction value="0.0e0"                                      />
+      <massDestructionMassTreeFraction   value="0.0e0"                                      />
     </nodeOperator>
   </nodeOperator>
   

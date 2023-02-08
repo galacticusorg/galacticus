@@ -72,11 +72,11 @@
   end interface massDistributionSersic
 
   ! Table granularity for Sersic profiles.
-  integer                        , parameter :: sersicTablePointsPerDecade=1000
+  integer                        , parameter :: tablePointsPerDecade=1000
 
   ! Module scope variables used in integration and root finding.
-  class  (massDistributionSersic), pointer   :: sersicActive
-  !$omp threadprivate(sersicActive)
+  class  (massDistributionSersic), pointer   :: self_
+  !$omp threadprivate(self_)
 
 contains
 
@@ -459,7 +459,7 @@ contains
     ! Rebuild the table if necessary.
     if (rebuildTable) then
        ! Set a module-scope pointer to self.
-       sersicActive => self
+       self_ => self
        ! Initialize our root finder.
        if (.not.finderConstructed) then
           finder           =rootFinder(                                               &
@@ -479,7 +479,7 @@ contains
           self%tableRadiusMinimum=min(self%tableRadiusMinimum,0.5d0*radiusActual*self%table3dRadiusHalfMass)
           self%tableRadiusMaximum=max(self%tableRadiusMaximum,2.0d0*radiusActual*self%table3dRadiusHalfMass)
           ! Determine the number of points at which to tabulate the profile.
-          self%tableCount=int(log10(self%tableRadiusMaximum/self%tableRadiusMinimum)*dble(sersicTablePointsPerDecade))+1
+          self%tableCount=int(log10(self%tableRadiusMaximum/self%tableRadiusMinimum)*dble(tablePointsPerDecade))+1
           ! Allocate arrays for storing the tables.
           if (allocated(self%tableRadius)) then
              deallocate(self%tableRadius      )
@@ -568,7 +568,7 @@ contains
     implicit none
     double precision, intent(in   ) :: coefficient
 
-    sersicCoefficientRoot=Gamma_Function_Incomplete(2.0d0*sersicActive%index_,coefficient)-0.5d0
+    sersicCoefficientRoot=Gamma_Function_Incomplete(2.0d0*self_%index_,coefficient)-0.5d0
     return
   end function sersicCoefficientRoot
 
@@ -580,14 +580,14 @@ contains
     implicit none
     double precision, intent(in   ) :: radius
 
-    if (radius > sersicActive%radiusStart) then
-       sersicAbelIntegrand=+      sersicActive%coefficient*(radius**(1.0d0/dble(sersicActive%index_) -1.0d0)) &
-            &              * exp(-sersicActive%coefficient*(radius**(1.0d0/dble(sersicActive%index_))-1.0d0)) &
-            &              /                                               dble(sersicActive%index_)          &
-            &              /sqrt(                                                                             &
-            &                    +     radius     **2                                                         &
-            &                    -sersicActive%radiusStart**2                                                 &
-            &                   )                                                                             &
+    if (radius > self_%radiusStart) then
+       sersicAbelIntegrand=+      self_%coefficient*(radius**(1.0d0/dble(self_%index_) -1.0d0)) &
+            &              * exp(-self_%coefficient*(radius**(1.0d0/dble(self_%index_))-1.0d0)) &
+            &              /                                        dble(self_%index_)          &
+            &              /sqrt(                                                               &
+            &                    +     radius     **2                                           &
+            &                    -self_%radiusStart**2                                          &
+            &                   )                                                               &
             &              /Pi
     else
        sersicAbelIntegrand=0.0d0

@@ -1556,17 +1556,8 @@ contains
     call displayMessage('Storing state for: componentSpheroid -> standard',verbosity=verbosityLevelInfo)
     !![
     <stateStore variables="massDistributionSpheroid stellarPopulationProperties_ darkMatterHaloScale_ starFormationHistory_ mergerMassMovements_ mergerRemnantSize_"/>
-    <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-     <description>Internal file I/O in gfortran can be non-thread safe.</description>
-    </workaround>
     !!]
-#ifdef THREADSAFEIO
-    !$omp critical(gfortranInternalIO)
-#endif
     write (stateFile) ratioAngularMomentumScaleRadius
-#ifdef THREADSAFEIO
-    !$omp end critical(gfortranInternalIO)
-#endif
     return
   end subroutine Node_Component_Spheroid_Standard_State_Store
 
@@ -1591,13 +1582,7 @@ contains
     !![
     <stateRestore variables="massDistributionSpheroid stellarPopulationProperties_ darkMatterHaloScale_ starFormationHistory_ mergerMassMovements_ mergerRemnantSize_"/>
     !!]
-#ifdef THREADSAFEIO
-    !$omp critical(gfortranInternalIO)
-#endif
     read (stateFile) ratioAngularMomentumScaleRadius
-#ifdef THREADSAFEIO
-    !$omp end critical(gfortranInternalIO)
-#endif
     return
   end subroutine Node_Component_Spheroid_Standard_State_Retrieve
 

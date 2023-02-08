@@ -84,10 +84,10 @@ Implements the geometry of the GAMA survey used by \cite{baldry_galaxy_2012}.
   end interface surveyGeometryBaldry2012GAMA
 
   ! Number of fields.
-  integer, parameter :: baldry2012GAMAFields              =  3
+  integer, parameter :: countFields         =  3
 
   ! Maximum degree for angular power spectrum
-  integer, parameter :: baldry2012GAMAAngularPowerMaximumL=360
+  integer, parameter :: angularPowerMaximumL=360
 
 contains
 
@@ -154,7 +154,7 @@ contains
     class(surveyGeometryBaldry2012GAMA), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    baldry2012GAMAFieldCount=baldry2012GAMAFields
+    baldry2012GAMAFieldCount=countFields
     return
   end function baldry2012GAMAFieldCount
 
@@ -235,7 +235,7 @@ contains
     class(surveyGeometryBaldry2012GAMA), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    baldry2012GAMAAngularPowerMaximumDegree=baldry2012GAMAAngularPowerMaximumL
+    baldry2012GAMAAngularPowerMaximumDegree=angularPowerMaximumL
     return
   end function baldry2012GAMAAngularPowerMaximumDegree
 

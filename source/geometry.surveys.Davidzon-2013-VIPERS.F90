@@ -66,7 +66,7 @@ Implements the geometry of the VIPERS survey used by \cite{davidzon_vimos_2013}.
      private
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
      integer                                            :: redshiftBin
-     double precision                                   :: binDistanceMinimum , binDistanceMaximum
+     double precision                                   :: binDistanceMinimum           , binDistanceMaximum
    contains
      final     ::                              davidzon2013VIPERSDestructor
      procedure :: fieldCount                => davidzon2013VIPERSFieldCount
@@ -87,10 +87,10 @@ Implements the geometry of the VIPERS survey used by \cite{davidzon_vimos_2013}.
   end interface surveyGeometryDavidzon2013VIPERS
 
   ! Number of fields.
-  integer, parameter :: davidzon2013VIPERSFields        =  1
+  integer, parameter :: countFields         =  1
 
   ! Angular power spectra.
-  integer, parameter :: davidzon2013AngularPowerMaximumL=720
+  integer, parameter :: angularPowerMaximumL=720
 
 contains
 
@@ -187,7 +187,7 @@ contains
     class(surveyGeometryDavidzon2013VIPERS), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    davidzon2013VIPERSFieldCount=davidzon2013VIPERSFields
+    davidzon2013VIPERSFieldCount=countFields
     return
   end function davidzon2013VIPERSFieldCount
 
@@ -299,7 +299,7 @@ contains
     class(surveyGeometryDavidzon2013VIPERS), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    davidzon2013VIPERSAngularPowerMaximumDegree=davidzon2013AngularPowerMaximumL
+    davidzon2013VIPERSAngularPowerMaximumDegree=angularPowerMaximumL
     return
   end function davidzon2013VIPERSAngularPowerMaximumDegree
 

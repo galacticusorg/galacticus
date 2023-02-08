@@ -157,17 +157,17 @@
   end interface darkMatterProfileDMOBurkert
 
   ! Number of points per decade of concentration in Burkert tabulations.
-  integer         , parameter  :: burkertTablePointsPerDecade                        =100
-  integer         , parameter  :: burkertDensityTablePointsPerDecade                 =100
-  integer         , parameter  :: burkertInverseTablePointsPerDecade                 =100
-  integer         , parameter  :: burkertFreefallTablePointsPerDecade                =100
-  integer         , parameter  :: burkertRadialVelocityDispersionTablePointsPerDecade=100
+  integer         , parameter :: tablePointsPerDecade                        =100
+  integer         , parameter :: densityTablePointsPerDecade                 =100
+  integer         , parameter :: inverseTablePointsPerDecade                 =100
+  integer         , parameter :: freefallTablePointsPerDecade                =100
+  integer         , parameter :: radialVelocityDispersionTablePointsPerDecade=100
 
   ! Indices for tabulated quantities.
-  integer         , parameter  :: burkertConcentrationEnergyIndex    =  1                 , burkertConcetrationRotationNormalizationIndex=2
+  integer         , parameter :: concentrationEnergyIndex                    =  1                 , concetrationRotationNormalizationIndex=2
 
   ! Minimum (scale-free) freefall time in the Burkert profile.
-  double precision, parameter :: burkertFreefallTimeScaleFreeMinimum =sqrt(3.0d0)*Pi/4.0d0
+  double precision, parameter :: freefallTimeScaleFreeMinimum                =sqrt(3.0d0)*Pi/4.0d0
 
 contains
 
@@ -326,14 +326,14 @@ contains
     end if
     if (retabulate) then
        ! Decide how many points to tabulate and allocate table arrays.
-       self%burkertTableNumberPoints=int(log10(self%concentrationMaximum/self%concentrationMinimum)*dble(burkertTablePointsPerDecade))+1
+       self%burkertTableNumberPoints=int(log10(self%concentrationMaximum/self%concentrationMinimum)*dble(tablePointsPerDecade))+1
        call self%burkertConcentrationTable%destroy()
        call self%burkertConcentrationTable%create(self%concentrationMinimum,self%concentrationMaximum,self%burkertTableNumberPoints,2)
        ! Loop over concentrations and populate tables.
        do iConcentration=1,self%burkertTableNumberPoints
           tableConcentration=self%burkertConcentrationTable%x(iConcentration)
-          call self%burkertConcentrationTable%populate(                   self%profileEnergy           (tableConcentration),iConcentration,table=burkertConcentrationEnergyIndex              )
-          call self%burkertConcentrationTable%populate(tableConcentration/self%angularMomentumScaleFree(tableConcentration),iConcentration,table=burkertConcetrationRotationNormalizationIndex)
+          call self%burkertConcentrationTable%populate(                   self%profileEnergy           (tableConcentration),iConcentration,table=concentrationEnergyIndex              )
+          call self%burkertConcentrationTable%populate(tableConcentration/self%angularMomentumScaleFree(tableConcentration),iConcentration,table=concetrationRotationNormalizationIndex)
        end do
        ! Specify that tabulation has been made.
        self%burkertTableInitialized=.true.
@@ -372,7 +372,7 @@ contains
     end if
     if (retabulate) then
        ! Decide how many points to tabulate and allocate table arrays.
-       self%burkertInverseTableNumberPoints=int(log10(self%radiusMaximum/self%radiusMinimum)*dble(burkertInverseTablePointsPerDecade))+1
+       self%burkertInverseTableNumberPoints=int(log10(self%radiusMaximum/self%radiusMinimum)*dble(inverseTablePointsPerDecade))+1
        ! Create a range of radii.
        call self%burkertSpecificAngularMomentum%destroy(                                                       )
        call self%burkertSpecificAngularMomentum%create (self%radiusMinimum,self%radiusMaximum,self%burkertInverseTableNumberPoints)
@@ -691,7 +691,7 @@ contains
     call self%tabulate(concentration)
 
     ! Find the rotation normalization by interpolation.
-    burkertRotationNormalization=+self%burkertConcentrationTable%interpolate(concentration,table=burkertConcetrationRotationNormalizationIndex) &
+    burkertRotationNormalization=+self%burkertConcentrationTable%interpolate(concentration,table=concetrationRotationNormalizationIndex) &
          &                       /self%darkMatterHaloScale_%radiusVirial(node)
     return
   end function burkertRotationNormalization
@@ -719,7 +719,7 @@ contains
     call self%tabulate(concentration)
 
     ! Find the energy by interpolation.
-    burkertEnergy=self%burkertConcentrationTable%interpolate(concentration,table=burkertConcentrationEnergyIndex) &
+    burkertEnergy=self%burkertConcentrationTable%interpolate(concentration,table=concentrationEnergyIndex) &
          &        *basic%mass()*self%darkMatterHaloScale_%velocityVirial(node)**2
     return
   end function burkertEnergy
@@ -1031,7 +1031,7 @@ contains
     ! Ensure table is sufficiently extensive.
     call self%freefallTabulate(freefallTimeScaleFree)
     ! The freefall time is finite at zero radius in this profile. If the requested time is less than this, return zero radius.
-    if (freefallTimeScaleFree < burkertFreefallTimeScaleFreeMinimum) then
+    if (freefallTimeScaleFree < freefallTimeScaleFreeMinimum) then
        burkertFreefallRadius=0.0d0
     else
        burkertFreefallRadius=self%burkertFreefallInverse%interpolate(freefallTimeScaleFree)*radiusScale
@@ -1086,7 +1086,7 @@ contains
     ! Ensure table is sufficiently extensive.
     call self%freefallTabulate(freefallTimeScaleFree)
     ! The freefall time is finite at zero radius in this profile. If the requested time is less than this, return zero radius.
-    if (freefallTimeScaleFree < burkertFreefallTimeScaleFreeMinimum) then
+    if (freefallTimeScaleFree < freefallTimeScaleFreeMinimum) then
        burkertFreefallRadiusIncreaseRate=0.0d0
     else
        burkertFreefallRadiusIncreaseRate=self%burkertFreefallInverse%interpolateGradient(freefallTimeScaleFree)*radiusScale/timeScale
@@ -1119,7 +1119,7 @@ contains
     end do
     if (retabulate) then
        ! Decide how many points to tabulate and allocate table arrays.
-       self%burkertFreefallTableNumberPoints=int(log10(self%freefallRadiusMaximum/self%freefallRadiusMinimum)*dble(burkertFreefallTablePointsPerDecade))+1
+       self%burkertFreefallTableNumberPoints=int(log10(self%freefallRadiusMaximum/self%freefallRadiusMinimum)*dble(freefallTablePointsPerDecade))+1
        ! Create the table.
        call self%burkertFreefall%destroy(                                                                                           )
        call self%burkertFreefall%create (self%freefallRadiusMinimum,self%freefallRadiusMaximum,self%burkertFreefallTableNumberPoints)
@@ -1369,7 +1369,7 @@ contains
     end do
     if (retabulate) then
        ! Decide how many points to tabulate and allocate table arrays.
-       self%burkertDensityTableNumberPoints=int(log10(self%densityRadiusMaximum/self%densityRadiusMinimum)*dble(burkertDensityTablePointsPerDecade))+1
+       self%burkertDensityTableNumberPoints=int(log10(self%densityRadiusMaximum/self%densityRadiusMinimum)*dble(densityTablePointsPerDecade))+1
        ! Create the table.
        call self%burkertDensityTable%destroy(                                                                                        )
        call self%burkertDensityTable%create (self%densityRadiusMinimum,self%densityRadiusMaximum,self%burkertDensityTableNumberPoints)
@@ -1464,7 +1464,7 @@ contains
     if (retabulate) then
        ! Decide how many points to tabulate and allocate table arrays.
        self%burkertRadialVelocityDispersionTableNumberPoints=int(log10(self%radialVelocityDispersionRadiusMaximum/self%radialVelocityDispersionRadiusMinimum) &
-            &                                                    *dble(burkertRadialVelocityDispersionTablePointsPerDecade                                  ) &
+            &                                                    *dble(radialVelocityDispersionTablePointsPerDecade                                         ) &
             &                                                   )+1
        ! Create the table.
        call self%burkertRadialVelocityDispersionTable%destroy(                                                      )
