@@ -50,10 +50,11 @@ Contains a module which implements a transfer function class using the CLASS cod
        <method description="Check that the provided wavenumber is within the tabulated range of the transfer function." method="checkRange" />
      </methods>
      !!]
-     final     ::                          classCDMDestructor
-     procedure :: checkRange            => classCDMCheckRange
-     procedure :: value                 => classCDMValue
-     procedure :: logarithmicDerivative => classCDMLogarithmicDerivative
+     final     ::                           classCDMDestructor
+     procedure :: checkRange             => classCDMCheckRange
+     procedure :: value                  => classCDMValue
+     procedure :: logarithmicDerivative  => classCDMLogarithmicDerivative
+     procedure :: wavenumbersLocalMinima => classCDMWavenumbersLocalMinima
   end type transferFunctionCLASSCDM
 
   interface transferFunctionCLASSCDM
@@ -233,3 +234,16 @@ contains
     classCDMLogarithmicDerivative=self%transferFunctionFile%logarithmicDerivative(wavenumber)
     return
   end function classCDMLogarithmicDerivative
+
+  subroutine classCDMWavenumbersLocalMinima(self,wavenumbers)
+    !!{
+    Return a list of wavenumbers corresponding to local minima in the transfer function.
+    !!}
+    implicit none
+    class           (transferFunctionCLASSCDM), intent(inout)                            :: self
+    double precision                          , intent(  out), allocatable, dimension(:) :: wavenumbers
+
+    call self%checkRange(wavenumber=1.0d0)
+    wavenumbers=self%wavenumbersLocalMinima_
+    return
+  end subroutine classCDMWavenumbersLocalMinima

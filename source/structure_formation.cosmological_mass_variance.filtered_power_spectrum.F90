@@ -977,15 +977,16 @@ contains
       implicit none
       double precision                         , intent(in   ) :: time_
       logical                                  , intent(in   ) :: useTopHat
-      double precision                         , parameter     :: wavenumberBAO    =5.0d0 ! The wavenumber above which baryon acoustic oscillations are small - used to split the integral allowing the oscillating part to be handled robustly.
-      double precision            , allocatable, dimension(:)  :: wavenumbers            , wavenumbersRestricted
-      double precision                                         :: wavenumberMinimum      , wavenumberMaximum     , &
-           &                                                      integrand              , integrandInterval     , &
-           &                                                      wavenumberLower        , wavenumberUpper       , &
+      double precision                         , parameter     :: wavenumberBAO                         =5.0d0 ! The wavenumber above which baryon acoustic oscillations are small - used to split the integral allowing the oscillating part to be handled robustly.
+      double precision            , allocatable, dimension(:)  :: wavenumbers                                 , wavenumbersRestricted , &
+           &                                                      wavenumbersLocalMinimaTransferFunction
+      double precision                                         :: wavenumberMinimum                           , wavenumberMaximum     , &
+           &                                                      integrand                                   , integrandInterval     , &
+           &                                                      wavenumberLower                             , wavenumberUpper       , &
            &                                                      topHatRadius
-      integer                                                  :: i                      , status
+      integer                                                  :: i                                           , status
       logical                                                  :: computeLogarithmically
-      type            (integrator)                             :: integrator_            , integratorLogarithmic_
+      type            (integrator)                             :: integrator_                                 , integratorLogarithmic_
 
       time__      =time_
       topHatRadius=(                                             &
@@ -1015,7 +1016,7 @@ contains
          integrator_           =integrator(varianceIntegrand                 ,toleranceRelative=+self%tolerance     ,integrationRule=GSL_Integ_Gauss15)
          integratorLogarithmic_=integrator(varianceIntegrandLogarithmic      ,toleranceRelative=+self%tolerance     ,integrationRule=GSL_Integ_Gauss15)
       end if
-      ! Split the integral into subsets of the wavenumber range
+      ! Split the integral into subsets of the wavenumber range:
       !
       !!  1. The integral over the power spectrum is split at a wavenumber corresponding to the smallest scale at which BAO
       !!  features are significant (unless the upper limit of the integral is already below that wavenumber). This allows the
@@ -1028,12 +1029,18 @@ contains
       !!  3. For non-cold dark matter models with suppressed power spectrum on small scales, another splitting is done around the
       !!  half-mode wavenumber so that σ(M) is better resolved near the saturation value. This is particularly useful if the
       !!  transfer function oscillates on small scales.
-      wavenumbers=[                                &
-           &                   wavenumberMinimum , &
-           &       +3.0d0*self%wavenumberHalfMode, &
-           &       +3.0d0/     topHatRadius      , &
-           &                   wavenumberBAO       &
-           &      ]
+      !!
+      !!  4. Split at any local minima of the transfer function. This is useful for oscillating transfer functions to allow
+      !!  integration to accurately capture each oscillation.
+      call self%transferFunction_%wavenumbersLocalMinima(wavenumbersLocalMinimaTransferFunction)
+      allocate(wavenumbers(4+size(wavenumbersLocalMinimaTransferFunction)))
+      wavenumbers(1:4                )=[                                &
+           &                                        wavenumberMinimum , &
+           &                            +3.0d0*self%wavenumberHalfMode, &
+           &                            +3.0d0/     topHatRadius      , &
+           &                                        wavenumberBAO       &
+           &                           ]
+      wavenumbers(5:size(wavenumbers))=wavenumbersLocalMinimaTransferFunction
       ! Restrict the intervals to those between the minimum and maxmimum wavenumbers, and then sort them.
       wavenumbersRestricted=pack(wavenumbers,wavenumbers >= wavenumberMinimum .and. wavenumbers < wavenumberMaximum)
       call sort(wavenumbersRestricted)
