@@ -50,10 +50,11 @@
        <method description="Check that the provided wavenumber is within the tabulated range of the transfer function." method="checkRange" />
      </methods>
      !!]
-     final     ::                          axionCambDestructor
-     procedure :: checkRange            => axionCambCheckRange
-     procedure :: value                 => axionCambValue
-     procedure :: logarithmicDerivative => axionCambLogarithmicDerivative
+     final     ::                           axionCambDestructor
+     procedure :: checkRange             => axionCambCheckRange
+     procedure :: value                  => axionCambValue
+     procedure :: logarithmicDerivative  => axionCambLogarithmicDerivative
+     procedure :: wavenumbersLocalMinima => axionCambWavenumbersLocalMinima
   end type transferFunctionAxionCAMB
 
   interface transferFunctionAxionCAMB
@@ -229,3 +230,16 @@ contains
     axionCambLogarithmicDerivative=self%transferFunctionFileFuzzyDarkMatter%logarithmicDerivative(wavenumber)
     return
   end function axionCambLogarithmicDerivative
+
+  subroutine axionCambWavenumbersLocalMinima(self,wavenumbers)
+    !!{
+    Return a list of wavenumbers corresponding to local minima in the transfer function.
+    !!}
+    implicit none
+    class           (transferFunctionAxionCAMB), intent(inout)                            :: self
+    double precision                           , intent(  out), allocatable, dimension(:) :: wavenumbers
+
+    call self%checkRange(wavenumber=1.0d0)
+    wavenumbers=self%wavenumbersLocalMinima_
+    return
+  end subroutine axionCambWavenumbersLocalMinima
