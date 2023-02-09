@@ -30,7 +30,7 @@ module Dark_Matter_Profile_Mass_Definitions
 
 contains
 
-  function Dark_Matter_Profile_Mass_Definition(node,densityContrast,radius,velocity,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,virialDensityContrast_) result(massHalo)
+  function Dark_Matter_Profile_Mass_Definition(node,densityContrast,radius,velocity,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,virialDensityContrast_,useLastIsolatedTime) result(massHalo)
     !!{
     Compute the mass of {\normalfont \ttfamily node} under the given density contrast definition.
     !!}
@@ -48,26 +48,38 @@ contains
     type            (treeNode                  )          , intent(inout) :: node
     double precision                                      , intent(in   ) :: densityContrast
     double precision                            , optional, intent(  out) :: radius                , velocity
+    logical                                     , optional, intent(in   ) :: useLastIsolatedTime
     class           (cosmologyParametersClass  )          , intent(inout) :: cosmologyParameters_
     class           (cosmologyFunctionsClass   )          , intent(inout) :: cosmologyFunctions_
     class           (darkMatterProfileDMOClass )          , intent(inout) :: darkMatterProfileDMO_
     class           (virialDensityContrastClass)          , intent(inout) :: virialDensityContrast_
     class           (nodeComponentBasic        ), pointer                 :: basic
-    double precision                                                      :: radiusHalo            , density
+    double precision                                                      :: radiusHalo            , density , &
+         &                                                                   time
+    !![
+    <optionalArgument name="useLastIsolatedTime" defaultsTo=".false." />
+    !!]
 
     ! Compute the density from the density contrast.
-    basic                  =>  node                %basic          (            )
-    density                =  +densityContrast                                       &
-         &                    *cosmologyParameters_%omegaMatter    (            )    &
-         &                    *cosmologyParameters_%densityCritical(            )    &
-         &                    /cosmologyFunctions_ %expansionFactor(basic%time())**3
+    basic   =>  node                %basic           (    )
+    if (useLastIsolatedTime_) then
+       time =  basic                %timeLastIsolated(    )
+    else
+       time =  basic                %time            (    )
+    end if
+    density =  +                     densityContrast           &
+         &     *cosmologyParameters_%omegaMatter     (    )    &
+         &     *cosmologyParameters_%densityCritical (    )    &
+         &     /cosmologyFunctions_ %expansionFactor (time)**3
     ! Check if requested density contrast matches the virial density contrast.
-    if     (                                                                                                   &
-         &  Values_Agree(                                                                                      &
-         &                      virialDensityContrast_%densityContrast(basic%mass(),basic%timeLastIsolated()), &
-         &                                             densityContrast                                       , &
-         &               relTol=1.0d-4                                                                         &
-         &              )                                                                                      &
+    if     (                                                                                                    &
+         &   Values_Agree(                                                                                      &
+         &                       virialDensityContrast_%densityContrast(basic%mass(),basic%timeLastIsolated()), &
+         &                                              densityContrast                                       , &
+         &                relTol=1.0d-4                                                                         &
+         &               )                                                                                      &
+         &  .and.                                                                                               &
+         &   time == basic%timeLastIsolated()                                                                   &
          & ) then
        ! Requested density contrast is just the virial density contrast.
        massHalo=basic%mass()
@@ -82,14 +94,14 @@ contains
     else
        ! Mismatched density contrast definitions - compute the mass directly.
        ! Get the radius in the halo enclosing this density.
-       radiusHalo           =   darkMatterProfileDMO_%radiusEnclosingDensity(node,density   )
+       radiusHalo=+darkMatterProfileDMO_%radiusEnclosingDensity(node,density)
        ! Find the mass within that radius - this is computable directly from the mean density and the radius enclosing that mean
        ! density.
-       massHalo             =  +4.0d0         &
-            &                  *Pi            &
-            &                  *density       &
-            &                  *radiusHalo**3 &
-            &                  /3.0d0
+       massHalo  =+4.0d0         &
+            &     *Pi            &
+            &     *density       &
+            &     *radiusHalo**3 &
+            &     /3.0d0
     end if
     ! If necesary, return the radius and circular velocity also.
     if (present(radius  )) radius=radiusHalo
