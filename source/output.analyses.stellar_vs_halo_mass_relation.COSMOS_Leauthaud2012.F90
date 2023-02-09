@@ -400,26 +400,26 @@ contains
     propertyOperators_%next%next%next%next%next%operator_ => outputAnalysisWeightPropertyOperatorFilterHighPass_
     allocate(outputAnalysisWeightPropertyOperator_                 )
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyOperator_"  constructor="outputAnalysisPropertyOperatorSequence                (propertyOperators_                                                                                                    )"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyOperator_"  constructor="outputAnalysisPropertyOperatorSequence                (propertyOperators_                                                                                                            )"/>
     !!]
     ! Build anti-log10() property operator.
     allocate(outputAnalysisPropertyUnoperator_                     )
     !![
-    <referenceConstruct object="outputAnalysisPropertyUnoperator_"      constructor="outputAnalysisPropertyOperatorAntiLog10               (                                                                                                                      )"/>
+    <referenceConstruct object="outputAnalysisPropertyUnoperator_"      constructor="outputAnalysisPropertyOperatorAntiLog10               (                                                                                                                              )"/>
     !!]
     ! Create a stellar mass weight property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_                )
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyExtractor_" constructor="nodePropertyExtractorMassStellar                      (                                   galacticStructure_                                                                 )"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyExtractor_" constructor="nodePropertyExtractorMassStellar                      (                                   galacticStructure_                                                                         )"/>
     !!]
     ! Create a halo mass weight property extractor.
     allocate(virialDensityContrastDefinition_                                )
     !![
-    <referenceConstruct object="virialDensityContrastDefinition_"       constructor="virialDensityContrastFixed                            (200.0d0,fixedDensityTypeMean,2.0d0,cosmologyParameters_,cosmologyFunctions_                                           )"/>
+    <referenceConstruct object="virialDensityContrastDefinition_"       constructor="virialDensityContrastFixed                            (200.0d0,fixedDensityTypeMean,2.0d0,cosmologyParameters_,cosmologyFunctions_                                                   )"/>
     !!]
     allocate(nodePropertyExtractor_                      )
     !![
-    <referenceConstruct object="nodePropertyExtractor_"                 constructor="nodePropertyExtractorMassHalo                         (cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_)"/>
+    <referenceConstruct object="nodePropertyExtractor_"                 constructor="nodePropertyExtractorMassHalo                         (.false.,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_)"/>
     !!]
     ! Build the object.
     if (computeScatter) then

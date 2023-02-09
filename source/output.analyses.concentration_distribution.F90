@@ -475,6 +475,7 @@ contains
     <referenceConstruct object="nodePropertyExtractor_">
      <constructor>
       nodePropertyExtractorConcentration              (                                        &amp;
+      &amp;                                            .false.                               , &amp;
       &amp;                                            cosmologyParameters_                  , &amp;
       &amp;                                            cosmologyFunctions_                   , &amp;
       &amp;                                            darkMatterProfileDMO_                 , &amp;
@@ -490,6 +491,7 @@ contains
     <referenceConstruct object="outputAnalysisWeightPropertyExtractor_">
      <constructor>
       nodePropertyExtractorMassHalo                   (                                        &amp;
+      &amp;                                            .false.                               , &amp;
       &amp;                                            cosmologyFunctions_                   , &amp;
       &amp;                                            cosmologyParameters_                  , &amp;
       &amp;                                            darkMatterProfileDMO_                 , &amp;

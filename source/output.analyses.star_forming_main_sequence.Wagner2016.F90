@@ -322,7 +322,7 @@ contains
     !!]
     allocate(nodePropertyExtractorHostMass_)
     !![
-    <referenceConstruct object="nodePropertyExtractorHostMass_"   constructor="nodePropertyExtractorMassHalo  (cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_                                                              )"/>
+    <referenceConstruct object="nodePropertyExtractorHostMass_"   constructor="nodePropertyExtractorMassHalo  (.false.,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_                                                       )"/>
     !!]
     allocate(nodePropertyExtractorHost_)
     !![
