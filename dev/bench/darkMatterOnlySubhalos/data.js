@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1675929133950,
+  "lastUpdate": 1675965853089,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
@@ -7556,6 +7556,34 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 25371.9758848307,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@obs.carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@obs.carnegiescience.edu"
+          },
+          "id": "9fb8d320f10a42e07881040c4fc65536c19ed54f",
+          "message": "fix: Update CAMB version in Dockerfile",
+          "timestamp": "2023-02-09T15:20:32Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/9fb8d320f10a42e07881040c4fc65536c19ed54f"
+        },
+        "date": 1675965851212,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 50.603,
+            "unit": "seconds",
+            "range": 0.0215429802962522
           }
         ]
       }
