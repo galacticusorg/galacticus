@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1675834185912,
+  "lastUpdate": 1675929125695,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
@@ -7487,6 +7487,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 26366.2430061311,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c24b46c497e12677d6cd492d586cf92757badaaa",
+          "message": "Merge pull request #373 from galacticusorg/massDefinitions\n\nAdd functionality to convert between halo mass definitions based on infall time (instead of just current time)",
+          "timestamp": "2023-02-09T05:18:20Z",
+          "tree_id": "ee1a4954a131b6887721024ae064af7b34b8d0b8",
+          "url": "https://github.com/galacticusorg/galacticus/commit/c24b46c497e12677d6cd492d586cf92757badaaa"
+        },
+        "date": 1675929124063,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 59.683,
+            "unit": "seconds",
+            "range": 0.137673890044293
           }
         ]
       }
