@@ -80,7 +80,7 @@ contains
     !!]
 
     ! Set path and version
-    cambVersion    ="1.3.2"
+    cambVersion    ="1.4.0"
     forutilsVersion="1.0"
     cambPath       =inputPath(pathTypeDataDynamic)//"CAMB-"//cambVersion//"/fortran/"
     ! Build the CAMB code.
