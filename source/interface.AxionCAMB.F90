@@ -399,7 +399,7 @@ contains
        write (axionCambParameterFile,'(a,1x,"=",1x,e12.6)') 'CMB_outputscale              ',7.42835025d12
        write (axionCambParameterFile,'(a,1x,"=",1x,a    )') 'transfer_high_precision      ','T'
        write (axionCambParameterFile,'(a,1x,"=",1x,e12.6)') 'transfer_kmax                ',wavenumberAxionCAMB/cosmologyParameters_%HubbleConstant(units=hubbleUnitsLittleH)
-       write (axionCambParameterFile,'(a,1x,"=",1x,i3   )') 'transfer_k_per_logint        ',countPerDecade_
+       write (axionCambParameterFile,'(a,1x,"=",1x,i5   )') 'transfer_k_per_logint        ',countPerDecade_
        write (axionCambParameterFile,'(a,1x,"=",1x,i1   )') 'transfer_num_redshifts       ',countRedshiftsUnique
        write (axionCambParameterFile,'(a,1x,"=",1x,a    )') 'transfer_interp_matterpower  ','T'
        do i=countRedshiftsUnique,1,-1
@@ -475,7 +475,7 @@ contains
                         &                         transferFunctions     (i,axionCambSpeciesFuzzyDarkMatter%ID,j)
                    ! Transfer function for total dark matter perturbations.
                    transferFunctions(i,axionCambSpeciesDarkMatter%ID,j)=(                                                                                          &
-                        &                                                 transferFunctions(i,axionCambSpeciesColdDarkMatter %ID,j)*coldDarkMatterDensityFraction  &
+                        &                                                +transferFunctions(i,axionCambSpeciesColdDarkMatter %ID,j)*coldDarkMatterDensityFraction  &
                         &                                                +transferFunctions(i,axionCambSpeciesFuzzyDarkMatter%ID,j)*fuzzyDarkMatterDensityFraction &
                         &                                               )                                                                                          &
                         &                                               /(coldDarkMatterDensityFraction+fuzzyDarkMatterDensityFraction)
