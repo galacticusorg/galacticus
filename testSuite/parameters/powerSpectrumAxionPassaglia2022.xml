@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Compute power spectra for axion models -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+
+  <!-- Specify tasks to perform -->
+  <task value="powerSpectra">
+    <wavenumberMinimum value="   1.0e+0"/>
+    <wavenumberMaximum value="   1.0e+2"/>
+    <pointsPerDecade   value="1000     "/>
+  </task>
+
+  <!-- Use a fuzzy dark matter particle - mass is in 10^{-22} eV -->
+  <darkMatterParticle value="fuzzyDarkMatter">
+    <mass            value="1.0" />
+    <densityFraction value="1.0" />
+  </darkMatterParticle>
+
+  <!-- Cosmological parameters -->
+  <cosmologyFunctions value="matterLambda"/>
+  <cosmologyParameters value="simple">
+    <HubbleConstant value="70.20000"/>
+    <OmegaMatter value=" 0.27250"/>
+    <OmegaDarkEnergy value=" 0.72750"/>
+    <OmegaBaryon value=" 0.04550"/>
+    <temperatureCMB value=" 2.72548"/>
+  </cosmologyParameters>
+
+  <!-- Power spectrum options -->
+  <!-- Use the Passaglia and Hu (2022) transfer function for fuzzy dark matter -->
+  <transferFunction value="fuzzyDMPassaglia2022">
+    <transferFunction value="CAMB">
+      <darkMatterParticle value="CDM" />
+    </transferFunction>
+  </transferFunction>
+  <powerSpectrumPrimordial value="powerLaw">
+    <index value="0.961"/>
+    <wavenumberReference value="1.000"/>
+    <running value="0.000"/>
+  </powerSpectrumPrimordial>
+  <powerSpectrumPrimordialTransferred value="simple"/>
+  <!-- When computing sigma(M) for power spectra with a cut off it's better to use a filter that is sharp in k-space, instead of
+       the usual real-space top-hat (which introduces artificial halos below the cut-off scale -->
+  <cosmologicalMassVariance value="filteredPower">
+    <monotonicInterpolation value="true" />
+    <nonMonotonicIsFatal value="false" />
+    <powerSpectrumWindowFunction value="sharpKSpace">
+      <normalization value="2.5" />
+    </powerSpectrumWindowFunction>
+    <sigma_8 value="0.807" />
+    <tolerance value="3.0e-4" />
+    <toleranceTopHat value="3.0e-4" />
+  </cosmologicalMassVariance>
+
+  <!-- Structure formation options -->
+  <linearGrowth value="collisionlessMatter"/>
+
+  <!-- Output options -->
+  <outputFileName value="testSuite/outputs/powerSpectrumAxionPassaglia2022.hdf5"/>
+  <outputTimes value="list">
+    <redshifts value="0.0"/>
+  </outputTimes>
+
+</parameters>
