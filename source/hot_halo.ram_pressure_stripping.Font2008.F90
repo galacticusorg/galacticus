@@ -181,7 +181,7 @@ contains
     ! Get the virial radius of the satellite.
     radiusVirial=self%darkMatterHaloScale_%radiusVirial(node)
     ! Test whether node is a satellite.
-    if (node%isSatellite()) then
+    if (node%isSatellite().and.node%isPhysicallyPlausible) then
        ! Set a pointer to the satellite node.
        self_            => self
        node_            =>                                     node
@@ -204,21 +204,21 @@ contains
              ! radius between ODE steps (i.e. we do not make use of "calculationReset" events to reset the radius) as we
              ! specifically want to retain knowledge from the previous step.
              if (self%radiusLast > 0.0d0 .and. node%uniqueID() == self%uniqueIDLast) then
-                call self%finder%rangeExpand(                                                                           &
-                     &                       rangeExpandDownward          =0.9d0                                      , &
-                     &                       rangeExpandUpward            =1.1d0                                      , &
-                     &                       rangeExpandType              =rangeExpandMultiplicative                  , &
+                call self%finder%rangeExpand(                                                                                                   &
+                     &                       rangeExpandDownward          =0.9d0                                                              , &
+                     &                       rangeExpandUpward            =1.1d0                                                              , &
+                     &                       rangeExpandType              =rangeExpandMultiplicative                                          , &
                      &                       rangeDownwardLimit           =radiusSmallestOverRadiusVirial*radiusVirial/(1.0d0+radiusTolerance), &
                      &                       rangeUpwardLimit             =                               radiusVirial*(1.0d0+radiusTolerance), &
-                     &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive              , &
-                     &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative                &
+                     &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive                                      , &
+                     &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative                                        &
                      &                      )
              else
-                call self%finder%rangeExpand(                                                                           &
-                     &                       rangeExpandDownward          =0.5d0                                      , &
-                     &                       rangeExpandType              =rangeExpandMultiplicative                  , &
+                call self%finder%rangeExpand(                                                                                                   &
+                     &                       rangeExpandDownward          =0.5d0                                                              , &
+                     &                       rangeExpandType              =rangeExpandMultiplicative                                          , &
                      &                       rangeDownwardLimit           =radiusSmallestOverRadiusVirial*radiusVirial/(1.0d0+radiusTolerance), &
-                     &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive                &
+                     &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive                                        &
                      &                      )
                 self%radiusLast  =radiusVirial
                 self%uniqueIDLast=node%uniqueID()
@@ -230,7 +230,7 @@ contains
                 message=message//trim(adjustl(label))
                 write (label,'(e12.6)') radiusVirialRoot
                 message=message//" / "//trim(adjustl(label))
-                write (label,'(e12.6)') font2008RadiusSolver(radiusVirial)
+                write (label,'(e12.6)') font2008RadiusSolver(radiusVirial*(1.0d0+radiusTolerance))
                 message=message//" : "//trim(adjustl(label))
                 call displayMessage(message,verbosityLevelSilent)
                 message='small radius / root function at small radius = '
@@ -238,12 +238,13 @@ contains
                 message=message//trim(adjustl(label))
                 write (label,'(e12.6)') radiusSmallRoot
                 message=message//" / "//trim(adjustl(label))
-                write (label,'(e12.6)') font2008RadiusSolver(radiusSmallestOverRadiusVirial*radiusVirial)
+                write (label,'(e12.6)') font2008RadiusSolver(radiusSmallestOverRadiusVirial*radiusVirial/(1.0d0+radiusTolerance))
                 message=message//" : "//trim(adjustl(label))
                 call displayMessage(message,verbosityLevelSilent)
                 select case (status)
                 case (errorStatusOutOfRange)
                    call displayMessage('could not bracket the root',verbosityLevelSilent)
+                   call node_%serializeASCII()
                 case default
                    call GSL_Error_Details(reason,file,line,status)
                    call displayMessage(var_str('GSL error ')//status//': "'//reason//'" at line '//line//' of file "'//file//'"',verbosityLevelSilent)
@@ -254,7 +255,7 @@ contains
           end if
        end if
     else
-       ! If node is not a satellite, return a ram pressure stripping radius equal to the virial radius.
+       ! If node is not a satellite, or is not physically plausible, return a ram pressure stripping radius equal to the virial radius.
        font2008RadiusStripped=radiusVirial
     end if
     return
