@@ -60,6 +60,11 @@ jobs:
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
+      - name: Check out repository analysis-perl
+        uses: actions/checkout@v3
+        with:
+          repository: galacticusorg/analysis-perl
+          path: analysis-perl
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
@@ -72,12 +77,14 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           export BUILDPATH=./work/build
           set -o pipefail
-          make -j2 all 2>&1 | tee build.log
+          make GALACTICUS_BUILD_OPTION=compileprof -j2 all 2>&1 | tee build.log
           grep -v -q Error: build.log
           grep -v -q Warning: build.log
           set +o pipefail
           grep -v 'is up to date' build.log | grep -v -q make: 
           md5sum Galacticus.exe
+          chmod u=wrx ./scripts/build/buildProfiler.pl
+          ./scripts/build/buildProfiler.pl build.log buildProfile.html --durationMinimum 20
       - name: Upload Galacticus executable
         uses: actions/upload-artifact@v3
         with:
@@ -88,6 +95,11 @@ jobs:
         with:
           name: test-execs
           path: 'tests.*.exe'
+      - name: Upload build profile
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-profile
+          path: 'buildProfile.html'
       - run: echo "This job's status is ${{ job.status }}."
   ### Executable instrumented
   Build-Executables-Instrumented-Linux:
@@ -9452,6 +9464,10 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: validation-milkyWayModel
+      - name: Download artifacts (build-profile)
+        uses: actions/download-artifact@v3
+        with:
+          name: build-profile
       - name: Store benchmark result
         uses: benchmark-action/github-action-benchmark@v1
         with:
@@ -9565,6 +9581,18 @@ jobs:
           git config --local user.name "github-action-validate"
           git add dev/valid/darkMatterOnlySubhalos/results.json dev/valid/milkyWayModel/results.json
           git commit -m "Update validation results"
+          git push --set-upstream origin gh-pages
+          git checkout -
+        if: github.event_name != 'pull_request'
+      - name: Push build profile
+        run: |
+          git checkout gh-pages
+          mkdir -p dev/bench/meta
+          mv buildProfile.html dev/bench/meta/buildProfile.html
+          git config --local user.email "github@users.noreply.github.com"
+          git config --local user.name "github-action-validate"
+          git add dev/bench/meta/buildProfile.html
+          git commit -m "Update build profile"
           git push --set-upstream origin gh-pages
           git checkout -
         if: github.event_name != 'pull_request'
