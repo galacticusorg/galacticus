@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1676076005505,
+  "lastUpdate": 1676076014893,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
@@ -7720,6 +7720,45 @@ window.BENCHMARK_DATA = {
             "value": 51.283,
             "unit": "seconds",
             "range": 0.0962917441943925
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c6538528d7165a7765add222e2a830bbcef77827",
+          "message": "Merge pull request #375 from galacticusorg/font2008PhysPlaus\n\nIn `hotHaloRamPressureStrippingFont2008` only solve ram pressure stripping for physically-plausible systems",
+          "timestamp": "2023-02-10T21:42:23Z",
+          "tree_id": "a82af3a6861ece24eca14dcce054e2e2006d2532",
+          "url": "https://github.com/galacticusorg/galacticus/commit/c6538528d7165a7765add222e2a830bbcef77827"
+        },
+        "date": 1676076013614,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 57.3275525628901,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 25.8647158159627,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 24145.1797388743,
+            "unit": "-logℒ"
           }
         ]
       }
