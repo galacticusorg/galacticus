@@ -43,17 +43,18 @@
      logical          :: initialized
      double precision :: wavenumberMaximum
      logical          :: wavenumberMaximumReached
-     integer          :: axionCambCountPerDecade
+     integer          :: countPerDecade
    contains
      !![
      <methods>
        <method description="Check that the provided wavenumber is within the tabulated range of the transfer function." method="checkRange" />
      </methods>
      !!]
-     final     ::                          axionCambDestructor
-     procedure :: checkRange            => axionCambCheckRange
-     procedure :: value                 => axionCambValue
-     procedure :: logarithmicDerivative => axionCambLogarithmicDerivative
+     final     ::                           axionCambDestructor
+     procedure :: checkRange             => axionCambCheckRange
+     procedure :: value                  => axionCambValue
+     procedure :: logarithmicDerivative  => axionCambLogarithmicDerivative
+     procedure :: wavenumbersLocalMinima => axionCambWavenumbersLocalMinima
   end type transferFunctionAxionCAMB
 
   interface transferFunctionAxionCAMB
@@ -81,7 +82,7 @@ contains
     class           (cosmologyFunctionsClass  ), pointer       :: cosmologyFunctions_
     class           (darkMatterParticleClass  ), pointer       :: darkMatterParticle_
     double precision                                           :: redshift
-    integer                                                    :: axionCambCountPerDecade
+    integer                                                    :: countPerDecade
 
     !![
     <inputParameter>
@@ -91,7 +92,7 @@ contains
       <description>The redshift at which the transfer function should be evaluated.</description>
     </inputParameter>
     <inputParameter>
-      <name>axionCambCountPerDecade</name>
+      <name>countPerDecade</name>
       <source>parameters</source>
       <defaultValue>0</defaultValue>
       <description>The number of points per decade of wavenumber to compute in the AxionCAMB transfer function. A value of 0 allows AxionCAMB to choose what it considers to be optimal spacing of wavenumbers.</description>
@@ -100,7 +101,7 @@ contains
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
     !!]
-    self=transferFunctionAxionCAMB(darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_,redshift,axionCambCountPerDecade)
+    self=transferFunctionAxionCAMB(darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_,redshift,countPerDecade)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"/>
@@ -110,7 +111,7 @@ contains
     return
   end function axionCambConstructorParameters
 
-  function axionCambConstructorInternal(darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_,redshift,axionCambCountPerDecade) result(self)
+  function axionCambConstructorInternal(darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_,redshift,countPerDecade) result(self)
     !!{
     Internal constructor for the \href{https://github.com/dgrin1/axionCAMB.git}{\normalfont \scshape AxionCAMB} transfer function class.
     !!}
@@ -123,9 +124,9 @@ contains
     class           (cosmologyParametersClass ), intent(in   ), target   :: cosmologyParameters_
     class           (cosmologyFunctionsClass  ), intent(in   ), target   :: cosmologyFunctions_
     double precision                           , intent(in   )           :: redshift
-    integer                                    , intent(in   )           :: axionCambCountPerDecade
+    integer                                    , intent(in   )           :: countPerDecade
     !![
-    <constructorAssign variables="axionCambCountPerDecade, redshift, *darkMatterParticle_, *cosmologyParameters_, *cosmologyFunctions_"/>
+    <constructorAssign variables="countPerDecade, redshift, *darkMatterParticle_, *cosmologyParameters_, *cosmologyFunctions_"/>
     !!]
 
     ! Require that the dark matter be fuzzy dark matter.
@@ -190,7 +191,7 @@ contains
     end if
     if (.not.makeTransferFunction) return
     ! Retrieve the transfer function.
-    call Interface_AxionCAMB_Transfer_Function(self%cosmologyParameters_,self%darkMatterParticle_,[self%redshift],wavenumber,self%wavenumberMaximum,self%axionCambCountPerDecade,self%fileName,self%wavenumberMaximumReached)
+    call Interface_AxionCAMB_Transfer_Function(self%cosmologyParameters_,self%darkMatterParticle_,[self%redshift],wavenumber,self%wavenumberMaximum,self%countPerDecade,self%fileName,self%wavenumberMaximumReached)
     ! Get a lock on the relevant lock file.
     call File_Lock(char(self%fileName),fileLock)
     ! Read the newly created file.
@@ -229,3 +230,16 @@ contains
     axionCambLogarithmicDerivative=self%transferFunctionFileFuzzyDarkMatter%logarithmicDerivative(wavenumber)
     return
   end function axionCambLogarithmicDerivative
+
+  subroutine axionCambWavenumbersLocalMinima(self,wavenumbers)
+    !!{
+    Return a list of wavenumbers corresponding to local minima in the transfer function.
+    !!}
+    implicit none
+    class           (transferFunctionAxionCAMB), intent(inout)                            :: self
+    double precision                           , intent(  out), allocatable, dimension(:) :: wavenumbers
+
+    call self%checkRange(wavenumber=1.0d0)
+    wavenumbers=self%wavenumbersLocalMinima_
+    return
+  end subroutine axionCambWavenumbersLocalMinima

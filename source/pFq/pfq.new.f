@@ -86,7 +86,6 @@ C
       DOUBLE PRECISION DNUM,PRECIS,ARGI,ARGR,DIFF
       !$omp threadprivate(/CONSTS/,/IO/)
       
-      NOUT=6
       IF (Z .EQ. DCMPLX(ZERO,ZERO)) THEN
          PFQ = DCMPLX(ONE,ZERO)
          RETURN
@@ -278,7 +277,6 @@ C     ****************************************************************
       allocate(WK5(-1:LENGTH))
       allocate(WK6(-1:LENGTH))
 
-      zero=0.0d0
       CREAL=0.0d0
       LOG2=LOG10(TWO)
       IBIT=INT(BITS())                                                       
@@ -1779,9 +1777,11 @@ C     ****************************************************************
       
       BLOCK DATA BLDAT1
 C     
+      COMMON/IO/NOUT
       COMMON/CONSTS/ZERO,HALF,ONE,TWO,TEN,EPS
       DOUBLE PRECISION ZERO,HALF,ONE,TWO,TEN,EPS
-      DATA ZERO,HALF,ONE,TWO,TEN,EPS/0.0D0,0.5D0,1.0D0,2.0D0,
-     :     10.0D0,1.0D-10/
+      DATA ZERO,HALF,ONE,TWO,TEN,EPS,NOUT/0.0D0,0.5D0,1.0D0,2.0D0,
+     :     10.0D0,1.0D-10,6/
       !$omp threadprivate(/CONSTS/)
+      !$omp threadprivate(/IO/)
       END

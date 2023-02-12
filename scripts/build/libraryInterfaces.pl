@@ -664,7 +664,7 @@ sub assignCAttributes {
  	push(@{$argument->{'fortran'}->{'attributes'}},"optional")
 	    if ( $argument->{'isOptional'}            );
 	## Transfer any dimension attributes.
-	push(@{$argument->{'fortran'}->{'attributes'}},grep {$_ =~ m/^dimension/} @{$argument->{'attributes'}});
+	push(@{$argument->{'fortran'}->{'attributes'}},grep {$_ =~ m/^dimension/ || $_ =~ m/^allocatable/} @{$argument->{'attributes'}});
 	## String argument passed as type "c_char_p" must be "dimension(*)" in Fortran.
  	push(@{$argument->{'fortran'}->{'attributes'}},"dimension(*)")
 	    if ( $argument->{'ctypes'}->{'type'} eq "c_char_p" );

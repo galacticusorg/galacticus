@@ -631,7 +631,7 @@ contains
           ! Every so many steps we evaluate the simulated likelihood and check that our emulator is reliable.
           if (likelihoodError <= sqrt(4.0d0*self%variogram_%variogram(0.0d0))*sigmaSimulatorVariance) then
              ! Evaluate the simulator for synchronization purposes only.
-             call evaluateSimulator(synchronizeOnly=.true. ,logLikelihood_=gaussianRegressionEvaluate,logLikelihoodVariance_=logLikelihoodVariance)
+             call evaluateSimulator(synchronizeOnly=.true.,logLikelihood_=gaussianRegressionEvaluate,logLikelihoodVariance_=logLikelihoodVariance)
              ! Emulator variance is comparable to that of the simulator (which is the best we can do), so consider this to be a successful "check".
              self%emulatorCheckCount=self%emulatorCheckCount+1
              useLikelihoodEmulated  =.true.

@@ -2736,32 +2736,10 @@ contains
     class  (varying_string), intent(inout) :: self
     integer                , intent(in   ) :: stateFile
 
-    !![
-    <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-     <description>Internal file I/O in gfortran can be non-thread safe.</description>
-    </workaround>
-    !!]
-#ifdef THREADSAFEIO
-    !$omp critical(gfortranInternalIO)
-#endif
     write (stateFile) allocated(self%chars)
-#ifdef THREADSAFEIO
-    !$omp end critical(gfortranInternalIO)
-#endif
     if (allocated(self%chars)) then
-       !![
-       <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-        <description>Internal file I/O in gfortran can be non-thread safe.</description>
-       </workaround>
-       !!]
-#ifdef THREADSAFEIO
-       !$omp critical(gfortranInternalIO)
-#endif
        write (stateFile) size(self%chars,kind=c_size_t)
        write (stateFile) self%chars
-#ifdef THREADSAFEIO
-       !$omp end critical(gfortranInternalIO)
-#endif
     end if
     return
   end subroutine vsStateStore
@@ -2777,34 +2755,12 @@ contains
     logical                                :: wasAllocated
     integer(c_size_t      )                :: charsSize
 
-    !![
-    <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-     <description>Internal file I/O in gfortran can be non-thread safe.</description>
-    </workaround>
-    !!]
-#ifdef THREADSAFEIO
-    !$omp critical(gfortranInternalIO)
-#endif
     read (stateFile) wasAllocated
-#ifdef THREADSAFEIO
-    !$omp end critical(gfortranInternalIO)
-#endif
     if (allocated(self%chars)) deallocate(self%chars)
     if (wasAllocated) then
-       !![
-       <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-        <description>Internal file I/O in gfortran can be non-thread safe.</description>
-       </workaround>
-       !!]
-#ifdef THREADSAFEIO
-       !$omp critical(gfortranInternalIO)
-#endif
        read (stateFile) charsSize
        allocate(self%chars(charsSize))
        read (stateFile) self%chars
-#ifdef THREADSAFEIO
-       !$omp end critical(gfortranInternalIO)
-#endif
     end if
     return
   end subroutine vsStateRestore

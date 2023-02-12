@@ -31,7 +31,7 @@ module State
   use            :: ISO_Varying_String, only : varying_string
   implicit none
   private
-  public :: State_Store, State_Retrieve, State_Initialize
+  public :: State_Store, State_Retrieve, State_Initialize, State_Set
 
   ! Flag indicating if we have retrieved the internal state already.
   logical                 :: stateHasBeenRetrieved=.false.
@@ -106,34 +106,12 @@ contains
        fileNameLog =fileNameLog_
 #endif
        if (present(logMessage)) then
-          !![
-          <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-           <description>Internal file I/O in gfortran can be non-thread safe.</description>
-          </workaround>
-          !!]
-#ifdef THREADSAFEIO
-          !$omp critical(gfortranInternalIO)
-#endif
           open(newunit=stateUnit,file=char(fileNameLog),form='formatted',status='unknown',access='append')
           write (stateUnit,*) char(logMessage)
           close(stateUnit)
-#ifdef THREADSAFEIO
-          !$omp end critical(gfortranInternalIO)
-#endif
        end if
 
-       !![
-       <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-        <description>Internal file I/O in gfortran can be non-thread safe.</description>
-       </workaround>
-       !!]
-#ifdef THREADSAFEIO
-       !$omp critical(gfortranInternalIO)
-#endif
        open(newunit=stateUnit,file=char(fileName),form='unformatted',status='unknown')
-#ifdef THREADSAFEIO
-       !$omp end critical(gfortranInternalIO)
-#endif
        gslStateFile=gslFileOpen(char(fileNameGSL),'w')
 
        !$omp critical(stateOperationID)
@@ -153,33 +131,11 @@ contains
        !!]
 
        ! Close the state files.
-       !![
-       <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-        <description>Internal file I/O in gfortran can be non-thread safe.</description>
-       </workaround>
-       !!]
-#ifdef THREADSAFEIO
-       !$omp critical(gfortranInternalIO)
-#endif
        close(stateUnit)
-#ifdef THREADSAFEIO
-       !$omp end critical(gfortranInternalIO)
-#endif
        call gslFileClose(gslStateFile)
 
        ! Flush standard output to ensure that any output log has a record of where the code reached at the last state store.
-       !![
-       <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-        <description>Internal file I/O in gfortran can be non-thread safe.</description>
-       </workaround>
-       !!]
-#ifdef THREADSAFEIO
-       !$omp critical(gfortranInternalIO)
-#endif
        call Flush(0)
-#ifdef THREADSAFEIO
-       !$omp end critical(gfortranInternalIO)
-#endif
 
     end if
     return
@@ -240,18 +196,7 @@ contains
              fileName    =fileName_
              fileNameGSL =fileNameGSL_
 #endif
-             !![
-             <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-              <description>Internal file I/O in gfortran can be non-thread safe.</description>
-             </workaround>
-             !!]
-#ifdef THREADSAFEIO
-             !$omp critical(gfortranInternalIO)
-#endif
              open(newunit=stateUnit,file=char(fileName),form='unformatted',status='old')
-#ifdef THREADSAFEIO
-             !$omp end critical(gfortranInternalIO)
-#endif
              gslStateFile=gslFileOpen(char(fileNameGSL),'r')
              
              !$omp critical(stateOperationID)
@@ -271,18 +216,7 @@ contains
              !!]
       
              ! Close the state files.
-             !![
-             <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-	      <description>Internal file I/O in gfortran can be non-thread safe.</description>
-             </workaround>
-             !!]
-#ifdef THREADSAFEIO
-             !$omp critical(gfortranInternalIO)
-#endif
              close(stateUnit)
-#ifdef THREADSAFEIO
-             !$omp end critical(gfortranInternalIO)
-#endif
              call gslFileClose(gslStateFile)
 
           end if
@@ -341,5 +275,26 @@ contains
     stateRetrieveActive=(stateRetrieveFileRoot /= "none")
     return
   end subroutine State_Initialize
+
+  !![
+  <functionGlobal>
+    <unitName>State_Set</unitName>
+    <type>void</type>
+    <module>ISO_Varying_String, only : varying_string</module>
+    <arguments>type(varying_string) , intent(in   ) :: stateFileRoot_</arguments>
+  </functionGlobal>
+  !!]
+  subroutine State_Set(stateFileRoot_)
+    !!{
+    Set the state system---can be used for force storing of state on prior to calls to state store functions for debugging purposes.
+    !!}
+    use :: ISO_Varying_String, only : operator(/=)
+    implicit none
+    type(varying_string), intent(in   ) :: stateFileRoot_
+
+    stateFileRoot   = stateFileRoot_
+    stateStoreActive=(stateFileRoot /= "none")
+    return
+  end subroutine State_Set
 
 end module State

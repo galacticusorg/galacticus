@@ -21,7 +21,6 @@
   Implementation of a posterior sampling likelihood class which allows arbitrary modification of a base parameter object.
   !!}
 
-  use :: FoX_DOM         , only : node
   use :: Input_Parameters, only : inputParameter, inputParameters
 
   type :: parameterList

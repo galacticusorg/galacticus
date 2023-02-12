@@ -321,8 +321,8 @@ contains
     !![
     <referenceConstruct object="nodePropertyExtractorMassBound_"     constructor="nodePropertyExtractorMassBound    (                                                                                                                                           )"/>
     <referenceConstruct object="nodePropertyExtractorRadiusOrbital_" constructor="nodePropertyExtractorRadiusOrbital(                                                                                                                                           )"/>
-    <referenceConstruct object="nodePropertyExtractorRadiusVirial_"  constructor="nodePropertyExtractorRadiusVirial (cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_                     )"/>
-    <referenceConstruct object="nodePropertyExtractorMassHalo_"      constructor="nodePropertyExtractorMassHalo     (cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_                     )"/>
+    <referenceConstruct object="nodePropertyExtractorRadiusVirial_"  constructor="nodePropertyExtractorRadiusVirial (.false.,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_             )"/>
+    <referenceConstruct object="nodePropertyExtractorMassHalo_"      constructor="nodePropertyExtractorMassHalo     (.false.,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_             )"/>
     <referenceConstruct object="nodePropertyExtractorHost_"          constructor="nodePropertyExtractorHostNode     (nodePropertyExtractorRadiusVirial_                                                                                                         )"/>
     <referenceConstruct object="nodePropertyExtractorMassHost_"      constructor="nodePropertyExtractorHostNode     (nodePropertyExtractorMassHalo_                                                                                                             )"/>
     <referenceConstruct object="nodePropertyExtractor_"              constructor="nodePropertyExtractorRatio        ('radiusFraction','Ratio of subhalo orbital radius to host virial radius',nodePropertyExtractorRadiusOrbital_,nodePropertyExtractorHost_    )"/>
@@ -581,8 +581,8 @@ contains
     call dataset         %close         (                                                                                                                                                      )
     call analysisGroup   %writeDataset  (self%radialDistribution                  ,'radialDistribution'                ,'Subhalo number per bin [model]'                                       )
     call analysisGroup   %writeDataset  (self%covariance                          ,'radialDistributionCovariance'      ,'Subhalo number per bin [model; covariance]'                           )
-    call analysisGroup   %writeAttribute(self%logLikelihood                     (),'logLikelihood'                                                                                             )
     if (allocated(self%radialDistributionTarget)) then
+       call analysisGroup%writeAttribute(self%logLikelihood                     (),'logLikelihood'                                                                                             )
        call analysisGroup%writeAttribute('radialDistributionTarget'               ,'yDatasetTarget'                                                                                            )
        call analysisGroup%writeAttribute('radialDistributionCovarianceTarget'     ,'yCovarianceTarget'                                                                                         )
        call analysisGroup%writeAttribute(char(self%labelTarget)                   ,'targetLabel'                                                                                               )
