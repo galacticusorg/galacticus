@@ -158,6 +158,7 @@ contains
     use :: Error                                 , only : Error_Report
     use :: Input_Paths                           , only : inputPath                                  , pathTypeDataStatic
     use :: Geometry_Surveys                      , only : surveyGeometryFullSky
+    use :: HDF5_Access                           , only : hdf5Access
     use :: IO_HDF5                               , only : hdf5Object
     use :: ISO_Varying_String                    , only : var_str                                    , varying_string
     use :: Node_Property_Extractors              , only : nodePropertyExtractorMassHalo              , nodePropertyExtractorMassStellar
@@ -283,6 +284,7 @@ contains
     </referenceConstruct>
     !!]
     ! Read observational data and convert masses to logarithmic.
+    !$ call hdf5Access%set()
     call fileData%openFile(char(inputPath(pathTypeDataStatic))//"observations/stellarHaloMassRelation/stellarHaloMassRelation_COSMOS_Leauthaud2012.hdf5")
     groupRedshiftName=var_str('redshiftInterval')//redshiftInterval
     groupRedshift=fileData%openGroup(char(groupRedshiftName))
@@ -290,6 +292,9 @@ contains
     call groupRedshift%readDataset('massHaloMean',massHaloMeanData)
     call groupRedshift%readDataset('massHaloLow' ,massHaloLowData )
     call groupRedshift%readDataset('massHaloHigh',massHaloHighData)
+    call groupRedshift%close      (                               )
+    call fileData     %close      (                               )
+    !$ call hdf5Access%unset()
     ! Create bins in halo mass.
     massHaloMinimum=massHaloMeanData(1                     )
     massHaloMaximum=massHaloMeanData(size(massHaloMeanData))
