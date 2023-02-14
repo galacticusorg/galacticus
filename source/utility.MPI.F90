@@ -2081,6 +2081,7 @@ contains
     self%countIncrementsHeld=self%countIncrementsHeld-1_c_size_t
     !$ call self%ompLock_%unset()
     ! Decrement the count of OpenMP threads waiting on the lock.
+    !$omp atomic
     self%countThreadsWaiting=self%countThreadsWaiting-1_c_size_t
 #else
     !$ call self%ompLock_%  set()
