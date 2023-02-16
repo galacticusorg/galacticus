@@ -28,6 +28,10 @@
   use :: Kind_Numbers                , only : kind_int8
   use :: Root_Finder                 , only : rootFinder
 
+  use :: Dark_Matter_Profiles_DMO    , only : darkMatterProfileDMO
+  use :: Dark_Matter_Profiles    , only : darkMatterProfile
+
+  
   !![
   <hotHaloRamPressureStripping name="hotHaloRamPressureStrippingFont2008">
    <description>
@@ -57,6 +61,12 @@
      integer         (kind_int8                   )          :: uniqueIDLast             =  -1
      double precision                                        :: radiusLast               =  -1.0d0
      type            (rootFinder                  )          :: finder
+
+     class           (darkMatterProfileDMOClass           ), pointer                                  :: darkMatterProfileDMO_           => null()
+     class           (darkMatterProfileClass           ), pointer                                  :: darkMatterProfile_           => null()
+
+
+
    contains
      final     ::                   font2008Destructor
      procedure :: radiusStripped => font2008RadiusStripped
@@ -92,6 +102,12 @@ contains
     class           (galacticStructureClass             ), pointer       :: galacticStructure_
     double precision                                                     :: formFactor
 
+
+     class           (darkMatterProfileDMOClass           ), pointer                                  :: darkMatterProfileDMO_ 
+     class           (darkMatterProfileClass           ), pointer                                  :: darkMatterProfile_   
+
+
+    
     !![
     <inputParameter>
       <name>formFactor</name>
@@ -104,19 +120,23 @@ contains
     <objectBuilder class="hotHaloRamPressureForce" name="hotHaloRamPressureForce_" source="parameters"/>
     <objectBuilder class="hotHaloMassDistribution" name="hotHaloMassDistribution_" source="parameters"/>
     <objectBuilder class="galacticStructure"       name="galacticStructure_"       source="parameters"/>
+    <objectBuilder class="darkMatterProfile" name="darkMatterProfile_" source="parameters"/>
+    <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
     !!]
-    self=hotHaloRamPressureStrippingFont2008(formFactor,darkMatterHaloScale_,hotHaloRamPressureForce_,hotHaloMassDistribution_,galacticStructure_)
+    self=hotHaloRamPressureStrippingFont2008(formFactor,darkMatterHaloScale_,hotHaloRamPressureForce_,hotHaloMassDistribution_,galacticStructure_,darkMatterProfileDMO_,darkMatterProfile_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterHaloScale_"    />
     <objectDestructor name="hotHaloRamPressureForce_"/>
     <objectDestructor name="hotHaloMassDistribution_"/>
     <objectDestructor name="galacticStructure_"      />
+    <objectDestructor name="darkMatterProfile_"/>
+    <objectDestructor name="darkMatterProfileDMO_"/>
     !!]
     return
   end function font2008ConstructorParameters
 
-  function font2008ConstructorInternal(formFactor,darkMatterHaloScale_,hotHaloRamPressureForce_,hotHaloMassDistribution_,galacticStructure_) result(self)
+  function font2008ConstructorInternal(formFactor,darkMatterHaloScale_,hotHaloRamPressureForce_,hotHaloMassDistribution_,galacticStructure_,darkMatterProfileDMO_,darkMatterProfile_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily font2008} hot halo ram pressure stripping class.
     !!}
@@ -128,8 +148,15 @@ contains
     class           (galacticStructureClass             ), intent(in   ), target :: galacticStructure_
     double precision                                     , intent(in   )         :: formFactor
     double precision                                     , parameter             :: toleranceAbsolute       =0.0d+0, toleranceRelative=1.0d-3
+
+
+    class           (darkMatterProfileDMOClass           ), intent(in   ), target           :: darkMatterProfileDMO_
+    class           (darkMatterProfileClass           ), intent(in   ), target           :: darkMatterProfile_
+
+
+
     !![
-    <constructorAssign variables="formFactor, *darkMatterHaloScale_, *hotHaloRamPressureForce_, *hotHaloMassDistribution_, *galacticStructure_"/>
+    <constructorAssign variables="formFactor, *darkMatterHaloScale_, *hotHaloRamPressureForce_, *hotHaloMassDistribution_, *galacticStructure_,*darkMatterProfileDMO_,*darkMatterProfile_"/>
     !!]
 
     ! Solver for the ram pressure stripping radius.
@@ -152,6 +179,8 @@ contains
     <objectDestructor name="self%darkMatterHaloScale_"    />
     <objectDestructor name="self%hotHaloRamPressureForce_"/>
     <objectDestructor name="self%hotHaloMassDistribution_"/>
+    <objectDestructor name="self%darkMatterProfile_"/>
+    <objectDestructor name="self%darkMatterProfileDMO_"/>
     <objectDestructor name="self%galacticStructure_"      />
     !!]
     return
@@ -165,6 +194,12 @@ contains
     use :: Error          , only : Error_Report             , errorStatusSuccess           , GSL_Error_Details
     use :: Root_Finder    , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
     use :: String_Handling, only : operator(//)
+
+
+
+    use :: Galactic_Structure_Options      , only : componentTypeAll               , massTypeAll,componentTypeDisk,componentTypeSpheroid,componentTypeHotHalo,componentTypecoldHalo,componentTypeDarkHalo,componentTypeBlackHole
+    use :: Functions_Global       , only : State_Retrieve_       , State_Store_, mergerTreeStateStore_, State_Set_
+
     implicit none
     class           (hotHaloRamPressureStrippingFont2008), intent(inout), target :: self
     type            (treeNode                           ), intent(inout), target :: node
@@ -178,6 +213,10 @@ contains
     !$omp threadprivate(message,reason,file)
     character       (len=16                             )                        :: label
 
+
+    integer :: i
+    double precision :: r
+    
     ! Get the virial radius of the satellite.
     radiusVirial=self%darkMatterHaloScale_%radiusVirial(node)
     ! Test whether node is a satellite.
@@ -241,8 +280,18 @@ contains
                 write (label,'(e12.6)') font2008RadiusSolver(radiusSmallestOverRadiusVirial*radiusVirial/(1.0d0+radiusTolerance))
                 message=message//" : "//trim(adjustl(label))
                 call displayMessage(message,verbosityLevelSilent)
+
+                message="save state on bug"
+                call State_Set_(var_str('debugState'))
+                call State_Store_(message)
+                call mergerTreeStateStore_(node_%hostTree,'storedTree.dat')
+
                 select case (status)
                 case (errorStatusOutOfRange)
+                   do i=1,10000
+                      r=10.0d0**(-6.0d0+dble(i-1)/dble(9999.0d0)*6.0d0+log10(radiusVirial))
+                      write (404,*) r,font2008RadiusSolver(r),+self_%galacticStructure_%massEnclosed(node_,r,massType=massTypeAll,componentType=componentTypeAll),self_%galacticStructure_%massEnclosed(node_,r,massType=massTypeAll,componentType=componentTypeDarkHalo),self%darkMatterProfileDMO_%enclosedMass(node_,r),self%darkMatterProfile_%enclosedMass(node_,r)
+                   end do
                    call displayMessage('could not bracket the root',verbosityLevelSilent)
                    call node_%serializeASCII()
                 case default

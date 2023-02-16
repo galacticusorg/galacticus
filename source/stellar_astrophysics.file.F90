@@ -162,10 +162,9 @@ contains
     Read stellar astrophysics data. This is not done during object construction since it can be slow---we only perform the read if the data is actually needed.
     !!}
     use :: Atomic_Data      , only : Atomic_Short_Label
-    use :: FoX_DOM          , only : destroy                          , node
+    use :: FoX_DOM          , only : destroy                          , node                        , extractDataContent
     use :: Error            , only : Error_Report
-    use :: IO_XML           , only : XML_Get_First_Element_By_Tag_Name, XML_Get_Elements_By_Tag_Name, xmlNodeList, extractDataContent => extractDataContentTS, &
-         &                           XML_Parse
+    use :: IO_XML           , only : XML_Get_First_Element_By_Tag_Name, XML_Get_Elements_By_Tag_Name, xmlNodeList       ,  XML_Parse
     implicit none
     class           (stellarAstrophysicsFile), intent(inout)               :: self
     type            (node                   ), pointer                     :: doc              , datum                   , &

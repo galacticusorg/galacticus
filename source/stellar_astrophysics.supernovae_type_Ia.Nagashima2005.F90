@@ -81,11 +81,11 @@ contains
     Internal constructor for the {\normalfont \ttfamily nagashima2005} supernovae type Ia class.
     !!}
     use :: Atomic_Data      , only : Atom_Lookup                   , Atomic_Data_Atoms_Count
-    use :: FoX_dom          , only : destroy                       , node
+    use :: FoX_dom          , only : destroy                       , node                             , extractDataContent
     use :: Error            , only : Error_Report
     use :: Input_Paths      , only : inputPath                     , pathTypeDataStatic
-    use :: IO_XML           , only : XML_Count_Elements_By_Tag_Name, XML_Get_First_Element_By_Tag_Name                        , XML_Get_Elements_By_Tag_Name, xmlNodeList, &
-         &                           XML_Parse                     , extractDataContent                => extractDataContentTS
+    use :: IO_XML           , only : XML_Count_Elements_By_Tag_Name, XML_Get_First_Element_By_Tag_Name                    , XML_Get_Elements_By_Tag_Name, xmlNodeList, &
+         &                           XML_Parse
     implicit none
     type            (supernovaeTypeIaNagashima2005)                              :: self
     class           (stellarAstrophysicsClass     ), intent(in   ), target       :: stellarAstrophysics_

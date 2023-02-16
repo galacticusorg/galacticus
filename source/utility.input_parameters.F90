@@ -269,10 +269,10 @@ contains
     specified as a variable length string.
     !!}
     use :: FoX_dom           , only : node
-    use :: ISO_Varying_String, only : char, extract, operator(==)
-    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, parseString => parseStringTS
-    use :: FoX_dom           , only : node
-    use :: ISO_Varying_String, only : char, extract, operator(==)
+    use :: ISO_Varying_String, only : char                             , extract    , operator(==)
+    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name
+    use :: FoX_dom           , only : node                             , parseString
+    use :: ISO_Varying_String, only : char                             , extract    , operator(==)
     implicit none
     type     (inputParameters)                                           :: self
     type     (varying_string    )              , intent(in   )           :: xmlString
@@ -382,11 +382,11 @@ contains
     !!}
     use :: Display           , only : displayGreen                     , displayMessage , displayReset
     use :: File_Utilities    , only : File_Name_Temporary
-    use :: FoX_dom           , only : getOwnerDocument                 , node           , setLiveNodeLists
+    use :: FoX_dom           , only : getOwnerDocument                 , node           , setLiveNodeLists, getTextContent
     use :: Error             , only : Error_Report
-    use :: ISO_Varying_String, only : assignment(=)                    , char           , operator(//)                      , operator(/=)
+    use :: ISO_Varying_String, only : assignment(=)                    , char           , operator(//)    , operator(/=)
     use :: String_Handling   , only : String_Strip
-    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists, getTextContent => getTextContentTS
+    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists
     use :: Display           , only : displayMessage
     use :: IO_HDF5           , only : ioHDF5AccessInitialize
     use :: HDF5_Access       , only : hdf5Access
@@ -919,10 +919,9 @@ contains
     !!{
     Get the value of a parameter.
     !!}
-    use :: FoX_dom           , only : DOMException                      , getAttributeNode, getNodeName, hasAttribute, &
-          &                           inException                       , node
+    use :: FoX_dom           , only : DOMException , getAttributeNode, getNodeName   , hasAttribute, &
+          &                           inException  , node            , getTextContent
     use :: ISO_Varying_String, only : assignment(=)
-    use :: IO_XML            , only : getTextContent => getTextContentTS
     use :: Error             , only : Error_Report
     implicit none
     type   (varying_string)                :: inputParameterGet
@@ -1499,13 +1498,13 @@ contains
     !!{
     Return the value of the specified parameter.
     !!}
-    use :: FoX_dom           , only : DOMException                     , getAttributeNode  , getNodeName                        , hasAttribute                              , &
-          &                           inException                      , node
+    use :: FoX_dom           , only : DOMException                     , getAttributeNode  , getNodeName   , hasAttribute      , &
+          &                           inException                      , node              , getTextContent, extractDataContent
     use :: Error             , only : Error_Report
-    use :: ISO_Varying_String, only : assignment(=)                    , char              , operator(//)                       , operator(==)                              , &
+    use :: ISO_Varying_String, only : assignment(=)                    , char              , operator(//)  , operator(==)      , &
           &                           trim
     use :: String_Handling   , only : String_Count_Words               , String_Split_Words, operator(//)
-    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists   , getTextContent  => getTextContentTS, extractDataContent => extractDataContentTS
+    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists
     use :: HDF5_Access       , only : hdf5Access
     implicit none
     class           (inputParameters                         ), intent(inout), target      :: self
