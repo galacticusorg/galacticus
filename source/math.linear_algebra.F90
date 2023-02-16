@@ -1258,7 +1258,8 @@ contains
     implicit none
     type            (matrix)                                :: matrixRotation
     type            (vector), intent(in   ), dimension(3  ) :: points           , pointsRotated
-    type            (matrix)                                :: P                , Q
+    type            (matrix)                                :: P                , Q            , &
+         &                                                     Pinverse
     double precision                       , dimension(3,3) :: matrixComponents
 
     matrixComponents(:,1)=points          (1)
@@ -1269,7 +1270,8 @@ contains
     matrixComponents(:,2)=pointsRotated   (2)
     matrixComponents(:,3)=pointsRotated   (3)
     Q                    =matrix(matrixComponents)
-    matrixRotation       =Q*P%inverse()
+    Pinverse             =P%inverse()
+    matrixRotation       =Q*Pinverse
     return
   end function matrixRotation
 

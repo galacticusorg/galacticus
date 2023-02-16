@@ -45,7 +45,7 @@
           &                                                           scaleLengthMaximum
      integer                              , dimension(3          ) :: axesMapIn                        , axesMapOut
      double precision                     , dimension(2          ) :: axisRatio
-     type            (matrix)                                      :: rotationIn                       , rotationOut
+     type            (matrix), allocatable                         :: rotationIn                       , rotationOut
      double precision                     , dimension(3)           :: axis1                            , axis2                                 , &
           &                                                           axis3
    contains
@@ -245,6 +245,10 @@ contains
             &            /self%scaleLengthMaximum
     end do
     ! Compute rotation matrices required to rotate the ellipsoid to be aligned with the principle Cartesian axes, and back again.
+    if (allocated(self%rotationIn )) deallocate(self%rotationIn )
+    if (allocated(self%rotationOut)) deallocate(self%rotationOut)
+    allocate(self%rotationIn )
+    allocate(self%rotationOut)
     if (present(axes)) then
        self%axis1      =axes(1)
        self%axis2      =axes(2)
