@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1676105781271,
+  "lastUpdate": 1676524755821,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
@@ -7572,6 +7572,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 4.74047832975763,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5dfbff91ce1e09e118e4811239f99467212a6881",
+          "message": "Merge pull request #378 from galacticusorg/coolingFunctionSummationFix\n\nAvoid unnecessary divide/multiply in summation cooling function",
+          "timestamp": "2023-02-16T00:50:23Z",
+          "tree_id": "e05944b249e790eeb048954c55cc42b3fc1211aa",
+          "url": "https://github.com/galacticusorg/galacticus/commit/5dfbff91ce1e09e118e4811239f99467212a6881"
+        },
+        "date": 1676524755280,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 191.988,
+            "unit": "seconds",
+            "range": 0.165213800876532
           }
         ]
       }
