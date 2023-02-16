@@ -34,21 +34,11 @@
    contains
      !![
      <methods>
-       <method description="Returns the cylindrical radius enclosing half of the mass of the mass distribution."                                                                    method="radiusHalfMass"            />
-       <method description="Returns the $n^\mathrm{th}$ moment of the integral of the surface density over radius, $\int_0^\infty \Sigma(\mathbf{x}) |x|^n \mathrm{d} \mathbf{x}$." method="surfaceDensityRadialMoment"/>
-       <method description="Returns the circular velocity at the given {\normalfont \ttfamily radius}."                                                                             method="rotationCurve"             />
-       <method description="Returns the gradient of the circular velocity at the given {\normalfont \ttfamily radius}."                                                             method="rotationCurveGradient"     />
-       <method description="Returns the surface density at the given {\normalfont \ttfamily coordinates}."                                                                          method="surfaceDensity"            />
-       <method description="Returns the spherically-averaged density at the given {\normalfont \ttfamily radius}."                                                                  method="densitySphericalAverage"   />
+       <method description="Returns the cylindrical radius enclosing half of the mass of the mass distribution." method="radiusHalfMass"/>
      </methods>
      !!]
-     procedure                                                  :: symmetry                   => cylindricalSymmetry
-     procedure(cylindricalRadiusHalfMass            ), deferred :: radiusHalfMass
-     procedure(cylindricalSurfaceDensity            ), deferred :: surfaceDensity
-     procedure(cylindricalRotationCurve             ), deferred :: rotationCurve
-     procedure(cylindricalRotationCurveGradient     ), deferred :: rotationCurveGradient
-     procedure(cylindricalSurfaceDensityRadialMoment), deferred :: surfaceDensityRadialMoment
-     procedure(cylindricalDensitySphericalAverage   ), deferred :: densitySphericalAverage
+     procedure                                      :: symmetry       => cylindricalSymmetry
+     procedure(cylindricalRadiusHalfMass), deferred :: radiusHalfMass
   end type massDistributionCylindrical
 
   abstract interface
@@ -62,63 +52,6 @@
        type (enumerationComponentTypeType), intent(in   ), optional :: componentType
        type (enumerationMassTypeType     ), intent(in   ), optional :: massType
      end function cylindricalRadiusHalfMass
-
-     double precision function cylindricalSurfaceDensity(self,coordinates,componentType,massType)
-       !!{
-       Interface for cylindrically symmetric mass distribution surface density functions.
-       !!}
-       import massDistributionCylindrical, coordinate, enumerationComponentTypeType, enumerationMassTypeType
-       class(massDistributionCylindrical ), intent(inout)           :: self
-       class(coordinate                  ), intent(in   )           :: coordinates
-       type (enumerationComponentTypeType), intent(in   ), optional :: componentType
-       type (enumerationMassTypeType     ), intent(in   ), optional :: massType
-     end function cylindricalSurfaceDensity
-
-     double precision function cylindricalRotationCurve(self,radius,componentType,massType)
-       !!{
-       Interface for cylindrically symmetric mass distribution rotation curve functions.
-       !!}
-       import massDistributionCylindrical, enumerationComponentTypeType, enumerationMassTypeType
-       class           (massDistributionCylindrical ), intent(inout)           :: self
-       double precision                              , intent(in   )           :: radius
-       type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-       type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-     end function cylindricalRotationCurve
-
-     double precision function cylindricalRotationCurveGradient(self,radius,componentType,massType)
-       !!{
-       Interface for cylindrically symmetric mass distribution rotation curve gradient functions.
-       !!}
-       import massDistributionCylindrical, enumerationComponentTypeType, enumerationMassTypeType
-       class           (massDistributionCylindrical ), intent(inout)           :: self
-       double precision                              , intent(in   )           :: radius
-       type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-       type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-     end function cylindricalRotationCurveGradient
-
-     double precision function cylindricalSurfaceDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite,componentType,massType)
-       !!{
-       Interface for cylindrically symmetric mass distribution surface density radial moment functions.
-       !!}
-       import massDistributionCylindrical, enumerationComponentTypeType, enumerationMassTypeType
-       class           (massDistributionCylindrical ), intent(inout)           :: self
-       double precision                              , intent(in   )           :: moment
-       double precision                              , intent(in   ), optional :: radiusMinimum, radiusMaximum
-       logical                                       , intent(  out), optional :: isInfinite
-       type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-       type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-     end function cylindricalSurfaceDensityRadialMoment
-
-     double precision function cylindricalDensitySphericalAverage(self,radius,componentType,massType)
-       !!{
-       Interface for cylindrically symmetric mass distribution spherically-averaged density functions.
-       !!}
-       import massDistributionCylindrical, enumerationComponentTypeType, enumerationMassTypeType
-       class           (massDistributionCylindrical ), intent(inout)           :: self
-       double precision                              , intent(in   )           :: radius
-       type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-       type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-     end function cylindricalDensitySphericalAverage
 
   end interface
 

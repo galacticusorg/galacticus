@@ -27,7 +27,7 @@
       A mass distribution class for scaling spherical mass distributions. Specifically, the density at position $\mathbf{x}$ is
       given by
       \begin{equation}
-      \rho(\mathbf{x}) = f_\mathrm{M} \rho^\prime(\mathbf{x}/f_\mathrm{r}),
+      \rho(\mathbf{x}) = \frac{f_\mathrm{M}}{f_\mathrm{r}^3} \rho^\prime(\mathbf{x}/f_\mathrm{r}),
       \end{equation}      
       where $\rho^\prime(\mathbf{x})$ is the original mass distribution, and $f_\mathrm{r}=${\normalfont \ttfamily
       [factorScalingLength]}, and $f_\mathrm{M}=${\normalfont \ttfamily [factorScalingMass]}.
@@ -42,16 +42,20 @@
      double precision                                     :: factorScalingLength          , factorScalingMass
    contains
      final     ::                          sphericalScalerDestructor
-     procedure :: density               => sphericalScalerDensity
-     procedure :: densityGradientRadial => sphericalScalerDensityGradientRadial
-     procedure :: densityRadialMoment   => sphericalScalerDensityRadialMoment
-     procedure :: massEnclosedBySphere  => sphericalScalerMassEnclosedBySphere
-     procedure :: potential             => sphericalScalerPotential
-     procedure :: radiusHalfMass        => sphericalScalerRadiusHalfMass
-     procedure :: tidalTensor           => sphericalScalerTidalTensor
-     procedure :: radiusEnclosingMass   => sphericalScalerRadiusEnclosingMass
-     procedure :: positionSample        => sphericalScalerPositionSample
-     procedure :: isDimensionless       => sphericalScalerIsDimensionless
+     procedure :: density                 => sphericalScalerDensity
+     procedure :: densitySphericalAverage => sphericalScalerDensitySphericalAverage
+     procedure :: densityGradientRadial   => sphericalScalerDensityGradientRadial
+     procedure :: densityRadialMoment     => sphericalScalerDensityRadialMoment
+     procedure :: massEnclosedBySphere    => sphericalScalerMassEnclosedBySphere
+     procedure :: rotationCurve           => sphericalScalerRotationCurve
+     procedure :: rotationCurveGradient   => sphericalScalerRotationCurveGradient
+     procedure :: potential               => sphericalScalerPotential
+     procedure :: radiusHalfMass          => sphericalScalerRadiusHalfMass
+     procedure :: tidalTensor             => sphericalScalerTidalTensor
+     procedure :: radiusEnclosingMass     => sphericalScalerRadiusEnclosingMass
+     procedure :: acceleration            => sphericalScalerAcceleration
+     procedure :: positionSample          => sphericalScalerPositionSample
+     procedure :: isDimensionless         => sphericalScalerIsDimensionless
   end type massDistributionSphericalScaler
 
   interface massDistributionSphericalScaler
@@ -217,19 +221,21 @@ contains
     !!{
     Return the potential at the specified {\normalfont \ttfamily coordinates} in a scaled spherical mass distribution.
     !!}
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class(massDistributionSphericalScaler), intent(inout)           :: self
     class(coordinate                     ), intent(in   )           :: coordinates
     type (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
     type (enumerationMassTypeType        ), intent(in   ), optional :: massType
 
-    sphericalScalerPotential=+self%massDistribution_%potential         (                           &
-         &                                                                    coordinates          &
-         &                                                              /self%factorScalingLength, &
-         &                                                              componentType            , &
-         &                                                              massType                   &
-         &                                                             )                           &
-         &                  *self                  %factorScalingMass                              &
+    sphericalScalerPotential=+self%massDistribution_%potential                     (                           &
+         &                                                                                coordinates          &
+         &                                                                          /self%factorScalingLength, &
+         &                                                                          componentType            , &
+         &                                                                          massType                   &
+         &                                                                         )                           &
+         &                  *                       gravitationalConstantGalacticus                            &
+         &                  *self                  %factorScalingMass                                          &
          &                  /self                  %factorScalingLength
     return
   end function sphericalScalerPotential
@@ -299,28 +305,105 @@ contains
     Computes the gravitational acceleration at {\normalfont \ttfamily coordinates} for spherically-symmetric mass
     distributions.
     !!}
+    use :: Numerical_Constants_Astronomical, only : gigaYear, gravitationalConstantGalacticus, megaParsec
+    use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
-    double precision                                 , dimension(3)  :: sphericalScalerAcceleration
-    class           (massDistributionSphericalScaler), intent(inout) :: self
-    class           (coordinate                     ), intent(in   ) :: coordinates
-       type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-       type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    double precision                                 , dimension(3)            :: sphericalScalerAcceleration
+    class           (massDistributionSphericalScaler), intent(inout)           :: self
+    class           (coordinate                     ), intent(in   )           :: coordinates
+    type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType        ), intent(in   ), optional :: massType
 
-    sphericalScalerAcceleration=+self%massDistribution_%acceleration   (                           &
-         &                                                                    coordinates          &
-         &                                                              /self%factorScalingLength, &
-         &                                                                    componentType      , &
-         &                                                                    massType             &
-         &                                                             )                           &
-         &                  *self                  %factorScalingMass                              &
-         &                  /self                  %factorScalingLength**2
+    sphericalScalerAcceleration=+self%massDistribution_%acceleration                  (                           &
+         &                                                                                   coordinates          &
+         &                                                                             /self%factorScalingLength, &
+         &                                                                                   componentType      , &
+         &                                                                                   massType             &
+         &                                                                            )                           &
+         &                      *self                  %factorScalingMass                                         &
+         &                      /self                  %factorScalingLength**2                                    &
+         &                      *                       kilo                                                      &
+         &                      *                       gigaYear                                                  &
+         &                      /                       megaParsec                                                &
+         &                      *                       gravitationalConstantGalacticus
     return
   end function sphericalScalerAcceleration
+
+  double precision function sphericalScalerDensitySphericalAverage(self,radius,componentType,massType)
+    !!{
+    Return the spherically-averaged density at the specified {\normalfont \ttfamily coordinates} in a scaled spherical mass
+    distribution.
+    !!}
+    implicit none
+    class           (massDistributionSphericalScaler), intent(inout)           :: self
+    double precision                                 , intent(in   )           :: radius
+    type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType        ), intent(in   ), optional :: massType
+
+    sphericalScalerDensitySphericalAverage=+self%massDistribution_%densitySphericalAverage(                           &
+         &                                                                                 +     radius               &
+         &                                                                                 /self%factorScalingLength, &
+         &                                                                                 componentType            , &
+         &                                                                                 massType                   &
+         &                                                                                )                           &
+         &                                 *self                  %factorScalingMass                                  &
+         &                                 /self                  %factorScalingLength**3
+    return
+  end function sphericalScalerDensitySphericalAverage
+
+  double precision function sphericalScalerRotationCurve(self,radius,componentType,massType)
+    !!{
+    Return the mid-plane rotation curve for a scaled spherical distribution.
+    !!}
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    implicit none
+    class           (massDistributionSphericalScaler), intent(inout)           :: self
+    double precision                                 , intent(in   )           :: radius
+    type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType        ), intent(in   ), optional :: massType
+
+    sphericalScalerRotationCurve=+      self%massDistribution_%rotationCurve                  (                           &
+         &                                                                                     +     radius               &
+         &                                                                                     /self%factorScalingLength, &
+         &                                                                                     componentType            , &
+         &                                                                                     massType                   &
+         &                                                                                    )                           &
+         &                       *sqrt(                                                                                   &
+         &                             +                       gravitationalConstantGalacticus                            &
+         &                             *self                  %factorScalingMass                                          &
+         &                             /self                  %factorScalingLength                                        &
+         &                            )
+    return
+  end function sphericalScalerRotationCurve
+
+  double precision function sphericalScalerRotationCurveGradient(self,radius,componentType,massType)
+    !!{
+    Return the mid-plane rotation curve gradient (specifically, $\mathrm{d}V^2_\mathrm{c}/\mathrm{d}r$) for a scaled spherical distribution.
+    !!}
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    implicit none
+    class           (massDistributionSphericalScaler), intent(inout)           :: self
+    double precision                                 , intent(in   )           :: radius
+    type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType        ), intent(in   ), optional :: massType
+
+    sphericalScalerRotationCurveGradient=+self%massDistribution_%rotationCurveGradient(                           &
+         &                                                                             +     radius               &
+         &                                                                             /self%factorScalingLength, &
+         &                                                                             componentType            , &
+         &                                                                             massType                   &
+         &                                                                            )                           &
+         &                               *     gravitationalConstantGalacticus                                    &
+         &                               *self%factorScalingMass                                                  &
+         &                               /self%factorScalingLength**2
+    return
+  end function sphericalScalerRotationCurveGradient
 
   function sphericalScalerTidalTensor(self,coordinates,componentType,massType)
     !!{
     Computes the gravitational tidal tensor at {\normalfont \ttfamily coordinates} in a scaled spherical mass distribution.
     !!}
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     type (tensorRank2Dimension3Symmetric )                          :: sphericalScalerTidalTensor
     class(massDistributionSphericalScaler), intent(inout)           :: self
@@ -328,20 +411,21 @@ contains
     type (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
     type (enumerationMassTypeType        ), intent(in   ), optional :: massType
 
-    sphericalScalerTidalTensor=+self%massDistribution_%tidalTensor     (                           &
-         &                                                                    coordinates          &
-         &                                                              /self%factorScalingLength, &
-         &                                                              componentType            , &
-         &                                                              massType                   &
-         &                                                             )                           &
-         &                  *self                  %factorScalingMass                              &
-         &                  /self                  %factorScalingLength**3
+    sphericalScalerTidalTensor=+self%massDistribution_%tidalTensor                    (                           &
+         &                                                                                   coordinates          &
+         &                                                                             /self%factorScalingLength, &
+         &                                                                             componentType            , &
+         &                                                                             massType                   &
+         &                                                                            )                           &
+         &                     *                       gravitationalConstantGalacticus                            &
+         &                     *self                  %factorScalingMass                                          &
+         &                     /self                  %factorScalingLength**3
     return
   end function sphericalScalerTidalTensor
   
   function sphericalScalerPositionSample(self,randomNumberGenerator_,componentType,massType)
     !!{
-    Computes the half-mass radius of a spherically symmetric mass distribution in a scaled spherical mass distribution.
+    Sample a position from a scaled spherical mass distribution.
     !!}
     implicit none
     double precision                                 , dimension(3)            :: sphericalScalerPositionSample

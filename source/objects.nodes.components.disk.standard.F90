@@ -142,6 +142,7 @@ module Node_Component_Disk_Standard
    </properties>
    <bindings>
     <binding method="attachPipes"               function="Node_Component_Disk_Standard_Attach_Pipes"              bindsTo="component" description="Attach pipes to the standard disk component." returnType="\void" arguments=""/>
+    <binding method="massDistribution"          function="Node_Component_Disk_Standard_Mass_Distribution"         bindsTo="component"                                                                                           />
     <binding method="enclosedMass"              function="Node_Component_Disk_Standard_Enclosed_Mass"             bindsTo="component"                                                                                           />
     <binding method="acceleration"              function="Node_Component_Disk_Standard_Acceleration"              bindsTo="component"                                                                                           />
     <binding method="tidalTensor"               function="Node_Component_Disk_Standard_Tidal_Tensor"              bindsTo="component"                                                                                           />
@@ -283,13 +284,14 @@ contains
     !!{
     Initializes the standard disk component module for each thread.
     !!}
-    use :: Events_Hooks                     , only : dependencyDirectionAfter   , dependencyRegEx      , openMPThreadBindingAtLevel, postEvolveEvent, &
+    use :: Events_Hooks                     , only : dependencyDirectionAfter   , dependencyRegEx     , openMPThreadBindingAtLevel, postEvolveEvent, &
           &                                          satelliteMergerEvent
     use :: Error                            , only : Error_Report
     use :: Galacticus_Nodes                 , only : defaultDiskComponent
     use :: Input_Parameters                 , only : inputParameter             , inputParameters
+    use :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_   , massDistributionGas_
     use :: Mass_Distributions               , only : massDistributionCylindrical
-    use :: Node_Component_Disk_Standard_Data, only : massDistributionDisk       , massDistributionDisk_        
+    use :: Galactic_Structure_Options       , only : componentTypeDisk          , massTypeStellar     , massTypeGaseous
     implicit none
     type            (inputParameters), intent(inout) :: parameters
     type            (dependencyRegEx), dimension(1)  :: dependencies
@@ -310,7 +312,7 @@ contains
        <objectBuilder class="starFormationHistory"                                                name="starFormationHistory_"        source="subParameters"                    />
        <objectBuilder class="mergerMassMovements"                                                 name="mergerMassMovements_"         source="subParameters"                    />
        <objectBuilder class="galacticStructure"                                                   name="galacticStructure_"           source="subParameters"                    />
-       <objectBuilder class="massDistribution"               parameterName="massDistributionDisk" name="massDistributionDisk_"        source="subParameters" threadPrivate="yes" >
+       <objectBuilder class="massDistribution"               parameterName="massDistributionDisk" name="massDistributionStellar_"     source="subParameters" threadPrivate="yes" >
         <default>
          <massDistributionDisk value="exponentialDisk">
           <dimensionless value="true"/>
@@ -319,35 +321,37 @@ contains
        </objectBuilder>
        !!]
        ! Validate the disk mass distribution.
-       select type (massDistributionDisk_)
+       select type (massDistributionStellar_)
        class is (massDistributionCylindrical)
-          ! Since the disk must be cylindrical, deep-copy it to an object of that class. Then we do not need to perform
-          ! type-guards elsewhere in the code.
-          allocate(massDistributionDisk,mold=massDistributionDisk_)
-          !$omp critical(diskStandardDeepCopy)
-          !![
-	  <deepCopyReset variables="massDistributionDisk_"/>
-	  <deepCopy source="massDistributionDisk_" destination="massDistributionDisk"/>
-	  <deepCopyFinalize variables="massDistributionDisk"/>  
-          !!]
-          !$omp end critical(diskStandardDeepCopy)
+          ! The disk mass distribution must have cylindrical symmetry. So, this is acceptable.        
        class default
           call Error_Report('only cylindrically symmetric mass distributions are allowed'//{introspection:location})
        end select
-       if (.not.massDistributionDisk%isDimensionless()) call Error_Report('disk mass distribution must be dimensionless'//{introspection:location})
+       if (.not.massDistributionStellar_%isDimensionless()) call Error_Report('disk mass distribution must be dimensionless'//{introspection:location})
+       ! Duplicate the dimensionless mass distribution to use for the gas component, and set component and mass types in both.
+       !$omp critical(diskStandardDeepCopy)
+       allocate(massDistributionGas_,mold=massDistributionStellar_)
+       !![
+       <deepCopyReset variables="massDistributionStellar_"/>
+       <deepCopy source="massDistributionStellar_" destination="massDistributionGas_"/>
+       <deepCopyFinalize variables="massDistributionGas_"/>  
+       !!]
+       !$omp end critical(diskStandardDeepCopy)
+       call massDistributionStellar_%setTypes(componentTypeDisk,massTypeStellar)
+       call massDistributionGas_    %setTypes(componentTypeDisk,massTypeGaseous)
        ! Compute the specific angular momentum of the disk at this structure solver radius in units of the mean specific angular
        ! momentum of the disk assuming a flat rotation curve.
        !! Determine the specific angular momentum at the size solver radius in units of the mean specific angular
        !! momentum of the disk. This is equal to the ratio of the 1st to 2nd radial moments of the surface density
        !! distribution (assuming a flat rotation curve).
-       massDistributionDiskDensityMoment1=massDistributionDisk%surfaceDensityRadialMoment(1.0d0,isInfinite=surfaceDensityMoment1IsInfinite)
-       massDistributionDiskDensityMoment2=massDistributionDisk%surfaceDensityRadialMoment(2.0d0,isInfinite=surfaceDensityMoment2IsInfinite)
+       massDistributionDiskDensityMoment1=massDistributionStellar_%surfaceDensityRadialMoment(1.0d0,isInfinite=surfaceDensityMoment1IsInfinite)
+       massDistributionDiskDensityMoment2=massDistributionStellar_%surfaceDensityRadialMoment(2.0d0,isInfinite=surfaceDensityMoment2IsInfinite)
        if (surfaceDensityMoment1IsInfinite.or.surfaceDensityMoment2IsInfinite) then
           ! One or both of the moments are infinite. Simply assume a value of 0.5 as a default.
           diskStructureSolverSpecificAngularMomentum=0.5d0
        else
           diskStructureSolverSpecificAngularMomentum=  &
-               & +radiusStructureSolver            &
+               & +radiusStructureSolver                &
                & /(                                    &
                &   +massDistributionDiskDensityMoment2 &
                &   /massDistributionDiskDensityMoment1 &
@@ -357,9 +361,9 @@ contains
        ! curves for thin disk and a spherical mass distribution.
        if (structureSolverUseCole2000Method) then
           diskRadiusSolverFlatVsSphericalFactor=                                          &
-               & +massDistributionDisk%rotationCurve       (radiusStructureSolver)**2 &
-               & *                                          radiusStructureSolver     &
-               & -massDistributionDisk%massEnclosedBySphere(radiusStructureSolver)
+               & +massDistributionStellar_%rotationCurve       (radiusStructureSolver)**2 &
+               & *                                              radiusStructureSolver     &
+               & -massDistributionStellar_%massEnclosedBySphere(radiusStructureSolver)
        end if
     end if
     return
@@ -374,9 +378,9 @@ contains
     !!{
     Uninitializes the standard disk component module for each thread.
     !!}
-    use :: Events_Hooks                     , only : postEvolveEvent     , satelliteMergerEvent
+    use :: Events_Hooks                     , only : postEvolveEvent         , satelliteMergerEvent
     use :: Galacticus_Nodes                 , only : defaultDiskComponent
-    use :: Node_Component_Disk_Standard_Data, only : massDistributionDisk, massDistributionDisk_
+    use :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_, massDistributionGas_
     implicit none
 
     if (defaultDiskComponent%standardIsActive()) then
@@ -388,8 +392,8 @@ contains
        <objectDestructor name="starFormationHistory_"       />
        <objectDestructor name="mergerMassMovements_"        />
        <objectDestructor name="galacticStructure_"          />
-       <objectDestructor name="massDistributionDisk"        />
-       <objectDestructor name="massDistributionDisk_"       />
+       <objectDestructor name="massDistributionStellar_"    />
+       <objectDestructor name="massDistributionGas_"        />
        !!]
     end if
     return
@@ -1249,9 +1253,9 @@ contains
     !!{
     Write the tablulation state to file.
     !!}
-    use            :: Display                          , only : displayMessage      , verbosityLevelInfo
-    use, intrinsic :: ISO_C_Binding                    , only : c_ptr               , c_size_t
-    use            :: Node_Component_Disk_Standard_Data, only : massDistributionDisk
+    use            :: Display                          , only : displayMessage          , verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding                    , only : c_ptr                   , c_size_t
+    use            :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_, massDistributionGas_
     implicit none
     integer          , intent(in   ) :: stateFile
     integer(c_size_t), intent(in   ) :: stateOperationID
@@ -1259,7 +1263,7 @@ contains
 
     call displayMessage('Storing state for: componentDisk -> standard',verbosity=verbosityLevelInfo)
     !![
-    <stateStore variables="massDistributionDisk darkMatterHaloScale_ stellarPopulationProperties_ starFormationHistory_ mergerMassMovements_"/>
+    <stateStore variables="massDistributionStellar_ massDistributionGas_ darkMatterHaloScale_ stellarPopulationProperties_ starFormationHistory_ mergerMassMovements_"/>
     !!]
     write (stateFile) diskStructureSolverSpecificAngularMomentum,diskRadiusSolverFlatVsSphericalFactor
     return
@@ -1274,9 +1278,9 @@ contains
     !!{
     Retrieve the tabulation state from the file.
     !!}
-    use            :: Display                          , only : displayMessage      , verbosityLevelInfo
-    use, intrinsic :: ISO_C_Binding                    , only : c_ptr               , c_size_t
-    use            :: Node_Component_Disk_Standard_Data, only : massDistributionDisk
+    use            :: Display                          , only : displayMessage          , verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding                    , only : c_ptr                   , c_size_t
+    use            :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_, massDistributionGas_
     implicit none
     integer          , intent(in   ) :: stateFile
     integer(c_size_t), intent(in   ) :: stateOperationID
@@ -1284,7 +1288,7 @@ contains
 
     call displayMessage('Retrieving state for: componentDisk -> standard',verbosity=verbosityLevelInfo)
     !![
-    <stateRestore variables="massDistributionDisk darkMatterHaloScale_ stellarPopulationProperties_ starFormationHistory_ mergerMassMovements_"/>
+    <stateRestore variables="massDistributionStellar_ massDistributionGas_ darkMatterHaloScale_ stellarPopulationProperties_ starFormationHistory_ mergerMassMovements_"/>
     !!]
     read (stateFile) diskStructureSolverSpecificAngularMomentum,diskRadiusSolverFlatVsSphericalFactor
     return

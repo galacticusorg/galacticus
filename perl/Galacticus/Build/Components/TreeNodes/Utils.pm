@@ -19,8 +19,9 @@ use Galacticus::Build::Components::DataTypes;
      {
 	 functions =>
 	     [
-	      \&Tree_Node_Copy,
-	      \&Tree_Node_Move
+	      \&Tree_Node_Copy             ,
+	      \&Tree_Node_Move             ,
+	      \&Tree_Node_Mass_Distribution
 	     ]
      }
     );
@@ -189,6 +190,90 @@ CODE
 	    type        => "procedure", 
 	    descriptor  => $function,
 	    name        => "moveComponentsTo"
+	}
+	);
+}
+
+sub Tree_Node_Mass_Distribution {
+    # Generate a function to construct and return the mass distribution associated with a node.
+    my $build = shift();
+    my $function =
+    {
+	type        => "class(massDistributionClass), pointer => massDistribution_",
+	name        => "treeNodeMassDistribution",
+	description => "Construct and return the mass distribution associated with {\\normalfont \\ttfamily self}.",
+	modules     =>
+	    [
+	     "Mass_Distributions, only : massDistributionClass, massDistributionComposite, massDistributionList"
+	    ],
+	variables   =>
+	    [
+	     {
+		 intrinsic  => "class",
+		 type       => "treeNode",
+		 attributes => [ "intent(inout)" ],
+		 variables  => [ "self" ]
+	     },
+	     {
+		 intrinsic  => "class",
+		 type       => "massDistributionClass",
+		 attributes => [ "pointer" ],
+		 variables  => [ "massDistributionComponent" ]
+	     },
+	     {
+		 intrinsic  => "integer",
+		 variables  => [ "i" ]
+	     },
+	     {
+		 intrinsic  => "type",
+		 type       => "massDistributionList",
+		 attributes => [ "pointer" ],
+		 variables  => [ "massDistributionList_ => null()", "next_ => null()" ]
+	     }
+	    ]
+    };
+    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+massDistributionList_ => null()
+CODE
+    # Iterate over all component classes
+    foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
+	next
+	    unless ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} );
+	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+if (allocated(self%component{ucfirst($class->{'name'})})) then
+   do i=1,size(self%component{ucfirst($class->{'name'})})
+     massDistributionComponent => self%component{ucfirst($class->{'name'})}(i)%massDistribution()
+     if (associated(massDistributionComponent)) then
+       if (associated(massDistributionList_)) then
+         allocate(next_%next)
+         next_ => next_%next
+       else
+         allocate(massDistributionList_)
+         next_ => massDistributionList_
+       end if
+       next_%massDistribution_ => massDistributionComponent
+       next_%next              => null()
+     end if
+   end do
+end if
+CODE
+    }
+    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+allocate(massDistributionComposite :: massDistribution_)
+select type (massDistribution_)
+type is (massDistributionComposite)
+  !![
+  <referenceConstruct isResult="yes" object="massDistribution_" constructor="massDistributionComposite(massDistributionList_)"/>
+  !!]
+end select
+CODE
+    # Insert a type-binding for this function into the treeNode type.
+    push(
+	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
+	{
+	    type        => "procedure", 
+	    descriptor  => $function,
+	    name        => "massDistribution"
 	}
 	);
 }

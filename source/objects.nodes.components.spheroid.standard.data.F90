@@ -29,8 +29,8 @@ module Node_Component_Spheroid_Standard_Data
   implicit none
   public
 
-  ! The mass distribution object.
-  class(massDistributionClass), pointer :: massDistributionSpheroid
-  !$omp threadprivate(massDistributionSpheroid)
+  ! The mass distribution objects.
+  class(massDistributionClass), pointer :: massDistributionStellar_, massDistributionGas_
+  !$omp threadprivate(massDistributionStellar_,massDistributionGas_)
 
 end module Node_Component_Spheroid_Standard_Data

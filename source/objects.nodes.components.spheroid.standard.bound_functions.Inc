@@ -21,35 +21,77 @@
 Contains custom functions for the standard spheroid component.
 !!}
 
-double precision function Node_Component_Spheroid_Standard_Half_Mass_Radius(self)
+function Node_Component_Spheroid_Standard_Mass_Distribution(self) result(massDistribution_)
+  !!{
+  Return the mass distribution for the standard spheroid component.
+  !!}
+  use :: Mass_Distributions                   , only : massDistributionClass      , massDistributionSphericalScaler, massDistributionComposite, massDistributionList, &
+        &                                              massDistributionSpherical
+  use :: Node_Component_Spheroid_Standard_Data, only : massDistributionStellar_   , massDistributionGas_
+  use :: Galactic_Structure_Options           , only : componentTypeSpheroid      , massTypeStellar                , massTypeGaseous
+  implicit none
+  class(massDistributionClass          ), pointer       :: massDistribution_
+  class(nodeComponentSpheroidStandard  ), intent(inout) :: self
+  type (massDistributionSphericalScaler), pointer       :: massDistributionStellar   , massDistributionGas
+  type (massDistributionComposite      ), pointer       :: massDistributionTotal
+  type (massDistributionList           ), pointer       :: massDistributionComponents
+
+  ! Wrap the dimensionless mass distribution inside scaler classes to allow us to re-scale it to any spheroid system, and then composite those.
+  allocate(massDistributionStellar        )
+  allocate(massDistributionGas            )
+  allocate(massDistributionTotal          )
+  allocate(massDistributionComponents     )
+  allocate(massDistributionComponents%next)
+  massDistributionComponents     %massDistribution_ => massDistributionStellar
+  massDistributionComponents%next%massDistribution_ => massDistributionGas
+  select type (massDistributionStellar_)
+  class is (massDistributionSpherical)
+     !![
+     <referenceConstruct object="massDistributionStellar" constructor="massDistributionSphericalScaler(factorScalingLength=self%radius(),factorScalingMass=self%massStellar(),massDistribution_=massDistributionStellar_  )"/>
+     !!]
+  end select
+  select type (massDistributionGas_    )
+  class is (massDistributionSpherical)
+     !![
+     <referenceConstruct object="massDistributionGas"     constructor="massDistributionSphericalScaler(factorScalingLength=self%radius(),factorScalingMass=self%massGas    (),massDistribution_=massDistributionGas_      )"/>
+     !!]
+  end select
+  !![
+  <referenceConstruct    object="massDistributionTotal"   constructor="massDistributionComposite      (                                                                                         massDistributionComponents)"/>
+  !!]
+  ! Return a pointer to the spheroid mass distribution.
+  massDistribution_ => massDistributionTotal
+  return
+end function Node_Component_Spheroid_Standard_Mass_Distribution
+
+double precision function Node_Component_Spheroid_Standard_Half_Mass_Radius(self) result(radiusHalfMass)
   !!{
   Return the half-mass radius of the standard spheroid.
   !!}
   use :: Error                                , only : Error_Report
   use :: Mass_Distributions                   , only : massDistributionSpherical
-  use :: Node_Component_Spheroid_Standard_Data, only : massDistributionSpheroid
+  use :: Node_Component_Spheroid_Standard_Data, only : massDistributionStellar_
   implicit none
   class(nodeComponentSpheroidStandard), intent(inout) :: self
 
-  select type (massDistributionSpheroid)
+
+  select type (massDistributionStellar_)
   class is (massDistributionSpherical)
-     Node_Component_Spheroid_Standard_Half_Mass_Radius=self%radius()*massDistributionSpheroid%radiusHalfMass()
+     radiusHalfMass=+massDistributionStellar_%radiusHalfMass() &
+          &         *self                    %radius        ()
   class default
-     Node_Component_Spheroid_Standard_Half_Mass_Radius=0.0d0
-     call Error_Report('mass distribution should be spherical'//{introspection:location})
+     radiusHalfMass=0.0d0
+     call Error_Report('spheroid mass distribution is not spherically-symmetric'//{introspection:location})
   end select
   return
 end function Node_Component_Spheroid_Standard_Half_Mass_Radius
 
-double precision function Node_Component_Spheroid_Standard_Enclosed_Mass(self,radius,componentType,massType,weightBy,weightIndex)
+double precision function Node_Component_Spheroid_Standard_Enclosed_Mass(self,radius,componentType,massType,weightBy,weightIndex) result(massEnclosed)
   !!{
   Computes the mass within a given radius for an standard spheroid.
   !!}
-  use :: Galactic_Structure_Options           , only : componentTypeAll        , componentTypeSpheroid, massTypeAll                 , massTypeBaryonic       , &
-          &                                            massTypeGalactic        , massTypeGaseous      , massTypeStellar             , radiusLarge            , &
-          &                                            weightByLuminosity      , weightByMass         , enumerationComponentTypeType, enumerationMassTypeType, &
-          &                                            enumerationWeightByType
-  use :: Node_Component_Spheroid_Standard_Data, only : massDistributionSpheroid
+  use :: Galactic_Structure_Options, only : weightByLuminosity   , enumerationComponentTypeType, enumerationMassTypeType, enumerationWeightByType
+  use :: Mass_Distributions        , only : massDistributionClass
   implicit none
   class           (nodeComponentSpheroidStandard), intent(inout) :: self
   type            (enumerationComponentTypeType ), intent(in   ) :: componentType
@@ -57,231 +99,165 @@ double precision function Node_Component_Spheroid_Standard_Enclosed_Mass(self,ra
   type            (enumerationWeightByType      ), intent(in   ) :: weightBy
   integer                                        , intent(in   ) :: weightIndex
   double precision                               , intent(in   ) :: radius
-  double precision                                               :: fractionalRadius    , radiusSpheroid
+  class           (massDistributionClass        ), pointer       :: massDistribution_
   type            (stellarLuminosities          ), save          :: luminositiesSpheroid
   !$omp threadprivate(luminositiesSpheroid)
-
-  ! Return if the spheroid component is not selected.
-  Node_Component_Spheroid_Standard_Enclosed_Mass=0.0d0
-  if (.not.(componentType == componentTypeAll .or. componentType == componentTypeSpheroid)) return
-  ! Get the total mass.
-  select case (weightBy%ID)
-  case (weightByMass      %ID)
-     select case (massType%ID)
-     case (massTypeAll%ID,massTypeBaryonic%ID,massTypeGalactic%ID)
-        Node_Component_Spheroid_Standard_Enclosed_Mass=self%massGas()+self%massStellar()
-     case (massTypeGaseous%ID)
-        Node_Component_Spheroid_Standard_Enclosed_Mass=self%massGas()
-     case (massTypeStellar%ID)
-        Node_Component_Spheroid_Standard_Enclosed_Mass=               self%massStellar()
-     end select
-  case (weightByLuminosity%ID)
-     select case (massType%ID)
-     case (massTypeAll%ID,massTypeBaryonic%ID,massTypeGalactic%ID,massTypeStellar%ID)
-        luminositiesSpheroid=self%luminositiesStellar()
-        Node_Component_Spheroid_Standard_Enclosed_Mass       =luminositiesSpheroid%luminosity(weightIndex)
-     end select
-  end select
-  ! Return if total mass was requested.
-  if (radius                                         >= radiusLarge) return
-  ! Return if mass is zero.
-  if (Node_Component_Spheroid_Standard_Enclosed_Mass <=       0.0d0) return
-  ! Compute actual mass.
-  radiusSpheroid=self%radius()
-  if (radiusSpheroid > 0.0d0) then
-     fractionalRadius=radius/radiusSpheroid
-     Node_Component_Spheroid_Standard_Enclosed_Mass   =Node_Component_Spheroid_Standard_Enclosed_Mass*massDistributionSpheroid%massEnclosedBySphere(fractionalRadius)
+  
+  massDistribution_ => self             %massDistribution    (                             )
+  massEnclosed      =  massDistribution_%massEnclosedBySphere(radius,componentType,massType)
+  if (massEnclosed <= 0.0d0             ) return
+  if (weightBy     == weightByLuminosity) then
+     luminositiesSpheroid= self%luminositiesStellar()
+     massEnclosed        =+massEnclosed                                            &
+          &               *luminositiesSpheroid%luminosity(weightIndex           ) &
+          &               /massDistribution_   %massTotal (componentType,massType)
   end if
   return
 end function Node_Component_Spheroid_Standard_Enclosed_Mass
 
-function Node_Component_Spheroid_Standard_Acceleration(self,positionCartesian,componentType,massType)
+function Node_Component_Spheroid_Standard_Acceleration(self,positionCartesian,componentType,massType) result(acceleration)
   !!{
   Computes the gravitational acceleration at a given position for a standard spheroid.
   !!}
-  use :: Galactic_Structure_Options      , only : componentTypeAll            , componentTypeSpheroid  , weightByMass                   , weightIndexNull, &
-       &                                          enumerationComponentTypeType, enumerationMassTypeType
-  use :: Numerical_Constants_Astronomical, only : gigaYear                    , megaParsec             , gravitationalConstantGalacticus
-  use :: Numerical_Constants_Prefixes    , only : kilo
+  use :: Coordinates               , only : assignment(=)               , coordinateCartesian
+  use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType
+  use :: Mass_Distributions        , only : massDistributionClass
   implicit none
-  double precision                                              , dimension(3) :: Node_Component_Spheroid_Standard_Acceleration
+  double precision                                              , dimension(3) :: acceleration
   class           (nodeComponentSpheroidStandard), intent(inout)               :: self
   double precision                               , intent(in   ), dimension(3) :: positionCartesian
   type            (enumerationComponentTypeType ), intent(in   )               :: componentType
   type            (enumerationMassTypeType      ), intent(in   )               :: massType
-  double precision                                                             :: radius                                       , massEnclosed
-  
-  ! Return if the spheroid component is not selected.
-  Node_Component_Spheroid_Standard_Acceleration=0.0d0
-  if (.not.(componentType == componentTypeAll .or. componentType == componentTypeSpheroid)) return
-  ! Compute the acceleration.
-  radius                                       =sqrt(sum(positionCartesian**2))
-  massEnclosed                                 =Node_Component_Spheroid_Standard_Enclosed_Mass(self,radius,componentType,massType,weightByMass,weightIndexNull)
-  Node_Component_Spheroid_Standard_Acceleration=-kilo                            &
-         &                                      *gigaYear                        &
-         &                                      /megaParsec                      &
-         &                                      *gravitationalConstantGalacticus &
-         &                                      *massEnclosed                    &
-         &                                      *positionCartesian               &
-         &                                      /radius**3
+  class           (massDistributionClass        ), pointer                     :: massDistribution_
+  type            (coordinateCartesian          )                              :: position
+
+  position          =  positionCartesian
+  massDistribution_ => self             %massDistribution(                               )
+  acceleration      =  massDistribution_%acceleration    (position,componentType,massType)
   return
 end function Node_Component_Spheroid_Standard_Acceleration
 
-function Node_Component_Spheroid_Standard_Tidal_Tensor(self,positionCartesian,componentType,massType)
+function Node_Component_Spheroid_Standard_Tidal_Tensor(self,positionCartesian,componentType,massType) result(tidalTensor)
   !!{
-  Computes the gravitational tidal tensor at a given position for a standard spheroid.
+  Computes the gravitational acceleration at a given position for a standard spheroid.
   !!}
-  use :: Coordinates                          , only : assignment(=)                  , coordinateCartesian
-  use :: Galactic_Structure_Options           , only : componentTypeAll               , componentTypeSpheroid       , weightByMass           , weightIndexNull, &
-       &                                               radiusLarge                    , enumerationComponentTypeType, enumerationMassTypeType
-  use :: Node_Component_Spheroid_Standard_Data, only : massDistributionSpheroid
-  use :: Numerical_Constants_Astronomical     , only : gravitationalConstantGalacticus
-  use :: Tensors                              , only : tensorRank2Dimension3Symmetric , tensorNullR2D3Sym    , operator(*)
+  use :: Coordinates               , only : assignment(=)                 , coordinateCartesian
+  use :: Galactic_Structure_Options, only : enumerationComponentTypeType  , enumerationMassTypeType
+  use :: Mass_Distributions        , only : massDistributionClass
+  use :: Tensors                   , only : tensorRank2Dimension3Symmetric
   implicit none
-  type            (tensorRank2Dimension3Symmetric)                              :: Node_Component_Spheroid_Standard_Tidal_Tensor
+  type            (tensorRank2Dimension3Symmetric)                              :: tidalTensor
   class           (nodeComponentSpheroidStandard ), intent(inout)               :: self
   double precision                                , intent(in   ), dimension(3) :: positionCartesian
   type            (enumerationComponentTypeType  ), intent(in   )               :: componentType
   type            (enumerationMassTypeType       ), intent(in   )               :: massType
-  double precision                                                              :: massTotal
-  type            (coordinateCartesian           )                              :: positionScaleFree
+  class           (massDistributionClass         ), pointer                     :: massDistribution_
+  type            (coordinateCartesian           )                              :: position
 
-  ! Return if the spheroid component is not selected.
-  Node_Component_Spheroid_Standard_Tidal_Tensor=tensorNullR2D3Sym
-  if (.not.(componentType == componentTypeAll .or. componentType == componentTypeSpheroid)) return
-  ! Find the total mass.
-  massTotal=Node_Component_Spheroid_Standard_Enclosed_Mass(self,radiusLarge,componentType,massType,weightByMass,weightIndexNull)
-  if (massTotal <= 0.0d0 .or. self%radius() <= 0.0d0) return
-  ! Compute the tidal tensor.
-  positionScaleFree=positionCartesian/self%radius()
-  Node_Component_Spheroid_Standard_Tidal_Tensor=+gravitationalConstantGalacticus                         &
-       &                                        *massTotal                                               &
-       &                                        *massDistributionSpheroid%tidalTensor(positionScaleFree) &
-       &                                        /self%radius()**3
+  position          =  positionCartesian
+  massDistribution_ => self             %massDistribution(                               )
+  tidalTensor       =  massDistribution_%tidalTensor     (position,componentType,massType)
   return
 end function Node_Component_Spheroid_Standard_Tidal_Tensor
 
-function Node_Component_Spheroid_Standard_Chandrasekhar_Integral(self,nodeSatellite,positionCartesian,velocityCartesian,componentType,massType)
+function Node_Component_Spheroid_Standard_Chandrasekhar_Integral(self,nodeSatellite,positionCartesian,velocityCartesian,componentType,massType) result(integralChandrasekhar)
   !!{
-  Computes the gravitational acceleration at a given position for a standard spheroid.
+  Computes the Chandrasekhar integral at a given position for a standard spheroid.
   !!}
-  use :: Galactic_Structure_Options, only : componentTypeAll            , componentTypeSpheroid  , weightByMass, weightIndexNull, &
-       &                                    enumerationComponentTypeType, enumerationMassTypeType
+  use :: Coordinates               , only : coordinateCartesian  , assignment(=)
+  use :: Galactic_Structure_Options, only : weightByMass         , weightIndexNull, enumerationComponentTypeType, enumerationMassTypeType
+  use :: Mass_Distributions        , only : massDistributionClass
   use :: Numerical_Constants_Math  , only : Pi
   implicit none
-  double precision                                              , dimension(3) :: Node_Component_Spheroid_Standard_Chandrasekhar_Integral
+  double precision                                              , dimension(3) :: integralChandrasekhar
   class           (nodeComponentSpheroidStandard), intent(inout)               :: self
   type            (treeNode                     ), intent(inout)               :: nodeSatellite
-  double precision                               , intent(in   ), dimension(3) :: positionCartesian                                             , velocityCartesian
+  double precision                               , intent(in   ), dimension(3) :: positionCartesian           , velocityCartesian
   type            (enumerationComponentTypeType ), intent(in   )               :: componentType
   type            (enumerationMassTypeType      ), intent(in   )               :: massType
   double precision                                              , dimension(3) :: positionSpherical
-  double precision                               , parameter                   :: XvMaximum                                              =10.0d0
-  double precision                                                             :: radius                                                        , velocity          , &
-       &                                                                          density                                                       , xV                , &
-       &                                                                          velocityRotation                                              , velocityDispersion
+  class           (massDistributionClass        ), pointer                     :: massDistribution_
+  type            (coordinateCartesian          )                              :: position
+  double precision                               , parameter                   :: XvMaximum            =10.0d0
+  double precision                                                             :: radius                      , velocity          , &
+       &                                                                          density                     , xV                , &
+       &                                                                          velocityRotation            , velocityDispersion
   !$GLC attributes unused :: nodeSatellite
   
-  ! Return if the spheroid component is not selected.
-  Node_Component_Spheroid_Standard_Chandrasekhar_Integral=0.0d0
-  if (.not.(componentType == componentTypeAll .or. componentType == componentTypeSpheroid)) return
+  position              =  positionCartesian
+  massDistribution_     => self             %massDistribution()
   ! Compute the integral.
-  radius                                                  =  sqrt(sum(positionCartesian**2))
-  velocity                                                =  sqrt(sum(velocityCartesian**2))
+  integralChandrasekhar =  +0.0d0
+  radius                =  +sqrt(sum(positionCartesian**2))
+  velocity              =  +sqrt(sum(velocityCartesian**2))
   if (velocity <= 0.0d0) return
-  positionSpherical                                       =  [radius,0.0d0,0.0d0]
-  velocityRotation                                        =  Node_Component_Spheroid_Standard_Rotation_Curve(self,radius           ,componentType,massType                             )
-  density                                                 =  Node_Component_Spheroid_Standard_Density       (self,positionSpherical,componentType,massType,weightByMass,weightIndexNull)
+  positionSpherical     =  [radius,0.0d0,0.0d0]
+  velocityRotation      =  massDistribution_%rotationCurve(radius  ,componentType,massType)
+  density               =  massDistribution_%density      (position,componentType,massType)
   if (density  <= 0.0d0) return
-  velocityDispersion                                      = +velocityRotation   &
-       &                                                    /sqrt(2.0d0)
-  xV                                                      = +velocity           &
-       &                                                    /velocityDispersion &
-       &                                                    /sqrt(2.0d0)
-  Node_Component_Spheroid_Standard_Chandrasekhar_Integral = -density              &
-       &                                                    *velocityCartesian    &
-       &                                                    /velocity         **3
-  if (Xv <= XvMaximum)                                                                                                    &
-       & Node_Component_Spheroid_Standard_Chandrasekhar_Integral=+Node_Component_Spheroid_Standard_Chandrasekhar_Integral &
-       &                                                         *(                                                       &
-       &                                                           +erf ( xV   )                                          &
-       &                                                           -2.0d0                                                 &
-       &                                                           *      xV                                              &
-       &                                                           *exp (-xV**2)                                          &
-       &                                                           /sqrt( Pi   )                                          &
-       &                                                         )
+  velocityDispersion    = +velocityRotation     &
+       &                  /sqrt(2.0d0)
+  xV                    = +velocity             &
+       &                  /velocityDispersion   &
+       &                  /sqrt(2.0d0)
+  integralChandrasekhar = -density              &
+       &                  *velocityCartesian    &
+       &                  /velocity         **3
+  if (Xv <= XvMaximum)                                &
+       & integralChandrasekhar=+integralChandrasekhar &
+       &                        *(                    &
+       &                          +erf ( xV   )       &
+       &                          -2.0d0              &
+       &                          *      xV           &
+       &                          *exp (-xV**2)       &
+       &                          /sqrt( Pi   )       &
+       &                        )
   return
 end function Node_Component_Spheroid_Standard_Chandrasekhar_Integral
 
-double precision function Node_Component_Spheroid_Standard_Rotation_Curve(self,radius,componentType,massType)
+double precision function Node_Component_Spheroid_Standard_Rotation_Curve(self,radius,componentType,massType) result(rotationCurve)
   !!{
-  Computes the rotation curve at a given radius for a standard spheroid.
+  Computes the rotation curve at a given radius for an standard spheroid.
   !!}
-  use :: Galactic_Structure_Options      , only : weightByMass                   , weightIndexNull, enumerationComponentTypeType, enumerationMassTypeType
-  use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+  use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType
+  use :: Mass_Distributions        , only : massDistributionClass
   implicit none
   class           (nodeComponentSpheroidStandard), intent(inout) :: self
   type            (enumerationComponentTypeType ), intent(in   ) :: componentType
   type            (enumerationMassTypeType      ), intent(in   ) :: massType
   double precision                               , intent(in   ) :: radius
-  double precision                                               :: componentMass
+  class           (massDistributionClass        ), pointer       :: massDistribution_
 
-  ! Set to zero by default.
-  Node_Component_Spheroid_Standard_Rotation_Curve=0.0d0
-
-  ! Return immediately for non-positive radius.
-  if (radius <= 0.0d0) return
-
-  ! Compute if a spheroid is present.
-  componentMass=self%enclosedMass(radius,componentType,massType,weightByMass,weightIndexNull)
-  if (componentMass > 0.0d0) Node_Component_Spheroid_Standard_Rotation_Curve=sqrt(gravitationalConstantGalacticus&
-       &*componentMass)/sqrt(radius)
+  massDistribution_ => self             %massDistribution(                             )
+  rotationCurve     =  massDistribution_%rotationCurve   (radius,componentType,massType)
   return
 end function Node_Component_Spheroid_Standard_Rotation_Curve
 
-double precision function Node_Component_Spheroid_Standard_Rotation_Curve_Gradient(self,radius,componentType,massType)
+double precision function Node_Component_Spheroid_Standard_Rotation_Curve_Gradient(self,radius,componentType,massType) result(rotationCurveGradient)
   !!{
-  Computes the rotation curve gradient for the standard spheroid.
+  Computes the rotation curve gradient for an standard spheroid.
   !!}
-  use :: Galactic_Structure_Options      , only : weightByMass                   , weightIndexNull, enumerationComponentTypeType, enumerationMassTypeType
-  use :: Numerical_Constants_Math        , only : Pi
-  use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+  use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType
+  use :: Mass_Distributions        , only : massDistributionClass
   implicit none
   class           (nodeComponentSpheroidStandard), intent(inout) :: self
   type            (enumerationComponentTypeType ), intent(in   ) :: componentType
   type            (enumerationMassTypeType      ), intent(in   ) :: massType
   double precision                               , intent(in   ) :: radius
-  double precision                                               :: componentDensity, componentMass, positionSpherical(3)
+  class           (massDistributionClass        ), pointer       :: massDistribution_
 
-  ! Set to zero by default.
-  Node_Component_Spheroid_Standard_Rotation_Curve_Gradient=0.0d0
-
-  ! Return immediatelt for non-positive radius.
-  if (radius <= 0.0d0) return
-
-  ! Compute if a spheroid is present.
-  positionSpherical= [radius,0.0d0,0.0d0]
-  componentMass    =self%enclosedMass(radius           ,componentType,massType,weightByMass,weightIndexNull)
-  componentDensity =self%density     (positionSpherical,componentType,massType,weightByMass,weightIndexNull)
-  if (componentMass == 0.0d0 .or. componentDensity == 0.0d0) return
-  Node_Component_Spheroid_Standard_Rotation_Curve_Gradient=  &
-       &                  gravitationalConstantGalacticus    &
-       &                 *(                                  &
-       &                   -componentMass/radius**2          &
-       &                   +4.0d0*Pi*radius*componentDensity &
-       &                  )
+  massDistribution_     => self             %massDistribution     (                             )
+  rotationCurveGradient =  massDistribution_%rotationCurveGradient(radius,componentType,massType)
   return
 end function Node_Component_Spheroid_Standard_Rotation_Curve_Gradient
 
-double precision function Node_Component_Spheroid_Standard_Density(self,positionSpherical,componentType,massType,weightBy,weightIndex)
+double precision function Node_Component_Spheroid_Standard_Density(self,positionSpherical,componentType,massType,weightBy,weightIndex) result(density)
   !!{
   Computes the density at a given position for an standard spheroid.
   !!}
-  use :: Coordinates                          , only : assignment(=)           , coordinateSpherical
-  use :: Galactic_Structure_Options           , only : componentTypeAll        , componentTypeSpheroid       , massTypeAll            , massTypeBaryonic       , &
-          &                                            massTypeGalactic        , massTypeGaseous             , massTypeStellar        , weightByLuminosity     , &
-          &                                            weightByMass            , enumerationComponentTypeType, enumerationMassTypeType, enumerationWeightByType
-  use :: Node_Component_Spheroid_Standard_Data, only : massDistributionSpheroid
+  use :: Coordinates               , only : assignment(=)                 , coordinateSpherical
+  use :: Galactic_Structure_Options, only : enumerationComponentTypeType  , enumerationMassTypeType, enumerationWeightByType, weightByLuminosity
+  use :: Mass_Distributions        , only : massDistributionClass
   implicit none
   class           (nodeComponentSpheroidStandard), intent(inout) :: self
   type            (enumerationComponentTypeType ), intent(in   ) :: componentType
@@ -289,61 +265,31 @@ double precision function Node_Component_Spheroid_Standard_Density(self,position
   type            (enumerationWeightByType      ), intent(in   ) :: weightBy
   integer                                        , intent(in   ) :: weightIndex
   double precision                               , intent(in   ) :: positionSpherical(3)
-  double precision                               , parameter     :: radiusHuge          =1.0d+100
-  type            (coordinateSpherical          )                :: position
+  class           (massDistributionClass        ), pointer       :: massDistribution_
   type            (stellarLuminosities          ), save          :: luminositiesSpheroid
   !$omp threadprivate(luminositiesSpheroid)
+  type            (coordinateSpherical          )                :: position
 
-  Node_Component_Spheroid_Standard_Density=0.0d0
-  if (.not.(componentType == componentTypeAll .or. componentType == componentTypeSpheroid)) return
 
-  ! Get the spheroid component and check that it is of the standard class.
-  select type (self)
-     class is (nodeComponentSpheroidStandard)
-
-     if (self%radius() <= 0.0d0 .or. self%radius() > radiusHuge) return
-     select case (weightBy%ID)
-     case (weightByMass      %ID)
-        select case (massType%ID)
-        case (massTypeAll%ID,massTypeBaryonic%ID,massTypeGalactic%ID)
-           Node_Component_Spheroid_Standard_Density=self%massGas()+self%massStellar()
-        case (massTypeGaseous%ID)
-           Node_Component_Spheroid_Standard_Density=self%massGas()
-        case (massTypeStellar%ID)
-           Node_Component_Spheroid_Standard_Density=               self%massStellar()
-        end select
-     case (weightByLuminosity%ID)
-        select case (massType%ID)
-        case (massTypeAll%ID,massTypeBaryonic%ID,massTypeGalactic%ID,massTypeStellar%ID)
-           luminositiesSpheroid=self%luminositiesStellar()
-           Node_Component_Spheroid_Standard_Density=luminositiesSpheroid%luminosity(weightIndex)
-        end select
-     end select
-     ! Return if density is zero.
-     if (Node_Component_Spheroid_Standard_Density <= 0.0d0) then
-        Node_Component_Spheroid_Standard_Density=0.0d0
-        return
-     end if
-     ! Compute actual density.
-     position=[positionSpherical(1)/self%radius(),0.0d0,0.0d0]
-     Node_Component_Spheroid_Standard_Density       =+Node_Component_Spheroid_Standard_Density                      &
-          &                                          *massDistributionSpheroid                %density(position)
-     if (Node_Component_Spheroid_Standard_Density > 0.0d0)                                                          &
-          & Node_Component_Spheroid_Standard_Density=+Node_Component_Spheroid_Standard_Density                      &
-          &                                          /self                                    %radius (        )**3
-  end select
+  position          =  positionSpherical
+  massDistribution_ => self             %massDistribution(                               )
+  density           =  massDistribution_%density         (position,componentType,massType)
+  if (density  <= 0.0d0             ) return
+  if (weightBy == weightByLuminosity) then
+     luminositiesSpheroid= self                %luminositiesStellar(                      )
+     density             =+density                                                          &
+          &               *luminositiesSpheroid%luminosity         (weightIndex           ) &
+          &               /massDistribution_   %massTotal          (componentType,massType)
+  end if  
   return
 end function Node_Component_Spheroid_Standard_Density
 
-double precision function Node_Component_Spheroid_Standard_Density_Spherical_Average(self,radius,componentType,massType,weightBy,weightIndex)
+double precision function Node_Component_Spheroid_Standard_Density_Spherical_Average(self,radius,componentType,massType,weightBy,weightIndex) result(density)
   !!{
-  Computes the spherically-averaged density at a given radius for an standard spheroid.
+  Computes the density at a given position for an standard spheroid.
   !!}
-  use :: Coordinates                          , only : assignment(=)           , coordinateSpherical
-  use :: Galactic_Structure_Options           , only : componentTypeAll        , componentTypeSpheroid       , massTypeAll            , massTypeBaryonic       , &
-          &                                            massTypeGalactic        , massTypeGaseous             , massTypeStellar        , weightByLuminosity     , &
-          &                                            weightByMass            , enumerationComponentTypeType, enumerationMassTypeType, enumerationWeightByType
-  use :: Node_Component_Spheroid_Standard_Data, only : massDistributionSpheroid
+  use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType, enumerationWeightByType, weightByLuminosity
+  use :: Mass_Distributions        , only : massDistributionClass
   implicit none
   class           (nodeComponentSpheroidStandard), intent(inout) :: self
   type            (enumerationComponentTypeType ), intent(in   ) :: componentType
@@ -351,87 +297,41 @@ double precision function Node_Component_Spheroid_Standard_Density_Spherical_Ave
   type            (enumerationWeightByType      ), intent(in   ) :: weightBy
   integer                                        , intent(in   ) :: weightIndex
   double precision                               , intent(in   ) :: radius
-  double precision                               , parameter     :: radiusHuge          =1.0d+100
-  type            (coordinateSpherical          )                :: position
   type            (stellarLuminosities          ), save          :: luminositiesSpheroid
   !$omp threadprivate(luminositiesSpheroid)
+  class           (massDistributionClass        ), pointer       :: massDistribution_
 
-  Node_Component_Spheroid_Standard_Density_Spherical_Average=0.0d0
-  if (.not.(componentType == componentTypeAll .or. componentType == componentTypeSpheroid)) return
-
-  ! Get the spheroid component and check that it is of the standard class.
-  select type (self)
-     class is (nodeComponentSpheroidStandard)
-
-     if (self%radius() <= 0.0d0 .or. self%radius() > radiusHuge) return
-     select case (weightBy%ID)
-     case (weightByMass      %ID)
-        select case (massType%ID)
-        case (massTypeAll%ID,massTypeBaryonic%ID,massTypeGalactic%ID)
-           Node_Component_Spheroid_Standard_Density_Spherical_Average=self%massGas()+self%massStellar()
-        case (massTypeGaseous%ID)
-           Node_Component_Spheroid_Standard_Density_Spherical_Average=self%massGas()
-        case (massTypeStellar%ID)
-           Node_Component_Spheroid_Standard_Density_Spherical_Average=               self%massStellar()
-        end select
-     case (weightByLuminosity%ID)
-        select case (massType%ID)
-        case (massTypeAll%ID,massTypeBaryonic%ID,massTypeGalactic%ID,massTypeStellar%ID)
-           luminositiesSpheroid=self%luminositiesStellar()
-           Node_Component_Spheroid_Standard_Density_Spherical_Average=luminositiesSpheroid%luminosity(weightIndex)
-        end select
-     end select
-     ! Return if density is zero.
-     if (Node_Component_Spheroid_Standard_Density_Spherical_Average <= 0.0d0) then
-        Node_Component_Spheroid_Standard_Density_Spherical_Average=0.0d0
-        return
-     end if
-     ! Compute actual density.
-     position=[radius/self%radius(),0.0d0,0.0d0]
-     Node_Component_Spheroid_Standard_Density_Spherical_Average       =+Node_Component_Spheroid_Standard_Density_Spherical_Average     &
-          &                                                            *massDistributionSpheroid                %density(position)
-     if (Node_Component_Spheroid_Standard_Density_Spherical_Average > 0.0d0)                                                           &
-          & Node_Component_Spheroid_Standard_Density_Spherical_Average=+Node_Component_Spheroid_Standard_Density_Spherical_Average     &
-          &                                                             /self                                    %radius (        )**3
-  end select
+  massDistribution_ => self             %massDistribution       (                             )
+  density           =  massDistribution_%densitySphericalAverage(radius,componentType,massType)
+  if (density  <= 0.0d0             ) return
+  if (weightBy == weightByLuminosity) then
+     luminositiesSpheroid= self                %luminositiesStellar(                      )
+     density             =+density                                                          &
+          &               *luminositiesSpheroid%luminosity         (weightIndex           ) &
+          &               /massDistribution_   %massTotal          (componentType,massType)
+  end if
   return
-end function Node_Component_Spheroid_Standard_Density_Spherical_Average
+ end function Node_Component_Spheroid_Standard_Density_Spherical_Average
 
-double precision function Node_Component_Spheroid_Standard_Potential(self,radius,componentType,massType,status)
-  use :: Coordinates                          , only : assignment(=)                  , coordinateSpherical
-  use :: Galactic_Structure_Options           , only : radiusLarge                    , weightByMass                     , weightIndexNull, enumerationComponentTypeType, &
-       &                                               enumerationMassTypeType        , enumerationStructureErrorCodeType
-  use :: Node_Component_Spheroid_Standard_Data, only : massDistributionSpheroid
-  use :: Numerical_Constants_Astronomical     , only : gravitationalConstantGalacticus
+double precision function Node_Component_Spheroid_Standard_Potential(self,radius,componentType,massType,status) result(potential)
   !!{
-  Return the potential due to the standard spheroid.
+  Compute the gravitational potential due to an standard spheroid.
   !!}
+  use :: Coordinates               , only : assignment(=)               , coordinateSpherical
+  use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType, enumerationStructureErrorCodeType
+  use :: Mass_Distributions        , only : massDistributionClass
+  implicit none
   class           (nodeComponentSpheroidStandard    ), intent(inout)           :: self
   type            (enumerationComponentTypeType     ), intent(in   )           :: componentType
   type            (enumerationMassTypeType          ), intent(in   )           :: massType
   double precision                                   , intent(in   )           :: radius
   type            (enumerationStructureErrorCodeType), intent(inout), optional :: status
-  double precision                                                             :: componentMass
+  class           (massDistributionClass            ), pointer                 :: massDistribution_
   type            (coordinateSpherical              )                          :: position
   !$GLC attributes unused :: status
 
-  ! Set to zero by default.
-  Node_Component_Spheroid_Standard_Potential=0.0d0
-
-  ! Return immediately for non-positive radius.
-  if (radius <= 0.0d0) return
-
-  ! Get the spheroid component and check that it is of the standard class.
-  select type (self)
-  class is (nodeComponentSpheroidStandard)
-     ! Compute if a spheroid is present.
-     componentMass=self%enclosedMass(radiusLarge,componentType,massType,weightByMass&
-          &,weightIndexNull)
-     if (componentMass > 0.0d0 .and. self%radius() > 0.0d0) then
-        position=[radius/self%radius(),0.0d0,0.0d0]
-        Node_Component_Spheroid_Standard_Potential=(gravitationalConstantGalacticus*componentMass&
-             &/self%radius())*massDistributionSpheroid%potential(position)
-     end if
-  end select
+  position          =  [radius,0.0d0,0.0d0]
+  massDistribution_ => self             %massDistribution(                               )
+  potential         =  massDistribution_%potential       (position,componentType,massType)
   return
 end function Node_Component_Spheroid_Standard_Potential

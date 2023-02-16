@@ -43,28 +43,76 @@ subroutine Node_Component_Disk_Standard_Attach_Pipes(self)
   return
 end subroutine Node_Component_Disk_Standard_Attach_Pipes
 
-double precision function Node_Component_Disk_Standard_Half_Mass_Radius(self)
+function Node_Component_Disk_Standard_Mass_Distribution(self) result(massDistribution_)
+  !!{
+  Return the mass distribution for the standard disk component.
+  !!}
+   use :: Mass_Distributions              , only : massDistributionClass      , massDistributionCylindricalScaler, massDistributionComposite, massDistributionList, &
+        &                                          massDistributionCylindrical
+  use :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_   , massDistributionGas_
+  use :: Galactic_Structure_Options       , only : componentTypeDisk          , massTypeStellar                  , massTypeGaseous
+  implicit none
+  class(massDistributionClass            ), pointer       :: massDistribution_
+  class(nodeComponentDiskStandard        ), intent(inout) :: self
+  type (massDistributionCylindricalScaler), pointer       :: massDistributionStellar   , massDistributionGas
+  type (massDistributionComposite        ), pointer       :: massDistributionTotal
+  type (massDistributionList             ), pointer       :: massDistributionComponents
+
+  ! Wrap the dimensionless mass distribution inside scaler classes to allow us to re-scale it to any disk system, and then composite those.
+  allocate(massDistributionStellar        )
+  allocate(massDistributionGas            )
+  allocate(massDistributionTotal          )
+  allocate(massDistributionComponents     )
+  allocate(massDistributionComponents%next)
+  massDistributionComponents     %massDistribution_ => massDistributionStellar
+  massDistributionComponents%next%massDistribution_ => massDistributionGas
+  select type (massDistributionStellar_)
+  class is (massDistributionCylindrical)
+     !![
+     <referenceConstruct object="massDistributionStellar" constructor="massDistributionCylindricalScaler(factorScalingLength=self%radius(),factorScalingMass=self%massStellar(),massDistribution_=massDistributionStellar_  )"/>
+     !!]
+  end select
+  select type (massDistributionGas_    )
+  class is (massDistributionCylindrical)
+     !![
+     <referenceConstruct object="massDistributionGas"     constructor="massDistributionCylindricalScaler(factorScalingLength=self%radius(),factorScalingMass=self%massGas    (),massDistribution_=massDistributionGas_      )"/>
+     !!]
+  end select
+  !![
+  <referenceConstruct    object="massDistributionTotal"   constructor="massDistributionComposite        (                                                                                         massDistributionComponents)"/>
+  !!]
+  ! Return a pointer to the disk mass distribution.
+  massDistribution_ => massDistributionTotal
+  return
+end function Node_Component_Disk_Standard_Mass_Distribution
+
+double precision function Node_Component_Disk_Standard_Half_Mass_Radius(self) result(radiusHalfMass)
   !!{
   Return the half-mass radius of the standard disk.
   !!}
   use :: Error                            , only : Error_Report
-  use :: Node_Component_Disk_Standard_Data, only : massDistributionDisk
+  use :: Mass_Distributions               , only : massDistributionCylindrical
+  use :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_
   implicit none
   class(nodeComponentDiskStandard), intent(inout) :: self
 
-  Node_Component_Disk_Standard_Half_Mass_Radius=self%radius()*massDistributionDisk%radiusHalfMass()
+  select type (massDistributionStellar_)
+  class is (massDistributionCylindrical)
+     radiusHalfMass=+massDistributionStellar_%radiusHalfMass() &
+          &         *self                    %radius        ()
+  class default
+     radiusHalfMass=0.0d0
+     call Error_Report('disk mass distribution is not cylindrically-symmetric'//{introspection:location})
+  end select
   return
 end function Node_Component_Disk_Standard_Half_Mass_Radius
 
-double precision function Node_Component_Disk_Standard_Enclosed_Mass(self,radius,componentType,massType,weightBy,weightIndex)
+double precision function Node_Component_Disk_Standard_Enclosed_Mass(self,radius,componentType,massType,weightBy,weightIndex) result(massEnclosed)
   !!{
   Computes the mass within a given radius for an standard disk.
   !!}
-  use :: Galactic_Structure_Options       , only : componentTypeAll    , componentTypeDisk, massTypeAll                 , massTypeBaryonic       , &
-          &                                        massTypeGalactic    , massTypeGaseous  , massTypeStellar             , radiusLarge            , &
-          &                                        weightByLuminosity  , weightByMass     , enumerationComponentTypeType, enumerationMassTypeType, &
-          &                                        enumerationWeightByType
-  use :: Node_Component_Disk_Standard_Data, only : massDistributionDisk
+  use :: Galactic_Structure_Options, only : weightByLuminosity   , enumerationComponentTypeType, enumerationMassTypeType, enumerationWeightByType
+  use :: Mass_Distributions        , only : massDistributionClass
   implicit none
   class           (nodeComponentDiskStandard   ), intent(inout) :: self
   type            (enumerationComponentTypeType), intent(in   ) :: componentType
@@ -72,150 +120,74 @@ double precision function Node_Component_Disk_Standard_Enclosed_Mass(self,radius
   type            (enumerationWeightByType     ), intent(in   ) :: weightBy
   integer                                       , intent(in   ) :: weightIndex
   double precision                              , intent(in   ) :: radius
-  double precision                                              :: radiusDisk      , fractionalRadius
+  class           (massDistributionClass       ), pointer       :: massDistribution_
   type            (stellarLuminosities         ), save          :: luminositiesDisk
   !$omp threadprivate(luminositiesDisk)
 
-  ! Return immediately if disk component is not requested.
-  Node_Component_Disk_Standard_Enclosed_Mass=0.0d0
-  if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDisk)) return
-  ! Get the total mass.
-  select case (weightBy%ID)
-  case (weightByMass      %ID)
-     select case (massType%ID)
-     case (massTypeAll%ID,massTypeBaryonic%ID,massTypeGalactic%ID)
-        Node_Component_Disk_Standard_Enclosed_Mass=self%massGas()+self%massStellar()
-     case (massTypeGaseous%ID)
-        Node_Component_Disk_Standard_Enclosed_Mass=self%massGas()
-     case (massTypeStellar%ID)
-        Node_Component_Disk_Standard_Enclosed_Mass=               self%massStellar()
-     end select
-  case (weightByLuminosity%ID)
-     select case (massType%ID)
-     case (massTypeAll%ID,massTypeBaryonic%ID,massTypeGalactic%ID,massTypeStellar%ID)
-        luminositiesDisk=self%luminositiesStellar()
-        Node_Component_Disk_Standard_Enclosed_Mass   =luminositiesDisk%luminosity(weightIndex)
-     end select
-  end select
-  ! Return if no mass.
-  if (Node_Component_Disk_Standard_Enclosed_Mass <=       0.0d0) return
-  ! Return if the total mass was requested.
-  if (radius                                     >= radiusLarge) return
-  ! Compute the actual mass.
-  radiusDisk=self%radius()
-  if (radiusDisk > 0.0d0) then
-     fractionalRadius=radius/radiusDisk
-     Node_Component_Disk_Standard_Enclosed_Mass=                         &
-          & +Node_Component_Disk_Standard_Enclosed_Mass                  &
-          & *massDistributionDisk%massEnclosedBySphere(fractionalRadius)
+  massDistribution_ => self             %massDistribution    (                             )
+  massEnclosed      =  massDistribution_%massEnclosedBySphere(radius,componentType,massType)
+  if (massEnclosed <= 0.0d0             ) return
+  if (weightBy     == weightByLuminosity) then
+        luminositiesDisk= self%luminositiesStellar()
+        massEnclosed    =+massEnclosed                                         &
+             &           *luminositiesDisk %luminosity(weightIndex           ) &
+             &           /massDistribution_%massTotal (componentType,massType)
   end if
   return
 end function Node_Component_Disk_Standard_Enclosed_Mass
 
-function Node_Component_Disk_Standard_Acceleration(self,positionCartesian,componentType,massType)
+function Node_Component_Disk_Standard_Acceleration(self,positionCartesian,componentType,massType) result(acceleration)
   !!{
   Computes the gravitational acceleration at a given position for a standard disk.
   !!}
-  use :: Coordinates                      , only : assignment(=)       , coordinateCartesian
-  use :: Galactic_Structure_Options       , only : componentTypeAll    , componentTypeDisk  , massTypeAll                    , massTypeBaryonic            , &
-       &                                           massTypeGalactic    , massTypeGaseous    , massTypeStellar                , enumerationComponentTypeType, &
-       &                                           enumerationMassTypeType
-  use :: Node_Component_Disk_Standard_Data, only : massDistributionDisk
-  use :: Numerical_Constants_Astronomical , only : gigaYear            , megaParsec         , gravitationalConstantGalacticus
-  use :: Numerical_Constants_Prefixes     , only : kilo
+  use :: Coordinates               , only : assignment(=)               , coordinateCartesian
+  use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType
+  use :: Mass_Distributions        , only : massDistributionClass
   implicit none
-  double precision                                             , dimension(3) :: Node_Component_Disk_Standard_Acceleration
+  double precision                                             , dimension(3) :: acceleration
   class           (nodeComponentDiskStandard   ), intent(inout)               :: self
   double precision                              , intent(in   ), dimension(3) :: positionCartesian
   type            (enumerationComponentTypeType), intent(in   )               :: componentType
   type            (enumerationMassTypeType     ), intent(in   )               :: massType
-  double precision                                                            :: radius                                   , massTotal
-  type            (coordinateCartesian         )                              :: positionScaleFree
+  class           (massDistributionClass       ), pointer                     :: massDistribution_
+  type            (coordinateCartesian         )                              :: position
 
-  ! Return if the disk component is not selected.
-  Node_Component_Disk_Standard_Acceleration=0.0d0
-  if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDisk)) return
-  ! Determine total mass.
-  select case (massType%ID)
-  case (massTypeAll%ID,massTypeBaryonic%ID,massTypeGalactic%ID)
-     massTotal=self%massGas()+self%massStellar()
-  case (massTypeGaseous%ID)
-     massTotal=self%massGas()
-  case (massTypeStellar%ID)
-     massTotal=               self%massStellar()
-  case default
-     massTotal=0.0d0
-  end select
-  ! Return if no mass.
-  if (massTotal <= 0.0d0 .or. self%radius() <= 0.0d0) return
-  ! Compute the acceleration.
-  radius           =sqrt(sum(positionCartesian**2))
-  positionScaleFree=positionCartesian/self%radius()
-  Node_Component_Disk_Standard_Acceleration=+kilo                                                    &
-         &                                  *gigaYear                                                &
-         &                                  /megaParsec                                              &
-         &                                  *gravitationalConstantGalacticus                         &
-         &                                  *massTotal                                               &
-         &                                  /self%radius()                                       **2 &
-         &                                  *massDistributionDisk%acceleration(positionScaleFree)
+  position          =  positionCartesian
+  massDistribution_ => self             %massDistribution(                               )
+  acceleration      =  massDistribution_%acceleration    (position,componentType,massType)
   return
 end function Node_Component_Disk_Standard_Acceleration
 
-function Node_Component_Disk_Standard_Tidal_Tensor(self,positionCartesian,componentType,massType)
+function Node_Component_Disk_Standard_Tidal_Tensor(self,positionCartesian,componentType,massType) result(tidalTensor)
   !!{
   Computes the gravitational acceleration at a given position for a standard disk.
   !!}
-  use :: Coordinates                      , only : assignment(=)                  , coordinateCartesian
-  use :: Galactic_Structure_Options       , only : componentTypeAll               , componentTypeDisk  , massTypeAll    , massTypeBaryonic            , &
-       &                                           massTypeGalactic               , massTypeGaseous    , massTypeStellar, enumerationComponentTypeType, &
-       &                                           enumerationMassTypeType
-  use :: Node_Component_Disk_Standard_Data, only : massDistributionDisk
-  use :: Numerical_Constants_Astronomical , only : gravitationalConstantGalacticus
-  use :: Tensors                          , only : tensorRank2Dimension3Symmetric , tensorNullR2D3Sym  , operator(*)
+  use :: Coordinates               , only : assignment(=)                 , coordinateCartesian
+  use :: Galactic_Structure_Options, only : enumerationComponentTypeType  , enumerationMassTypeType
+  use :: Mass_Distributions        , only : massDistributionClass
+  use :: Tensors                   , only : tensorRank2Dimension3Symmetric
   implicit none
-  type            (tensorRank2Dimension3Symmetric)                              :: Node_Component_Disk_Standard_Tidal_Tensor
+  type            (tensorRank2Dimension3Symmetric)                              :: tidalTensor
   class           (nodeComponentDiskStandard     ), intent(inout)               :: self
   double precision                                , intent(in   ), dimension(3) :: positionCartesian
   type            (enumerationComponentTypeType  ), intent(in   )               :: componentType
   type            (enumerationMassTypeType       ), intent(in   )               :: massType
-  double precision                                                              :: radius                                   , massTotal
-  type            (coordinateCartesian           )                              :: positionScaleFree
+  class           (massDistributionClass         ), pointer                     :: massDistribution_
+  type            (coordinateCartesian           )                              :: position
 
-  ! Return if the disk component is not selected.q
-  Node_Component_Disk_Standard_Tidal_Tensor=tensorNullR2D3Sym
-  if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDisk)) return
-  ! Determine total mass.
-  select case (massType%ID)
-  case (massTypeAll%ID,massTypeBaryonic%ID,massTypeGalactic%ID)
-     massTotal=self%massGas()+self%massStellar()
-  case (massTypeGaseous%ID)
-     massTotal=self%massGas()
-  case (massTypeStellar%ID)
-     massTotal=               self%massStellar()
-  case default
-     massTotal=0.0d0
-  end select
-  ! Return if no mass.
-  if (massTotal <= 0.0d0 .or. self%radius() <= 0.0d0) return
-  ! Compute the acceleration.
-  radius           =sqrt(sum(positionCartesian**2))
-  positionScaleFree=positionCartesian/self%radius()
-  Node_Component_Disk_Standard_Tidal_Tensor=+gravitationalConstantGalacticus                        &
-         &                                  *massTotal                                              &
-         &                                  /self%radius()                                      **3 &
-         &                                  *massDistributionDisk%tidalTensor(positionScaleFree)
+  position          =  positionCartesian
+  massDistribution_ => self             %massDistribution(                               )
+  tidalTensor       =  massDistribution_%tidalTensor     (position,componentType,massType)
   return
 end function Node_Component_Disk_Standard_Tidal_Tensor
 
-double precision function Node_Component_Disk_Standard_Density(self,positionSpherical,componentType,massType,weightBy,weightIndex)
+double precision function Node_Component_Disk_Standard_Density(self,positionSpherical,componentType,massType,weightBy,weightIndex) result(density)
   !!{
   Computes the density at a given position for an standard disk.
   !!}
-  use :: Coordinates                      , only : assignment(=)       , coordinateSpherical
-  use :: Galactic_Structure_Options       , only : componentTypeAll    , componentTypeDisk           , massTypeAll            , massTypeBaryonic       , &
-          &                                        massTypeGalactic    , massTypeGaseous             , massTypeStellar        , weightByLuminosity     , &
-          &                                        weightByMass        , enumerationComponentTypeType, enumerationMassTypeType, enumerationWeightByType
-  use :: Node_Component_Disk_Standard_Data, only : massDistributionDisk
+  use :: Coordinates               , only : assignment(=)                 , coordinateSpherical
+  use :: Galactic_Structure_Options, only : enumerationComponentTypeType  , enumerationMassTypeType, enumerationWeightByType, weightByLuminosity
+  use :: Mass_Distributions        , only : massDistributionClass
   implicit none
   class           (nodeComponentDiskStandard   ), intent(inout) :: self
   type            (enumerationComponentTypeType), intent(in   ) :: componentType
@@ -223,50 +195,31 @@ double precision function Node_Component_Disk_Standard_Density(self,positionSphe
   type            (enumerationWeightByType     ), intent(in   ) :: weightBy
   integer                                       , intent(in   ) :: weightIndex
   double precision                              , intent(in   ) :: positionSpherical(3)
+  class           (massDistributionClass       ), pointer       :: massDistribution_
   type            (stellarLuminosities         ), save          :: luminositiesDisk
   !$omp threadprivate(luminositiesDisk)
   type            (coordinateSpherical         )                :: position
 
-  ! Return immediately if disk component is not requested.
-  Node_Component_Disk_Standard_Density=0.0d0
-  if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDisk)) return
-  ! Determine mass/luminosity type.
-  select case (weightBy%ID)
-  case (weightByMass      %ID)
-     select case (massType%ID)
-     case (massTypeAll%ID,massTypeBaryonic%ID,massTypeGalactic%ID)
-        Node_Component_Disk_Standard_Density=self%massGas()+self%massStellar()
-     case (massTypeGaseous%ID)
-        Node_Component_Disk_Standard_Density=self%massGas()
-     case (massTypeStellar%ID)
-        Node_Component_Disk_Standard_Density=               self%massStellar()
-     end select
-  case (weightByLuminosity%ID)
-     select case (massType%ID)
-     case (massTypeAll%ID,massTypeBaryonic%ID,massTypeGalactic%ID,massTypeStellar%ID)
-        luminositiesDisk=self%luminositiesStellar()
-        Node_Component_Disk_Standard_Density=luminositiesDisk%luminosity(weightIndex)
-     end select
-  end select
-  ! Skip further calculation if mass or radius is zero.
-  if (Node_Component_Disk_Standard_Density > 0.0d0 .and. self%radius() > 0.0d0) then
-     ! Compute the actual density.
-      position=[positionSpherical(1)/self%radius(),positionSpherical(2),positionSpherical(3)]
-      Node_Component_Disk_Standard_Density=+Node_Component_Disk_Standard_Density      &
-           &                               /self                %radius (        )**3 &
-           &                               *massDistributionDisk%density(position)
-   end if
-   return
+
+  position          =  positionSpherical
+  massDistribution_ => self             %massDistribution(                               )
+  density           =  massDistribution_%density         (position,componentType,massType)
+  if (density  <= 0.0d0             ) return
+  if (weightBy == weightByLuminosity) then
+     luminositiesDisk= self%luminositiesStellar()
+     density         =+density                                              &
+          &           *luminositiesDisk %luminosity(weightIndex           ) &
+          &           /massDistribution_%massTotal (componentType,massType)
+  end if  
+  return
 end function Node_Component_Disk_Standard_Density
 
-double precision function Node_Component_Disk_Standard_Density_Spherical_Average(self,radius,componentType,massType,weightBy,weightIndex)
+double precision function Node_Component_Disk_Standard_Density_Spherical_Average(self,radius,componentType,massType,weightBy,weightIndex) result(density)
   !!{
   Computes the density at a given position for an standard disk.
   !!}
-  use :: Galactic_Structure_Options       , only : componentTypeAll    , componentTypeDisk           , massTypeAll            , massTypeBaryonic       , &
-          &                                        massTypeGalactic    , massTypeGaseous             , massTypeStellar        , weightByLuminosity     , &
-          &                                        weightByMass        , enumerationComponentTypeType, enumerationMassTypeType, enumerationWeightByType
-  use :: Node_Component_Disk_Standard_Data, only : massDistributionDisk
+  use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType, enumerationWeightByType, weightByLuminosity
+  use :: Mass_Distributions        , only : massDistributionClass
   implicit none
   class           (nodeComponentDiskStandard   ), intent(inout) :: self
   type            (enumerationComponentTypeType), intent(in   ) :: componentType
@@ -276,163 +229,86 @@ double precision function Node_Component_Disk_Standard_Density_Spherical_Average
   double precision                              , intent(in   ) :: radius
   type            (stellarLuminosities         ), save          :: luminositiesDisk
   !$omp threadprivate(luminositiesDisk)
+  class           (massDistributionClass       ), pointer       :: massDistribution_
 
-  ! Return immediately if disk component is not requested.
-  Node_Component_Disk_Standard_Density_Spherical_Average=0.0d0
-  if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDisk)) return
-  ! Determine mass/luminosity type.
-  select case (weightBy%ID)
-  case (weightByMass      %ID)
-     select case (massType%ID)
-     case (massTypeAll%ID,massTypeBaryonic%ID,massTypeGalactic%ID)
-        Node_Component_Disk_Standard_Density_Spherical_Average=self%massGas()+self%massStellar()
-     case (massTypeGaseous%ID)
-        Node_Component_Disk_Standard_Density_Spherical_Average=self%massGas()
-     case (massTypeStellar%ID)
-        Node_Component_Disk_Standard_Density_Spherical_Average=               self%massStellar()
-     end select
-  case (weightByLuminosity%ID)
-     select case (massType%ID)
-     case (massTypeAll%ID,massTypeBaryonic%ID,massTypeGalactic%ID,massTypeStellar%ID)
-        luminositiesDisk=self%luminositiesStellar()
-        Node_Component_Disk_Standard_Density_Spherical_Average=luminositiesDisk%luminosity(weightIndex)
-     end select
-  end select
-  ! Skip further calculation if mass or radius is zero.
-  if (Node_Component_Disk_Standard_Density_Spherical_Average > 0.0d0 .and. self%radius() > 0.0d0) then
-     ! Compute the actual density.
-      Node_Component_Disk_Standard_Density_Spherical_Average=+Node_Component_Disk_Standard_Density_Spherical_Average                &
-           &                                                 /self                %radius                 (                    )**3 &
-           &                                                 *massDistributionDisk%densitySphericalAverage(radius/self%radius())
-   end if
-   return
+  massDistribution_ => self             %massDistribution       (                             )
+  density           =  massDistribution_%densitySphericalAverage(radius,componentType,massType)
+  if (density  <= 0.0d0             ) return
+  if (weightBy == weightByLuminosity) then
+     luminositiesDisk= self%luminositiesStellar()
+     density         =+density                                              &
+          &           *luminositiesDisk %luminosity(weightIndex           ) &
+          &           /massDistribution_%massTotal (componentType,massType)
+  end if
+  return
  end function Node_Component_Disk_Standard_Density_Spherical_Average
 
-double precision function Node_Component_Disk_Standard_Potential(self,radius,componentType,massType,status)
+double precision function Node_Component_Disk_Standard_Potential(self,radius,componentType,massType,status) result(potential)
   !!{
   Compute the gravitational potential due to an standard disk.
   !!}
-  use :: Coordinates                      , only : assignment(=)                  , coordinateCylindrical
-  use :: Galactic_Structure_Options       , only : componentTypeAll               , componentTypeDisk           , radiusLarge            , weightByMass                     , &
-          &                                        weightIndexNull                , enumerationComponentTypeType, enumerationMassTypeType, enumerationStructureErrorCodeType
-  use :: Node_Component_Disk_Standard_Data, only : massDistributionDisk
-  use :: Numerical_Constants_Astronomical , only : gravitationalConstantGalacticus
+  use :: Coordinates               , only : assignment(=)               , coordinateCylindrical
+  use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType, enumerationStructureErrorCodeType
+  use :: Mass_Distributions        , only : massDistributionClass
   implicit none
   class           (nodeComponentDiskStandard        ), intent(inout)           :: self
   type            (enumerationComponentTypeType     ), intent(in   )           :: componentType
   type            (enumerationMassTypeType          ), intent(in   )           :: massType
   double precision                                   , intent(in   )           :: radius
   type            (enumerationStructureErrorCodeType), intent(inout), optional :: status
-  double precision                                                             :: componentMass
+  class           (massDistributionClass            ), pointer                 :: massDistribution_
   type            (coordinateCylindrical            )                          :: position
   !$GLC attributes unused :: status
 
-  ! Return immediately if disk component is not requested.
-  Node_Component_Disk_Standard_Potential=0.0d0
-  if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDisk)) return
-  ! Avoid an arithmetic exception at radius zero.
-  if (radius <= 0.0d0) return
-  ! Get the relevant mass of the disk.
-  componentMass=self%enclosedMass(radiusLarge,componentType,massType,weightByMass,weightIndexNull)
-  if (componentMass <= 0.0d0) return
-  ! Check for zero-sized disk.
-  if (self%radius() <= 0.0d0) then
-     ! Treat as a point mass.
-     Node_Component_Disk_Standard_Potential=-gravitationalConstantGalacticus          &
-          &                                 *componentMass                            &
-          &                                 /radius
-  else
-     ! Compute the potential.
-     position=[radius/self%radius(),0.0d0,0.0d0]
-     Node_Component_Disk_Standard_Potential=+gravitationalConstantGalacticus          &
-          &                                 *componentMass                            &
-          &                                 /self%radius()                            &
-          &                                 *massDistributionDisk%potential(position)
-  end if
+  position          =  [radius,0.0d0,0.0d0]
+  massDistribution_ => self             %massDistribution(                               )
+  potential         =  massDistribution_%potential       (position,componentType,massType)
   return
 end function Node_Component_Disk_Standard_Potential
 
-double precision function Node_Component_Disk_Standard_Rotation_Curve(self,radius,componentType,massType)
+double precision function Node_Component_Disk_Standard_Rotation_Curve(self,radius,componentType,massType) result(rotationCurve)
   !!{
   Computes the rotation curve at a given radius for an standard disk.
   !!}
-  use :: Galactic_Structure_Options       , only : radiusLarge                    , weightByMass, weightIndexNull, enumerationComponentTypeType, &
-       &                                           enumerationMassTypeType
-  use :: Node_Component_Disk_Standard_Data, only : massDistributionDisk
-  use :: Numerical_Constants_Astronomical , only : gravitationalConstantGalacticus
+  use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType
+  use :: Mass_Distributions        , only : massDistributionClass
   implicit none
   class           (nodeComponentDiskStandard   ), intent(inout) :: self
   type            (enumerationComponentTypeType), intent(in   ) :: componentType
   type            (enumerationMassTypeType     ), intent(in   ) :: massType
   double precision                              , intent(in   ) :: radius
-  double precision                                              :: componentMass, radiusDisk, fractionalRadius
+  class           (massDistributionClass       ), pointer       :: massDistribution_
 
-  ! Set to zero by default.
-  Node_Component_Disk_Standard_Rotation_Curve=0.0d0
-  ! Get the mass of the disk.
-  componentMass=self%enclosedMass(radiusLarge,componentType,massType,weightByMass,weightIndexNull)
-  if (componentMass <= 0.0d0) return
-  ! Compute the actual velocity.
-  radiusDisk=self%radius()
-  if (radiusDisk > 0.0d0) then
-     fractionalRadius=radius/radiusDisk
-     Node_Component_Disk_Standard_Rotation_Curve=+sqrt(                                                &
-          &                                            +gravitationalConstantGalacticus                &
-          &                                            *componentMass                                  &
-          &                                            /radiusDisk                                     &
-          &                                           )                                                &
-          &                                      *massDistributionDisk%rotationCurve(fractionalRadius)
-  end if
+  massDistribution_ => self             %massDistribution(                             )
+  rotationCurve     =  massDistribution_%rotationCurve   (radius,componentType,massType)
   return
 end function Node_Component_Disk_Standard_Rotation_Curve
 
-double precision function Node_Component_Disk_Standard_Rotation_Curve_Gradient(self,radius,componentType,massType)
+double precision function Node_Component_Disk_Standard_Rotation_Curve_Gradient(self,radius,componentType,massType) result(rotationCurveGradient)
   !!{
   Computes the rotation curve gradient for an standard disk.
   !!}
-  use :: Galactic_Structure_Options       , only : radiusLarge                    , weightByMass, weightIndexNull, enumerationComponentTypeType, &
-       &                                           enumerationMassTypeType
-  use :: Node_Component_Disk_Standard_Data, only : massDistributionDisk
-  use :: Numerical_Constants_Astronomical , only : gravitationalConstantGalacticus
+  use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType
+  use :: Mass_Distributions        , only : massDistributionClass
   implicit none
   class           (nodeComponentDiskStandard   ), intent(inout) :: self
   type            (enumerationComponentTypeType), intent(in   ) :: componentType
   type            (enumerationMassTypeType     ), intent(in   ) :: massType
   double precision                              , intent(in   ) :: radius
-  double precision                                              :: radiusDisk   , fractionalRadius, &
-       &                                                           componentMass
+  class           (massDistributionClass       ), pointer       :: massDistribution_
 
-  ! Set to zero by default.
-  Node_Component_Disk_Standard_Rotation_Curve_Gradient=0.0d0
-  ! Return if radius is zero.
-  if (radius <= 0.0d0) return
-  ! Get the mass of the disk.
-  componentMass=self%enclosedMass(radiusLarge,componentType,massType,weightByMass,weightIndexNull)
-  if (componentMass <= 0.0d0) return
-  ! Compute the rotation curve gradient.
-  radiusDisk=self%radius()
-  if (radiusDisk > 0.0d0) then
-     fractionalRadius=radius/radiusDisk
-     Node_Component_Disk_Standard_Rotation_Curve_Gradient=+gravitationalConstantGalacticus                              &
-          &                                               *componentMass                                                &
-          &                                               /radiusDisk**2                                                &
-          &                                               *massDistributionDisk%rotationCurveGradient(fractionalRadius)
-  end if
+  massDistribution_     => self             %massDistribution     (                             )
+  rotationCurveGradient =  massDistribution_%rotationCurveGradient(radius,componentType,massType)
   return
 end function Node_Component_Disk_Standard_Rotation_Curve_Gradient
 
-double precision function Node_Component_Disk_Standard_Surface_Density(self,positionCylindrical,componentType,massType,weightBy,weightIndex)
+double precision function Node_Component_Disk_Standard_Surface_Density(self,positionCylindrical,componentType,massType,weightBy,weightIndex) result(surfaceDensity)
   !!{
   Computes the surface density at a given position for an standard disk.
   !!}
-  use :: Coordinates                      , only : coordinateCylindrical
-  use :: Galactic_Structure_Options       , only : componentTypeAll                    , componentTypeDisk           , massTypeAll                       , massTypeBaryonic            , &
-          &                                        massTypeGalactic                    , massTypeGaseous             , massTypeStellar                   , weightByLuminosity          , &
-          &                                        weightByMass                        , enumerationComponentTypeType, enumerationMassTypeType           , enumerationWeightByType
-  use :: Node_Component_Disk_Standard_Data, only : Node_Component_Disk_Standard_Reset  , massDistributionDisk        , lastUniqueID                      , radiusScaleDisk             , &
-          &                                        radiusScaleDiskComputed             , surfaceDensityCentralGas    , surfaceDensityCentralGasComputed  , surfaceDensityCentralStellar, &
-          &                                        surfaceDensityCentralStellarComputed, surfaceDensityCentralTotal  , surfaceDensityCentralTotalComputed
-  use :: Numerical_Constants_Math         , only : Pi
+  use :: Coordinates               , only : assignment(=)               , coordinateCylindrical
+  use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType, enumerationWeightByType, weightByLuminosity 
+  use :: Mass_Distributions        , only : massDistributionClass
   implicit none
   class           (nodeComponentDiskStandard   ), intent(inout) :: self
   type            (enumerationComponentTypeType), intent(in   ) :: componentType
@@ -440,63 +316,20 @@ double precision function Node_Component_Disk_Standard_Surface_Density(self,posi
   type            (enumerationWeightByType     ), intent(in   ) :: weightBy
   integer                                       , intent(in   ) :: weightIndex
   double precision                              , intent(in   ) :: positionCylindrical(3)
-  type            (treeNode                    ), pointer       :: selfNode
+  class           (massDistributionClass       ), pointer       :: massDistribution_
   type            (stellarLuminosities         ), save          :: luminositiesDisk
   !$omp threadprivate(luminositiesDisk)
   type            (coordinateCylindrical       )                :: position
 
-  ! Return immediately if disk component is not requested.
-  Node_Component_Disk_Standard_Surface_Density=0.0d0
-  if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDisk)) return
-  ! Check whether this is a new node.
-  selfNode => self%host()
-  if (selfNode%uniqueID() /= lastUniqueID) call Node_Component_Disk_Standard_Reset(selfNode%uniqueID())
-  ! Determine disk radius.
-  if (.not.radiusScaleDiskComputed) then
-     radiusScaleDisk        =self%radius()
-     radiusScaleDiskComputed=.true.
+  position          =  positionCylindrical
+  massDistribution_ => self               %massDistribution(                               )
+  surfaceDensity    =  massDistribution_  %surfaceDensity  (position,componentType,massType)
+  if (surfaceDensity <= 0.0d0             ) return
+  if (weightBy       == weightByLuminosity) then
+     luminositiesDisk= self%luminositiesStellar()
+     surfaceDensity  =+surfaceDensity                                       &
+          &           *luminositiesDisk %luminosity(weightIndex           ) &
+          &           /massDistribution_%massTotal (componentType,massType)
   end if
-  ! Return zero if the disk has unphysical size.
-  if (radiusScaleDisk <= 0.0d0) then
-     Node_Component_Disk_Standard_Surface_Density=0.0d0
-     return
-  end if
-  ! Determine mass type.
-  select case (weightBy%ID)
-  case (weightByMass      %ID)
-     select case (massType%ID)
-     case (massTypeAll%ID,massTypeBaryonic%ID,massTypeGalactic%ID)
-        if (.not.surfaceDensityCentralTotalComputed  ) then
-           surfaceDensityCentralTotal          =(self%massGas()+self%massStellar())/radiusScaleDisk**2
-           surfaceDensityCentralTotalComputed  =.true.
-        end if
-        Node_Component_Disk_Standard_Surface_Density=surfaceDensityCentralTotal
-     case (massTypeGaseous%ID)
-        if (.not.surfaceDensityCentralGasComputed    ) then
-           surfaceDensityCentralGas            = self%massGas()                    /radiusScaleDisk**2
-           surfaceDensityCentralGasComputed    =.true.
-        end if
-        Node_Component_Disk_Standard_Surface_Density=surfaceDensityCentralGas
-     case (massTypeStellar%ID)
-        if (.not.surfaceDensityCentralStellarComputed) then
-           surfaceDensityCentralStellar        =                self%massStellar() /radiusScaleDisk**2
-           surfaceDensityCentralStellarComputed=.true.
-        end if
-        Node_Component_Disk_Standard_Surface_Density=surfaceDensityCentralStellar
-     end select
-  case (weightByLuminosity%ID)
-     select case (massType%ID)
-     case (massTypeAll%ID,massTypeBaryonic%ID,massTypeGalactic%ID,massTypeStellar%ID)
-        luminositiesDisk=self%luminositiesStellar()
-        Node_Component_Disk_Standard_Surface_Density=luminositiesDisk%luminosity(weightIndex)/2.0d0/Pi/radiusScaleDisk**2
-     end select
-  end select
-  ! Return if no surface density.
-  if (Node_Component_Disk_Standard_Surface_Density <= 0.0d0) return
-  ! Compute the surface density.
-  call position%rSet(positionCylindrical(1)/radiusScaleDisk)
-  Node_Component_Disk_Standard_Surface_Density=         &
-       & +Node_Component_Disk_Standard_Surface_Density  &
-       & *massDistributionDisk%surfaceDensity(position)
   return
 end function Node_Component_Disk_Standard_Surface_Density

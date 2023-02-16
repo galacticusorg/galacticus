@@ -26,29 +26,28 @@ module Node_Component_Disk_Standard_Data
   Stores data for the standard disk node component.
   !!}
   use :: Kind_Numbers      , only : kind_int8
-  use :: Mass_Distributions, only : massDistributionClass, massDistributionCylindrical
+  use :: Mass_Distributions, only : massDistributionClass
   implicit none
   public
 
   ! Record of unique ID of node which we last computed results for.
-  integer         (kind=kind_int8  )          :: lastUniqueID                    =-1
+  integer         (kind=kind_int8       )          :: lastUniqueID                    =-1
   !$omp threadprivate(lastUniqueID)
   ! Records of previously computed and stored quantities.
-  logical                                     :: surfaceDensityCentralGasComputed   , surfaceDensityCentralStellarComputed, &
-       &                                         surfaceDensityCentralTotalComputed
+  logical                                          :: surfaceDensityCentralGasComputed   , surfaceDensityCentralStellarComputed, &
+       &                                              surfaceDensityCentralTotalComputed
   !$omp threadprivate(surfaceDensityCentralGasComputed,surfaceDensityCentralStellarComputed,surfaceDensityCentralTotalComputed)
-  double precision                            :: surfaceDensityCentralGas           , surfaceDensityCentralStellar        , &
-       &                                         surfaceDensityCentralTotal
+  double precision                                 :: surfaceDensityCentralGas           , surfaceDensityCentralStellar        , &
+       &                                              surfaceDensityCentralTotal
   !$omp threadprivate(surfaceDensityCentralGas,surfaceDensityCentralStellar,surfaceDensityCentralTotal)
-  logical                                     :: radiusScaleDiskComputed
+  logical                                          :: radiusScaleDiskComputed
   !$omp threadprivate(radiusScaleDiskComputed)
-  double precision                            :: radiusScaleDisk
+  double precision                                 :: radiusScaleDisk
   !$omp threadprivate(radiusScaleDisk)
 
-  ! The mass distribution object.
-  class           (massDistributionClass      ), pointer :: massDistributionDisk_
-  class           (massDistributionCylindrical), pointer :: massDistributionDisk
-  !$omp threadprivate(massDistributionDisk_,massDistributionDisk)
+  ! The mass distribution objects.
+  class           (massDistributionClass), pointer :: massDistributionStellar_           , massDistributionGas_
+  !$omp threadprivate(massDistributionStellar_,massDistributionGas_)
 
 contains
 

@@ -158,6 +158,14 @@ sub Build_Node_Component_Class {
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
+	     name        => "massDistribution"                                                                                     ,
+	     function    => "Node_Component_Mass_Distribution_Null"                                                                ,
+	     description => "Return the mass distribution for this component."                                                     ,
+	     returnType  => "\\textcolor{red}{\\textless class(massDistribution)\\textgreater}"                                    ,
+	     arguments   => ""
+	 },
+	 {
+	     type        => "procedure"                                                                                            ,
 	     name        => "enclosedMass"                                                                                         ,
 	     function    => "Node_Component_Enclosed_Mass_Null"                                                                    ,
 	     description => "Compute the mass enclosed within a radius."                                                           ,

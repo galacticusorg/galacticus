@@ -149,15 +149,16 @@ module Node_Component_Spheroid_Standard
     </property>
    </properties>
    <bindings>
-    <binding method="enclosedMass"            function="Node_Component_Spheroid_Standard_Enclosed_Mass"             bindsTo="component" />
-    <binding method="acceleration"            function="Node_Component_Spheroid_Standard_Acceleration"              bindsTo="component" />
-    <binding method="tidalTensor"             function="Node_Component_Spheroid_Standard_Tidal_Tensor"              bindsTo="component" />
-    <binding method="chandrasekharIntegral"   function="Node_Component_Spheroid_Standard_Chandrasekhar_Integral"    bindsTo="component" />
-    <binding method="density"                 function="Node_Component_Spheroid_Standard_Density"                   bindsTo="component" />
-    <binding method="densitySphericalAverage" function="Node_Component_Spheroid_Standard_Density_Spherical_Average" bindsTo="component" />
-    <binding method="rotationCurve"           function="Node_Component_Spheroid_Standard_Rotation_Curve"            bindsTo="component" />
-    <binding method="rotationCurveGradient"   function="Node_Component_Spheroid_Standard_Rotation_Curve_Gradient"   bindsTo="component" />
-    <binding method="potential"               function="Node_Component_Spheroid_Standard_Potential"                 bindsTo="component" />
+    <binding method="massDistribution"        function="Node_Component_Spheroid_Standard_Mass_Distribution"         bindsTo="component"/>
+    <binding method="enclosedMass"            function="Node_Component_Spheroid_Standard_Enclosed_Mass"             bindsTo="component"/>
+    <binding method="acceleration"            function="Node_Component_Spheroid_Standard_Acceleration"              bindsTo="component"/>
+    <binding method="tidalTensor"             function="Node_Component_Spheroid_Standard_Tidal_Tensor"              bindsTo="component"/>
+    <binding method="chandrasekharIntegral"   function="Node_Component_Spheroid_Standard_Chandrasekhar_Integral"    bindsTo="component"/>
+    <binding method="density"                 function="Node_Component_Spheroid_Standard_Density"                   bindsTo="component"/>
+    <binding method="densitySphericalAverage" function="Node_Component_Spheroid_Standard_Density_Spherical_Average" bindsTo="component"/>
+    <binding method="rotationCurve"           function="Node_Component_Spheroid_Standard_Rotation_Curve"            bindsTo="component"/>
+    <binding method="rotationCurveGradient"   function="Node_Component_Spheroid_Standard_Rotation_Curve_Gradient"   bindsTo="component"/>
+    <binding method="potential"               function="Node_Component_Spheroid_Standard_Potential"                 bindsTo="component"/>
    </bindings>
    <functions>objects.nodes.components.spheroid.standard.bound_functions.inc</functions>
   </component>
@@ -264,13 +265,14 @@ contains
     !!{
     Initializes the standard spheroid module for each thread.
     !!}
-    use :: Events_Hooks                         , only : dependencyDirectionAfter         , dependencyRegEx, openMPThreadBindingAtLevel, postEvolveEvent, &
+    use :: Events_Hooks                         , only : dependencyDirectionAfter , dependencyRegEx     , openMPThreadBindingAtLevel, postEvolveEvent, &
           &                                              satelliteMergerEvent
     use :: Error                                , only : Error_Report
     use :: Galacticus_Nodes                     , only : defaultSpheroidComponent
-    use :: Input_Parameters                     , only : inputParameter                   , inputParameters
-    use :: Mass_Distributions                   , only : massDistributionSymmetrySpherical
-    use :: Node_Component_Spheroid_Standard_Data, only : massDistributionSpheroid
+    use :: Input_Parameters                     , only : inputParameter           , inputParameters
+    use :: Mass_Distributions                   , only : massDistributionSpherical
+    use :: Node_Component_Spheroid_Standard_Data, only : massDistributionStellar_ , massDistributionGas_
+    use :: Galactic_Structure_Options           , only : componentTypeSpheroid    , massTypeStellar     , massTypeGaseous
     implicit none
     type            (inputParameters), intent(inout) :: parameters
     logical                                          :: densityMoment2IsInfinite                   , densityMoment3IsInfinite
@@ -293,7 +295,7 @@ contains
        <objectBuilder class="starFormationHistory"                                                 name="starFormationHistory_"        source="subParameters"                    />
        <objectBuilder class="mergerMassMovements"                                                  name="mergerMassMovements_"         source="subParameters"                    />
        <objectBuilder class="mergerRemnantSize"                                                    name="mergerRemnantSize_"           source="subParameters"                    />
-       <objectBuilder class="massDistribution"            parameterName="massDistributionSpheroid" name="massDistributionSpheroid"     source="subParameters" threadPrivate="yes" >
+       <objectBuilder class="massDistribution"            parameterName="massDistributionSpheroid" name="massDistributionStellar_"     source="subParameters" threadPrivate="yes" >
         <default>
          <massDistributionSpheroid value="hernquist">
           <dimensionless value="true"/>
@@ -301,15 +303,30 @@ contains
         </default>
        </objectBuilder>
        !!]
-       if (.not.massDistributionSpheroid%isDimensionless()                                     ) &
-            & call Error_Report('spheroid mass distribution must be dimensionless'        //{introspection:location})
-       if (.not.massDistributionSpheroid%symmetry       () == massDistributionSymmetrySpherical) &
-            & call Error_Report('spheroid mass distribution must be spherically symmetric'//{introspection:location})
+       ! Validate the disk mass distribution.
+       select type (massDistributionStellar_)
+       class is (massDistributionSpherical)
+          ! The spheroid mass distribution must have spherical symmetry. So, this is acceptable.        
+       class default
+          call Error_Report('only spehrically symmetric mass distributions are allowed'//{introspection:location})
+       end select
+       if (.not.massDistributionStellar_%isDimensionless()) call Error_Report('spheroid mass distribution must be dimensionless'//{introspection:location})
+       ! Duplicate the dimensionless mass distribution to use for the gas component, and set component and mass types in both.
+       !$omp critical(spheroidStandardDeepCopy)
+       allocate(massDistributionGas_,mold=massDistributionStellar_)
+       !![
+       <deepCopyReset variables="massDistributionStellar_"/>
+       <deepCopy source="massDistributionStellar_" destination="massDistributionGas_"/>
+       <deepCopyFinalize variables="massDistributionGas_"/>  
+       !!]
+       !$omp end critical(spheroidStandardDeepCopy)
+       call massDistributionStellar_%setTypes(componentTypeSpheroid,massTypeStellar)
+       call massDistributionGas_    %setTypes(componentTypeSpheroid,massTypeGaseous)
        ! Determine the specific angular momentum at the scale radius in units of the mean specific angular
        ! momentum of the spheroid. This is equal to the ratio of the 2nd to 3rd radial moments of the density
        ! distribution (assuming a flat rotation curve).
-       massDistributionSpheroidDensityMomentum2=massDistributionSpheroid%densityRadialMoment(2.0d0,isInfinite=densityMoment2IsInfinite)
-       massDistributionSpheroidDensityMomentum3=massDistributionSpheroid%densityRadialMoment(3.0d0,isInfinite=densityMoment3IsInfinite)
+       massDistributionSpheroidDensityMomentum2=massDistributionStellar_%densityRadialMoment(2.0d0,isInfinite=densityMoment2IsInfinite)
+       massDistributionSpheroidDensityMomentum3=massDistributionStellar_%densityRadialMoment(3.0d0,isInfinite=densityMoment3IsInfinite)
        if (densityMoment2IsInfinite.or.densityMoment3IsInfinite) then
           ! One of the moments is infinte, so we can not compute the appropriate ratio. Simply assume a value
           ! of 0.5 as a default.
@@ -345,7 +362,7 @@ contains
     !!}
     use :: Events_Hooks                         , only : postEvolveEvent         , satelliteMergerEvent
     use :: Galacticus_Nodes                     , only : defaultSpheroidComponent
-    use :: Node_Component_Spheroid_Standard_Data, only : massDistributionSpheroid
+    use :: Node_Component_Spheroid_Standard_Data, only : massDistributionStellar_, massDistributionGas_
     implicit none
 
     if (defaultSpheroidComponent%standardIsActive()) then
@@ -357,8 +374,9 @@ contains
        <objectDestructor name="starFormationHistory_"       />
        <objectDestructor name="mergerMassMovements_"        />
        <objectDestructor name="mergerRemnantSize_"          />
-       <objectDestructor name="massDistributionSpheroid"    />
-       !!]
+       <objectDestructor name="massDistributionStellar_"    />
+       <objectDestructor name="massDistributionGas_"        />
+        !!]
     end if
     return
   end subroutine Node_Component_Spheroid_Standard_Thread_Uninitialize
@@ -1547,7 +1565,7 @@ contains
     !!}
     use            :: Display                              , only : displayMessage          , verbosityLevelInfo
     use, intrinsic :: ISO_C_Binding                        , only : c_ptr                   , c_size_t
-    use            :: Node_Component_Spheroid_Standard_Data, only : massDistributionSpheroid
+    use            :: Node_Component_Spheroid_Standard_Data, only : massDistributionStellar_, massDistributionGas_
     implicit none
     integer          , intent(in   ) :: stateFile
     integer(c_size_t), intent(in   ) :: stateOperationID
@@ -1555,7 +1573,7 @@ contains
 
     call displayMessage('Storing state for: componentSpheroid -> standard',verbosity=verbosityLevelInfo)
     !![
-    <stateStore variables="massDistributionSpheroid stellarPopulationProperties_ darkMatterHaloScale_ starFormationHistory_ mergerMassMovements_ mergerRemnantSize_"/>
+    <stateStore variables="massDistributionStellar_ massDistributionGas_ stellarPopulationProperties_ darkMatterHaloScale_ starFormationHistory_ mergerMassMovements_ mergerRemnantSize_"/>
     !!]
     write (stateFile) ratioAngularMomentumScaleRadius
     return
@@ -1572,7 +1590,7 @@ contains
     !!}
     use            :: Display                              , only : displayMessage          , verbosityLevelInfo
     use, intrinsic :: ISO_C_Binding                        , only : c_ptr                   , c_size_t
-    use            :: Node_Component_Spheroid_Standard_Data, only : massDistributionSpheroid
+    use            :: Node_Component_Spheroid_Standard_Data, only : massDistributionStellar_, massDistributionGas_
     implicit none
     integer          , intent(in   ) :: stateFile
     integer(c_size_t), intent(in   ) :: stateOperationID
@@ -1580,7 +1598,7 @@ contains
 
     call displayMessage('Retrieving state for: componentSpheroid -> standard',verbosity=verbosityLevelInfo)
     !![
-    <stateRestore variables="massDistributionSpheroid stellarPopulationProperties_ darkMatterHaloScale_ starFormationHistory_ mergerMassMovements_ mergerRemnantSize_"/>
+    <stateRestore variables="massDistributionStellar_ massDistributionGas_ stellarPopulationProperties_ darkMatterHaloScale_ starFormationHistory_ mergerMassMovements_ mergerRemnantSize_"/>
     !!]
     read (stateFile) ratioAngularMomentumScaleRadius
     return

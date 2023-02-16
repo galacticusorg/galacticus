@@ -38,6 +38,17 @@ module Mass_Distributions
    <name>massDistribution</name>
    <descriptiveName>Mass Distributions</descriptiveName>
    <description>Class providing mass distributions.</description>
+   <method name="setTypes">
+     <description>Set the component and mass types of the mass distribution.</description>
+     <type>void</type>
+     <pass>yes</pass>
+     <argument>type(enumerationComponentTypeType), intent(in   ), optional :: componentType</argument>
+     <argument>type(enumerationMassTypeType     ), intent(in   ), optional :: massType     </argument>
+     <code>
+       if (present(componentType)) self%componentType=componentType
+       if (present(     massType)) self%     massType=     massType
+     </code>
+   </method>
    <method name="matches" >
     <description>Return true if this mass distribution matches the specified component and mass type.</description>
     <type>logical</type>
@@ -128,6 +139,14 @@ module Mass_Distributions
     <argument>type (enumerationComponentTypeType), intent(in   ), optional :: componentType</argument>
     <argument>type (enumerationMassTypeType     ), intent(in   ), optional :: massType     </argument>
    </method>
+   <method name="densitySphericalAverage" >
+    <description>Return the average density on a spherical shell of the gievn radius.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>double precision                              , intent(in   )           :: radius  </argument>
+    <argument>type            (enumerationComponentTypeType), intent(in   ), optional :: componentType</argument>
+    <argument>type            (enumerationMassTypeType     ), intent(in   ), optional :: massType     </argument>
+   </method>
    <method name="densityGradientRadial" >
     <description>Return the radial gradient of density of the distribution at the given coordinates.</description>
     <type>double precision</type>
@@ -154,6 +173,40 @@ module Mass_Distributions
     <argument>type            (enumerationComponentTypeType), intent(in   ), optional :: componentType</argument>
     <argument>type            (enumerationMassTypeType     ), intent(in   ), optional :: massType     </argument>
    </method>
+   <method name="rotationCurve" >
+    <description>Return the rotation curve at the given radius.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>double precision                              , intent(in   )           :: radius       </argument>
+    <argument>type            (enumerationComponentTypeType), intent(in   ), optional :: componentType</argument>
+    <argument>type            (enumerationMassTypeType     ), intent(in   ), optional :: massType     </argument>
+   </method>
+   <method name="rotationCurveGradient" >
+    <description>Return the rotation curve gradient at the given radius.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>double precision                              , intent(in   )           :: radius       </argument>
+    <argument>type            (enumerationComponentTypeType), intent(in   ), optional :: componentType</argument>
+    <argument>type            (enumerationMassTypeType     ), intent(in   ), optional :: massType     </argument>
+   </method>
+   <method name="surfaceDensity" >
+     <description>Return the surface density at the given coordinates.</description>
+     <type>double precision</type>
+     <pass>yes</pass>
+     <argument>class(coordinate                  ), intent(in   )           :: coordinates  </argument>
+     <argument>type (enumerationComponentTypeType), intent(in   ), optional :: componentType</argument>
+     <argument>type (enumerationMassTypeType     ), intent(in   ), optional :: massType     </argument>
+   </method>
+   <method name="surfaceDensityRadialMoment" >
+     <description>Return the surface density at the given coordinates.</description>
+     <type>double precision</type>
+     <pass>yes</pass>
+     <argument>double precision                              , intent(in   )           :: moment                      </argument>
+     <argument>double precision                              , intent(in   ), optional :: radiusMinimum, radiusMaximum</argument>
+     <argument>logical                                       , intent(  out), optional :: isInfinite                  </argument>
+     <argument>type            (enumerationComponentTypeType), intent(in   ), optional :: componentType               </argument>
+     <argument>type            (enumerationMassTypeType     ), intent(in   ), optional :: massType                    </argument>
+   </method>
    <method name="densityRadialMoment" >
     <description>Return the radial moment of the distribution.</description>
     <type>double precision</type>
@@ -179,7 +232,7 @@ module Mass_Distributions
     <argument>type (enumerationComponentTypeType), intent(in   ), optional :: componentType         </argument>
     <argument>type (enumerationMassTypeType     ), intent(in   ), optional :: massType              </argument>
    </method>
-   <data>logical                               :: dimensionless</data>
+   <data>logical                               :: dimensionless                     </data>
    <data>type   (enumerationComponentTypeType) :: componentType=componentTypeUnknown</data>
    <data>type   (enumerationMassTypeType     ) :: massType     =massTypeUnknown     </data>
   </functionClass>

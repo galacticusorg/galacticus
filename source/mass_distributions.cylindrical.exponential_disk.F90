@@ -520,7 +520,7 @@ contains
     end if
     ! Make dimensionful if necessary.
     if (.not.self%dimensionless) exponentialDiskRotationCurveGradient= &
-         &  +sqrt(gravitationalConstantGalacticus)                     &
+         &  +gravitationalConstantGalacticus                           &
          &  *exponentialDiskRotationCurveGradient
     return
   end function exponentialDiskRotationCurveGradient
@@ -613,8 +613,8 @@ contains
     implicit none
     class           (massDistributionExponentialDisk), intent(inout) :: self
     double precision                                 , intent(in   ) :: halfRadius
-    double precision                                 , parameter     :: halfRadiusSmall                  =1.0d-3
-    integer                                          , parameter     :: rotationCurvePointsPerDecade=10
+    double precision                                 , parameter     :: halfRadiusSmall             =1.0d-3
+    integer                                          , parameter     :: rotationCurvePointsPerDecade=100
     integer                                                          :: iPoint                             , rotationCurvePointsCount
     double precision                                                 :: x
     logical                                                          :: makeTable
@@ -676,7 +676,7 @@ contains
     double precision                                 , intent(in   ) :: halfRadius
     double precision                                 , parameter     :: halfRadiusSmall                     =1.0d-3
     double precision                                 , parameter     :: halfRadiusLarge                     =1.0d+2
-    integer                                          , parameter     :: rotationCurveGradientPointsPerDecade=10
+    integer                                          , parameter     :: rotationCurveGradientPointsPerDecade=100
     integer                                                          :: iPoint                                      , rotationCurveGradientPointsCount
     double precision                                                 :: x
 
@@ -713,17 +713,17 @@ contains
           x=self%rotationCurveGradientTable%x(iPoint)
           call self%rotationCurveGradientTable%populate                                      &
                &  (                                                                          &
-               &    2.0d0                                                                    &
+               &   +2.0d0                                                                    &
                &   *x                                                                        &
                &   *(                                                                        &
-               &      Bessel_Function_I0(x)*Bessel_Function_K0(x)                            &
-               &     -Bessel_Function_I1(x)*Bessel_Function_K1(x)                            &
+               &     +  Bessel_Function_I0(x)                         *Bessel_Function_K0(x) &
+               &     -  Bessel_Function_I1(x)                         *Bessel_Function_K1(x) &
                &    )                                                                        &
                &   +x**2                                                                     &
                &   *(                                                                        &
-               &        Bessel_Function_I1(x)                         *Bessel_Function_K0(x) &
+               &     +  Bessel_Function_I1(x)                         *Bessel_Function_K0(x) &
                &     -  Bessel_Function_K1(x)                         *Bessel_Function_I0(x) &
-               &     -( Bessel_Function_I0(x)-Bessel_Function_I1(x)/x)*Bessel_Function_K1(x) &
+               &     -(+Bessel_Function_I0(x)-Bessel_Function_I1(x)/x)*Bessel_Function_K1(x) &
                &     -(-Bessel_Function_K0(x)-Bessel_Function_K1(x)/x)*Bessel_Function_I1(x) &
                &    ),                                                                       &
                &   iPoint                                                                    &
@@ -1089,11 +1089,11 @@ contains
        ! Compute the vertical inverse scale-height. Note that our definition of β differs slightly from that of Kuijken & Gilmore
        ! (1989). They assume a density profile in the vertical direction of the form:
        !
-       !  ρ(z) = sech^ξ(βz/ξ)
+       !  ρ(z) = sech²(βz/ξ)
        !
        ! while we use:
        !
-       !  ρ(z) = sech^ξ(z/h)
+       !  ρ(z) = sech²(z/h)
        !
        ! where h is the scale-height. Therefore:
        !
