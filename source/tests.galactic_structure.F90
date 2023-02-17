@@ -357,14 +357,9 @@ program Test_Galactic_Structure
      call Assert("Disk g⃡"//trim(label)//"(r="//trim(labelRadius)//"kpc) [  direct]",tidalTensorComponentsDirect  ,tidalTensorSphericalComponents,absTol=1.0d-6,relTol=3.0d-3)
      call Assert("Disk g⃡"//trim(label)//"(r="//trim(labelRadius)//"kpc) [indirect]",tidalTensorComponentsIndirect,tidalTensorSphericalComponents,absTol=1.0d-6,relTol=3.0d-3)
   end do
-  ! End unit tests.
-  call Unit_Tests_End_Group               ()
-  call Unit_Tests_Finish                  ()
-  call Node_Components_Thread_Uninitialize()
-  call Node_Components_Uninitialize       ()
-  call nodeClassHierarchyFinalize         ()
   ! Clean up objects.
   !![
+  <objectDestructor name="massDistribution_"     />
   <objectDestructor name="cosmologyParameters_"  />
   <objectDestructor name="cosmologyFunctions_"   />
   <objectDestructor name="virialDensityContrast_"/>
@@ -372,4 +367,12 @@ program Test_Galactic_Structure
   <objectDestructor name="darkMatterProfileDMO_" />
   <objectDestructor name="galacticStructure_"    />
   !!]
+  call node_%destroy()
+  deallocate(node_)
+  ! End unit tests.
+  call Unit_Tests_End_Group               ()
+  call Unit_Tests_Finish                  ()
+  call Node_Components_Thread_Uninitialize()
+  call Node_Components_Uninitialize       ()
+  call nodeClassHierarchyFinalize         ()
 end program Test_Galactic_Structure
