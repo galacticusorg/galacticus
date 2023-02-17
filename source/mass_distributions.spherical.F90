@@ -38,13 +38,15 @@
        <method description="Returns the radius enclosing the given mass."                            method="radiusEnclosingMass"/>
      </methods>
      !!]
-     procedure :: symmetry             => sphericalSymmetry
-     procedure :: massEnclosedBySphere => sphericalMassEnclosedBySphere
-     procedure :: radiusHalfMass       => sphericalRadiusHalfMass
-     procedure :: acceleration         => sphericalAcceleration
-     procedure :: tidalTensor          => sphericalTidalTensor
-     procedure :: radiusEnclosingMass  => sphericalRadiusEnclosingMass
-     procedure :: positionSample       => sphericalPositionSample
+     procedure :: symmetry              => sphericalSymmetry
+     procedure :: massEnclosedBySphere  => sphericalMassEnclosedBySphere
+     procedure :: radiusHalfMass        => sphericalRadiusHalfMass
+     procedure :: acceleration          => sphericalAcceleration
+     procedure :: tidalTensor           => sphericalTidalTensor
+     procedure :: radiusEnclosingMass   => sphericalRadiusEnclosingMass
+     procedure :: positionSample        => sphericalPositionSample
+     procedure :: rotationCurve         => sphericalRotationCurve
+     procedure :: rotationCurveGradient => sphericalRotationCurveGradient
   end type massDistributionSpherical
 
   ! Module scope variables used in integration and root finding.
@@ -264,7 +266,61 @@ contains
          &                       *gravitationalConstantGalacticus
     return
   end function sphericalTidalTensor
-  
+
+  double precision function sphericalRotationCurve(self,radius,componentType,massType)
+    !!{
+    Return the rotation curve for a spherical mass distibution.
+    !!}
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    implicit none
+    class           (massDistributionSpherical   ), intent(inout)           :: self
+    double precision                              , intent(in   )           :: radius
+    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+
+    if (radius <=0.0d0) then
+       sphericalRotationCurve=+0.0d0
+    else
+       sphericalRotationCurve=+sqrt(                                                          &
+            &                       +self%massEnclosedBySphere(radius,componentType,massType) &
+            &                       /                          radius                         &
+            &                      )
+       ! Make dimensionful if necessary.
+       if (.not.self%dimensionless) sphericalRotationCurve= &
+            & +sqrt(gravitationalConstantGalacticus)        &
+            & *sphericalRotationCurve
+    end if
+    return
+  end function sphericalRotationCurve
+
+  double precision function sphericalRotationCurveGradient(self,radius,componentType,massType)
+    !!{
+    Return the mid-plane rotation curve gradient for an exponential disk.
+    !!}
+    use :: Coordinates                     , only : assignment(=)                  , coordinateSpherical
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Math        , only : Pi
+    implicit none
+    class           (massDistributionSpherical   ), intent(inout)           :: self
+    double precision                              , intent(in   )           :: radius
+    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    type            (coordinateSpherical         )                          :: position
+
+    position                      =[radius,0.0d0,0.0d0]
+    sphericalRotationCurveGradient=+4.0d0                                                         &
+         &                         *Pi                                                            &
+         &                         *                          radius                          **2 &
+         &                         *self%density             (position,componentType,massType)    &
+         &                         -self%massEnclosedBySphere(radius  ,componentType,massType)    &
+         &                         /                          radius
+    ! Make dimensionful if necessary.
+    if (.not.self%dimensionless) sphericalRotationCurveGradient= &
+         &  +gravitationalConstantGalacticus                     &
+         &  *sphericalRotationCurveGradient
+    return
+  end function sphericalRotationCurveGradient
+
   function sphericalPositionSample(self,randomNumberGenerator_,componentType,massType)
     !!{
     Computes the half-mass radius of a spherically symmetric mass distribution using numerical root finding.
