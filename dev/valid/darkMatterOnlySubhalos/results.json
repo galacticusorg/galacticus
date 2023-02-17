@@ -1,46 +1,7 @@
 window.ANALYSES_DATA = {
-   "repoUrl" : "https://github.com/galacticusorg/galacticus",
    "results" : [
       {
-         "attributes" : {
-            "name" : "subhaloMassFunction",
-            "logLikelihood" : -57.3717638717242,
-            "yAxisLabel" : "N(M_sub/M_host)",
-            "yCovariance" : "massFunctionCovariance",
-            "xAxisLabel" : "M_sub/M_host",
-            "yDatasetTarget" : "massFunctionTarget",
-            "yDataset" : "massFunction",
-            "targetLabel" : "Caterpillar (Griffen et al. 2016)",
-            "xDataset" : "massRatio",
-            "type" : "function1D",
-            "yCovarianceTarget" : "massFunctionCovarianceTarget",
-            "description" : "Subhalo mass function",
-            "yAxisIsLog" : 1,
-            "xAxisIsLog" : 1
-         },
          "data" : {
-            "yError" : [
-               70.418520861084,
-               34.9145752054055,
-               15.1399368326251,
-               7.38320346752268,
-               3.4009241171781,
-               1.67575774779072,
-               0.864021259439566,
-               0.454963350685185,
-               0.251800981413313,
-               0.169512968973197,
-               0.12517009805022,
-               0.0936776932043143,
-               0.0684187287881001,
-               0.0513839091783506,
-               0.029666513796136,
-               0.025,
-               0.0167514848565122,
-               0.0142857142857143,
-               0.00944911182523068,
-               0
-            ],
             "xDataset" : [
                1.41253754462276e-06,
                2.81838293126446e-06,
@@ -107,6 +68,28 @@ window.ANALYSES_DATA = {
                0.025,
                0
             ],
+            "yError" : [
+               70.418520861084,
+               34.9145752054055,
+               15.1399368326251,
+               7.38320346752268,
+               3.4009241171781,
+               1.67575774779072,
+               0.864021259439566,
+               0.454963350685185,
+               0.251800981413313,
+               0.169512968973197,
+               0.12517009805022,
+               0.0936776932043143,
+               0.0684187287881001,
+               0.0513839091783506,
+               0.029666513796136,
+               0.025,
+               0.0167514848565122,
+               0.0142857142857143,
+               0.00944911182523068,
+               0
+            ],
             "yDatasetTarget" : [
                2677.5588235294,
                1567.79411764705,
@@ -129,9 +112,41 @@ window.ANALYSES_DATA = {
                0.0294117647058824,
                0
             ]
+         },
+         "attributes" : {
+            "targetLabel" : "Caterpillar (Griffen et al. 2016)",
+            "yCovarianceTarget" : "massFunctionCovarianceTarget",
+            "description" : "Subhalo mass function",
+            "xAxisLabel" : "M_sub/M_host",
+            "logLikelihood" : -57.3717638717242,
+            "yDataset" : "massFunction",
+            "name" : "subhaloMassFunction",
+            "yDatasetTarget" : "massFunctionTarget",
+            "type" : "function1D",
+            "yAxisIsLog" : 1,
+            "xAxisIsLog" : 1,
+            "yCovariance" : "massFunctionCovariance",
+            "xDataset" : "massRatio",
+            "yAxisLabel" : "N(M_sub/M_host)"
          }
       },
       {
+         "attributes" : {
+            "yAxisIsLog" : 1,
+            "type" : "function1D",
+            "yDatasetTarget" : "radialDistributionTarget",
+            "name" : "subhaloRadialDistribution",
+            "yAxisLabel" : "N(R_sub/R_vir,host)",
+            "yDataset" : "radialDistribution",
+            "logLikelihood" : -25.689755316789,
+            "xAxisLabel" : "R_sub/R_vir,host",
+            "yCovariance" : "radialDistributionCovariance",
+            "xDataset" : "radiusFractional",
+            "xAxisIsLog" : 1,
+            "description" : "Subhalo radial distribution",
+            "yCovarianceTarget" : "radialDistributionCovarianceTarget",
+            "targetLabel" : "Caterpillar (Griffen et al. 2016)"
+         },
          "data" : {
             "yDatasetTarget" : [
                0,
@@ -154,6 +169,28 @@ window.ANALYSES_DATA = {
                21.4117647058825,
                28.7647058823531,
                34.2941176470591
+            ],
+            "yError" : [
+               0,
+               0.00357142857142857,
+               0.00357142857142857,
+               0.00505076272276105,
+               0.00755924009141437,
+               0.00714285714285714,
+               0.0133630620956212,
+               0.0205764114736163,
+               0.0323417544618067,
+               0.0500050796834896,
+               0.0639485859581144,
+               0.0882431433752402,
+               0.128542214605002,
+               0.159266493875444,
+               0.20704903237063,
+               0.281006673138838,
+               0.326993658605336,
+               0.411138996148169,
+               0.471871091133914,
+               0.501169310957409
             ],
             "yDataset" : [
                0,
@@ -220,69 +257,11 @@ window.ANALYSES_DATA = {
                0.562341325190349,
                0.707945784384138,
                0.891250938133746
-            ],
-            "yError" : [
-               0,
-               0.00357142857142857,
-               0.00357142857142857,
-               0.00505076272276105,
-               0.00755924009141437,
-               0.00714285714285714,
-               0.0133630620956212,
-               0.0205764114736163,
-               0.0323417544618067,
-               0.0500050796834896,
-               0.0639485859581144,
-               0.0882431433752402,
-               0.128542214605002,
-               0.159266493875444,
-               0.20704903237063,
-               0.281006673138838,
-               0.326993658605336,
-               0.411138996148169,
-               0.471871091133914,
-               0.501169310957409
             ]
-         },
-         "attributes" : {
-            "name" : "subhaloRadialDistribution",
-            "logLikelihood" : -25.689755316789,
-            "yAxisLabel" : "N(R_sub/R_vir,host)",
-            "yCovariance" : "radialDistributionCovariance",
-            "xAxisLabel" : "R_sub/R_vir,host",
-            "yDatasetTarget" : "radialDistributionTarget",
-            "yDataset" : "radialDistribution",
-            "xDataset" : "radiusFractional",
-            "targetLabel" : "Caterpillar (Griffen et al. 2016)",
-            "type" : "function1D",
-            "yCovarianceTarget" : "radialDistributionCovarianceTarget",
-            "yAxisIsLog" : 1,
-            "description" : "Subhalo radial distribution",
-            "xAxisIsLog" : 1
          }
       },
       {
          "data" : {
-            "yError" : [
-               0.0164288202516741,
-               0.0209168298170136,
-               0.0229162274644336,
-               0.0310693809384001,
-               0.0369059160435691,
-               0.0450826599885733,
-               0.0625132484174419,
-               0.085170039635043,
-               0.123134580781139,
-               0.190718595732684,
-               0.26547768894392,
-               0.411551585332285,
-               0.614602239449958,
-               1.2098017970312,
-               1.88054887002954,
-               1.86116322692618,
-               3.49021176656545,
-               3.69268820512263
-            ],
             "xDataset" : [
                5906401.17715916,
                11585852.1925095,
@@ -303,25 +282,25 @@ window.ANALYSES_DATA = {
                283794261069.541,
                556683886382.333
             ],
-            "yErrorTarget" : [
-               0.0322636940327158,
-               0.00897876674480857,
-               0.0214796815899033,
-               0.0355328943242052,
-               0.0685651026362631,
-               0.0730067712748558,
-               0.115123482040044,
-               0.183412409675549,
-               0.368980797282297,
-               0.340940693774987,
-               0.543017203909876,
-               1.02331397215057,
-               1.2306712636792,
-               1.76371975467955,
-               2.10633963706394,
-               1.68291413922398,
-               6.84832917579171,
-               0
+            "yError" : [
+               0.0164288202516741,
+               0.0209168298170136,
+               0.0229162274644336,
+               0.0310693809384001,
+               0.0369059160435691,
+               0.0450826599885733,
+               0.0625132484174419,
+               0.085170039635043,
+               0.123134580781139,
+               0.190718595732684,
+               0.26547768894392,
+               0.411551585332285,
+               0.614602239449958,
+               1.2098017970312,
+               1.88054887002954,
+               1.86116322692618,
+               3.49021176656545,
+               3.69268820512263
             ],
             "yDataset" : [
                4.34021692595613,
@@ -342,6 +321,26 @@ window.ANALYSES_DATA = {
                79.5490047733088,
                93.5257400285195,
                130.28857799002
+            ],
+            "yErrorTarget" : [
+               0.0322636940327158,
+               0.00897876674480857,
+               0.0214796815899033,
+               0.0355328943242052,
+               0.0685651026362631,
+               0.0730067712748558,
+               0.115123482040044,
+               0.183412409675549,
+               0.368980797282297,
+               0.340940693774987,
+               0.543017203909876,
+               1.02331397215057,
+               1.2306712636792,
+               1.76371975467955,
+               2.10633963706394,
+               1.68291413922398,
+               6.84832917579171,
+               0
             ],
             "yDatasetTarget" : [
                8.2911747311828,
@@ -365,31 +364,32 @@ window.ANALYSES_DATA = {
             ]
          },
          "attributes" : {
-            "targetLabel" : "Caterpillar (Griffen et al. 2016)",
-            "xDataset" : "massBound",
-            "type" : "function1D",
-            "yDatasetTarget" : "velocityMaximumMeanTarget",
-            "yDataset" : "velocityMaximumMean",
             "xAxisIsLog" : 1,
-            "yCovarianceTarget" : "velocityMaximumMeanCovarianceTarget",
-            "description" : "Subhalo mean maximum velocity vs. bound mass relation",
-            "yAxisIsLog" : 1,
-            "logLikelihood" : -25371.9758848307,
-            "name" : "subhaloVelocityMaximumMean",
-            "xAxisLabel" : "M_bound/M_☉",
+            "xDataset" : "massBound",
+            "yCovariance" : "velocityMaximumMeanCovariance",
             "yAxisLabel" : "⟨ V_max ⟩ / km s⁻¹",
-            "yCovariance" : "velocityMaximumMeanCovariance"
+            "yCovarianceTarget" : "velocityMaximumMeanCovarianceTarget",
+            "targetLabel" : "Caterpillar (Griffen et al. 2016)",
+            "description" : "Subhalo mean maximum velocity vs. bound mass relation",
+            "xAxisLabel" : "M_bound/M_☉",
+            "yDataset" : "velocityMaximumMean",
+            "logLikelihood" : -25371.9758848307,
+            "yDatasetTarget" : "velocityMaximumMeanTarget",
+            "name" : "subhaloVelocityMaximumMean",
+            "yAxisIsLog" : 1,
+            "type" : "function1D"
          }
       }
    ],
+   "repoUrl" : "https://github.com/galacticusorg/galacticus",
    "commit" : {
-      "message" : "Merge pull request #378 from galacticusorg/coolingFunctionSummationFix",
-      "timestamp" : "Thu, 16 Feb 2023 00:50:23 +0000",
-      "id" : "5dfbff91ce1e09e118e4811239f99467212a6881",
+      "url" : "https://github.com/galacticusorg/galacticus/commit/6c39c5914b27d870f1465fff2f117631f7e6a149",
       "author" : {
-         "email" : "abensonca@gmail.com",
-         "name" : "Andrew Benson"
+         "name" : "Andrew Benson",
+         "email" : "abensonca@gmail.com"
       },
-      "url" : "https://github.com/galacticusorg/galacticus/commit/5dfbff91ce1e09e118e4811239f99467212a6881"
+      "timestamp" : "Fri, 17 Feb 2023 04:03:11 +0000",
+      "id" : "6c39c5914b27d870f1465fff2f117631f7e6a149",
+      "message" : "Merge pull request #379 from galacticusorg/linAlgMemoryLeak"
    }
 }
