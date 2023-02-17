@@ -1082,10 +1082,12 @@ contains
              end if
              ! Check for duplicated parameters.
              !$omp critical (FoX_DOM_Access)
-             if (parameterNamesSeen%exists(getNodeName(node_))) then
+             unknownName=getNodeName(node_)
+             !$omp end critical (FoX_DOM_Access)
+             if (parameterNamesSeen%exists(unknownName)) then
                 parameterMatched=.false.
                 if (present(allowedMultiParameterNames)) &
-                     & parameterMatched=any(getNodeName(node_) == allowedMultiParameterNames)
+                     & parameterMatched=any(unknownName == allowedMultiParameterNames)
                 if (.not.parameterMatched .and. .not.ignoreWarnings) then
                    if (.not.warningsFound.and.verbose) call displayIndent(displayMagenta()//'WARNING:'//displayReset()//' problems found with input parameters:')
                    warningsFound=.true.
@@ -1095,9 +1097,8 @@ contains
                    end if
                 end if
              else
-                call parameterNamesSeen%set(getNodeName(node_),1)
+                call parameterNamesSeen%set(unknownName,1)
              end if
-             !$omp end critical (FoX_DOM_Access)
           end if
           currentParameter => currentParameter%sibling
        end do
