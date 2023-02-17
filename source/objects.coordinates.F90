@@ -53,6 +53,7 @@ module Coordinates
        <method description="Divide the coordinate by a scalar."                                          method="operator(/)"      />
        <method description="Multiply the coordinate by a scalar."                                        method="scalarMultiply"   />
        <method description="Divide the coordinate by a scalar."                                          method="scalarDivide"     />
+       <method description="Scale the coordinates by a scalar."                                          method="scale"            />
      </methods>
      !!]
      procedure                                      :: toCartesian       => Coordinates_Null_To
@@ -64,6 +65,7 @@ module Coordinates
      procedure(scalarDivideTemplate     ), deferred :: scalarDivide
      generic                                        :: operator(*)       => scalarMultiply
      generic                                        :: operator(/)       => scalarDivide
+     procedure(scaleTemplate            ), deferred :: scale
   end type coordinate
 
   type, public, extends(coordinate) :: coordinateCartesian
@@ -92,6 +94,7 @@ module Coordinates
      procedure :: rSphericalSquared => Coordinates_Cartesian_R_Spherical_Squared
      procedure :: scalarMultiply    => Coordinates_Cartesian_Scalar_Multiply
      procedure :: scalarDivide      => Coordinates_Cartesian_Scalar_Divide
+     procedure :: scale             => Coordinates_Cartesian_Scale
   end type coordinateCartesian
 
   type, public, extends(coordinate) :: coordinateSpherical
@@ -121,6 +124,7 @@ module Coordinates
      procedure :: rSphericalSquared => Coordinates_Spherical_R_Spherical_Squared
      procedure :: scalarMultiply    => Coordinates_Spherical_Scalar_Multiply
      procedure :: scalarDivide      => Coordinates_Spherical_Scalar_Divide
+     procedure :: scale             => Coordinates_Spherical_Scale
   end type coordinateSpherical
 
   type, public, extends(coordinate) :: coordinateCylindrical
@@ -149,6 +153,7 @@ module Coordinates
      procedure :: rSphericalSquared => Coordinates_Cylindrical_R_Spherical_Squared
      procedure :: scalarMultiply    => Coordinates_Cylindrical_Scalar_Multiply
      procedure :: scalarDivide      => Coordinates_Cylindrical_Scalar_Divide
+     procedure :: scale             => Coordinates_Cylindrical_Scale
   end type coordinateCylindrical
 
   abstract interface
@@ -174,6 +179,15 @@ module Coordinates
        class           (coordinate), intent(in   ) :: self
        double precision            , intent(in   ) :: divisor
      end function scalarDivideTemplate
+  end interface
+  
+  abstract interface
+     subroutine scaleTemplate(self,scalar,selfScaled)
+       import coordinate
+       class           (coordinate), intent(in   )              :: self
+       double precision            , intent(in   )              :: scalar
+       class           (coordinate), intent(inout), allocatable :: selfScaled
+     end subroutine scaleTemplate
   end interface
   
   ! Interface to multiplication operators with coordinate objects as their second argument.
@@ -359,7 +373,7 @@ contains
     class           (coordinateCartesian), intent(in   ) :: self
     double precision                     , intent(in   ) :: multiplier
 
-    allocate(scaled,mold=self)
+    allocate(scaled,source=self)
     scaled%position=+self%position   &
          &          *     multiplier
     return
@@ -374,11 +388,35 @@ contains
     class           (coordinateCartesian), intent(in   ) :: self
     double precision                     , intent(in   ) :: divisor
 
-    allocate(scaled,mold=self)
+    allocate(scaled,source=self)
     scaled%position=+self%position &
          &          /     divisor
     return
   end function Coordinates_Cartesian_Scalar_Divide
+  
+  !![
+  <workaround type="gfortran" PR="37336" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=37336">
+    <description>
+      This function is needed to allow scaling of coordinate objects. It should not be needed as we overload the * and / operators
+      for coordinate objects. But, until finalization is completed, function results are not finalized causing the overloaded *
+      and / operators to leak memory. This is a workaround to avoid that.
+    </description>
+  </workaround>
+  !!]
+  subroutine Coordinates_Cartesian_Scale(self,scalar,selfScaled)
+    !!{
+    Scale a Cartesian {\normalfont \ttfamily coordinate} object by a scalar.
+    !!}
+    implicit none
+    class           (coordinateCartesian), intent(in   )              :: self
+    double precision                     , intent(in   )              :: scalar
+    class           (coordinate         ), intent(inout), allocatable :: selfScaled
+
+    allocate(selfScaled,source=self)
+    selfScaled%position=+selfScaled%position &
+         &              *           scalar
+    return
+  end subroutine Coordinates_Cartesian_Scale
 
   double precision function Coordinates_Cartesian_R_Spherical_Squared(self)
     !!{
@@ -537,7 +575,7 @@ contains
     class           (coordinateSpherical), intent(in   ) :: self
     double precision                     , intent(in   ) :: multiplier
 
-    allocate(scaled,mold=self)
+    allocate(scaled,source=self)
     scaled%position   =+self  %position
     scaled%position(1)=+scaled%position(1) &
          &             *multiplier
@@ -553,12 +591,35 @@ contains
     class           (coordinateSpherical), intent(in   ) :: self
     double precision                     , intent(in   ) :: divisor
 
-    allocate(scaled,mold=self)
-    scaled%position   =+self  %position
+    allocate(scaled,source=self)
     scaled%position(1)=+scaled%position(1) &
          &             /divisor
     return
   end function Coordinates_Spherical_Scalar_Divide
+
+  !![
+  <workaround type="gfortran" PR="37336" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=37336">
+    <description>
+      This function is needed to allow scaling of coordinate objects. It should not be needed as we overload the * and / operators
+      for coordinate objects. But, until finalization is completed, function results are not finalized causing the overloaded *
+      and / operators to leak memory. This is a workaround to avoid that.
+    </description>
+  </workaround>
+  !!]
+  subroutine Coordinates_Spherical_Scale(self,scalar,selfScaled)
+    !!{
+    Scale a spherical {\normalfont \ttfamily coordinate} object by a scalar.
+    !!}
+    implicit none
+    class           (coordinateSpherical), intent(in   )              :: self
+    double precision                     , intent(in   )              :: scalar
+    class           (coordinate         ), intent(inout), allocatable :: selfScaled
+
+    allocate(selfScaled,source=self)
+    selfScaled%position(1)=+selfScaled%position(1) &
+         &                 *           scalar
+    return
+  end subroutine Coordinates_Spherical_Scale
 
   ! Cylindrical coordinate object.
   subroutine Coordinates_Cylindrical_From_Cartesian(self,x)
@@ -688,8 +749,7 @@ contains
     class           (coordinateCylindrical), intent(in   ) :: self
     double precision                       , intent(in   ) :: multiplier
 
-    allocate(scaled,mold=self)
-    scaled%position   =+self  %position
+    allocate(scaled,source=self)
     scaled%position(1)=+scaled%position(1) &
          &             *multiplier
     scaled%position(3)=+scaled%position(3) &
@@ -706,14 +766,39 @@ contains
     class           (coordinateCylindrical), intent(in   ) :: self
     double precision                       , intent(in   ) :: divisor
 
-    allocate(scaled,mold=self)
-    scaled%position   =+self  %position
+    allocate(scaled,source=self)
     scaled%position(1)=+scaled%position(1) &
          &             /divisor
     scaled%position(3)=+scaled%position(3) &
          &             /divisor
     return
   end function Coordinates_Cylindrical_Scalar_Divide
+
+  !![
+  <workaround type="gfortran" PR="37336" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=37336">
+    <description>
+      This function is needed to allow scaling of coordinate objects. It should not be needed as we overload the * and / operators
+      for coordinate objects. But, until finalization is completed, function results are not finalized causing the overloaded *
+      and / operators to leak memory. This is a workaround to avoid that.
+    </description>
+  </workaround>
+  !!]
+  subroutine Coordinates_Cylindrical_Scale(self,scalar,selfScaled)
+    !!{
+    Scale a cylindrical {\normalfont \ttfamily coordinate} object by a scalar.
+    !!}
+    implicit none
+    class           (coordinateCylindrical), intent(in   )              :: self
+    double precision                       , intent(in   )              :: scalar
+    class           (coordinate           ), intent(inout), allocatable :: selfScaled
+
+    allocate(selfScaled,source=self)
+    selfScaled%position(1)=+selfScaled%position(1) &
+         &                 *           scalar
+    selfScaled%position(3)=+selfScaled%position(3) &
+         &                 *           scalar
+    return
+  end subroutine Coordinates_Cylindrical_Scale
 
   ! General functions.
   double precision function Coordinates_Radius_Cylindrical(self)
@@ -746,11 +831,10 @@ contains
     Multiply a Cartesian {\normalfont \ttfamily coordinate} object by a scalar.
     !!}
     implicit none
-    class            (coordinate), allocatable                :: scaled
+    class           (coordinate), allocatable   :: scaled
     class           (coordinate), intent(in   ) :: self
-    double precision                     , intent(in   ) :: multiplier
+    double precision            , intent(in   ) :: multiplier
 
-    allocate(scaled,mold=self)
     scaled=self*multiplier
     return
   end function Coordinates_Scalar_Multiply_Switched

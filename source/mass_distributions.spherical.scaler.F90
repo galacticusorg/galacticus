@@ -153,14 +153,15 @@ contains
     Return the density at the specified {\normalfont \ttfamily coordinates} in a scaled spherical mass distribution.
     !!}
     implicit none
-    class(massDistributionSphericalScaler), intent(inout)           :: self
-    class(coordinate                     ), intent(in   )           :: coordinates
-    type (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
-    type (enumerationMassTypeType        ), intent(in   ), optional :: massType
+    class(massDistributionSphericalScaler), intent(inout)              :: self
+    class(coordinate                     ), intent(in   )              :: coordinates
+    type (enumerationComponentTypeType   ), intent(in   ), optional    :: componentType
+    type (enumerationMassTypeType        ), intent(in   ), optional    :: massType
+    class(coordinate                     )               , allocatable :: coordinatesScaled
 
+    call coordinates%scale(1.0d0/self%factorScalingLength,coordinatesScaled)
     sphericalScalerDensity=+self%massDistribution_%density          (                           &
-         &                                                                 coordinates          &
-         &                                                           /self%factorScalingLength, &
+         &                                                           coordinatesScaled        , &
          &                                                           componentType            , &
          &                                                           massType                   &
          &                                                          )                           &
@@ -174,18 +175,19 @@ contains
     Return the density gradient in the radial direction in a scaled spherical mass distribution.
     !!}
     implicit none
-    class  (massDistributionSphericalScaler), intent(inout)           :: self
-    class  (coordinate                     ), intent(in   )           :: coordinates
-    logical                                 , intent(in   ), optional :: logarithmic
-    type   (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
-    type   (enumerationMassTypeType        ), intent(in   ), optional :: massType
+    class  (massDistributionSphericalScaler), intent(inout)              :: self
+    class  (coordinate                     ), intent(in   )              :: coordinates
+    logical                                 , intent(in   ), optional    :: logarithmic
+    type   (enumerationComponentTypeType   ), intent(in   ), optional    :: componentType
+    type   (enumerationMassTypeType        ), intent(in   ), optional    :: massType
+    class  (coordinate                     )               , allocatable :: coordinatesScaled
     !![
     <optionalArgument name="logarithmic" defaultsTo=".false."/>
     !!]
     
+    call coordinates%scale(1.0d0/self%factorScalingLength,coordinatesScaled)
     sphericalScalerDensityGradientRadial=+self%massDistribution_%densityGradientRadial(                           &
-         &                                                                                   coordinates          &
-         &                                                                             /self%factorScalingLength, &
+         &                                                                             coordinatesScaled        , &
          &                                                                             logarithmic              , &
          &                                                                             componentType            , &
          &                                                                             massType                   &
@@ -223,14 +225,15 @@ contains
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    class(massDistributionSphericalScaler), intent(inout)           :: self
-    class(coordinate                     ), intent(in   )           :: coordinates
-    type (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
-    type (enumerationMassTypeType        ), intent(in   ), optional :: massType
+    class(massDistributionSphericalScaler), intent(inout)              :: self
+    class(coordinate                     ), intent(in   )              :: coordinates
+    type (enumerationComponentTypeType   ), intent(in   ), optional    :: componentType
+    type (enumerationMassTypeType        ), intent(in   ), optional    :: massType
+    class(coordinate                     )               , allocatable :: coordinatesScaled
 
+    call coordinates%scale(1.0d0/self%factorScalingLength,coordinatesScaled)
     sphericalScalerPotential=+self%massDistribution_%potential                     (                           &
-         &                                                                                coordinates          &
-         &                                                                          /self%factorScalingLength, &
+         &                                                                          coordinatesScaled        , &
          &                                                                          componentType            , &
          &                                                                          massType                   &
          &                                                                         )                           &
@@ -308,15 +311,16 @@ contains
     use :: Numerical_Constants_Astronomical, only : gigaYear, gravitationalConstantGalacticus, megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
-    double precision                                 , dimension(3)            :: sphericalScalerAcceleration
-    class           (massDistributionSphericalScaler), intent(inout)           :: self
-    class           (coordinate                     ), intent(in   )           :: coordinates
-    type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType        ), intent(in   ), optional :: massType
+    double precision                                 , dimension(3)               :: sphericalScalerAcceleration
+    class           (massDistributionSphericalScaler), intent(inout)              :: self
+    class           (coordinate                     ), intent(in   )              :: coordinates
+    type            (enumerationComponentTypeType   ), intent(in   ), optional    :: componentType
+    type            (enumerationMassTypeType        ), intent(in   ), optional    :: massType
+    class           (coordinate                     )               , allocatable :: coordinatesScaled
 
+    call coordinates%scale(1.0d0/self%factorScalingLength,coordinatesScaled)
     sphericalScalerAcceleration=+self%massDistribution_%acceleration                  (                           &
-         &                                                                                   coordinates          &
-         &                                                                             /self%factorScalingLength, &
+         &                                                                             coordinatesScaled        , &
          &                                                                                   componentType      , &
          &                                                                                   massType             &
          &                                                                            )                           &
@@ -405,20 +409,21 @@ contains
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    type (tensorRank2Dimension3Symmetric )                          :: sphericalScalerTidalTensor
-    class(massDistributionSphericalScaler), intent(inout)           :: self
-    class(coordinate                     ), intent(in   )           :: coordinates
-    type (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
-    type (enumerationMassTypeType        ), intent(in   ), optional :: massType
+    type (tensorRank2Dimension3Symmetric )                             :: sphericalScalerTidalTensor
+    class(massDistributionSphericalScaler), intent(inout)              :: self
+    class(coordinate                     ), intent(in   )              :: coordinates
+    type (enumerationComponentTypeType   ), intent(in   ), optional    :: componentType
+    type (enumerationMassTypeType        ), intent(in   ), optional    :: massType
+    class(coordinate                     )               , allocatable :: coordinatesScaled
 
-    sphericalScalerTidalTensor=+self%massDistribution_%tidalTensor                    (                           &
-         &                                                                                   coordinates          &
-         &                                                                             /self%factorScalingLength, &
-         &                                                                             componentType            , &
-         &                                                                             massType                   &
-         &                                                                            )                           &
-         &                     *                       gravitationalConstantGalacticus                            &
-         &                     *self                  %factorScalingMass                                          &
+    call coordinates%scale(1.0d0/self%factorScalingLength,coordinatesScaled)
+    sphericalScalerTidalTensor=+self%massDistribution_%tidalTensor                    (                   &
+         &                                                                             coordinatesScaled, &
+         &                                                                             componentType    , &
+         &                                                                             massType           &
+         &                                                                            )                   &
+         &                     *                       gravitationalConstantGalacticus                    &
+         &                     *self                  %factorScalingMass                                  &
          &                     /self                  %factorScalingLength**3
     return
   end function sphericalScalerTidalTensor
