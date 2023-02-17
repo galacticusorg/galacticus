@@ -228,7 +228,7 @@ sub Tree_Node_Mass_Distribution {
 		 intrinsic  => "type",
 		 type       => "massDistributionList",
 		 attributes => [ "pointer" ],
-		 variables  => [ "massDistributionList_ => null()", "next_ => null()" ]
+		 variables  => [ "massDistributionList_ => null()", "massDistributionList__ => null()", "next_ => null()", "next__ => null()" ]
 	     }
 	    ]
     };
@@ -239,20 +239,37 @@ CODE
     foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
 	next
 	    unless ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} );
+	# <workaround type="gfortran" PR="37336" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=37336">
+	#   <description>
+	#    In the following, we build two, identical lists of mass distributions. This is necessary as the first is passed to the
+	#    massDistributionComposite() constructor and retained. But, we need to call objectDestructor on each of the mass
+	#    distributions in our list to release them. If we did that by iterating over the list passed to
+	#    massDistributionComposite() we would nullify its pointers, leaving it unable to find the mass distributions. Therefore,
+	#    we make a second list, iterate over it calling objectDestructor on each massDistribution, and then destroy that list.
+	#
+	#    With correct resource management in assignment, copy, and finalization, this should be handled automatically.
+	#   </description>
+	# </workaround>
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated(self%component{ucfirst($class->{'name'})})) then
    do i=1,size(self%component{ucfirst($class->{'name'})})
      massDistributionComponent => self%component{ucfirst($class->{'name'})}(i)%massDistribution()
      if (associated(massDistributionComponent)) then
        if (associated(massDistributionList_)) then
-         allocate(next_%next)
-         next_ => next_%next
+         allocate(next_ %next)
+         allocate(next__%next)
+         next_  => next_ %next
+         next__ => next__%next
        else
-         allocate(massDistributionList_)
-         next_ => massDistributionList_
+         allocate(massDistributionList_ )
+         allocate(massDistributionList__)
+         next_  => massDistributionList_
+         next__ => massDistributionList__
        end if
-       next_%massDistribution_ => massDistributionComponent
-       next_%next              => null()
+       next_ %massDistribution_ => massDistributionComponent
+       next__%massDistribution_ => massDistributionComponent
+       next_ %next              => null()
+       next__%next              => null()
      end if
    end do
 end if
@@ -266,6 +283,17 @@ type is (massDistributionComposite)
   <referenceConstruct isResult="yes" object="massDistribution_" constructor="massDistributionComposite(massDistributionList_)"/>
   !!]
 end select
+next_ => massDistributionList__
+do while (associated(next_))
+ !![
+ <objectDestructor name="next_%massDistribution_"/>
+ !!]
+ next__ => next_%next
+ deallocate(next_)
+ next_  => next__
+end do
+nullify(massDistributionList_ )
+nullify(massDistributionList__)
 CODE
     # Insert a type-binding for this function into the treeNode type.
     push(

@@ -30,12 +30,25 @@ function Node_Component_Spheroid_Standard_Mass_Distribution(self) result(massDis
   use :: Node_Component_Spheroid_Standard_Data, only : massDistributionStellar_   , massDistributionGas_
   use :: Galactic_Structure_Options           , only : componentTypeSpheroid      , massTypeStellar                , massTypeGaseous
   implicit none
-  class(massDistributionClass          ), pointer       :: massDistribution_
-  class(nodeComponentSpheroidStandard  ), intent(inout) :: self
-  type (massDistributionSphericalScaler), pointer       :: massDistributionStellar   , massDistributionGas
-  type (massDistributionComposite      ), pointer       :: massDistributionTotal
-  type (massDistributionList           ), pointer       :: massDistributionComponents
+  class           (massDistributionClass          ), pointer       :: massDistribution_
+  class           (nodeComponentSpheroidStandard  ), intent(inout) :: self
+  type            (massDistributionSphericalScaler), pointer       :: massDistributionStellar   , massDistributionGas
+  type            (massDistributionComposite      ), pointer       :: massDistributionTotal
+  type            (massDistributionList           ), pointer       :: massDistributionComponents
+  double precision                                                 :: massStellar               , massGas            , &
+       &                                                              radiusScale
 
+  ! Get properties of the mass distribution and ensure they are physical.
+  massStellar=max(0.0d0,self%massStellar())
+  massGas    =max(0.0d0,self%massGas    ())
+  radiusScale=          self%radius     ()
+  if (radiusScale <= 0.0d0) then
+     ! Spjeroid has non-positive size. Set an arbitrary, positive size, but also set masses to zero. This results in an empty mass
+     ! distribution.
+     radiusScale=1.0d0
+     massStellar=0.0d0
+     massGas    =0.0d0
+  end if
   ! Wrap the dimensionless mass distribution inside scaler classes to allow us to re-scale it to any spheroid system, and then composite those.
   allocate(massDistributionStellar        )
   allocate(massDistributionGas            )
@@ -47,18 +60,21 @@ function Node_Component_Spheroid_Standard_Mass_Distribution(self) result(massDis
   select type (massDistributionStellar_)
   class is (massDistributionSpherical)
      !![
-     <referenceConstruct object="massDistributionStellar" constructor="massDistributionSphericalScaler(factorScalingLength=self%radius(),factorScalingMass=self%massStellar(),massDistribution_=massDistributionStellar_  )"/>
+     <referenceConstruct object="massDistributionStellar" constructor="massDistributionSphericalScaler(factorScalingLength=radiusScale,factorScalingMass=massStellar,massDistribution_=massDistributionStellar_  )"/>
      !!]
   end select
   select type (massDistributionGas_    )
   class is (massDistributionSpherical)
      !![
-     <referenceConstruct object="massDistributionGas"     constructor="massDistributionSphericalScaler(factorScalingLength=self%radius(),factorScalingMass=self%massGas    (),massDistribution_=massDistributionGas_      )"/>
+     <referenceConstruct object="massDistributionGas"     constructor="massDistributionSphericalScaler(factorScalingLength=radiusScale,factorScalingMass=massGas    ,massDistribution_=massDistributionGas_      )"/>
      !!]
   end select
   !![
-  <referenceConstruct    object="massDistributionTotal"   constructor="massDistributionComposite      (                                                                                         massDistributionComponents)"/>
+  <referenceConstruct    object="massDistributionTotal"   constructor="massDistributionComposite      (                                                                                massDistributionComponents)"/>
+  <objectDestructor name="massDistributionStellar"/>
+  <objectDestructor name="massDistributionGas"    />
   !!]
+  nullify(massDistributionComponents)
   ! Return a pointer to the spheroid mass distribution.
   massDistribution_ => massDistributionTotal
   return
@@ -105,13 +121,15 @@ double precision function Node_Component_Spheroid_Standard_Enclosed_Mass(self,ra
   
   massDistribution_ => self             %massDistribution    (                             )
   massEnclosed      =  massDistribution_%massEnclosedBySphere(radius,componentType,massType)
-  if (massEnclosed <= 0.0d0             ) return
-  if (weightBy     == weightByLuminosity) then
+  if (massEnclosed > 0.0d0 .and. weightBy     == weightByLuminosity) then
      luminositiesSpheroid= self%luminositiesStellar()
      massEnclosed        =+massEnclosed                                            &
           &               *luminositiesSpheroid%luminosity(weightIndex           ) &
           &               /massDistribution_   %massTotal (componentType,massType)
   end if
+  !![
+  <objectDestructor name="massDistribution_"/>
+  !!]
   return
 end function Node_Component_Spheroid_Standard_Enclosed_Mass
 
@@ -134,6 +152,9 @@ function Node_Component_Spheroid_Standard_Acceleration(self,positionCartesian,co
   position          =  positionCartesian
   massDistribution_ => self             %massDistribution(                               )
   acceleration      =  massDistribution_%acceleration    (position,componentType,massType)
+  !![
+  <objectDestructor name="massDistribution_"/>
+  !!]
   return
 end function Node_Component_Spheroid_Standard_Acceleration
 
@@ -157,6 +178,9 @@ function Node_Component_Spheroid_Standard_Tidal_Tensor(self,positionCartesian,co
   position          =  positionCartesian
   massDistribution_ => self             %massDistribution(                               )
   tidalTensor       =  massDistribution_%tidalTensor     (position,componentType,massType)
+  !![
+  <objectDestructor name="massDistribution_"/>
+  !!]
   return
 end function Node_Component_Spheroid_Standard_Tidal_Tensor
 
@@ -212,6 +236,9 @@ function Node_Component_Spheroid_Standard_Chandrasekhar_Integral(self,nodeSatell
        &                          *exp (-xV**2)       &
        &                          /sqrt( Pi   )       &
        &                        )
+  !![
+  <objectDestructor name="massDistribution_"/>
+  !!]
   return
 end function Node_Component_Spheroid_Standard_Chandrasekhar_Integral
 
@@ -230,6 +257,9 @@ double precision function Node_Component_Spheroid_Standard_Rotation_Curve(self,r
 
   massDistribution_ => self             %massDistribution(                             )
   rotationCurve     =  massDistribution_%rotationCurve   (radius,componentType,massType)
+  !![
+  <objectDestructor name="massDistribution_"/>
+  !!]
   return
 end function Node_Component_Spheroid_Standard_Rotation_Curve
 
@@ -248,6 +278,9 @@ double precision function Node_Component_Spheroid_Standard_Rotation_Curve_Gradie
 
   massDistribution_     => self             %massDistribution     (                             )
   rotationCurveGradient =  massDistribution_%rotationCurveGradient(radius,componentType,massType)
+  !![
+  <objectDestructor name="massDistribution_"/>
+  !!]
   return
 end function Node_Component_Spheroid_Standard_Rotation_Curve_Gradient
 
@@ -274,13 +307,15 @@ double precision function Node_Component_Spheroid_Standard_Density(self,position
   position          =  positionSpherical
   massDistribution_ => self             %massDistribution(                               )
   density           =  massDistribution_%density         (position,componentType,massType)
-  if (density  <= 0.0d0             ) return
-  if (weightBy == weightByLuminosity) then
+  if (density > 0.0d0 .and. weightBy == weightByLuminosity) then
      luminositiesSpheroid= self                %luminositiesStellar(                      )
      density             =+density                                                          &
           &               *luminositiesSpheroid%luminosity         (weightIndex           ) &
           &               /massDistribution_   %massTotal          (componentType,massType)
   end if  
+  !![
+  <objectDestructor name="massDistribution_"/>
+  !!]
   return
 end function Node_Component_Spheroid_Standard_Density
 
@@ -303,13 +338,15 @@ double precision function Node_Component_Spheroid_Standard_Density_Spherical_Ave
 
   massDistribution_ => self             %massDistribution       (                             )
   density           =  massDistribution_%densitySphericalAverage(radius,componentType,massType)
-  if (density  <= 0.0d0             ) return
-  if (weightBy == weightByLuminosity) then
+  if (density > 0.0d0 .and. weightBy == weightByLuminosity) then
      luminositiesSpheroid= self                %luminositiesStellar(                      )
      density             =+density                                                          &
           &               *luminositiesSpheroid%luminosity         (weightIndex           ) &
           &               /massDistribution_   %massTotal          (componentType,massType)
   end if
+  !![
+  <objectDestructor name="massDistribution_"/>
+  !!]
   return
  end function Node_Component_Spheroid_Standard_Density_Spherical_Average
 
@@ -333,5 +370,8 @@ double precision function Node_Component_Spheroid_Standard_Potential(self,radius
   position          =  [radius,0.0d0,0.0d0]
   massDistribution_ => self             %massDistribution(                               )
   potential         =  massDistribution_%potential       (position,componentType,massType)
+  !![
+  <objectDestructor name="massDistribution_"/>
+  !!]
   return
 end function Node_Component_Spheroid_Standard_Potential

@@ -32,11 +32,11 @@ subroutine Node_Component_Disk_Standard_Attach_Pipes(self)
   !$GLC attributes unused :: self
 
   if (hotHalo%hotHaloCoolingMassRateIsAttached           ()) &
-       call Error_Report('expected to find unclaimed hot halo mass cooling pipe'//{introspection:location})
+       call Error_Report('expected to find unclaimed hot halo mass cooling pipe'            //{introspection:location})
   if (hotHalo%hotHaloCoolingAngularMomentumRateIsAttached()) &
        call Error_Report('expected to find unclaimed hot halo angular momentum cooling pipe'//{introspection:location})
   if (hotHalo%hotHaloCoolingAbundancesRateIsAttached     ()) &
-       call Error_Report('expected to find unclaimed hot halo abundances cooling pipe'//{introspection:location})
+       call Error_Report('expected to find unclaimed hot halo abundances cooling pipe'      //{introspection:location})
   call hotHalo%hotHaloCoolingMassRateFunction           (DiskStandardMassGasRateGeneric        )
   call hotHalo%hotHaloCoolingAngularMomentumRateFunction(DiskStandardAngularMomentumRateGeneric)
   call hotHalo%hotHaloCoolingAbundancesRateFunction     (DiskStandardAbundancesGasRateGeneric  )
@@ -52,12 +52,25 @@ function Node_Component_Disk_Standard_Mass_Distribution(self) result(massDistrib
   use :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_   , massDistributionGas_
   use :: Galactic_Structure_Options       , only : componentTypeDisk          , massTypeStellar                  , massTypeGaseous
   implicit none
-  class(massDistributionClass            ), pointer       :: massDistribution_
-  class(nodeComponentDiskStandard        ), intent(inout) :: self
-  type (massDistributionCylindricalScaler), pointer       :: massDistributionStellar   , massDistributionGas
-  type (massDistributionComposite        ), pointer       :: massDistributionTotal
-  type (massDistributionList             ), pointer       :: massDistributionComponents
+  class          (massDistributionClass            ), pointer       :: massDistribution_
+  class          (nodeComponentDiskStandard        ), intent(inout) :: self
+  type           (massDistributionCylindricalScaler), pointer       :: massDistributionStellar   , massDistributionGas
+  type           (massDistributionComposite        ), pointer       :: massDistributionTotal
+  type           (massDistributionList             ), pointer       :: massDistributionComponents
+  double precision                                                  :: massStellar               , massGas            , &
+       &                                                               radiusScale
 
+  ! Get properties of the mass distribution and ensure they are physical.
+  massStellar=max(0.0d0,self%massStellar())
+  massGas    =max(0.0d0,self%massGas    ())
+  radiusScale=          self%radius     ()
+  if (radiusScale <= 0.0d0) then
+     ! Disk has non-positive size. Set an arbitrary, positive size, but also set masses to zero. This results in an empty mass
+     ! distribution.
+     radiusScale=1.0d0
+     massStellar=0.0d0
+     massGas    =0.0d0
+  end if
   ! Wrap the dimensionless mass distribution inside scaler classes to allow us to re-scale it to any disk system, and then composite those.
   allocate(massDistributionStellar        )
   allocate(massDistributionGas            )
@@ -69,18 +82,21 @@ function Node_Component_Disk_Standard_Mass_Distribution(self) result(massDistrib
   select type (massDistributionStellar_)
   class is (massDistributionCylindrical)
      !![
-     <referenceConstruct object="massDistributionStellar" constructor="massDistributionCylindricalScaler(factorScalingLength=self%radius(),factorScalingMass=self%massStellar(),massDistribution_=massDistributionStellar_  )"/>
+     <referenceConstruct object="massDistributionStellar" constructor="massDistributionCylindricalScaler(factorScalingLength=radiusScale,factorScalingMass=massStellar,massDistribution_=massDistributionStellar_  )"/>
      !!]
   end select
   select type (massDistributionGas_    )
   class is (massDistributionCylindrical)
      !![
-     <referenceConstruct object="massDistributionGas"     constructor="massDistributionCylindricalScaler(factorScalingLength=self%radius(),factorScalingMass=self%massGas    (),massDistribution_=massDistributionGas_      )"/>
+     <referenceConstruct object="massDistributionGas"     constructor="massDistributionCylindricalScaler(factorScalingLength=radiusScale,factorScalingMass=massGas    ,massDistribution_=massDistributionGas_      )"/>
      !!]
   end select
   !![
-  <referenceConstruct    object="massDistributionTotal"   constructor="massDistributionComposite        (                                                                                         massDistributionComponents)"/>
+  <referenceConstruct    object="massDistributionTotal"   constructor="massDistributionComposite        (                                                                                massDistributionComponents)"/>
+  <objectDestructor name="massDistributionStellar"/>
+  <objectDestructor name="massDistributionGas"    />
   !!]
+  nullify(massDistributionComponents)
   ! Return a pointer to the disk mass distribution.
   massDistribution_ => massDistributionTotal
   return
@@ -109,7 +125,7 @@ end function Node_Component_Disk_Standard_Half_Mass_Radius
 
 double precision function Node_Component_Disk_Standard_Enclosed_Mass(self,radius,componentType,massType,weightBy,weightIndex) result(massEnclosed)
   !!{
-  Computes the mass within a given radius for an standard disk.
+  Computes the mass within a given radius for a standard disk.
   !!}
   use :: Galactic_Structure_Options, only : weightByLuminosity   , enumerationComponentTypeType, enumerationMassTypeType, enumerationWeightByType
   use :: Mass_Distributions        , only : massDistributionClass
@@ -126,13 +142,15 @@ double precision function Node_Component_Disk_Standard_Enclosed_Mass(self,radius
 
   massDistribution_ => self             %massDistribution    (                             )
   massEnclosed      =  massDistribution_%massEnclosedBySphere(radius,componentType,massType)
-  if (massEnclosed <= 0.0d0             ) return
-  if (weightBy     == weightByLuminosity) then
-        luminositiesDisk= self%luminositiesStellar()
-        massEnclosed    =+massEnclosed                                         &
-             &           *luminositiesDisk %luminosity(weightIndex           ) &
-             &           /massDistribution_%massTotal (componentType,massType)
+  if (massEnclosed > 0.0d0 .and. weightBy     == weightByLuminosity) then
+     luminositiesDisk= self%luminositiesStellar()
+     massEnclosed    =+massEnclosed                                         &
+          &           *luminositiesDisk %luminosity(weightIndex           ) &
+          &           /massDistribution_%massTotal (componentType,massType)
   end if
+  !![
+  <objectDestructor name="massDistribution_"/>
+  !!]
   return
 end function Node_Component_Disk_Standard_Enclosed_Mass
 
@@ -155,6 +173,9 @@ function Node_Component_Disk_Standard_Acceleration(self,positionCartesian,compon
   position          =  positionCartesian
   massDistribution_ => self             %massDistribution(                               )
   acceleration      =  massDistribution_%acceleration    (position,componentType,massType)
+  !![
+  <objectDestructor name="massDistribution_"/>
+  !!]
   return
 end function Node_Component_Disk_Standard_Acceleration
 
@@ -178,12 +199,15 @@ function Node_Component_Disk_Standard_Tidal_Tensor(self,positionCartesian,compon
   position          =  positionCartesian
   massDistribution_ => self             %massDistribution(                               )
   tidalTensor       =  massDistribution_%tidalTensor     (position,componentType,massType)
+  !![
+  <objectDestructor name="massDistribution_"/>
+  !!]
   return
 end function Node_Component_Disk_Standard_Tidal_Tensor
 
 double precision function Node_Component_Disk_Standard_Density(self,positionSpherical,componentType,massType,weightBy,weightIndex) result(density)
   !!{
-  Computes the density at a given position for an standard disk.
+  Computes the density at a given position for a standard disk.
   !!}
   use :: Coordinates               , only : assignment(=)                 , coordinateSpherical
   use :: Galactic_Structure_Options, only : enumerationComponentTypeType  , enumerationMassTypeType, enumerationWeightByType, weightByLuminosity
@@ -200,23 +224,24 @@ double precision function Node_Component_Disk_Standard_Density(self,positionSphe
   !$omp threadprivate(luminositiesDisk)
   type            (coordinateSpherical         )                :: position
 
-
   position          =  positionSpherical
   massDistribution_ => self             %massDistribution(                               )
   density           =  massDistribution_%density         (position,componentType,massType)
-  if (density  <= 0.0d0             ) return
-  if (weightBy == weightByLuminosity) then
+  if (density > 0.0d0 .and. weightBy == weightByLuminosity) then
      luminositiesDisk= self%luminositiesStellar()
      density         =+density                                              &
           &           *luminositiesDisk %luminosity(weightIndex           ) &
           &           /massDistribution_%massTotal (componentType,massType)
   end if  
+  !![
+  <objectDestructor name="massDistribution_"/>
+  !!]
   return
 end function Node_Component_Disk_Standard_Density
 
 double precision function Node_Component_Disk_Standard_Density_Spherical_Average(self,radius,componentType,massType,weightBy,weightIndex) result(density)
   !!{
-  Computes the density at a given position for an standard disk.
+  Computes the density at a given position for a standard disk.
   !!}
   use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType, enumerationWeightByType, weightByLuminosity
   use :: Mass_Distributions        , only : massDistributionClass
@@ -233,19 +258,21 @@ double precision function Node_Component_Disk_Standard_Density_Spherical_Average
 
   massDistribution_ => self             %massDistribution       (                             )
   density           =  massDistribution_%densitySphericalAverage(radius,componentType,massType)
-  if (density  <= 0.0d0             ) return
-  if (weightBy == weightByLuminosity) then
+  if (density > 0.0d0 .and. weightBy == weightByLuminosity) then
      luminositiesDisk= self%luminositiesStellar()
      density         =+density                                              &
           &           *luminositiesDisk %luminosity(weightIndex           ) &
           &           /massDistribution_%massTotal (componentType,massType)
   end if
+  !![
+  <objectDestructor name="massDistribution_"/>
+  !!]
   return
  end function Node_Component_Disk_Standard_Density_Spherical_Average
 
 double precision function Node_Component_Disk_Standard_Potential(self,radius,componentType,massType,status) result(potential)
   !!{
-  Compute the gravitational potential due to an standard disk.
+  Compute the gravitational potential due to a standard disk.
   !!}
   use :: Coordinates               , only : assignment(=)               , coordinateCylindrical
   use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType, enumerationStructureErrorCodeType
@@ -263,12 +290,15 @@ double precision function Node_Component_Disk_Standard_Potential(self,radius,com
   position          =  [radius,0.0d0,0.0d0]
   massDistribution_ => self             %massDistribution(                               )
   potential         =  massDistribution_%potential       (position,componentType,massType)
+  !![
+  <objectDestructor name="massDistribution_"/>
+  !!]
   return
 end function Node_Component_Disk_Standard_Potential
 
 double precision function Node_Component_Disk_Standard_Rotation_Curve(self,radius,componentType,massType) result(rotationCurve)
   !!{
-  Computes the rotation curve at a given radius for an standard disk.
+  Computes the rotation curve at a given radius for a standard disk.
   !!}
   use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType
   use :: Mass_Distributions        , only : massDistributionClass
@@ -281,12 +311,15 @@ double precision function Node_Component_Disk_Standard_Rotation_Curve(self,radiu
 
   massDistribution_ => self             %massDistribution(                             )
   rotationCurve     =  massDistribution_%rotationCurve   (radius,componentType,massType)
+  !![
+  <objectDestructor name="massDistribution_"/>
+  !!]
   return
 end function Node_Component_Disk_Standard_Rotation_Curve
 
 double precision function Node_Component_Disk_Standard_Rotation_Curve_Gradient(self,radius,componentType,massType) result(rotationCurveGradient)
   !!{
-  Computes the rotation curve gradient for an standard disk.
+  Computes the rotation curve gradient for a standard disk.
   !!}
   use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType
   use :: Mass_Distributions        , only : massDistributionClass
@@ -299,12 +332,15 @@ double precision function Node_Component_Disk_Standard_Rotation_Curve_Gradient(s
 
   massDistribution_     => self             %massDistribution     (                             )
   rotationCurveGradient =  massDistribution_%rotationCurveGradient(radius,componentType,massType)
+  !![
+  <objectDestructor name="massDistribution_"/>
+  !!]
   return
 end function Node_Component_Disk_Standard_Rotation_Curve_Gradient
 
 double precision function Node_Component_Disk_Standard_Surface_Density(self,positionCylindrical,componentType,massType,weightBy,weightIndex) result(surfaceDensity)
   !!{
-  Computes the surface density at a given position for an standard disk.
+  Computes the surface density at a given position for a standard disk.
   !!}
   use :: Coordinates               , only : assignment(=)               , coordinateCylindrical
   use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType, enumerationWeightByType, weightByLuminosity 
@@ -324,12 +360,14 @@ double precision function Node_Component_Disk_Standard_Surface_Density(self,posi
   position          =  positionCylindrical
   massDistribution_ => self               %massDistribution(                               )
   surfaceDensity    =  massDistribution_  %surfaceDensity  (position,componentType,massType)
-  if (surfaceDensity <= 0.0d0             ) return
-  if (weightBy       == weightByLuminosity) then
+  if (surfaceDensity > 0.0d0 .and. weightBy == weightByLuminosity) then
      luminositiesDisk= self%luminositiesStellar()
      surfaceDensity  =+surfaceDensity                                       &
           &           *luminositiesDisk %luminosity(weightIndex           ) &
           &           /massDistribution_%massTotal (componentType,massType)
   end if
+  !![
+  <objectDestructor name="massDistribution_"/>
+  !!]
   return
 end function Node_Component_Disk_Standard_Surface_Density
