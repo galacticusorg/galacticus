@@ -9,7 +9,6 @@
   <componentBlackHole         value="standard" >
     <massSeed                                    value="100.0000"/>
     <heatsHotHalo                                value="true"    />
-    <efficiencyRadioMode                         value="  1.0000"/>
     <efficiencyWind                              value="  0.0024"/>
     <efficiencyWindScalesWithEfficiencyRadiative value="true"    />
     <bondiHoyleAccretionEnhancementHotHalo       value="  6.0000"/>
@@ -84,7 +83,7 @@
 
   <coolingRadius value="simple"/>
   <coolingRate value="multiplier">
-    <multiplier  value="1.0"           />
+    <multiplier  value="0.5"           />
     <coolingRate value="whiteFrenk1991" >
       <velocityCutOff value="10000"/>
     </coolingRate>
@@ -93,34 +92,30 @@
     <degreesOfFreedom value="3.0"/>
   </coolingTime>
   <coolingTimeAvailable value="whiteFrenk1991">
-    <ageFactor value="0.0"/>
+    <ageFactor value="0"/>
   </coolingTimeAvailable>
   <!-- Hot halo ram pressure stripping options -->
   <hotHaloRamPressureStripping value="font2008"               />
   <hotHaloRamPressureForce     value="orbitalPosition"        />
   <hotHaloRamPressureTimescale value="ramPressureAcceleration"/>
   <!-- Galactic structure solver options -->
-  <galacticStructureSolver value="equilibrium">
-    <convergenceFailureIsFatal value="false"/>
-  </galacticStructureSolver>
+  <galacticStructureSolver value="equilibrium"/>
   <darkMatterProfile value="adiabaticGnedin2004">
-    <A                 value="0.73"   />
-    <omega             value="0.70"   />
-    <toleranceRelative value="1.00e-4"/>
+    <A     value="0.73"/>
+    <omega value="0.70"/>
   </darkMatterProfile>
   <!-- Star formation rate options -->
   <starFormationRateDisks               value="intgrtdSurfaceDensity"/>
   <starFormationRateSurfaceDensityDisks value="blitz2006"             >
-    <starFormationFrequencyNormalization value="2.0e-9"/>
-    <assumeMonotonicSurfaceDensity       value="true"  />
-    <assumeExponentialDisk               value="true"  />
-    <useTabulation                       value="true"  />
+    <assumeMonotonicSurfaceDensity value="true"/>
+    <assumeExponentialDisk         value="true"/>
+    <useTabulation                 value="true"/>
   </starFormationRateSurfaceDensityDisks>
   <starFormationRateSpheroids value="timescale">
     <starFormationTimescale value="dynamicalTime">
-      <efficiency       value="1.000"/>
+      <efficiency       value="0.040"/>
       <exponentVelocity value="2.000"/>
-      <timescaleMinimum value="0.010"/>
+      <timescaleMinimum value="0.001"/>
     </starFormationTimescale>
   </starFormationRateSpheroids>
 
@@ -137,7 +132,6 @@
 
   <!-- AGN feedback options -->
   <hotHaloExcessHeatDrivesOutflow value="true"/>
-  
   <!-- Accretion disk properties -->
   <accretionDisks value="switched">
     <accretionRateThinDiskMaximum value="0.30"          />
@@ -197,9 +191,9 @@
     </nodeOperator>
     <nodeOperator value="satelliteDestructionMassThreshold">
       <!-- Subhalos will be removed if they fall below the merger tree mass resolution limit. -->
-      <massDestructionAbsolute           value="=[mergerTreeMassResolution::massResolutionMinimum]   "/>
-      <massDestructionMassTreeFraction   value="=[mergerTreeMassResolution::massResolutionFractional]"/>
-      <massDestructionMassInfallFraction value="0.0"                                                  />
+      <massDestructionAbsolute           value="=[mergerTreeMassResolution::massResolution]"/>
+      <massDestructionMassTreeFraction   value="0.0"                                        />
+      <massDestructionMassInfallFraction value="0.0"                                        />
     </nodeOperator>
     <!-- CGM -->
     <nodeOperator value="CGMChemistry">
@@ -211,16 +205,16 @@
     <!--Stellar feedback outflows-->
     <nodeOperator value="stellarFeedbackDisks">
       <stellarFeedbackOutflows value="rateLimit">
-        <timescaleOutflowFractionalMinimum value="0.01"/>
+        <timescaleOutflowFractionalMinimum value="0.001"/>
         <stellarFeedbackOutflows value="powerLaw">
-          <velocityCharacteristic value="135.83"/>
-          <exponent               value="  3.79"/>
+          <velocityCharacteristic value="250.0"/>
+          <exponent               value="  2.0"/>
         </stellarFeedbackOutflows>
       </stellarFeedbackOutflows>
     </nodeOperator>
     <nodeOperator value="stellarFeedbackSpheroids">
       <stellarFeedbackOutflows value="rateLimit">
-        <timescaleOutflowFractionalMinimum value="0.01"/>
+        <timescaleOutflowFractionalMinimum value="0.001"/>
         <stellarFeedbackOutflows value="powerLaw">
           <velocityCharacteristic value="100.0"/>
           <exponent               value="  2.0"/>
@@ -230,8 +224,8 @@
     <!-- Bar instability in galactic disks -->
     <nodeOperator value="barInstability">
       <galacticDynamicsBarInstability value="efstathiou1982">
-    	<stabilityThresholdGaseous value="0.7"/>
-    	<stabilityThresholdStellar value="1.1"/>
+	<stabilityThresholdGaseous value="0.7"/>
+	<stabilityThresholdStellar value="1.1"/>
       </galacticDynamicsBarInstability>
     </nodeOperator>
     <nodeOperator value="nodeFormationTimeMassFraction">
@@ -249,9 +243,9 @@
   </mergerTreeEvolver>
   <mergerTreeNodeEvolver value="standard">
     <!-- Standard node evolve with parameters chosen to (somewhat) optimize the evolution. -->
-    <odeToleranceAbsolute value="1.0e-4"/>
-    <odeToleranceRelative value="1.0e-4"/>
-    <reuseODEStepSize     value="false" />
+    <odeToleranceAbsolute value="0.01" />
+    <odeToleranceRelative value="0.01" />
+    <reuseODEStepSize     value="false"/>
   </mergerTreeNodeEvolver>
   <mergerTreeEvolveTimestep value="multi">
     <!-- Standard time-stepping rules -->
@@ -267,7 +261,7 @@
       <!-- This timestep rule is required to ensure that subhalos are removed when they meet the destruction criteria. -->
     </mergerTreeEvolveTimestep>
     <mergerTreeEvolveTimestep value="hostTidalMassLoss">
-      <!-- This timestep criterion makes sure that subsubhalos do not evolve too far ahead of their host subhalos when
+      <!-- This timestep criterion makes sure that subsubahlos do not evolve too far ahead of their host subhalos when
            the host density and mass change rapidly due to tidal effects. It also limits the evolution time of subhalos
            to the time at which the hosts first becomes subhalos. -->
       <timeStepRelative        value="0.1"/>
