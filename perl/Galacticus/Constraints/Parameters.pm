@@ -208,10 +208,44 @@ sub parameterVector {
     return $parameterVector;
 }
 
+sub correlationLengths {
+    my $config  =   shift() ;
+    my %options = %{shift()}
+        if ( scalar(@_) > 0 );
+    # Determine number of chains.
+    my $chainCount     = &chainCount    ($config,\%options);
+    # Determine number of parameters.
+    my $parameterCount = &parameterCount($config,\%options);
+    # Initialize correlation lengths.
+    my $correlationLengths = pdl -ones($chainCount,$parameterCount);
+    # Iterate over chains.
+    for(my $chain=0;$chain<$chainCount;++$chain) {
+	# Get states for this chain.
+	my $states = &parameterMatrix($config,$chain,\%options);
+	# Find number of available states.
+	my $stateCount = $states->dim(1);
+	# Iterate over parameters.
+	for(my $i=0;$i<$parameterCount;++$i) {
+	    # Increment offset until correlation length is found.
+	    my $offsetMaximum = 100;
+	    for(my $offset=0;$offset<$offsetMaximum;++$offset) {
+		my $stateMean   = $states->(($i),$stateCount-$offsetMaximum-$offset:$stateCount-1)->average();
+		my $correlation = sum(($states->(($i),$stateCount-$offsetMaximum:$stateCount-1)-$stateMean)*($states->(($i),$stateCount-$offsetMaximum-$offset:$stateCount-1-$offset)-$stateMean));
+		if ( $correlation < 0.0 ) {
+		    $correlationLengths->(($chain),($i)) .= $offset;
+		    last;
+		}
+	    }
+	}
+    }
+    return $correlationLengths;
+}
+
 sub parameterMatrix {
     my $config  =   shift() ;
     my $chain   =   shift() ;
-    my %options = %{shift()};
+    my %options = %{shift()}
+        if ( scalar(@_) > 0 );
     # Determine the MCMC directory.
     my $logFileRoot    = &logFileRoot($config,\%options);
     (my $mcmcDirectory = $logFileRoot) =~ s/\/[^\/]+$//;    

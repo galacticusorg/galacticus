@@ -407,7 +407,7 @@ contains
     double precision                      , intent(in   ) :: wavenumber
 
     fileValue=exp(self%transfer%interpolate(log(wavenumber)))
-    if (self%transferFunctionReferenceAvailable) &
+    if (self%transferFunctionReferenceAvailable)                           &
          & fileValue=+                               fileValue             &
          &           *self%transferFunctionReference%    value(wavenumber)
     return

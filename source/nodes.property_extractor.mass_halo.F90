@@ -39,10 +39,11 @@ Contains a module which implements a halo mass output analysis property extracto
      time at which is was last isolated (as is used for standard definition of halo mass).
      !!}
      private
-     class(darkMatterProfileDMOClass ), pointer :: darkMatterProfileDMO_  => null()
-     class(virialDensityContrastClass), pointer :: virialDensityContrast_ => null(), virialDensityContrastDefinition_ => null()
-     class(cosmologyParametersClass  ), pointer :: cosmologyParameters_   => null()
-     class(cosmologyFunctionsClass   ), pointer :: cosmologyFunctions_    => null()
+     class  (darkMatterProfileDMOClass ), pointer :: darkMatterProfileDMO_  => null()
+     class  (virialDensityContrastClass), pointer :: virialDensityContrast_ => null(), virialDensityContrastDefinition_ => null()
+     class  (cosmologyParametersClass  ), pointer :: cosmologyParameters_   => null()
+     class  (cosmologyFunctionsClass   ), pointer :: cosmologyFunctions_    => null()
+     logical                                      :: useLastIsolatedTime
    contains
      final     ::                massHaloDestructor
      procedure :: extract     => massHaloExtract
@@ -67,21 +68,28 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type (nodePropertyExtractorMassHalo)                :: self
-    type (inputParameters              ), intent(inout) :: parameters
-    class(cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
-    class(cosmologyParametersClass     ), pointer       :: cosmologyParameters_
-    class(darkMatterProfileDMOClass    ), pointer       :: darkMatterProfileDMO_
-    class(virialDensityContrastClass   ), pointer       :: virialDensityContrast_, virialDensityContrastDefinition_
- 
+    type   (nodePropertyExtractorMassHalo)                :: self
+    type   (inputParameters              ), intent(inout) :: parameters
+    class  (cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
+    class  (cosmologyParametersClass     ), pointer       :: cosmologyParameters_
+    class  (darkMatterProfileDMOClass    ), pointer       :: darkMatterProfileDMO_
+    class  (virialDensityContrastClass   ), pointer       :: virialDensityContrast_, virialDensityContrastDefinition_
+    logical                                               :: useLastIsolatedTime
+
     !![
+    <inputParameter>
+     <name>useLastIsolatedTime</name>
+     <source>parameters</source>
+     <defaultValue>.false.</defaultValue>
+     <description>If true, evaluate the halo mass using a the virial density definition at the last isolated time of the halo.</description>
+    </inputParameter>
     <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"              source="parameters"                                                />
     <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"             source="parameters"                                                />
     <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"            source="parameters"                                                />
     <objectBuilder class="virialDensityContrast" name="virialDensityContrast_"           source="parameters"                                                />
     <objectBuilder class="virialDensityContrast" name="virialDensityContrastDefinition_" source="parameters" parameterName="virialDensityContrastDefinition"/>
     !!]
-    self=nodePropertyExtractorMassHalo(cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_)
+    self=nodePropertyExtractorMassHalo(useLastIsolatedTime,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"             />
@@ -93,18 +101,19 @@ contains
     return
   end function massHaloConstructorParameters
 
-  function massHaloConstructorInternal(cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_) result(self)
+  function massHaloConstructorInternal(useLastIsolatedTime,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_) result(self)
     !!{
     Internal constructor for the ``massHalo'' output analysis property extractor class.
     !!}
     implicit none
-    type (nodePropertyExtractorMassHalo)                        :: self
-    class(cosmologyParametersClass     ), intent(in   ), target :: cosmologyParameters_
-    class(cosmologyFunctionsClass      ), intent(in   ), target :: cosmologyFunctions_
-    class(virialDensityContrastClass   ), intent(in   ), target :: virialDensityContrast_, virialDensityContrastDefinition_
-    class(darkMatterProfileDMOClass    ), intent(in   ), target :: darkMatterProfileDMO_
+    type   (nodePropertyExtractorMassHalo)                        :: self
+    class  (cosmologyParametersClass     ), intent(in   ), target :: cosmologyParameters_
+    class  (cosmologyFunctionsClass      ), intent(in   ), target :: cosmologyFunctions_
+    class  (virialDensityContrastClass   ), intent(in   ), target :: virialDensityContrast_, virialDensityContrastDefinition_
+    class  (darkMatterProfileDMOClass    ), intent(in   ), target :: darkMatterProfileDMO_
+    logical                               , intent(in   )         :: useLastIsolatedTime
     !![
-    <constructorAssign variables="*cosmologyFunctions_, *cosmologyParameters_, *darkMatterProfileDMO_, *virialDensityContrast_, *virialDensityContrastDefinition_"/>
+    <constructorAssign variables="useLastIsolatedTime, *cosmologyFunctions_, *cosmologyParameters_, *darkMatterProfileDMO_, *virialDensityContrast_, *virialDensityContrastDefinition_"/>
     !!]
 
     return
@@ -134,24 +143,30 @@ contains
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
     implicit none
-    class(nodePropertyExtractorMassHalo), intent(inout)           :: self
-    type (treeNode                     ), intent(inout), target   :: node
-    type (multiCounter                 ), intent(inout), optional :: instance
-    class(nodeComponentBasic           ), pointer                 :: basic
+    class           (nodePropertyExtractorMassHalo), intent(inout)           :: self
+    type            (treeNode                     ), intent(inout), target   :: node
+    type            (multiCounter                 ), intent(inout), optional :: instance
+    class           (nodeComponentBasic           ), pointer                 :: basic
+    double precision                                                         :: time
     !$GLC attributes unused :: instance
 
-    basic           => node%basic()
-    massHaloExtract =  Dark_Matter_Profile_Mass_Definition(                                                                                                         &
-         &                                                                        node                                                                            , &
-         &                                                                        self%virialDensityContrastDefinition_%densityContrast(basic%mass(),basic%time()), &
-         &                                                 cosmologyParameters_  =self%cosmologyParameters_                                                       , &
-         &                                                 cosmologyFunctions_   =self%cosmologyFunctions_                                                        , &
-         &                                                 darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                                      , &
-         &                                                 virialDensityContrast_=self%virialDensityContrast_                                                       &
+    basic           => node %basic           ()
+    if (self%useLastIsolatedTime) then
+       time         =  basic%timeLastIsolated()
+    else
+       time         =  basic%time            ()
+    end if
+    massHaloExtract =  Dark_Matter_Profile_Mass_Definition(                                                                                                 &
+         &                                                                        node                                                                    , &
+         &                                                                        self%virialDensityContrastDefinition_%densityContrast(basic%mass(),time), &
+         &                                                 cosmologyParameters_  =self%cosmologyParameters_                                               , &
+         &                                                 cosmologyFunctions_   =self%cosmologyFunctions_                                                , &
+         &                                                 darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                              , &
+         &                                                 virialDensityContrast_=self%virialDensityContrast_                                             , &
+         &                                                 useLastIsolatedTime   =self%useLastIsolatedTime                                                  &
          &                                                )
     return
   end function massHaloExtract
-
 
   function massHaloName(self)
     !!{

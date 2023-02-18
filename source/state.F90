@@ -31,7 +31,7 @@ module State
   use            :: ISO_Varying_String, only : varying_string
   implicit none
   private
-  public :: State_Store, State_Retrieve, State_Initialize
+  public :: State_Store, State_Retrieve, State_Initialize, State_Set
 
   ! Flag indicating if we have retrieved the internal state already.
   logical                 :: stateHasBeenRetrieved=.false.
@@ -275,5 +275,26 @@ contains
     stateRetrieveActive=(stateRetrieveFileRoot /= "none")
     return
   end subroutine State_Initialize
+
+  !![
+  <functionGlobal>
+    <unitName>State_Set</unitName>
+    <type>void</type>
+    <module>ISO_Varying_String, only : varying_string</module>
+    <arguments>type(varying_string) , intent(in   ) :: stateFileRoot_</arguments>
+  </functionGlobal>
+  !!]
+  subroutine State_Set(stateFileRoot_)
+    !!{
+    Set the state system---can be used for force storing of state on prior to calls to state store functions for debugging purposes.
+    !!}
+    use :: ISO_Varying_String, only : operator(/=)
+    implicit none
+    type(varying_string), intent(in   ) :: stateFileRoot_
+
+    stateFileRoot   = stateFileRoot_
+    stateStoreActive=(stateFileRoot /= "none")
+    return
+  end subroutine State_Set
 
 end module State

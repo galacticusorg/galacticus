@@ -165,6 +165,7 @@ contains
     !!{
     Import data from a Gadget HDF5 file.
     !!}
+    use, intrinsic :: ISO_Fortran_Env                 , only : int32
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: Display                         , only : displayIndent           , displayUnindent         , verbosityLevelStandard
     use            :: Cosmology_Parameters            , only : hubbleUnitsLittleH
@@ -174,28 +175,30 @@ contains
     use            :: Numerical_Constants_Astronomical, only : massSolar               , megaParsec
     use            :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
-    class           (nbodyImporterGadgetBinary), intent(inout)                                :: self
-    type            (nBodyData                ), intent(  out), allocatable  , dimension(:  ) :: simulations
-    integer                                                                  , dimension(6  ) :: numberParticleType     , numberParticleTypeFile
-    integer                                                                                   :: numberParticleTotal    , numberParticleTotalFile, &
-         &                                                                                       numberParticleTotalRead, numberParticleStartRead, &
-         &                                                                                       numberMassStartRead    , numberTypeAssigned
-    real                                                      , allocatable  , dimension(:,:) :: position               , velocity
-    double precision                                          , pointer      , dimension(:,:) :: position_              , velocity_
-    double precision                                                         , dimension(6  ) :: massParticleType
-    real                                                      , allocatable  , dimension(:  ) :: mass
-    double precision                                          , pointer      , dimension(:  ) :: mass_
-    integer                                                   , allocatable  , dimension(:  ) :: id
-    integer         (c_size_t                 )               , pointer      , dimension(:  ) :: id_                    , type_
-    double precision                                                                          :: time                   , redshift               , &
-         &                                                                                       hubbleConstantLittleH  , boxSize
-    integer                                                                                   :: file                   , flagSFR                , &
-         &                                                                                       flagFeedback           , flagCooling            , &
-         &                                                                                       numberFiles            , fileNumber             , &
-         &                                                                                       i                      , j
-    character       (len=6                    )                                               :: fileNumberText
-    logical                                                                                   :: particleTypeAll        , massesDiffer           , &
-         &                                                                                       readMasses
+    class           (nbodyImporterGadgetBinary), intent(inout)                                 :: self
+    type            (nBodyData                ), intent(  out), allocatable  , dimension( :  ) :: simulations
+    integer                                                                  , dimension( 6  ) :: numberParticleType     , numberParticleTypeFile
+    integer                                                                                    :: numberParticleTotal    , numberParticleTotalFile, &
+         &                                                                                        numberParticleTotalRead, numberParticleStartRead, &
+         &                                                                                        numberMassStartRead    , numberTypeAssigned
+    real                                                      , allocatable  , dimension( :,:) :: position               , velocity
+    double precision                                          , pointer      , dimension( :,:) :: position_              , velocity_
+    double precision                                                         , dimension( 6  ) :: massParticleType
+    real                                                      , allocatable  , dimension( :  ) :: mass
+    double precision                                          , pointer      , dimension( :  ) :: mass_
+    integer                                                   , allocatable  , dimension( :  ) :: id
+    integer         (c_size_t                 )               , pointer      , dimension( :  ) :: id_                    , type_
+    integer         (int32                    )                                                :: recordMarker
+    double precision                                                                           :: time                   , redshift               , &
+         &                                                                                        hubbleConstantLittleH  , boxSize
+    integer                                                                                    :: file                   , flagSFR                , &
+         &                                                                                        flagFeedback           , flagCooling            , &
+         &                                                                                        numberFiles            , fileNumber             , &
+         &                                                                                        i                      , j
+    integer                                                                  , dimension(30)   :: buffer
+    character       (len=6                    )                                                :: fileNumberText
+    logical                                                                                    :: particleTypeAll        , massesDiffer           , &
+         &                                                                                        readMasses
 
     call displayIndent('import simulation from Gadget binary file',verbosityLevelStandard)
     allocate(simulations(1))
@@ -214,15 +217,27 @@ contains
     massesDiffer=.false.
     do while (fileNumber < numberFiles)
        ! Check for the existance of the named file with no subfile suffix. This can occur, for example, if reading initial conditions files.
+       !
+       !! Note that, in the following, we open the files using "stream" access. Gadget binary files are written in Fortran
+       !! unformatted form. This should mean that we can access them using the standard, record-block based approach. However,
+       !! Fortran (specifically gfortran) uses a 32-bit integer to store the prefix and suffix record size for each record
+       !! block. Integers in Fortran are always signed. But, often these Gadget files have been written by C code, with an
+       !! unsigned int used for the record size prefix and suffix. This can cause problems, as the record size (which would be a
+       !! valid number if interpretted as an unsigned int) is read by Fortran as a negative number, leading to failed reads.
+       !!
+       !! To avoid this, we use stream access, read the record size prefix and suffix directly, and then ignore it - assuming that
+       !! we know the size of the data in each record (which we do, providing that the Gadget format has been followed correctly).
        if (fileNumber == 0 .and. File_Exists(self%fileName)) then
           ! Open the file with no subfile suffix.
-          open(newUnit=file,file=char(self%fileName)                                    ,status='old',form='unformatted')
+          open(newUnit=file,file=char(self%fileName)                                    ,status='old',form='unformatted',access='stream')
        else
           ! Append the appropriate subfile suffix and open the file.
           write (fileNumberText,'(i4)') fileNumber
-          open(newUnit=file,file=char(self%fileName)//"."//trim(adjustl(fileNumberText)),status='old',form='unformatted')
+          open(newUnit=file,file=char(self%fileName)//"."//trim(adjustl(fileNumberText)),status='old',form='unformatted',access='stream')
        end if
-       read (file) numberParticleTypeFile, massParticleType, time, redshift, flagSFR, flagFeedback, numberParticleType, flagCooling, numberFiles, boxSize
+       read (file) recordMarker
+       read (file) numberParticleTypeFile, massParticleType, time, redshift, flagSFR, flagFeedback, numberParticleType, flagCooling, numberFiles, boxSize, buffer
+       read (file) recordMarker
        if (fileNumber == 0) then
           if (particleTypeAll) then
              numberParticleTotal=sum(numberParticleType                     )
@@ -259,11 +274,11 @@ contains
        allocate       (id      (  sum(numberParticleTypeFile                               )))
        if (readMasses)                                                                         &
             & allocate(mass    (  sum(numberParticleTypeFile,mask=massParticleType == 0.0d0)))
-       read        (file) position
-       read        (file) velocity
-       read        (file) id
+       read        (file) recordMarker,position,recordMarker
+       read        (file) recordMarker,velocity,recordMarker
+       read        (file) recordMarker,id      ,recordMarker
        if (readMasses .and. size(mass) > 0) &
-            & read (file) mass
+            & read (file) recordMarker,mass,recordMarker
        close(file)
        position_(:,numberParticleTotalRead+1:numberParticleTotalRead+numberParticleTotalFile)=position(:,numberParticleStartRead+1:numberParticleStartRead+numberParticleTotalFile)
        velocity_(:,numberParticleTotalRead+1:numberParticleTotalRead+numberParticleTotalFile)=velocity(:,numberParticleStartRead+1:numberParticleStartRead+numberParticleTotalFile)
