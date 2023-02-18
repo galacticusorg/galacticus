@@ -72,13 +72,13 @@ contains
     !!}
     use :: Dates_and_Times   , only : Formatted_Date_and_Time
     use :: File_Utilities    , only : File_Exists
-    use :: FoX_dom           , only : destroy                          , node
+    use :: FoX_dom           , only : destroy                          , node           , extractDataContent
     use :: FoX_utils         , only : generate_UUID
     use :: Error             , only : Error_Report
     use :: Output_HDF5       , only : outputFile
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : hdf5Object
-    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists, XML_Parse, extractDataContent => extractDataContentTS
+    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists, XML_Parse
     use :: ISO_Varying_String, only : varying_string
     implicit none
     type     (Node          ), pointer :: doc            , emailNode, nameNode

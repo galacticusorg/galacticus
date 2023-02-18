@@ -87,13 +87,7 @@ contains
     !!]
     
     !$omp critical (FoX_DOM_Access)
-#ifdef THREADSAFEIO
-       !$omp critical(gfortranInternalIO)
-#endif
     doc => parseFile(char(File_Name_Expand(char(self%fileName))),iostat=ioStatus)
-#ifdef THREADSAFEIO
-       !$omp end critical(gfortranInternalIO)
-#endif
     if (ioStatus /= 0) call Error_Report('unable to find or parse the simulation definition file'//{introspection:location})
     snapshots => XML_Get_First_Element_By_Tag_Name(doc,'snapshots')
     call XML_Array_Read(snapshots,'snapshot',self%redshifts)

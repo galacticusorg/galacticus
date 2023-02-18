@@ -174,6 +174,11 @@ my %translations =
 	     "//nodeOperator[\@value='satelliteDestructionMassThreshold']/massDestruction[\@value]"           => "massDestructionAbsolute"                                        ,
 	     "//nodeOperator[\@value='satelliteDestructionMassThreshold']/massDestructionFractional[\@value]" => "massDestructionMassInfallFraction"                              ,
 	 }
+     },
+     "50628ba20834080556274c4afc11bdf794a3e8b3" => {
+	 names => {
+	     "//transferFunction[\@value='axionCAMB']/axionCambCountPerDecade[\@value]"                       => "countPerDecade"                                                 ,
+	 }
      }
     );
      

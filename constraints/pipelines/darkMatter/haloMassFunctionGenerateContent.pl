@@ -8,7 +8,7 @@ use XML::Simple;
 use PDL;
 use PDL::IO::HDF5;
 use Galacticus::Options;
-use List::Util qw(max);
+use List::Util;
 
 # Script to generate content for halo mass function pipeline.
 # Andrew Benson 8-April-2022
@@ -337,6 +337,11 @@ CODE
 		    (my $massEnvironment, my $overdensityEnvironment) = $hmf->attrGet('massEnvironment', 'overdensityEnvironment');
 		    $code::massEnvironment        = sprintf("%13.6e",       $massEnvironment);
 		    $code::overdensityEnvironment = sprintf("%+9.6f",$overdensityEnvironment);
+
+
+		    print $type->{'label'}.'_'.$halo.'_z'.$code::redshiftShort."\t".$code::massEnvironment."\t".$code::overdensityEnvironment."\n";
+
+		    
 		    my $base = fill_in_string(<<'CODE', PACKAGE => 'code');
 <?xml version="1.0" encoding="UTF-8"?>
 <parameters>

@@ -471,9 +471,9 @@ contains
     !!{
     Build a {\normalfont \ttfamily chemicalAbundances} object from the given XML {\normalfont \ttfamily chemicalsDefinition}.
     !!}
-    use :: FoX_DOM           , only : node
+    use :: FoX_DOM           , only : node                        , extractDataContent
     use :: Error             , only : Error_Report
-    use :: IO_XML            , only : XML_Get_Elements_By_Tag_Name, xmlNodeList, extractDataContent => extractDataContentTS
+    use :: IO_XML            , only : XML_Get_Elements_By_Tag_Name, xmlNodeList
     use :: ISO_Varying_String, only : char
     implicit none
     class  (chemicalAbundances), intent(inout)              :: self

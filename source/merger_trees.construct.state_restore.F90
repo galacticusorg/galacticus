@@ -144,6 +144,16 @@ contains
     return
   end function stateRestoredConstruct
 
+  !![
+  <functionGlobal>
+    <unitName>mergerTreeStateStore</unitName>
+    <type>void</type>
+    <module>Galacticus_Nodes, only : mergerTree</module>
+    <arguments>type     (mergerTree), intent(in   ), target   :: tree              </arguments>
+    <arguments>character(len=*     ), intent(in   )           :: storeFile         </arguments>
+    <arguments>logical              , intent(in   ), optional :: snapshot  , append</arguments>
+  </functionGlobal>
+  !!]
   subroutine mergerTreeStateStore(tree,storeFile,snapshot,append)
     !!{
     Store the complete internal state of a merger tree to file.
