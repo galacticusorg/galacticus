@@ -25,45 +25,45 @@
   use :: Dark_Matter_Particles, only : darkMatterParticleClass
 
   !![
-  <transferFunction name="transferFunctionFuzzyDM">
+  <transferFunction name="transferFunctionFuzzyDMMurgia2017">
    <description>A transfer function class for fuzzy dark matter using the fitting function of \cite{murgia_non-cold_2017}.</description>
   </transferFunction>
   !!]
-  type, extends(transferFunctionMurgia2017) :: transferFunctionFuzzyDM
+  type, extends(transferFunctionMurgia2017) :: transferFunctionFuzzyDMMurgia2017
      !!{
      A transfer function class for fuzzy dark matter using the fitting function of \cite{murgia_non-cold_2017}.
      !!}
      private
      double precision                                   :: m22
      class           (darkMatterParticleClass), pointer :: darkMatterParticle_ => null()
-  end type transferFunctionFuzzyDM
+  end type transferFunctionFuzzyDMMurgia2017
    
-  interface transferFunctionFuzzyDM
+  interface transferFunctionFuzzyDMMurgia2017
      !!{
-     Constructors for the {\normalfont \ttfamily fuzzyDM} transfer function class.
+     Constructors for the {\normalfont \ttfamily fuzzyDMMurgia2017} transfer function class.
      !!}
-     module procedure fuzzyDMConstructorParameters
-     module procedure fuzzyDMConstructorInternal
-  end interface transferFunctionFuzzyDM
+     module procedure fuzzyDMMurgia2017ConstructorParameters
+     module procedure fuzzyDMMurgia2017ConstructorInternal
+  end interface transferFunctionFuzzyDMMurgia2017
 
 contains
 
-  function fuzzyDMConstructorParameters(parameters) result(self)
+  function fuzzyDMMurgia2017ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily fuzzyDM} transfer function class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily fuzzyDMMurgia2017} transfer function class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions           , only : cosmologyFunctions        , cosmologyFunctionsClass
     use :: Cosmology_Functions_Parameters, only : requestTypeExpansionFactor
     use :: Input_Parameters              , only : inputParameter            , inputParameters
     implicit none
-    type            (transferFunctionFuzzyDM )                :: self
-    type            (inputParameters         ), intent(inout) :: parameters
-    class           (transferFunctionClass   ), pointer       :: transferFunctionCDM
-    class           (cosmologyParametersClass), pointer       :: cosmologyParameters_
-    class           (cosmologyFunctionsClass ), pointer       :: cosmologyFunctions_
-    class           (darkMatterParticleClass ), pointer       :: darkMatterParticle_
-    double precision                                          :: beta                , gamma, &
-         &                                                       redshift
+    type            (transferFunctionFuzzyDMMurgia2017)                :: self
+    type            (inputParameters                  ), intent(inout) :: parameters
+    class           (transferFunctionClass            ), pointer       :: transferFunctionCDM
+    class           (cosmologyParametersClass         ), pointer       :: cosmologyParameters_
+    class           (cosmologyFunctionsClass          ), pointer       :: cosmologyFunctions_
+    class           (darkMatterParticleClass          ), pointer       :: darkMatterParticle_
+    double precision                                                   :: beta                , gamma, &
+         &                                                                redshift
 
     ! Validate parameters.
     if (.not.parameters%isPresent('transferFunction')) call Error_Report("an explicit 'transferFunction' must be given"//{introspection:location})
@@ -95,7 +95,7 @@ contains
       <description>The redshift of the epoch at which the transfer function is defined.</description>
     </inputParameter>
     !!]
-    self=transferFunctionFuzzyDM(transferFunctionCDM,beta,gamma,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),cosmologyParameters_,cosmologyFunctions_,darkMatterParticle_)
+    self=transferFunctionFuzzyDMMurgia2017(transferFunctionCDM,beta,gamma,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),cosmologyParameters_,cosmologyFunctions_,darkMatterParticle_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"/>
@@ -104,25 +104,25 @@ contains
     <objectDestructor name="darkMatterParticle_" />
     !!]
     return
-  end function fuzzyDMConstructorParameters
+  end function fuzzyDMMurgia2017ConstructorParameters
 
-  function fuzzyDMConstructorInternal(transferFunctionCDM,beta,gamma,time,cosmologyParameters_,cosmologyFunctions_,darkMatterParticle_) result(self)
+  function fuzzyDMMurgia2017ConstructorInternal(transferFunctionCDM,beta,gamma,time,cosmologyParameters_,cosmologyFunctions_,darkMatterParticle_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily fuzzyDM} transfer function class.
+    Internal constructor for the {\normalfont \ttfamily fuzzyDMMurgia2017} transfer function class.
     !!}
     use :: Dark_Matter_Particles       , only : darkMatterParticleFuzzyDarkMatter
     use :: Error                       , only : Error_Report
     use :: Numerical_Constants_Prefixes, only : kilo
     implicit none
-    type            (transferFunctionFuzzyDM)                         :: self
-    class           (transferFunctionClass   ), target, intent(in   ) :: transferFunctionCDM
-    double precision                                  , intent(in   ) :: beta                , gamma, &
-         &                                                               time
-    class           (cosmologyParametersClass), target, intent(in   ) :: cosmologyParameters_
-    class           (cosmologyFunctionsClass ), target, intent(in   ) :: cosmologyFunctions_
-    class           (darkMatterParticleClass ), target, intent(in   ) :: darkMatterParticle_
-    double precision                                                  :: alpha
-    double precision                                                  :: wavenumberHalfMode
+    type            (transferFunctionFuzzyDMMurgia2017)                         :: self
+    class           (transferFunctionClass            ), target, intent(in   ) :: transferFunctionCDM
+    double precision                                           , intent(in   ) :: beta                , gamma, &
+         &                                                                        time
+    class           (cosmologyParametersClass         ), target, intent(in   ) :: cosmologyParameters_
+    class           (cosmologyFunctionsClass          ), target, intent(in   ) :: cosmologyFunctions_
+    class           (darkMatterParticleClass          ), target, intent(in   ) :: darkMatterParticle_
+    double precision                                                           :: alpha
+    double precision                                                           :: wavenumberHalfMode
     !![
     <constructorAssign variables="*darkMatterParticle_"/>
     !!]
@@ -148,4 +148,4 @@ contains
          &             /wavenumberHalfMode
     self%transferFunctionMurgia2017=transferFunctionMurgia2017(transferFunctionCDM,alpha,beta,gamma,time,cosmologyParameters_,cosmologyFunctions_)
     return
-  end function fuzzyDMConstructorInternal
+  end function fuzzyDMMurgia2017ConstructorInternal

@@ -208,13 +208,7 @@ contains
     !$omp critical (FoX_DOM_Access)
     if (.not.associated(self%document)) allocate(self%document)
     ! Parse the merger tree file.
-#ifdef THREADSAFEIO
-       !$omp critical(gfortranInternalIO)
-#endif
     self%document%doc => parseFile(char(self%fileName),iostat=ioErr)
-#ifdef THREADSAFEIO
-       !$omp end critical(gfortranInternalIO)
-#endif
     if (ioErr /= 0) call Error_Report('unable to read or parse fully-specified merger tree file'//{introspection:location})
     self%document%copyCount = 1
     ! Get the list of trees.
@@ -362,9 +356,9 @@ contains
       !!{
       Extract and return an index from a node definition as used when constructing fully-specified merger trees.
       !!}
-      use :: FoX_Dom     , only : node
+      use :: FoX_Dom     , only : node                        , extractDataContent
       use :: Kind_Numbers, only : kind_int8
-      use :: IO_XML      , only : XML_Get_Elements_By_Tag_Name, extractDataContent => extractDataContentTS
+      use :: IO_XML      , only : XML_Get_Elements_By_Tag_Name
       use :: Error       , only : Error_Report
       implicit none
       integer  (kind=kind_int8)                             :: indexNode

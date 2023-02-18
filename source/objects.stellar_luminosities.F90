@@ -466,9 +466,9 @@ contains
     !!{
     Build a {\normalfont \ttfamily stellarLuminosities} object from the given XML {\normalfont \ttfamily stellarLuminositiesDefinition}.
     !!}
-    use :: FoX_DOM, only : node
+    use :: FoX_DOM, only : node                        , extractDataContent
     use :: Error  , only : Error_Report
-    use :: IO_XML , only : XML_Get_Elements_By_Tag_Name, xmlNodeList, extractDataContent => extractDataContentTS
+    use :: IO_XML , only : XML_Get_Elements_By_Tag_Name, xmlNodeList
     implicit none
     class  (stellarLuminosities), intent(inout)              :: self
     type   (node               ), intent(in   ), pointer     :: stellarLuminositiesDefinition

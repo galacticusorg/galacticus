@@ -185,7 +185,7 @@ sub AddDeclarations {
 	    parent     => $declarationsNode,
 	    firstChild => undef()
 	};
-	# Inert the node, after any module use node if one exists.
+	# Insert the node, after any module use node if one exists.
 	if ( $usesNode ) {
 	    &Galacticus::Build::SourceTree::InsertAfterNode ($usesNode            ,[$declarationsNode]);
 	} else {	

@@ -158,6 +158,7 @@ contains
     use :: Error                                 , only : Error_Report
     use :: Input_Paths                           , only : inputPath                                  , pathTypeDataStatic
     use :: Geometry_Surveys                      , only : surveyGeometryFullSky
+    use :: HDF5_Access                           , only : hdf5Access
     use :: IO_HDF5                               , only : hdf5Object
     use :: ISO_Varying_String                    , only : var_str                                    , varying_string
     use :: Node_Property_Extractors              , only : nodePropertyExtractorMassHalo              , nodePropertyExtractorMassStellar
@@ -283,6 +284,7 @@ contains
     </referenceConstruct>
     !!]
     ! Read observational data and convert masses to logarithmic.
+    !$ call hdf5Access%set()
     call fileData%openFile(char(inputPath(pathTypeDataStatic))//"observations/stellarHaloMassRelation/stellarHaloMassRelation_COSMOS_Leauthaud2012.hdf5")
     groupRedshiftName=var_str('redshiftInterval')//redshiftInterval
     groupRedshift=fileData%openGroup(char(groupRedshiftName))
@@ -290,6 +292,9 @@ contains
     call groupRedshift%readDataset('massHaloMean',massHaloMeanData)
     call groupRedshift%readDataset('massHaloLow' ,massHaloLowData )
     call groupRedshift%readDataset('massHaloHigh',massHaloHighData)
+    call groupRedshift%close      (                               )
+    call fileData     %close      (                               )
+    !$ call hdf5Access%unset()
     ! Create bins in halo mass.
     massHaloMinimum=massHaloMeanData(1                     )
     massHaloMaximum=massHaloMeanData(size(massHaloMeanData))
@@ -400,26 +405,26 @@ contains
     propertyOperators_%next%next%next%next%next%operator_ => outputAnalysisWeightPropertyOperatorFilterHighPass_
     allocate(outputAnalysisWeightPropertyOperator_                 )
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyOperator_"  constructor="outputAnalysisPropertyOperatorSequence                (propertyOperators_                                                                                                    )"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyOperator_"  constructor="outputAnalysisPropertyOperatorSequence                (propertyOperators_                                                                                                            )"/>
     !!]
     ! Build anti-log10() property operator.
     allocate(outputAnalysisPropertyUnoperator_                     )
     !![
-    <referenceConstruct object="outputAnalysisPropertyUnoperator_"      constructor="outputAnalysisPropertyOperatorAntiLog10               (                                                                                                                      )"/>
+    <referenceConstruct object="outputAnalysisPropertyUnoperator_"      constructor="outputAnalysisPropertyOperatorAntiLog10               (                                                                                                                              )"/>
     !!]
     ! Create a stellar mass weight property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_                )
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyExtractor_" constructor="nodePropertyExtractorMassStellar                      (                                   galacticStructure_                                                                 )"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyExtractor_" constructor="nodePropertyExtractorMassStellar                      (                                   galacticStructure_                                                                         )"/>
     !!]
     ! Create a halo mass weight property extractor.
     allocate(virialDensityContrastDefinition_                                )
     !![
-    <referenceConstruct object="virialDensityContrastDefinition_"       constructor="virialDensityContrastFixed                            (200.0d0,fixedDensityTypeMean,2.0d0,cosmologyParameters_,cosmologyFunctions_                                           )"/>
+    <referenceConstruct object="virialDensityContrastDefinition_"       constructor="virialDensityContrastFixed                            (200.0d0,fixedDensityTypeMean,2.0d0,cosmologyParameters_,cosmologyFunctions_                                                   )"/>
     !!]
     allocate(nodePropertyExtractor_                      )
     !![
-    <referenceConstruct object="nodePropertyExtractor_"                 constructor="nodePropertyExtractorMassHalo                         (cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_)"/>
+    <referenceConstruct object="nodePropertyExtractor_"                 constructor="nodePropertyExtractorMassHalo                         (.false.,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_)"/>
     !!]
     ! Build the object.
     if (computeScatter) then
