@@ -13,6 +13,7 @@ use System::Redirect;
 # Andrew Benson (01-December-2022)
 
 # Run the model.
+system("mkdir -p outputs");
 &System::Redirect::tofile("cd ..; ./Galacticus.exe testSuite/parameters/constrainedMergerTrees.xml","outputs/constrainedMergerTrees.log");
 unless ( $? == 0 ) {
     print "FAILED:  model run:\n";
@@ -43,5 +44,24 @@ foreach my $treeName ( $trees->groups() ) {
 my $tolerance      = 1.0e-3;
 my $status         = all(abs($massesClosest-$massConstraint) < $massConstraint*$tolerance) ? "SUCCESS" : "FAILED";
 print $status.": constrained merger trees\n";
+
+# Check propagation of constrained branch indicator.
+my $output          = $model ->group  ('Outputs/Output1'  )       ;
+my $nodes           = $output->group  ('nodeData'         )       ;
+my $treeIndices     = $output->dataset('mergerTreeIndex'  )->get();
+my $treeIndex       = $nodes ->dataset('mergerTreeIndex'  )->get();
+my $isConstrained   = $nodes ->dataset('nodeIsConstrained')->get();
+my $statusIndicator = "SUCCESS";
+for(my $i=0;$i<nelem($treeIndices);$i++) {
+    my $selection = 
+	which(
+	    ($treeIndex     == $treeIndices->(($i)))
+	    &
+	    ($isConstrained == 1                   )
+	);
+    $statusIndicator = "FAILED"
+	unless ( nelem($selection) == 1 );
+}
+print $statusIndicator.": constrained branch indicator\n";
 
 exit 0;
