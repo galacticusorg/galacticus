@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1676685545752,
+  "lastUpdate": 1676836671850,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
@@ -7824,6 +7824,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 7.07072873003251,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ffd38134fc6be768eb7091621c4c84dfd0b273e4",
+          "message": "Merge pull request #381 from galacticusorg/constrainedBranches\n\nFix constrained branch indicator propagation",
+          "timestamp": "2023-02-19T17:09:52Z",
+          "tree_id": "a7aacc54af6d0937f4279a0767c0c6da855cd283",
+          "url": "https://github.com/galacticusorg/galacticus/commit/ffd38134fc6be768eb7091621c4c84dfd0b273e4"
+        },
+        "date": 1676836670905,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 240.287,
+            "unit": "seconds",
+            "range": 0.158883919894827
           }
         ]
       }
