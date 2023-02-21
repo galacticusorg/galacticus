@@ -213,6 +213,8 @@ contains
     else
        hubbleConstantLittleH=1.0d0
     end if
+    readMasses  =.false.
+    massesDiffer=.false.
     do while (fileNumber < numberFiles)
        ! Check for the existance of the named file with no subfile suffix. This can occur, for example, if reading initial conditions files.
        !

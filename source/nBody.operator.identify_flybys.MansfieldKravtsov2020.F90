@@ -100,17 +100,17 @@ contains
     implicit none
     class           (nbodyOperatorIdentifyFlybysMansfieldKravtsov2020), intent(inout)                 :: self
     type            (nBodyData                                       ), intent(inout), dimension(:  ) :: simulations
-    integer         (c_size_t                                        ), pointer      , dimension(:  ) :: isFlyby                , hostID      , &
-         &                                                                                               descendentID           , particleIDs , &
+    integer         (c_size_t                                        ), pointer      , dimension(:  ) :: isFlyby                , isolatedHostID, &
+         &                                                                                               descendentID           , particleIDs   , &
          &                                                                                               isMostMassiveProgenitor, snapshotID
     integer         (c_size_t                                        ), allocatable  , dimension(:  ) :: indexID
-    double precision                                                  , pointer      , dimension(:  ) :: massVirial             , radiusVirial, &
+    double precision                                                  , pointer      , dimension(:  ) :: massVirial             , radiusVirial  , &
          &                                                                                               expansionFactor
     double precision                                                  , pointer      , dimension(:,:) :: position
     double precision                                                                 , dimension(3  ) :: separation
-    integer         (c_size_t                                        )                                :: i                      , iSimulation , &
-         &                                                                                               jHalo                  , jHost       , &
-         &                                                                                               kHalo                  , kHost       , &
+    integer         (c_size_t                                        )                                :: i                      , iSimulation   , &
+         &                                                                                               jHalo                  , jHost         , &
+         &                                                                                               kHalo                  , kHost         , &
          &                                                                                               iSimulation            , m
     double precision                                                                                  :: boxSize
     logical                                                                                           :: hostDescendentExists
@@ -125,7 +125,7 @@ contains
        end if
        ! Retrieve required properties.
        particleIDs             => simulations(iSimulation)%propertiesInteger  %value('particleID'             )
-       hostID                  => simulations(iSimulation)%propertiesInteger  %value('hostID'                 )
+       isolatedHostID          => simulations(iSimulation)%propertiesInteger  %value('isolatedHostID'         )
        descendentID            => simulations(iSimulation)%propertiesInteger  %value('descendentID'           )
        isMostMassiveProgenitor => simulations(iSimulation)%propertiesInteger  %value('isMostMassiveProgenitor')
        snapshotID              => simulations(iSimulation)%propertiesInteger  %value('snapshotID'             )  
@@ -138,15 +138,19 @@ contains
        allocate(isFlyby(size(particleIDs)))
        ! Build a sort index.
        indexID=sortIndex(particleIDs)
-       ! Initialize status - assuming all particles are always-isolated initially.
-       isFlyby=0_c_size_t
+       ! Initialize status - start by assuming that isolated halos are not flybys, but that subhalos are.
+       where (isolatedHostID < 0_c_size_t)
+          isFlyby=0_c_size_t
+       elsewhere
+          isFlyby=1_c_size_t
+       end where
        ! Visit each particle.
        !$omp parallel do private(jHost,jHalo,kHost,kHalo,hostDescendentExists,m,separation) schedule(dynamic)
        do i=1_c_size_t,size(isFlyby)
           ! Skip isolated halos.
-          if (hostID(i) < 0_c_size_t) cycle
+          if (isolatedHostID(i) < 0_c_size_t) cycle
           ! Find the host halo.
-          kHost=searchIndexed(particleIDs,indexID,hostID(i))
+          kHost=searchIndexed(particleIDs,indexID,isolatedHostID(i))
           if     (                       &
                &   kHost < 1_c_size_t    &
                &  .or.                   &
@@ -160,12 +164,12 @@ contains
              end if
           end if
           kHost=indexID(kHost)
-          if     (                                 &
-               &   particleIDs(kHost) /= hostID(i) &
-               & )                                 &
+          if     (                                         &
+               &   particleIDs(kHost) /= isolatedHostID(i) &
+               & )                                         &
                & then
              if (self%missingHostsAreFatal) then
-                call Error_Report(var_str('failed to find host [')//hostID(i)//'] of ['//particleIDs(i)//']'//{introspection:location})
+                call Error_Report(var_str('failed to find host [')//isolatedHostID(i)//'] of ['//particleIDs(i)//']'//{introspection:location})
              else
                 cycle
              end if
