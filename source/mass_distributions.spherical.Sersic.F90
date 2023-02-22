@@ -33,17 +33,18 @@
      !!{
      The S\'ersic density profile.
      !!}
-     double precision                                               :: densityNormalization         , mass              , &
-          &                                                            radiusHalfMass_              , index_
+     double precision                                               :: densityNormalization                  , mass              , &
+          &                                                            radiusHalfMass_                       , index_
      ! Tabulation of the Sérsic profile.
-     double precision                                               :: coefficient                  , radiusStart
-     logical                                                        :: tableInitialized     =.false.
+     double precision                                               :: coefficient                           , radiusStart
+     logical                                                        :: tableInitialized              =.false.
      integer                                                        :: tableCount
-     double precision                                               :: tableRadiusMaximum           , tableRadiusMinimum
+     double precision                                               :: tableRadiusMaximum                    , tableRadiusMinimum
      double precision                                               :: table3dRadiusHalfMass
      double precision                                               :: table2dRadiusHalfMass
-     double precision                   , allocatable, dimension(:) :: tableDensity                 , tableEnclosedMass , &
-          &                                                            tablePotential               , tableRadius
+     double precision                                               :: gradientLogarithmicMassCentral
+     double precision                   , allocatable, dimension(:) :: tableDensity                          , tableEnclosedMass , &
+          &                                                            tablePotential                        , tableRadius
      type            (interpolator     )                            :: tableInterpolator
      !$ integer      (omp_lock_kind    )                            :: tableLock
    contains
@@ -346,6 +347,7 @@ contains
     Return the potential at the specified {\normalfont \ttfamily coordinates} in a S\'ersic mass distribution.
     !!}
     use :: Coordinates                     , only : assignment(=)                  , coordinateSpherical
+    use :: Error                           , only : Error_Report
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (massDistributionSersic      ), intent(inout)           :: self
@@ -361,17 +363,31 @@ contains
     end if
     ! Get position in spherical coordinate system.
     position=coordinates
-    ! Compute the potential at this position.
     !$ call OMP_Set_Lock(self%tableLock)
-    r       =+position%r             () &
-         &   /self    %radiusHalfMass_
-    call self%tabulate(r)
-    if (r < self%tableRadius(self%tableCount)) then
-       sersicPotential=+self%mass                                                 &
-            &          /self%radiusHalfMass_                                      &
-            &          *self%tableInterpolator%interpolate(r,self%tablePotential)
+    ! For small radii, use a simple power-law extrapolation.
+    if (position%r() < self%tableRadiusMinimum) then
+       if (position%r() <= 0.0d0 .and. self%gradientLogarithmicMassCentral <= 1.0d0) call Error_Report('potential is divergent at r=0'//{introspection:location})
+       sersicPotential=+self%tablePotential   (1)                                                         &
+            &          -self%tableEnclosedMass(1)                                                         &
+            &          /self%tableRadius      (1)                                                         &
+            &          *(                                                                                 &
+            &            +1.0d0                                                                           &
+            &            -(position%r()/self%tableRadius(1))**(self%gradientLogarithmicMassCentral-1.0d0) &
+            &           )                                                                                 &
+            &          /                                      (self%gradientLogarithmicMassCentral-1.0d0)
+       if (position%r() <= 0.0d0) stop
     else
-       sersicPotential=0.0d0
+       ! Compute the potential at this position.
+       r       =+position%r             () &
+            &   /self    %radiusHalfMass_
+       call self%tabulate(r)
+       if (r < self%tableRadius(self%tableCount)) then
+          sersicPotential=+self%mass                                                 &
+               &          /self%radiusHalfMass_                                      &
+               &          *self%tableInterpolator%interpolate(r,self%tablePotential)
+       else
+          sersicPotential=0.0d0
+       end if
     end if
     !$ call OMP_Unset_Lock(self%tableLock)
     if (.not.self%isDimensionless()) sersicPotential=+gravitationalConstantGalacticus &
@@ -418,7 +434,7 @@ contains
 
   subroutine sersicTabulate(self,radius)
     !!{
-    Tabulate the density and enclosed mass in a dimensionless S\'ersic profile.
+    Tabulate the density enclosed mass, and potential in a dimensionless S\'ersic profile.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Integration   , only : integrator
@@ -554,6 +570,9 @@ contains
                &                    .and.                                    &
                &                   (radiusActual <= self%tableRadiusMaximum)
        end do
+       ! Determine the central slope of the mass profile.
+       self%gradientLogarithmicMassCentral=+log(self%tableEnclosedMass(2)/self%tableEnclosedMass(1)) &
+            &                              /log(self%tableRadius      (2)/self%tableRadius      (1))
        ! Build the interpolator.
        self%tableInterpolator=interpolator(self%tableRadius,extrapolationType=extrapolationTypeExtrapolate)
        ! Flag that the table is initialized.
