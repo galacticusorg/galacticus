@@ -75,9 +75,9 @@ contains
     !!{
     Build a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object from the given XML {\normalfont \ttfamily tensorDefinition}.
     !!}
-    use :: FoX_DOM, only : node
+    use :: FoX_DOM, only : node                        , extractDataContent
     use :: Error  , only : Error_Report
-    use :: IO_XML , only : XML_Get_Elements_By_Tag_Name, xmlNodeList, extractDataContent => extractDataContentTS
+    use :: IO_XML , only : XML_Get_Elements_By_Tag_Name, xmlNodeList
     implicit none
     type     (node       )               , pointer     :: element
     type     (xmlNodeList), dimension(:) , allocatable :: elementList

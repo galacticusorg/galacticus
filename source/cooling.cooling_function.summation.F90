@@ -256,7 +256,6 @@ contains
             &                    +coolingFunction
        coolingFunctionGradient  =+coolingFunctionGradient                                                       &
             &                    +coolingFunction                                                               &
-            &                    /numberDensityHydrogen                                                         &
             &                    *coolant%coolingFunction%coolingFunctionDensityLogSlope(                       &
             &                                                                            node                 , &
             &                                                                            numberDensityHydrogen, &
@@ -269,7 +268,6 @@ contains
     end do
     if (coolingFunctionCumulative /= 0.0d0) then
        summationCoolingFunctionDensityLogSlope=+coolingFunctionGradient   &
-            &                                  *numberDensityHydrogen     &
             &                                  /coolingFunctionCumulative
     else
        summationCoolingFunctionDensityLogSlope=0.0d0

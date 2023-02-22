@@ -93,10 +93,10 @@ contains
     Initialize the chemical structure database by reading the atomic structure database. Note: this implementation is not
     fully compatible with chemical markup language (CML), but only a limited subset of it.
     !!}
-    use :: FoX_dom           , only : Node                        , destroy
+    use :: FoX_dom           , only : Node                        , destroy           , extractDataContent
     use :: Error             , only : Error_Report
     use :: Input_Paths       , only : inputPath                   , pathTypeDataStatic
-    use :: IO_XML            , only : XML_Get_Elements_By_Tag_Name, xmlNodeList       , XML_Parse, extractDataContent => extractDataContentTS
+    use :: IO_XML            , only : XML_Get_Elements_By_Tag_Name, xmlNodeList       , XML_Parse
     use :: ISO_Varying_String, only : char                        , assignment(=)
     implicit none
     type     (Node       ), pointer                   :: doc     , atom    , bond        , chemical, element

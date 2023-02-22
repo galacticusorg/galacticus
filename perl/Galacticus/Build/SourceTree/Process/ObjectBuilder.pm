@@ -438,9 +438,10 @@ sub Process_ObjectBuilder {
 		my @declarations =
 		    (
 		     {
-			 intrinsic  => "integer"            ,
-			 variables  => [ "referenceCount_" ],
-			 attributes => [                   ]
+			 intrinsic     => "integer"            ,
+			 variables     => [ "referenceCount_" ],
+			 attributes    => [ "save"            ],
+			 threadprivate => 1
 		     }
 		    );
 		&Galacticus::Build::SourceTree::Parse::Declarations::AddDeclarations($node->{'parent'},\@declarations);

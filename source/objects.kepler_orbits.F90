@@ -217,9 +217,9 @@ contains
     !!{
     Build a {\normalfont \ttfamily keplerOrbit} object from the given XML {\normalfont \ttfamily keplerOrbitDefinition}.
     !!}
-    use :: FoX_DOM, only : getNodeName                 , node
+    use :: FoX_DOM, only : getNodeName                 , node       , extractDataContent
     use :: Error  , only : Error_Report
-    use :: IO_XML , only : XML_Get_Elements_By_Tag_Name, xmlNodeList, extractDataContent => extractDataContentTS
+    use :: IO_XML , only : XML_Get_Elements_By_Tag_Name, xmlNodeList
     implicit none
     class           (keplerOrbit), intent(inout)               :: self
     type            (node       ), pointer                     :: keplerOrbitDefinition

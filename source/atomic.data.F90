@@ -192,11 +192,11 @@ contains
     !!{
     Ensure that the module is initialized by reading in data.
     !!}
-    use :: FoX_dom           , only : destroy              , getElementsByTagname             , node
+    use :: FoX_dom           , only : destroy              , getElementsByTagname             , node                        , extractDataContent
     use :: Error             , only : Error_Report
     use :: Input_Paths       , only : inputPath            , pathTypeDataStatic
-    use :: IO_XML            , only : XML_Array_Read_Static, XML_Get_First_Element_By_Tag_Name, XML_Get_Elements_By_Tag_Name, extractDataContent => extractDataContentTS, &
-         &                            xmlNodeList          , XML_Parse
+    use :: IO_XML            , only : XML_Array_Read_Static, XML_Get_First_Element_By_Tag_Name, XML_Get_Elements_By_Tag_Name, XML_Parse         , &
+         &                            xmlNodeList
     use :: ISO_Varying_String, only : char
     use :: String_Handling   , only : String_Lower_Case    , char
     implicit none
