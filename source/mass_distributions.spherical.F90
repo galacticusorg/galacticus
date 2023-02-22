@@ -38,15 +38,16 @@
        <method description="Returns the radius enclosing the given mass."                            method="radiusEnclosingMass"/>
      </methods>
      !!]
-     procedure :: symmetry              => sphericalSymmetry
-     procedure :: massEnclosedBySphere  => sphericalMassEnclosedBySphere
-     procedure :: radiusHalfMass        => sphericalRadiusHalfMass
-     procedure :: acceleration          => sphericalAcceleration
-     procedure :: tidalTensor           => sphericalTidalTensor
-     procedure :: radiusEnclosingMass   => sphericalRadiusEnclosingMass
-     procedure :: positionSample        => sphericalPositionSample
-     procedure :: rotationCurve         => sphericalRotationCurve
-     procedure :: rotationCurveGradient => sphericalRotationCurveGradient
+     procedure :: symmetry                => sphericalSymmetry
+     procedure :: densitySphericalAverage => sphericalDensitySphericalAverage
+     procedure :: massEnclosedBySphere    => sphericalMassEnclosedBySphere
+     procedure :: radiusHalfMass          => sphericalRadiusHalfMass
+     procedure :: acceleration            => sphericalAcceleration
+     procedure :: tidalTensor             => sphericalTidalTensor
+     procedure :: radiusEnclosingMass     => sphericalRadiusEnclosingMass
+     procedure :: positionSample          => sphericalPositionSample
+     procedure :: rotationCurve           => sphericalRotationCurve
+     procedure :: rotationCurveGradient   => sphericalRotationCurveGradient
   end type massDistributionSpherical
 
   ! Module scope variables used in integration and root finding.
@@ -94,6 +95,24 @@ contains
          &                           *integrator_%integrate(0.0d0,radius)
     return
   end function sphericalMassEnclosedBySphere
+
+  double precision function sphericalDensitySphericalAverage(self,radius,componentType,massType)
+    !!{
+    Computes the density averaged over a spherical shell.
+    !!}
+    use :: Coordinates, only : assignment(=), coordinateSpherical
+    implicit none
+    class           (massDistributionSpherical   ), intent(inout)           :: self
+    double precision                              , intent(in   )           :: radius
+    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    type            (coordinateSpherical         )                          :: position
+
+    ! For a spherical mass distribution, the density averaged over a spherical shell, is just the regular density at that radius.
+    position                        =[radius,0.0d0,0.0d0]
+    sphericalDensitySphericalAverage=self%density(position,componentType,massType)
+    return
+  end function sphericalDensitySphericalAverage
 
   double precision function sphericalMassEnclosedBySphereIntegrand(radius)
     !!{
@@ -295,7 +314,7 @@ contains
 
   double precision function sphericalRotationCurveGradient(self,radius,componentType,massType)
     !!{
-    Return the mid-plane rotation curve gradient for an exponential disk.
+    Return the rotation curve gradient for a spherical mass distribution.
     !!}
     use :: Coordinates                     , only : assignment(=)                  , coordinateSpherical
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
@@ -310,10 +329,10 @@ contains
     position                      =[radius,0.0d0,0.0d0]
     sphericalRotationCurveGradient=+4.0d0                                                         &
          &                         *Pi                                                            &
-         &                         *                          radius                          **2 &
+         &                         *                          radius                              &
          &                         *self%density             (position,componentType,massType)    &
          &                         -self%massEnclosedBySphere(radius  ,componentType,massType)    &
-         &                         /                          radius
+         &                         /                          radius                          **2
     ! Make dimensionful if necessary.
     if (.not.self%dimensionless) sphericalRotationCurveGradient= &
          &  +gravitationalConstantGalacticus                     &
