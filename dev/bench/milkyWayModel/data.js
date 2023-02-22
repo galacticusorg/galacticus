@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1676836679139,
+  "lastUpdate": 1677089044726,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
@@ -7908,6 +7908,34 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 4.44883822229689,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "id": "5df11a52eb6d0323b8ed5cf4a54d5c66442cec4b",
+          "message": "fix: Avoid floating point exceptions for empty mass distributions",
+          "timestamp": "2023-02-22T14:54:24Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/5df11a52eb6d0323b8ed5cf4a54d5c66442cec4b"
+        },
+        "date": 1677089043433,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 265.328,
+            "unit": "seconds",
+            "range": 0.282629793195501
           }
         ]
       }
