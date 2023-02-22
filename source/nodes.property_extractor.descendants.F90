@@ -24,10 +24,10 @@ Contains a module which implements an ISM mass output analysis property extracto
   use :: Output_Times, only : outputTimes, outputTimesClass
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorDescendents">
+  <nodePropertyExtractor name="nodePropertyExtractorDescendants">
    <description>
     A node property extractor which extracts the index of the node containing the galaxy to which each current galaxy will
-    belong at the next output time (i.e. the \gls{forwardDescendent}). To clarify, this will be the index of the node into
+    belong at the next output time (i.e. the \gls{forwardDescendant}). To clarify, this will be the index of the node into
     which the galaxy descends, or the index of a node with which it merges prior to the next output time (and if that node
     merges with another, the index will be of that node and so on).
   
@@ -41,180 +41,180 @@ Contains a module which implements an ISM mass output analysis property extracto
    </description>
   </nodePropertyExtractor>
   !!]
-  type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorDescendents
+  type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorDescendants
      !!{
-     A node property extractor descendent indices.
+     A node property extractor descendant indices.
      !!}
      private
      class(outputTimesClass), pointer :: outputTimes_ => null()
    contains
-     final     ::                descendentsDestructor
-     procedure :: extract     => descendentsExtract
-     procedure :: name        => descendentsName
-     procedure :: description => descendentsDescription
-  end type nodePropertyExtractorDescendents
+     final     ::                descendantsDestructor
+     procedure :: extract     => descendantsExtract
+     procedure :: name        => descendantsName
+     procedure :: description => descendantsDescription
+  end type nodePropertyExtractorDescendants
 
-  interface nodePropertyExtractorDescendents
+  interface nodePropertyExtractorDescendants
      !!{
-     Constructors for the ``descendents'' output analysis class.
+     Constructors for the ``descendants'' output analysis class.
      !!}
-     module procedure descendentsConstructorParameters
-     module procedure descendentsConstructorInternal
-  end interface nodePropertyExtractorDescendents
+     module procedure descendantsConstructorParameters
+     module procedure descendantsConstructorInternal
+  end interface nodePropertyExtractorDescendants
 
 contains
 
-  function descendentsConstructorParameters(parameters) result(self)
+  function descendantsConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily descendents} node property extractor class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily descendants} node property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type (nodePropertyExtractorDescendents)                :: self
+    type (nodePropertyExtractorDescendants)                :: self
     type (inputParameters                 ), intent(inout) :: parameters
     class(outputTimesClass                ), pointer       :: outputTimes_
 
     !![
     <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
     !!]
-    self=nodePropertyExtractorDescendents(outputTimes_)
+    self=nodePropertyExtractorDescendants(outputTimes_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="outputTimes_"/>
     !!]
     return
-  end function descendentsConstructorParameters
+  end function descendantsConstructorParameters
 
-  function descendentsConstructorInternal(outputTimes_) result(self)
+  function descendantsConstructorInternal(outputTimes_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily descendents} node property extractor class.
+    Internal constructor for the {\normalfont \ttfamily descendants} node property extractor class.
     !!}
     implicit none
-    type (nodePropertyExtractorDescendents)                        :: self
+    type (nodePropertyExtractorDescendants)                        :: self
     class(outputTimesClass                ), intent(in   ), target :: outputTimes_
     !![
     <constructorAssign variables="*outputTimes_"/>
     !!]
 
     return
-  end function descendentsConstructorInternal
+  end function descendantsConstructorInternal
 
-  subroutine descendentsDestructor(self)
+  subroutine descendantsDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily descendents} property extractor class.
+    Destructor for the {\normalfont \ttfamily descendants} property extractor class.
     !!}
     implicit none
-    type(nodePropertyExtractorDescendents), intent(inout) :: self
+    type(nodePropertyExtractorDescendants), intent(inout) :: self
 
     !![
     <objectDestructor name="self%outputTimes_"/>
     !!]
     return
-  end subroutine descendentsDestructor
+  end subroutine descendantsDestructor
 
-  function descendentsExtract(self,node,time,instance)
+  function descendantsExtract(self,node,time,instance)
     !!{
-    Implement a {\normalfont \ttfamily descendents} node property extractor.
+    Implement a {\normalfont \ttfamily descendants} node property extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSatellite, treeNode
     implicit none
-    integer         (kind_int8                       )                          :: descendentsExtract
-    class           (nodePropertyExtractorDescendents), intent(inout)           :: self
+    integer         (kind_int8                       )                          :: descendantsExtract
+    class           (nodePropertyExtractorDescendants), intent(inout)           :: self
     type            (treeNode                        ), intent(inout), target   :: node
     double precision                                  , intent(in   )           :: time
     type            (multiCounter                    ), intent(inout), optional :: instance
-    type            (treeNode                        ), pointer                 :: nodeDescendent
+    type            (treeNode                        ), pointer                 :: nodeDescendant
     class           (nodeComponentBasic              ), pointer                 :: basic
     class           (nodeComponentSatellite          ), pointer                 :: satellite
     double precision                                                            :: outputTimeNext
-    logical                                                                     :: foundDescendent
+    logical                                                                     :: foundDescendant
     !$GLC attributes unused :: self, instance
 
     satellite       => node%satellite            (    )
     outputTimeNext  =  self%outputTimes_%timeNext(time)
-    foundDescendent =  .false.
+    foundDescendant =  .false.
     if (outputTimeNext < 0.0d0) then
        ! There is no next output time.
-       descendentsExtract=node%index()
-       foundDescendent=.true.
+       descendantsExtract=node%index()
+       foundDescendant=.true.
     else if (node%isSatellite()) then
        ! Node is a satellite, so its node index will remain unchanged.
        if (satellite%timeOfMerging() > outputTimeNext) then
           ! Satellite will not have merged prior to the next output time, so retains its own index.
-          descendentsExtract=node%index()
-          foundDescendent=.true.
+          descendantsExtract=node%index()
+          foundDescendant=.true.
        else
           ! Satellite will merge prior to the next output time - find the node it merges with.
-          nodeDescendent => node%mergesWith()
+          nodeDescendant => node%mergesWith()
        end if
     else
-       ! Node is not a satellite, so set the initial descendent to itself.
-       nodeDescendent => node
+       ! Node is not a satellite, so set the initial descendant to itself.
+       nodeDescendant => node
     end if
-    ! Check if we still need to find the descendent.
-    if (.not.foundDescendent) then
-       ! No descendent has yet been found, so trace forward in time until we find one.
+    ! Check if we still need to find the descendant.
+    if (.not.foundDescendant) then
+       ! No descendant has yet been found, so trace forward in time until we find one.
        ! Continue until the tree base is reached, or the next output time is reached.
-       do while (.not.foundDescendent)
+       do while (.not.foundDescendant)
           ! Get the satellite component.
-          satellite => nodeDescendent%satellite()
-          basic     => nodeDescendent%basic    ()
+          satellite => nodeDescendant%satellite()
+          basic     => nodeDescendant%basic    ()
           ! If the next output time has been surpassed, then we are finished.
           if (basic%time() >= outputTimeNext) then
-             foundDescendent=.true.
+             foundDescendant=.true.
           else
              ! Test whether this node is the primary progenitor.
-             if (nodeDescendent%isPrimaryProgenitor()) then
+             if (nodeDescendant%isPrimaryProgenitor()) then
                 ! It is, so simply move to the parent node.
-                nodeDescendent => nodeDescendent%parent
+                nodeDescendant => nodeDescendant%parent
              else
                 ! It is not, so it becomes a satellite. Test whether it has a merge target associated with it.
-                if (associated(nodeDescendent%mergeTarget)) then
+                if (associated(nodeDescendant%mergeTarget)) then
                    ! It does. If merging occurs before the next output time, jump to that node. Otherwise we are finished.
                    if (satellite%timeOfMerging() <= outputTimeNext) then
-                      nodeDescendent => nodeDescendent%mergeTarget
+                      nodeDescendant => nodeDescendant%mergeTarget
                    else
-                      foundDescendent=.true.
+                      foundDescendant=.true.
                    end if
                 else
                    ! We no longer can tell if this node will exist as a separate entity at the next output time. Assume that it
                    ! will, and therefore we are finished.
-                   foundDescendent=.true.
+                   foundDescendant=.true.
                 end if
              end if
           end if
        end do
-       ! If the descendent exists after the next output time, then we've gone one step too far - back up a step.
-       if (basic%time() > outputTimeNext .and. associated(nodeDescendent%firstChild)) nodeDescendent => nodeDescendent%firstChild
-       ! Store the descendent index.
-       descendentsExtract=nodeDescendent%index()
+       ! If the descendant exists after the next output time, then we have gone one step too far - back up a step.
+       if (basic%time() > outputTimeNext .and. associated(nodeDescendant%firstChild)) nodeDescendant => nodeDescendant%firstChild
+       ! Store the descendant index.
+       descendantsExtract=nodeDescendant%index()
     end if
     return
-  end function descendentsExtract
+  end function descendantsExtract
 
 
-  function descendentsName(self)
+  function descendantsName(self)
     !!{
-    Return the name of the descendents property.
+    Return the name of the descendants property.
     !!}
     implicit none
-    type (varying_string                  )                :: descendentsName
-    class(nodePropertyExtractorDescendents), intent(inout) :: self
+    type (varying_string                  )                :: descendantsName
+    class(nodePropertyExtractorDescendants), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    descendentsName=var_str('descendentIndex')
+    descendantsName=var_str('descendantIndex')
     return
-  end function descendentsName
+  end function descendantsName
 
-  function descendentsDescription(self)
+  function descendantsDescription(self)
     !!{
-    Return a description of the descendents property.
+    Return a description of the descendants property.
     !!}
     implicit none
-    type (varying_string                  )                :: descendentsDescription
-    class(nodePropertyExtractorDescendents), intent(inout) :: self
+    type (varying_string                  )                :: descendantsDescription
+    class(nodePropertyExtractorDescendants), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    descendentsDescription=var_str('ID of the node which this node will have descended into by the next timestep.')
+    descendantsDescription=var_str('ID of the node which this node will have descended into by the next timestep.')
     return
-  end function descendentsDescription
+  end function descendantsDescription

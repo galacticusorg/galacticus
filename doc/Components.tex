@@ -78,7 +78,7 @@ a_\mathrm{h}= {\mathrm{G} (M_{\bullet, 1} + M_\mathrm{bullet, 2}) \over 4 \sigma
 \end{equation}
 it is assumed to undergo a triple interaction with the binary. Once a triple interaction occurs, no further triple interaction for the specific tertiary black hole can occur unless the host galaxy merges with another galaxy, at which point the black holes from the merging galaxy are eligible for another triple interaction in their new host.
 
-The logic of what happens in a triple black hole interaction is taken from \cite{volonteri_assembly_2003}. Labelling the central black hole as $1$, its binary partner as $2$ and the tertiary black hole as $3$, and defining
+The logic of what happens in a triple black hole interaction is taken from \cite{volonteri_assembly_2003}. Labeling the central black hole as $1$, its binary partner as $2$ and the tertiary black hole as $3$, and defining
 \begin{equation}
 q_3 = {M_{\bullet, 3} \over M_{\bullet, 1} + M_\mathrm{\bullet, 2} },
 \end{equation}
@@ -184,11 +184,11 @@ Black holes are not initialized, they are created (with a seed mass given by {\n
 
 In the simple black hole implementation the mass evolves as:
 \begin{eqnarray}
-\dot{M}_\bullet &=& (1-\epsilon_\mathrm{wind}) \epsilon_\mathrm{BH} \dot{M}_{\star,s\mathrm{pheroid}} \\
+\dot{M}_\bullet &=& (1-\epsilon_\mathrm{wind}) \epsilon_\mathrm{BH} \dot{M}_{\star,\mathrm{spheroid}} \\
 \end{eqnarray}
 where $\epsilon_\mathrm{BH}$ is the ratio of rates at which the black hole and stellar spheroid grow. The black hole is assumed to cause feedback in two ways:
 \begin{description}
- \item [Radio-mode] If {\normalfont \ttfamily [blackHoleHeatsHotHalo]}$=${\normalfont \ttfamily true} and {\normalfont \ttfamily [blackHoleAccretesFromHotHalo]}$=${\normalfont \ttfamily false} then a power $\epsilon_\mathrm{heat} \epsilon_\mathrm{BH} \dot{M}_{\star,s\mathrm{pheroid}} \mathrm{c}^2$ where $\epsilon_\mathrm{heat}=${\normalfont \ttfamily [blackHoleHeatingEfficiency]} is included in the hot halo heating rate providing that the halo is in the slow cooling regime\index{feedback!AGN}\index{active galactic nuclei (AGN)!feedback} (i.e. if the cooling radius is smaller than the virial radius; see, for example, \citealt{benson_cold_2010}) and the accretion rate onto the black hole is reduced by $\epsilon_\mathrm{heat} \epsilon_\mathrm{BH} \dot{M}_{\star,s\mathrm{pheroid}}$. If {\normalfont \ttfamily [blackHoleHeatsHotHalo]}$=${\normalfont \ttfamily true} and {\normalfont \ttfamily [blackHoleAccretesFromHotHalo]}$=${\normalfont \ttfamily true} then a power $\epsilon_\mathrm{heat} \dot{M}_\mathrm{Eddington} \mathrm{c}^2$ is included in the hot halo heating rate providing that the halo is in the slow cooling regime and the accretion rate onto the black hole is increased\footnote{Note that mass is not removed from the hot halo to compensate, since the accretion rate is independent of the hot halo mass this could lead to negative mass in the halo.} by $\dot{M}_\mathrm{Eddington} \epsilon_\mathrm{heat} (1-\epsilon_\mathrm{jet})/\epsilon_\mathrm{jet}$, where $\epsilon_\mathrm{jet}=${\normalfont \ttfamily [blackHoleJetEfficiency]};
+ \item [Radio-mode] If {\normalfont \ttfamily [blackHoleHeatsHotHalo]}$=${\normalfont \ttfamily true} and {\normalfont \ttfamily [blackHoleAccretesFromHotHalo]}$=${\normalfont \ttfamily false} then a power $\epsilon_\mathrm{heat} \epsilon_\mathrm{BH} \dot{M}_{\star,\mathrm{spheroid}} \mathrm{c}^2$ where $\epsilon_\mathrm{heat}=${\normalfont \ttfamily [blackHoleHeatingEfficiency]} is included in the hot halo heating rate providing that the halo is in the slow cooling regime\index{feedback!AGN}\index{active galactic nuclei (AGN)!feedback} (i.e. if the cooling radius is smaller than the virial radius; see, for example, \citealt{benson_cold_2010}) and the accretion rate onto the black hole is reduced by $\epsilon_\mathrm{heat} \epsilon_\mathrm{BH} \dot{M}_{\star,\mathrm{spheroid}}$. If {\normalfont \ttfamily [blackHoleHeatsHotHalo]}$=${\normalfont \ttfamily true} and {\normalfont \ttfamily [blackHoleAccretesFromHotHalo]}$=${\normalfont \ttfamily true} then a power $\epsilon_\mathrm{heat} \dot{M}_\mathrm{Eddington} \mathrm{c}^2$ is included in the hot halo heating rate providing that the halo is in the slow cooling regime and the accretion rate onto the black hole is increased\footnote{Note that mass is not removed from the hot halo to compensate, since the accretion rate is independent of the hot halo mass this could lead to negative mass in the halo.} by $\dot{M}_\mathrm{Eddington} \epsilon_\mathrm{heat} (1-\epsilon_\mathrm{jet})/\epsilon_\mathrm{jet}$, where $\epsilon_\mathrm{jet}=${\normalfont \ttfamily [blackHoleJetEfficiency]};
  \item [Quasar-mode] A mechanical wind luminosity of \citep{ostriker_momentum_2010}
 \begin{equation}
  L_\mathrm{wind} = \epsilon_{\bullet, wind} \dot{M}_0 \clight^2,
@@ -292,8 +292,8 @@ The standard hot halo implementation defines the following properties:
  \item [{\normalfont \ttfamily outflowedMass}] The mass of gas from outflows in the hot halo: $M_\mathrm{outflowed}$ {\normalfont \ttfamily [hotHaloOutflowedMass]}.
  \item [{\normalfont \ttfamily outflowedAngularMomentum}] The angular momentum of the outflowed gas in the hot halo, $J_\mathrm{outflowed}$ {\normalfont \ttfamily [hotHaloOutflowedAngularMomentum]}.
  \item [{\normalfont \ttfamily outflowedAbundances}] The mass(es) of heavy elements in outflowed gas, $M_{Z, \mathrm{outflowed}}$ {\normalfont \ttfamily [hotHaloOutflowed\{abundanceName\}]}.
- \item [{\normalfont \ttfamily chemicals}] The mass(es) of molceules in the hot gas, $M_\mathrm{chemical}$ {\normalfont \ttfamily [hotHaloChemicals\{chemicalName\}]}.
- \item [{\normalfont \ttfamily outerRadius}] The outer boundary radius fo the hot halo: $r_\mathrm{hot, outer}$ {\normalfont \ttfamily [hotHaloOuterRadius]}.
+ \item [{\normalfont \ttfamily chemicals}] The mass(es) of molecules in the hot gas, $M_\mathrm{chemical}$ {\normalfont \ttfamily [hotHaloChemicals\{chemicalName\}]}.
+ \item [{\normalfont \ttfamily outerRadius}] The outer boundary radius of the hot halo: $r_\mathrm{hot, outer}$ {\normalfont \ttfamily [hotHaloOuterRadius]}.
  \item [{\normalfont \ttfamily strippedMass}] The mass of gas which has been stripped from the hot halo (by ram pressure or tidal forces for example): $M_\mathrm{hot, stripped}$. This property is computed only if {\normalfont \ttfamily [hotHaloTrackStrippedGas]}$=${\normalfont \ttfamily true}.
  \item [{\normalfont \ttfamily strippedAbundances}] The mass(es) of heavy elements in gas that has been stripped from the hot halo (by ram pressure or tidal forces for example), $M_{Z, \mathrm{hot, stripped}}$. These properties are computed only if {\normalfont \ttfamily [hotHaloTrackStrippedGas]}$=${\normalfont \ttfamily true}.
 \end{description}
@@ -472,7 +472,7 @@ N/A---disk radii are computed using the selected galactic structure solver.
 
 \subsection{``Standard'' Implementation}\label{sec:DiskStandard}
 
-This implementation assumes a disk with a cylindrical symmetry and a flattened profile in which stars trace gas. Currently, one option for the density profile is allowed\footnote{The disk density distribution is handled internally using a \protect\refClass{massDistributionClass} object. As such, any mass distribution implemented as an extension of the {\normalfont \ttfamily massDistribution} class (and which is described by a single length scale) could be trivially addded to the standard disk component.}:
+This implementation assumes a disk with a cylindrical symmetry and a flattened profile in which stars trace gas. Currently, one option for the density profile is allowed\footnote{The disk density distribution is handled internally using a \protect\refClass{massDistributionClass} object. As such, any mass distribution implemented as an extension of the {\normalfont \ttfamily massDistribution} class (and which is described by a single length scale) could be trivially added to the standard disk component.}:
 \begin{description}
 \item [{\normalfont \ttfamily exponentialDisk}] Assumes an exponential profile, $\rho(R,z) = \rho_0 \exp(-r/r_\mathrm{s}) \hbox{sech}^2(z/z_\mathrm{s})$, for the disk \gls{component} of a galaxy. The thickness, $z_\mathrm{s}/r_\mathrm{s}$ is set by the parameter {\normalfont \ttfamily [heightToRadialScaleDisk]}.
 \end{description}
@@ -563,7 +563,7 @@ The radial size of the disk is found solving for equilibrium (i.e. the radius is
 \begin{equation}
  j(r)/\langle j \rangle = r V \left/ {\int_0^\infty 2 \pi r^\prime \Sigma(r^\prime) r^\prime V \mathrm{d} r^\prime \over \int_0^\infty 2 \pi r^\prime \Sigma(r^\prime) \mathrm{d} r^\prime} \right. .
 \end{equation}
-The option {\normalfont \ttfamily [diskRadiusSolverCole2000Method]}, if set to {\normalfont \ttfamily true}, alters this behavior to match that of the structure solver used by \cite{cole_hierarchical_2000}, in which adiabatic contraction of the dark matter halo is solved for assuming that the disk has a spherical mass dsitribution. The specific angular momentum passed to the structure solver will be modified as follows in this case:
+The option {\normalfont \ttfamily [diskRadiusSolverCole2000Method]}, if set to {\normalfont \ttfamily true}, alters this behavior to match that of the structure solver used by \cite{cole_hierarchical_2000}, in which adiabatic contraction of the dark matter halo is solved for assuming that the disk has a spherical mass distribution. The specific angular momentum passed to the structure solver will be modified as follows in this case:
 \begin{equation}
  j(r) \rightarrow \left[ j^2(r) - \left( V_\mathrm{disk}^2(r) r^2 - \mathrm{G} M_\mathrm{disk}(<r) r \right) \right]^{1/2},
 \end{equation}
@@ -581,7 +581,7 @@ The very simple galactic spheroid implementation defines the following propertie
 \begin{description}
  \item [{\normalfont \ttfamily massGas}] The mass of gas in the spheroid: $M_\mathrm{spheroid, gas}$ [{\normalfont \ttfamily spheroidMassGas}];
  \item [{\normalfont \ttfamily massStellar}] The mass of stars in the spheroid: $M_\mathrm{spheroid, stars}$ [{\normalfont \ttfamily spheroidMassStellar}].;
- \item [{\normalfont \ttfamily radius}] The half-mass radius of the sphreoid: $r_\mathrm{spheroid, 1/2}$ [{\normalfont \ttfamily spheroidRadius}].
+ \item [{\normalfont \ttfamily radius}] The half-mass radius of the spheroid: $r_\mathrm{spheroid, 1/2}$ [{\normalfont \ttfamily spheroidRadius}].
 \end{description}
 
 \subsubsection{Initialization}
@@ -614,7 +614,7 @@ with $\tau_\mathrm{spheroid, star~formation}$ being the greater of the star form
 
 \subsection{``Standard'' Implementation}
 
-The standard spheroid implementation assumes a spheroid density profile described by a single length scale in which stars trace gas. Currently, two options for the density profile are allowed\footnote{The spheroid density distribution is handled internally using a \refClass{massDistributionClass} object. As such, any mass distribution implemented as an extension of the {\normalfont \ttfamily massDistribution} class (and which is described by a single length scale) could be trivially addded to the standard spheroid component.}:
+The standard spheroid implementation assumes a spheroid density profile described by a single length scale in which stars trace gas. Currently, two options for the density profile are allowed\footnote{The spheroid density distribution is handled internally using a \refClass{massDistributionClass} object. As such, any mass distribution implemented as an extension of the {\normalfont \ttfamily massDistribution} class (and which is described by a single length scale) could be trivially added to the standard spheroid component.}:
 \begin{description}
 \item [{\normalfont \ttfamily hernquist}] Assumes a Hernquist profile \citep{hernquist_analytical_1990} for the spheroidal \gls{component} of a galaxy.
 \item [{\normalfont \ttfamily sersic}] Assumes a S\'ersic profile (\citealt{sersic_influence_1963}; see also \citealt{mazure_exact_2002}) for the spheroidal \gls{component} of a galaxy in which stars trace gas. The projected density profile of the spheroid is given by:
@@ -628,7 +628,7 @@ where the S\'ersic index, $n=${\normalfont \ttfamily [spheroidSersicIndex]} and 
 
 The standard galactic spheroid implementation defines the following properties:
 \begin{description}
- \item [{\normalfont \ttfamily masGass}] The mass of gas in the spheroid: $M_\mathrm{spheroid, gas}$ [{\normalfont \ttfamily spheroidMassGas}].
+ \item [{\normalfont \ttfamily masGas}] The mass of gas in the spheroid: $M_\mathrm{spheroid, gas}$ [{\normalfont \ttfamily spheroidMassGas}].
  \item [{\normalfont \ttfamily abundancesGas}] The mass of elements in the gaseous spheroid: $M_{Z, \mathrm{spheroid, gas}}$ [{\normalfont \ttfamily spheroidAbundancesGas\{abundanceName\}}].
  \item [{\normalfont \ttfamily massStellar}] The mass of stars in the spheroid: $M_\mathrm{spheroid, stars}$ [{\normalfont \ttfamily spheroidMassStellar}].
  \item [{\normalfont \ttfamily abundancesStellar}] The mass of elements in the stellar spheroid: $M_{Z, \mathrm{spheroid, stars}}$ [{\normalfont \ttfamily spheroidAbundancesStellar\{abundanceName\}}].
@@ -717,7 +717,7 @@ If the {\normalfont \ttfamily [spheroidOutputStarFormationRate]}\index{spheroid!
 
 Basic properties are the total mass of a \gls{node} and the cosmic time at which it currently exists.
 
-\subsection{``Non-evolving'' Implemenation}
+\subsection{``Non-evolving'' Implementation}
 
 \subsubsection{Properties}
 
@@ -748,7 +748,7 @@ Properties are evolved according to:
 
 \noindent\emph{Node promotion:} $M_\mathrm{node}$ is updated to the \gls{node} mass of the parent prior to promotion.\\
 
-\subsection{``Standard Implemenation}
+\subsection{``Standard Implementation}
 
 \subsubsection{Properties}
 
@@ -780,7 +780,7 @@ where the ``parent'' subscript indicates a property of the parent \gls{node} in 
 
 \noindent\emph{Node promotion:} $M_\mathrm{node}$ is updated to the \gls{node} mass of the parent prior to promotion.\\
 
-\subsection{``Standard-Extended Implemenation}
+\subsection{``Standard-Extended Implementation}
 
 \subsubsection{Properties}
 
@@ -788,7 +788,7 @@ The standard-extended basic properties implementation extends the standard imple
 \begin{description}
  \item [{\normalfont \ttfamily massBertschinger}] The ``Bertschinger'' mass of the node, defined as the mass enclosing a density contrast equal to that for the spherical collapse model: $M_\mathrm{node, Bertschinger}$ [{\normalfont \ttfamily basicMassBertschinger}].
  \item [{\normalfont \ttfamily accretionRateBertschinger}] The accretion rate of ``Bertschinger'' mass onto the node: $\dot{M}_\mathrm{node, Bertschinger}$ [{\normalfont \ttfamily basicAccretionRateBertschinger}].
- \item [{\normalfont \ttfamily radiusTurnaround}] The turnaround radius corresponding to the current ``Bertshcinger''mass: $R_\mathrm{ta}$ [{\normalfont \ttfamily basicRadiusTurnaround}]
+ \item [{\normalfont \ttfamily radiusTurnaround}] The turnaround radius corresponding to the current ``Bertschinger''mass: $R_\mathrm{ta}$ [{\normalfont \ttfamily basicRadiusTurnaround}]
 \end{description}
 
 \subsubsection{Initialization}
@@ -811,7 +811,7 @@ None.
 
 The position \gls{component} implements the position and velocity of each galaxy. See \S\ref{sec:GalacticusVelocityDefinitions} for important notes on velocity definitions in \glc.
 
-\subsection{``cartesian'' Implemenation}
+\subsection{``cartesian'' Implementation}
 
 \subsubsection{Properties}
 
@@ -848,7 +848,7 @@ This \gls{component} tracks the orbital properties of subhalos.
 
 The preset satellite orbit implementation defines the following properties:
 \begin{description}
- \item [{\normalfont \ttfamily mergTime}] The time until the satellite will merge with its host: $t_\mathrm{satellite, merge}$ [{\normalfont \ttfamily satelliteMergeTime}].
+ \item [{\normalfont \ttfamily mergeTime}] The time until the satellite will merge with its host: $t_\mathrm{satellite, merge}$ [{\normalfont \ttfamily satelliteMergeTime}].
  \item [{\normalfont \ttfamily timeOfMerging}] The cosmological time at which the satellite will merge with its host: $T_\mathrm{satellite, merge}$.
  \item [{\normalfont \ttfamily boundMass}] The remaining, total bound mass of the satellite (this property is read only---it is determined from the {\normalfont \ttfamily boundMassHistory} property).
  \item [{\normalfont \ttfamily boundMassHistory}] A history time-series of the total bound mass of the satellite.
@@ -904,7 +904,7 @@ The orbiting satellite orbit implementation defines the following properties:
  \item [{\normalfont \ttfamily boundMass}] The remaining, total bound mass of the satellite: $M_\mathrm{node,bound}$ [{\normalfont \ttfamily satelliteBoundMass}].
  \item[{\normalfont \ttfamily virialOrbit}] The orbit (returned as a \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Development.pdf\#sec.KeplerOrbits}{\normalfont \ttfamily keplerOrbit} object) of the satellite at the point of virial radius crossing.
  \item[{\normalfont \ttfamily tidalTensorPathIntegrated}] The time integral of the tidal tensor along the orbit of the satellite from initialization: $G_{ij}$.
- \item[{\normalfont \ttfamily tidalHeatingNormalized}] The tidal heating energy per radius squared desposited into the satellite: $Q_\mathrm{tidal}$.
+ \item[{\normalfont \ttfamily tidalHeatingNormalized}] The tidal heating energy per radius squared deposited into the satellite: $Q_\mathrm{tidal}$.
 \end{description}
 
 \subsubsection{Initialization}
@@ -1001,7 +1001,7 @@ The preset dark matter halo spin implementation defines the following properties
 
 \subsubsection{Initialization}
 
-The spin vector of each \gls{node} is assumed to have been preset prior to merger tree initialization. The growth rate is comptued assuming linear growth with time along each branch.
+The spin vector of each \gls{node} is assumed to have been preset prior to merger tree initialization. The growth rate is computed assuming linear growth with time along each branch.
 
 \subsubsection{Differential Evolution}
 
@@ -1086,7 +1086,7 @@ The ``scale preset'' dark matter profile implementation defines the following pr
 
 \subsubsection{Initialization}
 
-The scale length of each node is assumed to be assigned udirng tree construction.
+The scale length of each node is assumed to be assigned during tree construction.
 
 \subsubsection{Differential Evolution}
 
