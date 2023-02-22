@@ -34,6 +34,7 @@
      double precision :: densityNormalization, mass, &
           &              scaleLength
    contains
+     procedure :: massTotal            => hernquistMassTotal
      procedure :: density              => hernquistDensity
      procedure :: densityRadialMoment  => hernquistDensityRadialMoment
      procedure :: massEnclosedBySphere => hernquistMassEnclosedBySphere
@@ -170,6 +171,23 @@ contains
     end if
     return
   end function hernquistConstructorInternal
+
+  double precision function hernquistMassTotal(self,componentType,massType)
+    !!{
+    Return the total mass in an exponential disk distribution.
+    !!}
+    implicit none
+    class(massDistributionHernquist   ), intent(inout)           :: self
+    type (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type (enumerationMassTypeType     ), intent(in   ), optional :: massType
+
+    if (self%matches(componentType,massType)) then
+       hernquistMassTotal=self%mass
+    else
+       hernquistMassTotal=0.0d0
+    end if
+    return
+  end function hernquistMassTotal
 
   double precision function hernquistDensity(self,coordinates,componentType,massType)
     !!{

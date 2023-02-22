@@ -41,7 +41,8 @@
      class           (massDistributionSpherical), pointer :: massDistribution_   => null()
      double precision                                     :: factorScalingLength          , factorScalingMass
    contains
-     final     ::                          sphericalScalerDestructor
+     final     ::                            sphericalScalerDestructor
+     procedure :: massTotal               => sphericalScalerMassTotal
      procedure :: density                 => sphericalScalerDensity
      procedure :: densitySphericalAverage => sphericalScalerDensitySphericalAverage
      procedure :: densityGradientRadial   => sphericalScalerDensityGradientRadial
@@ -147,6 +148,23 @@ contains
     sphericalScalerIsDimensionless=.false.
     return
   end function sphericalScalerIsDimensionless
+
+  double precision function sphericalScalerMassTotal(self,componentType,massType)
+    !!{
+    Return the total mass in a scaled spherical distribution.
+    !!}
+    implicit none
+    class(massDistributionSphericalScaler), intent(inout)           :: self
+    type (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
+    type (enumerationMassTypeType        ), intent(in   ), optional :: massType
+
+    sphericalScalerMassTotal=+self%massDistribution_%massTotal        (               &
+         &                                                             componentType, &
+         &                                                             massType       &
+         &                                                            )               &
+         &                   *self                  %factorScalingMass
+    return
+  end function sphericalScalerMassTotal
 
   double precision function sphericalScalerDensity(self,coordinates,componentType,massType)
     !!{

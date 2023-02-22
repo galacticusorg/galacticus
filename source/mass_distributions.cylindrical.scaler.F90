@@ -43,6 +43,7 @@
      double precision                                       :: factorScalingLength          , factorScalingMass
    contains
      final     ::                                      cylindricalScalerDestructor
+     procedure :: massTotal                         => cylindricalScalerMassTotal
      procedure :: density                           => cylindricalScalerDensity
      procedure :: densitySphericalAverage           => cylindricalScalerDensitySphericalAverage
      procedure :: surfaceDensity                    => cylindricalScalerSurfaceDensity
@@ -147,6 +148,23 @@ contains
     cylindricalScalerIsDimensionless=.false.
     return
   end function cylindricalScalerIsDimensionless
+
+  double precision function cylindricalScalerMassTotal(self,componentType,massType)
+    !!{
+    Return the total mass in a scaled cylindrical distribution.
+    !!}
+    implicit none
+    class(massDistributionCylindricalScaler), intent(inout)           :: self
+    type (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
+    type (enumerationMassTypeType          ), intent(in   ), optional :: massType
+
+    cylindricalScalerMassTotal=+self%massDistribution_%massTotal        (               &
+         &                                                               componentType, &
+         &                                                               massType       &
+         &                                                              )               &
+         &                     *self                  %factorScalingMass
+    return
+  end function cylindricalScalerMassTotal
 
   double precision function cylindricalScalerDensity(self,coordinates,componentType,massType)
     !!{

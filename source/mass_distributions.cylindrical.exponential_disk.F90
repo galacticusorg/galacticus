@@ -72,6 +72,7 @@
      procedure :: besselFactorRotationCurve         => exponentialDiskBesselFactorRotationCurve
      procedure :: besselFactorRotationCurveGradient => exponentialDiskBesselFactorRotationCurveGradient
      procedure :: besselFactorPotential             => exponentialDiskBesselFactorPotential
+     procedure :: massTotal                         => exponentialDiskMassTotal
      procedure :: density                           => exponentialDiskDensity
      procedure :: densitySphericalAverage           => exponentialDiskDensitySphericalAverage
      procedure :: surfaceDensity                    => exponentialDiskSurfaceDensity
@@ -298,6 +299,23 @@ contains
     end if
     return
   end subroutine exponentialDiskTabulate
+
+  double precision function exponentialDiskMassTotal(self,componentType,massType)
+    !!{
+    Return the total mass in an exponential disk distribution.
+    !!}
+    implicit none
+    class(massDistributionExponentialDisk), intent(inout)           :: self
+    type (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
+    type (enumerationMassTypeType        ), intent(in   ), optional :: massType
+
+    if (self%matches(componentType,massType)) then
+       exponentialDiskMassTotal=self%mass
+    else
+       exponentialDiskMassTotal=0.0d0
+    end if
+    return
+  end function exponentialDiskMassTotal
 
   double precision function exponentialDiskRadiusHalfMass(self,componentType,massType)
     !!{
