@@ -143,7 +143,7 @@ module Mass_Distributions
     <description>Return the average density on a spherical shell of the gievn radius.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>double precision                              , intent(in   )           :: radius  </argument>
+    <argument>double precision                              , intent(in   )           :: radius       </argument>
     <argument>type            (enumerationComponentTypeType), intent(in   ), optional :: componentType</argument>
     <argument>type            (enumerationMassTypeType     ), intent(in   ), optional :: massType     </argument>
    </method>
