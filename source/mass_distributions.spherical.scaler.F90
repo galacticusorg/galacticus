@@ -177,14 +177,18 @@ contains
     type (enumerationMassTypeType        ), intent(in   ), optional    :: massType
     class(coordinate                     )               , allocatable :: coordinatesScaled
 
-    call coordinates%scale(1.0d0/self%factorScalingLength,coordinatesScaled)
-    sphericalScalerDensity=+self%massDistribution_%density          (                           &
-         &                                                           coordinatesScaled        , &
-         &                                                           componentType            , &
-         &                                                           massType                   &
-         &                                                          )                           &
-         &                 *self                  %factorScalingMass                            &
-         &                 /self                  %factorScalingLength**3
+    if (self%factorScalingMass > 0.0d0) then
+       call coordinates%scale(1.0d0/self%factorScalingLength,coordinatesScaled)
+       sphericalScalerDensity=+self%massDistribution_%density          (                           &
+            &                                                           coordinatesScaled        , &
+            &                                                           componentType            , &
+            &                                                           massType                   &
+            &                                                          )                           &
+            &                 *self                  %factorScalingMass                            &
+            &                 /self                  %factorScalingLength**3
+    else
+       sphericalScalerDensity=+0.0d0
+    end if
     return
   end function sphericalScalerDensity
 
