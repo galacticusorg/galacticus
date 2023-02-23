@@ -57,6 +57,7 @@ jobs:
           file: source/interface.CLASS.F90
           version_name: classVersion
           repo: lesgourg/class_public
+          tag: true
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v4
         with:
