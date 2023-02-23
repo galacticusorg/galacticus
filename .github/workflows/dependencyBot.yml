@@ -5,6 +5,7 @@ on:
   workflow_dispatch:
 
 jobs:
+  # PRs must be closed and re-opened to trigger checks - see here: https://github.com/peter-evans/create-pull-request/blob/main/docs/concepts-guidelines.md#triggering-further-workflow-runs
   CAMB:
     runs-on: ubuntu-latest
     steps:
