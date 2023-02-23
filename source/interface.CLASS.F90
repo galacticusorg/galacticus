@@ -81,7 +81,7 @@ contains
     !!]
 
     ! Set path and version
-    classVersion    ="3.0.2"
+    classVersion    ="3.2.0"
     classPath       =inputPath(pathTypeDataDynamic)//"class_public-"//classVersion//"/"
     ! Build the CLASS code.
     if (.not.File_Exists(classPath//"class")) then
