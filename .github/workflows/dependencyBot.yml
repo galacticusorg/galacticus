@@ -15,8 +15,8 @@ jobs:
       - uses: reviewdog/action-depup@v1
         id: depup
         with:
-          file: source/interface.CAMB.F90
-          version_name: cambVersion
+          file: aux/dependencies.yml
+          version_name: camb
           repo: cmbant/CAMB
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v4
@@ -39,8 +39,8 @@ jobs:
       - uses: reviewdog/action-depup@v1
         id: depup
         with:
-          file: source/interface.CAMB.F90
-          version_name: forutilsVersion
+          file: aux/dependencies.yml
+          version_name: forutils
           repo: cmbant/forutils
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v4
@@ -63,8 +63,8 @@ jobs:
       - uses: reviewdog/action-depup@v1
         id: depup
         with:
-          file: source/interface.CLASS.F90
-          version_name: classVersion
+          file: aux/dependencies.yml
+          version_name: class
           repo: lesgourg/class_public
           tag: true
       - name: Create Pull Request
@@ -88,8 +88,8 @@ jobs:
       - uses: reviewdog/action-depup@v1
         id: depup
         with:
-          file: source/interface.FSPS.F90
-          version_name: fspsVersion
+          file: aux/dependencies.yml
+          version_name: fsps
           repo: cconroy20/fsps
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v4
