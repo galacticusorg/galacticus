@@ -10,7 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-        with: ssh-key: ${{ secrets.SSH_KEY_ACTIONS }}
+        with:
+          ssh-key: ${{ secrets.SSH_KEY_ACTIONS }}
       - uses: reviewdog/action-depup@v1
         id: depup
         with:
@@ -33,7 +34,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-        with: ssh-key: ${{ secrets.SSH_KEY_ACTIONS }}
+        with:
+          ssh-key: ${{ secrets.SSH_KEY_ACTIONS }}
       - uses: reviewdog/action-depup@v1
         id: depup
         with:
@@ -56,7 +58,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-        with: ssh-key: ${{ secrets.SSH_KEY_ACTIONS }}
+        with:
+          ssh-key: ${{ secrets.SSH_KEY_ACTIONS }}
       - uses: reviewdog/action-depup@v1
         id: depup
         with:
@@ -80,7 +83,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-        with: ssh-key: ${{ secrets.SSH_KEY_ACTIONS }}
+        with:
+          ssh-key: ${{ secrets.SSH_KEY_ACTIONS }}
       - uses: reviewdog/action-depup@v1
         id: depup
         with:
