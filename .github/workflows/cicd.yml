@@ -290,10 +290,10 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           ./Galacticus.exe parameters/buildTools.xml
           cd $GALACTICUS_DATA_PATH
-          classVersion=`awk '{if ($1 == "class:") print $2}' aux/dependencies.yml`
-          cambVersion=`awk '{if ($1 == "camb:") print $2}' aux/dependencies.yml`
-          forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' aux/dependencies.yml`
-          fspsVersion=`awk '{if ($1 == "fsps:") print $2}' aux/dependencies.yml`
+          classVersion=`awk '{if ($1 == "class:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          cambVersion=`awk '{if ($1 == "camb:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          fspsVersion=`awk '{if ($1 == "fsps:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
           tar cfj tools.tar.bz2 \
             dynamic/CAMB-${cambVersion}/fortran/camb \
             dynamic/AxionCAMB/camb \
@@ -814,10 +814,10 @@ jobs:
           $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl gfortran-11 -cpp -Ofast -fopenmp -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib -JRelease -IRelease/ -I"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-${cambVersion}/fortran/../forutils/Release/" Release/inidriver.o Release/libcamb.a  -L"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-${cambVersion}/fortran/../forutils/Release/" -lforutils -o camb
           cd $GALACTICUS_DATA_PATH/dynamic/AxionCAMB/
           $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl gfortran-11 -O3 -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib constants.o utils.o  subroutines.o inifile.o power_tilt.o recfast_axion.o reionization.o modules.o bessels.o equations_ppf.o halofit_ppf.o lensing.o SeparableBispectrum.o cmbmain.o camb.o axion_background.o inidriver_axion.F90 -o camb          
-          classVersion=`awk '{if ($1 == "class:") print $2}' aux/dependencies.yml`
-          cambVersion=`awk '{if ($1 == "camb:") print $2}' aux/dependencies.yml`
-          forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' aux/dependencies.yml`
-          fspsVersion=`awk '{if ($1 == "fsps:") print $2}' aux/dependencies.yml`
+          classVersion=`awk '{if ($1 == "class:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          cambVersion=`awk '{if ($1 == "camb:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          fspsVersion=`awk '{if ($1 == "fsps:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
           cd $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion}/
           $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl `grep -E '\-o class ' $GALACTICUS_EXEC_PATH/build.log`
           cd $GALACTICUS_DATA_PATH/dynamic/RecFast/
@@ -954,10 +954,10 @@ jobs:
         run: |
           echo Removing outdated dynamically-generated datasets
           echo Retaining:
-          classVersion=`awk '{if ($1 == "class:") print $2}' aux/dependencies.yml`
-          cambVersion=`awk '{if ($1 == "camb:") print $2}' aux/dependencies.yml`
-          forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' aux/dependencies.yml`
-          fspsVersion=`awk '{if ($1 == "fsps:") print $2}' aux/dependencies.yml`
+          classVersion=`awk '{if ($1 == "class:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          cambVersion=`awk '{if ($1 == "camb:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          fspsVersion=`awk '{if ($1 == "fsps:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
           find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/AxionCAMB -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion} \) -prune -o -type f -anewer mark.time -print
           find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/AxionCAMB -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion} \) -prune -o -type f -not -anewer mark.time -print0 | xargs --no-run-if-empty -0 rm
       - run: echo "This job's status is ${{ job.status }}."
@@ -1065,10 +1065,10 @@ jobs:
         run: |
           echo Removing outdated dynamically-generated datasets
           echo Retaining:
-          classVersion=`awk '{if ($1 == "class:") print $2}' aux/dependencies.yml`
-          cambVersion=`awk '{if ($1 == "camb:") print $2}' aux/dependencies.yml`
-          forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' aux/dependencies.yml`
-          fspsVersion=`awk '{if ($1 == "fsps:") print $2}' aux/dependencies.yml`
+          classVersion=`awk '{if ($1 == "class:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          cambVersion=`awk '{if ($1 == "camb:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          fspsVersion=`awk '{if ($1 == "fsps:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
           find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/AxionCAMB -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion} \) -prune -o -type f -anewer mark.time -print
           find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/AxionCAMB -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion} \) -prune -o -type f -not -anewer mark.time -print0 | xargs --no-run-if-empty -0 rm
       - name: Upload results
@@ -1132,10 +1132,10 @@ jobs:
         run: |
           echo Removing outdated dynamically-generated datasets
           echo Retaining:
-          classVersion=`awk '{if ($1 == "class:") print $2}' aux/dependencies.yml`
-          cambVersion=`awk '{if ($1 == "camb:") print $2}' aux/dependencies.yml`
-          forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' aux/dependencies.yml`
-          fspsVersion=`awk '{if ($1 == "fsps:") print $2}' aux/dependencies.yml`
+          classVersion=`awk '{if ($1 == "class:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          cambVersion=`awk '{if ($1 == "camb:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          fspsVersion=`awk '{if ($1 == "fsps:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
           find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/AxionCAMB -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion} \) -prune -o -type f -anewer mark.time -print
           find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/AxionCAMB -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion} \) -prune -o -type f -not -anewer mark.time -print0 | xargs --no-run-if-empty -0 rm
       - name: Upload results
@@ -1248,10 +1248,10 @@ jobs:
         run: |
           echo Removing outdated dynamically-generated datasets
           echo Retaining:
-          classVersion=`awk '{if ($1 == "class:") print $2}' aux/dependencies.yml`
-          cambVersion=`awk '{if ($1 == "camb:") print $2}' aux/dependencies.yml`
-          forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' aux/dependencies.yml`
-          fspsVersion=`awk '{if ($1 == "fsps:") print $2}' aux/dependencies.yml`
+          classVersion=`awk '{if ($1 == "class:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          cambVersion=`awk '{if ($1 == "camb:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          fspsVersion=`awk '{if ($1 == "fsps:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
           find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/AxionCAMB -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion} \) -prune -o -type f -anewer mark.time -print
           find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/AxionCAMB -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion} \) -prune -o -type f -not -anewer mark.time -print0 | xargs --no-run-if-empty -0 rm
       - name: Upload results
@@ -1316,10 +1316,10 @@ jobs:
         run: |
           echo Removing outdated dynamically-generated datasets
           echo Retaining:
-          classVersion=`awk '{if ($1 == "class:") print $2}' aux/dependencies.yml`
-          cambVersion=`awk '{if ($1 == "camb:") print $2}' aux/dependencies.yml`
-          forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' aux/dependencies.yml`
-          fspsVersion=`awk '{if ($1 == "fsps:") print $2}' aux/dependencies.yml`
+          classVersion=`awk '{if ($1 == "class:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          cambVersion=`awk '{if ($1 == "camb:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          fspsVersion=`awk '{if ($1 == "fsps:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
           find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/AxionCAMB -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion} \) -prune -o -type f -anewer mark.time -print
           find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/AxionCAMB -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion} \) -prune -o -type f -not -anewer mark.time -print0 | xargs --no-run-if-empty -0 rm
       - name: Upload results
@@ -1429,10 +1429,10 @@ jobs:
         run: |
           echo Removing outdated dynamically-generated datasets
           echo Retaining:
-          classVersion=`awk '{if ($1 == "class:") print $2}' aux/dependencies.yml`
-          cambVersion=`awk '{if ($1 == "camb:") print $2}' aux/dependencies.yml`
-          forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' aux/dependencies.yml`
-          fspsVersion=`awk '{if ($1 == "fsps:") print $2}' aux/dependencies.yml`
+          classVersion=`awk '{if ($1 == "class:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          cambVersion=`awk '{if ($1 == "camb:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          fspsVersion=`awk '{if ($1 == "fsps:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
           find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/AxionCAMB -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion} \) -prune -o -type f -anewer mark.time -print
           find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/AxionCAMB -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion} \) -prune -o -type f -not -anewer mark.time -print0 | xargs --no-run-if-empty -0 rm
       - run: echo "This job's status is ${{ job.status }}."
@@ -6450,10 +6450,10 @@ jobs:
         run: |
           echo Removing outdated dynamically-generated datasets
           echo Retaining:
-          classVersion=`awk '{if ($1 == "class:") print $2}' aux/dependencies.yml`
-          cambVersion=`awk '{if ($1 == "camb:") print $2}' aux/dependencies.yml`
-          forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' aux/dependencies.yml`
-          fspsVersion=`awk '{if ($1 == "fsps:") print $2}' aux/dependencies.yml`
+          classVersion=`awk '{if ($1 == "class:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          cambVersion=`awk '{if ($1 == "camb:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          fspsVersion=`awk '{if ($1 == "fsps:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
           find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/AxionCAMB -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion} \) -prune -o -type f -anewer mark.time -print
           find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/AxionCAMB -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion} \) -prune -o -type f -not -anewer mark.time -print0 | xargs --no-run-if-empty -0 rm
       - run: echo "This job's status is ${{ job.status }}."
@@ -7638,10 +7638,10 @@ jobs:
         run: |
           echo Removing outdated dynamically-generated datasets
           echo Retaining:
-          classVersion=`awk '{if ($1 == "class:") print $2}' aux/dependencies.yml`
-          cambVersion=`awk '{if ($1 == "camb:") print $2}' aux/dependencies.yml`
-          forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' aux/dependencies.yml`
-          fspsVersion=`awk '{if ($1 == "fsps:") print $2}' aux/dependencies.yml`
+          classVersion=`awk '{if ($1 == "class:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          cambVersion=`awk '{if ($1 == "camb:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          fspsVersion=`awk '{if ($1 == "fsps:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
           find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/AxionCAMB -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion} \) -prune -o -type f -anewer mark.time -print
           find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/AxionCAMB -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion} \) -prune -o -type f -not -anewer mark.time -print0 | xargs --no-run-if-empty -0 rm
       - run: echo "This job's status is ${{ job.status }}."
@@ -7874,10 +7874,10 @@ jobs:
         run: |
           echo Removing outdated dynamically-generated datasets
           echo Retaining:
-          classVersion=`awk '{if ($1 == "class:") print $2}' aux/dependencies.yml`
-          cambVersion=`awk '{if ($1 == "camb:") print $2}' aux/dependencies.yml`
-          forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' aux/dependencies.yml`
-          fspsVersion=`awk '{if ($1 == "fsps:") print $2}' aux/dependencies.yml`
+          classVersion=`awk '{if ($1 == "class:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          cambVersion=`awk '{if ($1 == "camb:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          fspsVersion=`awk '{if ($1 == "fsps:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
           find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/AxionCAMB -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion} \) -prune -o -type f -anewer mark.time -print
           find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/AxionCAMB -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion} \) -prune -o -type f -not -anewer mark.time -print0 | xargs --no-run-if-empty -0 rm
       - run: echo "This job's status is ${{ job.status }}."
