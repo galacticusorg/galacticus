@@ -58,17 +58,18 @@ contains
     !!{
     Initialize the interface with CAMB, including downloading and compiling CAMB if necessary.
     !!}
-    use :: Display           , only : displayMessage         , verbosityLevelWorking
-    use :: File_Utilities    , only : Directory_Make         , File_Exists          , File_Lock      , File_Unlock, &
+    use :: Dependencies      , only : dependencyVersion
+    use :: Display           , only : displayMessage   , verbosityLevelWorking
+    use :: File_Utilities    , only : Directory_Make   , File_Exists          , File_Lock      , File_Unlock, &
           &                           lockDescriptor
     use :: Error             , only : Error_Report
-    use :: Input_Paths       , only : inputPath              , pathTypeDataDynamic
-    use :: ISO_Varying_String, only : assignment(=)          , char                 , operator(//)   , replace    , &
+    use :: Input_Paths       , only : inputPath        , pathTypeDataDynamic
+    use :: ISO_Varying_String, only : assignment(=)    , char                 , operator(//)   , replace    , &
           &                           varying_string
     use :: String_Handling   , only : stringSubstitute
     use :: System_Command    , only : System_Command_Do
     use :: System_Download   , only : download
-    use :: System_Compilers  , only : compiler               , compilerOptions      , languageFortran
+    use :: System_Compilers  , only : compiler         , compilerOptions      , languageFortran
     implicit none
     type   (varying_string), intent(  out)           :: cambPath, cambVersion
     logical                , intent(in   ), optional :: static
@@ -80,8 +81,8 @@ contains
     !!]
 
     ! Set path and version
-    cambVersion    ="1.4.0"
-    forutilsVersion="1.0"
+    cambVersion    =dependencyVersion("camb"    )
+    forutilsVersion=dependencyVersion("forutils")
     cambPath       =inputPath(pathTypeDataDynamic)//"CAMB-"//cambVersion//"/fortran/"
     ! Build the CAMB code.
     if (.not.File_Exists(cambPath//"camb")) then
