@@ -179,6 +179,11 @@ my %translations =
 	 names => {
 	     "//transferFunction[\@value='axionCAMB']/axionCambCountPerDecade[\@value]"                       => "countPerDecade"                                                 ,
 	 }
+     },
+     "f27a00e1de9bb8e77359c754fae445ea8788513c" => {
+     	 values => {
+     	     "//nodePropertyExtractor[\@value]"                                                               => {"descendents" => "descendants"}
+	 }
      }
     );
      
