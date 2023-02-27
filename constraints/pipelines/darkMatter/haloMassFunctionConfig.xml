@@ -764,7 +764,7 @@
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_MilkyWay_Halo188_z0.000.hdf5"/>
       <redshift               value="0.00000e+00"/>
       <massRangeMinimum       value="1.20849e+09"/> <!-- 3000 times zoom-in Milky Way particle mass -->
-      <massRangeMaximum       value="1.16586e+11"/> <!-- 1/10 of the target halo mass             -->
+      <massRangeMaximum       value="1.49857e+11"/> <!-- 1/10 of the target halo mass             -->
       <binCountMinimum        value="0"          />    
       <likelihoodPoisson      value="true"       />
     </posteriorSampleLikelihood>
@@ -780,7 +780,7 @@
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_MilkyWay_Halo188_z0.504.hdf5"/>
       <redshift               value="5.04000e-01"/>
       <massRangeMinimum       value="1.20849e+09"/> <!-- 3000 times zoom-in Milky Way particle mass -->
-      <massRangeMaximum       value="1.16586e+11"/> <!-- 1/10 of the target halo mass             -->
+      <massRangeMaximum       value="1.49857e+11"/> <!-- 1/10 of the target halo mass             -->
       <binCountMinimum        value="0"          />    
       <likelihoodPoisson      value="true"       />
     </posteriorSampleLikelihood>
@@ -796,7 +796,7 @@
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_MilkyWay_Halo188_z0.990.hdf5"/>
       <redshift               value="9.90000e-01"/>
       <massRangeMinimum       value="1.20849e+09"/> <!-- 3000 times zoom-in Milky Way particle mass -->
-      <massRangeMaximum       value="1.16586e+11"/> <!-- 1/10 of the target halo mass             -->
+      <massRangeMaximum       value="1.49857e+11"/> <!-- 1/10 of the target halo mass             -->
       <binCountMinimum        value="0"          />    
       <likelihoodPoisson      value="true"       />
     </posteriorSampleLikelihood>
@@ -812,7 +812,7 @@
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_MilkyWay_Halo188_z2.031.hdf5"/>
       <redshift               value="2.03100e+00"/>
       <massRangeMinimum       value="1.20849e+09"/> <!-- 3000 times zoom-in Milky Way particle mass -->
-      <massRangeMaximum       value="1.16586e+11"/> <!-- 1/10 of the target halo mass             -->
+      <massRangeMaximum       value="1.49857e+11"/> <!-- 1/10 of the target halo mass             -->
       <binCountMinimum        value="0"          />    
       <likelihoodPoisson      value="true"       />
     </posteriorSampleLikelihood>
@@ -828,7 +828,7 @@
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_MilkyWay_Halo188_z3.984.hdf5"/>
       <redshift               value="3.98400e+00"/>
       <massRangeMinimum       value="1.20849e+09"/> <!-- 3000 times zoom-in Milky Way particle mass -->
-      <massRangeMaximum       value="1.16586e+11"/> <!-- 1/10 of the target halo mass             -->
+      <massRangeMaximum       value="1.49857e+11"/> <!-- 1/10 of the target halo mass             -->
       <binCountMinimum        value="0"          />    
       <likelihoodPoisson      value="true"       />
     </posteriorSampleLikelihood>
@@ -1244,7 +1244,7 @@
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_MilkyWay_Halo349_z0.000.hdf5"/>
       <redshift               value="0.00000e+00"/>
       <massRangeMinimum       value="1.20849e+09"/> <!-- 3000 times zoom-in Milky Way particle mass -->
-      <massRangeMaximum       value="1.20057e+11"/> <!-- 1/10 of the target halo mass             -->
+      <massRangeMaximum       value="1.64714e+11"/> <!-- 1/10 of the target halo mass             -->
       <binCountMinimum        value="0"          />    
       <likelihoodPoisson      value="true"       />
     </posteriorSampleLikelihood>
@@ -1260,7 +1260,7 @@
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_MilkyWay_Halo349_z0.504.hdf5"/>
       <redshift               value="5.04000e-01"/>
       <massRangeMinimum       value="1.20849e+09"/> <!-- 3000 times zoom-in Milky Way particle mass -->
-      <massRangeMaximum       value="1.20057e+11"/> <!-- 1/10 of the target halo mass             -->
+      <massRangeMaximum       value="1.64714e+11"/> <!-- 1/10 of the target halo mass             -->
       <binCountMinimum        value="0"          />    
       <likelihoodPoisson      value="true"       />
     </posteriorSampleLikelihood>
@@ -1276,7 +1276,7 @@
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_MilkyWay_Halo349_z0.990.hdf5"/>
       <redshift               value="9.90000e-01"/>
       <massRangeMinimum       value="1.20849e+09"/> <!-- 3000 times zoom-in Milky Way particle mass -->
-      <massRangeMaximum       value="1.20057e+11"/> <!-- 1/10 of the target halo mass             -->
+      <massRangeMaximum       value="1.64714e+11"/> <!-- 1/10 of the target halo mass             -->
       <binCountMinimum        value="0"          />    
       <likelihoodPoisson      value="true"       />
     </posteriorSampleLikelihood>
@@ -1292,7 +1292,7 @@
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_MilkyWay_Halo349_z2.031.hdf5"/>
       <redshift               value="2.03100e+00"/>
       <massRangeMinimum       value="1.20849e+09"/> <!-- 3000 times zoom-in Milky Way particle mass -->
-      <massRangeMaximum       value="1.20057e+11"/> <!-- 1/10 of the target halo mass             -->
+      <massRangeMaximum       value="1.64714e+11"/> <!-- 1/10 of the target halo mass             -->
       <binCountMinimum        value="0"          />    
       <likelihoodPoisson      value="true"       />
     </posteriorSampleLikelihood>
@@ -1308,7 +1308,7 @@
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_MilkyWay_Halo349_z3.984.hdf5"/>
       <redshift               value="3.98400e+00"/>
       <massRangeMinimum       value="1.20849e+09"/> <!-- 3000 times zoom-in Milky Way particle mass -->
-      <massRangeMaximum       value="1.20057e+11"/> <!-- 1/10 of the target halo mass             -->
+      <massRangeMaximum       value="1.64714e+11"/> <!-- 1/10 of the target halo mass             -->
       <binCountMinimum        value="0"          />    
       <likelihoodPoisson      value="true"       />
     </posteriorSampleLikelihood>
@@ -1724,7 +1724,7 @@
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_MilkyWay_Halo440_z0.000.hdf5"/>
       <redshift               value="0.00000e+00"/>
       <massRangeMinimum       value="1.20849e+09"/> <!-- 3000 times zoom-in Milky Way particle mass -->
-      <massRangeMaximum       value="1.23029e+11"/> <!-- 1/10 of the target halo mass             -->
+      <massRangeMaximum       value="1.83714e+11"/> <!-- 1/10 of the target halo mass             -->
       <binCountMinimum        value="0"          />    
       <likelihoodPoisson      value="true"       />
     </posteriorSampleLikelihood>
@@ -1740,7 +1740,7 @@
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_MilkyWay_Halo440_z0.504.hdf5"/>
       <redshift               value="5.04000e-01"/>
       <massRangeMinimum       value="1.20849e+09"/> <!-- 3000 times zoom-in Milky Way particle mass -->
-      <massRangeMaximum       value="1.23029e+11"/> <!-- 1/10 of the target halo mass             -->
+      <massRangeMaximum       value="1.83714e+11"/> <!-- 1/10 of the target halo mass             -->
       <binCountMinimum        value="0"          />    
       <likelihoodPoisson      value="true"       />
     </posteriorSampleLikelihood>
@@ -1756,7 +1756,7 @@
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_MilkyWay_Halo440_z0.990.hdf5"/>
       <redshift               value="9.90000e-01"/>
       <massRangeMinimum       value="1.20849e+09"/> <!-- 3000 times zoom-in Milky Way particle mass -->
-      <massRangeMaximum       value="1.23029e+11"/> <!-- 1/10 of the target halo mass             -->
+      <massRangeMaximum       value="1.83714e+11"/> <!-- 1/10 of the target halo mass             -->
       <binCountMinimum        value="0"          />    
       <likelihoodPoisson      value="true"       />
     </posteriorSampleLikelihood>
@@ -1772,7 +1772,7 @@
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_MilkyWay_Halo440_z2.031.hdf5"/>
       <redshift               value="2.03100e+00"/>
       <massRangeMinimum       value="1.20849e+09"/> <!-- 3000 times zoom-in Milky Way particle mass -->
-      <massRangeMaximum       value="1.23029e+11"/> <!-- 1/10 of the target halo mass             -->
+      <massRangeMaximum       value="1.83714e+11"/> <!-- 1/10 of the target halo mass             -->
       <binCountMinimum        value="0"          />    
       <likelihoodPoisson      value="true"       />
     </posteriorSampleLikelihood>
@@ -1788,7 +1788,7 @@
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_MilkyWay_Halo440_z3.984.hdf5"/>
       <redshift               value="3.98400e+00"/>
       <massRangeMinimum       value="1.20849e+09"/> <!-- 3000 times zoom-in Milky Way particle mass -->
-      <massRangeMaximum       value="1.23029e+11"/> <!-- 1/10 of the target halo mass             -->
+      <massRangeMaximum       value="1.83714e+11"/> <!-- 1/10 of the target halo mass             -->
       <binCountMinimum        value="0"          />    
       <likelihoodPoisson      value="true"       />
     </posteriorSampleLikelihood>
@@ -2764,7 +2764,7 @@
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_MilkyWay_Halo738_z0.000.hdf5"/>
       <redshift               value="0.00000e+00"/>
       <massRangeMinimum       value="1.20849e+09"/> <!-- 3000 times zoom-in Milky Way particle mass -->
-      <massRangeMaximum       value="1.18071e+11"/> <!-- 1/10 of the target halo mass             -->
+      <massRangeMaximum       value="1.51714e+11"/> <!-- 1/10 of the target halo mass             -->
       <binCountMinimum        value="0"          />    
       <likelihoodPoisson      value="true"       />
     </posteriorSampleLikelihood>
@@ -2780,7 +2780,7 @@
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_MilkyWay_Halo738_z0.504.hdf5"/>
       <redshift               value="5.04000e-01"/>
       <massRangeMinimum       value="1.20849e+09"/> <!-- 3000 times zoom-in Milky Way particle mass -->
-      <massRangeMaximum       value="1.18071e+11"/> <!-- 1/10 of the target halo mass             -->
+      <massRangeMaximum       value="1.51714e+11"/> <!-- 1/10 of the target halo mass             -->
       <binCountMinimum        value="0"          />    
       <likelihoodPoisson      value="true"       />
     </posteriorSampleLikelihood>
@@ -2796,7 +2796,7 @@
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_MilkyWay_Halo738_z0.990.hdf5"/>
       <redshift               value="9.90000e-01"/>
       <massRangeMinimum       value="1.20849e+09"/> <!-- 3000 times zoom-in Milky Way particle mass -->
-      <massRangeMaximum       value="1.18071e+11"/> <!-- 1/10 of the target halo mass             -->
+      <massRangeMaximum       value="1.51714e+11"/> <!-- 1/10 of the target halo mass             -->
       <binCountMinimum        value="0"          />    
       <likelihoodPoisson      value="true"       />
     </posteriorSampleLikelihood>
@@ -2812,7 +2812,7 @@
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_MilkyWay_Halo738_z2.031.hdf5"/>
       <redshift               value="2.03100e+00"/>
       <massRangeMinimum       value="1.20849e+09"/> <!-- 3000 times zoom-in Milky Way particle mass -->
-      <massRangeMaximum       value="1.18071e+11"/> <!-- 1/10 of the target halo mass             -->
+      <massRangeMaximum       value="1.51714e+11"/> <!-- 1/10 of the target halo mass             -->
       <binCountMinimum        value="0"          />    
       <likelihoodPoisson      value="true"       />
     </posteriorSampleLikelihood>
@@ -2828,7 +2828,7 @@
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_MilkyWay_Halo738_z3.984.hdf5"/>
       <redshift               value="3.98400e+00"/>
       <massRangeMinimum       value="1.20849e+09"/> <!-- 3000 times zoom-in Milky Way particle mass -->
-      <massRangeMaximum       value="1.18071e+11"/> <!-- 1/10 of the target halo mass             -->
+      <massRangeMaximum       value="1.51714e+11"/> <!-- 1/10 of the target halo mass             -->
       <binCountMinimum        value="0"          />    
       <likelihoodPoisson      value="true"       />
     </posteriorSampleLikelihood>
@@ -8124,7 +8124,7 @@
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_LMC_Halo059_z0.000.hdf5"/>
       <redshift               value="0.00000e+00"/>
       <massRangeMinimum       value="1.51061e+08"/> <!-- 3000 times zoom-in LMC particle mass -->
-      <massRangeMaximum       value="9.87429e+09"/> <!-- 1/10 of the target halo mass             -->
+      <massRangeMaximum       value="1.00471e+10"/> <!-- 1/10 of the target halo mass             -->
       <binCountMinimum        value="0"          />    
       <likelihoodPoisson      value="true"       />
     </posteriorSampleLikelihood>
@@ -8140,7 +8140,7 @@
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_LMC_Halo059_z0.504.hdf5"/>
       <redshift               value="5.04000e-01"/>
       <massRangeMinimum       value="1.51061e+08"/> <!-- 3000 times zoom-in LMC particle mass -->
-      <massRangeMaximum       value="9.87429e+09"/> <!-- 1/10 of the target halo mass             -->
+      <massRangeMaximum       value="1.00471e+10"/> <!-- 1/10 of the target halo mass             -->
       <binCountMinimum        value="0"          />    
       <likelihoodPoisson      value="true"       />
     </posteriorSampleLikelihood>
@@ -8156,7 +8156,7 @@
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_LMC_Halo059_z0.990.hdf5"/>
       <redshift               value="9.90000e-01"/>
       <massRangeMinimum       value="1.51061e+08"/> <!-- 3000 times zoom-in LMC particle mass -->
-      <massRangeMaximum       value="9.87429e+09"/> <!-- 1/10 of the target halo mass             -->
+      <massRangeMaximum       value="1.00471e+10"/> <!-- 1/10 of the target halo mass             -->
       <binCountMinimum        value="0"          />    
       <likelihoodPoisson      value="true"       />
     </posteriorSampleLikelihood>
@@ -8172,7 +8172,7 @@
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_LMC_Halo059_z2.031.hdf5"/>
       <redshift               value="2.03100e+00"/>
       <massRangeMinimum       value="1.51061e+08"/> <!-- 3000 times zoom-in LMC particle mass -->
-      <massRangeMaximum       value="9.87429e+09"/> <!-- 1/10 of the target halo mass             -->
+      <massRangeMaximum       value="1.00471e+10"/> <!-- 1/10 of the target halo mass             -->
       <binCountMinimum        value="0"          />    
       <likelihoodPoisson      value="true"       />
     </posteriorSampleLikelihood>
@@ -8188,7 +8188,7 @@
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_LMC_Halo059_z3.984.hdf5"/>
       <redshift               value="3.98400e+00"/>
       <massRangeMinimum       value="1.51061e+08"/> <!-- 3000 times zoom-in LMC particle mass -->
-      <massRangeMaximum       value="9.87429e+09"/> <!-- 1/10 of the target halo mass             -->
+      <massRangeMaximum       value="1.00471e+10"/> <!-- 1/10 of the target halo mass             -->
       <binCountMinimum        value="0"          />    
       <likelihoodPoisson      value="true"       />
     </posteriorSampleLikelihood>
@@ -9724,7 +9724,7 @@
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_LMC_Halo4662_z0.000.hdf5"/>
       <redshift               value="0.00000e+00"/>
       <massRangeMinimum       value="1.51061e+08"/> <!-- 3000 times zoom-in LMC particle mass -->
-      <massRangeMaximum       value="8.70143e+09"/> <!-- 1/10 of the target halo mass             -->
+      <massRangeMaximum       value="1.05514e+10"/> <!-- 1/10 of the target halo mass             -->
       <binCountMinimum        value="0"          />    
       <likelihoodPoisson      value="true"       />
     </posteriorSampleLikelihood>
@@ -9740,7 +9740,7 @@
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_LMC_Halo4662_z0.504.hdf5"/>
       <redshift               value="5.04000e-01"/>
       <massRangeMinimum       value="1.51061e+08"/> <!-- 3000 times zoom-in LMC particle mass -->
-      <massRangeMaximum       value="8.70143e+09"/> <!-- 1/10 of the target halo mass             -->
+      <massRangeMaximum       value="1.05514e+10"/> <!-- 1/10 of the target halo mass             -->
       <binCountMinimum        value="0"          />    
       <likelihoodPoisson      value="true"       />
     </posteriorSampleLikelihood>
@@ -9756,7 +9756,7 @@
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_LMC_Halo4662_z0.990.hdf5"/>
       <redshift               value="9.90000e-01"/>
       <massRangeMinimum       value="1.51061e+08"/> <!-- 3000 times zoom-in LMC particle mass -->
-      <massRangeMaximum       value="8.70143e+09"/> <!-- 1/10 of the target halo mass             -->
+      <massRangeMaximum       value="1.05514e+10"/> <!-- 1/10 of the target halo mass             -->
       <binCountMinimum        value="0"          />    
       <likelihoodPoisson      value="true"       />
     </posteriorSampleLikelihood>
@@ -9772,7 +9772,7 @@
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_LMC_Halo4662_z2.031.hdf5"/>
       <redshift               value="2.03100e+00"/>
       <massRangeMinimum       value="1.51061e+08"/> <!-- 3000 times zoom-in LMC particle mass -->
-      <massRangeMaximum       value="8.70143e+09"/> <!-- 1/10 of the target halo mass             -->
+      <massRangeMaximum       value="1.05514e+10"/> <!-- 1/10 of the target halo mass             -->
       <binCountMinimum        value="0"          />    
       <likelihoodPoisson      value="true"       />
     </posteriorSampleLikelihood>
@@ -9788,7 +9788,7 @@
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_LMC_Halo4662_z3.984.hdf5"/>
       <redshift               value="3.98400e+00"/>
       <massRangeMinimum       value="1.51061e+08"/> <!-- 3000 times zoom-in LMC particle mass -->
-      <massRangeMaximum       value="8.70143e+09"/> <!-- 1/10 of the target halo mass             -->
+      <massRangeMaximum       value="1.05514e+10"/> <!-- 1/10 of the target halo mass             -->
       <binCountMinimum        value="0"          />    
       <likelihoodPoisson      value="true"       />
     </posteriorSampleLikelihood>
