@@ -32,7 +32,7 @@ jobs:
           status=0
           for file in ${{ steps.changed-files.outputs.all_modified_files }}; do
             echo "Validating YAML file: $file"
-            if [[ yamllint $file ]]; then
+            if yamllint $file; then
               echo "YAML $file is valid"
             else
               echo "YAML $file is invalid"
@@ -55,7 +55,7 @@ jobs:
         run: |
           status=0
           for file in ${{ steps.changed-scripts.outputs.all_modified_files }}; do
-            if [[ perl -c $file ]]; then
+            if perl -c $file; then
               echo "Perl script $file compiles correctly"
             else
               echo "Perl script $file fails to compile"
@@ -84,7 +84,7 @@ jobs:
         run: |
           status=0
           for file in ${{ steps.changed-modules.outputs.all_modified_files }}; do
-            if [[ perl -c $file ]]; then
+            if perl -c $file; then
               echo "Perl module $file compiles correctly"
             else
               echo "Perl module $file fails to compile"
