@@ -119,3 +119,118 @@ jobs:
             fi
           done
           exit $status
+  # Fortran static analysis
+  Fortran-Static-Analysis:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v35
+        with:
+          files: |
+            **/*.F90
+      - name: Perform static analysis on Fortran files
+        run: |
+          status=0
+          for file in ${{ steps.changed-files.outputs.all_modified_files }}; do
+            if ./scripts/aux/staticAnalyzer.pl $file; then
+              echo "Fortran file $file passes analysis"
+            else
+              echo "Fortran file $file fails analysis"              
+              status=1
+            fi
+          done
+          exit $status
+  # Embedded XML and LaTeX checks
+  Embedded-XML-LaTeX:
+    runs-on: ubuntu-latest
+    container: docker://galacticusorg/buildenv:latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Install tools
+        run: |
+          apt -y update
+          apt install -y texlive texlive-fonts-recommended texlive-fonts-extra texlive-math-extra texlive-latex-recommended texlive-latex-extra hunspell libxml-simple-perl libregexp-common-perl libfile-temp-perl
+      - name: Build class information
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
+          make -j2 work/build/stateStorables.xml
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v35
+        with:
+          files: |
+            **/*.F90
+            **/*.Inc
+      - name: Perform checks of embedded XML and LaTeX
+        run: |
+          status=0
+          for file in ${{ steps.changed-files.outputs.all_modified_files }}; do
+            if ./scripts/aux/embeddedAnalyzer.pl $file warnings.md; then
+              echo "Embedded XML/LaTeX in file $file passes analysis"
+            else
+              echo "Embedded XML/LaTeX in file $file fails analysis"              
+              status=1
+            fi
+          done
+          exit $status
+      - name: Check file existence
+        id: check_files
+        uses: andstor/file-existence-action@v1
+        with:
+          files: warnings.md
+      - name: Comment on the PR if any warnings were found
+        if: steps.check_files.outputs.files_exists == 'true'
+        uses: thollander/actions-comment-pull-request@v2
+        with:
+          filePath: warnings.md
+  # Spell check LaTeX files
+  Spell-Check-LaTeX:
+    runs-on: ubuntu-latest
+    container: docker://galacticusorg/buildenv:latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Install tools
+        run: |
+          apt -y update
+          apt install -y texlive texlive-fonts-recommended texlive-fonts-extra texlive-math-extra texlive-latex-recommended texlive-latex-extra hunspell libxml-simple-perl libregexp-common-perl libfile-temp-perl
+      - name: Build class information
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
+          make -j2 work/build/stateStorables.xml
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v35
+        with:
+          files: |
+            **/*.tex
+      - name: Perform checks of LaTeX files
+        run: |
+          status=0
+          for file in ${{ steps.changed-files.outputs.all_modified_files }}; do
+            ./scripts/aux/spellChecker.pl $file warnings.md
+          done
+      - name: Check file existence
+        id: check_files
+        uses: andstor/file-existence-action@v1
+        with:
+          files: warnings.md
+      - name: Comment on the PR if any warnings were found
+        if: steps.check_files.outputs.files_exists == 'true'
+        uses: thollander/actions-comment-pull-request@v2
+        with:
+          filePath: warnings.md
