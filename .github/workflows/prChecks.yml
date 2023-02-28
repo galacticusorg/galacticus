@@ -5,7 +5,7 @@ on:
     types: [opened, reopened]
     branches:
       - master
-  concurrency:
+concurrency:
   group: prCheck-${{ github.ref }}
   cancel-in-progress: true  
 defaults:
