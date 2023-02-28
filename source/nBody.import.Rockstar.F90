@@ -521,7 +521,7 @@ contains
              case (rockstarColumnId          %ID)
                 columnName='particleID'
              case (rockstarColumnDesc_id     %ID)
-                columnName='descendentID'
+                columnName='descendantID'
              case (rockstarColumnNum_prog    %ID)
                 columnName='progenitorCount'
              case (rockstarColumnPid         %ID)
@@ -529,7 +529,7 @@ contains
              case (rockstarColumnUpid        %ID)
                 columnName='isolatedHostID'
              case (rockstarColumnDesc_pid    %ID)
-                columnName='descendentHostID'
+                columnName='descendantHostID'
              case (rockstarColumnMmp         %ID)
                 columnName='isMostMassiveProgenitor'
              case (rockstarColumnPhantom     %ID)
@@ -546,7 +546,7 @@ contains
              case (rockstarColumnScale     %ID)
                 columnName='expansionFactor'
              case (rockstarColumnDesc_scale%ID)
-                columnName='descendentExpansionFactor'
+                columnName='descendantExpansionFactor'
              case (rockstarColumnMvir      %ID)
                 columnName='massVirial'
                 propertiesReal(jReal)%property=+propertiesReal(jReal)                     %property                           &

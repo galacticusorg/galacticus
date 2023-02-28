@@ -60,7 +60,7 @@ contains
     <inputParameter>
       <name>missingHostsAreFatal</name>
       <source>parameters</source>
-      <description>If true, missing hosts cause a fatal error. Otherwise, a missing host causes the halo to be ignored in flyby analysis of its descendents.</description>
+      <description>If true, missing hosts cause a fatal error. Otherwise, a missing host causes the halo to be ignored in flyby analysis of its descendants.</description>
     </inputParameter>
     !!]
     self=nbodyOperatorIdentifyFlybysMansfieldKravtsov2020(missingHostsAreFatal)
@@ -101,7 +101,7 @@ contains
     class           (nbodyOperatorIdentifyFlybysMansfieldKravtsov2020), intent(inout)                 :: self
     type            (nBodyData                                       ), intent(inout), dimension(:  ) :: simulations
     integer         (c_size_t                                        ), pointer      , dimension(:  ) :: isFlyby                , hostID      , &
-         &                                                                                               descendentID           , particleIDs , &
+         &                                                                                               descendantID           , particleIDs , &
          &                                                                                               isMostMassiveProgenitor, snapshotID
     integer         (c_size_t                                        ), allocatable  , dimension(:  ) :: indexID
     double precision                                                  , pointer      , dimension(:  ) :: massVirial             , radiusVirial, &
@@ -113,7 +113,7 @@ contains
          &                                                                                               kHalo                  , kHost       , &
          &                                                                                               iSimulation            , m
     double precision                                                                                  :: boxSize
-    logical                                                                                           :: hostDescendentExists
+    logical                                                                                           :: hostDescendantExists
     
     call displayIndent('identify flyby halos',verbosityLevelStandard)
     do iSimulation=1,size(simulations)
@@ -126,7 +126,7 @@ contains
        ! Retrieve required properties.
        particleIDs             => simulations(iSimulation)%propertiesInteger  %value('particleID'             )
        hostID                  => simulations(iSimulation)%propertiesInteger  %value('hostID'                 )
-       descendentID            => simulations(iSimulation)%propertiesInteger  %value('descendentID'           )
+       descendantID            => simulations(iSimulation)%propertiesInteger  %value('descendantID'           )
        isMostMassiveProgenitor => simulations(iSimulation)%propertiesInteger  %value('isMostMassiveProgenitor')
        snapshotID              => simulations(iSimulation)%propertiesInteger  %value('snapshotID'             )  
        radiusVirial            => simulations(iSimulation)%propertiesReal     %value('radiusVirial'           )
@@ -141,7 +141,7 @@ contains
        ! Initialize status - assuming all particles are always-isolated initially.
        isFlyby=0_c_size_t
        ! Visit each particle.
-       !$omp parallel do private(jHost,jHalo,kHost,kHalo,hostDescendentExists,m,separation) schedule(dynamic)
+       !$omp parallel do private(jHost,jHalo,kHost,kHalo,hostDescendantExists,m,separation) schedule(dynamic)
        do i=1_c_size_t,size(isFlyby)
           ! Skip isolated halos.
           if (hostID(i) < 0_c_size_t) cycle
@@ -171,15 +171,15 @@ contains
              end if
           end if
           jHost=kHost
-          ! Trace descendents, marking as flybys.
+          ! Trace descendants, marking as flybys.
           jHalo               =i
-          hostDescendentExists=.true.
-          do while (hostDescendentExists)
+          hostDescendantExists=.true.
+          do while (hostDescendantExists)
              isFlyby(jHalo)=1_c_size_t
              ! If there is no descendant, or the current halo is not the most massive progenitor, we are done marking flybys, so exit.
-             if (descendentID(jHalo) < 0_c_size_t .or. isMostMassiveProgenitor(jHalo) == 0) exit
+             if (descendantID(jHalo) < 0_c_size_t .or. isMostMassiveProgenitor(jHalo) == 0) exit
              ! Find the descendant halo.
-             kHalo=searchIndexed(particleIDs,indexID,descendentID(jHalo))
+             kHalo=searchIndexed(particleIDs,indexID,descendantID(jHalo))
              if     (                       &
                   &   kHalo < 1_c_size_t    &
                   &  .or.                   &
@@ -188,18 +188,18 @@ contains
                   & call Error_Report('failed to find descendant'//{introspection:location})
              kHalo=indexID(kHalo)
              if     (                                           &
-                  &   particleIDs(kHalo) /= descendentID(jHalo) &
+                  &   particleIDs(kHalo) /= descendantID(jHalo) &
                   & )                                           &
-                  & call Error_Report(var_str('failed to find descendant [')//descendentID(jHalo)//'] of ['//particleIDs(jHalo)//']'//{introspection:location})
+                  & call Error_Report(var_str('failed to find descendant [')//descendantID(jHalo)//'] of ['//particleIDs(jHalo)//']'//{introspection:location})
              jHalo=kHalo
              ! We must now find the descendant of the host halo at this same snapshot.
              do while (snapshotID(jHost) < snapshotID(jHalo))
-                if (descendentID(jHost) < 0_c_size_t) then
+                if (descendantID(jHost) < 0_c_size_t) then
                    ! No descendant. Record this and exit.
-                   hostDescendentExists=.false.
+                   hostDescendantExists=.false.
                    exit
                 end if
-                kHost=searchIndexed(particleIDs,indexID,descendentID(jHost))
+                kHost=searchIndexed(particleIDs,indexID,descendantID(jHost))
                 if     (                       &
                      &   kHost < 1_c_size_t    &
                      &  .or.                   &
@@ -208,21 +208,21 @@ contains
                      & call Error_Report('failed to find host'//{introspection:location})
                 kHost=indexID(kHost)
                 if     (                                           &
-                     &   particleIDs(kHost) /= descendentID(jHost) &
+                     &   particleIDs(kHost) /= descendantID(jHost) &
                      & )                                           &
-                     & call Error_Report(var_str('failed to find descendant [')//descendentID(jHost)//'] of ['//particleIDs(jHost)//']'//{introspection:location})
+                     & call Error_Report(var_str('failed to find descendant [')//descendantID(jHost)//'] of ['//particleIDs(jHost)//']'//{introspection:location})
                 jHost=kHost
                 if (snapshotID(jHost) > snapshotID(jHalo)) then
                    ! We have jumped past the snapshot of the halo, so the host did not have a descendant at the relevant snapshot
                    ! - most likely because that descendant was sub-resolution. Record this and exit.
-                   hostDescendentExists=.false.
+                   hostDescendantExists=.false.
                    exit
                 end if
              end do
              ! Check conditions from Mansfield & Kravtsov (2020; §2.3.1).
              !! (  i) Host must have a descendant at our snapshot.
-             if (.not.hostDescendentExists) exit
-             !! ( ii) Descendent of the host must not be within the virial radius of descendant of our halo.
+             if (.not.hostDescendantExists) exit
+             !! ( ii) Descendant of the host must not be within the virial radius of descendant of our halo.
              separation=position(:,jHalo)-position(:,jHost)
              if (boxSize > 0.0d0) then
                 do m=1,3
@@ -231,7 +231,7 @@ contains
                 end do                
              end if
              if (Vector_Magnitude(separation) < radiusVirial(jHalo)) exit
-             !! (iii) Descendent of host must have higher mass than descendant of our halo.
+             !! (iii) Descendant of host must have higher mass than descendant of our halo.
              if (massVirial(jHost) <= massVirial(jHalo)) exit
           end do
           !$ if (OMP_Get_Thread_Num() == 0) then

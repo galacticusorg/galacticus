@@ -70,7 +70,7 @@ module Merger_Tree_Read_Importers
      !!{
      Structure used to store minimal raw data read from merger tree files.
      !!}
-     integer         (kind=kind_int8)               :: descendentIndex, hostIndex, &
+     integer         (kind=kind_int8)               :: descendantIndex, hostIndex, &
           &                                            nodeIndex
      double precision                               :: nodeTime       , nodeMass
   end type nodeDataMinimal

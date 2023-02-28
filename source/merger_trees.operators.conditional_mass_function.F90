@@ -611,10 +611,10 @@ contains
     type            (mergerTree                     ), intent(inout)                               , target :: tree
     type            (treeNode                       ), pointer                                              :: node                   , nodeChild            , &
          &                                                                                                     nodeParent             , nodeParentChild      , &
-         &                                                                                                     descendentNode         , nodeSibling
+         &                                                                                                     descendantNode         , nodeSibling
     type            (mergerTree                     ), pointer                                              :: treeCurrent
     class           (nodeComponentBasic             ), pointer                                              :: basic                  , basicChild           , &
-         &                                                                                                     basicParent            , descendentBasic      , &
+         &                                                                                                     basicParent            , descendantBasic      , &
          &                                                                                                     basicParentChild       , basicSibling
     type            (mergerTreeWalkerIsolatedNodes  )                                                       :: treeWalker
     integer                                                                                                 :: i                      , binMassParent        , &
@@ -880,16 +880,16 @@ contains
                                           &                                   *treeCurrent   %volumeWeight**2
                                      !$ call OMP_Unset_Lock(self%accumulateLock)
                                      ! Find the mass of this node just prior to it becoming a subhalo.
-                                     descendentNode => node
-                                     do while (associated(descendentNode%parent).and.associated(descendentNode%parent%firstChild,descendentNode))
-                                        descendentNode => descendentNode%parent
+                                     descendantNode => node
+                                     do while (associated(descendantNode%parent).and.associated(descendantNode%parent%firstChild,descendantNode))
+                                        descendantNode => descendantNode%parent
                                      end do
-                                     descendentBasic   => descendentNode%basic()
+                                     descendantBasic   => descendantNode%basic()
                                      weights2D     =self%binWeights2D(                                              &
                                           &                           massParent                                  , &
                                           &                           self%timeParents                         (i), &
-                                          &                           descendentBasic%mass                     ( ), &
-                                          &                           descendentBasic%time                     ( ), &
+                                          &                           descendantBasic%mass                     ( ), &
+                                          &                           descendantBasic%time                     ( ), &
                                           &                           self%massParentLogarithmicMinimum           , &
                                           &                           self%massParentLogarithmicBinWidthInverse   , &
                                           &                           self%countMassParent                        , &
@@ -946,17 +946,17 @@ contains
                       ! This is a branch tip. Follow until it to the final time, storing its mass just prior to becoming a subhalo, and
                       ! the hierarchy depth.
                       depthHierarchy =  0
-                      descendentNode => nodeChild
-                      do while (associated(descendentNode).and.depthHierarchy <= self%depthHierarchySubhalo)
-                         if (associated(descendentNode%parent).and..not.descendentNode%isPrimaryProgenitor()) then
+                      descendantNode => nodeChild
+                      do while (associated(descendantNode).and.depthHierarchy <= self%depthHierarchySubhalo)
+                         if (associated(descendantNode%parent).and..not.descendantNode%isPrimaryProgenitor()) then
                             depthHierarchy=depthHierarchy+1
                             if (depthHierarchy == 1) then
-                               descendentBasic => descendentNode %basic()
-                               massUnevolved   =  descendentBasic%mass ()
-                               timeUnevolved   =  descendentBasic%time ()
+                               descendantBasic => descendantNode %basic()
+                               massUnevolved   =  descendantBasic%mass ()
+                               timeUnevolved   =  descendantBasic%time ()
                             end if
                          end if
-                         descendentNode => descendentNode%parent
+                         descendantNode => descendantNode%parent
                       end do
                       if (depthHierarchy > 0 .and. depthHierarchy <= self%depthHierarchySubhalo) then
                          basicParent => treeCurrent%nodeBase%basic()

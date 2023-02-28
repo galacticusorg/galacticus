@@ -174,7 +174,7 @@ contains
        angularMomentumPrevious=+self           %darkMatterHaloScale_%radiusVirial  (nodeProgenitor) &
             &                  *self           %darkMatterHaloScale_%velocityVirial(nodeProgenitor) &
             &                  *basicProgenitor                     %mass          (              )
-       ! Walk up through descendents.
+       ! Walk up through descendants.
        do while (associated(nodeProgenitor))
           ! Set the spin of the current halo from the current angular momentum vector.
           basicProgenitor => nodeProgenitor%basic(                 )

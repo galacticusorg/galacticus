@@ -364,7 +364,7 @@ contains
     return
   end subroutine sussingASCIIOpen
 
-  subroutine sussingASCIILoad(self,nodeSelfIndices,nodeIndexRanks,nodeDescendentLocations,nodeIncomplete,nodeCountTrees,nodeTreeIndices,treeIndicesAssigned,branchJumpCheckRequired,massUnits,lengthUnits,velocityUnits)
+  subroutine sussingASCIILoad(self,nodeSelfIndices,nodeIndexRanks,nodeDescendantLocations,nodeIncomplete,nodeCountTrees,nodeTreeIndices,treeIndicesAssigned,branchJumpCheckRequired,massUnits,lengthUnits,velocityUnits)
     !!{
     Load a {\normalfont \ttfamily sussing} ASCII format merger tree data.
     !!}
@@ -383,7 +383,7 @@ contains
     implicit none
     class           (mergerTreeImporterSussingASCII), intent(inout)                              :: self
     integer         (kind_int8                     ), intent(  out), dimension(:  ), allocatable :: nodeSelfIndices              , nodeTreeIndices
-    integer         (c_size_t                      ), intent(  out), dimension(:  ), allocatable :: nodeIndexRanks               , nodeDescendentLocations
+    integer         (c_size_t                      ), intent(  out), dimension(:  ), allocatable :: nodeIndexRanks               , nodeDescendantLocations
     logical                                         , intent(  out), dimension(:  ), allocatable :: nodeIncomplete
     integer         (kind=c_size_t                 ), intent(  out)                              :: nodeCountTrees
     logical                                         , intent(  out)                              :: treeIndicesAssigned          , branchJumpCheckRequired
@@ -922,7 +922,7 @@ contains
        deallocate(nodesTmp)
     end if
     ! Allocate workspaces for merger trees.
-    allocate(nodeDescendentLocations(nodeCountTrees))
+    allocate(nodeDescendantLocations(nodeCountTrees))
     allocate(nodeIncomplete         (nodeCountTrees))
     ! Get a sorted index into the list of nodes.
     call displayMessage('Building node index',verbosityLevelWorking)
@@ -950,7 +950,7 @@ contains
     end if
     i                      = 0
     iCount                 = 0
-    nodeDescendentLocations=-1
+    nodeDescendantLocations=-1
     nodeIncomplete         =.false.
     nodeIsActive           =.false.
     line                   =""
@@ -985,14 +985,14 @@ contains
              if (iProgenitor <= 0 .or. iProgenitor > nodeCountTrees .or. nodeSelfIndices(nodeIndexRanks(iProgenitor)) /= nodeIndex) then
                 nodeIncomplete(i)=.true.
              else
-                if (nodeDescendentLocations(nodeIndexRanks(iProgenitor)) /= -1) then
+                if (nodeDescendantLocations(nodeIndexRanks(iProgenitor)) /= -1) then
                    message="multiple descendant trees not allowed"
-                   message=message//char(10)//" first descendant: "//nodeSelfIndices(nodeDescendentLocations(nodeIndexRanks(iProgenitor)))
+                   message=message//char(10)//" first descendant: "//nodeSelfIndices(nodeDescendantLocations(nodeIndexRanks(iProgenitor)))
                    message=message//char(10)//"   new descendant: "//nodeSelfIndices(i)
                    message=message//char(10)//" progenitor index: "//nodeIndex
                    call Error_Report(message//{introspection:location})
                 end if
-                nodeDescendentLocations(nodeIndexRanks(iProgenitor))=i
+                nodeDescendantLocations(nodeIndexRanks(iProgenitor))=i
                 ! Find the progenitor node in the list of halos in the subvolume.
                 iNode=searchArray(nodesInSubvolume(1:nodeCountSubvolume),nodeIndex)
                 if (iNode > 0 .and. iNode <= nodeCountSubvolume .and. nodesInSubvolume(iNode) == nodeIndex) then
@@ -1014,9 +1014,9 @@ contains
                             allocate(nodeSelfIndices        (nodeCountTrees+1))
                             nodeSelfIndices        (1:nodeCountTrees)=nodesTmp
                             deallocate(nodesTmp                                  )
-                            call Move_Alloc   (nodeDescendentLocations,nodesTmp          )
-                            allocate(nodeDescendentLocations(nodeCountTrees+1))
-                            nodeDescendentLocations(1:nodeCountTrees)=nodesTmp
+                            call Move_Alloc   (nodeDescendantLocations,nodesTmp          )
+                            allocate(nodeDescendantLocations(nodeCountTrees+1))
+                            nodeDescendantLocations(1:nodeCountTrees)=nodesTmp
                             deallocate(nodesTmp                                  )
                             call Move_Alloc   (nodeIncomplete         ,nodeIncompleteTmp )
                             allocate(nodeIncomplete         (nodeCountTrees+1))
@@ -1026,7 +1026,7 @@ contains
                             nodeCountTrees=nodeCountTrees+1
                             ! Insert the new halo, assigning the same descendant as its hosted halo.
                             nodeSelfIndices        (nodeCountTrees)=hostHalo
-                            nodeDescendentLocations(nodeCountTrees)=i
+                            nodeDescendantLocations(nodeCountTrees)=i
                             nodeIncomplete         (nodeCountTrees)=.false.
                             ! Recompute the sort index into the node self indices.
                             deallocate(nodeIndexRanks)
@@ -1055,10 +1055,10 @@ contains
     allocate(self%nodes(nodeCountTrees))
     do i=1,nodeCountTrees
        self   %nodes(i)%nodeIndex      =nodeSelfIndices(                        i )
-       if (nodeDescendentLocations(i) >= 0) then
-          self%nodes(i)%descendentIndex=nodeSelfIndices(nodeDescendentLocations(i))
+       if (nodeDescendantLocations(i) >= 0) then
+          self%nodes(i)%descendantIndex=nodeSelfIndices(nodeDescendantLocations(i))
        else
-          self%nodes(i)%descendentIndex=-1
+          self%nodes(i)%descendantIndex=-1
        end if
     end do
     ! Read snapshot halo catalogs.

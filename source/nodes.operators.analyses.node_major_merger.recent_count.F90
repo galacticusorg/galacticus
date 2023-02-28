@@ -219,8 +219,8 @@ contains
     class           (nodeOperatorNodeMajorMergerRecentCount), intent(inout)              :: self
     type            (treeNode                              ), intent(inout)              :: node
     class           (nodeComponentBasic                    ), pointer                    :: basic                , basicParent  , &
-         &                                                                                  basicDescendentParent
-    type            (treeNode                              ), pointer                    :: nodeDescendent
+         &                                                                                  basicDescendantParent
+    type            (treeNode                              ), pointer                    :: nodeDescendant
     integer                                                 , dimension(:) , allocatable :: countMajorMergers
     integer         (c_size_t                              )                             :: i
     double precision                                                                     :: timeBase             , intervalRecent
@@ -249,14 +249,14 @@ contains
              timeBase=basicParent%timeLastIsolated()
           else
              timeBase=self%outputTimes_%time(i)
-             nodeDescendent => node%parent
-             do while (associated(nodeDescendent))
-                if (nodeDescendent%isPrimaryProgenitor()) then
-                   nodeDescendent => nodeDescendent%parent
+             nodeDescendant => node%parent
+             do while (associated(nodeDescendant))
+                if (nodeDescendant%isPrimaryProgenitor()) then
+                   nodeDescendant => nodeDescendant%parent
                 else
-                   if (associated(nodeDescendent%parent)) then
-                      basicDescendentParent => nodeDescendent%parent%basic()
-                      timeBase=min(timeBase,basicDescendentParent%time())
+                   if (associated(nodeDescendant%parent)) then
+                      basicDescendantParent => nodeDescendant%parent%basic()
+                      timeBase=min(timeBase,basicDescendantParent%time())
                    end if
                    exit
                 end if

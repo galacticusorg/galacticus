@@ -228,7 +228,7 @@ contains
           case ('particleID'               )
              ! Particle IDs have already been written.
              cycle
-          case ('descendentID'             )
+          case ('descendantID'             )
              datasetDescription="Unique ID of descendant."
           case ('progenitorCount'          )
              datasetDescription="Number of progenitors."
@@ -236,7 +236,7 @@ contains
              datasetDescription="ID of immediate host."
           case ('isolatedHostID'           )
              datasetDescription="ID of isolated host."
-          case ('descendentHostID'         )
+          case ('descendantHostID'         )
              datasetDescription="ID of descendant's immediate host"
           case ('isPhantom'                )
              datasetDescription="Zero (0) for real particles, non-zero for phantom particles."
@@ -252,7 +252,7 @@ contains
              datasetDescription="Cosmological expansion factor."
              unitName="dimensionless"
              unitscgs=0.0d0
-          case ('descendentExpansionFactor')
+          case ('descendantExpansionFactor')
              datasetDescription="Cosmological expansion factor of descendant."
              unitName="dimensionless"
              unitscgs=0.0d0

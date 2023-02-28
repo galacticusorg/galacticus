@@ -24,50 +24,50 @@ Contains a module which implements a galactic filter which applies another filte
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !![
-  <galacticFilter name="galacticFilterDescendentNode">
+  <galacticFilter name="galacticFilterDescendantNode">
    <description>Applies a filter to a descendant node of the given node.</description>
   </galacticFilter>
   !!]
-  type, extends(galacticFilterClass) :: galacticFilterDescendentNode
+  type, extends(galacticFilterClass) :: galacticFilterDescendantNode
      !!{
      A galactic filter which applies another filter to a descendant node of the given node.
      !!}
      private
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
      class           (galacticFilterClass    ), pointer :: galacticFilter_     => null()
-     double precision                                   :: timeDescendent               , redshiftDescendent
+     double precision                                   :: timeDescendant               , redshiftDescendant
      logical                                            :: allowSelf
    contains
-     final     ::           descendentNodeDestructor
-     procedure :: passes => descendentNodePasses
-  end type galacticFilterDescendentNode
+     final     ::           descendantNodeDestructor
+     procedure :: passes => descendantNodePasses
+  end type galacticFilterDescendantNode
 
-  interface galacticFilterDescendentNode
+  interface galacticFilterDescendantNode
      !!{
-     Constructors for the ``descendentNode'' galactic filter class.
+     Constructors for the ``descendantNode'' galactic filter class.
      !!}
-     module procedure descendentNodeConstructorParameters
-     module procedure descendentNodeConstructorInternal
-  end interface galacticFilterDescendentNode
+     module procedure descendantNodeConstructorParameters
+     module procedure descendantNodeConstructorInternal
+  end interface galacticFilterDescendantNode
 
 contains
 
-  function descendentNodeConstructorParameters(parameters) result(self)
+  function descendantNodeConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``descendentNode'' galactic filter class which takes a parameter set as input.
+    Constructor for the ``descendantNode'' galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters   , only : inputParameter         , inputParameters
     implicit none
-    type            (galacticFilterDescendentNode)                :: self
+    type            (galacticFilterDescendantNode)                :: self
     type            (inputParameters             ), intent(inout) :: parameters
     class           (cosmologyFunctionsClass     ), pointer       :: cosmologyFunctions_
     class           (galacticFilterClass         ), pointer       :: galacticFilter_
-    double precision                                              :: redshiftDescendent
+    double precision                                              :: redshiftDescendant
     logical                                                       :: allowSelf
          
     !![
     <inputParameter>
-      <name>redshiftDescendent</name>
+      <name>redshiftDescendant</name>
       <source>parameters</source>
       <description>The redshift of the descendant node to which to apply the filter.</description>
     </inputParameter>
@@ -79,48 +79,48 @@ contains
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     <objectBuilder class="galacticFilter"      name="galacticFilter_"      source="parameters"/>
     !!]
-    self=galacticFilterDescendentNode(cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftDescendent)),allowSelf,cosmologyFunctions_,galacticFilter_)
+    self=galacticFilterDescendantNode(cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftDescendant)),allowSelf,cosmologyFunctions_,galacticFilter_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"/>
     <objectDestructor name="galacticFilter_"    />
     !!]
     return
-  end function descendentNodeConstructorParameters
+  end function descendantNodeConstructorParameters
   
-  function descendentNodeConstructorInternal(timeDescendent,allowSelf,cosmologyFunctions_,galacticFilter_) result(self)
+  function descendantNodeConstructorInternal(timeDescendant,allowSelf,cosmologyFunctions_,galacticFilter_) result(self)
     !!{
-    Internal constructor for the ``descendentNode'' galactic filter class.
+    Internal constructor for the ``descendantNode'' galactic filter class.
     !!}
     implicit none
-    type            (galacticFilterDescendentNode)                        :: self
-    double precision                              , intent(in   )         :: timeDescendent
+    type            (galacticFilterDescendantNode)                        :: self
+    double precision                              , intent(in   )         :: timeDescendant
     logical                                       , intent(in   )         :: allowSelf
     class           (galacticFilterClass         ), intent(in   ), target :: galacticFilter_
     class           (cosmologyFunctionsClass     ), intent(in   ), target :: cosmologyFunctions_
     !![
-    <constructorAssign variables="timeDescendent, allowSelf, *cosmologyFunctions_, *galacticFilter_"/>
+    <constructorAssign variables="timeDescendant, allowSelf, *cosmologyFunctions_, *galacticFilter_"/>
     !!]
 
-    self%redshiftDescendent=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(timeDescendent))
+    self%redshiftDescendant=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(timeDescendant))
     return
-  end function descendentNodeConstructorInternal
+  end function descendantNodeConstructorInternal
   
-  subroutine descendentNodeDestructor(self)
+  subroutine descendantNodeDestructor(self)
     !!{
-    Destructor for  the ``descendentNode'' galactic filter class.
+    Destructor for  the ``descendantNode'' galactic filter class.
     !!}
     implicit none
-    type(galacticFilterDescendentNode), intent(inout) :: self
+    type(galacticFilterDescendantNode), intent(inout) :: self
 
     !![
     <objectDestructor name="self%cosmologyFunctions_"/>
     <objectDestructor name="self%galacticFilter_"    />
     !!]
     return
-  end subroutine descendentNodeDestructor
+  end subroutine descendantNodeDestructor
   
-  logical function descendentNodePasses(self,node)
+  logical function descendantNodePasses(self,node)
     !!{
     Implement a filter on descendant node properties.
     !!}
@@ -128,26 +128,26 @@ contains
     use :: Galacticus_Nodes    , only : nodeComponentBasic
     use :: Numerical_Comparison, only : Values_Agree
     implicit none
-    class           (galacticFilterDescendentNode), intent(inout)         :: self
+    class           (galacticFilterDescendantNode), intent(inout)         :: self
     type            (treeNode                    ), intent(inout), target :: node
-    type            (treeNode                    ), pointer               :: nodeDescendent
-    class           (nodeComponentBasic          ), pointer               :: basicDescendent
+    type            (treeNode                    ), pointer               :: nodeDescendant
+    class           (nodeComponentBasic          ), pointer               :: basicDescendant
     double precision                              , parameter             :: timeTolerance  =1.0d-4
 
-    descendentNodePasses=.false.
+    descendantNodePasses=.false.
     if (self%allowSelf) then
-       nodeDescendent => node
+       nodeDescendant => node
     else
-       nodeDescendent => node%parent
+       nodeDescendant => node%parent
     end if
-    do while (associated(nodeDescendent))
-       basicDescendent => nodeDescendent%basic()
-       if (Values_Agree(basicDescendent%time(),self%timeDescendent,absTol=timeTolerance)) then
-          descendentNodePasses=self%galacticFilter_%passes(nodeDescendent)
+    do while (associated(nodeDescendant))
+       basicDescendant => nodeDescendant%basic()
+       if (Values_Agree(basicDescendant%time(),self%timeDescendant,absTol=timeTolerance)) then
+          descendantNodePasses=self%galacticFilter_%passes(nodeDescendant)
           return
        end if
-       nodeDescendent => nodeDescendent%parent
+       nodeDescendant => nodeDescendant%parent
     end do
     call Error_Report('failed to find descendant node'//{introspection:location})
     return
-  end function descendentNodePasses
+  end function descendantNodePasses
