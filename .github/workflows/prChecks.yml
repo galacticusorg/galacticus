@@ -2,7 +2,7 @@ name: 'PR-Checks'
 on:
   workflow_dispatch:
   pull_request:
-    types: [opened, reopened]
+    types: [opened, reopened, synchronize]
     branches:
       - master
 concurrency:
@@ -29,7 +29,66 @@ jobs:
             **/*.yml
       - name: Validate any YAML files
         run: |
+          status=0
           for file in ${{ steps.changed-files.outputs.all_modified_files }}; do
             echo "Validating YAML file: $file"
-            yamllint $file
+            if [[ yamllint $file ]]; then
+              echo "YAML $file is valid"
+            else
+              echo "YAML $file is invalid"
+              status=1
+            fi
           done
+          exit $status
+  # Validate Perl scripts
+  Validate-YAML:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Get changed scripts
+        id: changed-scripts
+        uses: tj-actions/changed-files@v35
+        with:
+          files: |
+            **/*.pl
+      - name: Validate any Perl scripts
+        run: |
+          status=0
+          for file in ${{ steps.changed-scripts.outputs.all_modified_files }}; do
+            if [[ perl -c $file ]]; then
+              echo "Perl script $file compiles correctly"
+            else
+              echo "Perl script $file fails to compile"
+              status=1
+            fi
+            if [[ -x $file ]]; then
+              echo "Perl script $file is executable"
+            else
+              echo "Perl script $file is not executable"
+              status=1
+            fi
+          done
+          exit $status
+  # Validate Perl modules
+  Validate-YAML:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Get changed modules
+        id: changed-modules
+        uses: tj-actions/changed-files@v35
+        with:
+          files: |
+            **/*.pm
+      - name: Validate any Perl modules
+        run: |
+          status=0
+          for file in ${{ steps.changed-modules.outputs.all_modified_files }}; do
+            if [[ perl -c $file ]]; then
+              echo "Perl module $file compiles correctly"
+            else
+              echo "Perl module $file fails to compile"
+              status=1
+            fi
+          done
+          exit $status
