@@ -41,7 +41,7 @@ jobs:
           done
           exit $status
   # Validate Perl scripts
-  Validate-YAML:
+  Validate-Perl-Scripts:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -70,7 +70,7 @@ jobs:
           done
           exit $status
   # Validate Perl modules
-  Validate-YAML:
+  Validate-Perl-Modules:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
