@@ -37,7 +37,7 @@
      \item [{\normalfont \ttfamily [mergeProbability]}] The maximum probability for a binary merger allowed in a single
      timestep. This allows the probability to be kept small, such the the probability for multiple mergers within a single
      timestep is small.
-     \item [{\normalfont \ttfamily [accretionLimit]}] The maximum fractional change in mass due to sub-esolution accretion
+     \item [{\normalfont \ttfamily [accretionLimit]}] The maximum fractional change in mass due to sub-resolution accretion
      allowed in any given timestep when building the tree.
      \item [{\normalfont \ttfamily [redshiftMaximum]}] The highest redshift to which the tree should be built. Any branch
      reaching this redshift will be terminated. Typically this should be set to a high value such that branches terminate when
@@ -65,7 +65,7 @@
       M_3 = M_1 (1-F) - M_2
     \end{equation}
     where $F$ is the fraction of the parent halo mass gained through sub-resolution accretion in this timestep. As the
-    sub-resolution accretion is removed entirely from the mass $M_3$ and not from $M_2$ this can lead to an assymetry in
+    sub-resolution accretion is removed entirely from the mass $M_3$ and not from $M_2$ this can lead to an asymmetry in
     progenitor mass functions close to $M_1/2$. Therefore, we instead set the progenitor masses by first drawing a mass
     $M_2^\prime$ from the mass branching distribution function and then setting
     \begin{eqnarray}
@@ -538,7 +538,7 @@ contains
                               &                   /branchingProbabilityRate
                          doBranch                =(branchingInterval <= deltaW)
                          if (doBranch) then
-                            ! Branching occured, adjust the accretion fraction, and timestep to their values at the branching event.
+                            ! Branching occurred, adjust the accretion fraction, and timestep to their values at the branching event.
                             accretionFraction    =accretionFraction*branchingInterval/deltaW
                             deltaW               =branchingInterval
                             snapAccretionFraction=.false.
@@ -662,7 +662,7 @@ contains
                       nodeNew1%parent     => node
                       branchIsDone        =  .true.
                    else
-                      ! Insufficient accretion has occured to warrant making a new node. Simply update the mass and critical
+                      ! Insufficient accretion has occurred to warrant making a new node. Simply update the mass and critical
                       ! overdensity and take another step. We update the critical overdensity by mapping to a time at the current
                       ! branch mass, then mapping back to a critical overdensity at the new branch mass. This ensures that if
                       ! critical overdensity is a function of mass we preserve correct time-ordering along the branch.

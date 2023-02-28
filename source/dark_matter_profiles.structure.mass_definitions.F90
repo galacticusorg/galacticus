@@ -103,7 +103,7 @@ contains
             &     *radiusHalo**3 &
             &     /3.0d0
     end if
-    ! If necesary, return the radius and circular velocity also.
+    ! If necessary, return the radius and circular velocity also.
     if (present(radius  )) radius=radiusHalo
     if (present(velocity)) then
        if (radiusHalo > 0.0d0) then

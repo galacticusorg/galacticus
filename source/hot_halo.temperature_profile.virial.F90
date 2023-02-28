@@ -26,7 +26,7 @@ An implementation of the hot halo temperature class which uses an isothermal vir
   !![
   <hotHaloTemperatureProfile name="hotHaloTemperatureProfileVirial">
    <description>
-    A hot halo temperture profile class which assumes an isothermal halo with a temperature equal to the virial temperature of
+    A hot halo temperature profile class which assumes an isothermal halo with a temperature equal to the virial temperature of
     the halo.
    </description>
   </hotHaloTemperatureProfile>

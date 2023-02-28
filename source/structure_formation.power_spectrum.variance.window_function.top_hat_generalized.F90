@@ -26,13 +26,13 @@
   !![
   <powerSpectrumWindowFunction name="powerSpectrumWindowFunctionTopHatGeneralized">
    <description>
-    A generalzied top-hat in real space window function for filtering of power spectra. The window function is given by
+    A generalized top-hat in real space window function for filtering of power spectra. The window function is given by
     \citep{brown_towards_2021}:
     \begin{equation}
      W(k) = {3 (\sin(\mu_\mathrm{g} x)-\mu_\mathrm{g} x \cos(\mu_\mathrm{g} x)) \over \mu_\mathrm{g} x^3},
     \end{equation}
     where $x = k R$ and $R=(3M/4\pi\bar{\rho})^{1/3}$ for a smoothing scale $M$ and mean matter density $\bar{\rho}$, and
-    $\mu_\mathrm{g}$ is a paremeter.
+    $\mu_\mathrm{g}$ is a parameter.
    </description>
   </powerSpectrumWindowFunction>
   !!]

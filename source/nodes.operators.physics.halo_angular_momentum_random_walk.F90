@@ -199,7 +199,7 @@ contains
           call spinProgenitor%angularMomentumSet(sqrt(sum(angularMomentumVector**2)))
           ! Store the current characteristic angular momentum.
           angularMomentumPrevious=angularMomentumCurrent
-          ! Move to the next descendent halo.
+          ! Move to the next descendant halo.
           if (nodeProgenitor%isPrimaryProgenitor()) then
              nodeProgenitor  => nodeProgenitor%parent
           else

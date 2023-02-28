@@ -80,7 +80,7 @@ contains
       <name>bufferIsolatedHalos</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true, intersection of a tree with the lightcone will be determined using the positions of non-isolated (a.k.a. ``satellite'') halos, and of isolated halos (a.k.a ``centrals'') with a buffer region (with radius equal to the extent of the orphan satellite distribution---see \refPhysics{satelliteOrphanDistribution}) placed around each such halo, and any intersection of that region with the lightcone is sufficient to prevent pruning of the tree. If this parameter is {\normalfont \ttfamily false} then (unbuffered) positions of all halos are used for determining intersection with the lightcone---this requires complete (i.e. throughout the extent of their existance) knowledge of non-isolated halos prior to application of this operator.</description>
+      <description>If true, intersection of a tree with the lightcone will be determined using the positions of non-isolated (a.k.a. ``satellite'') halos, and of isolated halos (a.k.a ``centrals'') with a buffer region (with radius equal to the extent of the orphan satellite distribution---see \refPhysics{satelliteOrphanDistribution}) placed around each such halo, and any intersection of that region with the lightcone is sufficient to prevent pruning of the tree. If this parameter is {\normalfont \ttfamily false} then (unbuffered) positions of all halos are used for determining intersection with the lightcone---this requires complete (i.e. throughout the extent of their existence) knowledge of non-isolated halos prior to application of this operator.</description>
     </inputParameter>
     <inputParameter>
       <name>splitTrees</name>
@@ -321,7 +321,7 @@ contains
                 nodeChild => nodeChild%sibling
              end do
           end if
-          ! Add this node to a list of root ndoes if necessary.
+          ! Add this node to a list of root nodes if necessary.
           if (nodeIsNewRoot .or. (.not.associated(node%parent) .and. basic%time() <= timeInLightconeLatest)) then
              ! This is a new root node (created by splitting the tree at the latest time needed for the lightcone), or an original
              ! root node which exists prior to the latest time needed for the lightcone (in which case it must be kept as a root

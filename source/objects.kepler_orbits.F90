@@ -58,7 +58,7 @@ module Kepler_Orbits
   type keplerOrbit
      !!{
      The structure used for describing orbits in \glc. This object will automatically convert from one set of orbital
-     parameters to another where possible. The orbitting bodies (a satellite orbitting around its host) are treated as point
+     parameters to another where possible. The orbiting bodies (a satellite orbiting around its host) are treated as point
      masses, and the usual ``reduced mass'' framework is used, such that radii and velocities are measured relative to a
      stationary host. Energy and angular momentum are defined per unit satellite mass (not per unit reduced mass). Note that
      not all interconversions between elements are implemented. The object works by attempting to get the radial and tangential
@@ -423,7 +423,7 @@ contains
 
   subroutine Kepler_Orbits_Masses_Set(orbit,massSatellite,massHost)
     !!{
-    Sets the masses of the two orbitting objects in a {\normalfont \ttfamily keplerOrbit} object.
+    Sets the masses of the two orbiting objects in a {\normalfont \ttfamily keplerOrbit} object.
     !!}
     implicit none
     class           (keplerOrbit), intent(inout) :: orbit
@@ -854,7 +854,7 @@ contains
     !!{
     Returns true if the orbit is fully defined. For the orbits consider here, in which we don't care about the orientation of
     the orbital plane or the argument of pericenter, this requires that three orbital parameter be set (in addition to the
-    masses of the orbitting bodies).
+    masses of the orbiting bodies).
     !!}
     implicit none
     class  (keplerOrbit), intent(in   ) :: orbit

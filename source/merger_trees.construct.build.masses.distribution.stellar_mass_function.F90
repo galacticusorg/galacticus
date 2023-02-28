@@ -100,7 +100,7 @@
    for $\phi(M_\star)$. However, it should not be used here since we will in actuality be computing the likelihood from the
    model itself.}. However, if we assume that a model exists which is a good fit to the data then we would expect that
    $[\phi_{\mathrm{obs},i} - \phi_i]^2 \approx \alpha_i^2$ on average. In that case, the increase in likelihood due to the
-   model is minimized by minimizing the function\footnote{This can be seen intuitively: we are simply requring that the
+   model is minimized by minimizing the function\footnote{This can be seen intuitively: we are simply requiring that the
    variance in the model prediction is small compared the the variance in the data.}
    \begin{equation}
     F[\gamma(M)] = \sum_i {\alpha_i^2 \over \alpha_i^2 + \sigma_i^2}.
@@ -136,7 +136,7 @@
    Figure~\ref{fig:optimalSamplingStellarMassFunction} shows the function $\gamma(M)$ obtained by adopting a model conditional
    stellar mass function which is a sum of central and satellite terms. Specifically, we use the model of
    \cite{leauthaud_new_2011} which is constrained to match observations from the COSMOS survey. In their model\footnote{This
-   integral form of the conditional stellar mass function is convenient here since it allows for easy calcualtion of the number
+   integral form of the conditional stellar mass function is convenient here since it allows for easy calculation of the number
    of galaxies expected in the finite-width bins of the observed stellar mass function.}:
    \begin{equation}
     \langle N_\mathrm{c}(M_\star|M)\rangle \equiv \int_{M_\star}^\infty \phi_\mathrm{c}(M_\star^\prime) \d \ln M_\star^\prime =
@@ -219,7 +219,7 @@
     \begin{center}
     \includegraphics[width=160mm]{../plots/stellarMassFunctionErrors_z01.pdf}
     \end{center}
-    \caption{Errors on the \protect\cite{li_distribution_2009} stellar mass funtion (points) and the fitting function (line)
+    \caption{Errors on the \protect\cite{li_distribution_2009} stellar mass function (points) and the fitting function (line)
     given by eqn.~(\protect\ref{eq:stellarMassFunctionErrorsFit}).}
     \label{fig:stellarMassFunctionErrors}
    \end{figure}

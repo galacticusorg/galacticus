@@ -24,13 +24,13 @@
   !![
   <posteriorSampleStateInitialize name="posteriorSampleStateInitializePriorRandom">
    <description>
-    A posterior sampling state initialization class which samples the inital state at random from the prior distribution(s).
+    A posterior sampling state initialization class which samples the initial state at random from the prior distribution(s).
    </description>
   </posteriorSampleStateInitialize>
   !!]
   type, extends(posteriorSampleStateInitializeClass) :: posteriorSampleStateInitializePriorRandom
      !!{
-     Implementation of a posterior sampling state initialization class which samples the inital state at random from the priors.
+     Implementation of a posterior sampling state initialization class which samples the initial state at random from the priors.
      !!}
      private
    contains

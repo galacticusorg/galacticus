@@ -116,7 +116,7 @@ contains
 
   double precision function randomErrorPolynomialRootVariance(self,propertyValue,node)
     !!{
-    Rerturn the root-variance in the polynomial random error distribution operator.
+    Return the root-variance in the polynomial random error distribution operator.
     !!}
     implicit none
     class           (outputAnalysisDistributionOperatorRandomErrorPlynml), intent(inout) :: self

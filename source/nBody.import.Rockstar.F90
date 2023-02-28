@@ -497,7 +497,7 @@ contains
     ! Convert box size to internal units (comoving Mpc).
     boxSize=+boxSize                                                      &
          &  /self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)
-    ! Store attribues.
+    ! Store attributes.
     simulations(1)%attributesInteger=integerSizeTHash ()
     simulations(1)%attributesReal   =doubleHash       ()
     simulations(1)%attributesText   =varyingStringHash()

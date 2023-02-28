@@ -71,7 +71,7 @@ contains
 
   function tidalRadiusConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily tidalRadius} black hole bianry recoil class which takes a parameter list as
+    Constructor for the {\normalfont \ttfamily tidalRadius} black hole binary recoil class which takes a parameter list as
     input.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -93,7 +93,7 @@ contains
 
   function tidalRadiusConstructorInternal(galacticStructure_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily tidalRadius} black hole bianry recoil class.
+    Internal constructor for the {\normalfont \ttfamily tidalRadius} black hole binary recoil class.
     !!}
     implicit none
     type (blackHoleBinaryInitialSeparationTidalRadius)                        :: self
@@ -117,7 +117,7 @@ contains
 
   subroutine tidalRadiusDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily tidalRadius} black hole bianry recoil class.
+    Destructor for the {\normalfont \ttfamily tidalRadius} black hole binary recoil class.
     !!}
     implicit none
     type(blackHoleBinaryInitialSeparationTidalRadius), intent(inout) :: self

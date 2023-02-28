@@ -1386,7 +1386,7 @@ contains
 
     double precision function Izm(wavenumber,m)
       !!{
-      Evalute the $m$-dependent part of the $I(z)$ integral.
+      Evaluate the $m$-dependent part of the $I(z)$ integral.
       !!}
       use :: Binomial_Coefficients, only : Binomial_Coefficient
       implicit none
@@ -1458,7 +1458,7 @@ contains
 
     double precision function dIzdzm(wavenumber,m)
       !!{
-      Evalute the $m$-dependent part of the $\mathrm{d}I(z)/\mathrm{d}z$ integral.
+      Evaluate the $m$-dependent part of the $\mathrm{d}I(z)/\mathrm{d}z$ integral.
       !!}
       use :: Binomial_Coefficients, only : Binomial_Coefficient
       implicit none
@@ -1531,7 +1531,7 @@ contains
 
     double precision function d2Izdz2m(wavenumber,m)
       !!{
-      Evalute the $m$-dependent part of the $\mathrm{d}^2I(z)/\mathrm{d}z^2$ integral.
+      Evaluate the $m$-dependent part of the $\mathrm{d}^2I(z)/\mathrm{d}z^2$ integral.
       !!}
       use :: Binomial_Coefficients, only : Binomial_Coefficient
       implicit none

@@ -116,7 +116,7 @@
     }
     \end{verbatim}
     The {\normalfont \ttfamily temperature} dataset should specify temperature (in Kelvin), while the {\normalfont \ttfamily
-    metallicity} dataset should give the logarithmic metallcity relative to Solar (a value of -999 or less is taken to imply
+    metallicity} dataset should give the logarithmic metallicity relative to Solar (a value of -999 or less is taken to imply
     zero metallicity). The {\normalfont \ttfamily electronDensity} dataset should specify the number density of electrons
     relative to hydrogen at each temperature/metallicity pair. Optionally {\normalfont \ttfamily hiDensity} and {\normalfont
     \ttfamily hiiDensity} datasets may be added giving the number densities of H{\normalfont \scshape i} and H{\normalfont
@@ -542,7 +542,7 @@ contains
 
   subroutine cieFileInterpolatingFactors(self,temperature,metallicity,iTemperature,hTemperature,iMetallicity,hMetallicity)
     !!{
-    Determine the interpolating paramters.
+    Determine the interpolating parameters.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none

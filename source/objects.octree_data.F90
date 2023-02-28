@@ -85,11 +85,11 @@ module Octree_Data_Structure
   end type octreeNode
 
   abstract interface
-     subroutine evaluate{Type¦label}(value,centerOfMass,nodeWeight,relativePosition,seperation,seperationSquare)
+     subroutine evaluate{Type¦label}(value,centerOfMass,nodeWeight,relativePosition,separation,separationSquare)
        {Type¦intrinsic}              , intent(inout) :: value
        double precision, dimension(3), intent(in   ) :: centerOfMass    , relativePosition
-       double precision              , intent(in   ) :: nodeWeight      , seperation      , &
-            &                                           seperationSquare
+       double precision              , intent(in   ) :: nodeWeight      , separation      , &
+            &                                           separationSquare
      end subroutine evaluate{Type¦label}
   end interface
 
@@ -198,7 +198,7 @@ contains
              workNode%centerOfMass  =  (nodeWeight*centerOfMass+weight*coordinate)/workNode%nodeWeight
              ! Find the index of child node that the new particle belongs to.
              childIndex=getChildIndex(workNode,coordinate)
-             ! Creat the child node if it does not exist.
+             ! Create the child node if it does not exist.
              if (.not.associated(workNode%children(childIndex)%p)) then
                 call Create_Child_Node(workNode,childIndex)
              end if
@@ -286,13 +286,13 @@ contains
     logical                               , optional    , intent(in   ) :: isExternalParticle
     type            (octreeNode          ), pointer                     :: workNode                , siblingNode
     double precision                      , dimension(3)                :: centerOfMass            , relativePosition
-    double precision                                                    :: nodeWeight              , seperation                        , &
-         &                                                                 seperationSquare        , theta
+    double precision                                                    :: nodeWeight              , separation                        , &
+         &                                                                 separationSquare        , theta
     double precision                      , parameter                   :: thetaLarge=10.0d0
     integer         (c_size_t            )                              :: childIndex
     logical                                                             :: isExternalParticleActual
 
-    ! Check whether the particle whose property (acceration, potential,...) is to be computed is an external particle,
+    ! Check whether the particle whose property (acceleration, potential,...) is to be computed is an external particle,
     !  i.e. not contained in the current octree.
     isExternalParticleActual=.false.
     if (present(isExternalParticle)) isExternalParticleActual=isExternalParticle
@@ -312,13 +312,13 @@ contains
        end if
        nodeWeight  =workNode%nodeWeight
        centerOfMass=workNode%centerOfMass
-       ! Seperation between the particle and the current node.
+       ! Separation between the particle and the current node.
        relativePosition=coordinate-workNode%centerOfMass
-       seperationSquare=sum (relativePosition**2)
-       seperation      =sqrt(seperationSquare   )
+       separationSquare=sum (relativePosition**2)
+       separation      =sqrt(separationSquare   )
        ! Compute the opening angle.
-       if (seperation > 0.0d0) then
-          theta=workNode%boxWidth/seperation
+       if (separation > 0.0d0) then
+          theta=workNode%boxWidth/separation
        else
           theta=thetaLarge
        end if
@@ -330,18 +330,18 @@ contains
                 if (nodeWeight > 0.0d0) then
                    centerOfMass    =(workNode%nodeWeight*workNode%centerOfMass-weight*coordinate)/nodeWeight
                    relativePosition=coordinate-centerOfMass
-                   seperationSquare=sum (relativePosition**2)
-                   seperation      =sqrt(seperationSquare)
+                   separationSquare=sum (relativePosition**2)
+                   separation      =sqrt(separationSquare)
                 else
                    centerOfMass    =0.0d0
                    relativePosition=0.0d0
-                   seperationSquare=0.0d0
-                   seperation      =0.0d0
+                   separationSquare=0.0d0
+                   separation      =0.0d0
                 end if
              end if
           end if
           ! Do necessary computations.
-          call evaluateFunction(value,centerOfMass,nodeWeight,relativePosition,seperation,seperationSquare)
+          call evaluateFunction(value,centerOfMass,nodeWeight,relativePosition,separation,separationSquare)
           siblingNode => getNonEmptySibling(workNode)
           do while(.not.associated(siblingNode) .and. associated(workNode%parent))
              workNode    => workNode%parent
@@ -362,7 +362,7 @@ contains
 
   subroutine Create_Node(node,boxBottomLeft,boxWidth,depth)
     !!{
-    Creat a node in the octree.
+    Create a node in the octree.
     !!}
     implicit none
     type            (octreeNode), pointer                       :: node

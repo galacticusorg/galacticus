@@ -218,7 +218,7 @@ contains
       use :: Numerical_Constants_Astronomical, only : luminositySolar, luminosityZeroPointAB
       implicit none
       double precision, intent(in   ) :: wavelength
-      ! Luminosity of a zeroth magintude (AB) source in Solar luminosities per Hz.
+      ! Luminosity of a zeroth magnitude (AB) source in Solar luminosities per Hz.
       double precision, parameter     :: luminosityZeroPointABSolar=luminosityZeroPointAB/luminositySolar
 
       integrandFilteredLuminosityAB=+self%filterResponses(i)%interpolator_%interpolate(wavelength) &

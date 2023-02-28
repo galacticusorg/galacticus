@@ -18,13 +18,13 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements multi-counters - objects which iterate over all combinations of an arbitary number of
+  Contains a module which implements multi-counters - objects which iterate over all combinations of an arbitrary number of
   counters, each with an arbitrary range.
   !!}
 
 module Multi_Counters
   !!{
-  Implements multi-counters - objects which iterate over all combinations of an arbitary number of counters, each with an
+  Implements multi-counters - objects which iterate over all combinations of an arbitrary number of counters, each with an
   arbitrary range.
   !!}
   use, intrinsic :: ISO_C_Binding, only : c_size_t
@@ -34,7 +34,7 @@ module Multi_Counters
 
   type :: multiCounter
      !!{
-     Class providing multi-counters - objects which iterate over all combinations of an arbitary number of counters, each with
+     Class providing multi-counters - objects which iterate over all combinations of an arbitrary number of counters, each with
      an arbitrary range.
      !!}
      integer(c_size_t), allocatable, dimension(:) :: ranges, values

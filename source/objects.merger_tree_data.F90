@@ -1084,7 +1084,7 @@ contains
                 ! Column is a node index.
                 read (inputColumns(iColumn),*) mergerTrees%nodeIndex                       (  iNode)
              case (propertyTypeDescendentIndex         %ID)
-                ! Column is a descendent node index.
+                ! Column is a descendant node index.
                 read (inputColumns(iColumn),*) mergerTrees%descendentIndex                 (  iNode)
              case (propertyTypeHostIndex               %ID)
                 ! Column is a host index.
@@ -1579,7 +1579,7 @@ contains
 
     ! Write the data.
     if (mergerTrees%hasNodeIndex               ) call forestHalos%writeDataset(mergerTrees%nodeIndex               ,"nodeIndex"          ,"The index of each node."                            ,appendTo=appendActual                  )
-    if (mergerTrees%hasDescendentIndex         ) call forestHalos%writeDataset(mergerTrees%descendentIndex         ,"descendentIndex"    ,"The index of each descendent node."                 ,appendTo=appendActual                  )
+    if (mergerTrees%hasDescendentIndex         ) call forestHalos%writeDataset(mergerTrees%descendentIndex         ,"descendentIndex"    ,"The index of each descendant node."                 ,appendTo=appendActual                  )
     if (mergerTrees%hasHostIndex               ) call forestHalos%writeDataset(mergerTrees%hostIndex               ,"hostIndex"          ,"The index of each host node."                       ,appendTo=appendActual                  )
     if (mergerTrees%hasNodeMass                ) call forestHalos%writeDataset(mergerTrees%nodeMass                ,"nodeMass"           ,"The mass of each node."                             ,appendTo=appendActual                  )
     if (mergerTrees%hasRedshift                ) call forestHalos%writeDataset(mergerTrees%redshift                ,"redshift"           ,"The redshift of each node."                         ,appendTo=appendActual                  )
@@ -1618,7 +1618,7 @@ contains
           hyperslabStart(1)=mergerTrees%treeBeginsAt (iTree)
           hyperslabCount(1)=mergerTrees%treeNodeCount(iTree)
           do iProperty=propertyTypeMin,propertyTypeMax
-             ! Skip null and tree indxe cases.
+             ! Skip null and tree index cases.
              if     (                                       &
                   &   iProperty == propertyTypeNull     %ID &
                   &  .or.                                   &
@@ -1854,7 +1854,7 @@ contains
     if (.not.mergerTrees%hasSnapshot       ) call Error_Report('snapshot indices are required for this format'  //{introspection:location})
     if (.not.mergerTrees%hasPositionX      ) call Error_Report('halo positions are required for this format'    //{introspection:location})
     if (.not.mergerTrees%hasNodeIndex      ) call Error_Report('halo indices are required for this format'      //{introspection:location})
-    if (.not.mergerTrees%hasDescendentIndex) call Error_Report('descendent indices are required for this format'//{introspection:location})
+    if (.not.mergerTrees%hasDescendentIndex) call Error_Report('descendant indices are required for this format'//{introspection:location})
 
     ! Open the output file.
     !$ call hdf5Access%set     (                                                                                                      )
@@ -1970,8 +1970,8 @@ contains
     ! Output merger tree datasets.
     call                               mergerTreesGroup%writeDataset(mergerTrees%snapshot          ,"HaloSnapshot"      ,"The snapshot of each halo."           ,appendTo=appendActual)
     call                               mergerTreesGroup%writeDataset(mergerTrees%nodeIndex         ,"HaloID"            ,"The index of each halo."              ,appendTo=appendActual)
-    call                               mergerTreesGroup%writeDataset(mergerTrees%descendentIndex   ,"DescendentID"      ,"The index of each descendent halo."   ,appendTo=appendActual)
-    call                               mergerTreesGroup%writeDataset(            descendentSnapshot,"DescendentSnapshot","The snapshot of each descendent halo.",appendTo=appendActual)
+    call                               mergerTreesGroup%writeDataset(mergerTrees%descendentIndex   ,"DescendentID"      ,"The index of each descendant halo."   ,appendTo=appendActual)
+    call                               mergerTreesGroup%writeDataset(            descendentSnapshot,"DescendentSnapshot","The snapshot of each descendant halo.",appendTo=appendActual)
     if (mergerTrees%hasHostIndex) call mergerTreesGroup%writeDataset(mergerTrees%hostIndex         ,"HostID"            ,"The index of each host halo."         ,appendTo=appendActual)
     call                               mergerTreesGroup%writeDataset(mergerTrees%treeNodeCount     ,"HalosPerTree"      ,"Number of halos in each tree."        ,appendTo=appendActual)
     call                               mergerTreesGroup%writeDataset(mergerTrees%forestID          ,"TreeID"            ,"Unique index of tree."                ,appendTo=appendActual)

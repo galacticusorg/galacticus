@@ -18,12 +18,12 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module of functions for differentation unit tests.
+Contains a module of functions for differentiation unit tests.
 !!}
 
 module Test_Differentiation_Functions
   !!{
-  Contains functions for differentation unit tests.
+  Contains functions for differentiation unit tests.
   !!}
   implicit none
   private

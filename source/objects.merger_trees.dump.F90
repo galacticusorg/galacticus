@@ -31,7 +31,7 @@ module Merger_Trees_Dump
   private
   public :: Merger_Tree_Dump
 
-  ! Internal indices used for labelling outputs.
+  ! Internal indices used for labeling outputs.
   integer(kind=c_size_t ) :: outputCount
   integer(kind=kind_int8) :: treeIndexPrevious=-1
   !$omp threadprivate(outputCount,treeIndexPrevious)
@@ -41,7 +41,7 @@ contains
        &,highlightStyle ,edgeStyle ,labelNodes,labelUnique,scaleNodesByLogMass,edgeLengthsToTimes,timeRange,path)
     !!{
     Dumps the tree structure to a file in a format suitable for processing with \href{http://www.graphviz.org/}{\normalfont \scshape dot}. Nodes
-    are shown as circles if isolated or rectangles if satellites. Isolated nodes are connected to their descendent halo, while
+    are shown as circles if isolated or rectangles if satellites. Isolated nodes are connected to their descendant halo, while
     satellites are connected (by red lines) to their host halo. Optionally, a list of node indices to highlight can be
     specified.
     !!}
@@ -226,7 +226,7 @@ contains
              write (fileUnit,'(a,i16.16,a,i16.16,a,a,a)') '"',node%uniqueID(),'" -> "',node%parent%uniqueID(),'" [color=red, style=',trim(edgeStyleActual),'];'
           else
              write (fileUnit,'(a,i16.16,a,a,a,a,a)') '"',node%uniqueID(),'" [shape=circle, color=',trim(color),', style=',trim(style),'];'
-             ! Make a link to the descendent node.
+             ! Make a link to the descendant node.
              if (associated(node%parent)) then
                 write (fileUnit,'(a,i16.16,a,i16.16,a,a,a,a,$)') '"',node%uniqueID(),'" -> "',node%parent%uniqueID(),'" [color="',trim(edgeColorActual),'", style=',trim(edgeStyleActual)
                 if (edgeLengthsToTimesActual) then

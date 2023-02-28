@@ -130,7 +130,7 @@ contains
       <name>includeNitrogenII</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true, include contimination by the [NII] (6548\AA $+$ 6584\AA) doublet.</description>
+      <description>If true, include contamination by the [NII] (6548\AA $+$ 6584\AA) doublet.</description>
     </inputParameter>
     <inputParameter>
       <name>depthOpticalISMCoefficient</name>

@@ -114,7 +114,7 @@ contains
 
   subroutine lightconeCrossingDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily lightconeCrossing} erger tree evolution timestep class.
+    Destructor for the {\normalfont \ttfamily lightconeCrossing} merger tree evolution timestep class.
     !!}
     implicit none
     type(mergerTreeEvolveTimestepLightconeCrossing), intent(inout) :: self

@@ -167,7 +167,7 @@ contains
     nodeCurrent    => tree                                 %nodeBase
     basic          => nodeCurrent                          %basic     (    )
     indexNode      =  nodeCurrent                          %index     (    )
-    ! Begin building. Steo backward in time, creating nodes until a sufficiently low mass has been reached.
+    ! Begin building. Step backward in time, creating nodes until a sufficiently low mass has been reached.
     nodeCurrent    => tree                                 %nodeBase
     massNode       =  basic                                %mass      (    )
     timeNode       =  basic                                %time      (    )

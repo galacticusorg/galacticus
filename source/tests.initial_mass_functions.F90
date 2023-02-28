@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a program to test stellar inital mass functions.
+Contains a program to test stellar initial mass functions.
 !!}
 
 program Test_Initial_Mass_Functions

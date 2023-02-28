@@ -30,7 +30,7 @@
   !!]
   type, extends(stellarPopulationSpectraPostprocessorClass) :: stellarPopulationSpectraPostprocessorLycSuppress
      !!{
-     A stellar population spectrum postprocessor which completely supresses the Lyman continuum.
+     A stellar population spectrum postprocessor which completely suppresses the Lyman continuum.
      !!}
      private
    contains

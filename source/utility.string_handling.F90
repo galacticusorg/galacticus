@@ -263,7 +263,7 @@ contains
     do iString=1,len(stringOutput)
        ! Find position of current character in string in list of lower case characters.
        iCharacter=index(charactersLowerCase,stringOutput(iString:iString))
-       ! If a match is found, repace with the upper case equivalent.
+       ! If a match is found, replace with the upper case equivalent.
        if (iCharacter /= 0) stringOutput(iString:iString)=charactersUpperCase(iCharacter:iCharacter)
     end do
     return
@@ -283,7 +283,7 @@ contains
     do iString=1,len(stringOutput)
        ! Find position of current character in string in list of upper case characters.
        iCharacter=index(charactersUpperCase,stringOutput(iString:iString))
-       ! If a match is found, repace with the lower case equivalent.
+       ! If a match is found, replace with the lower case equivalent.
        if (iCharacter /= 0) stringOutput(iString:iString)=charactersLowerCase(iCharacter:iCharacter)
     end do
     return
@@ -301,7 +301,7 @@ contains
     stringOutput=stringInput
     ! Find position of first character in string in list of lower case characters.
     iCharacter=index(charactersLowerCase,stringOutput(1:1))
-    ! If a match is found, repace with the upper case equivalent.
+    ! If a match is found, replace with the upper case equivalent.
     if (iCharacter /= 0) stringOutput(1:1)=charactersUpperCase(iCharacter:iCharacter)
     return
   end function String_Upper_Case_First
@@ -318,7 +318,7 @@ contains
     stringOutput=stringInput
     ! Find position of first character in string in list of upper case characters.
     iCharacter=index(charactersUpperCase,stringOutput(1:1))
-    ! If a match is found, repace with the lower case equivalent.
+    ! If a match is found, replace with the lower case equivalent.
     if (iCharacter /= 0) stringOutput(1:1)=charactersLowerCase(iCharacter:iCharacter)
     return
   end function String_Lower_Case_First

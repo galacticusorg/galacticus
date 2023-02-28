@@ -18,19 +18,19 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a galactic filter which applies another filter to a descendent node of the given node.
+Contains a module which implements a galactic filter which applies another filter to a descendant node of the given node.
 !!}
   
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !![
   <galacticFilter name="galacticFilterDescendentNode">
-   <description>Applies a filter to a descendent node of the given node.</description>
+   <description>Applies a filter to a descendant node of the given node.</description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterDescendentNode
      !!{
-     A galactic filter which applies another filter to a descendent node of the given node.
+     A galactic filter which applies another filter to a descendant node of the given node.
      !!}
      private
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
@@ -69,12 +69,12 @@ contains
     <inputParameter>
       <name>redshiftDescendent</name>
       <source>parameters</source>
-      <description>The redshift of the descendent node to which to apply the filter.</description>
+      <description>The redshift of the descendant node to which to apply the filter.</description>
     </inputParameter>
     <inputParameter>
       <name>allowSelf</name>
       <source>parameters</source>
-      <description>If true, the node itself is considered as a possible descendent, otherwise the node itself is excldued from the descendent node search.</description>
+      <description>If true, the node itself is considered as a possible descendant, otherwise the node itself is excluded from the descendant node search.</description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     <objectBuilder class="galacticFilter"      name="galacticFilter_"      source="parameters"/>
@@ -122,7 +122,7 @@ contains
   
   logical function descendentNodePasses(self,node)
     !!{
-    Implement a filter on descendent node properties.
+    Implement a filter on descendant node properties.
     !!}
     use :: Error               , only : Error_Report
     use :: Galacticus_Nodes    , only : nodeComponentBasic
@@ -148,6 +148,6 @@ contains
        end if
        nodeDescendent => nodeDescendent%parent
     end do
-    call Error_Report('failed to find descendent node'//{introspection:location})
+    call Error_Report('failed to find descendant node'//{introspection:location})
     return
   end function descendentNodePasses

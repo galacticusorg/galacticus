@@ -1915,7 +1915,7 @@ module Galacticus_Nodes
 
   logical function propertyActive(propertyType)
     !!{
-    Returns true if active property evaulate is underway.
+    Returns true if active property evaluate is underway.
     !!}
     implicit none
     integer, intent(in   ) :: propertyType
@@ -1926,7 +1926,7 @@ module Galacticus_Nodes
   
   logical function propertyInactive(propertyType)
     !!{
-    Returns true if inactive property evaulate is underway.
+    Returns true if inactive property evaluate is underway.
     !!}
     implicit none
     integer, intent(in   ) :: propertyType
@@ -1937,7 +1937,7 @@ module Galacticus_Nodes
   
   logical function propertyEvaluate(propertyType,propertyIsInactive)
     !!{
-    Returns true if a property should be evaulated during the current stage of evolution.
+    Returns true if a property should be evaluated during the current stage of evolution.
     !!}
     implicit none
     integer, intent(in   ) :: propertyType

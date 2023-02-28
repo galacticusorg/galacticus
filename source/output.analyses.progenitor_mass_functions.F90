@@ -853,7 +853,7 @@ contains
     integer                                                                               :: status
     double precision                                                                      :: covarianceTermTarget            , covarianceTerm
     
-    ! Check for existance of a target distribution.
+    ! Check for existence of a target distribution.
     if (allocated(self%functionValueTarget)) then
        ! Finalize analysis.
        call self%finalizeAnalysis()

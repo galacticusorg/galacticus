@@ -56,7 +56,7 @@ contains
 
   function sphericalSymmetry(self)
     !!{
-    Returns symmetry label for mass dsitributions with spherical symmetry.
+    Returns symmetry label for mass distributions with spherical symmetry.
     !!}
     implicit none
     type (enumerationMassDistributionSymmetryType)                :: sphericalSymmetry

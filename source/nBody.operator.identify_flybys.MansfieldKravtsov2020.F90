@@ -171,28 +171,28 @@ contains
              end if
           end if
           jHost=kHost
-          ! Trace descendents, marking as fly-bys.
+          ! Trace descendents, marking as flybys.
           jHalo               =i
           hostDescendentExists=.true.
           do while (hostDescendentExists)
              isFlyby(jHalo)=1_c_size_t
-             ! If there is no descendent, or the current halo is not the most massive progenitor, we are done marking flybys, so exit.
+             ! If there is no descendant, or the current halo is not the most massive progenitor, we are done marking flybys, so exit.
              if (descendentID(jHalo) < 0_c_size_t .or. isMostMassiveProgenitor(jHalo) == 0) exit
-             ! Find the descendent halo.
+             ! Find the descendant halo.
              kHalo=searchIndexed(particleIDs,indexID,descendentID(jHalo))
              if     (                       &
                   &   kHalo < 1_c_size_t    &
                   &  .or.                   &
                   &   kHalo > size(indexID) &
                   & )                       &
-                  & call Error_Report('failed to find descendent'//{introspection:location})
+                  & call Error_Report('failed to find descendant'//{introspection:location})
              kHalo=indexID(kHalo)
              if     (                                           &
                   &   particleIDs(kHalo) /= descendentID(jHalo) &
                   & )                                           &
-                  & call Error_Report(var_str('failed to find descendent [')//descendentID(jHalo)//'] of ['//particleIDs(jHalo)//']'//{introspection:location})
+                  & call Error_Report(var_str('failed to find descendant [')//descendentID(jHalo)//'] of ['//particleIDs(jHalo)//']'//{introspection:location})
              jHalo=kHalo
-             ! We must now find the descendent of the host halo at this same snapshot.
+             ! We must now find the descendant of the host halo at this same snapshot.
              do while (snapshotID(jHost) < snapshotID(jHalo))
                 if (descendentID(jHost) < 0_c_size_t) then
                    ! No descendant. Record this and exit.
@@ -210,19 +210,19 @@ contains
                 if     (                                           &
                      &   particleIDs(kHost) /= descendentID(jHost) &
                      & )                                           &
-                     & call Error_Report(var_str('failed to find descendent [')//descendentID(jHost)//'] of ['//particleIDs(jHost)//']'//{introspection:location})
+                     & call Error_Report(var_str('failed to find descendant [')//descendentID(jHost)//'] of ['//particleIDs(jHost)//']'//{introspection:location})
                 jHost=kHost
                 if (snapshotID(jHost) > snapshotID(jHalo)) then
-                   ! We have jumped past the snapshot of the halo, so the host did not have a descendent at the relevant snapshot
-                   ! - most likely because that descendent was sub-resolution. Record this and exit.
+                   ! We have jumped past the snapshot of the halo, so the host did not have a descendant at the relevant snapshot
+                   ! - most likely because that descendant was sub-resolution. Record this and exit.
                    hostDescendentExists=.false.
                    exit
                 end if
              end do
              ! Check conditions from Mansfield & Kravtsov (2020; §2.3.1).
-             !! (  i) Host must have a descendent at our snapshot.
+             !! (  i) Host must have a descendant at our snapshot.
              if (.not.hostDescendentExists) exit
-             !! ( ii) Descendent of the host must not be within the virial radius of descendent of our halo.
+             !! ( ii) Descendent of the host must not be within the virial radius of descendant of our halo.
              separation=position(:,jHalo)-position(:,jHost)
              if (boxSize > 0.0d0) then
                 do m=1,3
@@ -231,7 +231,7 @@ contains
                 end do                
              end if
              if (Vector_Magnitude(separation) < radiusVirial(jHalo)) exit
-             !! (iii) Descendent of host must have higher mass than descendent of our halo.
+             !! (iii) Descendent of host must have higher mass than descendant of our halo.
              if (massVirial(jHost) <= massVirial(jHalo)) exit
           end do
           !$ if (OMP_Get_Thread_Num() == 0) then

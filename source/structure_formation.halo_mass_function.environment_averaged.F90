@@ -239,7 +239,7 @@ contains
 
     double precision function environmentAveragedIntegrand(environmentOverdensity)
       !!{
-      Integrand function used in averging the dark matter halo mass function over environment.
+      Integrand function used in averaging the dark matter halo mass function over environment.
       !!}
       implicit none
       double precision, intent(in   ) :: environmentOverdensity

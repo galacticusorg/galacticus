@@ -24,7 +24,7 @@
   !![
   <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorInoue2014">
    <description>
-    A stellar population postprocesing class that postprocesses spectra through absorption by the \gls{igm} using the results
+    A stellar population postprocessing class that postprocesses spectra through absorption by the \gls{igm} using the results
     of \cite{inoue_updated_2014}.
    </description>
   </stellarPopulationSpectraPostprocessor>

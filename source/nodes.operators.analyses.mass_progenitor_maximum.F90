@@ -24,7 +24,7 @@
   !![
   <nodeOperator name="nodeOperatorMassProgenitorMaximum">
     <description>
-      A node operator class that tracks the maximum progneitor halo mass of a node. Intended to be paired with the
+      A node operator class that tracks the maximum progenitor halo mass of a node. Intended to be paired with the
       \refClass{nodePropertyExtractorMassProgenitorMaximum} class to extract those ages for output.
     </description>
   </nodeOperator>

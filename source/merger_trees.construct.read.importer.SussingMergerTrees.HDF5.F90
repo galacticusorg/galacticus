@@ -429,7 +429,7 @@ contains
     nodeTreeIndices=-1
     nodeIndexRanks =sortIndex(nodeSelfIndices)
     nodeIncomplete =.false.
-    ! Read descendent information.
+    ! Read descendant information.
     call displayIndent ('Reading merger tree data',verbosityLevelWorking)
     mergerTrees=self%file%openGroup("MergerTree")
     call mergerTrees%readDataset  ("HaloID"         ,mergerTreeHaloIndices      )
@@ -467,7 +467,7 @@ contains
     call displayUnindent     ('done',verbosityLevelWorking)
     ! Indicate that tree indices were not assigned.
     treeIndicesAssigned    =.false.
-    ! Indicate that branch jump checks are quired.
+    ! Indicate that branch jump checks are required.
     branchJumpCheckRequired=.true.
     ! Clean up display.
     call displayUnindent     ('done',verbosityLevelWorking)

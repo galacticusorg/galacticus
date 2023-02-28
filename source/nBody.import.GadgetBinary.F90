@@ -211,7 +211,7 @@ contains
        hubbleConstantLittleH=1.0d0
     end if
     do while (fileNumber < numberFiles)
-       ! Check for the existance of the named file with no subfile suffix. This can occur, for example, if reading initial conditions files.
+       ! Check for the existence of the named file with no subfile suffix. This can occur, for example, if reading initial conditions files.
        if (fileNumber == 0 .and. File_Exists(self%fileName)) then
           ! Open the file with no subfile suffix.
           open(newUnit=file,file=char(self%fileName)                                    ,status='old',form='unformatted')

@@ -148,7 +148,7 @@ contains
 
   subroutine csmlgyLuminosityDistanceDestructor(self)
     !!{
-    Destructorfor the ``randomErrorPolynomial'' output analysis property operator class.
+    Destructor for the ``randomErrorPolynomial'' output analysis property operator class.
     !!}
     implicit none
     type(outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc), intent(inout) :: self

@@ -90,14 +90,14 @@ module Merger_Tree_Read_Importers
      double precision           , dimension(:), allocatable :: reals
      integer         (kind_int8), dimension(:), allocatable :: integers
      logical                                                :: childIsSubhalo               , isSubhalo
-     class           (nodeData ), pointer                   :: descendent         => null() , host                      => null(), &
+     class           (nodeData ), pointer                   :: descendant         => null() , host                      => null(), &
           &                                                    parent             => null()
      type            (treeNode ), pointer                   :: node               => null()
   end type nodeData
 
   interface importerUnitConvert
      !!{
-     Unit convertors for merger tree importers.
+     Unit converters for merger tree importers.
      !!}
      module procedure importerUnitConvertScalar
      module procedure importerUnitConvert1D

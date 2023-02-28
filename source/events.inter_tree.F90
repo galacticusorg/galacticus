@@ -34,7 +34,7 @@ module Node_Events_Inter_Tree
 
   type :: interTreeTransfer
      !!{
-     Type used for transfering nodes between trees.
+     Type used for transferring nodes between trees.
      !!}
      integer(c_size_t         )          :: splitForestUniqueID
      integer(kind_int8        )          :: pairedNodeID
@@ -238,7 +238,7 @@ contains
        timeMatchRequired  =.true.
     type is (nodeEventBranchJumpInterTree      )
        write (label,'(f12.6)') event%time
-       message='Searching for node to pull {branch jump} to descendent ['
+       message='Searching for node to pull {branch jump} to descendeat ['
        message=message//node%index()//'] in host ['//node%parent%index()//'] {event ID: '//event%ID//'} at time '//trim(label)//' Gyr'
        splitForestUniqueID=event%splitForestUniqueID
        pairedNodeID       =event%pairedNodeID
@@ -400,7 +400,7 @@ contains
                       pullNode%parent     => node
                       pullNode%sibling    => null()
                       node%firstChild => pullNode
-                      ! Reset the ID of the descendent to that of the progenitor to mimic what would
+                      ! Reset the ID of the descendant to that of the progenitor to mimic what would
                       ! have occurred if trees were processed unsplit. We also reset the basic mass and time last isolated for the same
                       ! reason.
                       !![

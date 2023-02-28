@@ -110,7 +110,7 @@ contains
     \dot{M}_\mathrm{outflow} = f_\mathrm{SW,0} \left\{ \begin{array}{ll} 1 & \hbox{ if } V_\mathrm{disk} < V_\mathrm{disk,SW} \\ (V_\mathrm{disk,SW}/V_\mathrm{disk})^2 &  \hbox{ if } V_\mathrm{disk} \ge V_\mathrm{disk,SW} \end{array} \right. ,
     \end{equation}
     where $V_\mathrm{disk,SW}=${\normalfont \ttfamily [velocityCharacteristic]} and $f_\mathrm{SW,0}=${\normalfont \ttfamily
-    [massLoadnig]}. Note that the velocity $V_\mathrm{ disk}$ is whatever characteristic value returned by the disk
+    [massLoading]}. Note that the velocity $V_\mathrm{ disk}$ is whatever characteristic value returned by the disk
     method. This scaling is functionally similar to that adopted by \cite{cole_hierarchical_2000} and \cite{baugh_can_2005},
     except that they specifically used the circular velocity at half-mass radius.
     !!}

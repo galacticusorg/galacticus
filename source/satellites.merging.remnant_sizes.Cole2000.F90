@@ -47,7 +47,7 @@
     depends on the orbital parameters of the galaxy pair. For example, a value of $f_\mathrm{orbit} = 1$ corresponds to point
     mass galaxies in circular orbits about their center of mass.
     
-    A subtelty arises because the above expression accounts for only the baryonic mass of material which becomes part of the
+    A subtlety arises because the above expression accounts for only the baryonic mass of material which becomes part of the
     spheroid \gls{component} of the remnant. In reality, there are additional terms in the energy equation due to the
     interaction of this material with any dark matter mass in each galaxy and any baryonic mass of each galaxy which does not
     become part of the spheroid \gls{component} of the remnant. To account for this additional matter, an effective boost

@@ -986,9 +986,9 @@ contains
                 nodeIncomplete(i)=.true.
              else
                 if (nodeDescendentLocations(nodeIndexRanks(iProgenitor)) /= -1) then
-                   message="multiple descendent trees not allowed"
-                   message=message//char(10)//" first descendent: "//nodeSelfIndices(nodeDescendentLocations(nodeIndexRanks(iProgenitor)))
-                   message=message//char(10)//"   new descendent: "//nodeSelfIndices(i)
+                   message="multiple descendant trees not allowed"
+                   message=message//char(10)//" first descendant: "//nodeSelfIndices(nodeDescendentLocations(nodeIndexRanks(iProgenitor)))
+                   message=message//char(10)//"   new descendant: "//nodeSelfIndices(i)
                    message=message//char(10)//" progenitor index: "//nodeIndex
                    call Error_Report(message//{introspection:location})
                 end if
@@ -1024,7 +1024,7 @@ contains
                             deallocate(nodeIncompleteTmp                         )
                             ! Increment the number of halos in trees.
                             nodeCountTrees=nodeCountTrees+1
-                            ! Insert the new halo, assigning the same descendent as its hosted halo.
+                            ! Insert the new halo, assigning the same descendant as its hosted halo.
                             nodeSelfIndices        (nodeCountTrees)=hostHalo
                             nodeDescendentLocations(nodeCountTrees)=i
                             nodeIncomplete         (nodeCountTrees)=.false.

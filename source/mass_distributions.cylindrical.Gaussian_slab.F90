@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Implementation of a mass distribution class for an infinite radial extent gas slab with a Gaussian vertical distribrution.
+  Implementation of a mass distribution class for an infinite radial extent gas slab with a Gaussian vertical distribution.
   !!}
 
   !![

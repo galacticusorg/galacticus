@@ -31,7 +31,7 @@ module Tasks
   <functionClass>
    <name>task</name>
    <descriptiveName>Tasks</descriptiveName>
-   <description>Class providing generak tasks to be performed by \glc.</description>
+   <description>Class providing general tasks to be performed by \glc.</description>
    <default>evolveForests</default>
    <functionClassDestroy>no</functionClassDestroy>
    <method name="perform" >

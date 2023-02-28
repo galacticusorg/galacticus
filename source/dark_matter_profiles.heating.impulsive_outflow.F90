@@ -24,7 +24,7 @@
   !![
   <darkMatterProfileHeating name="darkMatterProfileHeatingImpulsiveOutflow">
    <description>
-    A dark matter profile heating model which accounts for heating due to impulsive outflows---i.e. outflows occuring on
+    A dark matter profile heating model which accounts for heating due to impulsive outflows---i.e. outflows occurring on
     timescales that are small relative to the dynamical time of the halo. The model assumed is that the energy injection is given by
     \begin{equation}
     \dot{\epsilon}(r) = \alpha \frac{\mathrm{G} \dot{M}_\mathrm{outflow}(r)}{r} f\left( \frac{t_\phi}{t_\mathrm{dyn}} \right),

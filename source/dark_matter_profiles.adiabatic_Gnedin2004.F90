@@ -896,7 +896,7 @@ contains
     massDarkMatterInitial          =self%darkMatterProfileDMO_%enclosedMass               (node,radiusInitialMean)
     ! Get the mass of dark matter inside the initial radius.
     densityDarkMatterInitial       =self%darkMatterProfileDMO_%density                    (node,radiusInitialMean)    
-    ! Find the solution for the derivtive of the initial radius.
+    ! Find the solution for the derivative of the initial radius.
     numerator                                 =+(                                                      &
          &                                       +massDarkMatterInitial                                &
          &                                       *self%darkMatterDistributedFraction                   &

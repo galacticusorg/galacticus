@@ -583,24 +583,24 @@ contains
              if (k < 0 .or. self%nodes(l)%descendentIndex /= self%nodes(k)%nodeIndex) exit
              ! Perform sanity checks.
              if (k >= 0 .and. self%nodes(k)%nodeTime <= self%nodes(l)%nodeTime) then
-                message='descendent exists before progenitor node'
+                message='descendant exists before progenitor node'
                 message=message//char(10)//' progenitor node index: '//self%nodes(l)%nodeIndex
-                message=message//char(10)//' descendent node index: '//self%nodes(k)%nodeIndex
+                message=message//char(10)//' descendant node index: '//self%nodes(k)%nodeIndex
                 write (label,'(f7.4)') self%nodes(l)%nodeTime
                 message=message//char(10)//'  progenitor node time: '//label
                 write (label,'(f7.4)') self%nodes(k)%nodeTime
-                message=message//char(10)//'  descendent node time: '//label
+                message=message//char(10)//'  descendant node time: '//label
                 call Error_Report(message//{introspection:location})
              end if
              descendentStepCount=descendentStepCount+1
              if (descendentStepCount > stepCountMaximum) then
                 message='infinite (or at least, very large) loop detect in halo descent'
                 message=message//char(10)//' progenitor node index: '//self%nodes(l)%nodeIndex
-                message=message//char(10)//' descendent node index: '//self%nodes(k)%nodeIndex
+                message=message//char(10)//' descendant node index: '//self%nodes(k)%nodeIndex
                 write (label,'(f7.4)') self%nodes(l)%nodeTime
                 message=message//char(10)//'  progenitor node time: '//label
                 write (label,'(f7.4)') self%nodes(k)%nodeTime
-                message=message//char(10)//'  descendent node time: '//label
+                message=message//char(10)//'  descendant node time: '//label
                 call Error_Report(message//{introspection:location})
              end if
              l=k

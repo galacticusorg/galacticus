@@ -238,7 +238,7 @@ contains
     type            (varying_string                       )                              :: message
     character       (len=16                               )                              :: label
 
-    ! If no aguments were provided, return current convergence status without updating.
+    ! If no arguments were provided, return current convergence status without updating.
     if (.not.(present(simulationState).and.present(logLikelihood))) then
        gelmanRubinIsConverged=self%converged
        return

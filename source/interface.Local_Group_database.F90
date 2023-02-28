@@ -224,7 +224,7 @@ contains
        allocate(isPresent(countGalaxies))
        isPresent=.true.
     end if
-    ! Popuate the array.
+    ! Populate the array.
     countGalaxies=0
     do i=0,size(self%galaxies)-1
        if (.not.self%selected(i)) cycle
@@ -553,7 +553,7 @@ contains
     call extractDataContent(attribute,positionM31)
     attribute => getAttributeNode(propertyList1(0)%element,'uncertainty')
     call extractDataContent(attribute,uncertaintyPositionM31)
-    ! Compute galacto-centric distances.
+    ! Compute galactocentric distances.
     do i=0,size(self%galaxies)-1
        ! Milky Way.
        galaxy => self%galaxies(i)%element

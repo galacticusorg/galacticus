@@ -139,7 +139,7 @@ contains
     massEnclosedHost     =          self%galacticStructure_%massEnclosed(nodeHost,radius  )
     acceleration         =          self%galacticStructure_%acceleration(nodeHost,position)
     ! Include a factor (1+m_{sat}/m_{host})=m_{sat}/µ (where µ is the reduced mass) to convert from the two-body problem of
-    ! satellite and host orbitting their common center of mass to the equivalent one-body problem (since we're solving for the
+    ! satellite and host orbiting their common center of mass to the equivalent one-body problem (since we're solving for the
     ! motion of the satellite relative to the center of the host which is held fixed).
     massRatio=min(                            &
          &            +massRatioMaximum     , &

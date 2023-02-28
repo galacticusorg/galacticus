@@ -259,7 +259,7 @@ contains
           if     (hostID        (i) >= 0_c_size_t                                                 ) cycle
           ! Skip non-always-isolated halos.
           if     (alwaysIsolated(i) == 0_c_size_t                    .and. self%alwaysIsolatedOnly) cycle
-          ! Skip halos with no descendent.
+          ! Skip halos with no descendant.
           if     (descendentID  (i) <  0_c_size_t                                                 ) cycle
           ! Skip halos outside the mass range.
           if     (                                                                                        &
@@ -267,16 +267,16 @@ contains
                &  .or.                                                                                    &
                &   massVirial   (i) >  self%massMaximum                                                   &
                & )                                                                                  cycle
-          ! Identify the descendent halo.
+          ! Identify the descendant halo.
           k=searchIndexed(particleID,indexID,descendentID(i))
           if     (                                           &
                &   k                         < 1_c_size_t    &
                &  .or.                                       &
                &   k                         > size(indexID) &
                & )                                           &
-               & call Error_Report('failed to find descendent'//{introspection:location})
+               & call Error_Report('failed to find descendant'//{introspection:location})
           j=indexID(k)
-          ! If this halo is not the most-massive progenitor, or if the descendent is hosted, we have a merger.
+          ! If this halo is not the most-massive progenitor, or if the descendant is hosted, we have a merger.
           isMerger=isMostMassiveProgenitor(i) == 0 .or. hostID(j) >= 0_c_size_t
           if (isMerger) then
              ! Find the ultimate host.

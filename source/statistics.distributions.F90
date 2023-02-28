@@ -152,7 +152,7 @@ contains
   
   subroutine distributionFunction1DFinalize(self)
     !!{
-    Finalizer for {\normalfont \ttfamily distributionFunction1D} objects.
+    Destructor for {\normalfont \ttfamily distributionFunction1D} objects.
     !!}
     type(distributionFunction1DClass), intent(inout) :: self
 

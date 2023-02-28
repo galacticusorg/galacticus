@@ -120,7 +120,7 @@ contains
     <inputParameter>
       <name>toleranceRelative</name>
       <defaultValue>1.0d-3</defaultValue>
-      <description>The relative tolerance to usebin integrals.</description>
+      <description>The relative tolerance to use in integrals.</description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
@@ -197,7 +197,7 @@ contains
 
   function velocityDispersionSize(self,time)
     !!{
-    Return the number of array alements in the {\normalfont \ttfamily velocityDispersion} property extractors.
+    Return the number of array elements in the {\normalfont \ttfamily velocityDispersion} property extractors.
     !!}
     implicit none
     integer         (c_size_t                               )                :: velocityDispersionSize
@@ -661,7 +661,7 @@ contains
 
   double precision function velocityDispersionSolidAngleInCylinder(radius)
     !!{
-    Computes the solid angle of a spherical shelll of given {\normalfont \ttfamily radius} that lies within a cylinder of radius {\normalfont \ttfamily
+    Computes the solid angle of a spherical shell of given {\normalfont \ttfamily radius} that lies within a cylinder of radius {\normalfont \ttfamily
     radiusImpact}.
     !!}
     use :: Numerical_Constants_Math, only : Pi

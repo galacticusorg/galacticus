@@ -151,7 +151,7 @@ contains
     end if
     ! Validate input.
     if (electronNumber > atomicNumber) call Error_Report('number of electrons exceeds atomic number'//{introspection:location})
-    ! Return zero if ioniziation potential is not available for this ion.
+    ! Return zero if ionization potential is not available for this ion.
     if (self%atomicIonizationPotential_%potential(atomicNumber,electronNumber) == 0.0d0) then
        vanHoof2014Total=0.0d0
     else

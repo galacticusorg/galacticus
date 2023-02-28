@@ -168,7 +168,7 @@ contains
        allocate(accelerationSelfFriction(3_c_size_t,             self%bootstrapSampleCount))
        allocate(positionRescaled        (3_c_size_t,particleCount                         ))
        positionRescaled=position/lengthSoftening
-       ! Iterate over bootstrap samplings.
+       ! Iterate over bootstrap samples.
        call displayIndent('Performing self-friction analysis on bootstrap samples')
        do i=1,self%bootstrapSampleCount
           call displayIndent(var_str('sample ')//i//' of '//self%bootstrapSampleCount)

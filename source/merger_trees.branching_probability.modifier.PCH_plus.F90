@@ -25,7 +25,7 @@
   <mergerTreeBranchingProbabilityModifier name="mergerTreeBranchingProbabilityModifierPCHPlus">
    <description>
     Provides a merger tree branching probability rate modifier which uses the model of \cite{parkinson_generating_2008} plus an
-    additional term. Specifically, the modifer becomes
+    additional term. Specifically, the modifier becomes
     \begin{equation}
      G\left( {\sigma_1 \over \sigma_2} , {\delta_2 \over \sigma_2} \right) =
      G_0

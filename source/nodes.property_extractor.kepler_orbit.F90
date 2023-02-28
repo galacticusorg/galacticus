@@ -54,7 +54,7 @@ contains
 
   subroutine keplerOrbitInitialize(self,properties,prefix)
     !!{
-    Initializor for the {\normalfont \ttfamily keplerOrbit} output extractor property extractor class.
+    Initializer for the {\normalfont \ttfamily keplerOrbit} output extractor property extractor class.
     !!}
     use :: Error                           , only : Error_Report
     use :: ISO_Varying_String              , only : trim

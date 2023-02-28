@@ -275,7 +275,7 @@ contains
       A merger tree branch split mass function which assumes a \gls{cdm}-like power spectrum. With these assumptions, it can
       employ the mass sampling algorithm of \cite{parkinson_generating_2008}. One difference with respect to the algorithm of
       \cite{parkinson_generating_2008} is that here the normalization of their function $S(q)$ (eqn. A2) is irrelevant, since a
-      branch split has already been decided to have occcurred---all that remains necessary is to determine its mass. Variable and
+      branch split has already been decided to have occurred---all that remains necessary is to determine its mass. Variable and
       function names follow \cite{parkinson_generating_2008}.
       !!}
       implicit none

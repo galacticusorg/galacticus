@@ -49,7 +49,7 @@
     \item[{\normalfont \ttfamily fractionTimeFormationRate}] The fraction of the current time over which to estimate the formation rate of halos when computing merger tree statistics;
     \item[{\normalfont \ttfamily nameGroupOutput}] The name of the \gls{hdf5} group to which mass functions will be written.
     \end{description}
-    If the operator finds the named \gls{hdf5} group already in existance, it will accumulate its
+    If the operator finds the named \gls{hdf5} group already in existence, it will accumulate its
     mass functions to those already written to the group, weighting by the inverse of the variance
     in each bin. The structure of the \gls{hdf5} group is as follows:
     \begin{verbatim}
@@ -940,7 +940,7 @@ contains
                    end if
                    ! Record the mass of the branch at the parent time.
                 end do
-                ! Accumulate unevoled subhalo mass functions.
+                ! Accumulate unevolved subhalo mass functions.
                 if (self%extendedStatistics) then
                    if (.not.associated(nodeChild%firstChild)) then
                       ! This is a branch tip. Follow until it to the final time, storing its mass just prior to becoming a subhalo, and

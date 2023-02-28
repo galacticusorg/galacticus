@@ -142,12 +142,12 @@ contains
                   &  .or.                                       &
                   &   k                         > size(indexID) &
                   & )                                           &
-                  & call Error_Report('failed to find descendent'//{introspection:location})
+                  & call Error_Report('failed to find descendant'//{introspection:location})
              k=indexID(k)
              if     (                                   &
                   &   particleIDs(k) /= descendentID(j) &
                   & )                                   &
-                  & call Error_Report(var_str('failed to find descendent [')//descendentID(j)//'] of ['//particleIDs(j)//']'//{introspection:location})
+                  & call Error_Report(var_str('failed to find descendant [')//descendentID(j)//'] of ['//particleIDs(j)//']'//{introspection:location})
              j=k
           end do
           !$ if (OMP_Get_Thread_Num() == 0) then

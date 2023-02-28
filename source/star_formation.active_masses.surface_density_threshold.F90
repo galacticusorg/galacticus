@@ -77,7 +77,7 @@ contains
     <inputParameter>
       <name>exponentVelocity</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>Tne exponent of velocity in the surface density threshold for star formation.</description>
+      <description>The exponent of velocity in the surface density threshold for star formation.</description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>

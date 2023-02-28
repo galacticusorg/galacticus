@@ -63,7 +63,7 @@ contains
 
   function volonteri2003ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily volonteri2003} black hole bianry initial radius class which takes a parameter
+    Constructor for the {\normalfont \ttfamily volonteri2003} black hole binary initial radius class which takes a parameter
     list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -85,7 +85,7 @@ contains
 
   function volonteri2003ConstructorInternal(darkMatterHaloScale_) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily volonteri2003} black hole bianry initial radius class which takes a parameter
+    Constructor for the {\normalfont \ttfamily volonteri2003} black hole binary initial radius class which takes a parameter
     list as input.
     !!}
     implicit none

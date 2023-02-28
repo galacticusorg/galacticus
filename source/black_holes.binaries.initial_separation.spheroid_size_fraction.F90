@@ -53,7 +53,7 @@ contains
 
   function spheroidRadiusFractionConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily spheroidRadiusFraction} black hole bianry recoild class which takes a parameter list as
+    Constructor for the {\normalfont \ttfamily spheroidRadiusFraction} black hole binary recoiled class which takes a parameter list as
     input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -79,7 +79,7 @@ contains
 
   function spheroidRadiusFractionConstructorInternal(spheroidRadiusFraction) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily spheroidRadiusFraction} black hole bianry recoild class which takes a parameter list as
+    Constructor for the {\normalfont \ttfamily spheroidRadiusFraction} black hole binary recoiled class which takes a parameter list as
     input.
     !!}
     implicit none

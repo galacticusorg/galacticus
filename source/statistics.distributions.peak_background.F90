@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Implementation of a peak-background split density 1D distibution function.
+  Implementation of a peak-background split density 1D distribution function.
   !!}
 
   use :: Tables, only : table1D, table1DLinearLinear
@@ -30,7 +30,7 @@
   !!]
   type, extends(distributionFunction1DClass) :: distributionFunction1DPeakBackground
      !!{
-     Implementation of a peakBackground 1D distibution function.
+     Implementation of a peakBackground 1D distribution function.
      !!}
      private
      double precision                                   :: varianceBackground, thresholdCollapse, &

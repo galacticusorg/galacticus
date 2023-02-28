@@ -174,7 +174,7 @@ contains
     !$GLC attributes unused :: self
 
     call displayIndent ('Begin task: build SED tabulations')
-    ! Call routines to perform initializations which must occur for all threads if run in parallel.
+    ! Call routines to perform initialization which must occur for all threads if run in parallel.
     call Node_Components_Thread_Initialize(self%parameters)
     ! Build a node and components.
     node     => treeNode         (                 )

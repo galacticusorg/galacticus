@@ -316,7 +316,7 @@ contains
     !![
     <referenceConstruct object="nodePropertyExtractor_"            constructor="nodePropertyExtractorMassStellar       (galacticStructure_)"/>
     !!]
-    ! Create a thermal Sunyaev-Zelodvich property extractor.
+    ! Create a thermal Sunyaev-Zeldovich property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_)
     !![
     <referenceConstruct object="outputAnalysisWeightPropertyExtractor_">

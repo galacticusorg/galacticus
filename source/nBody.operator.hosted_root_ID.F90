@@ -133,7 +133,7 @@ contains
              else if (descendentID  (j) > 0_c_size_t) then
                 l=descendentID  (j)
              else
-                call Error_Report('no host or descendent - this should not happen'//{introspection:location})
+                call Error_Report('no host or descendant - this should not happen'//{introspection:location})
              end if
              k=searchIndexed(particleIDs,indexID,l)
              if     (                                 &

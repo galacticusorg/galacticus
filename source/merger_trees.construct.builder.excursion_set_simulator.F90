@@ -255,7 +255,7 @@
            ! Find the target excursion for the next step.
            excursionTarget =+     excursionInitial &
                 &           +self%excursionStep
-           ! Set the initial remaining mass and (Lagriangian, comoving) volume of the patch of mass which we will partition into
+           ! Set the initial remaining mass and (Lagrangian, comoving) volume of the patch of mass which we will partition into
            ! progenitors. The initial mass, Mᵢ, is just the mass of the node. The initial volume is Vᵢ = Mᵢ/ρ̅(1+δᵢ), but we
            ! actually just track vᵢ = 1/(1+δᵢ) for convenience, ignoring the constant (for this node) factors.
            volumePatchInitial  =+  1.0d0             &

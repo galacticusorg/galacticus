@@ -838,7 +838,7 @@ contains
     !$GLC attributes unused :: self
 
     if (radius < radiusSmall) then
-       ! Use a series expenasion solution for accuracy.
+       ! Use a series expansion solution for accuracy.
        nfwSpecificAngularMomentumScaleFree=+radius**1.5d0                &
             &                              /sqrt(                        &
             &                                    +    2.0d0              &

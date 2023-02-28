@@ -178,9 +178,9 @@ program Test_Tables
      call myTable%populate([2.0d0,3.0d0,4.0d0,5.0d0,6.0d0,7.0d0,8.0d0,9.0d0,10.0d0,11.0d0,12.0d0])
      ! Assert that the table is monotonic.
      call Assert('table is monotonic'                   ,myTable%isMonotonic(                             ),.true. )
-     ! Assert that the table is monotonicallly increasing.
+     ! Assert that the table is monotonically increasing.
      call Assert('table is monotonically increasing'    ,myTable%isMonotonic(direction=directionIncreasing),.true. )
-     ! Assert that the table is not monotonicallly decreasing.
+     ! Assert that the table is not monotonically decreasing.
      call Assert('table is not monotonically decreasing',myTable%isMonotonic(direction=directionDecreasing),.false.)
      ! Reverse the table.
      call myTable%reverse(myReversedTable)

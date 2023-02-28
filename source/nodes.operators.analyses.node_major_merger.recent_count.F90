@@ -99,7 +99,7 @@ contains
       <description>
 	The time interval used to define ``recent'' mergers. This parameter is in units of Gyr if {\normalfont \ttfamily
 	[intervalType]}$=${\normalfont \ttfamily absolute}, or in units of the halo dynamical time if {\normalfont \ttfamily
-	[intervalType]}$=${\normalfont \ttfamily dynmical}.
+	[intervalType]}$=${\normalfont \ttfamily dynamical}.
       </description>
       <source>parameters</source>
     </inputParameter>

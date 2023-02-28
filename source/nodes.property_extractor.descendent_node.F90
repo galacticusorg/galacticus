@@ -18,19 +18,19 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an output analysis property extractor class that extracts a property from a descendent node of the given node.
+Contains a module which implements an output analysis property extractor class that extracts a property from a descendant node of the given node.
 !!}
   
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorDescendentNode">
-   <description>An output analysis property extractor class that extracts a property from a descendent node of the given node.</description>
+   <description>An output analysis property extractor class that extracts a property from a descendant node of the given node.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorDescendentNode
      !!{
-     A property extractor output analysis class that extracts a property from a descendent node of the given node.
+     A property extractor output analysis class that extracts a property from a descendant node of the given node.
      !!}
      private
      class           (cosmologyFunctionsClass    ), pointer :: cosmologyFunctions_    => null()
@@ -71,7 +71,7 @@ contains
     <inputParameter>
       <name>redshiftDescendent</name>
       <source>parameters</source>
-      <description>The redshift of the descendent node to which to apply the filter.</description>
+      <description>The redshift of the descendant node to which to apply the filter.</description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
     <objectBuilder class="nodePropertyExtractor" name="nodePropertyExtractor_" source="parameters"/>
@@ -146,7 +146,7 @@ contains
        end if
        nodeDescendent => nodeDescendent%parent
     end do
-    call Error_Report('failed to find descendent node'//{introspection:location})
+    call Error_Report('failed to find descendant node'//{introspection:location})
     return
   end function descendentNodeExtract
 
@@ -160,7 +160,7 @@ contains
     type (varying_string                     )                :: descendentNodeName
     class(nodePropertyExtractorDescendentNode), intent(inout) :: self
 
-    descendentNodeName=var_str('descendent')//String_Upper_Case_First(char(self%nodePropertyExtractor_%name()))
+    descendentNodeName=var_str('descendant')//String_Upper_Case_First(char(self%nodePropertyExtractor_%name()))
     return
   end function descendentNodeName
 
@@ -172,7 +172,7 @@ contains
     type (varying_string                     )                :: descendentNodeDescription
     class(nodePropertyExtractorDescendentNode), intent(inout) :: self
 
-    descendentNodeDescription=self%nodePropertyExtractor_%description()//' (of a descendent node)'
+    descendentNodeDescription=self%nodePropertyExtractor_%description()//' (of a descendant node)'
     return
   end function descendentNodeDescription
 

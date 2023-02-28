@@ -24,7 +24,7 @@
   !!]
   type, extends(radiativeTransferConvergenceClass) :: radiativeTransferConvergenceHydrogenRecombinationRate
      !!{
-     Implementation of a radiative transfer convergence class based on the recombination rate of hydrogren.
+     Implementation of a radiative transfer convergence class based on the recombination rate of hydrogen.
      !!}
      private
      double precision :: toleranceRelative

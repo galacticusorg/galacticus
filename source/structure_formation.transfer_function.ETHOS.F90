@@ -129,7 +129,7 @@ contains
       <name>kPeak</name>
       <source>parameters</source>
       <defaultValue>-10.0d0</defaultValue>
-      <description>The parameter $k_\mathrm{peak}$, the wavenumber of first peak in ETHOS transfer function, apearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
+      <description>The parameter $k_\mathrm{peak}$, the wavenumber of first peak in ETHOS transfer function, appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
     </inputParameter>
     <inputParameter>
       <name>hPeak</name>
