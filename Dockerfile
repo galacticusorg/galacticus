@@ -27,6 +27,10 @@ RUN     cd /opt/galacticus &&\
 
 # Build external tools.
 RUN     cd /opt/galacticus &&\
+        classVersion=`awk '{if ($1 == "class:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml` &&\
+        cambVersion=`awk '{if ($1 == "camb:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml` &&\
+        forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml` &&\
+        fspsVersion=`awk '{if ($1 == "fsps:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml` &&\
 	./Galacticus.exe parameters/buildTools.xml &&\
-	rm /opt/datasets/dynamic/c17.03.tar.gz /opt/datasets/dynamic/CAMB_1.4.0.tar.gz /opt/datasets/dynamic/class_public-3.0.2.tar.gz /opt/datasets/dynamic/FSPS_3.2.tar.gz
+	rm /opt/datasets/dynamic/c17.03.tar.gz /opt/datasets/dynamic/CAMB_${cambVersion}.tar.gz /opt/datasets/dynamic/class_public-${classVersion}.tar.gz /opt/datasets/dynamic/FSPS_${fspsVersion}.tar.gz
 	

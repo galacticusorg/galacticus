@@ -41,11 +41,12 @@ contains
     !!{
     Set the version of FSPS being used.
     !!}
-    use :: ISO_Varying_String, only : varying_string, assignment(=)
+    use :: Dependencies      , only : dependencyVersion
+    use :: ISO_Varying_String, only : varying_string   , assignment(=)
     implicit none
     type(varying_string), intent(  out) :: fspsVersion
     
-    fspsVersion="3.2"
+    fspsVersion=dependencyVersion("fsps")
     return
   end subroutine Interface_FSPS_Version
   
