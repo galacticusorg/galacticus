@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains custom functions for the prest satellite component.
+Contains custom functions for the preset satellite component.
 !!}
 
 double precision function SatellitePresetMergeBoundMass(self)
