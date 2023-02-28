@@ -31,11 +31,38 @@ jobs:
         run: |
           status=0
           for file in ${{ steps.changed-files.outputs.all_modified_files }}; do
-            echo "Validating YAML file: $file"
             if yamllint $file; then
               echo "YAML $file is valid"
             else
               echo "YAML $file is invalid"
+              status=1
+            fi
+          done
+          exit $status
+  # Validate XML
+  Validate-XML:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install tools
+        run: |
+          sudo apt -y update
+          sudo apt install -y xmllint
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v35
+        with:
+          files: |
+            **/*.xml
+      - name: Validate any XML files
+        run: |
+          status=0
+          for file in ${{ steps.changed-files.outputs.all_modified_files }}; do
+            echo "Validating XML file: $file"
+            if xmllint --noout $file; then
+              echo "XML $file is valid"
+            else
+              echo "XML $file is invalid"
               status=1
             fi
           done
