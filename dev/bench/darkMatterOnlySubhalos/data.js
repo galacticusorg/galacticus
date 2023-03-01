@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1677656072556,
+  "lastUpdate": 1677656075382,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
@@ -8510,6 +8510,34 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 24145.1797388743,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "id": "a46cb17c8d15102eb0497fc06938117c4091a061",
+          "message": "fix: Provide a `massDistribution` method for the \"very simple size\" disk component",
+          "timestamp": "2023-02-28T23:29:59Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/a46cb17c8d15102eb0497fc06938117c4091a061"
+        },
+        "date": 1677656073960,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 52.042,
+            "unit": "seconds",
+            "range": 0.0313942669927601
           }
         ]
       }
