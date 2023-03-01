@@ -250,7 +250,7 @@ contains
           if (self%coordinatedMPI_) self%firstCrossingProbability=0.0d0
 #endif
           ! Make a call to the barrier function at maximum variance for the minimum and maximum times so that the barrier function
-          ! is initialized and covers the whole range we are intereseted in.
+          ! is initialized and covers the whole range in which we are interested.
           barrierTest=self%excursionSetBarrier_%barrier(self%varianceMaximum,self%timeMinimum,node,rateCompute=.false.)
           barrierTest=self%excursionSetBarrier_%barrier(self%varianceMaximum,self%timeMaximum,node,rateCompute=.false.)
           ! Enter an OpenMP parallel region. Each parallel thread will solve for the first crossing distribution at a different epoch.
@@ -367,7 +367,7 @@ contains
           !$omp end parallel
           ! Update the variance table to reflect the variances at the midpoints. Note that the first crossing probability is computed
           ! at the mid-points. The last element of the variance table is unchanged to ensure that its value equals
-          ! varianceMaximum. This will not affect the result becasue the probability at maximum variance is set to zero anyway.
+          ! varianceMaximum. This will not affect the result because the probability at maximum variance is set to zero anyway.
           self%variance(1:self%countVariance-1)=varianceMidpoint(1:self%countVariance-1)
           deallocate(varianceMidpoint)
 #ifdef USEMPI
@@ -699,7 +699,7 @@ contains
           taskCount=-1
 #endif
           ! Make a call to the barrier function at maximum variance for the minimum and maximum times so that the barrier function
-          ! is initialized and covers the whole range we are intereseted in.
+          ! is initialized and covers the whole range in which we are interested.
           barrierRateTest=self%excursionSetBarrier_%barrier(self%varianceMaximumRate,self%timeMinimumRate*(1.0d0-self%fractionalTimeStep),node,rateCompute=.true.)
           barrierRateTest=self%excursionSetBarrier_%barrier(self%varianceMaximumRate,self%timeMaximumRate                                ,node,rateCompute=.true.)
           ! Enter an OpenMP parallel region. Each parallel thread will solve for the first crossing rate at a different epoch.
@@ -751,7 +751,7 @@ contains
                 if (.not.allocated(firstCrossingRateQuad)) allocate(firstCrossingRateQuad(0:self%countVarianceProgenitorRate))
                 ! Compute a suitable progenitor time.
                 timeProgenitor=self%timeRate(iTime)*(1.0d0-self%fractionalTimeStep)
-                ! Iteratve over variances of the current halo.
+                ! Iterate over variances of the current halo.
                 !$omp do schedule(dynamic)
                 do iVariance=0,countVarianceCurrentRate
 #ifdef USEMPI
@@ -784,7 +784,7 @@ contains
                    firstCrossingRateQuad(0)=0.0_kind_quad
                    ! Compute the step in variance across this first grid point.
                    varianceStepRate=varianceProgenitorRateQuad(1)-varianceProgenitorRateQuad(0)
-                   ! Compute the barrier for the descendent.
+                   ! Compute the barrier for the descendant.
                    barrier=real(excursionSetBarrier_%barrier(real(varianceCurrentRateQuad(iVariance),kind=8),self%timeRate(iTime),node,rateCompute=.true.),kind=kind_quad)
                    ! Compute the first crossing distribution at the first grid point.
                    if (varianceProgenitorRateQuad(1)+varianceCurrentRateQuad(iVariance) >= varianceMaximumRateLimit) then
@@ -957,7 +957,7 @@ contains
           !$omp end parallel
           ! Update the variance table to reflect the variances at the midpoints. Note that the first crossing probability is computed
           ! at the mid-points. The last element of the variance table is unchanged to ensure that its value equals
-          ! varianceMaximum. This will not affect the result becasue the crossing rate at maximum variance is set to zero anyway.
+          ! varianceMaximum. This will not affect the result because the crossing rate at maximum variance is set to zero anyway.
           self%varianceProgenitorRate(1:self%countVarianceProgenitorRate-1)=real(varianceMidpointRateQuad(1:self%countVarianceProgenitorRate-1),kind=kind_dble)
           deallocate(varianceMidpointRateQuad  )
           deallocate(varianceProgenitorRateQuad)

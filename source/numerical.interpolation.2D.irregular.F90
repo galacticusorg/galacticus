@@ -110,7 +110,7 @@ contains
     end if
 
     ! Call the subroutine that does the interpolation. This call is wrapped inside an OpenMP critical section as the 2D
-    ! interpolation code is not thread prarallel - I don't understand why, but it's such old and ugly code that I can't figure it
+    ! interpolation code is not thread parallel - I don't understand why, but it's such old and ugly code that I can't figure it
     ! out. It should be replaced.
     !$omp critical (idbvip)
     call idbvip(resetFlag,numberComputePointsActual,dataPointCount,dataX,dataY,dataZ,interpolatedPointCount,interpolateX&

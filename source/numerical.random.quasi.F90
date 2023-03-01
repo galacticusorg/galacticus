@@ -106,7 +106,7 @@ contains
 
   function quasiRandomNumberGeneratorConstructor(qrngType) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily quasiRandomNumberGenerator} obejcts.
+    Constructor for {\normalfont \ttfamily quasiRandomNumberGenerator} objects.
     !!}
     use :: Error, only : Error_Report
     implicit none

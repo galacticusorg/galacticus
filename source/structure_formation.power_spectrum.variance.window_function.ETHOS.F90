@@ -26,7 +26,7 @@
   !![
   <powerSpectrumWindowFunction name="powerSpectrumWindowFunctionETHOS">
    <description>
-    ETHOS window function for filtering of power spectras from \cite{bohr_halo_2021}. This window function was chosen to give good
+    ETHOS window function for filtering of power spectra from \cite{bohr_halo_2021}. This window function was chosen to give good
     matches to N-body halo mass functions derived from the ETHOS transfer functions. Specifically the window function is given by:
     \begin{equation}
      W(kR) = (\frac{1}{1+\left(\frac{kR}{c_\mathrm{W}}\right)^\beta})

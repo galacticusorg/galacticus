@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Implementation of a posterior sampling convergence class which latinHypercube converges.
+  Implementation of Latin hypercube state initializer.
   !!}
 
   use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
@@ -35,7 +35,7 @@
   !!]
   type, extends(posteriorSampleStateInitializeClass) :: posteriorSampleStateInitializeLatinHypercube
      !!{
-     Implementation of a posterior sampling state initialization class which samples the inital state at random from the priors using Latin Hypercube sampling.
+     Implementation of a posterior sampling state initialization class which samples the initial state at random from the priors using Latin Hypercube sampling.
      !!}
      private
      integer                                      :: maximinTrialCount

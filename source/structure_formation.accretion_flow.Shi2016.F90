@@ -30,7 +30,7 @@
   
   ! Note: Throughout this class the following acronyms are used:
   !        * HRTA - "half radius turnaround" - i.e. half of the turnaround radius for a given shell (more precisely, we use the
-  !                 ratio of the virial radius to turnaround radius determined by spherical collapse models - this is previsely
+  !                 ratio of the virial radius to turnaround radius determined by spherical collapse models - this is previously
   !                 1/2 for an Einstein-de Sitter universe, but differs by a small amount for other cosmologies).
 
   ! Note: Throughout this class different three separate unit systems are used, identified by the variable name suffix:
@@ -377,7 +377,7 @@ contains
        overdensityMinimumScaled       =+1.001d0
        ! Choose a maximum overdensity. We use β=10 here as it's more than sufficient to allow most of the accretion stream to be captured,
        overdensityMaximumScaled       =+1.000d1
-       ! Build array of overdensityies.
+       ! Build array of overdensities.
        self%overdensityScaled         =Make_Range(overdensityMaximumScaled,overdensityMinimumScaled,countRadii,rangeTypeLogarithmic)
        ! Build a root finder which will be used for finding the time at half the turnaround radius.
        finder=rootFinder(                                            &
@@ -452,7 +452,7 @@ contains
        self%radiusHRTANowOriginal      =self%interpolatorRadiusHRTAOriginal      %interpolate(self%timeNowScaled)
        ! Make an estimate of the splashback radius (in units of the turnaround radius, using eqn. 2 of Shi 2016 which is for an
        ! Einstein-de Sitter universe). An approximate value is acceptable here as this is used only on the first iteration. It's
-       ! not clear if this is precisely what Shi (2016) chose, but it shouldn't matter.
+       ! not clear if this is precisely what Shi (2016) chose, but it should not matter.
        if (growthIndex <= 1.5d0) then
           self%radiusSplashbackTurnaround=+1.0d0/3.0d0**(2.0d0/3.0d0+2.0d0*growthIndex/9.0d0)
        else
@@ -688,7 +688,7 @@ contains
     double precision, intent(in   ) :: timeFinalScaled
     double precision                :: radiusScaled   , radiusGrowthRateScaled
 
-    ! Integrate the dyanmical equations governing the evolution of the shell radius starting from the turnaround time, I⋆, at
+    ! Integrate the dynamical equations governing the evolution of the shell radius starting from the turnaround time, I⋆, at
     ! which the radius is y⋆, and the rate of change of radius is zero (by definition).
     noShellCrossing=.true.
     call radiusScaledSolver(timeTurnaroundScaled__,timeFinalScaled,radiusTurnaroundScaled__,0.0d0,radiusScaled,radiusGrowthRateScaled)
@@ -774,7 +774,7 @@ contains
                   &            *(radius/radiusHRTA/self_%radiusMultistreamMinimumScaledHRTA)**3
           end if
        else
-          ! Mass is outside the splashback radius, so no shell crossing has occured. The mass ratio is therefore unity.
+          ! Mass is outside the splashback radius, so no shell crossing has occurred. The mass ratio is therefore unity.
           massEnclosedRatio=1.0d0
        end if
     end if

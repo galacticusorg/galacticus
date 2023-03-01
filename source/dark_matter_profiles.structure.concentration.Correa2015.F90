@@ -88,7 +88,7 @@ contains
       <variable>A</variable>
       <defaultValue>887.0d0</defaultValue>
       <defaultSource>\cite{correa_accretion_2015}</defaultSource>
-      <description>The parameter $A$ appearin in eqn.~(17) of \cite{correa_accretion_2015}.</description>
+      <description>The parameter $A$ appearing in eqn.~(17) of \cite{correa_accretion_2015}.</description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
     <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>

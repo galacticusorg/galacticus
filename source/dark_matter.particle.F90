@@ -23,7 +23,7 @@ Contains a module which provides a class that implements dark matter particle ph
 
 module Dark_Matter_Particles
   !!{
-  Provides a class that implements dark matter parrticle physics.
+  Provides a class that implements dark matter particle physics.
   !!}
   private
 

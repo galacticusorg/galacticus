@@ -314,7 +314,7 @@ contains
        ! constrained point. In either case we want the unconstrained solution.
        farahiMidpointBrownianBridgeRateNonCrossing=self%excursionSetFirstCrossing_%rateNonCrossing           (variance,     massMinimum    ,time,node)
     else if (variance >= varianceConstrained) then
-       ! Fo progenitor variances in excess of the constrained variance the non-crossing rate must be zero.
+       ! For progenitor variances in excess of the constrained variance the non-crossing rate must be zero.
        farahiMidpointBrownianBridgeRateNonCrossing=0.0d0
     else
        ! Use the constrained solution.

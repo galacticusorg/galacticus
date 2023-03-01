@@ -122,7 +122,7 @@ contains
 
   function nearestNeighborsConstructor(points) result(self)
     !!{
-    Constructs a nearest neighor search object.
+    Constructs a nearest neighbor search object.
     !!}
 #ifndef ANNAVAIL
     use :: Error, only : Error_Report

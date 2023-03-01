@@ -26,7 +26,7 @@ Contains a module which implements a critical overdensity excursion set barrier 
   !![
   <excursionSetBarrier name="excursionSetBarrierCriticalOverdensity">
    <description>
-    A excursion set barrier class that adopts a barrier equal to the critical linear theory overdensity for halo collpase.
+    A excursion set barrier class that adopts a barrier equal to the critical linear theory overdensity for halo collapse.
    </description>
   </excursionSetBarrier>
   !!]

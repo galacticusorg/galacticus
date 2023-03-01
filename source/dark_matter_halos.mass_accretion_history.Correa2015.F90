@@ -33,7 +33,7 @@
   !!]
   type, extends(darkMatterHaloMassAccretionHistoryClass) :: darkMatterHaloMassAccretionHistoryCorrea2015
      !!{
-     A dark matter halo mass accretion historiy class using the \cite{correa_accretion_2015} algorithm.
+     A dark matter halo mass accretion history class using the \cite{correa_accretion_2015} algorithm.
      !!}
      private
      class(cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_       => null()

@@ -145,7 +145,7 @@
 
   type :: documentContainer
      !!{
-     A container for XML docoment.
+     A container for XML document.
      !!}
      private
      type   (node), pointer :: doc       => null()

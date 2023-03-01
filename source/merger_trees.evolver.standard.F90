@@ -114,7 +114,7 @@
   !!]
   type, extends(mergerTreeEvolverClass) :: mergerTreeEvolverStandard
      !!{
-     Implementation of the standars merger tree evolver.
+     Implementation of the standard merger tree evolver.
      !!}
      private
      class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_              => null()
@@ -582,7 +582,7 @@ contains
                          end if
                          ! Check for interrupt.
                          if (interrupted) then
-                            ! If an interrupt occured call the specified procedure to handle it.
+                            ! If an interrupt occurred call the specified procedure to handle it.
                             call interruptProcedure(node)
                             ! Something happened so the tree is not deadlocked.
                             statusDeadlock=deadlockStatusIsNotDeadlocked
@@ -795,7 +795,7 @@ contains
     ! Get the basic component of the node.
     basic    => node %basic()
     timeNode =  basic%time ()
-    ! Ensure that the timestep doesn't exceed any event attached to the tree.
+    ! Ensure that the timestep does not exceed any event attached to the tree.
     treeEvent_ => node%hostTree%event
     do while (associated(treeEvent_))
        if (max(treeEvent_%time,timeNode) <= evolveToTime) then
@@ -815,7 +815,7 @@ contains
     end do
     ! Return early if the timestep is already zero.
     if (evolveToTime == timeNode) return
-    ! Ensure that the timestep doesn't exceed any event attached to the node.
+    ! Ensure that the timestep does not exceed any event attached to the node.
     event => node%event
     do while (associated(event))
        if (max(event%time,timeNode) <= evolveToTime) then

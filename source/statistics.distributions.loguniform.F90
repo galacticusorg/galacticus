@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Implementation of a 1D distibution function which is uniform in the logarithm of the variable.
+  Implementation of a 1D distribution function which is uniform in the logarithm of the variable.
   !!}
 
   !![
@@ -38,7 +38,7 @@
   !!]
   type, extends(distributionFunction1DClass) :: distributionFunction1DLogUniform
      !!{
-     Implementation of a 1D distibution function which is uniform in the logarithm of the variable.
+     Implementation of a 1D distribution function which is uniform in the logarithm of the variable.
      !!}
      private
      double precision :: limitLower, limitUpper

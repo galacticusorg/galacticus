@@ -229,7 +229,7 @@ contains
     massReferencePrevious =  -1.0d0
     if (schneider2015ReferenceCollapseMassRoot(massReferenceMaximum) > 0.0d0) then
        ! No solution can be found even at the maximum allowed mass. Simply set the reference mass to the maximum allowed mass -
-       ! the choice shouldn't matter too much as the abundances of such halos should be hugely suppressed.
+       ! the choice should not matter too much as the abundances of such halos should be hugely suppressed.
        massReference        =massReferenceMaximum
     else
        massReference        =self%finder%find(rootGuess=mass)

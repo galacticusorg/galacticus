@@ -66,7 +66,7 @@ contains
 
   double precision function Dark_Matter_Halo_Angular_Momentum_Scale(node,darkMatterProfileDMO_,darkMatterHaloScale_,useBullockDefinition)
     !!{
-    Returns the characteristic anuglar momentum scale of {\normalfont \ttfamily node} (as used in spin definitions) based on its mass, and energy.
+    Returns the characteristic angular momentum scale of {\normalfont \ttfamily node} (as used in spin definitions) based on its mass, and energy.
     !!}
     use :: Dark_Matter_Profiles_DMO        , only : darkMatterProfileDMOClass
     use :: Dark_Matter_Halo_Scales         , only : darkMatterHaloScaleClass

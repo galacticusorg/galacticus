@@ -38,7 +38,7 @@ Contains a module which implements a property extractor for basic node indices.
      galaxy\index{central galaxies!identifying}).
     \end{description}
     The {\normalfont \ttfamily nodeIndex} property corresponds by default to the index of the node in the original merger
-    tree. This means that as a galaxy evovles through the tree and, in particular, gets promoted into a new halo the index
+    tree. This means that as a galaxy evolves through the tree and, in particular, gets promoted into a new halo the index
     associated with a galaxy will change. This is useful to identify where the galaxy resides in the original (unevolved) tree
     structure, but does not allow galaxies to be traced from one output to the next using their {\normalfont \ttfamily
     nodeIndex} value. By use of the node operator {\normalfont \ttfamily \textless nodeOperator value="indexShift"/\textgreater} this behavior

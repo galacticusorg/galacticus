@@ -40,7 +40,7 @@
      Implementation of a task which evolves galaxies within a set of merger tree forests.
      !!}
      private
-     ! Parameter controlling maximum walltime for which forest evolution can run.
+     ! Parameter controlling maximum wall time for which forest evolution can run.
      integer         (kind_int8)                            :: walltimeMaximum
      ! Parameters controlling tree suspension.
      logical                                                :: suspendToRAM
@@ -416,7 +416,7 @@ contains
     ! Set status to success by default.
     if (present(status)) status=errorStatusSuccess
 
-    ! Initialize a lock used for controling tree initialization.
+    ! Initialize a lock used for controlling tree initialization.
     !$ call OMP_Init_Lock(initializationLock)
 
     ! Initialize tree counter and record that we are not finished processing trees.
@@ -464,7 +464,7 @@ contains
     <deepCopyFinalize variables="mergerTreeEvolver_ mergerTreeOutputter_ mergerTreeInitializor_ mergerTreeConstructor_ mergerTreeOperator_"/>  
     !!]
     !$omp end critical(evolveForestsDeepCopy)
-    ! Call routines to perform initializations which must occur for all threads if run in parallel.
+    ! Call routines to perform initialization which must occur for all threads if run in parallel.
     allocate(parameters)
     parameters=inputParameters(self%parameters)
     call parameters%parametersGroupCopy(self%parameters)
@@ -522,8 +522,8 @@ contains
           singleForestEvolveTime : if (OMP_Get_Thread_Num() == 0 .or. .not.self%evolveSingleForest) then
              ! If this is a new tree, perform any initialization and pre-evolution tasks on it.
              if (treeIsNew) then
-                ! Walk over all nodes and perform "node tree" initialization. This typically includes initializations related to
-                ! the static structure of the tree (e.g. assign scale radii, merging orbits, etc.). Initializations related to
+                ! Walk over all nodes and perform "node tree" initialization. This typically includes initialization related to
+                ! the static structure of the tree (e.g. assign scale radii, merging orbits, etc.). Initialization related to
                 ! evolution of the tree (e.g. growth rates of scale radii, baryonic component initialization) are typically handled
                 ! by the mergerTreeInitializor class which is called later.
                 call    mergerTreeOperator_%operatePreInitialization(tree)
@@ -829,7 +829,7 @@ contains
                    if (iOutput > self%outputTimes_%count()) then
                       treeIsFinished=.true.
                       ! For single forest evolution, record that we are exiting the evolution loop. This will be used to inform
-                      ! all non-master threads to exit also.  Note that this barrier corresponds with the one labelled
+                      ! all non-master threads to exit also.  Note that this barrier corresponds with the one labeled
                       ! "singleForestExitEvolutionOther" below (which will be seen by all non-master threads).
                       singleForestExitEvolutionMaster : if (self%evolveSingleForest) then
                          triggerExit=.true.
@@ -840,7 +840,7 @@ contains
                 end if
              end if singleForestFinalizeEvolution
              ! For single forest evolution, block until the master thread has finished finalizing evolution and, if no more
-             ! evolution is required, exit the evolution loop. Note that this barrier corresponds with the one labelled
+             ! evolution is required, exit the evolution loop. Note that this barrier corresponds with the one labeled
              ! "evolveSingleForest" above (which will be seen by the master thread alone).
              singleForestExitEvolutionOther : if (self%evolveSingleForest) then
                 !$omp barrier

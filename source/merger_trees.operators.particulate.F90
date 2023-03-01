@@ -197,7 +197,7 @@ contains
       <name>subtractRandomOffset</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true, the center-of-mass postions and velocities of the host and satellite are enforced to be matched with the values specified by the offset parameters. If false, due to limited number of particles in the representations, the center-of-mass postions and velocities may deviate slightly from the specified values, i.e. have small random offsets.</description>
+      <description>If true, the center-of-mass positions and velocities of the host and satellite are enforced to be matched with the values specified by the offset parameters. If false, due to limited number of particles in the representations, the center-of-mass positions and velocities may deviate slightly from the specified values, i.e. have small random offsets.</description>
     </inputParameter>
     <inputParameter>
       <name>energyDistributionPointsPerDecade</name>
@@ -221,7 +221,7 @@ contains
       <name>selection</name>
       <source>parameters</source>
       <defaultValue>var_str('all')</defaultValue>
-      <description>Selects the type of halo to ouput. Allowed options are ``{\normalfont \ttfamily all}'', ``{\normalfont \ttfamily hosts}'', and ``{\normalfont \ttfamily satellites}''.</description>
+      <description>Selects the type of halo to output. Allowed options are ``{\normalfont \ttfamily all}'', ``{\normalfont \ttfamily hosts}'', and ``{\normalfont \ttfamily satellites}''.</description>
     </inputParameter>
     !!]
     selection_=enumerationSelectionEncode(char(selection),includesPrefix=.false.)
@@ -651,7 +651,7 @@ contains
              call velocitySpherical%    rSet(speed                                                           )
              ! Get the corresponding cartesian coordinates.
              velocityCartesian=velocitySpherical
-             ! Accumulate the particle postion and velocity.
+             ! Accumulate the particle position and velocity.
              if (self%subtractRandomOffset) then
                 positionRandomOffset(1)=+positionRandomOffset(1)+positionCartesian%x()
                 positionRandomOffset(2)=+positionRandomOffset(2)+positionCartesian%y()
@@ -695,7 +695,7 @@ contains
           deallocate(self_)
           !$omp end parallel
           call displayCounterClear(verbosity=verbosityLevelWorking)
-          ! Subtract random offsets of the center-of-mass postion and velocity.
+          ! Subtract random offsets of the center-of-mass position and velocity.
           positionRandomOffset = positionRandomOffset/particleCountActual
           velocityRandomOffset = velocityRandomOffset/particleCountActual
           !$omp parallel do
@@ -974,7 +974,7 @@ contains
                &                   +energyDistribution%y          (i                            ,table=energyDistributionTablePotential) &
                &                   -energyDistribution%interpolate(radius_*radiusFactorAsymptote,table=energyDistributionTablePotential) &
                &                  )
-          ! Evaluate the remainder of the integral numerically and add on the asympototic part.
+          ! Evaluate the remainder of the integral numerically and add on the asymptotic part.
           call energyDistribution%populate(                                                                                                     &
                &                                                    +integratorEddington%integrate(                                             &
                &                                                                                   +log(radiusTruncate_                      ), &

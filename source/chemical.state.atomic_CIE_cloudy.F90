@@ -25,7 +25,7 @@
   !![
   <chemicalState name="chemicalStateAtomicCIECloudy">
    <description>
-    A checmical state class that computes the chemical state using the {\normalfont \scshape Cloudy} code and under the
+    A chemical state class that computes the chemical state using the {\normalfont \scshape Cloudy} code and under the
     assumption of collisional ionization equilibrium with no molecular contribution. Abundances are Solar, except for zero
     metallicity calculations which use {\normalfont \scshape Cloudy}'s ``primordial'' metallicity. The helium abundance for
     non-zero metallicity is scaled between primordial and Solar values linearly with metallicity. The {\normalfont \scshape

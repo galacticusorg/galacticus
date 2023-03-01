@@ -36,7 +36,7 @@ module Abundances_Structure
      module procedure Abundances_Multiply_Switched
   end interface operator(*)
 
-  ! Interface to "gerater than" operators.
+  ! Interface to "greater than" operators.
   interface operator(>)
      module procedure Abundances_Greater_Than
   end interface operator(>)

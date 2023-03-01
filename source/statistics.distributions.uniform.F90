@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Implementation of a uniform 1D distibution function.
+  Implementation of a uniform 1D distribution function.
   !!}
 
   !![
@@ -38,7 +38,7 @@
   !!]
   type, extends(distributionFunction1DClass) :: distributionFunction1DUniform
      !!{
-     Implementation of a uniform 1D distibution function.
+     Implementation of a uniform 1D distribution function.
      !!}
      private
      double precision :: limitLower, limitUpper

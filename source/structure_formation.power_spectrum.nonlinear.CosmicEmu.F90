@@ -227,7 +227,7 @@ contains
        parameters=parameters//trim(adjustl(parameterLabel))//char(10)
        powerSpectrumFile=powerSpectrumFile//".txt"
        parameters=powerSpectrumFile//char(10)//parameters//'2'//char(10)
-       ! Check for existance of the power spectrum, building it if necessary.
+       ! Check for existence of the power spectrum, building it if necessary.
        call File_Lock(char(powerSpectrumFile),self%fileLock,lockIsShared=.true.)
        if (.not.File_Exists(char(powerSpectrumFile))) then
           call File_Unlock(self%fileLock)

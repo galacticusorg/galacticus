@@ -84,7 +84,7 @@ contains
 
   function king1962ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily king1962} satellite tidaql stripping class which builds the object from a parameter set.
+    Constructor for the {\normalfont \ttfamily king1962} satellite tidal stripping class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -187,7 +187,7 @@ contains
     \begin{equation}
      \boldsymbol{\hat{x}} \boldsymbol{\mathsf{G}} \boldsymbol{\hat{x}}= \sum_{i=1}^3 a_i^2 \lambda_i.
     \end{equation}
-    The sum on the right hand side of the above is a weighted average of eigenvalues. Any weighted averge is maximized by
+    The sum on the right hand side of the above is a weighted average of eigenvalues. Any weighted average is maximized by
     setting the weight of the largest value to $1$, and all other weights to $0$. Therefore, our tidal field is maximized along
     the direction corresponding the eigenvector of $\boldsymbol{\mathsf{G}}$ with the largest eigenvalue. (Note that we want the
     largest positive eigenvalue, not the largest absolute eigenvalue as we're interested in stretching tidal fields, not

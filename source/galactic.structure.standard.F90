@@ -1070,7 +1070,7 @@ contains
            should be immutable. This seems like it must be a compiler bug, but I was unable to create a reduced test case to
            demonstrate this. So, the deallocate statement has been removed. It will automatically deallocate at function exit
            anyway, but by then the correct value of "massType" has been stored to the stack. The compiler revision hash for which
-           this problem occured is given in the "compiler" element.
+           this problem occurred is given in the "compiler" element.
          </description>
          <compiler name="GCC" revisionHash="c2a9a98a369528c8689ecb68db576f8e7dc2fa45"/>
          <codeRemoved>deallocate(galacticStructureStateTmp)</codeRemoved>

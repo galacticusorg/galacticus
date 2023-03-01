@@ -232,7 +232,7 @@ contains
     return
   end subroutine sussingHDF5Open
 
-  subroutine sussingHDF5Load(self,nodeSelfIndices,nodeIndexRanks,nodeDescendentLocations,nodeIncomplete,nodeCountTrees,nodeTreeIndices,treeIndicesAssigned,branchJumpCheckRequired,massUnits,lengthUnits,velocityUnits)
+  subroutine sussingHDF5Load(self,nodeSelfIndices,nodeIndexRanks,nodeDescendantLocations,nodeIncomplete,nodeCountTrees,nodeTreeIndices,treeIndicesAssigned,branchJumpCheckRequired,massUnits,lengthUnits,velocityUnits)
     !!{
     Load a {\normalfont \ttfamily sussing} HDF5 format merger tree data.
     !!}
@@ -247,13 +247,13 @@ contains
     implicit none
     class    (mergerTreeImporterSussingHDF5), intent(inout)                              :: self
     integer  (kind_int8                    ), intent(  out), dimension(:  ), allocatable :: nodeSelfIndices      , nodeTreeIndices
-    integer  (c_size_t                     ), intent(  out), dimension(:  ), allocatable :: nodeIndexRanks       , nodeDescendentLocations
+    integer  (c_size_t                     ), intent(  out), dimension(:  ), allocatable :: nodeIndexRanks       , nodeDescendantLocations
     logical                                 , intent(  out), dimension(:  ), allocatable :: nodeIncomplete
     integer  (kind=c_size_t                ), intent(  out)                              :: nodeCountTrees
     logical                                 , intent(  out)                              :: treeIndicesAssigned  , branchJumpCheckRequired
     type     (importerUnits                ), intent(  out)                              :: massUnits            , lengthUnits                , &
          &                                                                                  velocityUnits
-    integer  (kind=kind_int8               )               , dimension(:  ), allocatable :: mergerTreeHaloIndices, mergerTreeDescendentIndices
+    integer  (kind=kind_int8               )               , dimension(:  ), allocatable :: mergerTreeHaloIndices, mergerTreeDescendantIndices
     real                                                   , dimension(:  ), allocatable :: propertyReal
     integer                                                , dimension(:  ), allocatable :: propertyInteger
     integer  (kind=kind_int8               )               , dimension(:  ), allocatable :: propertyLongInteger
@@ -423,17 +423,17 @@ contains
     allocate(nodeIncomplete         (nodeCountTrees))
     allocate(nodeSelfIndices        (nodeCountTrees))
     allocate(nodeIndexRanks         (nodeCountTrees))
-    allocate(nodeDescendentLocations(nodeCountTrees))
+    allocate(nodeDescendantLocations(nodeCountTrees))
     allocate(nodeTreeIndices        (nodeCountTrees))
     nodeSelfIndices=self%nodes%nodeIndex
     nodeTreeIndices=-1
     nodeIndexRanks =sortIndex(nodeSelfIndices)
     nodeIncomplete =.false.
-    ! Read descendent information.
+    ! Read descendant information.
     call displayIndent ('Reading merger tree data',verbosityLevelWorking)
     mergerTrees=self%file%openGroup("MergerTree")
     call mergerTrees%readDataset  ("HaloID"         ,mergerTreeHaloIndices      )
-    call mergerTrees%readDataset  ("DescendantIndex",mergerTreeDescendentIndices)
+    call mergerTrees%readDataset  ("DescendantIndex",mergerTreeDescendantIndices)
     call mergerTrees%readAttribute("HaloIndexOffset",haloIndexOffset            )
     call mergerTrees%close()
     call displayUnindent     ('done',verbosityLevelWorking)
@@ -442,32 +442,32 @@ contains
        call displayCounter(int(100.0d0*dble(i-1)/dble(size(mergerTreeHaloIndices))),i==1,verbosityLevelWorking)
        iHalo=searchIndexed(nodeSelfIndices,nodeIndexRanks,mergerTreeHaloIndices(i))
        if (self%nodes(iHalo)%nodeIndex /= mergerTreeHaloIndices(i)) call Error_Report('mismatch in halo ID lookup'//{introspection:location})
-       if (mergerTreeDescendentIndices(i) < 0) then
-          self%nodes(iHalo)%descendentIndex=-1
+       if (mergerTreeDescendantIndices(i) < 0) then
+          self%nodes(iHalo)%descendantIndex=-1
        else
-          self%nodes(iHalo)%descendentIndex=mergerTreeHaloIndices(mergerTreeDescendentIndices(i)+1-haloIndexOffset)
+          self%nodes(iHalo)%descendantIndex=mergerTreeHaloIndices(mergerTreeDescendantIndices(i)+1-haloIndexOffset)
        end if
     end do
     deallocate(mergerTreeHaloIndices      )
-    deallocate(mergerTreeDescendentIndices)
+    deallocate(mergerTreeDescendantIndices)
     call displayCounterClear(       verbosityLevelWorking)
     call displayUnindent     ('done',verbosityLevelWorking)
     call displayIndent ('Locating descendants',verbosityLevelWorking)
     do i=1,nodeCountTrees
        call displayCounter(int(100.0d0*dble(i-1)/dble(nodeCountTrees)),i==1,verbosityLevelWorking)
-       if (self%nodes(i)%descendentIndex > 0) then
-          iProgenitor=searchIndexed(nodeSelfIndices,nodeIndexRanks,self%nodes(i)%descendentIndex)
-          nodeDescendentLocations(i)=iProgenitor
-          if (self%nodes(nodeDescendentLocations(i))%nodeIndex /= self%nodes(i)%descendentIndex) call Error_Report('mismatch in descendant ID lookup'//{introspection:location})
+       if (self%nodes(i)%descendantIndex > 0) then
+          iProgenitor=searchIndexed(nodeSelfIndices,nodeIndexRanks,self%nodes(i)%descendantIndex)
+          nodeDescendantLocations(i)=iProgenitor
+          if (self%nodes(nodeDescendantLocations(i))%nodeIndex /= self%nodes(i)%descendantIndex) call Error_Report('mismatch in descendant ID lookup'//{introspection:location})
        else
-          nodeDescendentLocations(i)=-1
+          nodeDescendantLocations(i)=-1
        end if
     end do
     call displayCounterClear(       verbosityLevelWorking)
     call displayUnindent     ('done',verbosityLevelWorking)
     ! Indicate that tree indices were not assigned.
     treeIndicesAssigned    =.false.
-    ! Indicate that branch jump checks are quired.
+    ! Indicate that branch jump checks are required.
     branchJumpCheckRequired=.true.
     ! Clean up display.
     call displayUnindent     ('done',verbosityLevelWorking)

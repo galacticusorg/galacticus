@@ -59,11 +59,11 @@ contains
     cloudyVersion="c17.03"
     ! Specify Cloudy path.
     cloudyPath   =inputPath(pathTypeDataDynamic)//cloudyVersion
-    ! Check for existance of executable - build if necessary.
+    ! Check for existence of executable - build if necessary.
     if (.not.File_Exists(cloudyPath//"/source/cloudy.exe")) then
-       ! Check for existance of source code - unpack and patch if necessary.
+       ! Check for existence of source code - unpack and patch if necessary.
        if (.not.File_Exists(cloudyPath)) then
-          ! Check for existance of tarball - download the Cloudy code if necessary.
+          ! Check for existence of tarball - download the Cloudy code if necessary.
           if (.not.File_Exists(cloudyPath//".tar.gz")) then
              call displayMessage("downloading Cloudy code....",verbosityLevelWorking)
              call download('"http://data.nublado.org/cloudy_releases/c17/'//char(cloudyVersion)//'.tar.gz"',char(cloudyPath)//'.tar.gz',status)

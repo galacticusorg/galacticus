@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Implementation of a 1D gamma distibution function.
+  Implementation of a 1D gamma distribution function.
   !!}
 
   !![
@@ -28,7 +28,7 @@
   !!]
   type, extends(distributionFunction1DClass) :: distributionFunction1DGamma
      !!{
-     Implementation of a 1D gamma distibution function.
+     Implementation of a 1D gamma distribution function.
      !!}
      private
      logical          :: limitLowerExists, limitUpperExists

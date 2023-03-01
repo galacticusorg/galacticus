@@ -46,7 +46,7 @@ contains
 
   function identityConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``identity'' output analysis property operateor class which takes a parameter set as input.
+    Constructor for the ``identity'' output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

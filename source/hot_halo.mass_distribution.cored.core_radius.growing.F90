@@ -184,7 +184,7 @@ contains
        growingRadius=self%coreRadiusOverScaleRadius
        return
     end if
-    ! Comptue the desired core radius (in units of the virial radius) for a fully populated halo.
+    ! Compute the desired core radius (in units of the virial radius) for a fully populated halo.
     coreRadiusOverVirialRadiusInitial=+self                     %coreRadiusOverScaleRadius       &
          &                            *     darkMatterProfile   %scale                    (    ) &
          &                            /self%darkMatterHaloScale_%radiusVirial             (node)

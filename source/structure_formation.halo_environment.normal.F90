@@ -308,7 +308,7 @@ contains
           variance =  self%cosmologicalMassVariance_%rootVariance(basic%mass(),self%time)**2
           if (variance > self%variance) then
              ! The variance on the mass scale of the tree exceeds that of the environment. Therefore, the overdensity is
-             ! drawn from the distribution expected for the background scale given that it hasn't collapsed to become a halo on
+             ! drawn from the distribution expected for the background scale given that it has not collapsed to become a halo on
              ! any larger scale.
              self%overdensityPrevious=+self%distributionOverdensity       %sample   (                                                                &
                   &                                                                  randomNumberGenerator_=node %hostTree%randomNumberGenerator_    &

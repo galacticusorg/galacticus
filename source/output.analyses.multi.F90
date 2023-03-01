@@ -184,7 +184,7 @@ contains
 
   double precision function multiLogLikelihood(self)
     !!{
-    Find the log-likelihood over all analyses. This asumes that the analyses are independent.
+    Find the log-likelihood over all analyses. This assumes that the analyses are independent.
     !!}
     implicit none
     class(outputAnalysisMulti), intent(inout) :: self

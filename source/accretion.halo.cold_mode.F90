@@ -438,7 +438,7 @@ contains
 
   double precision function coldModeColdModeFraction(self,node,accretionMode)
     !!{
-    Computes the fraction of accretion occuring in the specified mode.
+    Computes the fraction of accretion occurring in the specified mode.
     !!}
     use :: Abundances_Structure            , only : zeroAbundances
     use :: Chemical_Abundances_Structure   , only : chemicalAbundances
@@ -543,7 +543,7 @@ contains
                &          *radiusShock              &
                &          *coolingFunctionValue     &
                &          /velocityPreShock     **3
-          ! Compute the cold fraction using the model from eqn. (2) of Benson & Bower (2011). The original form doesn't allow the
+          ! Compute the cold fraction using the model from eqn. (2) of Benson & Bower (2011). The original form does not allow the
           ! cold fraction to go to zero in high mass halos, since "shockStability" can never be less than zero. This form is
           ! basically the equivalent functional form, but defined in terms of ln(ε) rather than ε.
           if (shockStability <= 0.0d0) then

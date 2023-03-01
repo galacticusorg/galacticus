@@ -51,7 +51,7 @@ contains
 
   function rezzolla2008ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily rezzolla2008} black hole bianry merger class which takes a parameter list as
+    Constructor for the {\normalfont \ttfamily rezzolla2008} black hole binary merger class which takes a parameter list as
     input.
     !!}
     use :: Input_Parameters, only : inputParameters

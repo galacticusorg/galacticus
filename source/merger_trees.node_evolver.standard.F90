@@ -195,7 +195,7 @@ contains
     <inputParameter>
       <name>odeLatentIntegratorIntervalsMaximum</name>
       <defaultValue>1000</defaultValue>
-      <description>The maxium number of intervals allowed in the integrator for latent variables.</description>
+      <description>The maximum number of intervals allowed in the integrator for latent variables.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -664,7 +664,7 @@ contains
              end do
              if (.not.(odeStatus == errorStatusSuccess .or. odeStatus == odeSolverInterrupt)) then
                 if (jacobianSolver) then
-                   ! Restore state of the node, switch to using a non-jacobian solver, and indicate that the step was not solved numerically.
+                   ! Restore state of the node, switch to using a non-Jacobian solver, and indicate that the step was not solved numerically.
                    solvedNumerically=.false.
                    jacobianSolver   =.false.
                    solverInitialized=.false.
@@ -740,7 +740,7 @@ contains
     integer                                                        :: iTime
     ! "evaluate" array is currently not used. It indicates which integrands must be evaluated, and which can (optionally) be
     ! ignored as they have already converged to the required tolerance. It is currently not used because the potential for
-    ! significant speed up appears to be small based on profiling. This will be model-depdendent though, so this decision can be
+    ! significant speed up appears to be small based on profiling. This will be model-depdendant though, so this decision can be
     ! revisited.
     !$GLC attributes unused :: evaluate
 
@@ -942,7 +942,7 @@ contains
 
   subroutine standardDerivativesCompute(node,interrupt,functionInterruptReturn,propertyType)
     !!{
-    Call routines to set alls derivatives for {\normalfont \ttfamily node}.
+    Call routines to set all derivatives for {\normalfont \ttfamily node}.
     !!}
     use :: Calculations_Resets, only : Calculations_Reset
     !![
@@ -1062,7 +1062,7 @@ contains
 
   function standardODEStepTolerances(propertyValues)
     !!{
-    Compute the tolerances on each property being evolved in the ODE stystem at the current timestep.
+    Compute the tolerances on each property being evolved in the ODE system at the current timestep.
     !!}
     implicit none
     double precision                         , dimension(self_%propertyCountActive) :: standardODEStepTolerances

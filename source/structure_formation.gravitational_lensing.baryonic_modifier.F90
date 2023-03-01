@@ -133,7 +133,7 @@ contains
 
   subroutine baryonicModifierRenormalize(self,redshift,scaleSource)
     !!{
-    Renormlize for \gls{pdf} for baryonic modification.
+    Renormalize for \gls{pdf} for baryonic modification.
     !!}
     use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none

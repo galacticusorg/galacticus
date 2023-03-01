@@ -263,7 +263,7 @@ contains
             &    *self%cosmologyFunctions_%expansionFactor(time) &
             &    *Mpc_per_km_per_s_To_Gyr 
     else if (size(coefficients) == 20) then
-       ! Use logarithmic spiral interoplation in physical position.
+       ! Use logarithmic spiral interpolation in physical position.
        coefficientsSpiral   = coefficients
        vectorInPlaneNormal  = reshape(coefficientsSpiral( 1:12),[2,2,3])
        coefficientsAngle    = reshape(coefficientsSpiral(13:16),[2,2  ])
@@ -666,7 +666,7 @@ contains
        i               =interpolator_  %locate(basic          %time())
        time         (1)=positionHistory%time  (i                     )
        time         (2)=positionHistory%time  (i+1                   )
-       ! We want to find a parent (and grandparent) whose existance spans these times.
+       ! We want to find a parent (and grandparent) whose existence spans these times.
        nodeParent  => node      %parent       
        basicParent => nodeParent%basic ()
        do while (Values_Less_Than(basicParent%time(),time(1),relTol=1.0d-2))

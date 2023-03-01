@@ -673,7 +673,7 @@ contains
     type            (matrix                         )                                :: covariance
     integer                                                                          :: status
 
-    ! Check for existance of a target distribution.
+    ! Check for existence of a target distribution.
     if (allocated(self%scatterValueTarget)) then
        ! Finalize analysis.
        call scatterFunction1DFinalizeAnalysis(self)

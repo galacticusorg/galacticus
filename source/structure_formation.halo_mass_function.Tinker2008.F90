@@ -195,7 +195,7 @@ contains
 
   subroutine tinker2008ParametersEvaluate(self,time,mass)
     !!{
-    Evaluate interpolating parametersn for the {\normalfont \ttfamily tinker2008} halo mass function class.
+    Evaluate interpolating parameters for the {\normalfont \ttfamily tinker2008} halo mass function class.
     !!}
     implicit none
     class           (haloMassFunctionTinker2008), intent(inout) :: self

@@ -466,7 +466,7 @@ contains
           doubleProperty=0
           self%doubleBufferCount=self%doubleBufferCount+1
        end if
-       ! Populate the output buffers with properties. We first populate with any "extra" properites that may be
+       ! Populate the output buffers with properties. We first populate with any "extra" properties that may be
        ! being computed, and then call the standard treeNode output method to populate with all "standard"
        ! properties.
        !![
@@ -893,7 +893,7 @@ contains
        ! Integer tuple property extractor - increment the integer property output count by the number of elements.
        self%integerPropertyCount=self%integerPropertyCount+extractor_%elementCount(time)
     class is (nodePropertyExtractorMulti        )
-       ! Multi proprty extractor - increment double and integer property output counts.
+       ! Multi property extractor - increment double and integer property output counts.
        self%integerPropertyCount=self%integerPropertyCount+extractor_%elementCount(elementTypeInteger,time)
        self% doublePropertyCount=self% doublePropertyCount+extractor_%elementCount(elementTypeDouble ,time)
     class default
@@ -1041,7 +1041,7 @@ contains
        deallocate(namesTmp       )
        deallocate(descriptionsTmp)
     class is (nodePropertyExtractorMulti        )
-       ! Multi proprty extractor - get the names, descriptions, and units.
+       ! Multi property extractor - get the names, descriptions, and units.
        if (extractor_%elementCount(elementTypeDouble ,time) > 0) then
           call extractor_%names       (elementTypeDouble ,time,namesTmp       )
           call extractor_%descriptions(elementTypeDouble ,time,descriptionsTmp)

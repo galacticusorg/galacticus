@@ -75,7 +75,7 @@ contains
 
   function campanelli2007ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily campanelli2007} black hole bianry recoild class which takes a parameter list as
+    Constructor for the {\normalfont \ttfamily campanelli2007} black hole binary recoiled class which takes a parameter list as
     input.
     !!}
     use :: Input_Parameters, only : inputParameters

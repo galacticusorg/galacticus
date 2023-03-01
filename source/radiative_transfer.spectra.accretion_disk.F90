@@ -21,7 +21,7 @@
 
   !![
   <radiativeTransferSpectrum name="radiativeTransferSpectrumAccretionDisk">
-   <description>A photon spectrum class for accretionDisk spectrums.</description>
+   <description>A photon spectrum class for accretion disk spectra.</description>
   </radiativeTransferSpectrum>
   !!]
   type, extends(radiativeTransferSpectrumClass) :: radiativeTransferSpectrumAccretionDisk

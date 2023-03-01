@@ -546,7 +546,7 @@ contains
 
   function Coordinates_Spherical_Scalar_Divide(self,divisor) result(scaled)
     !!{
-    Dvidei a spherical {\normalfont \ttfamily coordinate} object by a scalar.
+    Divide a spherical {\normalfont \ttfamily coordinate} object by a scalar.
     !!}
     implicit none
     class           (coordinate         ), allocatable   :: scaled

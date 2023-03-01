@@ -230,7 +230,7 @@ contains
     character       (len=6                         )                                :: label
 
     call displayIndent('Begin task: halo model generate')
-    ! Call routines to perform initializations which must occur for all threads if run in parallel.
+    ! Call routines to perform initialization which must occur for all threads if run in parallel.
     call Node_Components_Thread_Initialize(self%parameters)
     ! Read the halo catalog.
     call displayIndent("Reading halo catalog")

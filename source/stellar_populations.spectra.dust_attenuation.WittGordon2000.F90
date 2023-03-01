@@ -24,7 +24,7 @@
   !![
   <enumeration>
    <name>wittGordon2000Model</name>
-   <description>Enumerates the models available in the {\normalfont \ttfamily wittGorden2000} dust attenutation class.</description>
+   <description>Enumerates the models available in the {\normalfont \ttfamily wittGordon2000} dust attenuation class.</description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
    <visibility>public</visibility>

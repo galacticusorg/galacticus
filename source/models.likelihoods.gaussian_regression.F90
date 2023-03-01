@@ -59,7 +59,7 @@
     \log\mathcal{P}^\prime + \log\mathcal{L}_\mathrm{e} + N \sigma_{\log\mathcal{L}_\mathrm{e}} &lt; \log\mathcal{P} + \log\mathcal{L} - T \Delta\log\mathcal{L},
     \end{equation}
     where $N=${\normalfont \ttfamily sigmaBuffer}, $\Delta\log\mathcal{L}=${\normalfont \ttfamily logLikelihoodBuffer}, $T$ is the
-    temperature, $\log\mathcal{L}$ is the current log-likelhood, $\log\mathcal{P}$ is the current log-prior probability, and
+    temperature, $\log\mathcal{L}$ is the current log-likelihood, $\log\mathcal{P}$ is the current log-prior probability, and
     $\log\mathcal{P}^\prime$ is the proposed log-prior probability, or if
     \begin{equation}
     \sigma_{\log\mathcal{L}_\mathrm{e}} &lt; T \sigma_{\log\mathcal{L}},
@@ -67,7 +67,7 @@
     where $\sigma_{\log\mathcal{L}}=${\normalfont \ttfamily logLikelihoodErrorTolerance}, otherwise the simulator is used to compute
     the exact likelihood. In this way, the emulated likelihood is used if it is sufficiently below the current likelihood that, even
     accounting for the emulation error, transition to the new state is highly unlikely, or if the error on the likelihood emulation is
-    sufficiently small that it will not have a significant effect on the transition probabilty to the proposed state.
+    sufficiently small that it will not have a significant effect on the transition probability to the proposed state.
     
     If verbosity is set to {\normalfont \ttfamily info} or greater than a report will be issued every {\normalfont \ttfamily
     reportCount} evaluations. The report will give the proportions of simulated vs. emulated evaluations. Additionally, during the
@@ -831,7 +831,7 @@ contains
           ! fact that transitions between states are easier when the temperature is high.
           if (likelihoodEmulated+logPriorProposed+self%sigmaBuffer*likelihoodEmulatedError < logLikelihoodCurrent+logPriorCurrent-           self          %logLikelihoodBuffer                *temperature            ) gaussianRegressionWillEvaluate=.false.
           ! Return if the error is below the tolerance. We increase the tolerance value in proportion to temperature since the
-          ! likelihoods will be divided by this amount when evaluating transition probabilties.
+          ! likelihoods will be divided by this amount when evaluating transition probabilities.
           if (likelihoodEmulatedError                                                      <                                                 self          %logLikelihoodErrorTolerance        *temperature            ) gaussianRegressionWillEvaluate=.false.
           ! Return if the uncertainty in the emulated likelihood is comparable to the variance in the simulator itself, we may as
           ! well just use the emulated likelihood. The variogram returns the semi-variance of the simulator, and we care about
@@ -928,7 +928,7 @@ contains
 
   function polynomialIteratorConstructor(order,rank) result(self)
     !!{
-    Create a polynomial iterator for a poynomial of specified {\normalfont \ttfamily order} and {\normalfont \ttfamily rank}.
+    Create a polynomial iterator for a polynomial of specified {\normalfont \ttfamily order} and {\normalfont \ttfamily rank}.
     !!}
     implicit none
     type   (polynomialIterator)                :: self

@@ -31,7 +31,7 @@ module Correlation_Functions_Two_Point
   <functionClass>
    <name>correlationFunctionTwoPoint</name>
    <descriptiveName>Two-point Correlation Functions</descriptiveName>
-   <description>Class providing two-point correlatoin functions.</description>
+   <description>Class providing two-point correlation functions.</description>
    <default>powerSpectrumTransform</default>
    <method name="correlation" >
     <description>Return the two-point correlation function for $r=${\normalfont \ttfamily separation} [Mpc].</description>

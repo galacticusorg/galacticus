@@ -26,7 +26,7 @@ Contains a module which implements an ISM mass output analysis property extracto
   !![
   <nodePropertyExtractor name="nodePropertyExtractorHaloBias">
    <description>
-    A node property extractor which extracts the large scale, lineary theory bias for each node. For satellite nodes, this
+    A node property extractor which extracts the large scale, linearly theory bias for each node. For satellite nodes, this
     corresponds to the bias of their host halo.
    </description>
   </nodePropertyExtractor>

@@ -1109,10 +1109,10 @@ contains
     integer  (hsize_t       ), intent(in   ), optional :: chunkSize
     integer                  , intent(in   ), optional :: compressionLevel
     class    (hdf5Object    ), intent(in   ), target   :: inObject
-    ! <HDF5> Why are "message" and "locationPath" saved? Because if they aren't then they get dynamically allocated on the stack, which results
+    ! <HDF5> Why are "message" and "locationPath" saved? Because if they are not then they get dynamically allocated on the stack, which results
     ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
     ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
-    ! deallocated. This isn't an elegant solution, but it works.
+    ! deallocated. This is not an elegant solution, but it works.
     type     (varying_string), save                    :: locationPath       , message
     integer                                            :: errorCode
     integer  (kind=HID_T    )                          :: locationID
@@ -4771,7 +4771,7 @@ contains
     if (present(datasetReturned)) then
        datasetReturned=datasetObject
     else
-       ! Close the dataset unless this was an dataset object and it wasn't requested to be returned.
+       ! Close the dataset unless this was an dataset object and it was not requested to be returned.
        if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) call datasetObject%close()
     end if
 
@@ -4942,7 +4942,7 @@ contains
     if (present(datasetReturned)) then
        datasetReturned=datasetObject
     else
-       ! Close the dataset unless this was an dataset object and it wasn't requested to be returned.
+       ! Close the dataset unless this was an dataset object and it was not requested to be returned.
        if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) call datasetObject%close()
     end if
 
@@ -5113,7 +5113,7 @@ contains
     if (present(datasetReturned)) then
        datasetReturned=datasetObject
     else
-       ! Close the dataset unless this was an dataset object and it wasn't requested to be returned.
+       ! Close the dataset unless this was an dataset object and it was not requested to be returned.
        if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) call datasetObject%close()
     end if
 
@@ -5139,10 +5139,10 @@ contains
     integer  (kind=HSIZE_T     ), dimension(1), intent(in   ), optional :: readBegin         , readCount
     integer  (kind=HSIZE_T     ), dimension(1)                          :: datasetDimensions , datasetMaximumDimensions, &
          &                                                                 referenceEnd      , referenceStart
-    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results
+    ! <HDF5> Why is "referencedRegion" saved? Because if it is not then it gets dynamically allocated on the stack, which results
     ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
     ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
-    ! deallocated. This isn't an elegant solution, but it works.
+    ! deallocated. This is not an elegant solution, but it works.
     type     (hdset_reg_ref_t_f), save        , target                  :: referencedRegion
     integer                                                             :: errorCode
     integer  (kind=HID_T       )                                        :: datasetDataspaceID, dereferencedObjectID    , &
@@ -5435,10 +5435,10 @@ contains
     integer  (kind=HSIZE_T     )             , dimension(1), intent(in   ), optional :: readBegin         , readCount
     integer  (kind=HSIZE_T     )             , dimension(1)                          :: datasetDimensions , datasetMaximumDimensions, &
          &                                                                              referenceEnd      , referenceStart
-    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results
+    ! <HDF5> Why is "referencedRegion" saved? Because if it is not then it gets dynamically allocated on the stack, which results
     ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
     ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
-    ! deallocated. This isn't an elegant solution, but it works.
+    ! deallocated. This is not an elegant solution, but it works.
     type     (hdset_reg_ref_t_f), save       , target                                :: referencedRegion
     integer                                                                          :: errorCode
     integer  (kind=HID_T       )                                                     :: datasetDataspaceID, dereferencedObjectID    , &
@@ -5731,10 +5731,10 @@ contains
     integer  (kind=HSIZE_T     ), dimension(2  ), intent(in   ), optional :: readBegin         , readCount
     integer  (kind=HSIZE_T     ), dimension(2  )                          :: datasetDimensions , datasetMaximumDimensions, &
          &                                                                   referenceEnd      , referenceStart
-    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results
+    ! <HDF5> Why is "referencedRegion" saved? Because if it is not then it gets dynamically allocated on the stack, which results
     ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
     ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
-    ! deallocated. This isn't an elegant solution, but it works.
+    ! deallocated. This is not an elegant solution, but it works.
     type     (hdset_reg_ref_t_f), save          , target                  :: referencedRegion
     integer                                                               :: errorCode
     integer  (kind=HID_T       )                                          :: datasetDataspaceID, dereferencedObjectID    , &
@@ -6027,10 +6027,10 @@ contains
     integer  (kind=HSIZE_T     )             , dimension(2  ), intent(in   ), optional :: readBegin         , readCount
     integer  (kind=HSIZE_T     )             , dimension(2  )                          :: datasetDimensions , datasetMaximumDimensions, &
          &                                                                                referenceEnd      , referenceStart
-    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results
+    ! <HDF5> Why is "referencedRegion" saved? Because if it is not then it gets dynamically allocated on the stack, which results
     ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
     ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
-    ! deallocated. This isn't an elegant solution, but it works.
+    ! deallocated. This is not an elegant solution, but it works.
     type     (hdset_reg_ref_t_f), save         , target                                :: referencedRegion
     integer                                                                            :: errorCode
     integer  (kind=HID_T       )                                                       :: datasetDataspaceID, dereferencedObjectID    , &
@@ -6475,7 +6475,7 @@ contains
     if (present(datasetReturned)) then
        datasetReturned=datasetObject
     else
-       ! Close the dataset unless this was an dataset object and it wasn't requested to be returned.
+       ! Close the dataset unless this was an dataset object and it was not requested to be returned.
        if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) call datasetObject%close()
     end if
 
@@ -6653,7 +6653,7 @@ contains
     if (present(datasetReturned)) then
        datasetReturned=datasetObject
     else
-       ! Close the dataset unless this was an dataset object and it wasn't requested to be returned.
+       ! Close the dataset unless this was an dataset object and it was not requested to be returned.
        if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) call datasetObject%close()
     end if
 
@@ -6831,7 +6831,7 @@ contains
     if (present(datasetReturned)) then
        datasetReturned=datasetObject
     else
-       ! Close the dataset unless this was an dataset object and it wasn't requested to be returned.
+       ! Close the dataset unless this was an dataset object and it was not requested to be returned.
        if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) call datasetObject%close()
     end if
 
@@ -6860,10 +6860,10 @@ contains
          &                                                                                        referenceEnd          , referenceStart
     integer  (kind=HSIZE_T     ), allocatable, dimension(:,:)                                  :: readSelectionMap
     integer  (kind=kind_int8   ), allocatable, dimension(:)  , target                          :: datasetValueContiguous
-    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results
+    ! <HDF5> Why is "referencedRegion" saved? Because if it is not then it gets dynamically allocated on the stack, which results
     ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
     ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
-    ! deallocated. This isn't an elegant solution, but it works.
+    ! deallocated. This is not an elegant solution, but it works.
     type     (hdset_reg_ref_t_f), save                       , target                          :: referencedRegion
     integer                                                                                    :: errorCode             , i
     integer  (kind=HID_T       )                                                               :: datasetDataspaceID    , dereferencedObjectID    , &
@@ -7234,10 +7234,10 @@ contains
     integer  (kind=HSIZE_T     )             , dimension(1  )                                  :: datasetDimensions , datasetMaximumDimensions, &
          &                                                                                        referenceEnd      , referenceStart
     integer  (kind=HSIZE_T     ), allocatable, dimension(:,:)                                  :: readSelectionMap
-    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results
+    ! <HDF5> Why is "referencedRegion" saved? Because if it is not then it gets dynamically allocated on the stack, which results
     ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
     ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
-    ! deallocated. This isn't an elegant solution, but it works.
+    ! deallocated. This is not an elegant solution, but it works.
     type     (hdset_reg_ref_t_f), save                                              , target :: referencedRegion
     integer                                                                                  :: errorCode         , i
     integer  (kind=HID_T       )                                                             :: datasetDataspaceID, dereferencedObjectID    , &
@@ -7606,10 +7606,10 @@ contains
          &                                                                          referenceEnd      , referenceStart
     integer         (kind=HSIZE_T     ), dimension(:,:), allocatable             :: readSelectionMap
     integer         (kind=kind_int8   ), dimension(:,:), allocatable, target     :: datasetValueContiguous
-    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results
+    ! <HDF5> Why is "referencedRegion" saved? Because if it is not then it gets dynamically allocated on the stack, which results
     ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
     ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
-    ! deallocated. This isn't an elegant solution, but it works.
+    ! deallocated. This is not an elegant solution, but it works.
     type            (hdset_reg_ref_t_f), save          , target                  :: referencedRegion
     integer                                                                      :: errorCode
     integer         (kind=HID_T       )                                          :: datasetDataspaceID, dereferencedObjectID    , &
@@ -7985,10 +7985,10 @@ contains
     integer         (kind=HSIZE_T     )             , dimension(2  )                          :: datasetDimensions , datasetMaximumDimensions, &
          &                                                                                       referenceEnd      , referenceStart
     integer         (kind=HSIZE_T     ), allocatable, dimension(:,:)                          :: readSelectionMap
-    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results
+    ! <HDF5> Why is "referencedRegion" saved? Because if it is not then it gets dynamically allocated on the stack, which results
     ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
     ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
-    ! deallocated. This isn't an elegant solution, but it works.
+    ! deallocated. This is not an elegant solution, but it works.
     type            (hdset_reg_ref_t_f), save       , target                                  :: referencedRegion
     integer                                                                                   :: errorCode
     integer         (kind=HID_T       )                                                       :: datasetDataspaceID, dereferencedObjectID    , &
@@ -8361,10 +8361,10 @@ contains
     integer         (kind=HSIZE_T     )             , dimension(3    )                          :: datasetDimensions , datasetMaximumDimensions, &
          &                                                                                         referenceEnd      , referenceStart
     integer         (kind=HSIZE_T     ), allocatable, dimension(:,:  )                          :: readSelectionMap
-    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results
+    ! <HDF5> Why is "referencedRegion" saved? Because if it is not then it gets dynamically allocated on the stack, which results
     ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
     ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
-    ! deallocated. This isn't an elegant solution, but it works.
+    ! deallocated. This is not an elegant solution, but it works.
     type            (hdset_reg_ref_t_f), save       , target                                    :: referencedRegion
     integer                                                                                     :: errorCode
     integer         (kind=HID_T       )                                                         :: datasetDataspaceID, dereferencedObjectID    , &
@@ -8885,7 +8885,7 @@ contains
     if (present(datasetReturned)) then
        datasetReturned=datasetObject
     else
-       ! Close the dataset unless this was an dataset object and it wasn't requested to be returned.
+       ! Close the dataset unless this was an dataset object and it was not requested to be returned.
        if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) call datasetObject%close()
     end if
 
@@ -8914,10 +8914,10 @@ contains
     integer         (kind=HSIZE_T     ), dimension(1)                            :: datasetDimensions , datasetMaximumDimensions, &
          &                                                                          referenceEnd      , referenceStart
     integer         (kind=HSIZE_T     ), dimension(:,:), allocatable             :: readSelectionMap
-    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results
+    ! <HDF5> Why is "referencedRegion" saved? Because if it is not then it gets dynamically allocated on the stack, which results
     ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
     ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
-    ! deallocated. This isn't an elegant solution, but it works.
+    ! deallocated. This is not an elegant solution, but it works.
     type            (hdset_reg_ref_t_f), save          , target                  :: referencedRegion
     integer                                                                      :: errorCode         , i
     integer         (kind=HID_T       )                                          :: datasetDataspaceID, dereferencedObjectID    , &
@@ -9285,10 +9285,10 @@ contains
     integer         (kind=HSIZE_T     )             , dimension(1  )                          :: datasetDimensions , datasetMaximumDimensions, &
          &                                                                                       referenceEnd      , referenceStart
     integer         (kind=HSIZE_T     ), allocatable, dimension(:,:)                          :: readSelectionMap
-    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results
+    ! <HDF5> Why is "referencedRegion" saved? Because if it is not then it gets dynamically allocated on the stack, which results
     ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
     ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
-    ! deallocated. This isn't an elegant solution, but it works.
+    ! deallocated. This is not an elegant solution, but it works.
     type            (hdset_reg_ref_t_f), save       , target                                  :: referencedRegion
     integer                                                                                   :: errorCode         , i
     integer         (kind=HID_T       )                                                       :: datasetDataspaceID, dereferencedObjectID    , &
@@ -9818,7 +9818,7 @@ contains
     if (present(datasetReturned)) then
        datasetReturned=datasetObject
     else
-       ! Close the dataset unless this was an dataset object and it wasn't requested to be returned.
+       ! Close the dataset unless this was an dataset object and it was not requested to be returned.
        if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) call datasetObject%close()
     end if
 
@@ -9847,10 +9847,10 @@ contains
     integer         (kind=HSIZE_T     ), dimension(2  )                          :: datasetDimensions , datasetMaximumDimensions, &
          &                                                                          referenceEnd      , referenceStart
     integer         (kind=HSIZE_T     ), dimension(:,:), allocatable             :: readSelectionMap
-    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results
+    ! <HDF5> Why is "referencedRegion" saved? Because if it is not then it gets dynamically allocated on the stack, which results
     ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
     ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
-    ! deallocated. This isn't an elegant solution, but it works.
+    ! deallocated. This is not an elegant solution, but it works.
     type            (hdset_reg_ref_t_f), save          , target                  :: referencedRegion
     integer                                                                      :: errorCode
     integer         (kind=HID_T       )                                          :: datasetDataspaceID, dereferencedObjectID    , &
@@ -10224,10 +10224,10 @@ contains
     integer         (kind=HSIZE_T     )             , dimension(2  )                          :: datasetDimensions , datasetMaximumDimensions, &
          &                                                                                       referenceEnd      , referenceStart
     integer         (kind=HSIZE_T     ), allocatable, dimension(:,:)                          :: readSelectionMap
-    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results
+    ! <HDF5> Why is "referencedRegion" saved? Because if it is not then it gets dynamically allocated on the stack, which results
     ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
     ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
-    ! deallocated. This isn't an elegant solution, but it works.
+    ! deallocated. This is not an elegant solution, but it works.
     type            (hdset_reg_ref_t_f), save       , target                                  :: referencedRegion
     integer                                                                                   :: errorCode
     integer         (kind=HID_T       )                                                       :: datasetDataspaceID, dereferencedObjectID    , &
@@ -10756,7 +10756,7 @@ contains
     if (present(datasetReturned)) then
        datasetReturned=datasetObject
     else
-       ! Close the dataset unless this was an dataset object and it wasn't requested to be returned.
+       ! Close the dataset unless this was an dataset object and it was not requested to be returned.
        if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) call datasetObject%close()
     end if
 
@@ -10782,10 +10782,10 @@ contains
     integer         (kind=HSIZE_T     ), dimension(3)    , intent(in   ), optional :: readBegin         , readCount
     integer         (kind=HSIZE_T     ), dimension(3)                              :: datasetDimensions , datasetMaximumDimensions, &
          &                                                                            referenceEnd      , referenceStart
-    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results
+    ! <HDF5> Why is "referencedRegion" saved? Because if it is not then it gets dynamically allocated on the stack, which results
     ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
     ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
-    ! deallocated. This isn't an elegant solution, but it works.
+    ! deallocated. This is not an elegant solution, but it works.
     type            (hdset_reg_ref_t_f), save            , target                  :: referencedRegion
     integer                                                                        :: errorCode
     integer         (kind=HID_T       )                                            :: datasetDataspaceID, dereferencedObjectID    , &
@@ -11078,10 +11078,10 @@ contains
     integer         (kind=HSIZE_T     )             , dimension(3)    , intent(in   ), optional :: readBegin         , readCount
     integer         (kind=HSIZE_T     )             , dimension(3)                              :: datasetDimensions , datasetMaximumDimensions, &
          &                                                                                         referenceEnd      , referenceStart
-    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results
+    ! <HDF5> Why is "referencedRegion" saved? Because if it is not then it gets dynamically allocated on the stack, which results
     ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
     ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
-    ! deallocated. This isn't an elegant solution, but it works.
+    ! deallocated. This is not an elegant solution, but it works.
     type            (hdset_reg_ref_t_f), save       , target                                    :: referencedRegion
     integer                                                                                     :: errorCode
     integer         (kind=HID_T       )                                                         :: datasetDataspaceID, dereferencedObjectID    , &
@@ -11532,7 +11532,7 @@ contains
     if (present(datasetReturned)) then
        datasetReturned=datasetObject
     else
-       ! Close the dataset unless this was an dataset object and it wasn't requested to be returned.
+       ! Close the dataset unless this was an dataset object and it was not requested to be returned.
        if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) call datasetObject%close()
     end if
 
@@ -11558,10 +11558,10 @@ contains
     integer         (kind=HSIZE_T     ), dimension(4)      , intent(in   ), optional :: readBegin         , readCount
     integer         (kind=HSIZE_T     ), dimension(4)                                :: datasetDimensions , datasetMaximumDimensions, &
          &                                                                              referenceEnd      , referenceStart
-    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results
+    ! <HDF5> Why is "referencedRegion" saved? Because if it is not then it gets dynamically allocated on the stack, which results
     ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
     ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
-    ! deallocated. This isn't an elegant solution, but it works.
+    ! deallocated. This is not an elegant solution, but it works.
     type            (hdset_reg_ref_t_f), save              , target                  :: referencedRegion
     integer                                                                          :: errorCode
     integer         (kind=HID_T       )                                              :: datasetDataspaceID, dereferencedObjectID    , &
@@ -11854,10 +11854,10 @@ contains
     integer         (kind=HSIZE_T     )             , dimension(4)      , intent(in   ), optional :: readBegin         , readCount
     integer         (kind=HSIZE_T     )             , dimension(4)                                :: datasetDimensions , datasetMaximumDimensions, &
          &                                                                                           referenceEnd      , referenceStart
-    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results
+    ! <HDF5> Why is "referencedRegion" saved? Because if it is not then it gets dynamically allocated on the stack, which results
     ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
     ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
-    ! deallocated. This isn't an elegant solution, but it works.
+    ! deallocated. This is not an elegant solution, but it works.
     type            (hdset_reg_ref_t_f), save       , target                                      :: referencedRegion
     integer                                                                                       :: errorCode
     integer         (kind=HID_T       )                                                           :: datasetDataspaceID, dereferencedObjectID    , &
@@ -12308,7 +12308,7 @@ contains
     if (present(datasetReturned)) then
        datasetReturned=datasetObject
     else
-       ! Close the dataset unless this was an dataset object and it wasn't requested to be returned.
+       ! Close the dataset unless this was an dataset object and it was not requested to be returned.
        if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) call datasetObject%close()
     end if
 
@@ -12334,10 +12334,10 @@ contains
     integer         (kind=HSIZE_T     ), dimension(5)        , intent(in   ), optional :: readBegin         , readCount                    !   &&
     integer         (kind=HSIZE_T     ), dimension(5)                                  :: datasetDimensions , datasetMaximumDimensions, &
          &                                                                                referenceEnd      , referenceStart
-    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results
+    ! <HDF5> Why is "referencedRegion" saved? Because if it is not then it gets dynamically allocated on the stack, which results
     ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
     ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
-    ! deallocated. This isn't an elegant solution, but it works.
+    ! deallocated. This is not an elegant solution, but it works.
     type            (hdset_reg_ref_t_f), save                , target                  :: referencedRegion
     integer                                                                            :: errorCode
     integer         (kind=HID_T       )                                                :: datasetDataspaceID, dereferencedObjectID    , &
@@ -12630,10 +12630,10 @@ contains
     integer         (kind=HSIZE_T     )             , dimension(5)        , intent(in   ), optional :: readBegin         , readCount
     integer         (kind=HSIZE_T     )             , dimension(5)                                  :: datasetDimensions , datasetMaximumDimensions, &
          &                                                                                             referenceEnd      , referenceStart
-    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results
+    ! <HDF5> Why is "referencedRegion" saved? Because if it is not then it gets dynamically allocated on the stack, which results
     ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
     ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
-    ! deallocated. This isn't an elegant solution, but it works.
+    ! deallocated. This is not an elegant solution, but it works.
     type            (hdset_reg_ref_t_f), save       , target                                        :: referencedRegion
     integer                                                                                         :: errorCode
     integer         (kind=HID_T       )                                                             :: datasetDataspaceID, dereferencedObjectID    , &
@@ -13083,7 +13083,7 @@ contains
     if (present(datasetReturned)) then
        datasetReturned=datasetObject
     else
-       ! Close the dataset unless this was an dataset object and it wasn't requested to be returned.
+       ! Close the dataset unless this was an dataset object and it was not requested to be returned.
        if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) call datasetObject%close()
     end if
 
@@ -13109,10 +13109,10 @@ contains
     integer         (kind=HSIZE_T     ), dimension(6)          , intent(in   ), optional :: readBegin         , readCount                    !   &&
     integer         (kind=HSIZE_T     ), dimension(6)                                    :: datasetDimensions , datasetMaximumDimensions, &
          &                                                                                  referenceEnd      , referenceStart
-    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results
+    ! <HDF5> Why is "referencedRegion" saved? Because if it is not then it gets dynamically allocated on the stack, which results
     ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
     ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
-    ! deallocated. This isn't an elegant solution, but it works.
+    ! deallocated. This is not an elegant solution, but it works.
     type            (hdset_reg_ref_t_f), save                  , target                  :: referencedRegion
     integer                                                                              :: errorCode
     integer         (kind=HID_T       )                                                  :: datasetDataspaceID, dereferencedObjectID    , &
@@ -13405,10 +13405,10 @@ contains
     integer         (kind=HSIZE_T     )             , dimension(6)          , intent(in   ), optional :: readBegin         , readCount
     integer         (kind=HSIZE_T     )             , dimension(6)                                    :: datasetDimensions , datasetMaximumDimensions, &
          &                                                                                               referenceEnd      , referenceStart
-    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results
+    ! <HDF5> Why is "referencedRegion" saved? Because if it is not then it gets dynamically allocated on the stack, which results
     ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
     ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
-    ! deallocated. This isn't an elegant solution, but it works.
+    ! deallocated. This is not an elegant solution, but it works.
     type            (hdset_reg_ref_t_f), save       , target                                          :: referencedRegion
     integer                                                                                           :: errorCode
     integer         (kind=HID_T       )                                                               :: datasetDataspaceID, dereferencedObjectID    , &
@@ -13866,7 +13866,7 @@ contains
     if (present(datasetReturned)) then
        datasetReturned=datasetObject
     else
-       ! Close the dataset unless this was an dataset object and it wasn't requested to be returned.
+       ! Close the dataset unless this was an dataset object and it was not requested to be returned.
        if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) call datasetObject%close()
     end if
 
@@ -13914,10 +13914,10 @@ contains
     integer  (kind=HSIZE_T     ), dimension(1), intent(in   ), optional :: readBegin              , readCount
     integer  (kind=HSIZE_T     ), dimension(1)                          :: datasetDimensions      , datasetMaximumDimensions, &
          &                                                                 referenceEnd           , referenceStart
-    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results
+    ! <HDF5> Why is "referencedRegion" saved? Because if it is not then it gets dynamically allocated on the stack, which results
     ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
     ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
-    ! deallocated. This isn't an elegant solution, but it works.
+    ! deallocated. This is not an elegant solution, but it works.
     type     (hdset_reg_ref_t_f), save        , target                  :: referencedRegion
     integer                                                             :: errorCode
     integer  (kind=HID_T       )                                        :: dataTypeID          (6), datasetDataspaceID      , &
@@ -14225,10 +14225,10 @@ contains
     integer  (kind=HSIZE_T     )             , dimension(1), intent(in   ), optional :: readBegin              , readCount
     integer  (kind=HSIZE_T     )             , dimension(1)                          :: datasetDimensions      , datasetMaximumDimensions, &
          &                                                                              referenceEnd           , referenceStart
-    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results
+    ! <HDF5> Why is "referencedRegion" saved? Because if it is not then it gets dynamically allocated on the stack, which results
     ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
     ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
-    ! deallocated. This isn't an elegant solution, but it works.
+    ! deallocated. This is not an elegant solution, but it works.
     type     (hdset_reg_ref_t_f), save       , target                                :: referencedRegion
     integer                                                                          :: errorCode
     integer  (kind=HID_T       )                                                     :: dataTypeID          (6), datasetDataspaceID      , &
@@ -14601,7 +14601,7 @@ contains
     ! Call wrapper routine that will do the remainder of the read.
     call IO_HDF5_Read_Dataset_VarString_1D_Array_Allocatable_Do_Read(self,datasetName,datasetValue,dataTypeSize)
 
-    ! Close the dataset unless this was an dataset object and it wasn't requested to be returned.
+    ! Close the dataset unless this was an dataset object and it was not requested to be returned.
     if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) call datasetObject%close()
 
     return
@@ -14715,7 +14715,7 @@ contains
     ! Call wrapper routine that will do the remainder of the read.
     call IO_HDF5_Read_Dataset_VarString_1D_Array_Static_Do_Read(self,datasetName,datasetValue,dataTypeSize)
 
-    ! Close the dataset unless this was an dataset object and it wasn't requested to be returned.
+    ! Close the dataset unless this was an dataset object and it was not requested to be returned.
     if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) call datasetObject%close()
 
     return
@@ -14765,10 +14765,10 @@ contains
     integer         (kind=HSIZE_T     )             , dimension(1  )                          :: datasetDimensions , datasetMaximumDimensions, &
          &                                                                                       referenceEnd      , referenceStart
     integer         (kind=HSIZE_T     ), allocatable, dimension(:,:)                          :: readSelectionMap
-    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results
+    ! <HDF5> Why is "referencedRegion" saved? Because if it is not then it gets dynamically allocated on the stack, which results
     ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
     ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
-    ! deallocated. This isn't an elegant solution, but it works.
+    ! deallocated. This is not an elegant solution, but it works.
     type            (hdset_reg_ref_t_f), save       , target                                  :: referencedRegion
     integer                                                                                   :: errorCode
     integer         (kind=HSIZE_T     )                                                       :: i
@@ -15301,7 +15301,7 @@ contains
     if (present(datasetReturned)) then
        datasetReturned=datasetObject
     else
-       ! Close the dataset unless this was an dataset object and it wasn't requested to be returned.
+       ! Close the dataset unless this was an dataset object and it was not requested to be returned.
        if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) call datasetObject%close()
     end if
 
@@ -15330,10 +15330,10 @@ contains
     integer         (kind=HSIZE_T     )             , dimension(1  )                          :: datasetDimensions , datasetMaximumDimensions, &
          &                                                                                       referenceEnd      , referenceStart
     integer         (kind=HSIZE_T     ), allocatable, dimension(:,:)                          :: readSelectionMap
-    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results
+    ! <HDF5> Why is "referencedRegion" saved? Because if it is not then it gets dynamically allocated on the stack, which results
     ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
     ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
-    ! deallocated. This isn't an elegant solution, but it works.
+    ! deallocated. This is not an elegant solution, but it works.
     type            (hdset_reg_ref_t_f), save       , target                                  :: referencedRegion
     integer                                                                                   :: errorCode
     integer         (kind=HSIZE_T     )                                                       :: i
@@ -15866,7 +15866,7 @@ contains
     if (present(datasetReturned)) then
        datasetReturned=datasetObject
     else
-       ! Close the dataset unless this was an dataset object and it wasn't requested to be returned.
+       ! Close the dataset unless this was an dataset object and it was not requested to be returned.
        if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) call datasetObject%close()
     end if
 

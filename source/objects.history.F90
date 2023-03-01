@@ -953,7 +953,7 @@ contains
        self%time=append%time
        self%data=append%data
     else
-       ! A history already exists. Validate the provided append hsitory.
+       ! A history already exists. Validate the provided append history.
        if (append%time(1) <= self%time(size(self%time))) call Error_Report('history to append starts before end of history to which it is being appended'//{introspection:location})
        if (size(self%data,dim=2) /= size(append%data,dim=2)) call Error_Report('histories have different cardinalities'//{introspection:location})
        ! Do do the append.
@@ -1134,7 +1134,7 @@ contains
         if (addHistory%time(1) < history_%time(1) .or. addHistory%time(addCount) > history_%time(size(history_%time))) then
            if (.not.autoExtend_) call Error_Report("history needs to be extended, but is not permitted"//{introspection:location})
            if (history_%rangeType == rangeTypeUndefined) then
-              ! The history has no defined range type, so pass the time array of the history being addd to use as a template for new times.
+              ! The history has no defined range type, so pass the time array of the history being added to use as a template for new times.
               call history_%extend(times=addHistory%time)
            else
               ! The history has a defined range type, so simply pass the required extent of the range.

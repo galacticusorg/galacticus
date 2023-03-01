@@ -73,7 +73,7 @@ contains
 
   function zentner2005ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily zentner2005} satellite tidaql stripping class which builds the object from a parameter set.
+    Constructor for the {\normalfont \ttfamily zentner2005} satellite tidal stripping class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -87,7 +87,7 @@ contains
     <inputParameter>
       <name>efficiency</name>
       <defaultValue>2.5d0</defaultValue>
-      <description>The dimensionless rate coefficient apeparing in the \cite{zentner_physics_2005} expression for the tidal mass loss rate from subhalos.</description>
+      <description>The dimensionless rate coefficient appearing in the \cite{zentner_physics_2005} expression for the tidal mass loss rate from subhalos.</description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="satelliteTidalStrippingRadius" name="satelliteTidalStrippingRadius_" source="parameters"/>

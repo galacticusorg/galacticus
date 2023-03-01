@@ -42,7 +42,7 @@ module Satellite_Orbits
   class           (galacticStructureClass   ), pointer           :: galacticStructure__
   !$omp threadprivate(activeNode,darkMatterProfileDMO__,galacticStructure__)
 
-  ! Enumeratation used to indicate type of extremum.
+  ! Enumeration used to indicate type of extremum.
   integer                                    , parameter, public :: extremumPericenter            =-1
   integer                                    , parameter, public :: extremumApocenter             =+1
 

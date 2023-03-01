@@ -507,7 +507,7 @@ contains
 
   subroutine cllsnlssMttrDarkEnergyLinearNonlinearMap(self,time,linearNonlinearMap_)
     !!{
-    Tabulate the mapping between linea rna dnonlinear overdensity for the spherical collapse model.
+    Tabulate the mapping between linear and nonlinear overdensity for the spherical collapse model.
     !!}
     use :: Error, only : Error_Report
     implicit none

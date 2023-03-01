@@ -182,7 +182,13 @@ my %translations =
      },
      "f27a00e1de9bb8e77359c754fae445ea8788513c" => {
      	 values => {
-     	     "//nodePropertyExtractor[\@value]"                                                               => {"descendents" => "descendants"}
+     	     "//nodePropertyExtractor[\@value]"                                                               => {"descendents"    => "descendants"   }
+	 }
+     },
+     "ba10db0db7b0828b7e55bea0d2dd5113503fa971" => {
+	 values => {
+	     "//galacticFilter[\@value]"                                                                      => {"descendentNode" => "descendantNode"}                           ,
+	     "//nodePropertyExtractor[\@value]"                                                               => {"descendentNode" => "descendantNode"}
 	 }
      }
     );

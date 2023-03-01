@@ -80,7 +80,7 @@ contains
 
   function satelliteVirialOrbitExtract(self,node,time,instance)
     !!{
-    Implement a descendentNode output analysis.
+    Implement a descendantNode output analysis.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite
     implicit none

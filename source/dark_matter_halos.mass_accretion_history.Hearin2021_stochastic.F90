@@ -97,7 +97,7 @@
   double precision, dimension(2,2,3  ), parameter :: meanDefault                =reshape(                                     &
        &                                                                                 [                                    &
        !                                                                                 Each row is the mean of the stated parameter for:
-       !                                                                                   early foming/low mass : early forming/high mass : late forming/low mass : late forming/high mass
+       !                                                                                   early forming/low mass : early forming/high mass : late forming/low mass : late forming/high mass
        !                                                                                  u_early
        &                                                                                  +0.70d0, +3.50d0, +0.50d0, +2.81d0, &
        !                                                                                  u_late
@@ -112,7 +112,7 @@
   double precision, dimension(2,2,3,3), parameter :: choleskyDefault            =reshape(                                     &
        &                                                                                 [                                    &
        !                                                                                  Each row is the mean of the stated parameter for:
-       !                                                                                   early foming/low mass : early forming/high mass : late forming/low mass : late forming/high mass
+       !                                                                                   early forming/low mass : early forming/high mass : late forming/low mass : late forming/high mass
        !                                                                                  u_early  -u_early
        &                                                                                  +0.10d0, -0.25d0, -0.20d0, -0.70d0, &
        !                                                                                  u_early  -u_late
@@ -138,7 +138,7 @@
   double precision, dimension(2,3), parameter :: log10MassZeroMean              =reshape(                 &
        &                                                                                 [                &
        !                                                                                  Each row is the zero-point of the mass transition for the mean for:
-       !                                                                                   early foming : late forming
+       !                                                                                   early forming : late forming
        !                                                                                  u_early
        &                                                                                  13.0d0, 13.0d0, &
        !                                                                                  u_late
@@ -152,7 +152,7 @@
   double precision, dimension(2,3), parameter :: rollOverRateLogMassMean        =reshape(               &
        &                                                                                 [              &
        !                                                                                  Each row is the roll-over rate of the mass transition for the mean for:
-       !                                                                                   early foming : late forming
+       !                                                                                   early forming : late forming
        !                                                                                  u_early
        &                                                                                  0.5d0, 0.5d0, &
        !                                                                                  u_late
@@ -166,7 +166,7 @@
   double precision, dimension(2,3,3), parameter :: log10MassZeroCholesky        =reshape(                   &
        &                                                                                 [                  &
        !                                                                                  Each row is the zero-point of the mass transition for the Cholesky matrix element for:
-       !                                                                                   early foming : late forming
+       !                                                                                   early forming : late forming
        !                                                                                  u_early  -u_early
        &                                                                                  13.00d0, 13.00d0, &
        !                                                                                  u_early  -u_late
@@ -192,7 +192,7 @@
   double precision, dimension(2,3,3), parameter :: rollOverRateLogMassCholesky  =reshape(               &
        &                                                                                 [              &
        !                                                                                  Each row is the roll-over rate of the mass transition for the Cholesky matrix element for:
-       !                                                                                   early foming : late forming
+       !                                                                                   early forming : late forming
        !                                                                                  u_early  -u_early
        &                                                                                  0.5d0, 0.5d0, &
        !                                                                                  u_early  -u_late

@@ -577,7 +577,7 @@ contains
     naozBarkana2007AccretionRateMetals=zeroAbundances
     if (accretionMode      == accretionModeCold) return
     if (node%isSatellite()                     ) return
-    ! Calculate IGM metalicity from redshift
+    ! Calculate IGM metallicity from redshift
     basic          => node%basic                                (            )
     metallicityIGM =  self%intergalacticMediumState_%metallicity(basic%time())
     ! Get the rate of metal mass accretion.
@@ -643,7 +643,7 @@ contains
     naozBarkana2007FailedAccretionRateMetals=zeroAbundances
     if (accretionMode      == accretionModeCold) return
     if (node%isSatellite()                     ) return
-    ! Calculate IGM metalicity from redshift
+    ! Calculate IGM metallicity from redshift
     basic          => node%basic                                (            )
     metallicityIGM =  self%intergalacticMediumState_%metallicity(basic%time())
     ! Get the rate of failed metal mass accretion.

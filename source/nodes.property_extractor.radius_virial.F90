@@ -33,7 +33,7 @@ Contains a module which implements a virial radius output analysis property extr
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRadiusVirial
      !!{
-     A virial radius property extractor output analysis class. The property extracted is the ''\gls{dmou}'' virual radius,
+     A virial radius property extractor output analysis class. The property extracted is the ''\gls{dmou}'' virial radius,
      defined as the radius enclosing a density contrast as defined by the supplied {\normalfont \ttfamily
      virialDensityContrast} class object. Note that the density contrast is defined here at the time at which the halo
      presently exists, \emph{not} at the time at which is was last isolated (as is used for standard definition of virial

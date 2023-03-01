@@ -61,7 +61,7 @@ contains
       <name>missingHalosAreFatal</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>If true, if a halo is not found during the search through hosts and descendents then a fatal error occurs. Otherwise, such missing halos are ignored, and a {\normalfont \ttfamily hostedRootID} value of $-1$ is assigned to the particle.</description>
+      <description>If true, if a halo is not found during the search through hosts and descendants then a fatal error occurs. Otherwise, such missing halos are ignored, and a {\normalfont \ttfamily hostedRootID} value of $-1$ is assigned to the particle.</description>
     </inputParameter>
     !!]
     self=nbodyOperatorHostedRootID(missingHalosAreFatal)
@@ -102,7 +102,7 @@ contains
     class  (nbodyOperatorHostedRootID), intent(inout)               :: self
     type   (nBodyData                ), intent(inout), dimension(:) :: simulations
     integer(c_size_t                 ), pointer      , dimension(:) :: hostedRootID, isolatedHostID, &
-         &                                                             descendentID, particleIDs
+         &                                                             descendantID, particleIDs
     integer(c_size_t                 ), allocatable  , dimension(:) :: indexID
     integer(c_size_t                 )                              :: i           , j             , &
          &                                                             k           , l             , &
@@ -113,7 +113,7 @@ contains
        ! Retrieve required properties.
        particleIDs    => simulations(iSimulation)%propertiesInteger%value('particleID'    )
        isolatedHostID => simulations(iSimulation)%propertiesInteger%value('isolatedHostID')
-       descendentID   => simulations(iSimulation)%propertiesInteger%value('descendentID'  )
+       descendantID   => simulations(iSimulation)%propertiesInteger%value('descendantID'  )
        ! Allocate workspace.
        allocate(indexID     (size(particleIDs)))
        allocate(hostedRootID(size(particleIDs)))
@@ -122,18 +122,18 @@ contains
        ! Visit each particle.
        !$omp parallel do private(j,k,l) schedule(dynamic)
        do i=1_c_size_t,size(hostedRootID)
-          ! Trace descendents through hosts.
+          ! Trace descendants through hosts.
           !! Begin at the current particle.
           j=i
-          !! Step up through hosts and down through descendents until none remain.
-          do while (descendentID(j) >= 0_c_size_t .or. isolatedHostID(j) >= 0_c_size_t)
+          !! Step up through hosts and down through descendants until none remain.
+          do while (descendantID(j) >= 0_c_size_t .or. isolatedHostID(j) >= 0_c_size_t)
              !! Move up through hosts.
              if      (isolatedHostID(j) >= 0_c_size_t) then
                 l=isolatedHostID(j)
-             else if (descendentID  (j) > 0_c_size_t) then
-                l=descendentID  (j)
+             else if (descendantID  (j) > 0_c_size_t) then
+                l=descendantID  (j)
              else
-                call Error_Report('no host or descendent - this should not happen'//{introspection:location})
+                call Error_Report('no host or descendant - this should not happen'//{introspection:location})
              end if
              k=searchIndexed(particleIDs,indexID,l)
              if     (                                 &

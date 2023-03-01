@@ -126,7 +126,7 @@ contains
 
   function cylindricalSymmetry(self)
     !!{
-    Returns symmetry label for mass dsitributions with cylindrical symmetry.
+    Returns symmetry label for mass distributions with cylindrical symmetry.
     !!}
     implicit none
     type (enumerationMassDistributionSymmetryType)                :: cylindricalSymmetry

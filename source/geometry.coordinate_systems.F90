@@ -107,7 +107,7 @@ contains
 
     ! Cylindrical radius.
     Coordinates_Spherical_To_Cylindrical(1)=sphericalPosition(1)*sin(sphericalPosition(2))
-    ! Cylinderical phi.
+    ! Cylindrical phi.
     Coordinates_Spherical_To_Cylindrical(2)=sphericalPosition(3)
     ! Cylindrical z.
     Coordinates_Spherical_To_Cylindrical(3)=sphericalPosition(1)*cos(sphericalPosition(2))

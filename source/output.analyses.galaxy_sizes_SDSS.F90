@@ -26,7 +26,7 @@ Contains a module which implements a galaxy size output analysis class for SDSS 
   !![
   <outputAnalysis name="outputAnalysisGalaxySizesSDSS">
    <description>
-    An output analysis class which computes the mass-dependentr $z\approx 0.07$ galaxy size distribution of \cite{shen_size_2003} from
+    An output analysis class which computes the mass-dependent $z\approx 0.07$ galaxy size distribution of \cite{shen_size_2003} from
     the \gls{sdss}. The size function reported by \cite{shen_size_2003} is converted to the appropriate cosmology for the given \glc\
     model (assuming that sizes scale as the angular diameter distance, and masses as the square of the luminosity distance). The model
     sizes and masses are then used to construct a mass-dependent radius function by binning into a 2-D histogram using the size and

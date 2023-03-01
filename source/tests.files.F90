@@ -35,7 +35,7 @@ program Test_Files
   
   call displayVerbositySet   (verbosityLevelStandard                                                                       )
   call Unit_Tests_Begin_Group("File utilities"                                                                             )
-  ! File existance.
+  ! File existence.
   call Assert                ('file exists'        ,File_Exists(inputPath(pathTypeExec)//'source/tests.files.F90' ),.true. )
   call Assert                ('file does not exist',File_Exists(inputPath(pathTypeExec)//'source/tests.bork.crump'),.false.)
   ! File renaming.

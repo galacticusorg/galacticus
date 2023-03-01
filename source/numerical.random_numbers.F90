@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which provides a class that implements random number generators.
+Contains a module which provieds a class that implements random number generators.
 !!}
 
 module Numerical_Random_Numbers

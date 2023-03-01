@@ -133,7 +133,7 @@ contains
     end if
     ! GSL only evaluates this function for |x|<1.
     if (abs(x) <= 1.0d0) then
-       ! |x|<1 so simply call the GSL function to compute the function (specitial cases are treated separately).
+       ! |x|<1 so simply call the GSL function to compute the function (special cases are treated separately).
        if (.not.present(toleranceRelative) .and. abs(b(1)-a(1)-a(2)-dnint(b(1)-a(1)-a(2))) >= 1000.0d0*gsl_dbl_epsilon) then
           statusActual=GSL_SF_Hyperg_2F1_E(a(1),a(2),b(1),x,gslResult)
           Hypergeometric_2F1=gslResult%val
@@ -195,7 +195,7 @@ contains
              if (present(error)) error=error+gslResult%err*abs(prefactor2)
           end if
        else
-          ! Use a Pfaff transformation to evaluate in terms of a hypergeometric function with |x|<1 (specitial cases are treated separately).
+          ! Use a Pfaff transformation to evaluate in terms of a hypergeometric function with |x|<1 (special cases are treated separately).
           if (.not.present(toleranceRelative) .and. abs(a(1)-a(2)-dnint(a(1)-a(2))) >= 1000.0d0*gsl_dbl_epsilon) then
              statusActual=GSL_SF_Hyperg_2F1_E(a(2),b(1)-a(1),b(1),x/(x-1.0d0),gslResult)
              prefactor1=1.0d0/(1.0d0-x)**a(2)
@@ -458,7 +458,7 @@ contains
                 Sn=Sn-numerator/denominator
              end if
              ! If the increment of the series in one step is larger than the asymptotic value of the series,
-             ! roundoff error may prevent the result from achiving specified relative tolerance. This usually
+             ! roundoff error may prevent the result from achieving specified relative tolerance. This usually
              ! happens when x is close to -1. In such case, try to increase the tolerance.
              if (abs(delta/Sn) > 1.0d0) toleranceActual=max(abs(delta/Sn)*gsl_dbl_epsilon, toleranceActual)
           end if
@@ -470,7 +470,7 @@ contains
        Hypergeometric_pFq_approx_series=Sn
        if (present(toleranceRelative)) then
           if (toleranceActual > toleranceRelative) then
-             message='Warning: roundoff error prevents the result from achiving specified relative tolerance ['
+             message='Warning: roundoff error prevents the result from achieving specified relative tolerance ['
              write (label,'(e12.6)') toleranceRelative
              message=message//trim(label)//']. A relative tolerance of ['
              write (label,'(e12.6)') toleranceActual

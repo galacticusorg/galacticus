@@ -29,7 +29,7 @@
   <darkMatterProfileDMO name="darkMatterProfileDMOAccretionFlow">
     <description>
       An implementation of a dark matter density profile which includes the accretion flow surrounding the halo. The density
-      profile is modelled as
+      profile is modeled as
       \begin{equation}
       \rho(r) = f_\mathrm{trans}(r) \rho_\mathrm{halo}(r) + \rho_\mathrm{accretion}(r),
       \end{equation}
@@ -399,7 +399,7 @@ contains
 
   double precision function accretionFlowRadiusCircularVelocityMaximum(self,node)
     !!{
-    Returns the radius (in Mpc) at which the maximum circular velocity is acheived in the dark matter profile of {\normalfont \ttfamily node}.
+    Returns the radius (in Mpc) at which the maximum circular velocity is achieved in the dark matter profile of {\normalfont \ttfamily node}.
     !!}
     implicit none
     class(darkMatterProfileDMOAccretionFlow), intent(inout) :: self

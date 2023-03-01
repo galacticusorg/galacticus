@@ -57,7 +57,7 @@
     and $\Sigma_\mathrm{comp,0}=c \Sigma_\mathrm{HI}/M_\odot \hbox{pc}^{-2}$ where $c=${\normalfont \ttfamily
     [clumpingFactorMolecularComplex]} is a density enhancement factor relating the surface density of molecular complexes to
     the gas density on larger scales. Alternatively, if {\normalfont \ttfamily [molecularFractionFast]} is set to true, the
-    molecular fraction will be computed using the faster (but less acccurate at low molecular fraction) formula
+    molecular fraction will be computed using the faster (but less accurate at low molecular fraction) formula
     \begin{equation}
      f_\mathrm{H_2} = 1 - { 3s/4 \over (1 + s/4)}.
     \end{equation}

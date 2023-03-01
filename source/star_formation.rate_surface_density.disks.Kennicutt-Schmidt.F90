@@ -34,7 +34,7 @@
     \end{equation}
     where $A=${\normalfont \ttfamily [normalization]} and $N=${\normalfont \ttfamily [exponent]} are parameters. Optionally, if
     the {\normalfont \ttfamily [truncate]} parameter is set to true, then the star formation rate is truncated below a critical
-    surface dexponentensity such that
+    surface density such that
     \begin{equation}
     \dot{\Sigma}_\star = \left\{ \begin{array}{ll} A \left({\Sigma_\mathrm{H} \over M_\odot \hbox{pc}^{-2}} \right)^N &amp;
     \hbox{ if } \Sigma_\mathrm{gas,disk} &gt; \Sigma_\mathrm{crit} \\ A \left({\Sigma_\mathrm{H} \over M_\odot \hbox{pc}^{-2}}

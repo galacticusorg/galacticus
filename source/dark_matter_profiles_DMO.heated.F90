@@ -514,7 +514,7 @@ contains
     if (radiusInitial < fractionRadiusSmall*radiusFinal_) then
        ! The initial radius is a small fraction of the final radius. Check if the assumption of no shell crossing is locally
        ! broken. If the gradient of the heating term is less than that of the gravitational potential term then it is likely that
-       ! no root exists. In this case shell crossing is likely to be occuring. Simply return a value of zero, which places the
+       ! no root exists. In this case shell crossing is likely to be occurring. Simply return a value of zero, which places the
        ! root at the current radius.
        if (.not.self_%noShellCrossingIsValid(node_,radiusInitial,radiusFinal_)) then
           heatedRadiusInitialRoot=0.0d0
@@ -577,7 +577,7 @@ contains
 
   double precision function heatedRadiusCircularVelocityMaximum(self,node)
     !!{
-    Returns the radius (in Mpc) at which the maximum circular velocity is acheived in the dark matter profile of {\normalfont \ttfamily node}.
+    Returns the radius (in Mpc) at which the maximum circular velocity is achieved in the dark matter profile of {\normalfont \ttfamily node}.
     !!}
     implicit none
     class(darkMatterProfileDMOHeated), intent(inout) :: self

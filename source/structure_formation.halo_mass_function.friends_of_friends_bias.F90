@@ -322,7 +322,7 @@ contains
     call nodeWork%destroy()
     deallocate(nodeWork)
     ! Compute the mass function from the intrinsic mass function evaluated at the halo mass
-    ! corresponding to infinte resolution, and modified by the Jacobian of the mass
+    ! corresponding to infinite resolution, and modified by the Jacobian of the mass
     ! transformation.
     fofBiasDifferential=+self%massFunctionIntrinsic%differential(time,massHaloInfinite,node=node) &
          &              /massJacobian
