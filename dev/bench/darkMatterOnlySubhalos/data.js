@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1677656084373,
+  "lastUpdate": 1677684039188,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
@@ -8575,6 +8575,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 25619.8050208255,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5da960e711eba8a2b71d2d8e9318fe985a87d4bd",
+          "message": "Merge pull request #392 from galacticusorg/allowedParametersScaling\n\nImprove run-time scaling of `allowedParameters()` methods for very large classes",
+          "timestamp": "2023-02-28T21:49:58Z",
+          "tree_id": "7193342c4ca93fe0a1dca18d1ceecd0943db1548",
+          "url": "https://github.com/galacticusorg/galacticus/commit/5da960e711eba8a2b71d2d8e9318fe985a87d4bd"
+        },
+        "date": 1677684037544,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 52.221,
+            "unit": "seconds",
+            "range": 0.0257856549265766
           }
         ]
       }
