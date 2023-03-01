@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1677656068847,
+  "lastUpdate": 1677656079746,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
@@ -8350,6 +8350,34 @@ window.BENCHMARK_DATA = {
             "value": 289.239,
             "unit": "seconds",
             "range": 1.23868837889082
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "id": "a46cb17c8d15102eb0497fc06938117c4091a061",
+          "message": "fix: Provide a `massDistribution` method for the \"very simple size\" disk component",
+          "timestamp": "2023-02-28T23:29:59Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/a46cb17c8d15102eb0497fc06938117c4091a061"
+        },
+        "date": 1677656078300,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 242.639,
+            "unit": "seconds",
+            "range": 0.0955034030874793
           }
         ]
       }
