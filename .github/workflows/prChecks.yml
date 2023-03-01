@@ -17,6 +17,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - name: Mark directory safe        
+        run: |
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
       - name: Install tools
         run: |
           sudo apt -y update
@@ -44,6 +47,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - name: Mark directory safe        
+        run: |
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
       - name: Install tools
         run: |
           sudo apt -y update
@@ -76,6 +82,9 @@ jobs:
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Mark directory safe        
+        run: |
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
       - name: Get changed scripts
         id: changed-scripts
         uses: tj-actions/changed-files@v35
@@ -113,6 +122,9 @@ jobs:
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Mark directory safe        
+        run: |
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
       - name: Get changed modules
         id: changed-modules
         uses: tj-actions/changed-files@v35
@@ -143,6 +155,9 @@ jobs:
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Mark directory safe        
+        run: |
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
       - name: Get changed files
         id: changed-files
         uses: tj-actions/changed-files@v35
@@ -171,6 +186,9 @@ jobs:
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Mark directory safe        
+        run: |
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
       - name: Install tools
         run: |
           apt -y update
@@ -178,7 +196,6 @@ jobs:
       - name: Build class information
         run: |
           cd $GALACTICUS_EXEC_PATH
-          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           make -j2 work/build/stateStorables.xml
       - name: Get changed files
         id: changed-files
@@ -219,6 +236,9 @@ jobs:
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Mark directory safe        
+        run: |
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
       - name: Install tools
         run: |
           apt -y update
@@ -226,7 +246,6 @@ jobs:
       - name: Build class information
         run: |
           cd $GALACTICUS_EXEC_PATH
-          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           make -j2 work/build/stateStorables.xml
       - name: Get changed files
         id: changed-files
