@@ -134,9 +134,9 @@ contains
        !![
        <objectBuilder class="massDistribution" parameterName="massDistributionDisk" name="massDistributionStellar_" source="subParameters" threadPrivate="yes">
         <default>
-         <diskMassDistribution value="exponentialDisk">
+         <massDistributionDisk value="exponentialDisk">
           <dimensionless value="true"/>
-         </diskMassDistribution>
+         </massDistributionDisk>
         </default>
        </objectBuilder>
        !!]
