@@ -70,6 +70,7 @@ jobs:
   # Validate Perl scripts
   Validate-Perl-Scripts:
     runs-on: ubuntu-latest
+    container: docker://galacticusorg/buildenv:latest
     steps:
       - uses: actions/checkout@v3
       - name: "Set environmental variables"
@@ -83,8 +84,8 @@ jobs:
             **/*.pl
       - name: Install tools
         run: |
-          sudo apt -y update
-          sudo apt install -y libxml-simple-perl
+          apt -y update
+          apt install -y libxml-simple-perl
       - name: Validate any Perl scripts
         run: |
           status=0
@@ -106,6 +107,7 @@ jobs:
   # Validate Perl modules
   Validate-Perl-Modules:
     runs-on: ubuntu-latest
+    container: docker://galacticusorg/buildenv:latest
     steps:
       - uses: actions/checkout@v3
       - name: "Set environmental variables"
@@ -119,8 +121,8 @@ jobs:
             **/*.pm
       - name: Install tools
         run: |
-          sudo apt -y update
-          sudo apt install -y libxml-simple-perl
+          apt -y update
+          apt install -y libxml-simple-perl
       - name: Validate any Perl modules
         run: |
           status=0
