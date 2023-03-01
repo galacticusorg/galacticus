@@ -72,12 +72,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
       - name: Get changed scripts
         id: changed-scripts
         uses: tj-actions/changed-files@v35
         with:
           files: |
             **/*.pl
+      - name: Install tools
+        run: |
+          sudo apt -y update
+          sudo apt install -y libxml-simple-perl
       - name: Validate any Perl scripts
         run: |
           status=0
@@ -101,12 +108,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
       - name: Get changed modules
         id: changed-modules
         uses: tj-actions/changed-files@v35
         with:
           files: |
             **/*.pm
+      - name: Install tools
+        run: |
+          sudo apt -y update
+          sudo apt install -y libxml-simple-perl
       - name: Validate any Perl modules
         run: |
           status=0
@@ -158,7 +172,7 @@ jobs:
       - name: Install tools
         run: |
           apt -y update
-          apt install -y texlive texlive-fonts-recommended texlive-fonts-extra texlive-math-extra texlive-latex-recommended texlive-latex-extra hunspell libxml-simple-perl libregexp-common-perl libfile-temp-perl
+          apt install -y texlive texlive-latex-extra texlive-science texlive-extra-utils hunspell libxml-simple-perl libregexp-common-perl libfile-temp-perl
       - name: Build class information
         run: |
           cd $GALACTICUS_EXEC_PATH
@@ -206,7 +220,7 @@ jobs:
       - name: Install tools
         run: |
           apt -y update
-          apt install -y texlive texlive-fonts-recommended texlive-fonts-extra texlive-math-extra texlive-latex-recommended texlive-latex-extra hunspell libxml-simple-perl libregexp-common-perl libfile-temp-perl
+          apt install -y texlive texlive-latex-extra texlive-science texlive-extra-utils hunspell libxml-simple-perl libregexp-common-perl libfile-temp-perl
       - name: Build class information
         run: |
           cd $GALACTICUS_EXEC_PATH
