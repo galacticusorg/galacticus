@@ -119,7 +119,7 @@ contains
     call galacticStructureConstruct_(parameters,galacticStructure_)
     self=darkMatterProfileSIDMIsothermal(darkMatterProfile_,darkMatterHaloScale_,darkMatterParticle_,galacticStructure_)
     !![
-    <inputParametersValidate source="parameters"/>
+    <inputParametersValidate source="parameters" extraAllowedNames="galacticStructure"/>
     <objectDestructor name="darkMatterHaloScale_"/>
     <objectDestructor name="darkMatterParticle_" />
     <objectDestructor name="darkMatterProfile_"  />
