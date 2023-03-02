@@ -3,6 +3,8 @@ use strict;
 use warnings;
 use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use XML::Simple;
+use XML::Validator::Schema;
+use XML::SAX::ParserFactory;
 use LaTeX::SpellCheck;
 
 # Perform checks on embedded XML and LaTeX
