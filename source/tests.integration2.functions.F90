@@ -82,7 +82,7 @@ contains
 
   subroutine testFunctionsInitialize()
     !!{
-    Initalize an array of test functions for integration tests.
+    Initialize an array of test functions for integration tests.
     !!}
     implicit none
     testFunctions     =[                                                                                                                                                      &

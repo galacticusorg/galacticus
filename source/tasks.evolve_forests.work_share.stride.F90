@@ -21,7 +21,7 @@
 
   !![
   <evolveForestsWorkShare name="evolveForestsWorkShareStride">
-   <description>A forest evolution work sharing class in which forests are assigned by another work sharing class, but then strided over in steps of a specified size.</description>
+   <description>A forest evolution work sharing class in which forests are assigned by another work sharing class, but then strode over in steps of a specified size.</description>
   </evolveForestsWorkShare>
   !!]
   type, extends(evolveForestsWorkShareClass) :: evolveForestsWorkShareStride

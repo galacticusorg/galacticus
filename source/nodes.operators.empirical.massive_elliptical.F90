@@ -18,17 +18,17 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Implements a node operator class that inserts an empirical model of the formation history of a massive ellptical galaxy.
+  Implements a node operator class that inserts an empirical model of the formation history of a massive elliptical galaxy.
   !!}
 
   !![
   <nodeOperator name="nodeOperatorEmpiricalMassiveElliptical">
-   <description>A node operator class that inserts an empirical model of the formation history of a massive ellptical galaxy.</description>
+   <description>A node operator class that inserts an empirical model of the formation history of a massive elliptical galaxy.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorEmpiricalMassiveElliptical
      !!{     
-     A node operator class that inserts an empirical model of the formation history of a massive ellptical galaxy. The galaxy is
+     A node operator class that inserts an empirical model of the formation history of a massive elliptical galaxy. The galaxy is
      assumed to grow in the main branch of the tree with a constant specific star formation rate, such that it mass is given by:
      \begin{equation}
        M_\star(t) = M_{\star,0} \exp(-\phi_\star [t-t_0]),

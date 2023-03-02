@@ -136,7 +136,7 @@ contains
     tidalTensorPathIntegrated =  satellite%tidalTensorPathIntegrated(        )
     radius                    =  Vector_Magnitude                   (position)
     if (radius <= 0.0d0) return ! Do not compute rates at zero radius.
-    ! Calcluate tidal tensor and rate of change of integrated tidal tensor.
+    ! Calculate tidal tensor and rate of change of integrated tidal tensor.
     tidalTensor               =  self%galacticStructure_%tidalTensor(nodeHost,position)             
     ! Compute the orbital period.
     angularFrequency=+Vector_Magnitude(Vector_Product(position,velocity)) &

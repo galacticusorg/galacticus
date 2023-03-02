@@ -91,7 +91,7 @@ contains
   !!]
   subroutine Node_Component_Halo_Angular_Momentum_Scalar_Thread_Uninitialize()
     !!{
-    Uninitializes the halo scalar angular momenutm module.
+    Uninitializes the halo scalar angular momentum module.
     !!}
     use :: Galacticus_Nodes, only : defaultSpinComponent
     implicit none

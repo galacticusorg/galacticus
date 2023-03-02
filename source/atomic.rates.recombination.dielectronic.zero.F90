@@ -46,7 +46,7 @@ contains
 
   function zeroConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily zero} atomic dielectronic recombiantion class which builds the object from a
+    Constructor for the {\normalfont \ttfamily zero} atomic dielectronic recombination class which builds the object from a
     parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters

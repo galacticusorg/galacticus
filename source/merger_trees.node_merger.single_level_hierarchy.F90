@@ -33,7 +33,7 @@
   !!]
   type, extends(mergerTreeNodeMergerClass) :: mergerTreeNodeMergerSingleLevelHierarchy
      !!{
-     Implementation of the standars merger tree evolver.
+     Implementation of the standard merger tree evolver.
      !!}
      private
    contains

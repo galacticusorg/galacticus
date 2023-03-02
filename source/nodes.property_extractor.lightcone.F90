@@ -100,7 +100,7 @@ contains
       <name>includeObservedRedshift</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true output the observed redshfit (i.e. including the effects of pecular velocities).</description>
+      <description>If true output the observed redshift (i.e. including the effects of peculiar velocities).</description>
     </inputParameter>
     <inputParameter>
       <name>includeAngularCoordinates</name>
@@ -210,7 +210,7 @@ contains
 
   integer function lightconeElementCount(self,time)
     !!{
-    Return the number of elements in the lightconeple property extractors.
+    Return the number of elements in the lightcone property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorLightcone), intent(inout) :: self
@@ -264,7 +264,7 @@ contains
             &                                            /speedLight
        ! Compute the observed redshift. This is given by:
        !  1 + zₒ = (1 + zₕ) (1 + zₚ),
-       ! where zₒ is observed redshift, zₕ is cosmological redshift (due to Hubble expansion), and zₚ is the pecular redshift,
+       ! where zₒ is observed redshift, zₕ is cosmological redshift (due to Hubble expansion), and zₚ is the peculiar redshift,
        ! given by
        !  1 + zₚ = √[(1+βₚ)/(1-βₚ)]
        ! where βₚ=vₚ/c is the dimensionless peculiar velocity (e.g. Davis et al.; 2011; ApJ; 741; 67; eqn. 4;
@@ -327,7 +327,7 @@ contains
 
   subroutine lightconeNames(self,time,names)
     !!{
-    Return the names of the lightconeple properties.
+    Return the names of the lightcone properties.
     !!}
     implicit none
     class           (nodePropertyExtractorLightcone), intent(inout)                             :: self
@@ -342,7 +342,7 @@ contains
 
   subroutine lightconeDescriptions(self,time,descriptions)
     !!{
-    Return the descriptions of the lightconeple properties.
+    Return the descriptions of the lightcone properties.
     !!}
     implicit none
     class           (nodePropertyExtractorLightcone), intent(inout)                             :: self
@@ -357,7 +357,7 @@ contains
 
   function lightconeUnitsInSI(self,time)
     !!{
-    Return the units of the lightconeple properties in the SI system.
+    Return the units of the lightcone properties in the SI system.
     !!}
     implicit none
     double precision                                , dimension(:) , allocatable :: lightconeUnitsInSI

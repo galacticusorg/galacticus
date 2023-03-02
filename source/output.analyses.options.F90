@@ -18,12 +18,12 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which provides options and enuemrations for on-the-fly analyses.
+Contains a module which provides options and enumerations for on-the-fly analyses.
 !!}
 
 module Output_Analyses_Options
   !!{
-  Provides options and enuemrations for on-the-fly analyses.
+  Provides options and enumerations for on-the-fly analyses.
   !!}
   public
 

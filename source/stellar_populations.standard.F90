@@ -106,7 +106,7 @@
      module procedure standardConstructorInternal
   end interface stellarPopulationStandard
 
-  ! Module-scope variabes used in integrations.
+  ! Module-scope variables used in integrations.
   class           (stellarPopulationStandard), pointer     :: self_
   double precision                                         :: lifetime_                     , metallicity_
   integer                                                  :: indexElement_
@@ -587,7 +587,7 @@ contains
           ! Total metallicity required.
           yieldMass=stellarAstrophysics_%massYield(massInitial,metallicity_              )
        case default
-          ! Inidividual element required.
+          ! Individual element required.
           yieldMass=stellarAstrophysics_%massYield(massInitial,metallicity_,indexElement_)
        end select
        standardIntegrandYield=+initialMassFunction_%phi(massInitial) &
@@ -655,7 +655,7 @@ contains
        ! Instantaneous calculation - star is evolved if it is more massive that the specified mass of long-lived stars.
        standardStarIsEvolved=                                      massInitial              > self%massLongLived
     else
-       ! Standard calculation - star is evolved if its lifeltime is less than the supplied age.
+       ! Standard calculation - star is evolved if its lifetime is less than the supplied age.
        standardStarIsEvolved=stellarAstrophysics_%lifetime(massInitial,metallicity) < age
     end if
     return

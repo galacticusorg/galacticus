@@ -159,7 +159,7 @@ contains
 
   double precision function satelliteDestructionMassThresholdMassDestroy(self,node)
     !!{
-    Compute the detruction mass for a node.
+    Compute the destruction mass for a node.
     !!}
     use :: Galacticus_Nodes, only : treeNode, nodeComponentBasic
     implicit none

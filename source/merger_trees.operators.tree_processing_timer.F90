@@ -31,7 +31,7 @@
     and output to the {\normalfont \ttfamily metaData/treeTiming} group. Three datasets are written to this group:
     \begin{description}
      \item[{\normalfont \ttfamily treeMasses}] Gives the base node masses of the recorded trees (in units of $M_\odot$);
-     \item[{\normalfont \ttfamily treeConstuctTimes}] Gives the time (in seconds) taken to construct each merger tree;
+     \item[{\normalfont \ttfamily treeConstructTimes}] Gives the time (in seconds) taken to construct each merger tree;
      \item[{\normalfont \ttfamily treeEvolveTimes}] Gives the time (in seconds) taken to evolve each merger tree.
     \end{description}
    </description>

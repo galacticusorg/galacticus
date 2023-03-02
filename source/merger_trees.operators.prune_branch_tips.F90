@@ -24,7 +24,7 @@
 
   !![
   <mergerTreeOperator name="mergerTreeOperatorPruneBranchTips">
-   <description>Cmplements a merger tree operator which prunes tips of branches (i.e. sections from the leaf node to the first node with a sibling).</description>
+   <description>Complements a merger tree operator which prunes tips of branches (i.e. sections from the leaf node to the first node with a sibling).</description>
   </mergerTreeOperator>
   !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorPruneBranchTips

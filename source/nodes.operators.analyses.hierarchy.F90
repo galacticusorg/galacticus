@@ -308,7 +308,7 @@ contains
 
   subroutine hierarchyDifferentialEvolutionPost(self,node)
     !!{
-    Handle post differential evoloution.
+    Handle post differential evolution.
     !!}
     implicit none
     class(nodeOperatorHierarchy), intent(inout) :: self

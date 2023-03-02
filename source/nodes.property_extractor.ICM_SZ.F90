@@ -37,7 +37,7 @@ Contains a module which implements an intracluster medium Sunyaev-Zeldovich Comp
      Y = {\sigma_\mathrm{T} \over \mathrm{m}_\mathrm{e} \mathrm{c}^2} \int_0^{R_\mathrm{outer}} n_\mathrm{e}(R) \mathrm{k}_\mathrm{B} T(r) {4 \pi R^2 \mathrm{d} R \over D_\mathrm{A}^2},
     \end{equation}
     where $D_\mathrm{A}$ is the angular diameter distance to the halo, and the result is expressed in units of square
-    arminutes. The angular diameter distance is, by default, computed from the epoch of the halo. Alternatively, a fixed
+    arcminutes. The angular diameter distance is, by default, computed from the epoch of the halo. Alternatively, a fixed
     angular diameter distance can be specified via the {\normalfont \ttfamily [distanceAngular]} parameter. The outer radius,
     $R_\mathrm{out}$, is either the halo virial radius (by default), or the radius enclosing the density contrast specified by
     the optional {\normalfont \ttfamily [densityContrast]} parameter. This density contrast is relative to either {\normalfont
@@ -277,7 +277,7 @@ contains
     end if
     if (distanceAngular <= 0.0d0) call Error_Report('non-positive angular diameter distance'//{introspection:location})
     ! Compute the integrated Compton-y parameter within this radius, divided by the angular diameter distance squared, and
-    ! converted to units of arcmin².
+    ! converted to units of arcminutes².
     integrator_ = integrator           (integrandComptonY,toleranceRelative=1.0d-3)
     icmSZExtract=+integrator_%integrate(0.0d0            ,radiusOuter             )    &
          &       /distanceAngular                                                  **2 &

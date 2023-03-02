@@ -192,7 +192,7 @@ contains
 
   logical function ompLockOwnedByThread(self)
     !!{
-    Return true if the lock is owend by the current thread.
+    Return true if the lock is owned by the current thread.
     !!}
     !$ use :: OMP_Lib, only : OMP_Get_Thread_Num
     implicit none

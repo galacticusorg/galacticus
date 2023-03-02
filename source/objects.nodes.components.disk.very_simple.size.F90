@@ -338,7 +338,7 @@ contains
   !!]
   subroutine Node_Component_Disk_Very_Simple_Size_State_Store(stateFile,gslStateFile,stateOperationID)
     !!{
-    Write the tablulation state to file.
+    Write the tabulation state to file.
     !!}
     use            :: Display                                  , only : displayMessage          , verbosityLevelInfo
     use, intrinsic :: ISO_C_Binding                            , only : c_ptr                   , c_size_t

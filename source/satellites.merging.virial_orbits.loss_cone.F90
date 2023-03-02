@@ -1112,7 +1112,7 @@ contains
                             end if
                          end if
                       else
-                         ! Far from the caustic - evaluate the determinant of the jacobian.
+                         ! Far from the caustic - evaluate the determinant of the Jacobian.
                          if      (iEvaluate == 1) then
                             jacobianSign=+1.0d0
                          else if (iEvaluate == 2) then
@@ -1252,7 +1252,7 @@ contains
     deallocate(tree)
     !$omp end parallel
     call displayCounterClear(verbosityLevelWorking)
-    ! Transfer tabulted results to self.
+    ! Transfer tabulated results to self.
     call move_alloc(velocityRadialMeanVirial            ,self%velocityRadialMeanVirial            )
     call move_alloc(velocityRadialDispersionVirial      ,self%velocityRadialDispersionVirial      )
     call move_alloc(velocityTangentialMeanVirial        ,self%velocityTangentialMeanVirial        )

@@ -19,7 +19,7 @@
 
   !![
   <radiativeTransferSpectrum name="radiativeTransferSpectrumBlackBody">
-   <description>A photon spectrum class for blackBody spectrums.</description>
+   <description>A photon spectrum class for blackbody spectra.</description>
   </radiativeTransferSpectrum>
   !!]
   type, extends(radiativeTransferSpectrumClass) :: radiativeTransferSpectrumBlackBody

@@ -448,7 +448,7 @@ contains
     end if
     self%analysisLabel=analysisLabel
     ! Construct the analysis objects. Note that we use a "Poisson" model for the covariance here, not the "binomial" model which
-    ! is appropriate to counting analysese (e.g. mass functions), but not to this type of mean or scatter analysis.
+    ! is appropriate to counting analyses (e.g. mass functions), but not to this type of mean or scatter analysis.
     select type (outputAnalysis_ => self%outputAnalysis_)
     type is (outputAnalysisScatterFunction1D)
        !![

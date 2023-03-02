@@ -203,7 +203,7 @@ contains
                &           /(particle%degreesOfFreedomEffective()/degreesOfFreedomReference)**0.29d0 &
                &           /(particle%mass                     ()/            massReference)**1.15d0
        case (scaleCutOffModelBode2001   %ID)
-          ! This uses equaton (A9) from Bode et al. (2001; https://ui.adsabs.harvard.edu/abs/2001ApJ...556...93B).
+          ! This uses equation (A9) from Bode et al. (2001; https://ui.adsabs.harvard.edu/abs/2001ApJ...556...93B).
           self%scaleCutOff=+0.048d0                                                                  &
                &           *(                                                                        &
                &             +(                                                                      &

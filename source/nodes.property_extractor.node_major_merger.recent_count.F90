@@ -77,7 +77,7 @@ contains
 
   function nodeMajorMergerRecentCountConstructorInternal(outputTimes_) result(self)
     !!{
-    Inteneral constructor for the {\normalfont \ttfamily nodeMajorMergerRecentCount} node property extractor class.
+    Internal constructor for the {\normalfont \ttfamily nodeMajorMergerRecentCount} node property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorNodeMajorMergerRecentCount)                        :: self

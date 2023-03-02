@@ -1036,44 +1036,64 @@ CODE
 			    {
 				my $parameterCount = exists($allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}) ? scalar(@{$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}}) : 0;
 				if ( $parameterCount > 0 ) {
-				    $parametersPresent      = 1;
-				    $allowedParametersCode .= "   if (sourceName == '".$source."') then\n";
-				    $allowedParametersCode .= "     if (allocated(allowedParameters)) then\n";
-				    $allowedParametersCode .= "       call move_alloc(allowedParameters,allowedParametersTmp)\n";
-				    $allowedParametersCode .= "       allocate(allowedParameters(size(allowedParametersTmp)+".$parameterCount."))\n";
-				    $allowedParametersCode .= "       allowedParameters(1:size(allowedParametersTmp))=allowedParametersTmp\n";
-				    $allowedParametersCode .= "       deallocate(allowedParametersTmp)\n";
-				    $allowedParametersCode .= "     else\n";
-				    $allowedParametersCode .= "       allocate(allowedParameters(".$parameterCount."))\n";
-				    $allowedParametersCode .= "     end if\n";
-				    # The following is done as a sequence of scalar assignments, instead of assigning a single array
-				    # using an array constructor, as that approach lead to a memory leak.
+				    $parametersPresent          = 1;
+				    $allowedParametersCode     .= "   if (sourceName == '".$source."') then\n";
+				    $allowedParametersCode     .= "     countNew=0\n";
+				    $allowedParametersCode     .= "     if (allocated(allowedParameters)) then\n";
 				    for(my $i=0;$i<$parameterCount;++$i) {
-					$allowedParametersCode .= "     allowedParameters(size(allowedParameters)-".($parameterCount-1-$i).")='".$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}->[$i]."'\n";
+					$allowedParametersCode .= "       if (.not.any(trim(allowedParameters) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}->[$i]."')) countNew=countNew+1\n";
 				    }
-				    $allowedParametersCode .= "   end if\n";
+				    $allowedParametersCode     .= "       if (countNew > 0) then\n";
+				    $allowedParametersCode     .= "         call move_alloc(allowedParameters,allowedParametersTmp)\n";
+				    $allowedParametersCode     .= "         allocate(allowedParameters(size(allowedParametersTmp)+countNew))\n";
+				    $allowedParametersCode     .= "         allowedParameters(1:size(allowedParametersTmp))=allowedParametersTmp\n";
+				    $allowedParametersCode     .= "         deallocate(allowedParametersTmp)\n";
+				    for(my $i=0;$i<$parameterCount;++$i) {
+					$allowedParametersCode .= "         if (.not.any(trim(allowedParameters(1:size(allowedParameters)-countNew)) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}->[$i]."')) then\n";
+					$allowedParametersCode .= "           countNew=countNew-1\n";
+					$allowedParametersCode .= "           allowedParameters(size(allowedParameters)-countNew)='".$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}->[$i]."'\n";
+					$allowedParametersCode .= "         end if\n";
+				    }
+				    $allowedParametersCode     .= "       end if\n";
+				    $allowedParametersCode     .= "     else\n";
+				    $allowedParametersCode     .= "       allocate(allowedParameters(".$parameterCount."))\n";
+				    for(my $i=0;$i<$parameterCount;++$i) {
+					$allowedParametersCode .= "       allowedParameters(".($i+1).")='".$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}->[$i]."'\n";
+				    }
+				    $allowedParametersCode     .= "     end if\n";
+				    $allowedParametersCode     .= "   end if\n";
 				}
 			    }
 			    $allowedParametersCode .= "  else\n";
 			    {
 				my $parameterCount = scalar(@{$allowedParameters->{$className}->{'parameters'}->{$source}->{'all'}});
 				if ( $parameterCount > 0 ) {
-				    $parametersPresent      = 1;
-				    $allowedParametersCode .= "   if (sourceName == '".$source."') then\n";
-				    $allowedParametersCode .= "     if (allocated(allowedParameters)) then\n";
-				    $allowedParametersCode .= "       call move_alloc(allowedParameters,allowedParametersTmp)\n";
-				    $allowedParametersCode .= "       allocate(allowedParameters(size(allowedParametersTmp)+".$parameterCount."))\n";
-				    $allowedParametersCode .= "       allowedParameters(1:size(allowedParametersTmp))=allowedParametersTmp\n";
-				    $allowedParametersCode .= "       deallocate(allowedParametersTmp)\n";
-				    $allowedParametersCode .= "     else\n";
-				    $allowedParametersCode .= "       allocate(allowedParameters(".$parameterCount."))\n";
-				    $allowedParametersCode .= "     end if\n";
-				    # The following is done as a sequence of scalar assignments, instead of assigning a single array
-				    # using an array constructor, as that approach lead to a memory leak.
+				    $parametersPresent          = 1;
+				    $allowedParametersCode     .= "   if (sourceName == '".$source."') then\n";
+				    $allowedParametersCode     .= "     countNew=0\n";
+				    $allowedParametersCode     .= "     if (allocated(allowedParameters)) then\n";
 				    for(my $i=0;$i<$parameterCount;++$i) {
-					$allowedParametersCode .= "     allowedParameters(size(allowedParameters)-".($parameterCount-1-$i).")='".$allowedParameters->{$className}->{'parameters'}->{$source}->{'all'}->[$i]."'\n";
+					$allowedParametersCode .= "       if (.not.any(trim(allowedParameters) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'all'}->[$i]."')) countNew=countNew+1\n";
+				    }	
+				    $allowedParametersCode     .= "       if (countNew > 0) then\n";
+				    $allowedParametersCode     .= "         call move_alloc(allowedParameters,allowedParametersTmp)\n";
+				    $allowedParametersCode     .= "         allocate(allowedParameters(size(allowedParametersTmp)+countNew))\n";
+				    $allowedParametersCode     .= "         allowedParameters(1:size(allowedParametersTmp))=allowedParametersTmp\n";
+				    $allowedParametersCode     .= "         deallocate(allowedParametersTmp)\n";
+				    for(my $i=0;$i<$parameterCount;++$i) {
+					$allowedParametersCode .= "         if (.not.any(trim(allowedParameters(1:size(allowedParameters)-countNew)) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'all'}->[$i]."')) then\n";
+					$allowedParametersCode .= "           countNew=countNew-1\n";
+					$allowedParametersCode .= "           allowedParameters(size(allowedParameters)-countNew)='".$allowedParameters->{$className}->{'parameters'}->{$source}->{'all'}->[$i]."'\n";
+					$allowedParametersCode .= "         end if\n";
 				    }
-				    $allowedParametersCode .= "   end if\n";
+				    $allowedParametersCode     .= "       end if\n";
+				    $allowedParametersCode     .= "     else\n";
+				    $allowedParametersCode     .= "       allocate(allowedParameters(".$parameterCount."))\n";
+				    for(my $i=0;$i<$parameterCount;++$i) {
+					$allowedParametersCode .= "       allowedParameters(".($i+1).")='".$allowedParameters->{$className}->{'parameters'}->{$source}->{'all'}->[$i]."'\n";
+				    }
+				    $allowedParametersCode     .= "     end if\n";
+				    $allowedParametersCode     .= "   end if\n";
 				}
 			    }
 			    $allowedParametersCode .= "  end if\n";
@@ -1098,7 +1118,8 @@ CODE
 	    }
 	    $allowedParametersCode .= "end select\n";
 	    if ( $parametersPresent ) {
-		$allowedParametersCode = "type(varying_string), allocatable, dimension(:) :: allowedParametersTmp\n".$directive->{'name'}."DsblVldtn=".$directive->{'name'}."DsblVldtn\n".$allowedParametersCode;
+		$allowedParametersCode = "type  (varying_string), allocatable, dimension(:) :: allowedParametersTmp\n".$directive->{'name'}."DsblVldtn=".$directive->{'name'}."DsblVldtn\n".$allowedParametersCode;
+		$allowedParametersCode = "integer                                           :: countNew\n"                                                                                 .$allowedParametersCode;
 	    } else {
 		$allowedParametersCode = "!\$GLC attributes unused :: self, allowedParameters, sourceName\n".$directive->{'name'}."DsblVldtn=".$directive->{'name'}."DsblVldtn\n";
 	    }

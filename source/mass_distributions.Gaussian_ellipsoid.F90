@@ -574,7 +574,7 @@ contains
                       uLow =0.0d0
                       uHigh=max(maxval(self%scaleLength),maxval(abs(positionCartesian)))*uHighFactor
                       do iAxis=1,3
-                         ! Note that the factor of ∏ᵢ₌₁³ aᵢ has been cancelled with that appearing in the density normalization.
+                         ! Note that the factor of ∏ᵢ₌₁³ aᵢ has been canceled with that appearing in the density normalization.
                          self%accelerationVector(iAxis,i,j,k,l,m)=-2.0d0                         &
                               &                                   *Pi                            &
                               &                                   *positionCartesian(iAxis)      &
@@ -637,7 +637,7 @@ contains
       implicit none
       double precision, intent(in   ) :: mSquared
       
-      ! Note that the factor of ∏ᵢ₌₁³ aᵢ has been cancelled with that appearing in the expression for the gravitational potential.
+      ! Note that the factor of ∏ᵢ₌₁³ aᵢ has been canceled with that appearing in the expression for the gravitational potential.
       densityMSquared=exp(-0.5d0*mSquared)/(2.0d0*Pi)**1.5d0
       return
     end function densityMSquared

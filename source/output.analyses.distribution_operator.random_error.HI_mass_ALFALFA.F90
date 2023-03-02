@@ -41,7 +41,7 @@
      included in the priors.} of $a=${\normalfont \ttfamily a}$=0.100 \pm 0.010$, $b=${\normalfont \ttfamily b}$=5.885 \pm
      0.100$, and $c=${\normalfont \ttfamily c}$=0.505 \pm 0.020$ as shown in Fig.~\ref{fig:ALFALFAErrorModel}. The total random
      error on the logarithm of each galaxy mass is given by $\sigma^2 = \sigma_{R_\mathrm{mol}}^2+\sigma_\mathrm{obs}^2$, and is
-     used as the width of the Gaussian kernal when applying each galaxy to the mass function histogram (as described above).
+     used as the width of the Gaussian kernel when applying each galaxy to the mass function histogram (as described above).
   
     \begin{figure}
      \begin{center}

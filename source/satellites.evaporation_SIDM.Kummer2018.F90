@@ -121,7 +121,7 @@ contains
        ! No scattering.
        self%rateScatteringNormalization=+0.0d0
     end select
-    ! Initialize the maximum tabulated x to an unphysical value. This will force tabulation on the first attempt to evaulate the
+    ! Initialize the maximum tabulated x to an unphysical value. This will force tabulation on the first attempt to evaluate the
     ! evaporation factor.
     self%xMaximum=-1.0d0
     return

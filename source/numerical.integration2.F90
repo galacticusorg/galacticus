@@ -2138,7 +2138,7 @@ contains
        ! integrand at the midpoint by linear interpolation - which is consistent with the approximations of the trapezoidal
        ! integration rule.
        where (mustEvaluate)
-          ! Set new intervals and errors, for integrands that were evaluated (any not evaulated are already converged so we do not
+          ! Set new intervals and errors, for integrands that were evaluated (any not evaluated are already converged so we do not
           ! need to update them further). Error on second integral is identical to that on the first.
           newInterval1%fa      =    fa
           newInterval2%fb      =    fb

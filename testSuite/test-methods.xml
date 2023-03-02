@@ -980,7 +980,7 @@
     <nodePropertyExtractor value="virialProperties"/>
   </parameters>
   
-  <!-- Output descendent indices -->
+  <!-- Output descendant indices -->
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>

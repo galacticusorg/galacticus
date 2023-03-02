@@ -175,7 +175,7 @@ contains
              nodeHost => nodeHost%parent
           end do
        end if
-       ! Prevent the target time being eariler than the current time of the node.
+       ! Prevent the target time being earlier than the current time of the node.
        hostTidalMassLossTimeEvolveTo =  max(hostTidalMassLossTimeEvolveTo,basic%time())
     end if
     task                               => null()

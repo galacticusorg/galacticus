@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Implementation of a normal 1D distibution function.
+  Implementation of a normal 1D distribution function.
   !!}
 
   !![
@@ -28,7 +28,7 @@
   !!]
   type, extends(distributionFunction1DNormal) :: distributionFunction1DLogNormal
      !!{
-     Implementation of a normal 1D distibution function.
+     Implementation of a normal 1D distribution function.
      !!}
      private
    contains

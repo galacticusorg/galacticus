@@ -48,7 +48,7 @@ contains
 
   double precision function Binomial_Coefficient(n,m)
     !!{
-    Evaluate the binomial coefficint, $\left({n \over m}\right)$.
+    Evaluate the binomial coefficient, $\left({n \over m}\right)$.
     !!}
     implicit none
     integer, intent(in   ) :: n,m

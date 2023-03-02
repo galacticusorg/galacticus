@@ -238,7 +238,7 @@ contains
 
   subroutine mergingHaloOrbitDistributionPerform(self,status)
     !!{
-    Compute properties of mergingHaloOrbitDistributioning halos.
+    Compute orbital properties of merging halos.
     !!}
     use :: Display            , only : displayIndent        , displayUnindent     , displayCounter, displayCounterClear, &
          &                             verbosityLevelWorking

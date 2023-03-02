@@ -192,7 +192,7 @@ contains
     allocate(mass                            (massCount                      ))
     allocate(velocityDispersion1D            (massCount          ,outputCount))
     allocate(velocityDispersion1DMergingHalos(massCount,massCount,outputCount))
-    ! Build a range of masss.
+    ! Build a range of masses.
     mass(:)=Make_Range(self%massMinimum,self%massMaximum,int(massCount),rangeTypeLogarithmic)
     ! Construct a tree node.
     node  => treeNode      (                 )

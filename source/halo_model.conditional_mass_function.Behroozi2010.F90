@@ -26,7 +26,7 @@ Implements a class for the conditional mass functions using the \cite{behroozi_c
   !![
   <conditionalMassFunction name="conditionalMassFunctionBehroozi2010">
    <description>
-    A conditional mass function class which implements the fiting functions of \cite{behroozi_comprehensive_2010}:
+    A conditional mass function class which implements the fitting functions of \cite{behroozi_comprehensive_2010}:
     \begin{equation}
      \langle N_\mathrm{c}(M_\star|M)\rangle \equiv \int_{M_\star}^\infty \phi_\mathrm{c}(M_\star^\prime) \d \ln M_\star^\prime
      = {1 \over 2} \left[ 1 - \hbox{erf}\left( {\log_{10}M_\star - \log_{10} f_\mathrm{SHMR}(M) \over \sqrt{2}\sigma_{\log
@@ -90,7 +90,7 @@ Implements a class for the conditional mass functions using the \cite{behroozi_c
   !!]
   type, extends(conditionalMassFunctionClass) :: conditionalMassFunctionBehroozi2010
      !!{
-     Implements the conditional mass function using the fiting functions of \cite{behroozi_comprehensive_2010}.
+     Implements the conditional mass function using the fitting functions of \cite{behroozi_comprehensive_2010}.
      !!}
      ! Parameters of the fitting function.
      private
@@ -109,7 +109,7 @@ Implements a class for the conditional mass functions using the \cite{behroozi_c
      double precision                                         :: fMass                , massHaloPrevious
      double precision                          , dimension(2) :: massSatelliteStored  , massPrevious    , &
          &                                                       fMassHaloStored      , massCutStored
-     ! Tablulation of-halo mass relation.
+     ! Tabulation of-halo mass relation.
      integer                                                  :: fMassTableCount
      double precision                                         :: fMassTableMaximum    , fMassTableMinimum
      double precision                                         :: fMassHaloTableMaximum, fMassHaloTableMinimum

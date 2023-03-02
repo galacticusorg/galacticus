@@ -84,7 +84,7 @@
     \begin{description}
     \item [{\normalfont \ttfamily treeIndex}] A unique ID number for the tree to which this node belongs;
     \item [{\normalfont \ttfamily nodeIndex}] An ID (unique within the tree) for this node;
-    \item [{\normalfont \ttfamily descendentIndex}] The ID of the node's descendent node;
+    \item [{\normalfont \ttfamily descendantIndex}] The ID of the node's descendant node;
     \item [{\normalfont \ttfamily hostIndex}] The ID of the larger halo in which this node is hosted (equal to the node's own ID if
     the node is self-hosting);
     \item [{\normalfont \ttfamily redshift}] The redshift of the node;
@@ -518,13 +518,13 @@ contains
        <inputParameter>
          <name>hubbleExponent</name>
          <variable>unitsLengthHubbleExponent</variable>
-         <description>The exponent of the ``little-$h$'' Hubble parameter needed to convert the lengthes to little-$h$-free units.</description>
+         <description>The exponent of the ``little-$h$'' Hubble parameter needed to convert the lengths to little-$h$-free units.</description>
          <source>subParameters</source>
        </inputParameter>
        <inputParameter>
          <name>scaleFactorExponent</name>
          <variable>unitsLengthScaleFactorExponent</variable>
-         <description>The exponent of the cosmological scale factor needed to convert the lengthes to physical units.</description>
+         <description>The exponent of the cosmological scale factor needed to convert the lengths to physical units.</description>
          <source>subParameters</source>
        </inputParameter>
        <inputParameter>

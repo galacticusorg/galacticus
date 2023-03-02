@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Implementation of a peak-background split density 1D distibution function.
+  Implementation of a peak-background split density 1D distribution function.
   !!}
 
   !![
@@ -28,7 +28,7 @@
   !!]
   type, extends(distributionFunction1DClass) :: distributionFunction1DVoight
      !!{
-     Implementation of a voight 1D distibution function.
+     Implementation of a voight 1D distribution function.
      !!}
      private
      logical          :: limitLowerExists, limitUpperExists
@@ -191,7 +191,7 @@ contains
     else
        ! Compute the value of x relative to the mean of the Gaussian component.
        x0=x-self%mu
-       ! Evaluate the Feddeeva function at w(z).
+       ! Evaluate the Faddeeva function at w(z).
        z =dcmplx(x0,self%gamma)/sqrt(2.0d0)/self%sigma
        w =Faddeeva(z)
        ! Compute the density.

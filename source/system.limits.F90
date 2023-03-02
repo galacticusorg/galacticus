@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which sets system resoruce limits.
+Contains a module which sets system resource limits.
 !!}
 
 ! Specify an explicit dependence on the rlimit.o object file.

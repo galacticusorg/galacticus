@@ -550,7 +550,7 @@ program Test_Math_Special_Functions
   hypergeometric2F1(1)=Hypergeometric_2F1([1.0d0,1.0d0],[2.0d0],-2.0d0)
   call Assert("hypergeometric, ₂F₁([1,1],[2],-2)",hypergeometric2F1(1),log(3.0d0)/2.0d0,relTol=1.0d-6 )
 
-  ! Test bugs in the GSL implemntation of the hypergeometric function 2F1(a,b,c,x) at x>0.5 when c-a-b is an integer
+  ! Test bugs in the GSL implementation of the hypergeometric function 2F1(a,b,c,x) at x>0.5 when c-a-b is an integer
   ! and at least one of a, b, or c is negative.
   hypergeometric2F1(1)=Hypergeometric_2F1([1.5d0,-0.7d0],[2.8d0],0.7d0)
   call Assert("hypergeometric, ₂F₁([3/2,-7/10],[14/5],7/10)",hypergeometric2F1(1),0.7132641626d0,relTol=1.0d-6)
@@ -609,22 +609,22 @@ program Test_Math_Special_Functions
        &       relTol=1.0d-6                                            &
        &     )
 
-  ! Test hypergeometric 3F2 function with accleration algarithm.
-  call Assert("hypergeometric (acclerated), ₃F₂([3/2,7/10,11/10],[2,1/5],x)", &
-       &       hypergeometric3F2accelerated,                                  &
-       &       [                                                              &
-       &        -0.2171553593d0,                                              &
-       &        -0.1108443669d0,                                              &
-       &         0.03478627832d0,                                             &
-       &         0.2398652189d0,                                              &
-       &         0.5395008837d0,                                              &
-       &         1.000000000d0,                                               &
-       &         1.761012496d0,                                               &
-       &         3.167565670d0,                                               &
-       &         6.326044401d0,                                               &
-       &         17.27894316d0                                                &
-       &       ],                                                             &
-       &       relTol=1.0d-6                                                  &
+  ! Test hypergeometric 3F2 function with acceleration algorithm.
+  call Assert("hypergeometric (accelerated), ₃F₂([3/2,7/10,11/10],[2,1/5],x)", &
+       &       hypergeometric3F2accelerated,                                   &
+       &       [                                                               &
+       &        -0.2171553593d0,                                               &
+       &        -0.1108443669d0,                                               &
+       &         0.03478627832d0,                                              &
+       &         0.2398652189d0,                                               &
+       &         0.5395008837d0,                                               &
+       &         1.000000000d0,                                                &
+       &         1.761012496d0,                                                &
+       &         3.167565670d0,                                                &
+       &         6.326044401d0,                                                &
+       &         17.27894316d0                                                 &
+       &       ],                                                              &
+       &       relTol=1.0d-6                                                   &
        &     )
 
   ! Test polylogarithm functions.

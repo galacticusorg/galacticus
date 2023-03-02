@@ -172,7 +172,7 @@ contains
 
   function projectedDensitySize(self,time)
     !!{
-    Return the number of array alements in the {\normalfont \ttfamily projectedDensity} property extractors.
+    Return the number of array elements in the {\normalfont \ttfamily projectedDensity} property extractors.
     !!}
     implicit none
     integer         (c_size_t                             )                :: projectedDensitySize

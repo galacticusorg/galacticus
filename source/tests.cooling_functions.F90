@@ -148,8 +148,8 @@ program Test_Cooling_Functions
   coolantSummation       =  coolingFunctionSummation_ %coolingFunctionTemperatureLogSlope(node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
   coolantCMBCompton      =  coolingFunctionCMBCompton_%coolingFunctionTemperatureLogSlope(node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
   call Assert('temperature slope',coolantSummation,      coolantCMBCompton,relTol=1.0d-6)
-  ! Begin repeatibility tests.
-  call Unit_Tests_Begin_Group("Repeatibility")
+  ! Begin repeatability tests.
+  call Unit_Tests_Begin_Group("Repeatability")
   ! Compute timescale for Compton cooling off of CMB at the present day.
   call radiation%timeSet(13.8d0)
   coolantCMBCompton=+coolingFunctionCMBCompton_%coolingFunction(node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)

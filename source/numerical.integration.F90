@@ -129,7 +129,7 @@ module Numerical_Integration
 
      function gsl_integration_workspace_alloc(n) bind(c,name='gsl_integration_workspace_alloc')
        !!{
-       Templare for GSL integration workspace allocation function.
+       Template for GSL integration workspace allocation function.
        !!}
        import c_ptr, c_size_t
        type   (c_ptr   )                       :: gsl_integration_workspace_alloc

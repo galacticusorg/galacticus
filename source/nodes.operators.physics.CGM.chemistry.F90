@@ -217,7 +217,7 @@ contains
     ! Determine if chemicals are being solved for.
     self%chemicalsPresent=Chemicals_Property_Count() > 0
     if (.not.self%chemicalsPresent) return
-    ! Get indices of chemicals needed for equilbrium hydrogen anion calculation.
+    ! Get indices of chemicals needed for equilibrium hydrogen anion calculation.
     self%atomicHydrogenIndex      =Chemicals_Index("AtomicHydrogen"      )
     self%atomicHydrogenCationIndex=Chemicals_Index("AtomicHydrogenCation")
     self%electronIndex            =Chemicals_Index("Electron"            )

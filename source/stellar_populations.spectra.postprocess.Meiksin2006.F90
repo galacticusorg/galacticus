@@ -31,7 +31,7 @@
   !!]
   type, extends(stellarPopulationSpectraPostprocessorClass) :: stellarPopulationSpectraPostprocessorMeiksin2006
      !!{
-     An spectrum postprocessor multipliering the \cite{meiksin_colour_2006} calculation of the attenuation of spectra by the intergalactic medium.
+     An spectrum postprocessor implementing the \cite{meiksin_colour_2006} calculation of the attenuation of spectra by the intergalactic medium.
      !!}
      private
    contains

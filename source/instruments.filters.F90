@@ -50,7 +50,7 @@ module Instruments_Filters
   type   (filterType      ), allocatable, dimension(:) :: filterResponses
   integer                                              :: countFilterResponses    =0
 
-  ! Read/write lock used to control access to the filter responeses.
+  ! Read/write lock used to control access to the filter responses.
   type   (ompReadWriteLock)                            :: lock
   logical                                              :: lockInitialized         =.false.
 

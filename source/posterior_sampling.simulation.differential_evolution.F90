@@ -44,7 +44,7 @@
     \item[{\normalfont \ttfamily [logFileRoot]}] The full path and root name of a file to log results to. The actual file name will
       have the rank of the \gls{mpi} process appended to it.
     \item[{\normalfont \ttfamily [sampleOutliers]}] If set to {\normalfont \ttfamily false} then proposals for non-outlier chains
-      post-convergence are constructed only from other non-outlier chains. Otherwise, proposals for non-outleir chains
+      post-convergence are constructed only from other non-outlier chains. Otherwise, proposals for non-outlier chains
       post-convergence are constructed from all other chains.
     \end{description}
    </description>
@@ -443,7 +443,7 @@ contains
     end select
     ! Initialize chain to some state vector.
     call self%posteriorSampleStateInitialize_%initialize(self%posteriorSampleState_,self%modelParametersActive_,self%posteriorSampleLikelihood_,timeEvaluateInitial,logLikelihoodInitial,logPosteriorInitial)
-    ! Evaluate the posterior in the initial state if it wasn't set.
+    ! Evaluate the posterior in the initial state if it was not set.
     forceAcceptance     =.false.
     timeEvaluate        =-1.0
     timeEvaluatePrevious=real(timeEvaluateInitial)
@@ -454,7 +454,7 @@ contains
     timeEvaluatePrevious=timeEvaluate
     ! Check for impossible state.
     if (self%logPosterior <= logImpossible) call Error_Report('impossible initial state'//{introspection:location})
-    ! If the initializor returned a non-impossible likelihood, use it instead.
+    ! If the initializer returned a non-impossible likelihood, use it instead.
     if (logLikelihoodInitial > logImpossible) then
        logLikelihood    =logLikelihoodInitial
        self%logPosterior=logPosteriorInitial

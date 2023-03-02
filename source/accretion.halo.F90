@@ -34,7 +34,7 @@ module Accretion_Halos
   !![
   <enumeration>
    <name>accretionMode</name>
-   <description>Enumeration of accretion modes for the {\normalfont \ttfamily accrtionHalo} class.</description>
+   <description>Enumeration of accretion modes for the {\normalfont \ttfamily accretionHalo} class.</description>
    <visibility>public</visibility>
    <entry label="total"/>
    <entry label="hot"  />

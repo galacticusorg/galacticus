@@ -18,12 +18,12 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements outputting of formatted, indented messages at various vebosity levels from \glc.
+Contains a module which implements outputting of formatted, indented messages at various verbosity levels from \glc.
 !!}
 
 module Display
   !!{
-  Implements outputting of formatted, indented messages at various vebosity levels from \glc.
+  Implements outputting of formatted, indented messages at various verbosity levels from \glc.
   !!}
   use, intrinsic :: ISO_C_Binding, only : c_int
   implicit none

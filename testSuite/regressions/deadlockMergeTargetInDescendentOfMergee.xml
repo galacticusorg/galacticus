@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <parameters>
-  <!-- This model uses a tree which has a merge target which becomes a satellite in a descendent of its mergee. If such satellites
+  <!-- This model uses a tree which has a merge target which becomes a satellite in a descendant of its mergee. If such satellites
        are not allowed to evolve until their host no longer has a child node this can result in a deadlock. -->
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
@@ -34,7 +34,7 @@
     <presetSubhaloMasses value="true"/>
     <presetUnphysicalAngularMomenta value="true"/>
     <satelliteMergingTimescalesSubresolution value="boylanKolchin2008"/>
-    <fileNames value="testSuite/data/mergerTrees/deadlockMergeTargetInDescendentOfMergee.hdf5"/>
+    <fileNames value="testSuite/data/mergerTrees/deadlockMergeTargetInDescendantOfMergee.hdf5"/>
   </mergerTreeConstructor>
   <mergerTreeNodeMerger value="singleLevelHierarchy"/>
   <mergerTreeNodeEvolver value="standard">
@@ -66,7 +66,7 @@
   <componentSpheroid value="standard"/>
   <componentSpin value="vector"/>
   <verbosityLevel value="standard"/>
-  <outputFileName value="testSuite/outputs/deadlockMergeTargetInDescendentOfMergee.hdf5"/>
+  <outputFileName value="testSuite/outputs/deadlockMergeTargetInDescendantOfMergee.hdf5"/>
 
   <!-- Halo scale radii and concentrations -->
   <darkMatterProfileScaleRadius value="concentrationLimiter">

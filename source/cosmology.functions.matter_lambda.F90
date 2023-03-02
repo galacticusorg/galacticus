@@ -297,7 +297,7 @@ contains
     if (self%collapsingUniverse) then
        ! Find expansion factor early enough that a single component dominates the evolution of the Universe.
        call self%densityScalingEarlyTime(matterLambdaDominateFactor,densityPower,expansionFactorDominant,OmegaDominant)
-       ! Find the corresponding time. Note that we use the absolute value of the Hubble paameter here - in cases where the
+       ! Find the corresponding time. Note that we use the absolute value of the Hubble parameter here - in cases where the
        ! universe is collapsing at the present epoch we need to know the expansion rate (i.e. Hubble parameter) at the equivalent
        ! expansion factor during the expansion phase.
        timeMaximum(1)=1.0d0/abs(self%cosmologyParameters_%HubbleConstant(hubbleUnitsTime))/sqrt(OmegaDominant)/expansionFactorDominant**(0.5d0*densityPower)
@@ -919,7 +919,7 @@ contains
 
     ! Find expansion factor early enough that a single component dominates the evolution of the Universe.
     call self%densityScalingEarlyTime(matterLambdaDominateFactor,densityPower,expansionFactorDominant,OmegaDominant)
-    ! Find the corresponding time. Note that we use the absolute value of the Hubble paameter here - in cases where the universe
+    ! Find the corresponding time. Note that we use the absolute value of the Hubble parameter here - in cases where the universe
     ! is collapsing at the present epoch we need to know the expansion rate (i.e. Hubble parameter) at the equivalent expansion
     ! factor during the expansion phase.
     tDominant=-2.0d0/densityPower/abs(self%cosmologyParameters_%HubbleConstant(hubbleUnitsTime))/sqrt(OmegaDominant)/expansionFactorDominant**(0.5d0*densityPower)
@@ -979,7 +979,7 @@ contains
     self%ageTableTimeLogarithmicMinimum=log(self%ageTableTimeMinimum)
     self%ageTableInverseDeltaLogTime   =dble(self%ageTableNumberPoints-1)/log(self%ageTableTimeMaximum/self%ageTableTimeMinimum)
     ! For the initial time, we approximate that we are at sufficiently early times that a single component dominates the Universe
-    ! and use the appropriate analytic solution. Note that we use the absolute value of the Hubble paameter here - in cases where
+    ! and use the appropriate analytic solution. Note that we use the absolute value of the Hubble parameter here - in cases where
     ! the universe is collapsing at the present epoch we need to know the expansion rate (i.e. Hubble parameter) at the equivalent
     ! expansion factor during the expansion phase.
     if (self%ageTableExpansionFactor(1) < 0.0d0)                             &
