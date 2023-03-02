@@ -201,6 +201,7 @@ SDSS
 SED
 SED
 SEDs
+SIDM
 SNe
 SSPs
 SZ
@@ -701,6 +702,7 @@ synchronization
 systematics
 tex
 thermalization
+thermalized
 thermodynamical
 threadprivate
 timestamp
