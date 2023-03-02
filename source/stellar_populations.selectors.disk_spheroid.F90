@@ -25,7 +25,7 @@
   <stellarPopulationSelector name="stellarPopulationSelectorDiskSpheroid">
    <description>
     A stellar population selector class which selects a different population for disks and spheroids, irrespective of other
-    physical conditions. The populationss to use are specified by the {\normalfont \ttfamily [stellarPopulationDisk]} and
+    physical conditions. The populations to use are specified by the {\normalfont \ttfamily [stellarPopulationDisk]} and
     {\normalfont \ttfamily [stellarPopulationSpheroid]} parameters.
    </description>
   </stellarPopulationSelector>

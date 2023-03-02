@@ -44,7 +44,7 @@ Galaxy luminosities are output in the \gls{ABmagnitude} system, such that a lumi
 
 Velocities in \glc\ are always \emph{physical} velocities. When reading merger tree properties (including velocities) from file it is often convenient to store velocities without the Hubble flow contribution, as ``peculiar velocities'', in the file---see \href{https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format#forest-halos-group}{here} for how to specify whether or not  the velocities included in the file include the Hubble flow or not.
 
-If peculiar velocities are stored it is important to use the same definition of pecular velocity as is used by \glc. Defining $t$ to be physical time and $\mathbf{x}$ to be comoving position, \glc\ uses the conventional definition of peculiar velocity in a cosmological context, namely that it is the deviation of the physical velocity from the Hubble flow. Physical coordinates are given by $\mathbf{r} = a\mathbf{x}$, so the peculiar velocity is
+If peculiar velocities are stored it is important to use the same definition of peculiar velocity as is used by \glc. Defining $t$ to be physical time and $\mathbf{x}$ to be comoving position, \glc\ uses the conventional definition of peculiar velocity in a cosmological context, namely that it is the deviation of the physical velocity from the Hubble flow. Physical coordinates are given by $\mathbf{r} = a\mathbf{x}$, so the peculiar velocity is
 \begin{equation}
 \mathbf{v}_\mathrm{pec} \equiv {\mathrm{d} \mathbf{r} \over \mathrm{d} t} - H \mathbf{r} = a {\mathrm{d} \mathbf{x}\over\mathrm{d} t} = {\mathrm{d}\mathbf{x}\over\mathrm{d}\eta},
 \end{equation}

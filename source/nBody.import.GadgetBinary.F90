@@ -216,7 +216,7 @@ contains
     readMasses  =.false.
     massesDiffer=.false.
     do while (fileNumber < numberFiles)
-       ! Check for the existance of the named file with no subfile suffix. This can occur, for example, if reading initial conditions files.
+       ! Check for the existence of the named file with no subfile suffix. This can occur, for example, if reading initial conditions files.
        !
        !! Note that, in the following, we open the files using "stream" access. Gadget binary files are written in Fortran
        !! unformatted form. This should mean that we can access them using the standard, record-block based approach. However,

@@ -174,7 +174,7 @@ contains
     class           (nbodyOperatorMergerRates), intent(inout)               :: self
     type            (nBodyData               ), intent(inout), dimension(:) :: simulations
     integer         (c_size_t                ), pointer      , dimension(:) :: particleID                    , hostID                    , &
-         &                                                                     descendentID                  , snapshotID                , &
+         &                                                                     descendantID                  , snapshotID                , &
          &                                                                     isMostMassiveProgenitor       , alwaysIsolated
     integer         (c_size_t                ), allocatable  , dimension(:) :: indexID
     double precision                          , pointer      , dimension(:) :: massVirial                    , expansionFactor
@@ -207,7 +207,7 @@ contains
        ! Retrieve required properties.
        particleID              => simulations(iSimulation)%propertiesInteger%value('particleID'             )
        hostID                  => simulations(iSimulation)%propertiesInteger%value('hostID'                 )
-       descendentID            => simulations(iSimulation)%propertiesInteger%value('descendentID'           )
+       descendantID            => simulations(iSimulation)%propertiesInteger%value('descendantID'           )
        snapshotID              => simulations(iSimulation)%propertiesInteger%value('snapshotID'             )
        isMostMassiveProgenitor => simulations(iSimulation)%propertiesInteger%value('isMostMassiveProgenitor')
        alwaysIsolated          => simulations(iSimulation)%propertiesInteger%value('alwaysIsolated'         )
@@ -259,24 +259,24 @@ contains
           if     (hostID        (i) >= 0_c_size_t                                                 ) cycle
           ! Skip non-always-isolated halos.
           if     (alwaysIsolated(i) == 0_c_size_t                    .and. self%alwaysIsolatedOnly) cycle
-          ! Skip halos with no descendent.
-          if     (descendentID  (i) <  0_c_size_t                                                 ) cycle
+          ! Skip halos with no descendant.
+          if     (descendantID  (i) <  0_c_size_t                                                 ) cycle
           ! Skip halos outside the mass range.
           if     (                                                                                        &
                &   massVirial   (i) <  self%massMinimum                                                   &
                &  .or.                                                                                    &
                &   massVirial   (i) >  self%massMaximum                                                   &
                & )                                                                                  cycle
-          ! Identify the descendent halo.
-          k=searchIndexed(particleID,indexID,descendentID(i))
+          ! Identify the descendant halo.
+          k=searchIndexed(particleID,indexID,descendantID(i))
           if     (                                           &
                &   k                         < 1_c_size_t    &
                &  .or.                                       &
                &   k                         > size(indexID) &
                & )                                           &
-               & call Error_Report('failed to find descendent'//{introspection:location})
+               & call Error_Report('failed to find descendant'//{introspection:location})
           j=indexID(k)
-          ! If this halo is not the most-massive progenitor, or if the descendent is hosted, we have a merger.
+          ! If this halo is not the most-massive progenitor, or if the descendant is hosted, we have a merger.
           isMerger=isMostMassiveProgenitor(i) == 0 .or. hostID(j) >= 0_c_size_t
           if (isMerger) then
              ! Find the ultimate host.
@@ -377,7 +377,7 @@ contains
        deallocate(snapshotID     )
        deallocate(indexID        )
        deallocate(hostID         )
-       deallocate(descendentID   )
+       deallocate(descendantID   )
        deallocate(massVirial     )
        deallocate(expansionFactor)
        deallocate(mergerRate     )

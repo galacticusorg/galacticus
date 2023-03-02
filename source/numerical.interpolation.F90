@@ -257,7 +257,7 @@ contains
 
   function interpolatorConstructor(x,y,interpolationType,extrapolationType) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily interpolator} obejcts.
+    Constructor for {\normalfont \ttfamily interpolator} objects.
     !!}
     use :: Error       , only : Error_Report
     use :: Table_Labels, only : extrapolationTypeAbort
@@ -688,7 +688,7 @@ contains
 
   function interpolator2DConstructor(x,y,z) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily interpolator2D} obejcts.
+    Constructor for {\normalfont \ttfamily interpolator2D} objects.
     !!}
     use :: Error, only : Error_Report
     implicit none

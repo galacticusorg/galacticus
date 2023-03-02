@@ -77,7 +77,7 @@ contains
 
   double precision function Black_Hole_ISCO_Radius_Spin(spinBlackHole,orbit)
     !!{
-    Returns the radius (in gravitational units and for a prograde or retorgrade orbit) of the innermost stable
+    Returns the radius (in gravitational units and for a prograde or retrograde orbit) of the innermost stable
     circular orbit for a black hole with spin {\normalfont \ttfamily spinBlackHole}.
     !!}
     use :: Error, only : Error_Report
@@ -140,7 +140,7 @@ contains
 
   double precision function Black_Hole_ISCO_Radius_Node(blackHole,units,orbit)
     !!{
-    Returns the radius (in physical or gravitational units and for a prograde or retorgrade orbit) of the innermost stable
+    Returns the radius (in physical or gravitational units and for a prograde or retrograde orbit) of the innermost stable
     circular orbit for the black hole in {\normalfont \ttfamily blackHole}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBlackHole
@@ -177,7 +177,7 @@ contains
 
   double precision function Black_Hole_ISCO_Specific_Energy_Node(blackHole,units,orbit)
     !!{
-    Returns the specific energy (in physical or gravitational units and for a prograde or retorgrade orbit) of the innermost
+    Returns the specific energy (in physical or gravitational units and for a prograde or retrograde orbit) of the innermost
     stable circular orbit for the given {\normalfont \ttfamily blackHole}.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentBlackHole
@@ -209,7 +209,7 @@ contains
 
   double precision function Black_Hole_ISCO_Specific_Energy_Spin(spinBlackHole,orbit)
     !!{
-    Returns the specific energy (in physical or gravitational units and for a prograde or retorgrade orbit) of the innermost
+    Returns the specific energy (in physical or gravitational units and for a prograde or retrograde orbit) of the innermost
     stable circular orbit for a black hole of given {\normalfont \ttfamily spinBlackHole}.
     !!}
     implicit none
@@ -238,7 +238,7 @@ contains
 
   double precision function Black_Hole_ISCO_Specific_Angular_Momentum(blackHole,units,orbit)
     !!{
-    Returns the specific angular momentum (in physical or gravitational units and for a prograde or retorgrade orbit) of the
+    Returns the specific angular momentum (in physical or gravitational units and for a prograde or retrograde orbit) of the
     innermost stable circular orbit for the black hole in {\normalfont \ttfamily blackHole}.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentBlackHole
@@ -616,7 +616,7 @@ contains
     \begin{equation}
      (1 + \sqrt{1-j^2})^2 + j^2 = 4 (M_{\bullet,\mathrm{irr}}/M_\bullet)^2.
     \end{equation}
-    Differentating this gives
+    Differentiating this gives
     \begin{equation}
     \left[ -2(1 + \sqrt{1-j^2}) \frac{1}{2} (1-j^2)^{-1/2} 2 j + 2 j \right] \frac{\mathrm{d} j}{\mathrm{d} M_\bullet} = - 8 (M_{\bullet,\mathrm{irr}}/M_\bullet)^2 M^{-1}_\bullet,
     \end{equation}

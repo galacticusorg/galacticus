@@ -526,7 +526,7 @@ contains
 
   function vernerConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily verner} atomic ionization potentail class which builds the object from a parameter set.
+    Constructor for the {\normalfont \ttfamily verner} atomic ionization potential class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -542,7 +542,7 @@ contains
 
   double precision function vernerPotential(self,atomicNumber,electronNumber)
     !!{
-    Return the ionization potential (in units of electon volts) for the ion with given {\normalfont \ttfamily atomicNumber} and
+    Return the ionization potential (in units of electron volts) for the ion with given {\normalfont \ttfamily atomicNumber} and
     {\normalfont \ttfamily electronNumber} using data taken from Dima Verner's
     \href{http://www.pa.uky.edu/~verner/dima/col/cfit.f}{code}.
     !!}

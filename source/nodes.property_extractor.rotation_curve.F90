@@ -168,7 +168,7 @@ contains
 
   function rotationCurveSize(self,time)
     !!{
-    Return the number of array alements in the {\normalfont \ttfamily rotationCurve} property extractors.
+    Return the number of array elements in the {\normalfont \ttfamily rotationCurve} property extractors.
     !!}
     implicit none
     integer         (c_size_t                          )                :: rotationCurveSize

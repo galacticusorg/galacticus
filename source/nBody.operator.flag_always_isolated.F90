@@ -102,7 +102,7 @@ contains
     class           (nbodyOperatorFlagAlwaysIsolated), intent(inout)               :: self
     type            (nBodyData                      ), intent(inout), dimension(:) :: simulations
     integer         (c_size_t                       ), pointer      , dimension(:) :: alwaysIsolated         , hostID     , &
-         &                                                                            descendentID           , particleIDs, &
+         &                                                                            descendantID           , particleIDs, &
          &                                                                            isMostMassiveProgenitor
     integer         (c_size_t                       ), allocatable  , dimension(:) :: indexID
     double precision                                 , pointer      , dimension(:) :: massVirial
@@ -115,7 +115,7 @@ contains
        ! Retrieve required properties.
        particleIDs             => simulations(iSimulation)%propertiesInteger%value('particleID'             )
        hostID                  => simulations(iSimulation)%propertiesInteger%value('hostID'                 )
-       descendentID            => simulations(iSimulation)%propertiesInteger%value('descendentID'           )
+       descendantID            => simulations(iSimulation)%propertiesInteger%value('descendantID'           )
        isMostMassiveProgenitor => simulations(iSimulation)%propertiesInteger%value('isMostMassiveProgenitor')
        massVirial              => simulations(iSimulation)%propertiesReal   %value('massVirial'             )
        ! Allocate workspace.
@@ -130,24 +130,24 @@ contains
        do i=1_c_size_t,size(alwaysIsolated)
           ! Skip isolated halos.
           if (hostID(i) < 0_c_size_t) cycle
-          ! Trace descendents, marking as not-always-isolated until mass increases sufficiently.
+          ! Trace descendants, marking as not-always-isolated until mass increases sufficiently.
           j            =           i
           massReference=massVirial(i)
           do while (massVirial(j) < self%massFactor*massReference)             
              alwaysIsolated(j)=0_c_size_t
-             if (descendentID(j) < 0_c_size_t .or. isMostMassiveProgenitor(j) == 0) exit
-             k=searchIndexed(particleIDs,indexID,descendentID(j))
+             if (descendantID(j) < 0_c_size_t .or. isMostMassiveProgenitor(j) == 0) exit
+             k=searchIndexed(particleIDs,indexID,descendantID(j))
              if     (                                           &
                   &   k                         < 1_c_size_t    &
                   &  .or.                                       &
                   &   k                         > size(indexID) &
                   & )                                           &
-                  & call Error_Report('failed to find descendent'//{introspection:location})
+                  & call Error_Report('failed to find descendant'//{introspection:location})
              k=indexID(k)
              if     (                                   &
-                  &   particleIDs(k) /= descendentID(j) &
+                  &   particleIDs(k) /= descendantID(j) &
                   & )                                   &
-                  & call Error_Report(var_str('failed to find descendent [')//descendentID(j)//'] of ['//particleIDs(j)//']'//{introspection:location})
+                  & call Error_Report(var_str('failed to find descendant [')//descendantID(j)//'] of ['//particleIDs(j)//']'//{introspection:location})
              j=k
           end do
           !$ if (OMP_Get_Thread_Num() == 0) then

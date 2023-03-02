@@ -18,12 +18,12 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which provides a class implenting Gaunt factors.
+Contains a module which provides a class implementing Gaunt factors.
 !!}
 
 module Atomic_Radiation_Gaunt_Factors
   !!{
-  Provides a class implenting Gaunt factors.
+  Provides a class implementing Gaunt factors.
   !!}
   private
 

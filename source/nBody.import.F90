@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which provides a class that implements importing of data from N-body simulations.
+Contains a module which provieds a class that implements importing of data from N-body simulations.
 !!}
 
 module NBody_Importers

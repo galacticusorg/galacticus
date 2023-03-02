@@ -371,7 +371,7 @@ contains
        
   double precision function finiteResolutionNFWDensityScaleFree(self,radius,radiusCore)
     !!{
-    Returns the sclae-free density in the dark matter profile at the given {\normalfont \ttfamily radius}.
+    Returns the scale-free density in the dark matter profile at the given {\normalfont \ttfamily radius}.
     !!}
     implicit none
     class           (darkMatterProfileDMOFiniteResolutionNFW), intent(inout) :: self
@@ -1613,7 +1613,7 @@ contains
 
   subroutine finiteResolutionNFWRestoreMassTable(self)
     !!{
-    Restore the tabulated rdius-enclosing-mass data from file, returning true if successful.
+    Restore the tabulated radius-enclosing-mass data from file, returning true if successful.
     !!}
     use :: File_Utilities    , only : File_Exists    , File_Lock         , File_Unlock, lockDescriptor
     use :: HDF5_Access       , only : hdf5Access
@@ -1703,7 +1703,7 @@ contains
 
   subroutine finiteResolutionNFWRestoreEnergyTable(self)
     !!{
-    Restore the tabulated rdius-enclosing-mass data from file, returning true if successful.
+    Restore the tabulated radius-enclosing-mass data from file, returning true if successful.
     !!}
     use :: File_Utilities    , only : File_Exists    , File_Lock         , File_Unlock, lockDescriptor
     use :: HDF5_Access       , only : hdf5Access

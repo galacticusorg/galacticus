@@ -747,7 +747,7 @@ contains
     implicit none
     class           (mergerTreeImporterGalacticus), intent(inout)             :: self
     type            (hdf5Object                  )                            :: treeIndexGroup
-    integer         (kind=kind_int8              ), allocatable, dimension(:) :: descendentIndex
+    integer         (kind=kind_int8              ), allocatable, dimension(:) :: descendantIndex
     double precision                              , allocatable, dimension(:) :: nodeMass           , treeMass    , &
          &                                                                       nodeTime           , treeTime
     integer         (kind=HSIZE_T                )             , dimension(1) :: firstNodeIndex     , nodeCount
@@ -776,10 +776,10 @@ contains
           firstNodeIndex(1)=self%firstNodes(i)+1
           nodeCount     (1)=self%nodeCounts(i)
           ! Allocate the nodes array.
-          allocate(descendentIndex(nodeCount(1)))
+          allocate(descendantIndex(nodeCount(1)))
           allocate(nodeMass       (nodeCount(1)))
           allocate(nodeTime       (nodeCount(1)))
-          call self%forestHalos%readDatasetStatic("descendentIndex",descendentIndex,firstNodeIndex,nodeCount)
+          call self%forestHalos%readDatasetStatic("descendantIndex",descendantIndex,firstNodeIndex,nodeCount)
           call self%forestHalos%readDatasetStatic("nodeMass"       ,nodeMass       ,firstNodeIndex,nodeCount)
           if      (self%forestHalos%hasDataset("time"           )) then
              ! Time is present, so read it.
@@ -802,10 +802,10 @@ contains
           else
              call Error_Report("one of time, redshift or expansionFactor data sets must be present in forestHalos group"//{introspection:location})
           end if
-          if (count(descendentIndex == -1) /= 1) call Error_Report('reweighting trees requires there to be only only root node'//{introspection:location})
-          treeMass(i)=sum(nodeMass,mask=descendentIndex == -1)
-          treeTime(i)=sum(nodeTime,mask=descendentIndex == -1)
-          deallocate(descendentIndex)
+          if (count(descendantIndex == -1) /= 1) call Error_Report('reweighting trees requires there to be only only root node'//{introspection:location})
+          treeMass(i)=sum(nodeMass,mask=descendantIndex == -1)
+          treeTime(i)=sum(nodeTime,mask=descendantIndex == -1)
+          deallocate(descendantIndex)
           deallocate(nodeMass       )
           deallocate(nodeTime       )
        end do
@@ -1130,14 +1130,14 @@ contains
        ! hostIndex
        call self%forestHalos%readDatasetStatic("hostIndex"      ,nodes%hostIndex                               ,readSelection=nodeSubsetOffset)
        ! parentNode
-       call self%forestHalos%readDatasetStatic("descendentIndex",nodes%descendentIndex                         ,readSelection=nodeSubsetOffset)
+       call self%forestHalos%readDatasetStatic("descendantIndex",nodes%descendantIndex                         ,readSelection=nodeSubsetOffset)
     else
        ! nodeIndex
        call self%forestHalos%readDatasetStatic("nodeIndex"      ,nodes%nodeIndex      ,firstNodeIndex,nodeCount                               )
        ! hostIndex
        call self%forestHalos%readDatasetStatic("hostIndex"      ,nodes%hostIndex      ,firstNodeIndex,nodeCount                               )
        ! parentNode
-       call self%forestHalos%readDatasetStatic("descendentIndex",nodes%descendentIndex,firstNodeIndex,nodeCount                               )
+       call self%forestHalos%readDatasetStatic("descendantIndex",nodes%descendantIndex,firstNodeIndex,nodeCount                               )
     end if
     ! nodeTime
     timesAreInternal=.true.

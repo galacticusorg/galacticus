@@ -2059,7 +2059,7 @@ contains
 
     ! Create the component.
     hotHalo => node%hotHalo(autoCreate=.true.)
-    ! Initalize.
+    ! Initialize.
     select type (hotHalo)
     class is (nodeComponentHotHaloStandard)
        call Node_Component_Hot_Halo_Standard_Initializor(hotHalo)

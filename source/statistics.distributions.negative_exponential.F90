@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Implementation of a negative exponential density 1D distibution function.
+  Implementation of a negative exponential density 1D distribution function.
   !!}
 
   !![
@@ -28,7 +28,7 @@
   !!]
   type, extends(distributionFunction1DClass) :: distributionFunction1DNegativeExponential
      !!{
-     Implementation of a negative exponential 1D distibution function.
+     Implementation of a negative exponential 1D distribution function.
      !!}
      private
      double precision :: rate

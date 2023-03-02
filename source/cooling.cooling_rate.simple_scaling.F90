@@ -61,7 +61,7 @@
 
   interface coolingRateSimpleScaling
      !!{
-     Constructors for the simple caling cooling rate class.
+     Constructors for the simple scaling cooling rate class.
      !!}
      module procedure simpleScalingConstructorParameters
      module procedure simpleScalingConstructorInternal
@@ -71,7 +71,7 @@ contains
 
   function simpleScalingConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the simple caling cooling rate class which builds the object from a parameter set.
+    Constructor for the simple scaling cooling rate class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -87,31 +87,31 @@ contains
       <name>timescale</name>
       <source>parameters</source>
       <defaultValue>1.0d0</defaultValue>
-      <description>The timescale (in Gyr) for cooling in low mass halos at $z=0$ in the simple caling scaling cooling rate model.</description>
+      <description>The timescale (in Gyr) for cooling in low mass halos at $z=0$ in the simple scaling cooling rate model.</description>
     </inputParameter>
     <inputParameter>
       <name>exponentRedshift</name>
       <source>parameters</source>
       <defaultValue>-1.5d0</defaultValue>
-      <description>The exponent of $(1+z)$ in the cooling timescale for low mass halos in the simple caling scaling cooling rate model.</description>
+      <description>The exponent of $(1+z)$ in the cooling timescale for low mass halos in the simple scaling cooling rate model.</description>
     </inputParameter>
     <inputParameter>
       <name>massCutOff</name>
       <source>parameters</source>
       <defaultValue>200.0d0</defaultValue>
-      <description>The halo mass scale appearing in the exponential term for cooling timescale in the simple caling cooling rate model.</description>
+      <description>The halo mass scale appearing in the exponential term for cooling timescale in the simple cooling rate model.</description>
     </inputParameter>
     <inputParameter>
       <name>widthCutOff</name>
       <source>parameters</source>
       <defaultValue>1.0d0</defaultValue>
-      <description>The width appearing in the exponential term for cooling timescale in the simple caling scaling cooling rate model.</description>
+      <description>The width appearing in the exponential term for cooling timescale in the simple scaling cooling rate model.</description>
     </inputParameter>
     <inputParameter>
       <name>exponentCutOff</name>
       <source>parameters</source>
       <defaultValue>1.0d0</defaultValue>
-      <description>The exponent appearing in the exponential term for cooling timescale in the simple caling scaling cooling rate model.</description>
+      <description>The exponent appearing in the exponential term for cooling timescale in the simple scaling cooling rate model.</description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     !!]
@@ -125,7 +125,7 @@ contains
 
   function simpleScalingConstructorInternal(timeScale,exponentRedshift,massCutOff,widthCutOff,exponentCutOff,cosmologyFunctions_) result(self)
     !!{
-    Internal constructor for the simple caling cooling rate class.
+    Internal constructor for the simple scaling cooling rate class.
     !!}
     use :: Array_Utilities , only : operator(.intersection.)
     use :: Error           , only : Component_List          , Error_Report
@@ -175,7 +175,7 @@ contains
 
   subroutine simpleScalingDestructor(self)
     !!{
-    Destructor for the simple caling cooling rate class.
+    Destructor for the simple scaling cooling rate class.
     !!}
     implicit none
     type(coolingRateSimpleScaling), intent(inout) :: self

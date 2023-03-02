@@ -33,7 +33,7 @@ module Hot_Halo_Outflows_Reincorporations
    <name>hotHaloOutflowReincorporation</name>
    <descriptiveName>Hot Halo Outflow Reincorporation</descriptiveName>
    <description>
-    Class providing models of reincorportation of outflowed mass into the hot halo.
+    Class providing models of reincorporation of outflowed mass into the hot halo.
    </description>
    <default>haloDynamicalTime</default>
    <method name="rate" >

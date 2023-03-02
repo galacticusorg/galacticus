@@ -86,7 +86,7 @@ contains
 
   function sequenceConstructorInternal(postprocessors) result (self)
     !!{
-    Internal constructor for the sequence mstellar population spectra postprocessor class.
+    Internal constructor for the sequence stellar population spectra postprocessor class.
     !!}
     implicit none
     type(stellarPopulationSpectraPostprocessorSequence)                        :: self

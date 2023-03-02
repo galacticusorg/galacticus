@@ -249,7 +249,7 @@ contains
 
   function sedSize(self,time)
     !!{
-    Return the number of array alements in the {\normalfont \ttfamily sed} property extractors.
+    Return the number of array elements in the {\normalfont \ttfamily sed} property extractors.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -733,7 +733,7 @@ contains
        end if
        timeMaximum   =min(starFormationHistory%time(iTime  ),time)
        if (timeMaximum <= timeMinimum) cycle
-       ! Determine metllicities.
+       ! Determine metallicities.
        if (iMetallicity == 1) then
           metallicityMinimum=                                                   self%metallicityPopulationMinimum
        else

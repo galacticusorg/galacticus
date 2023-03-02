@@ -32,7 +32,7 @@ module Stellar_Astrophysics
    <name>stellarAstrophysics</name>
    <descriptiveName>Stellar Astrophysics</descriptiveName>
    <description>
-    Class providing models of stellar astrophysics including recycled mass, metal yield, and lifetime as a function of intial
+    Class providing models of stellar astrophysics including recycled mass, metal yield, and lifetime as a function of initial
     properties.
    </description>
    <default>file</default>

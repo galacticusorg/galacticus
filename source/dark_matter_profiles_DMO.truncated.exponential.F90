@@ -269,7 +269,7 @@ contains
 
   subroutine recomputeKappa (self,node)
     !!{
-    Recompute parameter kappa in the truncation funciton.
+    Recompute parameter kappa in the truncation function.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile        , treeNode
     use :: Gamma_Functions , only : Gamma_Function_Incomplete_Unnormalized
@@ -477,7 +477,7 @@ contains
 
   double precision function truncatedExponentialRadiusCircularVelocityMaximum(self,node)
     !!{
-    Returns the radius (in Mpc) at which the maximum circular velocity is acheived in the dark matter profile of {\normalfont \ttfamily node}.
+    Returns the radius (in Mpc) at which the maximum circular velocity is achieved in the dark matter profile of {\normalfont \ttfamily node}.
     !!}
     implicit none
     class(darkMatterProfileDMOTruncatedExponential), intent(inout) :: self

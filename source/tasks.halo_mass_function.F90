@@ -545,7 +545,7 @@ contains
     character       (len=32                                 )                                        :: label
     
     call displayIndent('Begin task: halo mass function')
-    ! Call routines to perform initializations which must occur for all threads if run in parallel.
+    ! Call routines to perform initialization which must occur for all threads if run in parallel.
     call Node_Components_Thread_Initialize(self%parameters)
     ! Get the requested output redshifts.
     outputCount=self%outputTimes_%count()

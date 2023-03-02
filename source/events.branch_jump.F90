@@ -55,7 +55,7 @@ contains
     type     (varying_string               )                         :: message
     character(len=12                       )                         :: label
 
-    ! If the node is not yet a satellite, wait until it is before peforming this task.
+    ! If the node is not yet a satellite, wait until it is before performing this task.
     if (.not.node%isSatellite()) then
        Node_Branch_Jump=.false.
        return

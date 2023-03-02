@@ -34,7 +34,7 @@
     \begin{equation}
     \log_{10} c = a \log_{10} \left( {M_\mathrm{halo} \over h^{-1}M_\odot} \right) + b.
     \end{equation}
-    The parameters are a functon of redshift, $z$, given by
+    The parameters are a function of redshift, $z$, given by
     \begin{eqnarray}
     a &amp;=&amp; wz-m, \\
     b &amp;=&amp; {\alpha \over (z+\gamma)} + {\beta \over (z+\gamma)^2},

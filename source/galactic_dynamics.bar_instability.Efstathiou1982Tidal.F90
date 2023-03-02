@@ -92,7 +92,7 @@ contains
     <inputParameter>
       <name>massThresholdHarrassment</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The host halo mass threshold for harrassment to take effect.</description>
+      <description>The host halo mass threshold for harassment to take effect.</description>
       <source>parameters</source>
     <variable>self%massThresholdHarrassment</variable>
     </inputParameter>

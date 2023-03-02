@@ -32,7 +32,7 @@
   <darkMatterProfileConcentration name="darkMatterProfileConcentrationNFW1996">
    <description>
     A dark matter profile concentration class in which the concentration is computed using the algorithm from
-    \cite{navarro_structure_1996}. In this algoritm, for a given halo of mass $M$ at time $t_0$, a formation time is defined as
+    \cite{navarro_structure_1996}. In this algorithm, for a given halo of mass $M$ at time $t_0$, a formation time is defined as
     the epoch at which there is a 50\% probability (according to extended Press-Schechter theory) for a progenitor halo to have
     a mass greater than $fM$, where $f=${\normalfont \ttfamily [f]} is a parameter of the algorithm. This implies formation
     when the critical overdensity for collapse is

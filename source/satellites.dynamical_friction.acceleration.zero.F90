@@ -28,7 +28,7 @@
   !!]
   type, extends(satelliteDynamicalFrictionClass) :: satelliteDynamicalFrictionZero
      !!{
-     Implementation of a satellite dyanmical fiction class in which the acceleration is always zero.
+     Implementation of a satellite dynamical fiction class in which the acceleration is always zero.
      !!}
      private
    contains

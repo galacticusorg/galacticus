@@ -340,7 +340,7 @@ program Test_Dark_Matter_Profiles_Generic
      kSpace                                    (i)=darkMatterProfileBurkert__   %kSpace                                    (node_,                                                                                     scaleFractional(i)/radiusScale  )
      kSpaceNumerical                           (i)=darkMatterProfileBurkert__   %kSpaceNumerical                           (node_,                                                                                     scaleFractional(i)/radiusScale  )
      ! Freefall radius is only evaluated for sufficiently large radii, as this profile is cored, which means that the freefall
-     ! radius-time curve becomes asympototic and difficult to evaluate numerically.
+     ! radius-time curve becomes asymptotic and difficult to evaluate numerically.
      if (i >= 4) then
         freefallRadius                         (i)=darkMatterProfileBurkert__   %freefallRadius                            (node_,                                                                                     scaleFractional(i)*timeDynamical)
         freefallRadiusNumerical                (i)=darkMatterProfileBurkert__   %freefallRadiusNumerical                   (node_,                                                                                     scaleFractional(i)*timeDynamical)

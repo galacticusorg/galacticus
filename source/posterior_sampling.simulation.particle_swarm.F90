@@ -169,13 +169,13 @@ contains
     <inputParameter>
       <name>accelerationCoefficientPersonal</name>
       <defaultValue>1.193d0</defaultValue>
-      <description>Personal accleration parameter.</description>
+      <description>Personal acceleration parameter.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>accelerationCoefficientGlobal</name>
       <defaultValue>1.193d0</defaultValue>
-      <description>Global accleration parameter.</description>
+      <description>Global acceleration parameter.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>

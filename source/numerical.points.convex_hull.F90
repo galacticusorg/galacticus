@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which provides tools for working with convex hulls of sets of points.
+Contains a module which provieds tools for working with convex hulls of sets of points.
 !!}
 
 ! Specify an explicit dependence on the qhull.o object file.

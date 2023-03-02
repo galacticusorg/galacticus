@@ -44,7 +44,7 @@ module Geometry_Lightcones
     <argument>double precision          , intent(in   ), optional :: radiusBuffer</argument>
    </method>
    <method name="replicationCount" >
-    <description>Returns the number of times the given nodes appears in the lightone .</description>
+    <description>Returns the number of times the given nodes appears in the lightcone .</description>
     <type>integer(c_size_t)</type>
     <pass>yes</pass>
     <argument>type   (treeNode), intent(inout) :: node</argument>

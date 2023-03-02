@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-! Specify an explicit dependence on the interface.GSL.C.root_fiding.o object file.
+! Specify an explicit dependence on the interface.GSL.C.root_finding.o object file.
 !: $(BUILDPATH)/interface.GSL.C.root_finding.o
 
 ! Add dependency on GSL library.
@@ -62,7 +62,7 @@ module Root_Finder
   !![
   <enumeration>
    <name>stoppingCriterion</name>
-   <description>Used to specify the stoppngi criterion to use when searching for roots using a {\normalfont \ttfamily rootFinder} object.</description>
+   <description>Used to specify the stopping criterion to use when searching for roots using a {\normalfont \ttfamily rootFinder} object.</description>
    <visibility>public</visibility>
    <entry label="delta"    />
    <entry label="interval" />
@@ -360,7 +360,7 @@ contains
     self%rangeDownwardLimitSet        =.false.
     self%rangeExpandDownwardSignExpect=rangeExpandSignExpectNone
     self%rangeExpandUpwardSignExpect  =rangeExpandSignExpectNone
-    ! Initialize stopping critertion to an interval test.
+    ! Initialize stopping criterion to an interval test.
     self%stoppingCriterion            =stoppingCriterionInterval
     ! If functions are provided, set them.
     if (present(rootFunction)) then
@@ -425,7 +425,7 @@ contains
 
   logical function rootFinderIsInitialized(self)
     !!{
-    Return whether a {\normalfont \ttfamily rootFinder} object is initalized.
+    Return whether a {\normalfont \ttfamily rootFinder} object is initialized.
     !!}
     implicit none
     class(rootFinder), intent(in   ) :: self

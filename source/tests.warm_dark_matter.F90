@@ -66,7 +66,7 @@ program Tests_Warm_Dark_Matter
   call eventsHooksInitialize()
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Critical overdensity for collapse: warm dark matter")
-  ! Test critical overdensity for collapse in wark dark matter model.
+  ! Test critical overdensity for collapse in warm dark matter model.
   !![
   <referenceConstruct object="cosmologyParameters_"               >
    <constructor>

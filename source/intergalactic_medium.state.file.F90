@@ -131,7 +131,7 @@
     }
     \end{verbatim}
      The {\normalfont \ttfamily electronFraction}, {\normalfont \ttfamily hIonizedFraction}, {\normalfont \ttfamily
-    heIonizedFraction}, and {\normalfont \ttfamily matterTemperature} datasets contain the relevaqnt quantity for each redshift
+    heIonizedFraction}, and {\normalfont \ttfamily matterTemperature} datasets contain the relevant quantity for each redshift
     in the {\normalfont \ttfamily redshift} dataset.
    </description>
   </intergalacticMediumState>

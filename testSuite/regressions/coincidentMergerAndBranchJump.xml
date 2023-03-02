@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Runs a tree in which a subhalo jumps to a node which has no descendent and,   -->
+<!-- Runs a tree in which a subhalo jumps to a node which has no descendant and,   -->
 <!-- in the next step, merges with a node in another branch. Such cases have to be -->
 <!-- identified and the branch jump explicitly allowed. Otherwise, the subhalo     -->
-<!-- will deadlock the tree as it cannot evolve in a host that has no descendent.  -->
+<!-- will deadlock the tree as it cannot evolve in a host that has no descendant.  -->
 <!-- 7-December-2012                                                               -->
 <parameters>
   <formatVersion>2</formatVersion>

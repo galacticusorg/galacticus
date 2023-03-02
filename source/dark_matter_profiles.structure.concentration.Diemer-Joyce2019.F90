@@ -153,13 +153,13 @@ contains
       <name>truncateConcentration</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If false, solutions to equation~(30) of \cite{diemer_accurate_2019} requring $x&lt;1$ will cause a fatal error. If true, such cases are simply truncated to $x=1$.</description>
+      <description>If false, solutions to equation~(30) of \cite{diemer_accurate_2019} requiring $x&lt;1$ will cause a fatal error. If true, such cases are simply truncated to $x=1$.</description>
     </inputParameter>
     <inputParameter>
       <name>includeUpturn</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>If true, the term modelling the upturn in the $c(M)$ relation at high masses (i.e. $[1+\nu^2/B(n)]$ in equation~(28) of \citealt{diemer_accurate_2019}) is included. Otherwise this term is set equal to $1$ so that no upturn occurs.</description>
+      <description>If true, the term modeling the upturn in the $c(M)$ relation at high masses (i.e. $[1+\nu^2/B(n)]$ in equation~(28) of \citealt{diemer_accurate_2019}) is included. Otherwise this term is set equal to $1$ so that no upturn occurs.</description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
     <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>

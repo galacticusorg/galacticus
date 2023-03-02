@@ -37,7 +37,7 @@ module Posterior_Sampling_Prop_Size_Temp_Exp
    <descriptiveName>Posterior Sampling Differential Evolution Proposal Size Temperature Exponent</descriptiveName>
    <description>
     Class providing temperature-dependence exponents for proposal sizes for differential evolution posterior
-    samplers. Specifically, theis class provides the exponent, $\alpha$, for the temperature scaling of the proposal size
+    samplers. Specifically, this class provides the exponent, $\alpha$, for the temperature scaling of the proposal size
     parameter, $\gamma$ (the fraction of the vector connecting to chain state to be used as the proposal for another chain),
     for use in tempered differential evolution simulations
    </description>

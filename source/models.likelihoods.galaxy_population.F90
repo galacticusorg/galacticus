@@ -91,7 +91,7 @@ contains
     </inputParameter>
     <inputParameter>
       <name>failedParametersFileName</name>
-      <description>The filename to which parameters of failed models should be written.</description>
+      <description>The name of the file to which parameters of failed models should be written.</description>
       <defaultValue>var_str('./failedParameters.xml')</defaultValue>
       <source>parameters</source>
     </inputParameter>

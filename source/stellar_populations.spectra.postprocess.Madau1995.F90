@@ -31,7 +31,7 @@
   !!]
   type, extends(stellarPopulationSpectraPostprocessorClass) :: stellarPopulationSpectraPostprocessorMadau1995
      !!{
-     An spectrum postprocessor multipliering the \cite{madau_radiative_1995} calculation of the attenuation of spectra by the intergalactic medium.
+     A spectrum postprocessor implementing the \cite{madau_radiative_1995} calculation of the attenuation of spectra by the intergalactic medium.
      !!}
      private
    contains

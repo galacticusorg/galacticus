@@ -38,7 +38,7 @@
   !!]
   type, extends(posteriorSampleLikelihoodIndependentLikelihoods) :: posteriorSampleLikelihoodIndpndntLklhdsSqntl
      !!{
-     Implementation of a posterior sampling likelihood class which sequanetially combines other likelihoods assumed to be independent.
+     Implementation of a posterior sampling likelihood class which sequentially combines other likelihoods assumed to be independent.
      !!}
      private
      integer                                     :: evaluateCount                , evaluateCountGlobal, &
@@ -47,7 +47,7 @@
           &                                         restoreLevels
      double precision, dimension(:), allocatable :: likelihoodMultiplier         , likelihoodAccept
    contains
-     procedure :: evaluate => independentLikelihoodsSequantialEvaluate
+     procedure :: evaluate => independentLikelihoodsSequentialEvaluate
      procedure :: restore  => independentLikelihoodsSequentialRestore
   end type posteriorSampleLikelihoodIndpndntLklhdsSqntl
 
@@ -141,7 +141,7 @@ contains
     return
   end function independentLikelihoodsSequentialConstructorInternal
 
-  double precision function independentLikelihoodsSequantialEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
+  double precision function independentLikelihoodsSequentialEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
     !!{
     Return the log-likelihood for the halo mass function likelihood function.
     !!}
@@ -180,7 +180,7 @@ contains
     allocate(forceCounts      (0:mpiSelf        %count    ()-1))
     allocate(chainIndices     (0:mpiSelf        %count    ()-1))
     stateVector                                               =  simulationState%get()
-    independentLikelihoodsSequantialEvaluate                  =  0.0d0
+    independentLikelihoodsSequentialEvaluate                  =  0.0d0
     likelihoodCount                                           =  0
     evaluateCounts                                            =  mpiSelf%gather(self%evaluateCount)
     forceCounts                                               =  mpiSelf%gather(self%forceCount   )
@@ -198,16 +198,16 @@ contains
     ! Initialize a local copy of the proposed log prior. In order to ensure MPI synchronization between processes we must always
     ! call evaluate on each independent likelihood. For example, the "Galacticus" likelihood class runs each chain under MPI
     ! across all processes, one at a time, and the MPI processes must coordinate to ensure only one such Galacticus is spawned at
-    ! a time. To avoid unneccesary calculation we will force this local proposed log prior to an impossible value if we don't need
+    ! a time. To avoid unnecessary calculation we will force this local proposed log prior to an impossible value if we don't need
     ! to evaluate it. The called model likelihood functions are expected to instantly return in such cases without actually
     ! computing their likelihood.
     logPriorProposed_=logPriorProposed
     ! If this chain has already reached beyond the current evaluate level then we do not want to evaluate it again. Set the
-    ! proposed prior to an impossible value to prevent the model likehood being evaluated. This will result in the chain remaining
+    ! proposed prior to an impossible value to prevent the model likelihood being evaluated. This will result in the chain remaining
     ! locked into its current state.
     if (evaluateCounts(simulationState%chainIndex()) > evaluateCount .and. .not.self%restored) then
        logPriorProposed_                       =logImpossible
-       independentLikelihoodsSequantialEvaluate=logImpossible
+       independentLikelihoodsSequentialEvaluate=logImpossible
     end if
     ! Iterate through likelihoods, until none remain, or until we reach the maximum to currently evaluate (we do not evaluate
     ! further than the least likelihood reached over all chains).
@@ -287,7 +287,7 @@ contains
        end if
        ! Accumulate the likelihood unless our local proposed prior is impossible (in which case we did not actually need to
        ! compute this likelihood, but were calling the evaluate method just to ensure MPI synchronization).
-       if (logPriorProposed_ >  logImpossible) independentLikelihoodsSequantialEvaluate=+independentLikelihoodsSequantialEvaluate &
+       if (logPriorProposed_ >  logImpossible) independentLikelihoodsSequentialEvaluate=+independentLikelihoodsSequentialEvaluate &
             &                                                                           +logLikelihood
        if (present(logLikelihoodVariance)    ) logLikelihoodVariance                   =+logLikelihoodVariance                    &
             &                                                                           +logLikelihoodVariance_
@@ -295,7 +295,7 @@ contains
             &                                                                           +timeEvaluate_
        if (.not.(self%finalLikelihoodFullEvaluation.and.finalLikelihood)) then
           if (likelihoodCount > evaluateCounts(simulationState%chainIndex()) .or. self%restored) then
-             ! We have matched or exceeded the previous number of likelihoods evaluated. (Or this is the first evaulation after being restored.)
+             ! We have matched or exceeded the previous number of likelihoods evaluated. (Or this is the first evaluation after being restored.)
              ! Force acceptance if this is the first time we have reached this far (unless the proposed prior is impossible - we
              ! do not want to accept states outside of the prior bounds).
              if (forceCounts(simulationState%chainIndex()) < evaluateCounts(simulationState%chainIndex()) .and. logPriorProposed > logImpossible) then
@@ -314,8 +314,8 @@ contains
              end if
           else if (logLikelihood < 0.0d0) then
              ! We have a negative likelihood and have not yet exceeded the maximum number of likelihoods previously
-             ! acheived. Return an impossible likelihood to prevent this state from being accepted.
-             independentLikelihoodsSequantialEvaluate=logImpossible
+             ! achieved. Return an impossible likelihood to prevent this state from being accepted.
+             independentLikelihoodsSequentialEvaluate=logImpossible
              logPriorProposed_                       =logImpossible
           end if
        end if
@@ -337,7 +337,7 @@ contains
     ! Unset restored status - the likelihood has now been evaluated.
     self%restored=.false.
     return
-  end function independentLikelihoodsSequantialEvaluate
+  end function independentLikelihoodsSequentialEvaluate
 
   subroutine independentLikelihoodsSequentialRestore(self,simulationState,logLikelihood)
     !!{

@@ -221,7 +221,7 @@ contains
        extendedSchmidtRate=0.0d0
        return
     end if
-    ! Get stallar and gas surface densities.
+    ! Get stellar and gas surface densities.
     surfaceDensityGas    =self%galacticStructure_%surfaceDensity(node,[radius,0.0d0,0.0d0],coordinateSystem=coordinateSystemCylindrical,componentType=componentTypeDisk,massType=massTypeGaseous)
     surfaceDensityStellar=self%galacticStructure_%surfaceDensity(node,[radius,0.0d0,0.0d0],coordinateSystem=coordinateSystemCylindrical,componentType=componentTypeDisk,massType=massTypeStellar)
     ! Compute the star formation rate surface density.

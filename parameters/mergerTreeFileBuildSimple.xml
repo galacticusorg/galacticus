@@ -42,7 +42,7 @@
       <column value="3"/>
     </property>
     <property>
-      <name value="descendentIndex"/>
+      <name value="descendantIndex"/>
       <column value="4"/>
     </property>
     <property>

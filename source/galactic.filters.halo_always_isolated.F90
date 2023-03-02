@@ -64,7 +64,7 @@ contains
 
   function haloAlwaysIsolatedConstructorInternal() result(self)
     !!{
-    Intetnal constructor for the ``haloAlwaysIsolated'' galactic filter class.
+    Internal constructor for the ``haloAlwaysIsolated'' galactic filter class.
     !!}
     implicit none
     type(galacticFilterHaloAlwaysIsolated) :: self

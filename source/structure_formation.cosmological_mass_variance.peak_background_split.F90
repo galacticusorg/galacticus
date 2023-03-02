@@ -212,7 +212,7 @@ contains
 
   double precision function variancePeakBackgroundSplitRootVarianceLogarithmicGradient(self,mass,time)
     !!{
-    Return the logairhtmic gradient with respect to mass of the root-variance of the cosmological density field in a spherical
+    Return the logarithmic gradient with respect to mass of the root-variance of the cosmological density field in a spherical
     region containing the given {\normalfont \ttfamily mass} on average.
     !!}
     implicit none
@@ -262,7 +262,7 @@ contains
 
   double precision function variancePeakBackgroundSplitMass(self,rootVariance,time)
     !!{
-    Return the mass corrresponding to the given {\normalfont \ttfamily } root-variance of the cosmological density field.
+    Return the mass corresponding to the given {\normalfont \ttfamily } root-variance of the cosmological density field.
     !!}
     implicit none
     class           (cosmologicalMassVariancePeakBackgroundSplit), intent(inout) :: self

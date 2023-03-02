@@ -28,7 +28,7 @@ Contains a module which implements an ISM mass output analysis property extracto
   !!]
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorIndicesTree
      !!{
-     A stelalr mass output analysis class.
+     A stellar mass output analysis class.
      !!}
      private
    contains

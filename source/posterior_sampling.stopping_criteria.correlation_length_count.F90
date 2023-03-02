@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Implementation of a posterior sampling stopping class which stops after a given number of correlation legnths.
+  Implementation of a posterior sampling stopping class which stops after a given number of correlation lengths.
   !!}
 
   use :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass

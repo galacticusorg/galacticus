@@ -18,12 +18,12 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which provides a class implenting atomic radiative recombination rates.
+Contains a module which provides a class implementing atomic radiative recombination rates.
 !!}
 
 module Atomic_Rates_Recombination_Radiative
   !!{
-  Provides a class implenting radiative recombiantion rates.
+  Provides a class implementing radiative recombination rates.
   !!}
   private
 

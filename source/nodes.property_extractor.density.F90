@@ -31,7 +31,7 @@
   !!]
   type, extends(nodePropertyExtractorArray) :: nodePropertyExtractorDensityProfile
      !!{
-     A property extractor class for the density at a set fo radii.
+     A property extractor class for the density at a set of radii.
      !!}
      private
      class  (darkMatterHaloScaleClass), pointer                   :: darkMatterHaloScale_          => null()
@@ -162,7 +162,7 @@ contains
 
   function densityProfileSize(self,time)
     !!{
-    Return the number of array alements in the {\normalfont \ttfamily densityProfile} property extractors.
+    Return the number of array elements in the {\normalfont \ttfamily densityProfile} property extractors.
     !!}
     implicit none
     integer         (c_size_t                           )                :: densityProfileSize

@@ -535,7 +535,7 @@ contains
             &                                          )
     end if
     ! Return the radius and/or expansion rate of the perturbation. Note that here we add back the expansion factor (or its growth
-    ! rate) since we've solved the the radius and expansion rate of the perturbation relative to the epansion factor.
+    ! rate) since we've solved the the radius and expansion rate of the perturbation relative to the expansion factor.
     if (present(radiusPerturbation       )) radiusPerturbation       =+propertyValues                                                       (   1)  &
          &                                                            +                                  cosmologyFunctions_%expansionFactor(time)  &
          &                                                            /                                  cosmologyFunctions_%expansionFactor(time_)

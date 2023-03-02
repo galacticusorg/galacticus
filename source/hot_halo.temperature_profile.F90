@@ -33,7 +33,7 @@ module Hot_Halo_Temperature_Profiles
    <name>hotHaloTemperatureProfile</name>
    <descriptiveName>Hot halo temperature profiles</descriptiveName>
    <description>
-    Class implementing hot halo temperarture profiles.
+    Class implementing hot halo temperature profiles.
    </description>
    <default>virial</default>
    <method name="temperature" >

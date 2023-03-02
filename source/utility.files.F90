@@ -48,7 +48,7 @@ module File_Utilities
 
   interface File_Exists
      !!{
-     Generic interface for functions that check for a files existance.
+     Generic interface for functions that check for a files existence.
      !!}
      module procedure File_Exists_Char
      module procedure File_Exists_VarStr
@@ -165,7 +165,7 @@ module File_Utilities
   interface
      function access_C(name) bind(c,name='access_C')
        !!{
-       Template for a C function that calls {\normalfont \ttfamily access()} to check for file existance.
+       Template for a C function that calls {\normalfont \ttfamily access()} to check for file existence.
        !!}
        import
        integer  (c_int ) :: access_C
@@ -202,7 +202,7 @@ contains
 
   logical function File_Exists_VarStr(fileName)
     !!{
-    Checks for existance of file {\normalfont \ttfamily fileName} (version for varying string argument).
+    Checks for existence of file {\normalfont \ttfamily fileName} (version for varying string argument).
     !!}
     use :: ISO_Varying_String, only : char
     implicit none
@@ -214,7 +214,7 @@ contains
 
   logical function File_Exists_Char(fileName)
     !!{
-    Checks for existance of file {\normalfont \ttfamily fileName} (version for character argument).
+    Checks for existence of file {\normalfont \ttfamily fileName} (version for character argument).
     !!}
     use :: ISO_Varying_String, only : char
     implicit none
@@ -230,10 +230,10 @@ contains
     parentName       =char(File_Path(parentName))
     ! Sync the parent directory to ensure that any file system caching is updated.
     call syncdir_C(trim(parentName)//char(0))
-    ! Test for file existance.
+    ! Test for file existence.
     !![
     <workaround type="gfortran" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;ml&#x2F;fortran&#x2F;2019-12&#x2F;msg00012.html">
-     <description>Segfault triggered by inquire when running multiple OpenMP threads and a large number of MPI processes. Cause unknown. To workaround this we use the POSIX access() function to test for file existance.</description>
+     <description>Segfault triggered by inquire when running multiple OpenMP threads and a large number of MPI processes. Cause unknown. To workaround this we use the POSIX access() function to test for file existence.</description>
     </workaround>
     !!]
     !! inquire(file=fileName,exist=File_Exists_Char)

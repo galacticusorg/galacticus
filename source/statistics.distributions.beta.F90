@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Implementation of a beta density 1D distibution function.
+  Implementation of a beta density 1D distribution function.
   !!}
 
   use :: Root_Finder, only : rootFinder
@@ -30,7 +30,7 @@
   !!]
     type, extends(distributionFunction1DClass) :: distributionFunction1DBeta
      !!{
-     Implementation of a beta 1D distibution function.
+     Implementation of a beta 1D distribution function.
      !!}
      private
      double precision             :: alpha , beta

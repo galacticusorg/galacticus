@@ -276,7 +276,7 @@ contains
 
   subroutine dmoInterpolateNodesMerge(self,node)
     !!{
-    Act on a merger between ndoes.
+    Act on a merger between nodes.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none

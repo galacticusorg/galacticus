@@ -18,12 +18,12 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which provides a class that normalizors on distributions used in on-the-fly output analyses.
+Contains a module which provides a class that normalizers on distributions used in on-the-fly output analyses.
 !!}
 
 module Output_Analysis_Distribution_Normalizers
   !!{
-  Provides a class that normalizors on distributions used in on-the-fly output analyses.
+  Provides a class that normalizers on distributions used in on-the-fly output analyses.
   !!}
   use :: Galacticus_Nodes, only : treeNode
   private

@@ -239,7 +239,7 @@ contains
     representativeParticleCount=max(representativeParticleCount,self%representativeMinimumCount)
     allocate(indexMostBound        (representativeParticleCount,self%bootstrapSampleCount))
     allocate(indexVelocityMostBound(representativeParticleCount,self%bootstrapSampleCount))
-    ! Iterate over bootstrap samplings.
+    ! Iterate over bootstrap samples.
     do iSample=1,self%bootstrapSampleCount
        call displayIndent(var_str('sample ')//iSample//' of '//self%bootstrapSampleCount)
        ! Compute the center-of-mass velocity.

@@ -181,7 +181,7 @@ contains
     class is (darkMatterParticleSelfInteractingDarkMatter)
        ! This is as expected.
     class default
-       call Error_Report('transfer function expects a self-interacting dark matter particle'//{introspection:location})
+       call Error_Report('SIDM isothermal dark matter profile expects a self-interacting dark matter particle'//{introspection:location})
     end select
     self%solutionsTabulated  =.false.
     self%uniqueIDPrevious    =-1_kind_int8
@@ -685,7 +685,7 @@ contains
 
   double precision function sidmIsothermalRadiusCircularVelocityMaximum(self,node)
     !!{
-    Returns the radius (in Mpc) at which the maximum circular velocity is acheived in the dark matter profile of {\normalfont \ttfamily node}.
+    Returns the radius (in Mpc) at which the maximum circular velocity is achieved in the dark matter profile of {\normalfont \ttfamily node}.
     !!}
     implicit none
     class(darkMatterProfileDMOSIDMIsothermal), intent(inout) :: self

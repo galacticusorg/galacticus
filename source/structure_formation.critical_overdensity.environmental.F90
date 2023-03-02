@@ -74,7 +74,7 @@ contains
       <name>a</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <description>Parameter controling environmental dependence of critical overdensity.</description>
+      <description>Parameter controlling environmental dependence of critical overdensity.</description>
     </inputParameter>
     <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
     <objectBuilder class="haloEnvironment"          name="haloEnvironment_"          source="parameters"/>

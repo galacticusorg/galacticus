@@ -122,7 +122,7 @@ contains
     separationLogarithmicMinimum    =log(separationMinimum)-0.5d0/separationLogarithmicStepInverse
     ! Iterate over points, counting neighbors.
     do iPass=1,3
-       ! Set pointers to set of points to use in this passs.
+       ! Set pointers to set of points to use in this pass.
        select case (iPass)
        case (1)
           ! Data-data pairs.

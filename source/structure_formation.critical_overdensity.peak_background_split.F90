@@ -23,7 +23,7 @@ Contains a module which implements an peak-background split critical overdensity
 
   !![
   <criticalOverdensity name="criticalOverdensityPeakBackgroundSplit">
-   <description>The ciritical overdensity is given by some other critical overdensity class offset by the halo envinronmental overdensity.</description>
+   <description>The critical overdensity is given by some other critical overdensity class offset by the halo environmental overdensity.</description>
   </criticalOverdensity>
   !!]
   type, extends(criticalOverdensityClass) :: criticalOverdensityPeakBackgroundSplit

@@ -141,7 +141,7 @@ contains
     select case (propertyName)
     case('particleID'               )
        nBodyDataPropertyType=propertyTypeInteger
-    case('descendentID'             )
+    case('descendantID'             )
        nBodyDataPropertyType=propertyTypeInteger
     case('progenitorCount'          )
        nBodyDataPropertyType=propertyTypeInteger
@@ -149,7 +149,7 @@ contains
        nBodyDataPropertyType=propertyTypeInteger
     case('isolatedHostID'           )
        nBodyDataPropertyType=propertyTypeInteger
-    case('descendentHostID'         )
+    case('descendantHostID'         )
        nBodyDataPropertyType=propertyTypeInteger
     case('isPhantom'                )
        nBodyDataPropertyType=propertyTypeInteger
@@ -159,7 +159,7 @@ contains
        nBodyDataPropertyType=propertyTypeInteger
     case('expansionFactor'          )
        nBodyDataPropertyType=propertyTypeReal
-    case('descendentExpansionFactor')
+    case('descendantExpansionFactor')
        nBodyDataPropertyType=propertyTypeReal
     case('massVirial'               )
        nBodyDataPropertyType=propertyTypeReal

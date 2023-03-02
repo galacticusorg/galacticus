@@ -1211,7 +1211,7 @@ contains
 
   subroutine Table_Linear_CSpline_1D_Destroy(self)
     !!{
-    Destroy a linear cubic-sline 1-D table.
+    Destroy a linear cubic-spline 1-D table.
     !!}
     implicit none
     class(table1DLinearCSpline), intent(inout) :: self
@@ -1560,7 +1560,7 @@ contains
 
   subroutine Table_Monotone_CSpline_1D_Destroy(self)
     !!{
-    Destroy a monotone cubic-sline 1-D table.
+    Destroy a monotone cubic-spline 1-D table.
     !!}
     implicit none
    class(table1DMonotoneCSpline), intent(inout) :: self
@@ -1817,7 +1817,7 @@ contains
 
   subroutine Table_NonUniform_Linear_Logarithmic_1D_Populate(self,y,table)
     !!{
-    Populate a 1-D linear-logarihtmic table.
+    Populate a 1-D linear-logarithmic table.
     !!}
     implicit none
     class           (table1DNonUniformLinearLogarithmic)              , intent(inout)           :: self
@@ -2309,7 +2309,7 @@ contains
 
   subroutine Table_Linear_Monotone_CSpline_1D_Destroy(self)
     !!{
-    Destroy a linear cubic-sline 1-D table.
+    Destroy a linear cubic-spline 1-D table.
     !!}
     implicit none
     class(table1DLinearMonotoneCSpline), intent(inout) :: self

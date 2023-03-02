@@ -125,7 +125,7 @@ contains
 
   function spinBullockExtract(self,node,time,instance)
     !!{
-    Implement extraction of the spin parameter under the \cite{bullock_profiles_2001} defintiion.
+    Implement extraction of the spin parameter under the \cite{bullock_profiles_2001} definition.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSpin, treeNode
     implicit none
