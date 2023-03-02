@@ -156,6 +156,7 @@ jobs:
   # Fortran static analysis
   Fortran-Static-Analysis:
     runs-on: ubuntu-latest
+    container: docker://galacticusorg/buildenv:latest
     steps:
       - uses: actions/checkout@v3
       - name: "Set environmental variables"
