@@ -953,7 +953,8 @@ contains
     use :: Display            , only : displayIndent              , displayMagenta  , displayMessage                 , displayReset        , &
           &                            displayUnindent            , displayVerbosity, enumerationVerbosityLevelEncode, verbosityLevelSilent
     use :: FoX_dom            , only : DOMException               , destroy         , extractDataContent             , getAttributeNode    , &
-          &                            getNodeName                , hasAttribute    , inException                    , node
+          &                            getNodeName                , hasAttribute    , inException                    , node                , &
+          &                            getParentNode
     use :: ISO_Varying_String , only : assignment(=)              , char            , operator(//)                   , operator(==)
     use :: Regular_Expressions, only : regEx
     use :: String_Handling    , only : String_Levenshtein_Distance
@@ -961,7 +962,8 @@ contains
     class    (inputParameters                         )              , intent(inout)           :: self
     type     (varying_string                          ), dimension(:), intent(in   ), optional :: allowedParameterNames
     type     (varying_string                          ), dimension(:), intent(in   ), optional :: allowedMultiParameterNames
-    type     (node                                    ), pointer                               :: node_                     , ignoreWarningsNode
+    type     (node                                    ), pointer                               :: node_                     , ignoreWarningsNode  , &
+         &                                                                                        node__
     type     (inputParameter                          ), pointer                               :: currentParameter
     type     (regEx                                   ), save                                  :: regEx_
     !$omp threadprivate(regEx_)
@@ -974,7 +976,7 @@ contains
          &                                                                                        j
     character(len=1024                                )                                        :: parameterValue
     character(len=1024                                )                                        :: unknownName               , allowedParameterName, &
-         &                                                                                        parameterNameGuess
+         &                                                                                        parameterNameGuess        , unknownNamePath
     type     (varying_string                          )                                        :: message                   , verbosityLevel
     type     (integerHash                             )                                        :: parameterNamesSeen
     type     (DOMException                            )                                        :: exception
@@ -1061,8 +1063,16 @@ contains
                 call displayMessage(message)
              end if
              if (allowedParametersCount > 0 .and. .not.parameterMatched .and. .not.ignoreWarnings .and. verbose) then
+                node__          => getParentNode(node_)
+                unknownNamePath =  ""
                 !$omp critical (FoX_DOM_Access)
-                unknownName    =getNodeName(node_)
+                unknownName=getNodeName(node_)
+                unknownNamePath=""
+                do while (associated(node__))
+                   if (getNodeName(node__) /= "#document")                                     &
+                        & unknownNamePath =  getNodeName  (node__)//"/"//trim(unknownNamePath)
+                   node__                 => getParentNode(node__)
+                end do
                 !$omp end critical (FoX_DOM_Access)
                 distanceMinimum=-1
                 do j=1,allowedParametersCount
@@ -1075,7 +1085,7 @@ contains
                    end if
                 end do
                 if (verbose) then
-                   message='unrecognized parameter ['//trim(unknownName)//']'
+                   message='unrecognized parameter ['//trim(unknownName)//' in '//trim(unknownNamePath)//']'
                    if (distanceMinimum >= 0) message=message//' (did you mean ['//trim(parameterNameGuess)//']?)'
                    call displayMessage(message)
                 end if
