@@ -2,6 +2,7 @@ package LaTeX::SpellCheck;
 use XML::Simple;
 use File::Temp;
 use Regexp::Common;
+use List::Uniq qw(uniq);
 
 # Spell-checking functions for LaTeX.
 # Andrew Benson (28-February-2023)
