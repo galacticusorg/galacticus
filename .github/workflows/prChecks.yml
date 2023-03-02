@@ -193,13 +193,14 @@ jobs:
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "DICTIONARY=en_US >> $GITHUB_ENV
       - name: Mark directory safe        
         run: |
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
       - name: Install tools
         run: |
           apt -y update
-          apt install -y texlive texlive-latex-extra texlive-science texlive-extra-utils hunspell libxml-simple-perl libregexp-common-perl libfile-temp-perl
+          apt install -y texlive texlive-latex-extra texlive-science texlive-extra-utils hunspell hunspell-en-us libxml-simple-perl libregexp-common-perl libfile-temp-perl
       - name: Build class information
         run: |
           cd $GALACTICUS_EXEC_PATH
@@ -243,13 +244,14 @@ jobs:
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "DICTIONARY=en_US >> $GITHUB_ENV
       - name: Mark directory safe        
         run: |
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
       - name: Install tools
         run: |
           apt -y update
-          apt install -y texlive texlive-latex-extra texlive-science texlive-extra-utils hunspell libxml-simple-perl libregexp-common-perl libfile-temp-perl
+          apt install -y texlive texlive-latex-extra texlive-science texlive-extra-utils hunspell hunspell-en-us libxml-simple-perl libregexp-common-perl libfile-temp-perl
       - name: Build class information
         run: |
           cd $GALACTICUS_EXEC_PATH
