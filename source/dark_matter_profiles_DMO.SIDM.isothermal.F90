@@ -181,7 +181,7 @@ contains
     class is (darkMatterParticleSelfInteractingDarkMatter)
        ! This is as expected.
     class default
-       call Error_Report('transfer function expects a self-interacting dark matter particle'//{introspection:location})
+       call Error_Report('SIDM isothermal dark matter profile expects a self-interacting dark matter particle'//{introspection:location})
     end select
     self%solutionsTabulated  =.false.
     self%uniqueIDPrevious    =-1_kind_int8
