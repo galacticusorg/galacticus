@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1677781106097,
+  "lastUpdate": 1677825876852,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "0bc7af4d4140814c1cba546660fd5fbf2742d0f7",
-          "message": "fix: Add test code for orbit calculations",
-          "timestamp": "2022-08-08T17:40:56Z",
-          "tree_id": "6b7f175453d3c0b3478a91f9828ae9f78675bd33",
-          "url": "https://github.com/galacticusorg/galacticus/commit/0bc7af4d4140814c1cba546660fd5fbf2742d0f7"
-        },
-        "date": 1659985721316,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 43.167,
-            "unit": "seconds",
-            "range": 0.167155616119479
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8745,6 +8715,34 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 24145.1797388743,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abensonca@gmail.com"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "4c055d6316922ca14b4a03eb253d08e43d6f33a5",
+          "message": "Merge pull request #398 from galacticusorg/sidmTabulationFix\n\nAllow isothermal SIDM density profile to extend the range of tabulated solutions as needed",
+          "timestamp": "2023-03-02T23:35:00Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/4c055d6316922ca14b4a03eb253d08e43d6f33a5"
+        },
+        "date": 1677825874729,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 50.406,
+            "unit": "seconds",
+            "range": 0.0461779168009253
           }
         ]
       }
