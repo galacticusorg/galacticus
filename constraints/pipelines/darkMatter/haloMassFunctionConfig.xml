@@ -26,10 +26,12 @@
       <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
       <baseParametersFileName value="constraints/pipelines/darkMatter/haloMassFunctionBase_VSMDPL_z0.000.xml"/>
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_VSMDPL_z0.000.hdf5"/>
-      <redshift               value=" 0.00000e00"/>
-      <massRangeMinimum       value=" 2.74458e10"/> <!-- 3000 times VSMDPL simulation particle mass; https://www.cosmosim.org/cms/simulations/vsmdpl -->
-      <binCountMinimum        value="0"          />
-      <likelihoodPoisson      value="true"       />
+      <redshift               value=" 0.00000e00"   />
+      <massRangeMinimum       value=" 2.74458e10"   /> <!-- 3000 times VSMDPL simulation particle mass; https://www.cosmosim.org/cms/simulations/vsmdpl -->
+      <binCountMinimum        value="0"             />
+      <likelihoodPoisson      value="true"          />
+      <likelihoodModel        value="simulationCube"/>
+      <lengthSimulationCube   value="=160.0/0.6777" />
     </posteriorSampleLikelihood>
     <!-- z = 0.490 -->
     <parameterMap value="haloMassFunctionParameters::a             haloMassFunctionParameters::p
@@ -40,10 +42,12 @@
       <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
       <baseParametersFileName value="constraints/pipelines/darkMatter/haloMassFunctionBase_VSMDPL_z0.490.xml"/>
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_VSMDPL_z0.490.hdf5"/>
-      <redshift               value=" 0.49000e00"/>
-      <massRangeMinimum       value=" 2.74458e10"/> <!-- 3000 times VSMDPL simulation particle mass; https://www.cosmosim.org/cms/simulations/vsmdpl -->
-      <binCountMinimum        value="0"          />
-      <likelihoodPoisson      value="true"       />
+      <redshift               value=" 0.49000e00"   />
+      <massRangeMinimum       value=" 2.74458e10"   /> <!-- 3000 times VSMDPL simulation particle mass; https://www.cosmosim.org/cms/simulations/vsmdpl -->
+      <binCountMinimum        value="0"             />
+      <likelihoodPoisson      value="true"          />
+      <likelihoodModel        value="simulationCube"/>
+      <lengthSimulationCube   value="=160.0/0.6777" />
     </posteriorSampleLikelihood>
     <!-- z = 0.990 -->
     <parameterMap value="haloMassFunctionParameters::a             haloMassFunctionParameters::p
@@ -54,10 +58,12 @@
       <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
       <baseParametersFileName value="constraints/pipelines/darkMatter/haloMassFunctionBase_VSMDPL_z0.990.xml"/>
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_VSMDPL_z0.990.hdf5"/>
-      <redshift               value=" 0.99000e00"/>
-      <massRangeMinimum       value=" 2.74458e10"/> <!-- 3000 times VSMDPL simulation particle mass; https://www.cosmosim.org/cms/simulations/vsmdpl -->
-      <binCountMinimum        value="0"          />
-      <likelihoodPoisson      value="true"       />
+      <redshift               value=" 0.99000e00"   />
+      <massRangeMinimum       value=" 2.74458e10"   /> <!-- 3000 times VSMDPL simulation particle mass; https://www.cosmosim.org/cms/simulations/vsmdpl -->
+      <binCountMinimum        value="0"             />
+      <likelihoodPoisson      value="true"          />
+      <likelihoodModel        value="simulationCube"/>
+      <lengthSimulationCube   value="=160.0/0.6777" />
     </posteriorSampleLikelihood>
     <!-- z = 2.030 -->
     <parameterMap value="haloMassFunctionParameters::a             haloMassFunctionParameters::p
@@ -68,10 +74,12 @@
       <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
       <baseParametersFileName value="constraints/pipelines/darkMatter/haloMassFunctionBase_VSMDPL_z2.030.xml"/>
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_VSMDPL_z2.030.hdf5"/>
-      <redshift               value=" 2.03000e00"/>
-      <massRangeMinimum       value=" 2.74458e10"/> <!-- 3000 times VSMDPL simulation particle mass; https://www.cosmosim.org/cms/simulations/vsmdpl -->
-      <binCountMinimum        value="0"          />
-      <likelihoodPoisson      value="true"       />
+      <redshift               value=" 2.03000e00"   />
+      <massRangeMinimum       value=" 2.74458e10"   /> <!-- 3000 times VSMDPL simulation particle mass; https://www.cosmosim.org/cms/simulations/vsmdpl -->
+      <binCountMinimum        value="0"             />
+      <likelihoodPoisson      value="true"          />
+      <likelihoodModel        value="simulationCube"/>
+      <lengthSimulationCube   value="=160.0/0.6777" />
     </posteriorSampleLikelihood>
     <!-- z = 3.040 -->
     <parameterMap value="haloMassFunctionParameters::a             haloMassFunctionParameters::p
@@ -82,10 +90,12 @@
       <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
       <baseParametersFileName value="constraints/pipelines/darkMatter/haloMassFunctionBase_VSMDPL_z3.040.xml"/>
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_VSMDPL_z3.040.hdf5"/>
-      <redshift               value=" 3.04000e00"/>
-      <massRangeMinimum       value=" 2.74458e10"/> <!-- 3000 times VSMDPL simulation particle mass; https://www.cosmosim.org/cms/simulations/vsmdpl -->
-      <binCountMinimum        value="0"          />
-      <likelihoodPoisson      value="true"       />
+      <redshift               value=" 3.04000e00"   />
+      <massRangeMinimum       value=" 2.74458e10"   /> <!-- 3000 times VSMDPL simulation particle mass; https://www.cosmosim.org/cms/simulations/vsmdpl -->
+      <binCountMinimum        value="0"             />
+      <likelihoodPoisson      value="true"          />
+      <likelihoodModel        value="simulationCube"/>
+      <lengthSimulationCube   value="=160.0/0.6777" />
     </posteriorSampleLikelihood>
 
     <!-- SMDPL -->
@@ -98,10 +108,12 @@
       <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
       <baseParametersFileName value="constraints/pipelines/darkMatter/haloMassFunctionBase_SMDPL_z0.000.xml"/>
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_SMDPL_z0.000.hdf5"/>
-      <redshift               value=" 0.00000e00"                     />
-      <massRangeMinimum       value=" 4.26294e11"/> <!-- 3000 times SMDPL simulation particle mass; https://www.cosmosim.org/cms/simulations/smdpl -->
-      <binCountMinimum        value="0"          />
-      <likelihoodPoisson      value="true"       />
+      <redshift               value=" 0.00000e00"   />
+      <massRangeMinimum       value=" 4.26294e11"   /> <!-- 3000 times SMDPL simulation particle mass; https://www.cosmosim.org/cms/simulations/smdpl -->
+      <binCountMinimum        value="0"             />
+      <likelihoodPoisson      value="true"          />
+      <likelihoodModel        value="simulationCube"/>
+      <lengthSimulationCube   value="=400.0/0.6777" />
     </posteriorSampleLikelihood>
     <!-- z = 0.505 -->
     <parameterMap value="haloMassFunctionParameters::a             haloMassFunctionParameters::p
@@ -112,11 +124,13 @@
       <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
       <baseParametersFileName value="constraints/pipelines/darkMatter/haloMassFunctionBase_SMDPL_z0.505.xml"/>
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_SMDPL_z0.505.hdf5"/>
-      <redshift               value=" 0.50500e00"                     />
-      <massRangeMinimum       value=" 4.26294e11"/> <!-- 3000 times SMDPL simulation particle mass; https://www.cosmosim.org/cms/simulations/smdpl -->
-      <binCountMinimum        value="0"          />
-      <likelihoodPoisson      value="true"       />
-    </posteriorSampleLikelihood>
+      <redshift               value=" 0.50500e00"   />
+      <massRangeMinimum       value=" 4.26294e11"   /> <!-- 3000 times SMDPL simulation particle mass; https://www.cosmosim.org/cms/simulations/smdpl -->
+      <binCountMinimum        value="0"             />
+      <likelihoodPoisson      value="true"          />
+      <likelihoodModel        value="simulationCube"/>
+      <lengthSimulationCube   value="=400.0/0.6777" />
+     </posteriorSampleLikelihood>
     <!-- z = 1.000 -->
     <parameterMap value="haloMassFunctionParameters::a             haloMassFunctionParameters::p
 			 haloMassFunctionParameters::normalization haloMassFunctionParameters::q
@@ -126,11 +140,13 @@
       <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
       <baseParametersFileName value="constraints/pipelines/darkMatter/haloMassFunctionBase_SMDPL_z1.000.xml"/>
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_SMDPL_z1.000.hdf5"/>
-      <redshift               value=" 1.00000e00"                     />
-      <massRangeMinimum       value=" 4.26294e11"/> <!-- 3000 times SMDPL simulation particle mass; https://www.cosmosim.org/cms/simulations/smdpl -->
-      <binCountMinimum        value="0"          />
-      <likelihoodPoisson      value="true"       />
-    </posteriorSampleLikelihood>
+      <redshift               value=" 1.00000e00"   />
+      <massRangeMinimum       value=" 4.26294e11"   /> <!-- 3000 times SMDPL simulation particle mass; https://www.cosmosim.org/cms/simulations/smdpl -->
+      <binCountMinimum        value="0"             />
+      <likelihoodPoisson      value="true"          />
+      <likelihoodModel        value="simulationCube"/>
+      <lengthSimulationCube   value="=400.0/0.6777" />
+     </posteriorSampleLikelihood>
     <!-- z = 2.021 -->
     <parameterMap value="haloMassFunctionParameters::a             haloMassFunctionParameters::p
 			 haloMassFunctionParameters::normalization haloMassFunctionParameters::q
@@ -140,11 +156,13 @@
       <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
       <baseParametersFileName value="constraints/pipelines/darkMatter/haloMassFunctionBase_SMDPL_z2.021.xml"/>
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_SMDPL_z2.021.hdf5"/>
-      <redshift               value=" 2.02100e00"                     />
-      <massRangeMinimum       value=" 4.26294e11"/> <!-- 3000 times SMDPL simulation particle mass; https://www.cosmosim.org/cms/simulations/smdpl -->
-      <binCountMinimum        value="0"          />
-      <likelihoodPoisson      value="true"       />
-    </posteriorSampleLikelihood>
+      <redshift               value=" 2.02100e00"   />
+      <massRangeMinimum       value=" 4.26294e11"   /> <!-- 3000 times SMDPL simulation particle mass; https://www.cosmosim.org/cms/simulations/smdpl -->
+      <binCountMinimum        value="0"             />
+      <likelihoodPoisson      value="true"          />
+      <likelihoodModel        value="simulationCube"/>
+      <lengthSimulationCube   value="=400.0/0.6777" />
+     </posteriorSampleLikelihood>
     <!-- z = 3.032 -->
     <parameterMap value="haloMassFunctionParameters::a             haloMassFunctionParameters::p
 			 haloMassFunctionParameters::normalization haloMassFunctionParameters::q
@@ -154,11 +172,13 @@
       <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
       <baseParametersFileName value="constraints/pipelines/darkMatter/haloMassFunctionBase_SMDPL_z3.032.xml"/>
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_SMDPL_z3.032.hdf5"/>
-      <redshift               value=" 3.03200e00"                     />
-      <massRangeMinimum       value=" 4.26294e11"/> <!-- 3000 times SMDPL simulation particle mass; https://www.cosmosim.org/cms/simulations/smdpl -->
-      <binCountMinimum        value="0"          />
-      <likelihoodPoisson      value="true"       />
-    </posteriorSampleLikelihood>
+      <redshift               value=" 3.03200e00"   />
+      <massRangeMinimum       value=" 4.26294e11"   /> <!-- 3000 times SMDPL simulation particle mass; https://www.cosmosim.org/cms/simulations/smdpl -->
+      <binCountMinimum        value="0"             />
+      <likelihoodPoisson      value="true"          />
+      <likelihoodModel        value="simulationCube"/>
+      <lengthSimulationCube   value="=400.0/0.6777" />
+     </posteriorSampleLikelihood>
 
     <!-- MDPL2 -->
     <!-- z = 0.000 -->
@@ -170,10 +190,12 @@
       <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
       <baseParametersFileName value="constraints/pipelines/darkMatter/haloMassFunctionBase_MDPL2_z0.000.xml"/>
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_MDPL2_z0.000.hdf5"/>
-      <redshift               value=" 0.00000e00"                     />
-      <massRangeMinimum       value=" 6.68440e12"/> <!-- 3000 times MDPL2 simulation particle mass; https://www.cosmosim.org/cms/simulations/mdpl2 -->
-      <binCountMinimum        value="0"          />
-      <likelihoodPoisson      value="true"       />
+      <redshift               value=" 0.00000e00"   />
+      <massRangeMinimum       value=" 6.68440e12"   /> <!-- 3000 times MDPL2 simulation particle mass; https://www.cosmosim.org/cms/simulations/mdpl2 -->
+      <binCountMinimum        value="0"             />
+      <likelihoodPoisson      value="true"          />
+      <likelihoodModel        value="simulationCube"/>
+      <lengthSimulationCube   value="=1000.0/0.6777"/>
     </posteriorSampleLikelihood>
     <!-- z = 0.490 -->
     <parameterMap value="haloMassFunctionParameters::a             haloMassFunctionParameters::p
@@ -184,10 +206,12 @@
       <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
       <baseParametersFileName value="constraints/pipelines/darkMatter/haloMassFunctionBase_MDPL2_z0.490.xml"/>
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_MDPL2_z0.490.hdf5"/>
-      <redshift               value=" 0.49000e00"                     />
-      <massRangeMinimum       value=" 6.68440e12"/> <!-- 3000 times MDPL2 simulation particle mass; https://www.cosmosim.org/cms/simulations/mdpl2 -->
-      <binCountMinimum        value="0"          />
-      <likelihoodPoisson      value="true"       />
+      <redshift               value=" 0.49000e00"   />
+      <massRangeMinimum       value=" 6.68440e12"   /> <!-- 3000 times MDPL2 simulation particle mass; https://www.cosmosim.org/cms/simulations/mdpl2 -->
+      <binCountMinimum        value="0"             />
+      <likelihoodPoisson      value="true"          />
+      <likelihoodModel        value="simulationCube"/>
+      <lengthSimulationCube   value="=1000.0/0.6777"/>
     </posteriorSampleLikelihood>
     <!-- z = 0.987 -->
     <parameterMap value="haloMassFunctionParameters::a             haloMassFunctionParameters::p
@@ -198,10 +222,12 @@
       <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
       <baseParametersFileName value="constraints/pipelines/darkMatter/haloMassFunctionBase_MDPL2_z0.987.xml"/>
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_MDPL2_z0.987.hdf5"/>
-      <redshift               value=" 0.98700e00"                     />
-      <massRangeMinimum       value=" 6.68440e12"/> <!-- 3000 times MDPL2 simulation particle mass; https://www.cosmosim.org/cms/simulations/mdpl2 -->
-      <binCountMinimum        value="0"          />
-      <likelihoodPoisson      value="true"       />
+      <redshift               value=" 0.98700e00"   />
+      <massRangeMinimum       value=" 6.68440e12"   /> <!-- 3000 times MDPL2 simulation particle mass; https://www.cosmosim.org/cms/simulations/mdpl2 -->
+      <binCountMinimum        value="0"             />
+      <likelihoodPoisson      value="true"          />
+      <likelihoodModel        value="simulationCube"/>
+      <lengthSimulationCube   value="=1000.0/0.6777"/>
     </posteriorSampleLikelihood>
     <!-- z = 2.028 -->
     <parameterMap value="haloMassFunctionParameters::a             haloMassFunctionParameters::p
@@ -212,10 +238,12 @@
       <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
       <baseParametersFileName value="constraints/pipelines/darkMatter/haloMassFunctionBase_MDPL2_z2.028.xml"/>
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_MDPL2_z2.028.hdf5"/>
-      <redshift               value=" 2.02800e00"                     />
-      <massRangeMinimum       value=" 6.68440e12"/> <!-- 3000 times MDPL2 simulation particle mass; https://www.cosmosim.org/cms/simulations/mdpl2 -->
-      <binCountMinimum        value="0"          />
-      <likelihoodPoisson      value="true"       />
+      <redshift               value=" 2.02800e00"   />
+      <massRangeMinimum       value=" 6.68440e12"   /> <!-- 3000 times MDPL2 simulation particle mass; https://www.cosmosim.org/cms/simulations/mdpl2 -->
+      <binCountMinimum        value="0"             />
+      <likelihoodPoisson      value="true"          />
+      <likelihoodModel        value="simulationCube"/>
+      <lengthSimulationCube   value="=1000.0/0.6777"/>
     </posteriorSampleLikelihood>
     <!-- z = 3.127 -->
     <parameterMap value="haloMassFunctionParameters::a             haloMassFunctionParameters::p
@@ -226,10 +254,12 @@
       <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
       <baseParametersFileName value="constraints/pipelines/darkMatter/haloMassFunctionBase_MDPL2_z3.127.xml"/>
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_MDPL2_z3.127.hdf5"/>
-      <redshift               value=" 3.12700e00"                     />
-      <massRangeMinimum       value=" 6.68440e12"/> <!-- 3000 times MDPL2 simulation particle mass; https://www.cosmosim.org/cms/simulations/mdpl2 -->
-      <binCountMinimum        value="0"          />
-      <likelihoodPoisson      value="true"       />
+      <redshift               value=" 3.12700e00"   />
+      <massRangeMinimum       value=" 6.68440e12"   /> <!-- 3000 times MDPL2 simulation particle mass; https://www.cosmosim.org/cms/simulations/mdpl2 -->
+      <binCountMinimum        value="0"             />
+      <likelihoodPoisson      value="true"          />
+      <likelihoodModel        value="simulationCube"/>
+      <lengthSimulationCube   value="=1000.0/0.6777"/>
     </posteriorSampleLikelihood>
 
     <!-- BigMDPL -->
@@ -242,10 +272,12 @@
       <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
       <baseParametersFileName value="constraints/pipelines/darkMatter/haloMassFunctionBase_BigMDPL_z0.000.xml"/>
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_BigMDPL_z0.000.hdf5"/>
-      <redshift               value=" 0.00000e00"                     />
-      <massRangeMinimum       value=" 1.04427e14"/> <!-- 3000 times BigMDPL simulation particle mass; https://www.cosmosim.org/cms/simulations/bigmdpl -->
-      <binCountMinimum        value="0"          />
-      <likelihoodPoisson      value="true"       />
+      <redshift               value=" 0.00000e00"   />
+      <massRangeMinimum       value=" 1.04427e14"   /> <!-- 3000 times BigMDPL simulation particle mass; https://www.cosmosim.org/cms/simulations/bigmdpl -->
+      <binCountMinimum        value="0"             />
+      <likelihoodPoisson      value="true"          />
+      <likelihoodModel        value="simulationCube"/>
+      <lengthSimulationCube   value="=2500.0/0.6777"/>
     </posteriorSampleLikelihood>
     <!-- z = 0.492 -->
     <parameterMap value="haloMassFunctionParameters::a             haloMassFunctionParameters::p
@@ -256,10 +288,12 @@
       <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
       <baseParametersFileName value="constraints/pipelines/darkMatter/haloMassFunctionBase_BigMDPL_z0.492.xml"/>
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_BigMDPL_z0.492.hdf5"/>
-      <redshift               value=" 0.49200e00"                     />
-      <massRangeMinimum       value=" 1.04427e14"/> <!-- 3000 times BigMDPL simulation particle mass; https://www.cosmosim.org/cms/simulations/bigmdpl -->
-      <binCountMinimum        value="0"          />
-      <likelihoodPoisson      value="true"       />
+      <redshift               value=" 0.49200e00"   />
+      <massRangeMinimum       value=" 1.04427e14"   /> <!-- 3000 times BigMDPL simulation particle mass; https://www.cosmosim.org/cms/simulations/bigmdpl -->
+      <binCountMinimum        value="0"             />
+      <likelihoodPoisson      value="true"          />
+      <likelihoodModel        value="simulationCube"/>
+      <lengthSimulationCube   value="=2500.0/0.6777"/>
     </posteriorSampleLikelihood>
     <!-- z = 1.000 -->
     <parameterMap value="haloMassFunctionParameters::a             haloMassFunctionParameters::p
@@ -270,10 +304,12 @@
       <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
       <baseParametersFileName value="constraints/pipelines/darkMatter/haloMassFunctionBase_BigMDPL_z1.000.xml"/>
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_BigMDPL_z1.000.hdf5"/>
-      <redshift               value=" 1.00000e00"                     />
-      <massRangeMinimum       value=" 1.04427e14"/> <!-- 3000 times BigMDPL simulation particle mass; https://www.cosmosim.org/cms/simulations/bigmdpl -->
-      <binCountMinimum        value="0"          />
-      <likelihoodPoisson      value="true"       />
+      <redshift               value=" 1.00000e00"   />
+      <massRangeMinimum       value=" 1.04427e14"   /> <!-- 3000 times BigMDPL simulation particle mass; https://www.cosmosim.org/cms/simulations/bigmdpl -->
+      <binCountMinimum        value="0"             />
+      <likelihoodPoisson      value="true"          />
+      <likelihoodModel        value="simulationCube"/>
+      <lengthSimulationCube   value="=2500.0/0.6777"/>
     </posteriorSampleLikelihood>
     <!-- z = 2.145 -->
     <parameterMap value="haloMassFunctionParameters::a             haloMassFunctionParameters::p
@@ -284,10 +320,12 @@
       <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
       <baseParametersFileName value="constraints/pipelines/darkMatter/haloMassFunctionBase_BigMDPL_z2.145.xml"/>
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_BigMDPL_z2.145.hdf5"/>
-      <redshift               value=" 2.14500e00"                     />
-      <massRangeMinimum       value=" 1.04427e14"/> <!-- 3000 times BigMDPL simulation particle mass; https://www.cosmosim.org/cms/simulations/bigmdpl -->
-      <binCountMinimum        value="0"          />
-      <likelihoodPoisson      value="true"       />
+      <redshift               value=" 2.14500e00"   />
+      <massRangeMinimum       value=" 1.04427e14"   /> <!-- 3000 times BigMDPL simulation particle mass; https://www.cosmosim.org/cms/simulations/bigmdpl -->
+      <binCountMinimum        value="0"             />
+      <likelihoodPoisson      value="true"          />
+      <likelihoodModel        value="simulationCube"/>
+      <lengthSimulationCube   value="=2500.0/0.6777"/>
     </posteriorSampleLikelihood>
     <!-- z = 2.891 -->
     <!-- Skipped as it contains insufficient halos above the minimum mass -->
@@ -302,10 +340,12 @@
       <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
       <baseParametersFileName value="constraints/pipelines/darkMatter/haloMassFunctionBase_HugeMDPL_z0.000.xml"/>
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_HugeMDPL_z0.000.hdf5"/>
-      <redshift               value=" 0.00000e00"                     />
-      <massRangeMinimum       value=" 3.49713e14"/> <!-- 3000 times HugeMDPL simulation particle mass; https://www.cosmosim.org/cms/simulations/hugemdpl -->
-      <binCountMinimum        value="0"          />
-      <likelihoodPoisson      value="true"       />
+      <redshift               value=" 0.00000e00"   />
+      <massRangeMinimum       value=" 3.49713e14"   /> <!-- 3000 times HugeMDPL simulation particle mass; https://www.cosmosim.org/cms/simulations/hugemdpl -->
+      <binCountMinimum        value="0"             />
+      <likelihoodPoisson      value="true"          />
+      <likelihoodModel        value="simulationCube"/>
+      <lengthSimulationCube   value="=4000.0/0.6777"/>
     </posteriorSampleLikelihood>
     <!-- z = 0.490 -->
     <parameterMap value="haloMassFunctionParameters::a             haloMassFunctionParameters::p
@@ -316,10 +356,12 @@
       <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
       <baseParametersFileName value="constraints/pipelines/darkMatter/haloMassFunctionBase_HugeMDPL_z0.490.xml"/>
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_HugeMDPL_z0.490.hdf5"/>
-      <redshift               value=" 0.49000e00"                     />
-      <massRangeMinimum       value=" 3.49713e14"/> <!-- 3000 times HugeMDPL simulation particle mass; https://www.cosmosim.org/cms/simulations/hugemdpl -->
-      <binCountMinimum        value="0"          />
-      <likelihoodPoisson      value="true"       />
+      <redshift               value=" 0.49000e00"   />
+      <massRangeMinimum       value=" 3.49713e14"   /> <!-- 3000 times HugeMDPL simulation particle mass; https://www.cosmosim.org/cms/simulations/hugemdpl -->
+      <binCountMinimum        value="0"             />
+      <likelihoodPoisson      value="true"          />
+      <likelihoodModel        value="simulationCube"/>
+      <lengthSimulationCube   value="=4000.0/0.6777"/>
     </posteriorSampleLikelihood>
     <!-- z = 0.987 -->
     <parameterMap value="haloMassFunctionParameters::a             haloMassFunctionParameters::p
@@ -330,10 +372,12 @@
       <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
       <baseParametersFileName value="constraints/pipelines/darkMatter/haloMassFunctionBase_HugeMDPL_z0.987.xml"/>
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_HugeMDPL_z0.987.hdf5"/>
-      <redshift               value=" 0.98700e00"                     />
-      <massRangeMinimum       value=" 3.49713e14"/> <!-- 3000 times HugeMDPL simulation particle mass; https://www.cosmosim.org/cms/simulations/hugemdpl -->
-      <binCountMinimum        value="0"          />
-      <likelihoodPoisson      value="true"       />
+      <redshift               value=" 0.98700e00"   />
+      <massRangeMinimum       value=" 3.49713e14"   /> <!-- 3000 times HugeMDPL simulation particle mass; https://www.cosmosim.org/cms/simulations/hugemdpl -->
+      <binCountMinimum        value="0"             />
+      <likelihoodPoisson      value="true"          />
+      <likelihoodModel        value="simulationCube"/>
+      <lengthSimulationCube   value="=4000.0/0.6777"/>
     </posteriorSampleLikelihood>
     <!-- z = 2.028 -->
     <parameterMap value="haloMassFunctionParameters::a             haloMassFunctionParameters::p
@@ -344,10 +388,12 @@
       <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
       <baseParametersFileName value="constraints/pipelines/darkMatter/haloMassFunctionBase_HugeMDPL_z2.028.xml"/>
       <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_HugeMDPL_z2.028.hdf5"/>
-      <redshift               value=" 2.02800e00"                     />
-      <massRangeMinimum       value=" 3.49713e14"/> <!-- 3000 times HugeMDPL simulation particle mass; https://www.cosmosim.org/cms/simulations/hugemdpl -->
-      <binCountMinimum        value="0"          />
-      <likelihoodPoisson      value="true"       />
+      <redshift               value=" 2.02800e00"   />
+      <massRangeMinimum       value=" 3.49713e14"   /> <!-- 3000 times HugeMDPL simulation particle mass; https://www.cosmosim.org/cms/simulations/hugemdpl -->
+      <binCountMinimum        value="0"             />
+      <likelihoodPoisson      value="true"          />
+      <likelihoodModel        value="simulationCube"/>
+      <lengthSimulationCube   value="=4000.0/0.6777"/>
     </posteriorSampleLikelihood>
     <!-- z = 3.037 -->
     <!-- Skipped as it contains insufficient halos above the minimum mass -->
