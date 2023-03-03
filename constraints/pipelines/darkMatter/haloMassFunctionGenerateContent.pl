@@ -298,26 +298,6 @@ foreach my $type ( @types ) {
 	    my $xml = new XML::Simple();
 	    my $haloTarget = $xml->XMLin($options{'simulationDataPath'}."/ZoomIns/".$type->{'label'}."/".$halo."/primaryHalo_z".$code::redshiftShort.".xml");
 	    $code::massMaximum = sprintf("%11.5e",$haloTarget->{'mc'}/10.0);
-	    # Make the XML for the config file.
-	    my $config = fill_in_string(<<'CODE', PACKAGE => 'code');
-    <!-- Zoom-in: {$name} {$halo} -->
-    <parameterMap value="haloMassFunctionParameters::a             haloMassFunctionParameters::p
-                         haloMassFunctionParameters::normalization haloMassFunctionParameters::q
-                         haloMassFunctionParameters::cW            haloMassFunctionParameters::beta
-                         haloMassFunctionParameters::alpha"/>
-     <parameterInactiveMap value="" ignoreWarnings="true"/>
-    <posteriorSampleLikelihood value="haloMassFunction">
-      <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
-      <baseParametersFileName value="constraints/pipelines/darkMatter/haloMassFunctionBase_{$label}_{$halo}_z{$redshiftShort}.xml"/>
-      <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_{$label}_{$halo}_z{$redshiftShort}.hdf5"/>
-      <redshift               value="{$redshift}"/>
-      <massRangeMinimum       value="{$massMinimum}"/> <!-- 3000 times zoom-in {$name} particle mass -->
-      <massRangeMaximum       value="{$massMaximum}"/> <!-- 1/10 of the target halo mass             -->
-      <binCountMinimum        value="0"          />    
-      <likelihoodPoisson      value="true"       />
-    </posteriorSampleLikelihood>
-CODE
-	    print $configFile $config;
 	    # Add entries for the pipeline file.
 	    $pipelineBase   .= '	      "haloMassFunctionBase_'.$type->{'label'}.'_'.$halo.'_z'.$code::redshiftShort.'.xml"'.(" " x (8+$labelLengthMaximum-length($type->{'label'})-length($halo))).",\n";
 	    $pipelineSuffix .= '	      "'.$type->{'label'}.'_'.$halo.'_z'.$code::redshiftShort.'"'.(" " x (8+$labelLengthMaximum-length($type->{'label'})-length($halo))).",\n";
@@ -337,11 +317,28 @@ CODE
 		    (my $massEnvironment, my $overdensityEnvironment) = $hmf->attrGet('massEnvironment', 'overdensityEnvironment');
 		    $code::massEnvironment        = sprintf("%13.6e",       $massEnvironment);
 		    $code::overdensityEnvironment = sprintf("%+9.6f",$overdensityEnvironment);
-
-
-		    print $type->{'label'}.'_'.$halo.'_z'.$code::redshiftShort."\t".$code::massEnvironment."\t".$code::overdensityEnvironment."\n";
-
-		    
+		    # Make the XML for the config file.
+		    my $config = fill_in_string(<<'CODE', PACKAGE => 'code');
+    <!-- Zoom-in: {$name} {$halo} -->
+    <parameterMap value="haloMassFunctionParameters::a             haloMassFunctionParameters::p
+                         haloMassFunctionParameters::normalization haloMassFunctionParameters::q
+                         haloMassFunctionParameters::cW            haloMassFunctionParameters::beta
+                         haloMassFunctionParameters::alpha"/>
+     <parameterInactiveMap value="" ignoreWarnings="true"/>
+    <posteriorSampleLikelihood value="haloMassFunction">
+      <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
+      <baseParametersFileName value="constraints/pipelines/darkMatter/haloMassFunctionBase_{$label}_{$halo}_z{$redshiftShort}.xml"/>
+      <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_{$label}_{$halo}_z{$redshiftShort}.hdf5"/>
+      <redshift               value="{$redshift}"       />
+      <massRangeMinimum       value="{$massMinimum}"    /> <!-- 3000 times zoom-in {$name} particle mass -->
+      <massRangeMaximum       value="{$massMaximum}"    /> <!-- 1/10 of the target halo mass             -->
+      <binCountMinimum        value="0"                 />    
+      <likelihoodPoisson      value="true"              />
+      <likelihoodModel        value="environment"       />
+      <massEnvironment        value="{$massEnvironment}"/>
+    </posteriorSampleLikelihood>
+CODE
+		    print $configFile $config;
 		    my $base = fill_in_string(<<'CODE', PACKAGE => 'code');
 <?xml version="1.0" encoding="UTF-8"?>
 <parameters>
