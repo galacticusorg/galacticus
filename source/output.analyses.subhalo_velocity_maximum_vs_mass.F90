@@ -178,15 +178,13 @@ contains
 
     ! Read properties from the file.
     !$ call hdf5Access%set()
-    call file                      %openFile     (char(File_Name_Expand(char(fileName))),readOnly=.true.             )
+    file=hdf5Object(char(File_Name_Expand(char(fileName))),readOnly=.true.)
     call file                      %readAttribute('label'                               ,         labelTarget        )
     call file                      %readAttribute('redshift'                            ,         redshift_          )
     velocityMaximumVsMassGroup=file%openGroup('velocityMaximum')
     call velocityMaximumVsMassGroup%readDataset  ('mass'                                ,         massesTarget       )
     call velocityMaximumVsMassGroup%readDataset  ('velocityMaximumMean'                 ,         functionTarget     )
     call velocityMaximumVsMassGroup%readDataset  ('velocityMaximumMeanError'            ,         functionErrorTarget)
-    call velocityMaximumVsMassGroup%close        (                                                                   )
-    call file                      %close        (                                                                   )
     !$ call hdf5Access%unset()
     ! Override the redshift if one is provided.
     if (present(redshift)) redshift_=redshift

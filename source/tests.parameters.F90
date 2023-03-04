@@ -44,7 +44,7 @@ program Test_Parameters
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
   ! Open an output file.
-  call outputFile%openFile("testSuite/outputs/testParameters.hdf5",overWrite=.true.)
+  outputFile=hdf5Object("testSuite/outputs/testParameters.hdf5",overWrite=.true.)
   parameterFile  ='testSuite/parameters/testsParameters.xml'
   testParameters=inputParameters(parameterFile,outputParametersGroup=outputFile)
   ! Begin unit tests.
@@ -101,5 +101,4 @@ program Test_Parameters
   call Unit_Tests_Finish   ()
   ! Close down.
   call testParameters%destroy()
-  call outputFile     %close ()
 end program Test_Parameters

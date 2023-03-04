@@ -409,8 +409,8 @@ contains
     character       (len= 9                       )                              :: groupName
 
     ! Open the HDF5 file for output.
-    !$ call hdf5Access%set     (                                                            )
-    call    outputFile%openFile(char(self%outputFileName),overWrite=.true.,readOnly=.false.)
+    !$ call hdf5Access%set  ()
+    outputFile=hdf5Object(char(self%outputFileName),overWrite=.true.,readOnly=.false.)
     ! Create the header.
     header=outputFile%openGroup('Header','Group containing Gadget metadata.')
     ! Particle properties.
@@ -440,8 +440,6 @@ contains
     call header%writeAttribute(0    ,'Flag_StellarAge' )
     call header%writeAttribute(0    ,'FlagMetals'      )
     call header%writeAttribute(0    ,'Flag_Entropy_ICs')
-    call header%close()
-    call outputFile%close()
     !$ call hdf5Access%unset()
     ! Iterate over nodes.
     firstNode =.true.
@@ -708,8 +706,8 @@ contains
           particlePosition=particlePosition/unitGadgetLength
           particleVelocity=particleVelocity/unitGadgetVelocity
           ! Accumulate the particle data to file.
-          !$ call hdf5Access%set     (                                                                                      )
-          call    outputFile%openFile(char(self%outputFileName),overWrite=.false.,readOnly=.false.,objectsOverwritable=.true.)
+          !$ call hdf5Access%set  ()
+          outputFile=hdf5Object(char(self%outputFileName),overWrite=.false.,readOnly=.false.,objectsOverwritable=.true.)
           ! Get current count of particles in file.
           header=outputFile%openGroup('Header','Group containing Gadget metadata.')
           call header%readAttributeStatic('NumPart_Total',particleCounts)
@@ -738,18 +736,15 @@ contains
           call particleGroup%writeDataset(particlePosition,'Coordinates','Particle coordinates',appendTo=self%chunkSize /= -1,appendDimension=2)
           call particleGroup%writeDataset(particleVelocity,'Velocities' ,'Particle velocities' ,appendTo=self%chunkSize /= -1,appendDimension=2)
           call particleGroup%writeDataset(particleIDs     ,'ParticleIDs','Particle IDs'        ,appendTo=self%chunkSize /= -1                  )
-          call particleGroup%close()
           firstNode=.false.
           deallocate(particlePosition)
           deallocate(particleVelocity)
           deallocate(particleIDs     )
           ! Update particle counts.
           particleCounts(typeIndex)=particleCounts(typeIndex)+particleCountActual
-          call    header    %writeAttribute(particleCounts,'NumPart_ThisFile')
-          call    header    %writeAttribute(particleCounts,'NumPart_Total'   )
-          call    header    %close         (                                 )
-          call    outputFile%close         (                                 )
-          !$ call hdf5Access%unset         (                                 )
+          call header%writeAttribute(particleCounts,'NumPart_ThisFile')
+          call header%writeAttribute(particleCounts,'NumPart_Total'   )
+          !$ call hdf5Access%unset()
        end if
     end do
     return

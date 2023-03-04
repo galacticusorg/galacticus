@@ -144,7 +144,7 @@ contains
        call File_Lock(char(self%fileName),fileLock,lockIsShared=.false.)
        if (File_Exists(char(self%fileName))) then
           !$ call hdf5Access%set()
-          call spectraFile%openFile     (char(self%fileName),readOnly         =.true.)
+          spectraFile=hdf5Object(char(self%fileName),readOnly=.true.)
           call spectraFile%readAttribute('fileFormat'       ,fileFormatVersion       )
           if (fileFormatVersion /= fileFormatVersionCurrent) remakeFile=.true.
           !$ call hdf5Access%unset()

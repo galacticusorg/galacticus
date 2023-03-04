@@ -608,8 +608,6 @@ contains
          &                        appendDimension=3                                                                                                                                                             , &
          &                        chunkSize      =self%countOutputBuffer                                                                                                                                          &
          &                       )
-    call  outputGroup%close()
-    call historyGroup%close()
     !$ call hdf5Access%unset()
     self%indexOutputBuffer(componentType%ID)=0_c_size_t
     return

@@ -1311,7 +1311,7 @@ contains
     if (.not.File_Exists(char(self%fileName))) return
     ! Open the data file.
     !$ call hdf5Access%set()
-    call dataFile%openFile(char(self%fileName))
+    dataFile=hdf5Object(char(self%fileName))
     ! Check if the standard table is populated.
     if (dataFile%hasGroup('probability')) then
        ! Deallocate arrays if necessary.
@@ -1323,7 +1323,6 @@ contains
        call dataGroup%readDataset('variance'                ,varianceTmp                )
        call dataGroup%readDataset('time'                    ,self%time                  )
        call dataGroup%readDataset('firstCrossingProbability',firstCrossingProbabilityTmp)
-       call dataGroup%close()
        ! Set table sizes and limits.
        self%countVariance=size(varianceTmp)-1
        self%countTime    =size(self%time  )
@@ -1385,7 +1384,6 @@ contains
        call dataGroup%readDataset  ('firstCrossingRate'         ,firstCrossingRateTmp         )
        call dataGroup%readDataset  ('nonCrossingRate'           ,nonCrossingRate              )
        call dataGroup%readAttribute('massMinimumRateNonCrossing',massMinimumRateNonCrossing   )
-       call dataGroup%close()
        if (self%massMinimumRateNonCrossing == massMinimumRateNonCrossing) then
           self%retabulateRateNonCrossing=.false.
        end if
@@ -1445,8 +1443,6 @@ contains
        call displayMessage (message,verbosityLevelWorking)
        call displayUnindent(''     ,verbosityLevelWorking)
     end if
-    ! Close the data file.
-    call dataFile%close()
     !$ call hdf5Access%unset()
     return
   end subroutine farahiFileRead
@@ -1473,14 +1469,13 @@ contains
     call self%fileNameInitialize()
     ! Open the data file.
     !$ call hdf5Access%set()
-    call dataFile%openFile(char(self%fileName),overWrite=.true.,chunkSize=100_hsize_t,compressionLevel=9)
+    dataFile=hdf5Object(char(self%fileName),overWrite=.true.,chunkSize=100_hsize_t,compressionLevel=9)
     ! Check if the standard table is populated.
     if (self%tableInitialized) then
        dataGroup=dataFile%openGroup("probability")
        call dataGroup%writeDataset(self%variance                ,'variance'                ,'The variance at which results are tabulated.'                         )
        call dataGroup%writeDataset(self%time                    ,'time'                    ,'The cosmic times at which results are tabulated.'                     )
        call dataGroup%writeDataset(self%firstCrossingProbability,'firstCrossingProbability','The probability of first crossing as a function of variance and time.')
-       call dataGroup%close()
        ! Report.
        message=var_str('write excursion set first crossing probability to: ')//char(self%fileName)
        call displayIndent  (message,verbosityLevelWorking)
@@ -1509,7 +1504,6 @@ contains
        call dataGroup%writeDataset  (self%firstCrossingRate             ,'firstCrossingRate'         ,'The probability rate of first crossing as a function of variances and time.')
        call dataGroup%writeDataset  (self%nonCrossingRate               ,'nonCrossingRate'           ,'The probability rate of non crossing as a function of variance and time.'   )
        call dataGroup%writeAttribute(self%massMinimumRateNonCrossing    ,'massMinimumRateNonCrossing'                                                                              )
-       call dataGroup%close()
        ! Report.
        message=var_str('wrote excursion set first crossing rates to: ')//char(self%fileName)
        call displayIndent  (message,verbosityLevelWorking)
@@ -1529,8 +1523,6 @@ contains
        call displayMessage (message,verbosityLevelWorking)
        call displayUnindent(''     ,verbosityLevelWorking)
     end if
-    ! Close the data file.
-    call dataFile%close()
     !$ call hdf5Access%unset()
     return
   end subroutine farahiFileWrite

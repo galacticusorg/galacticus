@@ -223,11 +223,10 @@ contains
     
     ! Construct the target distribution.
     !$ call hdf5Access%set  ()
-    call fileData%openFile(char(inputPath(pathTypeDataStatic))//"observations/stellarHaloMassRelation/stellarHaloMassRelation_Local_Group_Nadler2020.hdf5")
+    fileData=hdf5Object(char(inputPath(pathTypeDataStatic))//"observations/stellarHaloMassRelation/stellarHaloMassRelation_Local_Group_Nadler2020.hdf5")
     call fileData%readDataset('massHalo'          ,massHaloData          )
     call fileData%readDataset('massStellar'       ,massStellarData       )
     call fileData%readDataset('massStellarScatter',massStellarScatterData)
-    call fileData%close      (                                           )
     !$ call hdf5Access%unset()
     ! Construct mass bins.
     allocate(masses                  (size(massHaloData)                   ))

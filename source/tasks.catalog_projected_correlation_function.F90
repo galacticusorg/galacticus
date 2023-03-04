@@ -258,7 +258,6 @@ contains
        call Error_Report('unknown randomSampleCountType'//{introspection:location})
     end if
     self%parameters=inputParameters(parameters)
-    call self%parameters%parametersGroupCopy(parameters)
     return
   end function catalogProjectedCorrelationFunctionConstructorInternal
 
@@ -443,14 +442,10 @@ contains
     correlationFunctionGroup=outputFile%openGroup('projectedCorrelationFunction')
     call correlationFunctionGroup%writeDataset(separation       ,'separation'                ,commentText='Galaxy separation.'                                ,datasetReturned=dataset)
     call dataset%writeAttribute(megaParsec,'unitsInSI')
-    call dataset%close         (                      )
     call correlationFunctionGroup%writeDataset(correlation      ,'projectedCorrelation'      ,commentText='Projected correlation function from the full mock.',datasetReturned=dataset)
     call dataset%writeAttribute(megaParsec,'unitsInSI')
-    call dataset%close         (                      )
     call correlationFunctionGroup%writeDataset(correlationSurvey,'projectedCorrelationSurvey',commentText='Projected correlation function from survey region.',datasetReturned=dataset)
     call dataset%writeAttribute(megaParsec,'unitsInSI')
-    call dataset%close         (                      )
-    call correlationFunctionGroup%close()
     ! Clean up.
     deallocate(galaxyPosition)
     deallocate(galaxyVelocity)

@@ -607,14 +607,13 @@ contains
     call displayMessage('reading D(k,t) data from: '//self%fileName,verbosityLevelWorking)
     if (self%tableInitialized) call self%growthFactor%destroy()
     !$ call hdf5Access%set()
-    call dataFile%openFile     (char(self%fileName),overWrite=.false.                          )
+    dataFile=hdf5Object(char(self%fileName),overWrite=.false.)
     call dataFile%readDataset  ('growthFactorDarkMatter',                growthFactorDarkMatter)
     call dataFile%readDataset  ('growthFactorBaryons'   ,                growthFactorBaryons   )
     call dataFile%readAttribute('wavenumberMinimum'     ,          self%tableWavenumberMinimum )
     call dataFile%readAttribute('wavenumberMaximum'     ,          self%tableWavenumberMaximum )
     call dataFile%readAttribute('timeMinimum'           ,          self%tableTimeMinimum       )
     call dataFile%readAttribute('timeMaximum'           ,          self%tableTimeMaximum       )
-    call dataFile%close        (                                                               )
     !$ call hdf5Access%unset()
     call self%growthFactor%create  (                                                                                                               &
          &                                             self%tableTimeMinimum      ,self%tableTimeMaximum      ,size(growthFactorDarkMatter,dim=1), &
@@ -646,7 +645,7 @@ contains
     ! Open the data file.
     call displayMessage('writing D(k,t) data to: '//self%fileName,verbosityLevelWorking)
     !$ call hdf5Access%set()
-    call dataFile%openFile      (char   (self%fileName                                                                                                      ),overWrite=.true.,chunkSize=100_hsize_t,compressionLevel=9)
+    dataFile=hdf5Object(char(self%fileName),overWrite=.true.,chunkSize=100_hsize_t,compressionLevel=9)
     call dataFile%writeDataset  (reshape(self%growthFactor          %zs(table=indexDarkMatter),[self%growthFactor%size(dim=1),self%growthFactor%size(dim=2)]),          'growthFactorDarkMatter'                       )
     call dataFile%writeDataset  (reshape(self%growthFactor          %zs(table=indexBaryons   ),[self%growthFactor%size(dim=1),self%growthFactor%size(dim=2)]),          'growthFactorBaryons'                          )
     call dataFile%writeAttribute(        self%tableWavenumberMinimum                                                                                         ,          'wavenumberMinimum'                            )

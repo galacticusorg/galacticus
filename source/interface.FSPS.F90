@@ -217,7 +217,7 @@ contains
     ! Write output file.
     call Directory_Make(char(File_Path(char(spectraFileName))))
     !$ call hdf5Access%set()
-    call spectraFile%openFile(char(spectraFileName))
+    spectraFile=hdf5Object(char(spectraFileName))
     ! Add metadata.
     call spectraFile%writeAttribute('Galacticus'                                                                           ,'createdBy'  )
     call spectraFile%writeAttribute(Formatted_Date_and_Time()                                                              ,'timestep'   )
@@ -229,27 +229,20 @@ contains
     call imfGroup%writeDataset  (imf%xs(),'mass'                  ,datasetReturned=dataset)
     call dataset %writeAttribute('M☉'                 ,'units'                           )
     call dataset %writeAttribute(      massSolar      ,'unitsInSI'                       )
-    call dataset %close         (                                                         )
     call imfGroup%writeDataset  (imf%ys()   ,'initialMassFunction',datasetReturned=dataset)
     call dataset %writeAttribute('M☉⁻¹'               ,'units'                           )
     call dataset %writeAttribute(1.0d0/massSolar      ,'unitsInSI'                       )
-    call dataset %close         (                                                        )
-    call imfGroup%close         (                                                        )
     ! Write datasets.
     call spectraFile%writeDataset  (wavelength ,'wavelengths'        ,datasetReturned=dataset)
     call dataset    %writeAttribute('Å'                  ,'units'                            )
     call dataset    %writeAttribute(1.0d0/angstromsPerMeter             ,'unitsInSI'         )
-    call dataset    %close         (                                                         )
     call spectraFile%writeDataset  (age        ,'ages'         ,      datasetReturned=dataset)
     call dataset    %writeAttribute('Gyr'                ,'units'                            )
     call dataset    %writeAttribute(gigaYear             ,'unitsInSI'                        )
-    call dataset    %close         (                                                         )
     call spectraFile%writeDataset  (metallicity,'metallicities'                              )
     call spectraFile%writeDataset  (spectrum   ,'spectra'            ,datasetReturned=dataset)
     call dataset    %writeAttribute('L☉ Hz⁻¹'            ,'units'                            )
     call dataset    %writeAttribute(luminositySolar      ,'unitsInSI'                        )
-    call dataset    %close         (                                                         )
-    call spectraFile%close()
     !$ call hdf5Access%unset()
   return
   end subroutine Interface_FSPS_SSPs_Tabulate

@@ -122,7 +122,6 @@
    contains
      final     ::                                  galacticusDestructor
      procedure :: open                          => galacticusOpen
-     procedure :: close                         => galacticusClose
      procedure :: canReadSubsets                => galacticusCanReadSubsets
      procedure :: treesHaveSubhalos             => galacticusTreesHaveSubhalos
      procedure :: massesIncludeSubhalos         => galacticusMassesIncludeSubhalos
@@ -249,10 +248,6 @@ contains
     <objectDestructor name="self%cosmologyParameters_"     />
     <objectDestructor name="self%cosmologicalMassVariance_"/>
     !!]
-    !$ call hdf5Access%set()
-    if (self%forestHalos%isOpen()) call self%forestHalos%close()
-    if (self%file       %isOpen()) call self%file      %close()
-    !$ call hdf5Access%unset()
     return
   end subroutine galacticusDestructor
 
@@ -289,7 +284,7 @@ contains
     localSigma8     =self%cosmologicalMassVariance_%sigma8         (                  )
     !$ call hdf5Access%set()
     ! Open the file.
-    call self%file%openFile(char(fileName),readOnly=.true.)
+    self%file=hdf5Object(char(fileName),readOnly=.true.)
     ! Get the file format version number.
     if (self%file%hasAttribute('formatVersion')) then
        call self%file%readAttribute('formatVersion',self%formatVersion,allowPseudoScalar=.true.)
@@ -395,7 +390,6 @@ contains
           call displayMessage(message)
        end if
     end if
-    call cosmologicalParametersGroup%close()
     ! Read units.
     unitsGroup=self%file%openGroup("units")
     self%massUnit    %status=unitsGroup%hasAttribute("massUnitsInSI")
@@ -422,7 +416,6 @@ contains
        call unitsGroup%readAttribute("velocityScaleFactorExponent",self%velocityUnit%scaleFactorExponent,allowPseudoScalar=.true.)
        call unitsGroup%readAttribute("velocityHubbleExponent"     ,self%velocityUnit%hubbleExponent     ,allowPseudoScalar=.true.)
     end if
-    call unitsGroup%close()
     ! Check for availability of particle data.
     if (self%file%hasGroup("particles")) then
        self%particles=self%file%openGroup("particles")
@@ -453,7 +446,6 @@ contains
        case default
           call Error_Report('angularMomentum dataset must be rank 1 or 2'//{introspection:location})
        end select
-       call angularMomentumDataset%close()
     end if
     ! Check for type of spin data available.
     self%spinIsScalar=.false.
@@ -469,27 +461,10 @@ contains
        case default
           call Error_Report('spin dataset must be rank 1 or 2'//{introspection:location})
        end select
-       call spinDataset%close()
     end if
     !$ call hdf5Access%unset()
     return
   end subroutine galacticusOpen
-
-  subroutine galacticusClose(self)
-    !!{
-    Validate a \glc\ format merger tree file.
-    !!}
-    use :: HDF5_Access, only : hdf5Access
-    implicit none
-    class(mergerTreeImporterGalacticus), intent(inout) :: self
-
-    !$ call hdf5Access%set()
-    if (self%particles  %isOpen()) call self%particles  %close()
-    if (self%forestHalos%isOpen()) call self%forestHalos%close()
-    if (self%file       %isOpen()) call self%file       %close()
-    !$ call hdf5Access%unset()
-    return
-  end subroutine galacticusClose
 
   logical function galacticusCanReadSubsets(self)
     !!{
@@ -674,7 +649,6 @@ contains
           else
              self%lengthStatus%value=booleanFalse
           end if
-          call simulationGroup%close()
        else
           self%lengthStatus%value=booleanUnknown
        end if
@@ -841,9 +815,6 @@ contains
        call treeIndexGroup%readDataset(trim(self%forestWeightDatasetName),self%weights)
        !$ call hdf5Access%unset()
     end if
-    !$ call hdf5Access%set()
-    call treeIndexGroup%close()
-    !$ call hdf5Access%unset()
     self%forestsCount=size(self%forestIndices)
     ! Reset first node indices to Fortran array standard.
     self%firstNodes=self%firstNodes+1

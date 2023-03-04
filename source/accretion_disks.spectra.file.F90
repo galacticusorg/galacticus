@@ -153,7 +153,7 @@ contains
 
     ! Open the file.
     !$ call hdf5Access%set()
-    call spectraFile%openFile(fileName,readOnly=.true.)
+    spectraFile=hdf5Object(fileName,readOnly=.true.)
     ! Check file format.
     call spectraFile%readAttribute('fileFormat',fileFormatFile,allowPseudoScalar=.true.)
     if (fileFormatFile /= fileFormatCurrent) call Error_Report('file format mismatch'//{introspection:location})
@@ -161,8 +161,6 @@ contains
     call spectraFile%readDataset('wavelength'          ,self%wavelength)
     call spectraFile%readDataset('bolometricLuminosity',self%luminosity)
     call spectraFile%readDataset('SED'                 ,self%SED       )
-    ! Close the file.
-    call spectraFile%close()
     !$ call hdf5Access%unset()
     ! Convert luminosities to logarithmic form for interpolation.
     self%luminosity=log(self%luminosity)

@@ -163,7 +163,6 @@ contains
     !!]
 
     self%parameters=inputParameters(parameters)
-    call self%parameters%parametersGroupCopy(parameters)
     return
   end function haloModelGenerateConstructorInternal
 

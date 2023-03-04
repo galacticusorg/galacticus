@@ -410,7 +410,6 @@ contains
           iterationOutputGroup=outputGroup%openGroup('iteration'//trim(adjustl(label)),'Data for iteration '//trim(adjustl(label)))
           call self                %computationalDomain_%output        (iterationOutputGroup            )
           call iterationOutputGroup                     %writeAttribute(converged           ,'converged')
-          call iterationOutputGroup                     %close         (                                )
        end if
        ! If converged and we need to use a different number of photons in the final iteration, do that now.       
        finalIteration=.not.finalIteration .and. countIterations >= self%countIterationsMinimum .and. converged .and. self%countPhotonsPerWavelengthFinalIteration /= self%countPhotonsPerWavelength
@@ -423,7 +422,6 @@ contains
     call self%radiativeTransferOutputter_%finalize()
     if (mpiSelf%isMaster()) call self%radiativeTransferOutputter_%output(outputGroup)
     ! Done.
-    if (mpiSelf%isMaster()) call outputGroup%close()
     call timerTotal_%stop()
     if (present(status)) status=errorStatusSuccess
     if (mpiSelf%isMaster()) call displayUnindent('Done task: radiative transfer ['//timerTotal_%reportText()//']')

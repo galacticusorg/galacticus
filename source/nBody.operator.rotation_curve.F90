@@ -193,7 +193,6 @@ contains
        rotationCurveGroup=simulations(iSimulation)%analysis%openGroup('rotationCurve')
        call rotationCurveGroup%writeDataset(self%radius  ,'rotationCurveRadius'  )
        call rotationCurveGroup%writeDataset(rotationCurve,'rotationCurveVelocity')
-       call rotationCurveGroup%close()
        ! Deallocate workspace.
        deallocate(selfBoundStatus      )
        deallocate(distanceRadialSquared)

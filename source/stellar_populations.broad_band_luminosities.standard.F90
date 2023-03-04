@@ -454,14 +454,13 @@ contains
                       ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
                       call File_Lock(char(luminositiesFileName),lockFileDescriptor,lockIsShared=.true.)
                       !$ call hdf5Access%set()
-                      call luminositiesFile%openFile(char(luminositiesFileName),readOnly=.true.)
+                      luminositiesFile=hdf5Object(char(luminositiesFileName),readOnly=.true.)
                       if (luminositiesFile%hasDataset(trim(datasetName))) then
                          ! Read the dataset.
                          call luminositiesFile%readDatasetStatic(trim(datasetName),self%luminosityTables(populationID)%luminosity(luminosityIndex(iLuminosity),:,:))
                          ! We do not need to calculate this luminosity.
                          calculateLuminosity=.false.
                       end if
-                      call luminositiesFile%close()
                       !$ call hdf5Access%unset()
                       call File_Unlock(lockFileDescriptor)
                    end if
@@ -612,13 +611,11 @@ contains
                       ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
                       call File_Lock(char(luminositiesFileName),lockFileDescriptor,lockIsShared=.false.)
                       !$ call hdf5Access%set()
-                      call luminositiesFile%openFile      (char(luminositiesFileName)             )
+                      luminositiesFile=hdf5Object(char(luminositiesFileName))
                       if (.not.luminositiesFile%hasAttribute('parameters')) call luminositiesFile%writeAttribute(char(descriptorString),'parameters')
                       ! Write the dataset.
                       if (.not.luminositiesFile%hasDataset(trim(datasetName))) &
                            & call luminositiesFile%writeDataset(self%luminosityTables(populationID)%luminosity(luminosityIndex(iLuminosity),:,:),datasetName=trim(datasetName),commentText="Tabulated luminosities at redshift z="//adjustl(trim(redshiftLabel)))
-                      ! Close the file.
-                      call luminositiesFile%close()
                       !$ call hdf5Access%unset()
                       call File_Unlock(lockFileDescriptor)
                    end if

@@ -338,28 +338,21 @@ contains
        call outputGroup   %writeAttribute(epochTime                (  iOutput),'outputTime'                                                                                                                                )
        call outputGroup   %writeDataset  (wavenumber                          ,'wavenumber'               ,'The wavenumber.'                                                                       ,datasetReturned=dataset)
        call dataset       %writeAttribute(1.0d0/megaParsec                    ,'unitsInSI'                                                                                                                                 )
-       call dataset       %close         (                                                                                                                                                                                 )
        call outputGroup   %writeDataset  (massScale                           ,'mass'                     ,'The corresponding mass scale.'                                                         ,datasetReturned=dataset)
        call dataset       %writeAttribute(massSolar                           ,'unitsInSI'                                                                                                                                 )
-       call dataset       %close         (                                                                                                                                                                                 )
        call outputGroup   %writeDataset  (growthFactor             (:,iOutput),'growthFactor'             ,'Linear theory growth factor, D(t).'                                                                            )
        call outputGroup   %writeDataset  (growthFactorLogDerivative(:,iOutput),'growthFactorLogDerivative','Logarithmic derivative of growth factor with respect to expansion factor, dlogD/dloga.'                        )
        call outputGroup   %writeDataset  (powerSpectrumLinear      (:,iOutput),'powerSpectrum'            ,'The power spectrum.'                                                                   ,datasetReturned=dataset)
        call dataset       %writeAttribute(megaParsec**3                       ,'unitsInSI'                                                                                                                                 )
-       call dataset       %close         (                                                                                                                                                                                 )
        call outputGroup   %writeDataset  (transferFunction         (:,iOutput),'transferFunction'         ,'The transfer function.'                                                                                        )
        call outputGroup   %writeDataset  (sigma                    (:,iOutput),'sigma'                    ,'The mass fluctuation on this scale.'                                                                           )
        call outputGroup   %writeDataset  (sigmaGradient            (:,iOutput),'alpha'                    ,'Logarithmic deriative of the mass flucation with respect to mass.'                                             )
        if (self%includeNonLinear) then
           call outputGroup%writeDataset  (powerSpectrumNonLinear   (:,iOutput),'powerSpectrumNonlinear'   ,'The non-linear power spectrum.'                                                        ,datasetReturned=dataset)
           call dataset    %writeAttribute(megaParsec**3                       ,'unitsInSI'                                                                                                                                 )
-          call dataset    %close         (                                                                                                                                                                                 )
           call outputGroup%writeDataset  (sigmaNonLinear           (:,iOutput),'sigmaNonlinear'           ,'The non-linear mass fluctuation on this scale.'                                                                )
        end if
-       call outputGroup%close()
     end do
-    call outputsGroup%close()
-    if (self%outputGroup /= ".") call containerGroup%close()
     if (present(status)) status=errorStatusSuccess
     call displayUnindent('Done task: power spectrum' )
     return

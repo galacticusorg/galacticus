@@ -561,7 +561,7 @@ contains
        call File_Lock(char(fileName),fileLock,lockIsShared=.false.)
        if (File_Exists(fileName)) then
           !$ call hdf5Access%set()
-          call file%openFile(char(fileName))
+          file=hdf5Object(char(fileName))
           if (file%hasDataset('sedTemplate')) then
              !$omp critical(gfortranInternalIO)
              write (label,'(f12.8)') self%outputTimes_%time(indexOutput)
@@ -569,7 +569,6 @@ contains
              call displayMessage("reading SED tabulation for time "//trim(adjustl(label))//" Gyr from file '"//fileName//"'",verbosityLevelWorking)
              call file%readDataset('sedTemplate',self%templates(sedIndexTemplateNode)%sed)
           end if
-          call file%close()
           !$ call hdf5Access%unset()
        end if
        if (.not.allocated(self%templates(sedIndexTemplateNode)%sed)) then
@@ -579,9 +578,8 @@ contains
           !$omp end critical(gfortranInternalIO)
           call displayMessage("storing SED tabulation for time "//trim(adjustl(label))//" Gyr to file '"//fileName//"'",verbosityLevelWorking)
           !$ call hdf5Access%set()
-          call file%openFile(char(fileName),overWrite=.false.,readOnly=.false.)
+          file=hdf5Object(char(fileName),overWrite=.false.,readOnly=.false.)
           call file%writeDataset(self%templates(sedIndexTemplateNode)%sed,'sedTemplate')
-          call file%close()
           !$ call hdf5Access%unset()
        end if
        call File_Unlock(fileLock)

@@ -266,9 +266,8 @@ contains
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
        !$ call hdf5Access%set()
-       call file%openFile   (char(fileName    )           )
-       call file%readDataset(     'covariance' ,covariance)
-       call file%close      (                             )
+       file=hdf5Object(char(fileName))
+       call file%readDataset('covariance',covariance)
        !$ call hdf5Access%unset()
        call File_Unlock(fileLock)
     else
@@ -298,9 +297,8 @@ contains
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
        !$ call hdf5Access%set()
-       call file%openFile    (char(fileName  )             )
-       call file%writeDataset(     covariance ,'covariance')
-       call file%close       (                             )
+       file=hdf5Object(char(fileName))
+       call file%writeDataset(covariance,'covariance')
        !$ call hdf5Access%unset()
        call File_Unlock(fileLock)
     end if

@@ -249,9 +249,6 @@ contains
        groupName   =enumerationComponentTypeDecode(componentType,includePrefix=.false.)//"SFH"
        groupname   =groupName//node%index()
        call treeGroup%writeDataset(historyStarFormation%data,char(groupName),"Star formation history stellar masses of the "//char(enumerationComponentTypeDecode(componentType,includePrefix=.false.))//" component.")
-       call treeGroup   %close()
-       call outputGroup %close()
-       call historyGroup%close()
        !$ call hdf5Access%unset()
     end if
     timeBegin=historyStarFormation%time(1)

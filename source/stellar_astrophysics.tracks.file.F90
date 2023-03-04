@@ -152,7 +152,7 @@ contains
 
     ! Open the HDF5 file.
     !$ call hdf5Access%set()
-    call stellarTracks%openFile(fileName,readOnly=.true.)
+    stellarTracks=hdf5Object(fileName,readOnly=.true.)
     ! Check that this file has the correct format.
     call stellarTracks%readAttribute('fileFormat',fileFormatVersion,allowPseudoScalar=.true.)
     if (fileFormatVersion /= fileFormatVersionCurrent) call Error_Report('format of stellar tracks file is out of date'//{introspection:location})
@@ -180,11 +180,8 @@ contains
                 massGroup=metallicityGroup%openGroup(char(groupName))
                 ageDataset=massGroup%openDataset('age')
                 ageCountMaximum=max(ageCountMaximum,int(ageDataset%size(1)))
-                call ageDataset%close()
-                call massGroup%close()
              end if
           end do
-          call metallicityGroup%close()
        end if
     end do
     ! Allocate storage space for data.
@@ -224,19 +221,14 @@ contains
           ! Read tracks.
           ageDataset=massGroup%openDataset('age')
           self%countAge(initialMassCount,metallicityCount)=int(ageDataset%size(1))
-          call ageDataset%close()
           call massGroup%readDatasetStatic('age'                 ,self%age             (1:self%countAge(initialMassCount,metallicityCount),initialMassCount,metallicityCount))
           call massGroup%readDatasetStatic('luminosity'          ,self%luminosityTrack (1:self%countAge(initialMassCount,metallicityCount),initialMassCount,metallicityCount))
           call massGroup%readDatasetStatic('effectiveTemperature',self%temperatureTrack(1:self%countAge(initialMassCount,metallicityCount),initialMassCount,metallicityCount))
-          call massGroup%close()
        end do
-       call metallicityGroup%close()
     end do
     ! Convert metallicities to logarithmic scale.
     self%metallicityLogarithmic=log(self%metallicityLogarithmic)
     self%countMetallicity=metallicityCountMaximum
-    ! Close the file.
-    call stellarTracks%close()
     !$ call hdf5Access%unset()
     ! Initialize interpolators.
     allocate(self%interpolatorMass(                        metallicityCountMaximum))

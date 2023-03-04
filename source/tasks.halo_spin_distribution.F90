@@ -160,7 +160,6 @@ contains
     !!]
 
     self%parameters=inputParameters(parameters)
-    call self%parameters%parametersGroupCopy(parameters)
     return
   end function haloSpinDistributionConstructorInternal
 
@@ -264,10 +263,7 @@ contains
        call outputGroup%writeAttribute(self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(self%outputTimes_%time(iOutput))),'outputRedshift'                                                            )
        call outputGroup%writeDataset  (spin                                                                                                                           ,'spin'                 ,'Spins at which the spin distribution is tabulated.')
        call outputGroup%writeDataset  (spinDistribution                                                                                                               ,'spinDistribution'     ,'Spin parameter distribution.'                      )
-       call outputGroup%close         (                                                                                                                                                                                                            )
     end do
-    call outputsGroup%close()
-    if (containerGroup%isOpen()) call containerGroup%close()
     call Node_Components_Thread_Uninitialize()
     if (present(status)) status=errorStatusSuccess
     call displayUnindent('Done task: halo spin distribution' )

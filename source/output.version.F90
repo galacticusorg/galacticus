@@ -119,9 +119,6 @@ contains
        call destroy(doc)
        !$omp end critical (FoX_DOM_Access)
     end if
-
-    ! Close the version group.
-    call versionGroup%close()
     !$ call hdf5Access%unset()
     return
   end subroutine Version_Output

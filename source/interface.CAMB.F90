@@ -229,8 +229,8 @@ contains
     if (File_Exists(fileName_)) then
        allEpochsFound=.true.
        !$ call hdf5Access%set()
-       call    cambOutput%openFile(char(fileName_))
-       call    cambOutput%readDataset           ('wavenumber'  ,wavenumbers                                 )
+       cambOutput=hdf5Object(char(fileName_))
+       call cambOutput%readDataset('wavenumber',wavenumbers)
        allocate(transferFunctions(size(wavenumbers),2,size(redshifts)))
        speciesGroup=cambOutput%openGroup('darkMatter')
        do i=1,size(redshifts)
@@ -241,7 +241,6 @@ contains
              allEpochsFound=.false.
           end if
        end do
-       call speciesGroup%close()
        speciesGroup=cambOutput%openGroup('baryons')
        do i=1,size(redshifts)
           datasetName='transferFunctionZ'//trim(adjustl(redshiftLabels(redshiftRanks(i))))
@@ -251,21 +250,17 @@ contains
              allEpochsFound=.false.
           end if
        end do
-       call   speciesGroup%close()
-       call   cambOutput  %close()
-       !$ call hdf5Access  %unset()
+       !$ call hdf5Access%unset()
     end if
     if (.not.allocated(wavenumbers) .or. wavenumberRequired > wavenumbers(size(wavenumbers)) .or. .not.allEpochsFound) then
        ! If the wavenumber if out of range, or if not all requested epochs exist within the file, recompute the CAMB transfer function.
        ! Find all existing epochs in the file, create a union of these and the requested epochs.
        if (File_Exists(fileName_)) then
-          !$ call hdf5Access%set       (               )
-          call    cambOutput%openFile  (char(fileName_))
+          !$ call hdf5Access%set()
+          cambOutput  =hdf5Object(char(fileName_))
           speciesGroup=cambOutput%openGroup('darkMatter')
-          call    speciesGroup%datasets(datasetNames   )
-          call    speciesGroup%close   (               )
-          call    cambOutput  %close   (               )
-          !$ call hdf5Access  %unset   (               )
+          call    speciesGroup%datasets(datasetNames)
+          !$ call hdf5Access  %unset   (            )
        else
           allocate(datasetNames(0))
        end if
@@ -466,43 +461,37 @@ contains
        wavenumbers=+wavenumbers                                                   &
             &      *cosmologyParameters_%HubbleConstant(units=hubbleUnitsLittleH)
        ! Construct the output HDF5 file.
-       !$ call hdf5Access  %set     (                                          )
-       call    cambOutput  %openFile(char(fileName_),objectsOverwritable=.true.)
-       call    cambOutput  %writeAttribute('Transfer functions created by CAMB.','description')
-       call    cambOutput  %writeAttribute(cambFormatVersionCurrent,'fileFormat')
-       call    cambOutput  %writeDataset(wavenumbers    ,'wavenumber'                                  ,chunkSize=chunkSize,appendTo=.not.  cambOutput%hasDataset('wavenumber'))
+       !$ call hdf5Access%set()
+       cambOutput=hdf5Object(char(fileName_),objectsOverwritable=.true.)
+       call cambOutput%writeAttribute('Transfer functions created by CAMB.','description')
+       call cambOutput%writeAttribute(cambFormatVersionCurrent,'fileFormat')
+       call cambOutput%writeDataset  (wavenumbers             ,'wavenumber'                                  ,chunkSize=chunkSize,appendTo=.not.  cambOutput%hasDataset('wavenumber'))
        speciesGroup=cambOutput%openGroup('darkMatter','Group containing transfer functions for dark matter.')
        do i=1,countRedshiftsUnique
           datasetName='transferFunctionZ'//trim(adjustl(redshiftLabelsCombined(i)))
           call speciesGroup%writeDataset(transferFunctions(:,cambSpeciesDarkMatter%ID,i),datasetName,chunkSize=chunkSize,appendTo=.not.speciesGroup%hasDataset(datasetName ))
        end do
-       call speciesGroup%close()
        speciesGroup=cambOutput%openGroup('baryons'   ,'Group containing transfer functions for baryons.'    )
        do i=1,countRedshiftsUnique
           datasetName='transferFunctionZ'//trim(adjustl(redshiftLabelsCombined(i)))
           call speciesGroup%writeDataset(transferFunctions(:,cambSpeciesBaryons   %ID,i),datasetName,chunkSize=chunkSize,appendTo=.not.speciesGroup%hasDataset(datasetName ))
        end do
-       call speciesGroup%close()
        parametersGroup=cambOutput%openGroup('parameters')
        call parametersGroup%writeAttribute(cosmologyParameters_%HubbleConstant (),'HubbleConstant' )
        call parametersGroup%writeAttribute(cosmologyParameters_%OmegaBaryon    (),'OmegaBaryon'    )
        call parametersGroup%writeAttribute(cosmologyParameters_%OmegaDarkEnergy(),'OmegaDarkEnergy')
        call parametersGroup%writeAttribute(cosmologyParameters_%OmegaMatter    (),'OmegaMatter'    )
        call parametersGroup%writeAttribute(cosmologyParameters_%temperatureCMB (),'temperatureCMB' )
-       call parametersGroup%close()
        extrapolationGroup          =cambOutput        %openGroup('extrapolation')
        extrapolationWavenumberGroup=extrapolationGroup%openGroup('wavenumber'   )
        call    extrapolationWavenumberGroup%writeAttribute('extrapolate','low' )
        call    extrapolationWavenumberGroup%writeAttribute('extrapolate','high')
-       call    extrapolationWavenumberGroup%close()
-       call    extrapolationGroup          %close()
-       call    cambOutput                  %close()
        !$ call hdf5Access                  %unset()
     end if
     ! If necessary, construct tables of transfer functions.
     if (present(transferFunctionDarkMatter)) then
        !$ call hdf5Access%set()
-       call cambOutput%openFile(char(fileName_))
+       cambOutput=hdf5Object(char(fileName_))
        call cambOutput%readDataset('wavenumber',wavenumbersLogarithmic)
        wavenumbersLogarithmic=log(wavenumbersLogarithmic)
        call transferFunctionDarkMatter%create(                                                 &
@@ -523,14 +512,12 @@ contains
           call transferFunctionDarkMatter%populate(transferFunctionLogarithmic,table=int(redshiftRanks(i)))
           deallocate(transferFunctionLogarithmic)
        end do
-       call    speciesGroup%close()
-       call    cambOutput  %close()
-       !$ call hdf5Access  %unset()
+       !$ call hdf5Access%unset()
     end if
     if (present(transferFunctionBaryons)) then
        !$ call hdf5Access%set()
-       call    cambOutput%openFile(char(fileName_))
-       call    cambOutput%readDataset('wavenumber',wavenumbersLogarithmic)
+       cambOutput=hdf5Object(char(fileName_))
+       call cambOutput%readDataset('wavenumber',wavenumbersLogarithmic)
        wavenumbersLogarithmic=log(wavenumbersLogarithmic)
        call transferFunctionBaryons   %create(                                                 &
             &                                                   wavenumbersLogarithmic       , &
@@ -550,9 +537,7 @@ contains
           call transferFunctionBaryons   %populate(transferFunctionLogarithmic,table=int(redshiftRanks(i)))
           deallocate(transferFunctionLogarithmic)
        end do
-       call    speciesGroup%close()
-       call    cambOutput  %close()
-       !$ call hdf5Access  %unset()
+       !$ call hdf5Access%unset()
     end if
     ! Unlock the file.
     call File_Unlock(fileLock)

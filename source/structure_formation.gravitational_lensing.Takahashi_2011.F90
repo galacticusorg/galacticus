@@ -395,12 +395,11 @@ contains
           if (File_Exists(inputPath(pathTypeDataDynamic)//"largeScaleStructure/gravitationalLensingConvergenceTakahashi2011.hdf5")) then
              ! Read the results from file.
              !$ call hdf5Access%set()
-             call parametersFile%openFile(char(inputPath(pathTypeDataDynamic)//"largeScaleStructure/gravitationalLensingConvergenceTakahashi2011.hdf5"),readOnly=.true.)
+             parametersFile=hdf5Object(char(inputPath(pathTypeDataDynamic)//"largeScaleStructure/gravitationalLensingConvergenceTakahashi2011.hdf5"),readOnly=.true.)
              call parametersFile%readDataset("convergenceVariance",tableConvergenceVariance)
              call parametersFile%readDataset(             "NKappa",tableNKappa             )
              call parametersFile%readDataset(             "AKappa",tableAKappa             )
              call parametersFile%readDataset(         "omegaKappa",tableOmegaKappa         )
-             call parametersFile%close      (                                              )
              !$ call hdf5Access%unset()
           else
              call File_Unlock(fileLock)
@@ -459,12 +458,11 @@ contains
              ! Store the results to file.
              call Directory_Make(inputPath(pathTypeDataDynamic)//'largeScaleStructure')
              !$ call hdf5Access%set()
-             call parametersFile%openFile(char(inputPath(pathTypeDataDynamic)//"largeScaleStructure/gravitationalLensingConvergenceTakahashi2011.hdf5"))
+             parametersFile=hdf5Object(char(inputPath(pathTypeDataDynamic)//"largeScaleStructure/gravitationalLensingConvergenceTakahashi2011.hdf5"))
              call parametersFile%writeDataset(tableConvergenceVariance,"convergenceVariance","Dimensionless variance of lensing convergence"     )
              call parametersFile%writeDataset(tableNKappa             ,"NKappa"             ,"Parameter N_kappa from Takahashi et al. (2011)"    )
              call parametersFile%writeDataset(tableAKappa             ,"AKappa"             ,"Parameter A_kappa from Takahashi et al. (2011)"    )
              call parametersFile%writeDataset(tableOmegaKappa         ,"omegaKappa"         ,"Parameter omega_kappa from Takahashi et al. (2011)")
-             call parametersFile%close()
              !$ call hdf5Access%unset()
           end if
           call File_Unlock(fileLock)

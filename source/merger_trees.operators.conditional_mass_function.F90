@@ -1584,10 +1584,8 @@ contains
        conditionalMassFunctionGroup=outputFile%openGroup(char(self%nameGroupOutput),'Conditional mass functions of merger trees.',objectsOverwritable=.true.,overwriteOverride=.true.)
        call conditionalMassFunctionGroup%writeDataset  (self%massParents                       ,"massParent"                        ,"Mass of parent node [Msolar]"              ,datasetReturned=massDataset)
        call massDataset                 %writeAttribute(massSolar                              ,"unitsInSI"                                                                                                  )
-       call massDataset                 %close         (                                                                                                                                                     )
        call conditionalMassFunctionGroup%writeDataset  (self%massRatios                        ,"massRatio"                         ,"Mass of ratio node [Msolar]"               ,datasetReturned=massDataset)
        call massDataset                 %writeAttribute(massSolar                              ,"unitsInSI"                                                                                                  )
-       call massDataset                 %close         (                                                                                                                                                     )
        call conditionalMassFunctionGroup%writeDataset  (self%redshiftsParent                   ,"redshiftParent"                    ,"Redshift of parent node []"                                            )
        call conditionalMassFunctionGroup%writeDataset  (self%redshiftsProgenitor               ,"redshiftProgenitor"                ,"Redshift of progenitor node []"                                        )
        accumulationCount=0
@@ -1705,7 +1703,6 @@ contains
        call conditionalMassFunctionGroup%writeDataset  (self%subhaloMassFunction                  ,"subhaloMassFunction"                  ,"Unevolved subhalo mass functions []"                       )
        call conditionalMassFunctionGroup%writeDataset  (self%subhaloMassFunctionError             ,"subhaloMassFunctionError"             ,"Unevolved subhalo mass function errors []"                 )
     end if
-    call    conditionalMassFunctionGroup%close         (                                                                                                                                               )
     call    outputFile                  %flush         (                                                                                                                                               )
     !$ call hdf5Access%unset()
     return

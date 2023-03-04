@@ -654,14 +654,10 @@ contains
              outputGroup=outputFile%openGroup('backgroundRadiation','Cosmic background radiation data.')
              call    outputGroup  %writeDataset  (self%wavelength        ,'wavelength','Wavelength at which the background radiation is tabulated [Å].'    ,datasetReturned=outputDataset)
              call    outputDataset%writeAttribute(1.0d0/angstromsPerMeter,'unitsInSI'                                                                                                    )
-             call    outputDataset%close         (                                                                                                                                       )
              call    outputGroup  %writeDataset  (self%redshift          ,'redshift'  ,'Redshift at which the background radiation is tabulated [].'       ,datasetReturned=outputDataset)
              call    outputDataset%writeAttribute(0.0d0                  ,'unitsInSI'                                                                                                    )
-             call    outputDataset%close         (                                                                                                                                       )
              call    outputGroup  %writeDataset  (state%flux             ,'flux'      ,'Flux is the cosmic background radiation [erg cm⁻² s⁻¹ Hz⁻¹ sr⁻¹].' ,datasetReturned=outputDataset)
              call    outputDataset%writeAttribute(ergs/centi**2          ,'unitsInSI'                                                                                                    )
-             call    outputDataset%close         (                                                                                                                                       )
-             call    outputGroup  %close         (                                                                                                                                       )
              !$ call hdf5Access   %unset         (                                                                                                                                       )
           end if
        end select

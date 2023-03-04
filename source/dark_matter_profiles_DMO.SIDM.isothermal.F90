@@ -294,14 +294,13 @@ contains
     if (File_Exists(fileName)) then
        ! Restore tables from file.
        !$ call hdf5Access%set()
-       call file%openFile   (char(fileName)                                                )
+       file=hdf5Object(char(fileName))
        call file%readDataset('xi'                         ,     xi                         )
        call file%readDataset('radii'                      ,self%radiiDimensionless         )
        call file%readDataset('y0'                         ,     y0                         )
        call file%readDataset('z0'                         ,     z0                         )
        call file%readDataset('densityProfileDimensionless',self%densityProfileDimensionless)
        call file%readDataset('massProfileDimensionless'   ,self%massProfileDimensionless   )
-       call file%close      (                                                              )
        !$ call hdf5Access%unset()
     else
        ! No file exists, create it now.
@@ -357,14 +356,13 @@ contains
        !$omp end parallel
        ! Write the data to file.
        !$ call hdf5Access%set()
-       call file%openFile    (char(     fileName                   )                              ,overWrite=.true.,readOnly=.false.)
-       call file%writeDataset(          xi                          ,'xi'                                                           )
-       call file%writeDataset(     self%radiiDimensionless          ,'radii'                                                        )
-       call file%writeDataset(          y0                          ,'y0'                                                           )
-       call file%writeDataset(          z0                          ,'z0'                                                           )
-       call file%writeDataset(     self%densityProfileDimensionless ,'densityProfileDimensionless'                                  )
-       call file%writeDataset(     self%massProfileDimensionless    ,'massProfileDimensionless'                                     )
-       call file%close       (                                                                                                      )
+       file=hdf5Object(char(fileName),overWrite=.true.,readOnly=.false.)
+       call file%writeDataset(     xi                          ,'xi'                         )
+       call file%writeDataset(self%radiiDimensionless          ,'radii'                      )
+       call file%writeDataset(     y0                          ,'y0'                         )
+       call file%writeDataset(     z0                          ,'z0'                         )
+       call file%writeDataset(self%densityProfileDimensionless ,'densityProfileDimensionless')
+       call file%writeDataset(self%massProfileDimensionless    ,'massProfileDimensionless'   )
        !$ call hdf5Access%unset()
     end if
     call File_Unlock(fileLock)

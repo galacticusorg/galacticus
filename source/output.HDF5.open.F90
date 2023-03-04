@@ -43,7 +43,7 @@ contains
          &                            outputFileIsOpen    , outputFile, hdf5CacheSizeBytes  , hdf5ChunkSize
     use :: HDF5              , only : hsize_t             , size_t
     use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : IO_HDF5_Set_Defaults
+    use :: IO_HDF5           , only : IO_HDF5_Set_Defaults, hdf5Object
     use :: ISO_Varying_String, only : var_str             , char                , operator(//)        , extract               , &
          &                            len                 , operator(==)
     use :: Input_Parameters  , only : inputParameters     , inputParameter
@@ -135,15 +135,15 @@ contains
 #endif
        ! Open the file.
        !$ call hdf5Access%set()
-       call outputFile%openFile(                                                 &
-            &                                       char(outputScratchFileName), &
-            &                   overWrite          =.true.                     , &
-            &                   objectsOverwritable=.true.                     , &
-            &                   sieveBufferSize    =hdf5SieveBufferSize        , &
-            &                   useLatestFormat    =hdf5UseLatestFormat        , &
-            &                   cacheElementsCount =hdf5CacheElementsCount     , &
-            &                   cacheSizeBytes     =hdf5CacheSizeBytes           &
-            &                  )
+       outputFile=hdf5Object(                                                 &
+            &                                    char(outputScratchFileName), &
+            &                overWrite          =.true.                     , &
+            &                objectsOverwritable=.true.                     , &
+            &                sieveBufferSize    =hdf5SieveBufferSize        , &
+            &                useLatestFormat    =hdf5UseLatestFormat        , &
+            &                cacheElementsCount =hdf5CacheElementsCount     , &
+            &                cacheSizeBytes     =hdf5CacheSizeBytes           &
+            &               )
        !$ call hdf5Access%unset()
        ! Now that the parameter file is open, we can open an output group in it for parameters.
        call parameters%parametersGroupOpen(outputFile)
@@ -217,7 +217,6 @@ contains
           ! Close the file.
           !$ call hdf5Access%set()
           call outputFile%writeAttribute(1,"galacticusCompleted")
-          call outputFile%close()
           !$ call hdf5Access%unset()
           ! Move the scratch file to the final file if necessary.
           if (outputFileName /= outputScratchFileName) call File_Rename(outputScratchFileName,outputFileName,overwrite=.true.)

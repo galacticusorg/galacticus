@@ -204,15 +204,13 @@ contains
 
     ! Read properties from the file.
     !$ call hdf5Access%set()
-    call file             %openFile     (char(File_Name_Expand(char(fileName))),readOnly=.true.                 )
-    call file             %readAttribute('label'                               ,         labelTarget            )
-    call file             %readAttribute('redshift'                            ,         redshift_              )
-    massFunctionGroup=file%openGroup('massFunction')
-    call massFunctionGroup%readDataset  ('massRatio'                           ,         massRatiosTarget       )
-    call massFunctionGroup%readDataset  ('massFunction'                        ,         massFunctionTarget     )
-    call massFunctionGroup%readDataset  ('massFunctionError'                   ,         massFunctionErrorTarget)
-    call massFunctionGroup%close        (                                                                       )
-    call file             %close        (                                                                       )
+    file             =hdf5Object          (char(File_Name_Expand(char(fileName))),readOnly=.true.)
+    massFunctionGroup=file      %openGroup('massFunction'                                        )
+    call file             %readAttribute('label'            ,labelTarget            )
+    call file             %readAttribute('redshift'         ,redshift_              )
+    call massFunctionGroup%readDataset  ('massRatio'        ,massRatiosTarget       )
+    call massFunctionGroup%readDataset  ('massFunction'     ,massFunctionTarget     )
+    call massFunctionGroup%readDataset  ('massFunctionError',massFunctionErrorTarget)
     !$ call hdf5Access%unset()
     ! Override the redshift if one is provided.
     if (present(redshift)) redshift_=redshift
@@ -567,7 +565,6 @@ contains
     call analysisGroup   %writeDataset  (self%massRatios                      ,'massRatio'                   ,'Mass ratio at the bin center'                 ,datasetReturned=dataset)
     call dataset         %writeAttribute(' '                                  ,'units'                                                                                               )
     call dataset         %writeAttribute(1.0d0                                ,'unitsInSI'                                                                                           )
-    call dataset         %close         (                                                                                                                                            )
     call analysisGroup   %writeDataset  (self%massFunction                    ,'massFunction'                ,'Subhalo number per bin [model]'                                       )
     call analysisGroup   %writeDataset  (self%covariance                      ,'massFunctionCovariance'      ,'Subhalo number per bin [model; covariance]'                           )
     if (allocated(self%massFunctionTarget)) then
@@ -578,8 +575,6 @@ contains
        call analysisGroup%writeDataset  (self%massFunctionTarget              ,'massFunctionTarget'          ,'Subhalo number per bin [observed]'                                    )
        call analysisGroup%writeDataset  (self%massFunctionCovarianceTarget    ,'massFunctionCovarianceTarget','Subhalo number per bin [observed; covariance]'                        )
     end if
-    call analysisGroup   %close         (                                                                                                                                            )
-    call analysesGroup   %close         (                                                                                                                                            )
     !$ call hdf5Access%unset()
     return
   end subroutine subhaloMassFunctionFinalize

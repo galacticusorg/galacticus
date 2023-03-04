@@ -396,7 +396,6 @@ contains
        if (.not.self%metallicityTableWritten) then
           historyGroup=outputFile%openGroup("starFormationHistories","Star formation history data.")
           call historyGroup%writeDataset(self%metallicityTable,"metallicities","Metallicities at which star formation histories are tabulated.")
-          call historyGroup%close       (                                                                                                      )
           self%metallicityTableWritten=.true.
        end if
        historyGroup=outputFile          %openGroup("starFormationHistories","Star formation history data."                          )
@@ -408,9 +407,6 @@ contains
        call treeGroup%writeDataset(historyStarFormation%time,char(groupName),"Star formation history times of the "         //char(enumerationComponentTypeDecode(componentType,includePrefix=.false.))//" component.")
        groupName=enumerationComponentTypeDecode(componentType,includePrefix=.false.)//"SFH" //node%index()
        call treeGroup%writeDataset(historyStarFormation%data,char(groupName),"Star formation history stellar masses of the "//char(enumerationComponentTypeDecode(componentType,includePrefix=.false.))//" component.")
-       call treeGroup   %close()
-       call outputGroup %close()
-       call historyGroup%close()
        !$ call hdf5Access%unset()
     end if
     timeBegin=historyStarFormation%time(1)

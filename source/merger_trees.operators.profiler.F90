@@ -244,7 +244,6 @@ contains
     call profilerGroup%writeDataset  (self%nonPrimaryProgenitorCount,'nonPrimaryProgenitorCount')
     call profilerGroup%writeDataset  (self%mass                     ,'nonPrimaryProgenitorMass' )
     call profilerGroup%writeDataset  (self%time                     ,'nonPrimaryProgenitorTime' )
-    call profilerGroup%close         (                                                          )
     !$ call hdf5Access%unset()
     return
   end subroutine profilerFinalize

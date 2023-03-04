@@ -283,7 +283,7 @@ contains
     </referenceConstruct>
     !!]
     ! Read observational data and convert masses to logarithmic.
-    call fileData%openFile(char(inputPath(pathTypeDataStatic))//"observations/stellarHaloMassRelation/stellarHaloMassRelation_COSMOS_Leauthaud2012.hdf5")
+    fileData=hdf5Object(char(inputPath(pathTypeDataStatic))//"observations/stellarHaloMassRelation/stellarHaloMassRelation_COSMOS_Leauthaud2012.hdf5")
     groupRedshiftName=var_str('redshiftInterval')//redshiftInterval
     groupRedshift=fileData%openGroup(char(groupRedshiftName))
     call groupRedshift%readDataset('massStellar' ,massStellarData )
@@ -620,9 +620,7 @@ contains
     !$ call hdf5Access%set()
     analysesGroup=outputFile   %openGroup('analyses'              )
     analysisGroup=analysesGroup%openGroup(char(self%analysisLabel))
-    call    analysisGroup%writeAttribute(self%logLikelihood(),'logLikelihood')
-    call    analysisGroup%close         (                                    )
-    call    analysesGroup%close         (                                    )
+    call analysisGroup%writeAttribute(self%logLikelihood(),'logLikelihood')
     !$ call hdf5Access%unset()
     return
   end subroutine stellarVsHaloMassRelationLeauthaud2012Finalize

@@ -240,8 +240,8 @@ contains
     type            (hdf5Object                         )                :: fileObject , parametersObject
 
     ! Open and read the HDF5 data file.
-    call hdf5Access%set()
-    call fileObject%openFile(char(File_Name_Expand(fileName)),readOnly=.true.)
+    !$ call hdf5Access%set()
+    fileObject=hdf5Object(char(File_Name_Expand(fileName)),readOnly=.true.)
     ! Check that the fuzzy dark matter parameters match.
     parametersObject=fileObject%openGroup('parameters')
     call parametersObject%readAttribute('fuzzyDMMass'           ,fuzzyDMMass           )
@@ -255,10 +255,7 @@ contains
     class default
        call Error_Report('transfer function expects a fuzzy dark matter particle'//{introspection:location})
     end select
-    call parametersObject%close()
-    ! Close the file.
-    call fileObject%close()
-    call hdf5Access%unset()
+    !$ call hdf5Access%unset()
     ! Read the data file.
     call self%transferFunctionFile%readFile(fileName)
     return

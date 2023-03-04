@@ -196,7 +196,7 @@ contains
 
     ! Read the table of emission line luminosities.
     !$ call hdf5Access%set()
-    call emissionLinesFile%openFile(char(inputPath(pathTypeDataStatic))//"hiiRegions/emissionLines.hdf5",readOnly=.true.)
+    emissionLinesFile=hdf5Object(char(inputPath(pathTypeDataStatic))//"hiiRegions/emissionLines.hdf5",readOnly=.true.)
     lines=emissionLinesFile%openGroup('lines')
     do i=1,size(lineNames)
        if (.not.lines%hasDataset(char(self%lineNames(i)))) call Error_Report('line "'//char(self%lineNames(i))//'" not found'//{introspection:location})
@@ -227,10 +227,7 @@ contains
        call lines      %readDatasetStatic(char(self%lineNames(i)),self%luminosity(:,:,:,:,:,i))
        lineDataset=lines%openDataset(char(self%lineNames(i)))
        call lineDataset%readAttribute('wavelength',self%wavelength(i))
-       call lineDataset%close        (                               )
     end do
-    call lines            %close      (                                                                 )
-    call emissionLinesFile%close      (                                                                 )
     !$ call hdf5Access%unset()
     ! Convert parameters and luminosities to log form.
     self%metallicity                 =log10(self%metallicity                 )

@@ -299,7 +299,6 @@ contains
           call cosmologyGroup%writeAttribute(self%cosmologyParameters_%OmegaMatter    (),'OmegaMatter'    )
           call cosmologyGroup%writeAttribute(self%cosmologyParameters_%OmegaDarkEnergy(),'OmegaDarkEnergy')
           call cosmologyGroup%writeAttribute(self%cosmologyParameters_%HubbleConstant (),'HubbleConstant' )
-          call cosmologyGroup%close         (                                                             )
           simulationGroup=simulations(iSimulation)%analysis%openGroup('simulation')
           call simulationGroup%writeAttribute(self%simulationReference,'reference')
           call simulationGroup%writeAttribute(self%simulationURL      ,'URL'      )
@@ -312,7 +311,6 @@ contains
           do k=1,simulations(iSimulation)%attributesText   %size()
              call simulationGroup%writeAttribute(simulations(iSimulation)%attributesText   %value(k),char(simulations(iSimulation)%attributesText   %key(k)))
           end do
-          call simulationGroup%close         (                                    )
           !$ call hdf5Access%unset()
 #ifdef USEMPI
        end if

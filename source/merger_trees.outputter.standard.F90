@@ -101,7 +101,6 @@
      final     ::                           standardDestructor
      procedure :: outputTree             => standardOutputTree
      procedure :: outputNode             => standardOutputNode
-     procedure :: finalize               => standardFinalize
      procedure :: makeGroup              => standardMakeGroup
      procedure :: dumpIntegerBuffer      => standardDumpIntegerBuffer
      procedure :: extendIntegerBuffer    => standardExtendIntegerBuffer
@@ -210,7 +209,6 @@ contains
     implicit none
     type(mergerTreeOutputterStandard), intent(inout) :: self
 
-    call self%finalize()
     !![
     <objectDestructor name="self%galacticFilter_"       />
     <objectDestructor name="self%cosmologyFunctions_"   />
@@ -323,11 +321,9 @@ contains
           if      (allocated(self%integerProperty).and.size(self%integerProperty) > 0.and.self%outputGroups(indexOutput)%nodeDataGroup%hasDataset(self%integerProperty(1)%name)) then
              toDataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(self%integerProperty(1)%name)
              referenceStart(1)=toDataset%size(1)-referenceLength(1)
-             call toDataset%close()
           else if (allocated(self% doubleProperty).and.size(self% doubleProperty) > 0.and.self%outputGroups(indexOutput)%nodeDataGroup%hasDataset(self% doubleProperty(1)%name)) then
              toDataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(self% doubleProperty(1)%name)
              referenceStart(1)=toDataset%size(1)-referenceLength(1)
-             call toDataset%close()
           else
              ! Datasets do not yet exist therefore the start reference must be zero.
              referenceStart(1)=0
@@ -341,18 +337,14 @@ contains
                 do iProperty=1,self%integerPropertyCount
                    toDataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(self%integerProperty(iProperty)%name)
                    call currentTree%hdf5Group%createReference1D(toDataset,self%integerProperty(iProperty)%name,referenceStart+1,referenceLength)
-                   call toDataset%close()
                 end do
              end if
              if (self%doublePropertyCount > 0  .and. self%doublePropertiesWritten  > 0) then
                 do iProperty=1,self%doublePropertyCount
                    toDataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(self%doubleProperty(iProperty)%name)
                    call currentTree%hdf5Group%createReference1D(toDataset,self%doubleProperty(iProperty)%name,referenceStart+1,referenceLength)
-                   call toDataset%close()
                 end do
              end if
-             ! Close the tree group.
-             call currentTree%hdf5Group%close()
           end if
           ! Store the start position and length of the node data for this tree, along with its volume weight.
           call self%outputGroups(indexOutput)%hdf5Group%writeDataset([currentTree%index]       ,"mergerTreeIndex"     ,"Index of each merger tree."                                  ,appendTo=.true.)
@@ -629,28 +621,6 @@ contains
     end do
     return
   end subroutine standardOutput
-  
-  subroutine standardFinalize(self)
-    !!{
-    Finalize merger tree output by closing any open groups.
-    !!}
-    use :: HDF5_Access, only : hdf5Access
-    implicit none
-    class  (mergerTreeOutputterStandard), intent(inout) :: self
-    integer(c_size_t                   )                :: iGroup
-
-    ! Close any open output groups.
-    !$ call hdf5Access%set()
-    do iGroup=1,self%outputGroupsCount
-       if (self%outputGroups(iGroup)%opened) then
-          if (self%outputGroups(iGroup)%nodeDataGroup%isOpen()) call self%outputGroups(iGroup)%nodeDataGroup%close()
-          if (self%outputGroups(iGroup)%hdf5Group    %isOpen()) call self%outputGroups(iGroup)%hdf5Group    %close()
-       end if
-    end do
-    if (self%outputsGroup%isOpen()) call self%outputsGroup%close()
-    !$ call hdf5Access%unset()
-    return
-  end subroutine standardFinalize
 
   subroutine standardMakeGroup(self,tree,indexOutput)
     !!{
@@ -705,7 +675,6 @@ contains
           if (.not.self%outputGroups(indexOutput)% integerAttributesWritten.and. self%integerProperty(iProperty)%unitsInSI /= 0.0d0) then
              dataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(self%integerProperty(iProperty)%name)
              call dataset%writeAttribute(self%integerProperty(iProperty)%unitsInSI,"unitsInSI")
-             call dataset%close         (                                                     )
           end if
        end do
        self%integerPropertiesWritten=self%integerPropertiesWritten+self%integerBufferCount
@@ -762,7 +731,6 @@ contains
              do iMetaDatum=1,self%doubleProperty(iProperty)%metaData%size()
                 call     dataset%writeAttribute(self%doubleProperty(iProperty)%metaData%value(iMetaDatum),char(self%doubleProperty(iProperty)%metaData%key(iMetaDatum)))
              end do
-             call        dataset%close         (                                                                   )
              if (allocated(self%doubleProperty(iProperty)%rank1Descriptors) .and. size(self%doubleProperty(iProperty)%rank1Descriptors) > 0)                        &
                   & call self%outputGroups(indexOutput)%nodeDataGroup%writeDataset(                                                                                 &
                   &                                                                     self%doubleProperty(iProperty)%rank1Descriptors                           , &

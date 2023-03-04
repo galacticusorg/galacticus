@@ -131,9 +131,6 @@ contains
     <objectDestructor name="self%galacticFilterSatellite_"/>
     <objectDestructor name="self%galacticFilterCentral_" />
     !!]
-    !$ call hdf5Access%set  ()
-    if (self%mergersGroup%isOpen()) call self%mergersGroup%close()
-    !$ call hdf5Access%unset()
     return
   end subroutine galaxyMergersDestructor
   

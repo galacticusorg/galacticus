@@ -244,7 +244,7 @@ contains
 
     ! Open and read the HDF5 data file.
     !$ call hdf5Access%set()
-    call fileObject%openFile(char(File_Name_Expand(char(fileName))),readOnly=.true.)
+    fileObject=hdf5Object(char(File_Name_Expand(char(fileName))),readOnly=.true.)
     ! Check that the file has the correct format version number.
     call fileObject%readAttribute('fileFormat',versionNumber,allowPseudoScalar=.true.)
     if (versionNumber /= fileFormatVersionCurrent) call Error_Report('file has the incorrect version number'//{introspection:location})
@@ -271,18 +271,15 @@ contains
             & call displayMessage('temperatureCMB from transfer function file does not match internal value' )
     end select
     deallocate(cosmologyParametersFile)
-    call parametersObject%close()
     ! Get extrapolation methods.
     call fileObject%readAttribute('extrapolationWavenumber' ,limitTypeVar)
     extrapolateWavenumber =enumerationExtrapolationTypeEncode(char(limitTypeVar),includesPrefix=.false.)
     call fileObject%readAttribute('extrapolationRedshift' ,limitTypeVar)
     extrapolateRedshift =enumerationExtrapolationTypeEncode(char(limitTypeVar),includesPrefix=.false.)
     ! Read the power spectrum from file.
-    call fileObject     %readDataset('wavenumber'                                   ,wavenumber)
-    call fileObject     %readDataset('redshift'                                     ,redshift  )
-    call fileObject     %readDataset('power'                                        ,power     )
-    ! Close the file.
-    call fileObject%close()
+    call fileObject%readDataset('wavenumber',wavenumber)
+    call fileObject%readDataset('redshift'  ,redshift  )
+    call fileObject%readDataset('power'     ,power     )
     !$ call hdf5Access%unset()
     ! Construct the tabulated power spectrum and interpolators.
     allocate(self%wavenumberLogarithmic(size(wavenumber)               ))

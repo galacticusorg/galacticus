@@ -401,7 +401,6 @@ contains
     !!]
 
     self%parameters=inputParameters(parameters)
-    call self%parameters%parametersGroupCopy(parameters)
     allocate(self%virialDensityContrasts(size(virialDensityContrasts)))
     do i=1,size(virialDensityContrasts)
        self%virialDensityContrasts(i)%label=virialDensityContrasts(i)%label
@@ -856,7 +855,6 @@ contains
              end if
           end do
        end if
-       call                                                            powerSpectrumGroup%close         (                                   )
     end if
     ! Store σ₈.
     if (self%outputGroup == ".") then
@@ -865,7 +863,6 @@ contains
        powerSpectrumGroup=containerGroup      %openGroup('powerSpectrum','Group containing data relating to the power spectrum.')
     end if
     call powerSpectrumGroup%writeAttribute(self%cosmologicalMassVariance_%sigma8(),'sigma8')
-    call powerSpectrumGroup%close         (                                                )
     ! Store other usual information.
     if (self%outputGroup == ".") then
        cosmologyGroup=outputFile    %openGroup('cosmology','Group containing data relating to cosmology.')
@@ -873,7 +870,6 @@ contains
        cosmologyGroup=containerGroup%openGroup('cosmology','Group containing data relating to cosmology.')
     end if
     call cosmologyGroup%writeAttribute(self%cosmologyParameters_%densityCritical(),'densityCritical')
-    call cosmologyGroup%close()
     ! Iterate over output times and output data.
     do iOutput=1,outputCount
        groupName  ='Output'
@@ -895,44 +891,32 @@ contains
        else
           call outputGroup%writeDataset  (massHalo                                      (:        ),'haloMass'                      ,'The mass of the halo.'                                                      ,datasetReturned=dataset)
           call dataset    %writeAttribute(massSolar                                                ,'unitsInSI'                                                                                                                           )
-          call dataset    %close         (                                                                                                                                                                                                )
        end if
        call    outputGroup%writeDataset  (massFunctionDifferential                      (:,iOutput),'haloMassFunctionM'             ,'The halo mass function (per unit halo mass).'                               ,datasetReturned=dataset)
        call    dataset    %writeAttribute(1.0d0/megaParsec**3/massSolar                            ,'unitsInSI'                                                                                                                           )
-       call    dataset    %close         (                                                                                                                                                                                                )
        call    outputGroup%writeDataset  (massFunctionDifferentialLogarithmic           (:,iOutput),'haloMassFunctionLnM'           ,'The halo mass function (per logarithmic halo mass).'                        ,datasetReturned=dataset)
        call    dataset    %writeAttribute(1.0d0/megaParsec**3                                      ,'unitsInSI'                                                                                                                           )
-       call    dataset    %close         (                                                                                                                                                                                                )
        call    outputGroup%writeDataset  (massFunctionDifferentialLogarithmicBinAveraged(:,iOutput),'haloMassFunctionLnMBinAveraged','The halo mass function (per logarithmic halo mass averaged across the bin).',datasetReturned=dataset)
        call    dataset    %writeAttribute(1.0d0/megaParsec**3                                      ,'unitsInSI'                                                                                                                           )
-       call    dataset    %close         (                                                                                                                                                                                                )
        call    outputGroup%writeDataset  (massFunctionCumulative                        (:,iOutput),'haloMassFunctionCumulative'    ,'The halo cumulative mass function.'                                         ,datasetReturned=dataset)
        call    dataset    %writeAttribute(1.0d0/megaParsec**3                                      ,'unitsInSI'                                                                                                                           )
-       call    dataset    %close         (                                                                                                                                                                                                )
        if (self%includeUnevolvedSubhaloMassFunction) then
           call outputGroup%writeDataset  (massFunctionCumulativeSubhalo                 (:,iOutput),'subhaloMassFunctionCumulative' ,'The subhalo cumulative mass function.'                                      ,datasetReturned=dataset)
           call dataset    %writeAttribute(1.0d0/megaParsec**3                                      ,'unitsInSI'                                                                                                                           )
-          call dataset    %close         (                                                                                                                                                                                                )
        end if
        call    outputGroup%writeDataset  (velocityVirial                                (:,iOutput),'haloVirialVelocity'            ,'The virial velocity of halos.'                                              ,datasetReturned=dataset)
        call    dataset    %writeAttribute(kilo                                                     ,'unitsInSI'                                                                                                                           )
-       call    dataset    %close         (                                                                                                                                                                                                )
        call    outputGroup%writeDataset  (temperatureVirial                             (:,iOutput),'haloVirialTemperature'         ,'The virial temperature of halos.'                                           ,datasetReturned=dataset)
        call    dataset    %writeAttribute(1.0d0                                                    ,'unitsInSI'                                                                                                                           )
-       call    dataset    %close         (                                                                                                                                                                                                )
        call    outputGroup%writeDataset  (radiusVirial                                  (:,iOutput),'haloVirialRadius'              ,'The virial radius of halos.'                                                ,datasetReturned=dataset)
        call    dataset    %writeAttribute(megaParsec                                               ,'unitsInSI'                                                                                                                           )
-       call    dataset    %close         (                                                                                                                                                                                                )
        call    outputGroup%writeDataset  (darkMatterProfileRadiusScale                  (:,iOutput),'haloScaleRadius'               ,'The scale radius of halos.'                                                 ,datasetReturned=dataset)
        call    dataset    %writeAttribute(megaParsec                                               ,'unitsInSI'                                                                                                                           )
-       call    dataset    %close         (                                                                                                                                                                                                )
        call    outputGroup%writeDataset  (velocityMaximum                               (:,iOutput),'haloVelocityMaximum'           ,'The maximum circular velocity of halos.'                                    ,datasetReturned=dataset)
        call    dataset    %writeAttribute(kilo                                                     ,'unitsInSI'                                                                                                                           )
-       call    dataset    %close         (                                                                                                                                                                                                )
        if (self%includeMassAccretionRate) then
           call outputGroup%writeDataset  (massAccretionRate                             (:,iOutput),'haloMassAccretionRate'         ,'The mass accretion rate of halos.'                                          ,datasetReturned=dataset)
           call dataset    %writeAttribute(massSolar/gigaYear                                       ,'unitsInSI'                                                                                                                           )
-          call dataset    %close         (                                                                                                                                                                                                )
        end if
        call    outputGroup%writeDataset  (biasHalo                                      (:,iOutput),'haloBias'                      ,'The large scale linear bias of halos.'                                                              )
        call    outputGroup%writeDataset  (densityFieldRootVariance                      (:,iOutput),'haloSigma'                     ,'The mass fluctuation on the scale of the halo.'                                                     )
@@ -948,17 +932,12 @@ contains
            else
                 call outputGroup%writeDataset  (massAlternate  (iAlternate,:,iOutput),'haloMass'  //String_Upper_Case_First(char(self%virialDensityContrasts(iAlternate)%label)),'The mass of the halo under the "'  //char(self%virialDensityContrasts(iAlternate)%label)//'" definition.'                               ,datasetReturned=dataset)
                 call dataset    %writeAttribute(massSolar                            ,'unitsInSI'                                                                                                                                                                                                                                                 )
-                call dataset    %close         (                                                                                                                                                                                                                                                                                                  )
              end if
              call    outputGroup%writeDataset  (radiusAlternate(iAlternate,:,iOutput),'haloRadius'//String_Upper_Case_First(char(self%virialDensityContrasts(iAlternate)%label)),'The radius of the halo under the "'//char(self%virialDensityContrasts(iAlternate)%label)//'" definition.'                               ,datasetReturned=dataset)
              call    dataset    %writeAttribute(megaParsec                           ,'unitsInSI'                                                                                                                                                                                                                                                 )
-             call    dataset    %close         (                                                                                                                                                                                                                                                                                                  )
           end do
        end if
-       call outputGroup%close()
     end do
-    call outputsGroup%close()
-    if (containerGroup%isOpen()) call containerGroup%close()
     if (present(status)) status=errorStatusSuccess
     call Node_Components_Thread_Uninitialize()
     call displayUnindent('Done task: halo mass function' )

@@ -188,7 +188,7 @@ contains
        position_      (:,iNode) =  position                     %position       (            )
     end do
     ! Open an HDF5 file.
-    call fileObject%openFile(fileName,overWrite=.true.,objectsOverwritable=.true.)
+    fileObject=hdf5Object(fileName,overWrite=.true.,objectsOverwritable=.true.)
     ! Write the datasets.
     call fileObject %writeDataset  (nodeIndex      ,"nodeIndex"      ,"Node index []"                                  )
     call fileObject %writeDataset  (parentIndex    ,"parentIndex"    ,"Parent index []"                                )
@@ -196,14 +196,10 @@ contains
     call fileObject %writeDataset  (expansionFactor,"expansionFactor","Expansion factor []"                            )
     call fileObject %writeDataset  (time           ,"time"           ,"Time [Gyr]"         ,datasetReturned=treeDataset)
     call treeDataset%writeAttribute(gigaYear       ,"unitsInSI"                                                        )
-    call treeDataset%close         (                                                                                   )
     call fileObject %writeDataset  (radiusVirial   ,"radiusVirial"   ,"Virial radius [Mpc]",datasetReturned=treeDataset)
     call treeDataset%writeAttribute(megaParsec     ,"unitsInSI"                                                        )
-    call treeDataset%close         (                                                                                   )
     call fileObject %writeDataset  (position_      ,"position"       ,"Position [Mpc]"     ,datasetReturned=treeDataset)
     call treeDataset%writeAttribute(megaParsec     ,"unitsInSI"                                                        )
-    call treeDataset%close         (                                                                                   )
-    call fileObject %close         (                                                                                   )
     ! Deallocate temporary arrays.
     deallocate(nodeIndex      )
     deallocate(parentIndex    )

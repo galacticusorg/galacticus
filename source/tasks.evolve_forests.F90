@@ -467,7 +467,6 @@ contains
     ! Call routines to perform initializations which must occur for all threads if run in parallel.
     allocate(parameters)
     parameters=inputParameters(self%parameters)
-    call parameters%parametersGroupCopy(self%parameters)
     call Node_Components_Thread_Initialize(parameters)
     ! Allow events to be attached to the universe.
     !$omp master

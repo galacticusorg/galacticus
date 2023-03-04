@@ -665,7 +665,6 @@ contains
     call dataset    %writeAttribute(megaparsec                                                                                 ,'unitsInSI'                                       )
     call dataset    %writeAttribute('Mpc'                                                                                      ,'units'                                           )
     call dataset    %writeAttribute('boundaries of computational domain cells in the radial direction in spherical coordinates','description'                                     )
-    call dataset    %close         (                                                                                                                                              )
     !$ call hdf5Access%unset()
     countOutputs=self%radiativeTransferMatter_%countOutputs()
     allocate(propertyScalar(self%countCells))

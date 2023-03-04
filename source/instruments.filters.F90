@@ -398,8 +398,6 @@ contains
     call filtersGroup%writeDataset(filterResponses%wavelengthEffective,'wavelengthEffective','Effective wavelength of filter [Å].',datasetReturned=dataset)
     call dataset%writeAttribute("Angstroms [Å]"        ,"units"    )
     call dataset%writeAttribute(1.0d0/angstromsPerMeter,"unitsInSI")
-    call dataset     %close()
-    call filtersGroup%close()
     !$ call hdf5Access%unset()
     return
   end subroutine Filters_Output

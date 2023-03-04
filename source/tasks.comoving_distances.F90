@@ -128,9 +128,7 @@ contains
        commentText=commentText//output
        outputGroup=outputsGroup%openGroup(char(groupName),char(commentText))
        call outputGroup%writeAttribute(self%cosmologyFunctions_%distanceComoving(self%outputTimes_%time(output)),'distanceComoving')
-       call outputGroup%close         (                                                                                            )
     end do
-    call outputsGroup%close()
     if (present(status)) status=errorStatusSuccess
     call displayUnindent('Done task: comoving distances')
     return

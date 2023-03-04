@@ -1391,7 +1391,6 @@ contains
     end if
     call augmentStatisticsGroup%writeDataset(self%retryHistogram,"retryHistogram","Retry histogram []")
     call augmentStatisticsGroup%writeDataset(self%trialCount    ,"trialCount"    ,"Trial counts []"   )
-    call augmentStatisticsGroup%close       (                                                         )
     !$ call hdf5Access%unset()
     return
   end subroutine augmentFinalize

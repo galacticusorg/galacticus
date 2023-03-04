@@ -204,9 +204,6 @@ contains
        if (changeSet(1) /= "" ) call buildGroup%writeDataset(changeSet,'sourceChangeSetBundle','Output of "git bundle HEAD ^origin" - gives changesets not in the remote repo')
        call changeSet(1)%destroy()
     end if
-
-    ! Close the build group.
-    call    buildGroup%close()
     !$ call hdf5Access%unset()
    return
   end subroutine Output_Build_Output

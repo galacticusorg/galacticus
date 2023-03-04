@@ -827,7 +827,7 @@ contains
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
        !$ call hdf5Access%set()
-       call file%openFile(char(fileName))
+       file=hdf5Object(char(fileName))
        call file%readDataset('time',timeTable)
        if     (                                    &
             &   timeTable(1              ) <= time &
@@ -848,7 +848,6 @@ contains
           end select
           status=errorStatusSuccess
        end if
-       call file%close()
        !$ call hdf5Access%unset()
        call File_Unlock(fileLock)
     end if
@@ -879,10 +878,9 @@ contains
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
     call File_Lock     (char(fileName),fileLock,lockIsShared=.false.)
     !$ call hdf5Access%set()
-    call file%openFile    (char   (fileName                           )        ,overWrite=.true.,readOnly=.false.)
-    call file%writeDataset(        storeTable%xs()                     ,'time'                                   )
-    call file%writeDataset(reshape(storeTable%ys(),[storeTable%size()]),'value'                                  )
-    call file%close       (                                                                                      )
+    file=hdf5Object(char(fileName),overWrite=.true.,readOnly=.false.)
+    call file%writeDataset(        storeTable%xs()                     ,'time' )
+    call file%writeDataset(reshape(storeTable%ys(),[storeTable%size()]),'value')
     !$ call hdf5Access%unset()
     call File_Unlock(fileLock)
     return

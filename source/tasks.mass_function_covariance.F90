@@ -338,7 +338,7 @@ contains
     self_    => self
     selfCopy => self
     ! Open the mass function file.
-    call massFunctionFile%openFile(char(self%massFunctionFileName),overWrite=.true.)
+    massFunctionFile=hdf5Object(char(self%massFunctionFileName),overWrite=.true.)
     ! Read the observed mass function if available.
     self%completenessErrorObserved=0.0d0
     if (massFunctionFile%hasDataset  ("massFunctionObserved")) call massFunctionFile%readDataset  ("massFunctionObserved",     massFunctionObserved     )
@@ -599,24 +599,17 @@ contains
     ! Write out the covariance matrix.
     call massFunctionFile %writeDataset  (mass               ,"mass"             ,"Mass; M [M☉]"                                    ,datasetReturned=dataset)
     call dataset%writeAttribute(massSolar          ,"unitsInSI"                                    )
-    call dataset%close         (                                                                   )
     call massFunctionFile %writeDataset  (massFunction       ,"massFunction"     ,"Mass function; dn/dln(M) [Mpc⁻³]"                ,datasetReturned=dataset)
     call dataset%writeAttribute(1.0d0/megaParsec**3,"unitsInSI"                                    )
-    call dataset%close         (                                                                   )
     call massFunctionFile %writeDataset  (covariance         ,"covariance"       ,"Covariance of mass function; [Mpc⁻⁶]"            ,datasetReturned=dataset)
     call dataset%writeAttribute(1.0d0/megaParsec**3,"unitsInSI"                                    )
-    call dataset%close         (                                                                   )
     call massFunctionFile %writeDataset  (covariancePoisson  ,"covariancePoisson","Covariance due to Poisson noise; [Mpc⁻⁶]"        ,datasetReturned=dataset)
     call dataset%writeAttribute(1.0d0/megaParsec**3,"unitsInSI"                                    )
-    call dataset%close         (                                                                   )
     call massFunctionFile %writeDataset  (covarianceHalo     ,"covarianceHalo"   ,"Covariance due to halo effect; [Mpc⁻⁶]"          ,datasetReturned=dataset)
     call dataset%writeAttribute(1.0d0/megaParsec**3,"unitsInSI"                                    )
-    call dataset%close         (                                                                   )
     call massFunctionFile %writeDataset  (covarianceLSS      ,"covarianceLSS"    ,"Covariance due to large scale structure; [Mpc⁻⁶]",datasetReturned=dataset)
     call dataset%writeAttribute(1.0d0/megaParsec**3,"unitsInSI"                                    )
-    call dataset%close         (                                                                   )
     call massFunctionFile %writeDataset  (correlation        ,"correlation"      ,"Correlation matrix for stellar mass function; []"                        )
-    call massFunctionFile%close  ()
     ! Done.
     if (present(status)) status=errorStatusSuccess
     call displayUnindent('Done task: mass function covariance' )

@@ -26,6 +26,8 @@ program Test_Resource_Manager
   Test the {\normalfont \ttfamily resourceManager} class.
   !!}
   use :: Test_Resource_Manager_Wrapper, only : resourceHolder
+  use :: Display                      , only : displayVerbositySet, verbosityLevelStandard
+  use :: Unit_Tests                   , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
 
   ! The expectation is that the following sequence should result in 5 calls to the destructor:
@@ -33,11 +35,15 @@ program Test_Resource_Manager
   !  2. Destruct of function result from 2nd-level constructor after assignment.
   !  3. Destruct of "holder" before assignment.
   !  4. Destruct of the "resourceHolder()" function result after assignment.
-  !  5. Destruct of "holder" at the end of the program.
+  !  5. Destruct of "holder" at the end of the block.
+  call displayVerbositySet(verbosityLevelStandard)
+  call Unit_Tests_Begin_Group("Resource manager")
   block
-    ! Use a block here to ensure that "holder" goes out of scope before the end of the program.
+    ! Use a block here to ensure that "holder" goes out of scope before the end of the block.
     type(resourceHolder) :: holder
     holder=resourceHolder()
+    call Assert("count of pointers to shared resource",holder%manager%count(),1)
   end block
+  call Unit_Tests_Finish()
 
 end program Test_Resource_Manager

@@ -289,7 +289,7 @@ contains
          &                                                                                      massMaximum                     , massParticle
 
     !$ call hdf5Access%set  ()
-    call dataFile%openFile(char(File_Name_Expand(fileName)),readOnly=.true.)
+    dataFile=hdf5Object(char(File_Name_Expand(fileName)),readOnly=.true.)
     simulationGroup=dataFile       %openGroup('simulation0001')
     attributesGroup=simulationGroup%openGroup('simulation'    )
     call simulationGroup   %readDataset  ('concentration'                              ,concentration           )
@@ -305,9 +305,6 @@ contains
     call attributesGroup   %readAttribute('redshift'                                   ,redshift                )
     call attributesGroup   %readAttribute('massParticle'                               ,massParticle            )
     call attributesGroup   %readAttribute('timeRecent'                                 ,timeRecent              )
-    call attributesGroup   %close        (                                                                      )
-    call simulationGroup   %close        (                                                                      )
-    call dataFile          %close        (                                                                      )
     !$ call hdf5Access%unset()
     ! Compute a (diagonal) covariance matrix from the counts if necessary.
     if (.not.allocated(functionCovarianceTarget)) then

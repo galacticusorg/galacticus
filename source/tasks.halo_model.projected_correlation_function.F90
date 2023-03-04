@@ -227,7 +227,6 @@ contains
     !!]
 
     self%parameters=inputParameters(parameters)
-    call self%parameters%parametersGroupCopy(parameters)
     allocate(self%separationProjectedBinned (self%countSeparations))
     allocate(self%correlationProjectedBinned(self%countSeparations))
     self%separationProjectedBinned=Make_Range(self%separationMinimum,self%separationMaximum,self%countSeparations,rangeTypeLogarithmic)
@@ -297,7 +296,6 @@ contains
     outputGroup=outputFile%openGroup(char(self%outputGroup),'Group containing halo mass function data.')
     call outputGroup%writeDataset(self%separationProjectedBinned ,"separation"          ,commentText="Projected separation [Mpc]." )
     call outputGroup%writeDataset(self%correlationProjectedBinned,"projectedCorrelation",commentText="Projected correlation [Mpc].")
-    call outputGroup%close       (                                                                                                 )
     call Node_Components_Thread_Uninitialize()
     if (present(status)) status=errorStatusSuccess
     call displayUnindent('Done task: halo model projected correlation function' )

@@ -27,7 +27,7 @@ module Test_Resource_Manager_Wrapper
   !!}
   use :: Resource_Manager, only : resourceManager
   private
-  public :: resourceHolder
+  public :: resourceHolder, countDestructions
   
   type :: sharedResource
      !!{
@@ -41,7 +41,6 @@ module Test_Resource_Manager_Wrapper
      !!{
      A dummy type to act as a class that wants to retain a shared resource.
      !!}
-     private
      type(sharedResource ), pointer :: sharedObject => null()
      type(resourceManager)          :: manager
    contains
@@ -55,18 +54,23 @@ module Test_Resource_Manager_Wrapper
      module procedure resourceHolderConstructFirst
      module procedure resourceHolderConstructSecond
   end interface resourceHolder
-     
+
+  ! Counter for the number of calls to our destructor.
+  integer :: countDestructions=0
+  
 contains
 
   function resourceHolderConstructFirst() result(self)
     !!{
     First-level constructor for the dummy resource holder class.
     !!}
+    use :: Display, only : displayMessage
     implicit none
     type(resourceHolder) :: self
 
+    call displayMessage("resourceHolder: construct (1st phase; start)")
     self=resourceHolder(3)
-    write (0,*) "resourceHolder: construct (1st phase)"
+    call displayMessage("resourceHolder: construct (1st phase; end)")
     return
   end function resourceHolderConstructFirst
 
@@ -74,12 +78,14 @@ contains
     !!{
     Second-level constructor for the dummy resource holder class.
     !!}
+    use :: Display, only : displayMessage
     implicit none
     type   (resourceHolder)                :: self
     integer                , intent(in   ) :: i
     class  (*             ), pointer       :: actual_
     !$GLC attributes unused :: i
 
+    call displayMessage("resourceHolder: construct (2nd phase; start)")
     allocate(self%sharedObject)
     self%sharedObject=sharedResource(1)
     !![
@@ -89,7 +95,7 @@ contains
     !!]
     actual_      => self%sharedObject
     self%manager =  resourceManager(actual_)
-    write (0,*) "resourceHolder: construct (2nd phase)"
+    call displayMessage("resourceHolder: construct (2nd phase; end)")
     return
   end function resourceHolderConstructSecond
 
@@ -97,10 +103,12 @@ contains
     !!{
     Destructor for the dummy resource holder class.
     !!}
+    use :: Display, only : displayMessage
     implicit none
     type(resourceHolder), intent(inout) :: self
 
-    write (0,*) "resourceHolder: destruct"
+    call displayMessage("resourceHolder: destruct")
+    countDestructions=countDestructions+1
     return
   end subroutine resourceHolderDestruct
 

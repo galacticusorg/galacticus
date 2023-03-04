@@ -212,16 +212,14 @@ contains
     
     ! Read properties from the file.
     !$ call hdf5Access%set()
-    call file                   %openFile     (char(File_Name_Expand(char(fileName))),readOnly=.true.                       )
-    call file                   %readAttribute('label'                               ,         labelTarget                  )
-    call file                   %readAttribute('redshift'                            ,         redshift_                    )
-    radialDistributionGroup=file%openGroup('radialDistribution')
-    call radialDistributionGroup%readDataset  ('radiusFractional'                    ,         radiiFractionalTarget        )
-    call radialDistributionGroup%readDataset  ('radialDistribution'                  ,         radialDistributionTarget     )
-    call radialDistributionGroup%readDataset  ('radialDistributionError'             ,         radialDistributionErrorTarget)
-    call radialDistributionGroup%readAttribute('massRatioMinimum'                    ,         massRatioThreshold           )
-    call radialDistributionGroup%close        (                                                                             )
-    call file                   %close        (                                                                             )
+    file                   =hdf5Object          (char(File_Name_Expand(char(fileName))),readOnly=.true.)
+    radialDistributionGroup=file      %openGroup('radialDistribution'                                  )
+    call file                   %readAttribute('label'                  ,labelTarget                  )
+    call file                   %readAttribute('redshift'               ,redshift_                    )
+    call radialDistributionGroup%readDataset  ('radiusFractional'       ,radiiFractionalTarget        )
+    call radialDistributionGroup%readDataset  ('radialDistribution'     ,radialDistributionTarget     )
+    call radialDistributionGroup%readDataset  ('radialDistributionError',radialDistributionErrorTarget)
+    call radialDistributionGroup%readAttribute('massRatioMinimum'       ,massRatioThreshold           )
     !$ call hdf5Access%unset()
     ! Override the redshift if one is provided.
     if (present(redshift)) redshift_=redshift
@@ -564,7 +562,7 @@ contains
     ! Finalize analysis.
     call self%finalizeAnalysis()
     !$ call hdf5Access%set()
-    analysesGroup=outputFile   %openGroup('analyses'                                                )
+    analysesGroup=outputFile   %openGroup('analyses'                                                      )
     analysisGroup=analysesGroup%openGroup('subhaloRadialDistribution','Analysis of subhalo mass functions')
     call analysisGroup   %writeAttribute('Subhalo radial distribution'            ,'description'                                                                                               )
     call analysisGroup   %writeAttribute('function1D'                             ,'type'                                                                                                      )
@@ -578,7 +576,6 @@ contains
     call analysisGroup   %writeDataset  (self%radiiFractional                     ,'radiusFractional'                   ,'Fractional radius at the bin center'         ,datasetReturned=dataset)
     call dataset         %writeAttribute(' '                                      ,'units'                                                                                                     )
     call dataset         %writeAttribute(1.0d0                                    ,'unitsInSI'                                                                                                 )
-    call dataset         %close         (                                                                                                                                                      )
     call analysisGroup   %writeDataset  (self%radialDistribution                  ,'radialDistribution'                ,'Subhalo number per bin [model]'                                       )
     call analysisGroup   %writeDataset  (self%covariance                          ,'radialDistributionCovariance'      ,'Subhalo number per bin [model; covariance]'                           )
     if (allocated(self%radialDistributionTarget)) then
@@ -589,8 +586,6 @@ contains
        call analysisGroup%writeDataset  (self%radialDistributionTarget            ,'radialDistributionTarget'          ,'Subhalo number per bin [observed]'                                    )
        call analysisGroup%writeDataset  (self%radialDistributionCovarianceTarget  ,'radialDistributionCovarianceTarget','Subhalo number per bin [observed; covariance]'                        )
     end if
-    call analysisGroup   %close         (                                                                                                                                                      )
-    call analysesGroup   %close         (                                                                                                                                                      )
     !$ call hdf5Access%unset()
     return
   end subroutine subhaloRadialDistributionFinalize

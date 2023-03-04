@@ -1598,8 +1598,6 @@ module Galacticus_Nodes
           call tree%nodeBase%destroyBranch()
           deallocate(tree%nodeBase)
        end if
-       ! Destroy the HDF5 group associated with this tree.
-       call tree%hdf5Group%destroy()
        ! Destroy any events attached to this tree.
        event => tree%event
        do while (associated(event))

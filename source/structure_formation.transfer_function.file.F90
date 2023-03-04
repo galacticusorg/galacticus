@@ -292,7 +292,7 @@ contains
 
     ! Open and read the HDF5 data file.
     !$ call hdf5Access%set()
-    call fileObject%openFile(char(File_Name_Expand(fileName)),readOnly=.true.)
+    fileObject=hdf5Object(char(File_Name_Expand(fileName)),readOnly=.true.)
     ! Check that the file has the correct format version number.
     call fileObject%readAttribute('fileFormat',versionNumber,allowPseudoScalar=.true.)
     if (versionNumber /= fileFormatVersionCurrent) call Error_Report('file has the incorrect version number'//{introspection:location})
@@ -319,7 +319,6 @@ contains
             & call displayMessage('temperatureCMB from transfer function file does not match internal value' )
     end select
     deallocate(cosmologyParametersFile)
-    call parametersObject%close()
     ! Get extrapolation methods.
     extrapolationObject=fileObject         %openGroup('extrapolation')
     wavenumberObject   =extrapolationObject%openGroup('wavenumber'   )
@@ -327,17 +326,12 @@ contains
     extrapolateWavenumberLow =enumerationExtrapolationTypeEncode(char(limitTypeVar),includesPrefix=.false.)
     call wavenumberObject%readAttribute('high',limitTypeVar)
     extrapolateWavenumberHigh=enumerationExtrapolationTypeEncode(char(limitTypeVar),includesPrefix=.false.)
-    call wavenumberObject   %close()
-    call extrapolationObject%close()
     ! Read the transfer function from file.
     darkMatterGroup=fileObject%openGroup('darkMatter')
     call fileObject     %readDataset('wavenumber'                                   ,wavenumber)
     write (datasetName,'(f9.4)') self%redshift
     call darkMatterGroup%readDataset('transferFunctionZ'//trim(adjustl(datasetName)),transfer  )
-    call darkMatterGroup%close      (                                                          )
-    ! Close the file.
-    call fileObject%close()
-    !$ call hdf5Access%unset()
+   !$ call hdf5Access%unset()
     ! Construct the tabulated transfer function.
     call self%transfer%destroy()
     wavenumberLogarithmic=log(wavenumber)

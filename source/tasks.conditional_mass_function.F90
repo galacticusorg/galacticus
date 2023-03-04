@@ -425,7 +425,6 @@ contains
        call outputGroup%writeDataset(conditionalMassFunction          ,"massFunction"          ,commentText="Conditional mass function in units of per log(mass)."           )
        call outputGroup%writeDataset(conditionalMassFunctionIncomplete,"massFunctionIncomplete",commentText="Incomplete conditional mass function in units of per log(mass).")
     end if
-    call outputGroup%close()
     call displayUnindent('Done task: conditional mass function' )
     return
 

@@ -559,7 +559,7 @@ contains
     !$ call hdf5Access%set()
     ! Read the file.
     call displayIndent('Reading file: '//char(fileName),verbosityLevelWorking)
-    call coolingFunctionFile%openFile(char(File_Name_Expand(char(fileName))),readOnly=.true.)
+    coolingFunctionFile=hdf5Object(char(File_Name_Expand(char(fileName))),readOnly=.true.)
     ! Check the file format version of the file.
     call coolingFunctionFile%readAttribute('fileFormat',fileFormatVersion)
     if (fileFormatVersion /= fileFormatVersionCurrent) call Error_Report('file format version is out of date'//{introspection:location})
@@ -581,13 +581,11 @@ contains
     self%extrapolateMetallicityLow =enumerationExtrapolationTypeEncode(char(limitType),includesPrefix=.false.)
     call metallicityDataset%readAttribute('extrapolateHigh',limitType,allowPseudoScalar=.true.)
     self%extrapolateMetallicityHigh=enumerationExtrapolationTypeEncode(char(limitType),includesPrefix=.false.)
-    call metallicityDataset%close()
     temperatureDataset=coolingFunctionFile%openDataset('temperature')
     call temperatureDataset%readAttribute('extrapolateLow' ,limitType,allowPseudoScalar=.true.)
     self%extrapolateTemperatureLow =enumerationExtrapolationTypeEncode(char(limitType),includesPrefix=.false.)
     call temperatureDataset%readAttribute('extrapolateHigh',limitType,allowPseudoScalar=.true.)
     self%extrapolateTemperatureHigh=enumerationExtrapolationTypeEncode(char(limitType),includesPrefix=.false.)
-    call temperatureDataset%close()
     ! Validate extrapolation methods.
     if     (                                                              &
          &   self%extrapolateMetallicityLow  /= extrapolationTypeFix      &
@@ -622,8 +620,6 @@ contains
        call coolingFunctionFile%readDataset('energyContinuum'                 ,self%energyContinuum                 )
        call coolingFunctionFile%readDataset('powerEmittedFractionalCumulative',self%powerEmittedFractionalCumulative)
     end if
-    ! Close the file.
-    call coolingFunctionFile%close()
     call displayUnindent('done',verbosityLevelWorking)
     !$ call hdf5Access%unset()
     ! Store table ranges for convenience.

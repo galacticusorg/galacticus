@@ -265,9 +265,8 @@ contains
     ! Check for pre-existing calculation.
     if (present(solidAngleFileName).and.File_Exists(solidAngleFileName)) then
        !$ call hdf5Access%set  ()
-       call solidAngleFile%openFile         (solidAngleFileName,overWrite=.false.                 )
-       call solidAngleFile%readDatasetStatic('solidAngle'      ,          geometryMangleSolidAngle)
-       call solidAngleFile%close            (                                                     )
+       solidAngleFile=hdf5Object(solidAngleFileName,overWrite=.false.)
+       call solidAngleFile%readDatasetStatic('solidAngle',geometryMangleSolidAngle)
        !$ call hdf5Access%unset()
        return
     end if
@@ -303,11 +302,10 @@ contains
     ! Store the solid angle to file.
     if (present(solidAngleFileName)) then
        !$ call hdf5Access%set  ()
-       call solidAngleFile%openFile      (            solidAngleFileName           ,overWrite=.true.      )
+       solidAngleFile=hdf5Object(solidAngleFileName,overWrite=.true.)
        call solidAngleFile%writeAttribute(String_Join(fileNames               ,":"),          'files'     )
        call solidAngleFile%writeDataset  (            geometryMangleSolidAngle     ,          'solidAngle')
        call solidAngleFile%flush         (                                                                )
-       call solidAngleFile%close         (                                                                )
        !$ call hdf5Access%unset()
     end if
     return
@@ -346,7 +344,7 @@ contains
     ! Read the angular power from file if possible.
     if (present(angularPowerFileName).and.File_Exists(angularPowerFileName)) then
        !$ call hdf5Access%set  ()
-       call angularPowerFile      %openFile         (angularPowerFileName                                           )
+       angularPowerFile=hdf5Object(angularPowerFileName)
        l=0
        do p=1,size(fileNames)
           do q=p,size(fileNames)
@@ -354,8 +352,7 @@ contains
              call angularPowerFile%readDatasetStatic(char(var_str('Cl_')//(p-1)//'_'//(q-1)),geometryMangleAngularPower(l,:))
           end do
        end do
-       call angularPowerFile      %flush            (                                                               )
-       call angularPowerFile      %close            (                                                               )
+       call angularPowerFile%flush()
        !$ call hdf5Access%unset()
        return
     end if
@@ -419,17 +416,16 @@ contains
     ! Store the angular power to file.
     if (present(angularPowerFileName)) then
        !$ call hdf5Access%set  ()
-       call angularPowerFile      %openFile      (            angularPowerFileName                ,overWrite=.true.                                 )
-       call angularPowerFile      %writeAttribute(String_Join(fileNames                      ,":"),          'files'                                )
+       angularPowerFile=hdf5Object(angularPowerFileName,overWrite=.true.)
+       call angularPowerFile%writeAttribute(String_Join(fileNames,":"),'files')
        l=0
        do p=1,size(fileNames)
           do q=p,size(fileNames)
              l=l+1
-             call angularPowerFile%writeDataset  (            geometryMangleAngularPower(l,:)     ,          char(var_str('Cl_')//(p-1)//'_'//(q-1)))
+             call angularPowerFile%writeDataset(geometryMangleAngularPower(l,:),char(var_str('Cl_')//(p-1)//'_'//(q-1)))
           end do
        end do
-       call angularPowerFile      %flush         (                                                                                                  )
-       call angularPowerFile      %close         (                                                                                                  )
+       call angularPowerFile%flush()
        !$ call hdf5Access%unset()
     end if
     return

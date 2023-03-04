@@ -257,17 +257,11 @@ contains
        call outputGroup   %writeAttribute(epochTime                       (    iOutput),'outputTime'                                                                                                       )
        call outputGroup   %writeDataset  (mass                                         ,'mass'                            ,'The mass.'                                             ,datasetReturned=dataset)
        call dataset       %writeAttribute(massSolar                                    ,'unitsInSI'                                                                                                        )
-       call dataset       %close         (                                                                                                                                                                 )
        call outputGroup   %writeDataset  (velocityDispersion1D            (:  ,iOutput),'velocityDispersion1D'            ,'The 1-D velocity dispersion.'                          ,datasetReturned=dataset)
        call dataset       %writeAttribute(kilo                                         ,'unitsInSI'                                                                                                        )
-       call dataset       %close         (                                                                                                                                                                 )
        call outputGroup   %writeDataset  (velocityDispersion1DMergingHalos(:,:,iOutput),'velocityDispersion1DMergingHalos','The 1-D velocity dispersion of pairs of merging halos.',datasetReturned=dataset)
        call dataset       %writeAttribute(kilo                                         ,'unitsInSI'                                                                                                        )
-       call dataset       %close         (                                                                                                                                                                 )
-        call outputGroup%close()
     end do
-    call outputsGroup%close()
-    if (self%outputGroup /= ".") call containerGroup%close()
     if (present(status)) status=errorStatusSuccess
     call displayUnindent('Done task: velocity field' )
     return

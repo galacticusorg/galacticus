@@ -141,9 +141,8 @@ contains
     if (File_Exists(char(self%fileName))) then
        ! Check file version number.
        !$ call hdf5Access%set()
-       call outputFile%openFile     (char(self%fileName),overwrite=.false.          )
-       call outputFile%readAttribute('fileFormat'       ,          fileFormatVersion)
-       call outputFile%close        (                                               )
+       outputFile=hdf5Object(char(self%fileName),overwrite=.false.)
+       call outputFile%readAttribute('fileFormat',fileFormatVersion)
        !$ call hdf5Access%unset()
        buildFile=fileFormatVersion /= fileFormatVersionCurrent
     else
@@ -184,7 +183,7 @@ contains
        call File_Remove(char(parameterFile))
        ! Create the output file.
        !$ call hdf5Access%set()
-       call outputFile%openFile      (char(self%fileName),overwrite=.true.)
+       outputFile=hdf5Object(char(self%fileName),overwrite=.true.)
        call outputFile%writeDataset  (redshift           ,'redshift'         ,'Redshift'                                            )
        call outputFile%writeDataset  (electronFraction   ,'electronFraction' ,'Electron fraction'                                   )
        call outputFile%writeDataset  (hIonizedFraction   ,'hIonizedFraction' ,'Fraction of ionized hydrogen'                        )
@@ -192,7 +191,6 @@ contains
        call outputFile%writeDataset  (matterTemperature  ,'matterTemperature','Temperature of matter'       ,datasetReturned=dataset)
        call dataset   %writeAttribute('Kelvin'           ,'units'                                                                   )
        call dataset   %writeAttribute(1.0d0              ,'unitsInSI'                                                               )
-       call dataset   %close         (                                                                                              )
        ! Add description and provenance to output structure.
        call outputFile%writeAttribute('IGM ionization/thermal state computed using RecFast','description'         )
        call outputFile%writeAttribute(fileFormatVersionCurrent                             ,'fileFormat'          )
@@ -203,9 +201,6 @@ contains
        recFastProvenance=provenance%openGroup('recFast'                                                                                            )
        call recFastProvenance%writeAttribute(trim(recFastVersion)                                                                        ,'version')
        call recFastProvenance%writeAttribute('Includes modification of H recombination. Includes all modifications for HeI recombination','notes'  )
-       call recFastProvenance%close         (                                                                                                      )
-       call provenance       %close         (                                                                                                      )
-       call outputFile       %close         (                                                                                                      )
        !$ call hdf5Access%unset()
     end if
     call File_Unlock(self%fileLock)

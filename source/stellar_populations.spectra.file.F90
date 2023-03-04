@@ -280,7 +280,7 @@ contains
     if (.not.self%fileRead) then
        !$ call hdf5Access%set()
        ! Open the HDF5 file.
-       call spectraFile%openFile(char(File_Name_Expand(char(self%fileName))),readOnly=.true.)
+       spectraFile=hdf5Object(char(File_Name_Expand(char(self%fileName))),readOnly=.true.)
        ! Check that this file has the correct format.
        call spectraFile%readAttribute('fileFormat',fileFormatVersion)
        if (fileFormatVersion /= fileFormatVersionCurrent) call Error_Report('format of stellar tracks file is out of date'//{introspection:location})
@@ -295,8 +295,6 @@ contains
        self%spectra%metallicityCount=size(self%spectra%metallicities)
        ! Read the spectra.
        call spectraFile%readDataset('spectra'                     ,self%spectra%table        )
-       ! Close the HDF5 file.
-       call spectraFile%close()
        !$ call hdf5Access%unset()
        self%fileRead=.true.
        ! Build interpolators.

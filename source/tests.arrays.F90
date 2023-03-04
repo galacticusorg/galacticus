@@ -204,7 +204,7 @@ program Test_Array_Monotonicity
   set2=['123','abc','789']
   set3=['abc'            ]
   call Assert('Array intersection',set1.intersection.set2,set3)
-  deallocate(set1,set2)
+  deallocate(set1,set2,set3)
 
   ! End unit tests.
   call Unit_Tests_End_Group()

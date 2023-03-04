@@ -336,7 +336,6 @@ contains
     call outputGroup%writeDataset(firstCrossingProbability,'firstCrossingProbability','The first crossing probability'                  )
     call outputGroup%writeDataset(massFunctionDifferential,'massFunction'            ,'The halo mass function [Mpc⁻³ M☉⁻¹]'             )
     call outputGroup%writeDataset(firstCrossingRate       ,'firstCrossingRate'       ,'The first crossing rate [Gyr⁻¹]'                 )
-    call outputGroup%close()
     ! Deallocate arrays.
     deallocate(mass                    )
     deallocate(variance                )

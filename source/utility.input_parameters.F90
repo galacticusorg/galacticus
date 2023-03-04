@@ -33,6 +33,7 @@ module Input_Parameters
   use :: String_Handling   , only : char
   use :: Hashes            , only : integerHash
   use :: Locks             , only : ompLock
+  use :: Resource_Manager  , only : resourceManager
   private
   public :: inputParameters, inputParameter, inputParameterList
   
@@ -117,22 +118,22 @@ module Input_Parameters
     
   type :: inputParameters
      private
-     type   (node           ), pointer, public :: document               => null()
-     type   (node           ), pointer         :: rootNode               => null()
-     type   (hdf5Object     )                  :: outputParameters                 , outputParametersContainer
-     type   (inputParameter ), pointer         :: parameters             => null()
-     type   (inputParameters), pointer, public :: parent                 => null()
-     logical                                   :: outputParametersCopied =  .false., outputParametersTemporary=.false., &
-          &                                       isNull                 =  .false.
+     type   (node           ), pointer, public :: document                  => null()
+     type   (node           ), pointer         :: rootNode                  => null()
+     type   (hdf5Object     ), pointer         :: outputParameters          => null() , outputParametersContainer        => null()
+     type   (resourceManager)                  :: outputParametersManager             , outputParametersContainerManager
+     type   (inputParameter ), pointer         :: parameters                => null()
+     type   (inputParameters), pointer, public :: parent                    => null()
+     logical                                   :: outputParametersTemporary =  .false., isNull                           =  .false.
      type   (integerHash    ), allocatable     :: warnedDefaults
-     type   (ompLock        ), pointer         :: lock                   => null()
+     type   (ompLock        ), pointer         :: lock                      => null()
+     type   (resourceManager)                  :: lockManager
    contains
      !![
      <methods>
        <method description="Build a tree of {\normalfont \ttfamily inputParameter} objects from the structure of an XML parameter file." method="buildTree" />
        <method description="Resolve references in the tree of {\normalfont \ttfamily inputParameter} objects." method="resolveReferences" />
        <method description="Open an output group for parameters in the given HDF5 object." method="parametersGroupOpen" />
-       <method description="Copy the HDF5 output group for parameters from another parameters object." method="parametersGroupCopy" />
        <method description="Check that a given parameter name is a valid name, aborting if not." method="validateName" />
        <method description="Check that parameters are valid and, optionally, check if they match expected names in the provided list." method="checkParameters" />
        <method description="Return the XML node containing the named parameter." method="node" />
@@ -155,7 +156,6 @@ module Input_Parameters
      procedure :: resolveReferences   => inputParametersResolveReferences
      procedure :: destroy             => inputParametersDestroy
      procedure :: parametersGroupOpen => inputParametersParametersGroupOpen
-     procedure :: parametersGroupCopy => inputParametersParametersGroupCopy
      procedure :: validateName        => inputParametersValidateName
      procedure :: checkParameters     => inputParametersCheckParameters
      procedure :: node                => inputParametersNode
@@ -243,7 +243,8 @@ contains
     !!}
     use :: FoX_dom, only : createDocument, getDocumentElement, getImplementation, setLiveNodeLists
     implicit none
-    type(inputParameters) :: self
+    type (inputParameters)          :: self
+    class(*              ), pointer :: lock_
 
     allocate(self%warnedDefaults)
     allocate(self%lock          )
@@ -259,6 +260,15 @@ contains
     self%parameters     => null              (             )
     self%warnedDefaults =  integerHash       (             )
     self%lock           =  ompLock           (             )
+    !![
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    !!]
+    lock_ => self%lock
+    self%lockManager    =  resourceManager   (     lock_   )
+    !![
+    </workaround>
+    !!]
     self%isNull         = .true.
    return
   end function inputParametersConstructorNull
@@ -359,6 +369,7 @@ contains
     implicit none
     type (inputParameters)                :: self
     type (inputParameters), intent(in   ) :: parameters
+    class(*              ), pointer       :: lock_
 
     self            =  inputParameters(parameters%rootNode  ,noOutput=.true.,noBuild=.true.)
     self%parameters =>                 parameters%parameters
@@ -369,9 +380,18 @@ contains
        self%warnedDefaults=parameters%warnedDefaults
     end if
     if (associated(parameters%lock)) then
-       deallocate(self%lock)
+       call self%lockManager%release()
        allocate  (self%lock)
        self%lock=ompLock()
+       !![
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+	 <description>ICE when passing a derived type component to a class(*) function argument.</description>
+       !!]
+       lock_ => self%lock
+       self%lockManager    =  resourceManager   (     lock_   )
+       !![
+       </workaround>
+       !!]
     end if
     return
   end function inputParametersConstructorCopy
@@ -401,6 +421,7 @@ contains
     integer                                                           :: allowedParameterFromFileCount , allowedParameterCount
     character(len=  10       )                                        :: versionLabel
     type     (varying_string )                                        :: message
+    class    (*              ), pointer                               :: dummyPointer_
     !![
     <optionalArgument name="noOutput" defaultsTo=".false." />
     <optionalArgument name="noBuild"  defaultsTo=".false." />
@@ -414,6 +435,15 @@ contains
     self%parent         => null            (              )
     self%warnedDefaults =  integerHash     (              )
     self%lock           =  ompLock         (              )
+    !![
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    !!]
+    dummyPointer_ => self%lock
+    self%lockManager    =  resourceManager (dummyPointer_ )
+    !![
+    </workaround>
+    !!]
     !$omp critical (FoX_DOM_Access)
     self%document       => getOwnerDocument(parametersNode)
     call setLiveNodeLists(self%document,.false.)
@@ -430,31 +460,53 @@ contains
     !$omp end critical (FoX_DOM_Access)
     ! Set a pointer to HDF5 object to which to write parameters.
     if (present(outputParametersGroup)) then
+       allocate(self%outputParameters)
        !$ call hdf5Access%  set()
        self%outputParameters         =outputParametersGroup%openGroup('Parameters')
-       self%outputParametersCopied   =.false.
        self%outputParametersTemporary=.false.
        !$ call hdf5Access%unset()
+       !![
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+	 <description>ICE when passing a derived type component to a class(*) function argument.</description>
+       !!]
+       dummyPointer_ => self%outputParameters
+       self%outputParametersManager=resourceManager(dummyPointer_)
+       !![
+       </workaround>
+       !!]
     else if (.not.noOutput_) then
        ! The HDF5 access lock may not yet have been initialized. Ensure it is before using it.
        call ioHDF5AccessInitialize()
+       allocate(self%outputParameters         )
+       allocate(self%outputParametersContainer)
        !$ call hdf5Access%  set()
-       call self%outputParametersContainer%openFile(                                      &
-            &                                       char(                                 &
-            &                                            File_Name_Temporary(             &
-            &                                                                'glcTmpPar', &
+       self%outputParametersContainer=hdf5Object(                                      &
+            &                                    char(                                 &
+            &                                         File_Name_Temporary(             &
+            &                                                             'glcTmpPar', &
 #ifdef __APPLE__
-            &                                                                '/tmp'       &
+            &                                                             '/tmp'       &
 #else
-            &                                                                '/dev/shm'   &
+            &                                                             '/dev/shm'   &
 #endif
-            &                                                               )             &
-            &                                            )                                &
-            &                                      )
+            &                                                            )             &
+            &                                         )                              , &
+            &                                    isTemporary=.true.                    &
+            &                                   )
        self%outputParameters         =self%outputParametersContainer%openGroup('Parameters')
-       self%outputParametersCopied   =.false.
        self%outputParametersTemporary=.true.
        !$ call hdf5Access%unset()
+       !![
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+	 <description>ICE when passing a derived type component to a class(*) function argument.</description>
+       !!]
+       dummyPointer_ => self%outputParameters
+       self%outputParametersManager         =resourceManager(dummyPointer_)
+       dummyPointer_ => self%outputParametersContainer
+       self%outputParametersContainerManager=resourceManager(dummyPointer_)
+       !![
+       </workaround>
+       !!]
     end if
     ! Get allowed parameter names.
     call knownParameterNames(allowedParameterNamesCombined)
@@ -660,7 +712,6 @@ contains
     !!{
     Finalizer for the {\normalfont \ttfamily inputParameters} class.
     !!}
-    use :: File_Utilities    , only : File_Remove
     use :: FoX_dom           , only : destroy
     use :: HDF5_Access       , only : hdf5Access
     use :: ISO_Varying_String, only : char
@@ -677,25 +728,10 @@ contains
     nullify(self%rootNode  )
     nullify(self%parameters)
     nullify(self%parent    )
-    if (allocated (self%warnedDefaults)) deallocate(self%warnedDefaults)
-    if (associated(self%lock          )) deallocate(self%lock          )
-    !$ call hdf5Access%set()
-    if (self%outputParameters%isOpen().and..not.self%outputParametersCopied) then
-       if (self%outputParametersTemporary) then
-          ! Close and remove the temporary parameters file.
-          fileNameTemporary=self%outputParametersContainer%name()
-          call self%outputParameters         %close  ()
-          call self%outputParametersContainer%close  ()
-          call self%outputParameters         %destroy()
-          call self%outputParametersContainer%destroy()
-          call File_Remove(char(fileNameTemporary))
-       else
-          ! Simply close our parameters group.
-          call self%outputParameters%close  ()
-          call self%outputParameters%destroy()
-       end if
-    end if
-    !$ call hdf5Access%unset()
+    if (allocated (self%warnedDefaults           )) deallocate(self%warnedDefaults)
+    if (associated(self%lock                     )) call self%lockManager                     %release()
+    if (associated(self%outputParameters         )) call self%outputParametersManager         %release()
+    if (associated(self%outputParametersContainer)) call self%outputParametersContainerManager%release()
     return
   end subroutine inputParametersFinalize
 
@@ -1111,48 +1147,41 @@ contains
     !!{
     Open an output group for parameters in the given HDF5 object.
     !!}
-    use :: File_Utilities    , only : File_Remove
     use :: HDF5_Access       , only : hdf5Access
     use :: ISO_Varying_String, only : char
     implicit none
     class(inputParameters), intent(inout) :: self
     type (hdf5Object     ), intent(inout) :: outputGroup
+    class(*              ), pointer       :: dummyPointer_
     type (varying_string )                :: fileNameTemporary
 
     !$ call hdf5Access%set()
     if (self%outputParameters%isOpen().and.self%outputParametersTemporary) then
        ! Parameters have been written to a temporary file. Copy them to our new group.
-       call self%outputParametersContainer%copy('Parameters',outputGroup)
-       fileNameTemporary=self%outputParametersContainer%name()
-       call self%outputParameters         %close()
-       call self%outputParametersContainer%close()
-       call File_Remove(char(fileNameTemporary))
+       call self%outputParametersContainer       %copy   ('Parameters',outputGroup)
+       !$ call hdf5Access%unset()
+       call self%outputParametersManager         %release(                        )
+       call self%outputParametersContainerManager%release(                        )
+       allocate(self%outputParameters)
+       !$ call hdf5Access%set()
        self%outputParameters=outputGroup%openGroup('Parameters')
+       !![
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+	 <description>ICE when passing a derived type component to a class(*) function argument.</description>
+       !!]
+       dummyPointer_                => self%outputParameters
+       self%outputParametersManager =  resourceManager(dummyPointer_)
+       !![
+       </workaround>
+       !!]
        self%outputParametersTemporary=.false.
     else
-       if (self%outputParameters%isOpen()) call self%outputParameters%close()
+       if (self%outputParameters%isOpen()) call self%outputParametersManager%release()
        self%outputParameters      =outputGroup%openGroup('Parameters')
     end if
     !$ call hdf5Access%unset()
-    self%outputParametersCopied=.false.
     return
   end subroutine inputParametersParametersGroupOpen
-
-  subroutine inputParametersParametersGroupCopy(self,inputParameters_)
-    !!{
-    Copy an output group for parameters in the given HDF5 object.
-    !!}
-    use :: HDF5_Access, only : hdf5Access
-    implicit none
-    class(inputParameters), intent(inout) :: self
-    class(inputParameters), intent(in   ) :: inputParameters_
-
-    !$ call hdf5Access%set()
-    self%outputParameters      =inputParameters_%outputParameters
-    self%outputParametersCopied=.true.
-    !$ call hdf5Access%unset()
-    return
-  end subroutine inputParametersParametersGroupCopy
 
   subroutine inputParametersValidateName(self,parameterName)
     !!{
@@ -1390,6 +1419,7 @@ contains
     logical                   , intent(in   ), optional :: requireValue                , requirePresent
     integer                   , intent(in   ), optional :: copyInstance
     type     (inputParameter ), pointer                 :: parameterNode
+    class    (*              ), pointer                 :: dummyPointer_
     integer                                             :: copyCount
     type     (varying_string )                          :: groupName
     !![
@@ -1416,7 +1446,17 @@ contains
     if (self%outputParameters%isOpen()) then
        groupName=parameterName
        if (copyCount > 1) groupName=groupName//"["//copyInstance//"]"
+       allocate(inputParametersSubParameters%outputParameters)
        inputParametersSubParameters%outputParameters=self%outputParameters%openGroup(char(groupName))
+       !![
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+	 <description>ICE when passing a derived type component to a class(*) function argument.</description>
+       !!]
+       dummyPointer_ => inputParametersSubParameters%outputParameters
+       inputParametersSubParameters%outputParametersManager=resourceManager(dummyPointer_)
+       !![
+       </workaround>
+       !!]
     end if
     !$ call hdf5Access%unset()
     return
@@ -1916,11 +1956,21 @@ contains
     !!}
     implicit none
     class(inputParameters), intent(inout) :: self
-
-   if (associated(self%lock)) then
-       nullify(self%lock)
+    class(*              ), pointer :: lock_
+    
+    if (associated(self%lock)) then
+       call self%lockManager%release()
        allocate(self%lock)
        self%lock=ompLock()
+       !![
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+	 <description>ICE when passing a derived type component to a class(*) function argument.</description>
+       !!]
+       lock_ => self%lock
+       self%lockManager    =  resourceManager   (     lock_   )
+       !![
+       </workaround>
+       !!]
     end if
     return
   end subroutine inputParametersLockReinitialize

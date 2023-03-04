@@ -1421,11 +1421,10 @@ contains
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
     call File_Lock(char(fileName),fileLock,lockIsShared=.false.)
     !$ call hdf5Access%set()
-    call file%openFile(char(fileName),overWrite=.true.,objectsOverwritable=.true.,readOnly=.false.)
+    file=hdf5Object(char(fileName),overWrite=.true.,objectsOverwritable=.true.,readOnly=.false.)
     call file%writeDataset(self%velocityDispersionRadialTableRadiusCore,'radiusCore'        )
     call file%writeDataset(self%velocityDispersionRadialTableRadius    ,'radius'            )
     call file%writeDataset(self%velocityDispersionRadialTable          ,'velocityDispersion')
-    call file%close()
     !$ call hdf5Access%unset()
     call File_Unlock(fileLock)
     return
@@ -1461,11 +1460,10 @@ contains
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
        !$ call hdf5Access%set()
-       call file%openFile(char(fileName))
+       file=hdf5Object(char(fileName))
        call file%readDataset('radiusCore'        ,self%velocityDispersionRadialTableRadiusCore)
        call file%readDataset('radius'            ,self%velocityDispersionRadialTableRadius    )
        call file%readDataset('velocityDispersion',self%velocityDispersionRadialTable          )
-       call file%close()
        !$ call hdf5Access%unset()
        call File_Unlock(fileLock)
        self%velocityDispersionRadialTableRadiusCount    =size(self%velocityDispersionRadialTableRadius    )
@@ -1511,11 +1509,10 @@ contains
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
     call File_Lock(char(fileName),fileLock,lockIsShared=.false.)
     !$ call hdf5Access%set()
-    call file%openFile(char(fileName),overWrite=.true.,objectsOverwritable=.true.,readOnly=.false.)
+    file=hdf5Object(char(fileName),overWrite=.true.,objectsOverwritable=.true.,readOnly=.false.)
     call file%writeDataset(self%radiusEnclosingDensityTableRadiusCore,'radiusCore')
     call file%writeDataset(self%radiusEnclosingDensityTableDensity   ,'density'   )
     call file%writeDataset(self%radiusEnclosingDensityTable          ,'radius'    )
-    call file%close()
     !$ call hdf5Access%unset()
     call File_Unlock(fileLock)
     return
@@ -1551,11 +1548,10 @@ contains
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
        !$ call hdf5Access%set()
-       call file%openFile(char(fileName))
+       file=hdf5Object(char(fileName))
        call file%readDataset('radiusCore',self%radiusEnclosingDensityTableRadiusCore)
        call file%readDataset('density'   ,self%radiusEnclosingDensityTableDensity   )
        call file%readDataset('radius'    ,self%radiusEnclosingDensityTable          )
-       call file%close()
        !$ call hdf5Access%unset()
        call File_Unlock(fileLock)
        self%radiusEnclosingDensityTableDensityCount   =size(self%radiusEnclosingDensityTableDensity   )
@@ -1601,11 +1597,10 @@ contains
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
     call File_Lock(char(fileName),fileLock,lockIsShared=.false.)
     !$ call hdf5Access%set()
-    call file%openFile(char(fileName),overWrite=.true.,objectsOverwritable=.true.,readOnly=.false.)
+    file=hdf5Object(char(fileName),overWrite=.true.,objectsOverwritable=.true.,readOnly=.false.)
     call file%writeDataset(self%radiusEnclosingMassTableRadiusCore,'radiusCore')
     call file%writeDataset(self%radiusEnclosingMassTableMass      ,'mass'      )
     call file%writeDataset(self%radiusEnclosingMassTable          ,'radius'    )
-    call file%close()
     !$ call hdf5Access%unset()
     call File_Unlock(fileLock)
     return
@@ -1641,11 +1636,10 @@ contains
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
        !$ call hdf5Access%set()
-       call file%openFile(char(fileName))
+       file=hdf5Object(char(fileName))
        call file%readDataset('radiusCore',self%radiusEnclosingMassTableRadiusCore)
        call file%readDataset('mass'      ,self%radiusEnclosingMassTableMass      )
        call file%readDataset('radius'    ,self%radiusEnclosingMassTable          )
-       call file%close()
        !$ call hdf5Access%unset()
        call File_Unlock(fileLock)
        self%radiusEnclosingMassTableMassCount      =size(self%radiusEnclosingMassTableMass      )
@@ -1691,11 +1685,10 @@ contains
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
     call File_Lock(char(fileName),fileLock,lockIsShared=.false.)
     !$ call hdf5Access%set()
-    call file%openFile(char(fileName),overWrite=.true.,objectsOverwritable=.true.,readOnly=.false.)
+    file=hdf5Object(char(fileName),overWrite=.true.,objectsOverwritable=.true.,readOnly=.false.)
     call file%writeDataset(self%energyTableRadiusCore   ,'radiusCore'   )
     call file%writeDataset(self%energyTableConcentration,'concentration')
     call file%writeDataset(self%energyTable             ,'energy'       )
-    call file%close()
     !$ call hdf5Access%unset()
     call File_Unlock(fileLock)
     return
@@ -1731,11 +1724,10 @@ contains
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
        !$ call hdf5Access%set()
-       call file%openFile(char(fileName))
+       file=hdf5Object(char(fileName))
        call file%readDataset('radiusCore'   ,self%energyTableRadiusCore   )
        call file%readDataset('concentration',self%energyTableConcentration)
        call file%readDataset('energy'       ,self%energyTable             )
-       call file%close()
        !$ call hdf5Access%unset()
        call File_Unlock(fileLock)
        self%energyTableConcentrationCount=size(self%energyTableConcentration      )
