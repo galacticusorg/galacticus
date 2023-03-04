@@ -30,11 +30,12 @@ program Test_Galactic_Structure
   use :: Events_Hooks                    , only : eventsHooksInitialize
   use :: Functions_Global_Utilities      , only : Functions_Global_Set
   use :: Galacticus_Nodes                , only : nodeClassHierarchyFinalize                                    , nodeClassHierarchyInitialize     , treeNode                           , nodeComponentDisk           , &
-       &                                          nodeComponentBasic
+       &                                          nodeComponentBasic                                            , nodeComponentBlackHole
   use :: Input_Parameters                , only : inputParameters
   use :: Node_Components                 , only : Node_Components_Initialize                                    , Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
   use :: Galactic_Structure_Options      , only : componentTypeSpheroid                                         , componentTypeDisk                , massTypeAll                        , componentTypeDisk           , &
-       &                                          coordinateSystemCartesian                                     , massTypeStellar                  , massTypeGaseous                    , enumerationMassTypeType 
+       &                                          coordinateSystemCartesian                                     , massTypeStellar                  , massTypeGaseous                    , enumerationMassTypeType     , &
+       &                                          componentTypeBlackHole                                        , massTypeBlackHole
   use :: Unit_Tests                      , only : Assert                                                        , Unit_Tests_Begin_Group           , Unit_Tests_End_Group               , Unit_Tests_Finish
   use :: Mass_Distributions              , only : massDistributionClass
   use :: Cosmology_Parameters            , only : cosmologyParametersSimple
@@ -56,6 +57,7 @@ program Test_Galactic_Structure
   type            (treeNode                                                      ), pointer        :: node_
   class           (nodeComponentBasic                                            ), pointer        :: basic_
   class           (nodeComponentDisk                                             ), pointer        :: disk_
+  class           (nodeComponentBlackHole                                        ), pointer        :: blackHole_
   class           (massDistributionClass                                         ), pointer        :: massDistribution_
   type            (darkMatterProfileDMONFW                                       ), pointer        :: darkMatterProfileDMO_
   type            (darkMatterProfileAdiabaticGnedin2004                          ), pointer        :: darkMatterProfile_
@@ -72,7 +74,8 @@ program Test_Galactic_Structure
   double precision                                                                , dimension(3,3) :: tidalTensorComponentsDirect          , tidalTensorSphericalComponents         , &
        &                                                                                              tidalTensorComponentsIndirect
   double precision                                                                , parameter      :: massDiskStellar              =1.0d+10, massDiskGas                    =1.000d9, &
-       &                                                                                              radiusDisk                   =3.5d-03, scaleHeightFractionalDisk      =0.137d0
+       &                                                                                              radiusDisk                   =3.5d-03, scaleHeightFractionalDisk      =0.137d0, &
+       &                                                                                              massBlackHole                =1.0d+05
   double precision                                                                                 :: densityTarget                        , surfaceDensityTarget                   , &
        &                                                                                              massTarget                           , radius                                 , &
        &                                                                                              densityDirect                        , densityIndirect                        , &
@@ -177,22 +180,26 @@ program Test_Galactic_Structure
   </referenceConstruct>
   !!]
   ! Build a node.
-  node_  =>  treeNode      (                 )
-  basic_ =>  node_   %basic(autoCreate=.true.)
-  disk_  =>  node_   %disk (autoCreate=.true.)
+  node_      =>  treeNode          (                 )
+  basic_     =>  node_   %basic    (autoCreate=.true.)
+  disk_      =>  node_   %disk     (autoCreate=.true.)
+  blackHole_ =>  node_   %blackHole(autoCreate=.true.)
   ! Set properties of the basic component.
-  call basic_%massSet            (1.00d12        )
-  call basic_%timeSet            (1.38d01        )
-  call basic_%timeLastIsolatedSet(1.38d01        )
-   ! Set properties of the disk component.
-  call disk_ %          radiusSet(radiusDisk     )
-  call disk_ %     massStellarSet(massDiskStellar)
-  call disk_ %         massGasSet(massDiskGas    )
+  call basic_    %massSet            (1.00d12        )
+  call basic_    %timeSet            (1.38d01        )
+  call basic_    %timeLastIsolatedSet(1.38d01        )
+  ! Set properties of the disk component.
+  call disk_     %          radiusSet(radiusDisk     )
+  call disk_     %     massStellarSet(massDiskStellar)
+  call disk_     %         massGasSet(massDiskGas    )
+  ! Set properties of the black hole component.
+  call blackHole_%            massSet(massBlackHole  )
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Galactic structure functions")
   ! Get the mass distribution.
   massDistribution_ => node_%massDistribution()
   ! Test disk mass distribution.
+  call Unit_Tests_Begin_Group("Disk")
   do j=1,3
      select case (j)
      case (1)
@@ -234,8 +241,8 @@ program Test_Galactic_Structure
              &                      )
         surfaceDensityDirect  =+massDistribution_ %surfaceDensity(      positionCartesian   ,componentType=componentTypeDisk,massType=massType                                           )
         surfaceDensityIndirect=+galacticStructure_%surfaceDensity(node_,coordinatesCartesian,componentType=componentTypeDisk,massType=massType,coordinateSystem=coordinateSystemCartesian)
-        call Assert("Disk Σ"//trim(label)//"(r="//trim(labelRadius)//"kpc) [  direct]",surfaceDensityDirect  ,surfaceDensityTarget,relTol=1.0d-6)
-        call Assert("Disk Σ"//trim(label)//"(r="//trim(labelRadius)//"kpc) [indirect]",surfaceDensityIndirect,surfaceDensityTarget,relTol=1.0d-6)
+        call Assert("Σ"//trim(label)//"(r="//trim(labelRadius)//"kpc) [  direct]",surfaceDensityDirect  ,surfaceDensityTarget,relTol=1.0d-6)
+        call Assert("Σ"//trim(label)//"(r="//trim(labelRadius)//"kpc) [indirect]",surfaceDensityIndirect,surfaceDensityTarget,relTol=1.0d-6)
         ! Density.
         densityTarget  =+surfaceDensityTarget            &
              &          /cosh(                           &
@@ -248,8 +255,8 @@ program Test_Galactic_Structure
              &          /scaleHeightFractionalDisk
         densityDirect  =+massDistribution_ %density(      positionCartesian   ,componentType=componentTypeDisk,massType=massType                                           )
         densityIndirect=+galacticStructure_%density(node_,coordinatesCartesian,componentType=componentTypeDisk,massType=massType,coordinateSystem=coordinateSystemCartesian)
-        call Assert("Disk ρ"//trim(label)//"(r="//trim(labelRadius)//"kpc) [  direct]",densityDirect  ,densityTarget,relTol=1.0d-6)
-        call Assert("Disk ρ"//trim(label)//"(r="//trim(labelRadius)//"kpc) [indirect]",densityIndirect,densityTarget,relTol=1.0d-6)
+        call Assert("ρ"//trim(label)//"(r="//trim(labelRadius)//"kpc) [  direct]",densityDirect  ,densityTarget,relTol=1.0d-6)
+        call Assert("ρ"//trim(label)//"(r="//trim(labelRadius)//"kpc) [indirect]",densityIndirect,densityTarget,relTol=1.0d-6)
         ! Enclosed mass.
         massEnclosedTarget  =+massTarget               &
              &               *(                        &
@@ -264,8 +271,8 @@ program Test_Galactic_Structure
              &                )
         massEnclosedDirect  =+massDistribution_ %massEnclosedBySphere(      radius,componentType=componentTypeDisk,massType=massType)
         massEnclosedIndirect=+galacticStructure_%massEnclosed        (node_,radius,componentType=componentTypeDisk,massType=massType)
-        call Assert("Disk M"//trim(label)//"(r="//trim(labelRadius)//"kpc) [  direct]",massEnclosedDirect  ,massEnclosedTarget,relTol=1.0d-6)
-        call Assert("Disk M"//trim(label)//"(r="//trim(labelRadius)//"kpc) [indirect]",massEnclosedIndirect,massEnclosedTarget,relTol=1.0d-6)
+        call Assert("M"//trim(label)//"(r="//trim(labelRadius)//"kpc) [  direct]",massEnclosedDirect  ,massEnclosedTarget,relTol=1.0d-6)
+        call Assert("M"//trim(label)//"(r="//trim(labelRadius)//"kpc) [indirect]",massEnclosedIndirect,massEnclosedTarget,relTol=1.0d-6)
         ! Density spherical average.
         densitySphericalAverageTarget=+massTarget             &
              &                        *     radius/radiusDisk &
@@ -277,8 +284,8 @@ program Test_Galactic_Structure
              &                        /radiusDisk**3
         densitySphericalAverageDirect  =+massDistribution_ %densitySphericalAverage(      radius,componentType=componentTypeDisk,massType=massType)
         densitySphericalAverageIndirect=+galacticStructure_%densitySphericalAverage(node_,radius,componentType=componentTypeDisk,massType=massType)
-        call Assert("Disk ⟨ρ̂⟩"//char(8)//char(8)//trim(label)//"(r="//trim(labelRadius)//"kpc) [  direct]",massEnclosedDirect  ,massEnclosedTarget,relTol=1.0d-6)
-        call Assert("Disk ⟨ρ̂⟩"//char(8)//char(8)//trim(label)//"(r="//trim(labelRadius)//"kpc) [indirect]",massEnclosedIndirect,massEnclosedTarget,relTol=1.0d-6)
+        call Assert("⟨ρ̂⟩"//char(8)//char(8)//trim(label)//"(r="//trim(labelRadius)//"kpc) [  direct]",massEnclosedDirect  ,massEnclosedTarget,relTol=1.0d-6)
+        call Assert("⟨ρ̂⟩"//char(8)//char(8)//trim(label)//"(r="//trim(labelRadius)//"kpc) [indirect]",massEnclosedIndirect,massEnclosedTarget,relTol=1.0d-6)
         ! Rotation curve.
         rotationCurveTarget  =+sqrt(                                                                           &
              &                      +2.0d0                                                                     &
@@ -293,8 +300,8 @@ program Test_Galactic_Structure
              &                     )
         rotationCurveDirect  =+massDistribution_ %rotationCurve   (      radius,componentType=componentTypeDisk,massType=massType)
         rotationCurveIndirect=+galacticStructure_%velocityRotation(node_,radius,componentType=componentTypeDisk,massType=massType)
-        call Assert("Disk V"//trim(label)//"(r="//trim(labelRadius)//"kpc) [  direct]",rotationCurveDirect  ,rotationCurveTarget,relTol=1.0d-2)
-        call Assert("Disk V"//trim(label)//"(r="//trim(labelRadius)//"kpc) [indirect]",rotationCurveIndirect,rotationCurveTarget,relTol=1.0d-2)
+        call Assert("V"//trim(label)//"(r="//trim(labelRadius)//"kpc) [  direct]",rotationCurveDirect  ,rotationCurveTarget,relTol=1.0d-2)
+        call Assert("V"//trim(label)//"(r="//trim(labelRadius)//"kpc) [indirect]",rotationCurveIndirect,rotationCurveTarget,relTol=1.0d-2)
         ! Rotation curve gradient.
         rotationCurveGradientTarget  =+gravitationalConstantGalacticus                                                                                &
              &                        *massTarget                                                                                                     &
@@ -318,8 +325,8 @@ program Test_Galactic_Structure
         rotationCurveGradientIndirect=+galacticStructure_%velocityRotationGradient(node_,radius,componentType=componentTypeDisk,massType=massType) &
              &                        *2.0d0                                                                                                       &
              &                        *rotationCurveIndirect
-        call Assert("Disk dV"//trim(label)//"/dr(r="//trim(labelRadius)//"kpc) [  direct]",rotationCurveGradientDirect  ,rotationCurveGradientTarget,relTol=1.0d-2)
-        call Assert("Disk dV"//trim(label)//"/dr(r="//trim(labelRadius)//"kpc) [indirect]",rotationCurveGradientIndirect,rotationCurveGradientTarget,relTol=1.0d-2)
+        call Assert("dV"//trim(label)//"/dr(r="//trim(labelRadius)//"kpc) [  direct]",rotationCurveGradientDirect  ,rotationCurveGradientTarget,relTol=1.0d-2)
+        call Assert("dV"//trim(label)//"/dr(r="//trim(labelRadius)//"kpc) [indirect]",rotationCurveGradientIndirect,rotationCurveGradientTarget,relTol=1.0d-2)
      end do
      ! Evaluate non-analytic properties at large radii and compare the the result for a spherical mass distribution.
      radius              =50.0d0*radiusDisk
@@ -336,8 +343,8 @@ program Test_Galactic_Structure
           &            -massDistribution_ %potential(      positionCartesianOuter,componentType=componentTypeDisk,massType=massType)
      potentialIndirect=+galacticStructure_%potential(node_,radius                ,componentType=componentTypeDisk,massType=massType) &
           &            -galacticStructure_%potential(node_,radiusOuter           ,componentType=componentTypeDisk,massType=massType)
-     call Assert("Disk Φ"//trim(label)//"(r="//trim(labelRadius)//"kpc)-Φ"//trim(label)//"(r="//trim(labelRadiusOuter)//"kpc) [  direct]",potentialDirect  ,potentialTarget,relTol=2.0d-2)
-     call Assert("Disk Φ"//trim(label)//"(r="//trim(labelRadius)//"kpc)-Φ"//trim(label)//"(r="//trim(labelRadiusOuter)//"kpc) [indirect]",potentialIndirect,potentialTarget,relTol=2.0d-2)
+     call Assert("Φ"//trim(label)//"(r="//trim(labelRadius)//"kpc)-Φ"//trim(label)//"(r="//trim(labelRadiusOuter)//"kpc) [  direct]",potentialDirect  ,potentialTarget,relTol=2.0d-2)
+     call Assert("Φ"//trim(label)//"(r="//trim(labelRadius)//"kpc)-Φ"//trim(label)//"(r="//trim(labelRadiusOuter)//"kpc) [indirect]",potentialIndirect,potentialTarget,relTol=2.0d-2)
      ! Acceleration.
      accelerationTarget  =-gravitationalConstantGalacticus &
           &               *massTarget                      &
@@ -348,15 +355,82 @@ program Test_Galactic_Structure
           &               /megaParsec     
      accelerationDirect  =+massDistribution_ %acceleration(      positionCartesian   ,componentType=componentTypeDisk,massType=massType)
      accelerationIndirect=+galacticStructure_%acceleration(node_,coordinatesCartesian,componentType=componentTypeDisk,massType=massType)
-     call Assert("Disk a⃗"//trim(label)//"(r="//trim(labelRadius)//"kpc) [  direct]",accelerationDirect  ,accelerationTarget,relTol=2.0d-2)
-     call Assert("Disk a⃗"//trim(label)//"(r="//trim(labelRadius)//"kpc) [indirect]",accelerationIndirect,accelerationTarget,relTol=2.0d-2)
+     call Assert("a⃗"//trim(label)//"(r="//trim(labelRadius)//"kpc) [  direct]",accelerationDirect  ,accelerationTarget,relTol=2.0d-2)
+     call Assert("a⃗"//trim(label)//"(r="//trim(labelRadius)//"kpc) [indirect]",accelerationIndirect,accelerationTarget,relTol=2.0d-2)
      ! Tidal tensor.
      tidalTensorSphericalComponents=reshape([+2.0d0,0.0d0,0.0d0,0.0d0,-1.0d0,0.0d0,0.0d0,0.0d0,-1.0d0]*gravitationalConstantGalacticus*massTarget/radius**3,[3,3])
      tidalTensorComponentsDirect   =massDistribution_ %tidalTensor(      positionCartesian   ,componentType=componentTypeDisk,massType=massType)
      tidalTensorComponentsIndirect =galacticStructure_%tidalTensor(node_,coordinatesCartesian,componentType=componentTypeDisk,massType=massType)
-     call Assert("Disk g⃡"//trim(label)//"(r="//trim(labelRadius)//"kpc) [  direct]",tidalTensorComponentsDirect  ,tidalTensorSphericalComponents,absTol=1.0d-6,relTol=3.0d-3)
-     call Assert("Disk g⃡"//trim(label)//"(r="//trim(labelRadius)//"kpc) [indirect]",tidalTensorComponentsIndirect,tidalTensorSphericalComponents,absTol=1.0d-6,relTol=3.0d-3)
+     call Assert("g⃡"//trim(label)//"(r="//trim(labelRadius)//"kpc) [  direct]",tidalTensorComponentsDirect  ,tidalTensorSphericalComponents,absTol=1.0d-6,relTol=3.0d-3)
+     call Assert("g⃡"//trim(label)//"(r="//trim(labelRadius)//"kpc) [indirect]",tidalTensorComponentsIndirect,tidalTensorSphericalComponents,absTol=1.0d-6,relTol=3.0d-3)
   end do
+  call Unit_Tests_End_Group()
+  ! Test disk mass distribution.
+  call Unit_Tests_Begin_Group("Black hole")
+  do j=1,3
+     select case (j)
+     case (1)
+        radius= 5.0d-3
+     case (2)
+        radius= 8.0d-3
+     case (3)
+        radius=15.0d-3
+     end select
+     radiusHalf=+0.5d0      &
+          &     *radius     &
+          &     /radiusDisk
+     write (labelRadius,'(f4.1)') kilo*radius
+     massTarget=+massBlackHole
+     massType  = massTypeBlackHole
+     label     ='∙    '
+     coordinatesCartesian=[radius,0.0d0,0.0d0]
+     positionCartesian   =coordinatesCartesian
+     ! Enclosed mass.
+     massEnclosedTarget  =+massTarget
+     massEnclosedDirect  =+massDistribution_ %massEnclosedBySphere(      radius,componentType=componentTypeBlackHole,massType=massType)
+     massEnclosedIndirect=+galacticStructure_%massEnclosed        (node_,radius,componentType=componentTypeBlackHole,massType=massType)
+     call Assert("M"//trim(label)//"(r="//trim(labelRadius)//"kpc) [  direct]",massEnclosedDirect  ,massEnclosedTarget,relTol=1.0d-6)
+     call Assert("M"//trim(label)//"(r="//trim(labelRadius)//"kpc) [indirect]",massEnclosedIndirect,massEnclosedTarget,relTol=1.0d-6)
+     ! Rotation curve.
+     rotationCurveTarget  =+sqrt(                                 &
+          &                      +gravitationalConstantGalacticus &
+          &                      *massTarget                      &
+          &                      /radius                          &
+          &                     )
+     rotationCurveDirect  =+massDistribution_ %rotationCurve   (      radius,componentType=componentTypeBlackHole,massType=massType)
+     rotationCurveIndirect=+galacticStructure_%velocityRotation(node_,radius,componentType=componentTypeBlackHole,massType=massType)
+     call Assert("V"//trim(label)//"(r="//trim(labelRadius)//"kpc) [  direct]",rotationCurveDirect  ,rotationCurveTarget,relTol=1.0d-2)
+     call Assert("V"//trim(label)//"(r="//trim(labelRadius)//"kpc) [indirect]",rotationCurveIndirect,rotationCurveTarget,relTol=1.0d-2)
+     ! Rotation curve gradient.
+     rotationCurveGradientTarget  =-gravitationalConstantGalacticus &
+          &                        *massTarget                      &
+          &                        /radius**2
+     rotationCurveGradientDirect  =+massDistribution_ %rotationCurveGradient   (      radius,componentType=componentTypeBlackHole,massType=massType)
+     rotationCurveGradientIndirect=+galacticStructure_%velocityRotationGradient(node_,radius,componentType=componentTypeBlackHole,massType=massType) &
+          &                        *2.0d0                                                                                                            &
+          &                        *rotationCurveIndirect
+     call Assert("dV"//trim(label)//"/dr(r="//trim(labelRadius)//"kpc) [  direct]",rotationCurveGradientDirect  ,rotationCurveGradientTarget,relTol=1.0d-2)
+     call Assert("dV"//trim(label)//"/dr(r="//trim(labelRadius)//"kpc) [indirect]",rotationCurveGradientIndirect,rotationCurveGradientTarget,relTol=1.0d-2)
+     ! Acceleration.
+     accelerationTarget  =-gravitationalConstantGalacticus &
+          &               *massTarget                      &
+          &               /radius**3                       &
+          &               *coordinatesCartesian            &
+          &               *kilo                            &
+          &               *gigaYear                        &
+          &               /megaParsec     
+     accelerationDirect  =+massDistribution_ %acceleration(      positionCartesian   ,componentType=componentTypeBlackHole,massType=massType)
+     accelerationIndirect=+galacticStructure_%acceleration(node_,coordinatesCartesian,componentType=componentTypeBlackHole,massType=massType)
+     call Assert("a⃗"//trim(label)//"(r="//trim(labelRadius)//"kpc) [  direct]",accelerationDirect  ,accelerationTarget,relTol=2.0d-2)
+     call Assert("a⃗"//trim(label)//"(r="//trim(labelRadius)//"kpc) [indirect]",accelerationIndirect,accelerationTarget,relTol=2.0d-2)
+     ! Tidal tensor.
+     tidalTensorSphericalComponents=reshape([+2.0d0,0.0d0,0.0d0,0.0d0,-1.0d0,0.0d0,0.0d0,0.0d0,-1.0d0]*gravitationalConstantGalacticus*massTarget/radius**3,[3,3])
+     tidalTensorComponentsDirect   =massDistribution_ %tidalTensor(      positionCartesian   ,componentType=componentTypeBlackHole,massType=massType)
+     tidalTensorComponentsIndirect =galacticStructure_%tidalTensor(node_,coordinatesCartesian,componentType=componentTypeBlackHole,massType=massType)
+     call Assert("g⃡"//trim(label)//"(r="//trim(labelRadius)//"kpc) [  direct]",tidalTensorComponentsDirect  ,tidalTensorSphericalComponents,absTol=1.0d-6,relTol=3.0d-3)
+     call Assert("g⃡"//trim(label)//"(r="//trim(labelRadius)//"kpc) [indirect]",tidalTensorComponentsIndirect,tidalTensorSphericalComponents,absTol=1.0d-6,relTol=3.0d-3)
+  end do
+  call Unit_Tests_End_Group()
   ! Clean up objects.
   !![
   <objectDestructor name="massDistribution_"     />

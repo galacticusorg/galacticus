@@ -107,9 +107,13 @@ module Node_Component_Black_Hole_Standard
     </property>
    </properties>
    <bindings>
-    <binding method="enclosedMass" function="Node_Component_Black_Hole_Standard_Enclosed_Mass" bindsTo="component"/>
-    <binding method="acceleration" function="Node_Component_Black_Hole_Standard_Acceleration"  bindsTo="component"/>
-    <binding method="tidalTensor"  function="Node_Component_Black_Hole_Standard_Tidal_Tensor"  bindsTo="component"/>
+    <binding method="massDistribution"      function="Node_Component_Black_Hole_Standard_Mass_Distribution"       bindsTo="component"/>
+    <binding method="enclosedMass"          function="Node_Component_Black_Hole_Standard_Enclosed_Mass"           bindsTo="component"/>
+    <binding method="acceleration"          function="Node_Component_Black_Hole_Standard_Acceleration"            bindsTo="component"/>
+    <binding method="potential"             function="Node_Component_Black_Hole_Standard_Potential"               bindsTo="component"/>
+    <binding method="rotationCurve"         function="Node_Component_Black_Hole_Standard_Rotation_Curve"          bindsTo="component"/>
+    <binding method="rotationCurveGradient" function="Node_Component_Black_Hole_Standard_Rotation_Curve_Gradient" bindsTo="component"/>
+    <binding method="tidalTensor"           function="Node_Component_Black_Hole_Standard_Tidal_Tensor"            bindsTo="component"/>
    </bindings>
    <functions>objects.nodes.components.black_hole.standard.bound_functions.inc</functions>
   </component>
@@ -292,9 +296,12 @@ contains
     !!{
     Initializes the tree node standard black hole module.
     !!}
-    use :: Events_Hooks    , only : satelliteMergerEvent     , openMPThreadBindingAtLevel, dependencyRegEx, dependencyDirectionBefore
-    use :: Galacticus_Nodes, only : defaultBlackHoleComponent
-    use :: Input_Parameters, only : inputParameter           , inputParameters
+    use :: Events_Hooks                           , only : satelliteMergerEvent     , openMPThreadBindingAtLevel, dependencyRegEx, dependencyDirectionBefore
+    use :: Galacticus_Nodes                       , only : defaultBlackHoleComponent
+    use :: Galactic_Structure_Options             , only : componentTypeBlackHole   , massTypeBlackHole
+    use :: Mass_Distributions                     , only : massDistributionPointMass
+    use :: Node_Component_Black_Hole_Standard_Data, only : massDistribution_
+    use :: Input_Parameters                       , only : inputParameter           , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters
     type(dependencyRegEx), dimension(1)  :: dependencies
@@ -317,6 +324,15 @@ contains
        <objectBuilder class="darkMatterHaloScale"                 name="darkMatterHaloScale_"                 source="subParameters"/>
        <objectBuilder class="galacticStructure"                   name="galacticStructure_"                   source="subParameters"/>
        !!]
+       ! Create the mass distribution.
+       allocate(massDistribution_)
+       !![
+       <referenceConstruct object="massDistribution_">
+	 <constructor>
+	   massDistributionPointMass(dimensionless=.true.,componentType=componentTypeBlackHole,massType=massTypeBlackHole)
+	 </constructor>
+       </referenceConstruct>
+       !!]       
     end if
     return
   end subroutine Node_Component_Black_Hole_Standard_Thread_Initialize
@@ -330,8 +346,9 @@ contains
     !!{
     Uninitializes the tree node standard black hole module.
     !!}
-    use :: Events_Hooks    , only : satelliteMergerEvent
-    use :: Galacticus_Nodes, only : defaultBlackHoleComponent
+    use :: Events_Hooks                           , only : satelliteMergerEvent
+    use :: Galacticus_Nodes                       , only : defaultBlackHoleComponent
+    use :: Node_Component_Black_Hole_Standard_Data, only : massDistribution_
     implicit none
 
     if (defaultBlackHoleComponent%standardIsActive()) then
@@ -347,6 +364,7 @@ contains
        <objectDestructor name="hotHaloTemperatureProfile_"          />
        <objectDestructor name="darkMatterHaloScale_"                />
        <objectDestructor name="galacticStructure_"                  />
+       <objectDestructor name="massDistribution_"                   />
        !!]
     end if
     return
