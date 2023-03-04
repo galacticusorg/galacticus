@@ -125,7 +125,7 @@ contains
   
   subroutine inertiaTensorOperate(self,simulations)
     !!{
-    Determine the inertia tensor of the particle distribution, along with its eigenvectors, eigenvaues, and axis ratios.
+    Determine the inertia tensor of the particle distribution, along with its eigenvectors, eigenvalues, and axis ratios.
     !!}
     use    :: Display        , only : displayCounter    , displayCounterClear   , displayIndent, displayMessage, &
          &                            displayUnindent   , verbosityLevelStandard

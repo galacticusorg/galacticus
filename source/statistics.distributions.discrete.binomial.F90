@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Implementation of a binomial 1D discrete distibution function.
+  Implementation of a binomial 1D discrete distribution function.
   !!}
 
   !![
@@ -28,7 +28,7 @@
   !!]
   type, extends(distributionFunctionDiscrete1DClass) :: distributionFunctionDiscrete1DBinomial
      !!{
-     Implementation of a binomial 1D discrete distibution function.
+     Implementation of a binomial 1D discrete distribution function.
      !!}
      private
      double precision                            :: probabilitySuccess

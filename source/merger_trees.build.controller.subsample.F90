@@ -83,7 +83,7 @@ contains
     <inputParameter>
       <name>subsamplingRateAtThreshold</name>
       <source>parameters</source>
-      <description>The subsampling rate at the mass treshold, $P_0$.</description>
+      <description>The subsampling rate at the mass threshold, $P_0$.</description>
     </inputParameter>
     <inputParameter>
       <name>exponent</name>
@@ -240,7 +240,7 @@ contains
 
   function subsampleBranchingProbabilityObject(self,node) result(mergerTreeBranchingProbability_)
     !!{
-    Return a pointer the the merger tree branchin probability object to use.
+    Return a pointer the the merger tree branching probability object to use.
     !!}
     implicit none
     class(mergerTreeBranchingProbabilityClass), pointer       :: mergerTreeBranchingProbability_

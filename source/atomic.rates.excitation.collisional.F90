@@ -20,12 +20,12 @@
 !+ Contributions to this file made by: Daniel McAndrew.
 
 !!{
-Contains a module which provides a class implenting atomic collisional excitation rates.
+Contains a module which provides a class implementing atomic collisional excitation rates.
 !!}
 
 module Atomic_Rates_Excitation_Collisional
   !!{
-  Provides a class implenting atomic collisional excitation rates.
+  Provides a class implementing atomic collisional excitation rates.
   !!}
   private
 

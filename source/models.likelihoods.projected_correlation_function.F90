@@ -53,7 +53,7 @@
     \end{description}
     
     The HDF5 file specified by the {\normalfont \ttfamily projectedCorrelationFunctionFileName} element should contain a {\normalfont
-    \ttfamily separation} dataset, giving the spearations at which the projected correlation function is measured (in units of Mpc),
+    \ttfamily separation} dataset, giving the separations at which the projected correlation function is measured (in units of Mpc),
     a {\normalfont \ttfamily projectedCorrelationFunctionObserved} dataset giving the observed values of the projected correlation
     function at those separations (in units of Mpc), and a {\normalfont \ttfamily covariance} dataset, giving the covariance of the
     projected correlation function (in units of Mpc$^2$).

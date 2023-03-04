@@ -442,10 +442,10 @@ contains
     implicit none
     class    (mergerTreeImporterSussing), intent(inout)                 :: self
     integer  (kind=kind_int8           ), allocatable  , dimension(:  ) :: nodeSelfIndices            , nodeTreeIndices
-    integer  (kind=c_size_t            ), allocatable  , dimension(:  ) :: nodeIndexRanks             , nodeDescendentLocations
+    integer  (kind=c_size_t            ), allocatable  , dimension(:  ) :: nodeIndexRanks             , nodeDescendantLocations
     logical                             , allocatable  , dimension(:  ) :: nodeIncomplete
     integer                             , parameter                     :: stepCountMaximum   =1000000
-    integer                                                             :: descendentStepCount        , hostStepCount
+    integer                                                             :: descendantStepCount        , hostStepCount
     logical                                                             :: treeIndicesAssigned        , branchJumpCheckRequired
     integer  (kind=c_size_t            )                                :: i                          , j                      , &
          &                                                                 k                          , l                      , &
@@ -464,7 +464,7 @@ contains
     call self%load(                         &
          &         nodeSelfIndices        , &
          &         nodeIndexRanks         , &
-         &         nodeDescendentLocations, &
+         &         nodeDescendantLocations, &
          &         nodeIncomplete         , &
          &         nodeCountTrees         , &
          &         nodeTreeIndices        , &
@@ -575,32 +575,32 @@ contains
              end if
              l=nodeIndexRanks(k)
           end do
-          descendentStepCount=0
+          descendantStepCount=0
           do while (l /= -1)
              nodeTreeIndices(i)=nodeTreeIndices(l)
-             k=nodeDescendentLocations(l)
-             ! Check for missing descendents.
-             if (k < 0 .or. self%nodes(l)%descendentIndex /= self%nodes(k)%nodeIndex) exit
+             k=nodeDescendantLocations(l)
+             ! Check for missing descendants.
+             if (k < 0 .or. self%nodes(l)%descendantIndex /= self%nodes(k)%nodeIndex) exit
              ! Perform sanity checks.
              if (k >= 0 .and. self%nodes(k)%nodeTime <= self%nodes(l)%nodeTime) then
-                message='descendent exists before progenitor node'
+                message='descendant exists before progenitor node'
                 message=message//char(10)//' progenitor node index: '//self%nodes(l)%nodeIndex
-                message=message//char(10)//' descendent node index: '//self%nodes(k)%nodeIndex
+                message=message//char(10)//' descendant node index: '//self%nodes(k)%nodeIndex
                 write (label,'(f7.4)') self%nodes(l)%nodeTime
                 message=message//char(10)//'  progenitor node time: '//label
                 write (label,'(f7.4)') self%nodes(k)%nodeTime
-                message=message//char(10)//'  descendent node time: '//label
+                message=message//char(10)//'  descendant node time: '//label
                 call Error_Report(message//{introspection:location})
              end if
-             descendentStepCount=descendentStepCount+1
-             if (descendentStepCount > stepCountMaximum) then
+             descendantStepCount=descendantStepCount+1
+             if (descendantStepCount > stepCountMaximum) then
                 message='infinite (or at least, very large) loop detect in halo descent'
                 message=message//char(10)//' progenitor node index: '//self%nodes(l)%nodeIndex
-                message=message//char(10)//' descendent node index: '//self%nodes(k)%nodeIndex
+                message=message//char(10)//' descendant node index: '//self%nodes(k)%nodeIndex
                 write (label,'(f7.4)') self%nodes(l)%nodeTime
                 message=message//char(10)//'  progenitor node time: '//label
                 write (label,'(f7.4)') self%nodes(k)%nodeTime
-                message=message//char(10)//'  descendent node time: '//label
+                message=message//char(10)//'  descendant node time: '//label
                 call Error_Report(message//{introspection:location})
              end if
              l=k
@@ -642,7 +642,7 @@ contains
        call displayMessage('Checking for branch jumps',verbosityLevelWorking)
        do i=1,nodeCountTrees
           call displayCounter(int(100.0d0*dble(i)/dble(nodeCountTrees)),i==1,verbosityLevelWorking)
-          l=nodeDescendentLocations(i)
+          l=nodeDescendantLocations(i)
           if (l /= -1) then
              if (nodeTreeIndices(i) /= nodeTreeIndices(l)) then
                 ! Merge the trees by assigning the higher tree index to all nodes in the other tree.
@@ -662,7 +662,7 @@ contains
           end if
        end do
        do i=1,nodeCountTrees
-          l=nodeDescendentLocations(i)
+          l=nodeDescendantLocations(i)
           if (l /= -1) then
              if (nodeTreeIndices(i) /= nodeTreeIndices(l))                                    &
                   & call Error_Report('failed to cross-link trees'//{introspection:location})
@@ -721,10 +721,10 @@ contains
                 self%nodes(i)%nodeMass   =self%nodes(k)%nodeMass
                 self%nodes(i)%scaleRadius=self%nodes(k)%scaleRadius
              end if
-             k=nodeDescendentLocations(k)
-             if (k < 0 .or. self%nodes(i)%descendentIndex /= self%nodes(k)%nodeIndex) then
+             k=nodeDescendantLocations(k)
+             if (k < 0 .or. self%nodes(i)%descendantIndex /= self%nodes(k)%nodeIndex) then
                 message='zero mass halo ['
-                message=message//self%nodes(i)%nodeIndex//'] has no non-zero mass descendents'
+                message=message//self%nodes(i)%nodeIndex//'] has no non-zero mass descendants'
                 call Error_Report(message//{introspection:location})
              end if
           end do
@@ -820,7 +820,7 @@ contains
     ! Destroy temporary workspace.
     deallocate(nodeSelfIndices        )
     deallocate(nodeTreeIndices        )
-    deallocate(nodeDescendentLocations)
+    deallocate(nodeDescendantLocations)
     ! Write completion message.
     call displayUnindent('done',verbosityLevelWorking)
    return
@@ -1103,7 +1103,7 @@ contains
     return
   end function sussingValueIsBad
 
-  subroutine sussingLoad(self,nodeSelfIndices,nodeIndexRanks,nodeDescendentLocations,nodeIncomplete,nodeCountTrees,nodeTreeIndices,treeIndicesAssigned,branchJumpCheckRequired,massUnits,lengthUnits,velocityUnits)
+  subroutine sussingLoad(self,nodeSelfIndices,nodeIndexRanks,nodeDescendantLocations,nodeIncomplete,nodeCountTrees,nodeTreeIndices,treeIndicesAssigned,branchJumpCheckRequired,massUnits,lengthUnits,velocityUnits)
     !!{
     Stub function for the {\normalfont \ttfamily load} method of the {\normalfont \ttfamily sussing} merger tree importer.
     !!}
@@ -1111,13 +1111,13 @@ contains
     implicit none
     class  (mergerTreeImporterSussing), intent(inout)                            :: self
     integer(kind_int8                ), intent(  out), dimension(:), allocatable :: nodeSelfIndices    , nodeTreeIndices
-    integer(c_size_t                 ), intent(  out), dimension(:), allocatable :: nodeIndexRanks     , nodeDescendentLocations
+    integer(c_size_t                 ), intent(  out), dimension(:), allocatable :: nodeIndexRanks     , nodeDescendantLocations
     logical                           , intent(  out), dimension(:), allocatable :: nodeIncomplete
     integer(kind=c_size_t            ), intent(  out)                            :: nodeCountTrees
     logical                           , intent(  out)                            :: treeIndicesAssigned, branchJumpCheckRequired
     type   (importerUnits            ), intent(  out)                            :: massUnits          , lengthUnits            , &
          &                                                                          velocityUnits
-    !$GLC attributes unused :: self,nodeSelfIndices,nodeIndexRanks,nodeDescendentLocations,nodeIncomplete,nodeCountTrees,nodeTreeIndices,treeIndicesAssigned,branchJumpCheckRequired,massUnits,lengthUnits,velocityUnits
+    !$GLC attributes unused :: self,nodeSelfIndices,nodeIndexRanks,nodeDescendantLocations,nodeIncomplete,nodeCountTrees,nodeTreeIndices,treeIndicesAssigned,branchJumpCheckRequired,massUnits,lengthUnits,velocityUnits
 
     call Error_Report('this function should not be accessed'//{introspection:location})
     return

@@ -30,7 +30,7 @@ Contains a module which implements a spheroid stellar mass output analysis prope
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMassStellarSpheroid
      !!{
-     A stelalr mass output analysis class.
+     A stellar mass output analysis class.
      !!}
      private
      class(galacticStructureClass), pointer :: galacticStructure_ => null()

@@ -37,7 +37,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a stellar mass output analysis property extractor class.
+Implements an emission line luminosity node property extractor class.
 !!}
 
   use    :: Numerical_Interpolation          , only : interpolator
@@ -50,7 +50,12 @@ Contains a module which implements a stellar mass output analysis property extra
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorLmnstyEmssnLine">
-   <description>A stellar luminosity output analysis property extractor class.</description>
+    <description>
+      An emission line luminosity property extractor class. The luminosity of the named emission line (given by the {\normalfont
+      \ttfamily lineNames} parameter: if multiple lines are named, the sum of their luminosities) is computed. Additional dust
+      attenutation for emission line luminosities can be specified via the {\normalfont \ttfamily depthOpticalISMCoefficient}
+      parameter.
+    </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorLmnstyEmssnLine

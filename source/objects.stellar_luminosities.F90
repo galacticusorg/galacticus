@@ -374,7 +374,7 @@ contains
           luminosityIndex              (iLuminosity)=                                                                      iLuminosity
           ! Get the index of the specified filter.
           luminosityFilterIndex        (iLuminosity)=Filter_Get_Index                               (luminosityFilter     (iLuminosity))
-          ! Get effctive wavelength and Vega offset.
+          ! Get effective wavelength and Vega offset.
           luminosityWavelengthEffective(iLuminosity)=Filter_Wavelength_Effective                    (luminosityFilterIndex(iLuminosity))
           luminosityVegaOffset         (iLuminosity)=Filter_Vega_Offset                             (luminosityFilterIndex(iLuminosity))
           ! Set the reference time (i.e. cosmological time corresponding to the specified redshift) for this filter.
@@ -466,9 +466,9 @@ contains
     !!{
     Build a {\normalfont \ttfamily stellarLuminosities} object from the given XML {\normalfont \ttfamily stellarLuminositiesDefinition}.
     !!}
-    use :: FoX_DOM, only : node
+    use :: FoX_DOM, only : node                        , extractDataContent
     use :: Error  , only : Error_Report
-    use :: IO_XML , only : XML_Get_Elements_By_Tag_Name, xmlNodeList, extractDataContent => extractDataContentTS
+    use :: IO_XML , only : XML_Get_Elements_By_Tag_Name, xmlNodeList
     implicit none
     class  (stellarLuminosities), intent(inout)              :: self
     type   (node               ), intent(in   ), pointer     :: stellarLuminositiesDefinition
@@ -1191,7 +1191,7 @@ contains
     ! Get wavelength interval in stellar population spectra at lower edge wavelength
     tabulatedWidth=stellarPopulationSpectra_%wavelengthInterval(wavelengthLowerEdge)
     ! Determine where the new filter is: (i) inside the observed wavelength range, (ii) inside the rest wavelength range,
-    ! or (iii) inbetween the observed and rest wavelength ranges.
+    ! or (iii) in between the observed and rest wavelength ranges.
     if      (wavelengthLowerEdge < restWavelengthMaximum) then
        ! Option (i): still inside rest-frame wavelength range.
        if (tabulatedWidth > restWidth) filterWidth=tabulatedWidth

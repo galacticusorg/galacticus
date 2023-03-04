@@ -356,7 +356,7 @@ contains
     !![
     <referenceConstruct object="nodePropertyExtractor_"                           constructor="nodePropertyExtractorMassStellar          (galacticStructure_                                                        )"/>
     !!]
-    ! Create a morpology weight property extractor.
+    ! Create a morphology weight property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_                )
     !![
     <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"           constructor="nodePropertyExtractorMassStellarMorphology(galacticStructure_                                                        )"/>
@@ -450,7 +450,7 @@ contains
     ! binomial distribution compounded with the distribution of the model mean. The distribution of the model mean could be
     ! described by a β distribution (since it too should follow a binomial [or maybe Poisson-binomial] distribution), and then
     ! the compound distribution is the β-binomial distribution. However, providing the model mean is determined with high
-    ! precision, neglecting the distribution of the model mean here shouldn't matter.
+    ! precision, neglecting the distribution of the model mean here should not matter.
     morphologicalFractionGAMAMoffett2016LogLikelihood=0.0d0
     do i=1,size(self%countAllTarget)
        if (self%countEarlyTarget(i) > 0.0d0) then

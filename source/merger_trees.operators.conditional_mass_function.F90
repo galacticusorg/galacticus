@@ -49,7 +49,7 @@
     \item[{\normalfont \ttfamily fractionTimeFormationRate}] The fraction of the current time over which to estimate the formation rate of halos when computing merger tree statistics;
     \item[{\normalfont \ttfamily nameGroupOutput}] The name of the \gls{hdf5} group to which mass functions will be written.
     \end{description}
-    If the operator finds the named \gls{hdf5} group already in existance, it will accumulate its
+    If the operator finds the named \gls{hdf5} group already in existence, it will accumulate its
     mass functions to those already written to the group, weighting by the inverse of the variance
     in each bin. The structure of the \gls{hdf5} group is as follows:
     \begin{verbatim}
@@ -611,10 +611,10 @@ contains
     type            (mergerTree                     ), intent(inout)                               , target :: tree
     type            (treeNode                       ), pointer                                              :: node                   , nodeChild            , &
          &                                                                                                     nodeParent             , nodeParentChild      , &
-         &                                                                                                     descendentNode         , nodeSibling
+         &                                                                                                     descendantNode         , nodeSibling
     type            (mergerTree                     ), pointer                                              :: treeCurrent
     class           (nodeComponentBasic             ), pointer                                              :: basic                  , basicChild           , &
-         &                                                                                                     basicParent            , descendentBasic      , &
+         &                                                                                                     basicParent            , descendantBasic      , &
          &                                                                                                     basicParentChild       , basicSibling
     type            (mergerTreeWalkerIsolatedNodes  )                                                       :: treeWalker
     integer                                                                                                 :: i                      , binMassParent        , &
@@ -880,16 +880,16 @@ contains
                                           &                                   *treeCurrent   %volumeWeight**2
                                      !$ call OMP_Unset_Lock(self%accumulateLock)
                                      ! Find the mass of this node just prior to it becoming a subhalo.
-                                     descendentNode => node
-                                     do while (associated(descendentNode%parent).and.associated(descendentNode%parent%firstChild,descendentNode))
-                                        descendentNode => descendentNode%parent
+                                     descendantNode => node
+                                     do while (associated(descendantNode%parent).and.associated(descendantNode%parent%firstChild,descendantNode))
+                                        descendantNode => descendantNode%parent
                                      end do
-                                     descendentBasic   => descendentNode%basic()
+                                     descendantBasic   => descendantNode%basic()
                                      weights2D     =self%binWeights2D(                                              &
                                           &                           massParent                                  , &
                                           &                           self%timeParents                         (i), &
-                                          &                           descendentBasic%mass                     ( ), &
-                                          &                           descendentBasic%time                     ( ), &
+                                          &                           descendantBasic%mass                     ( ), &
+                                          &                           descendantBasic%time                     ( ), &
                                           &                           self%massParentLogarithmicMinimum           , &
                                           &                           self%massParentLogarithmicBinWidthInverse   , &
                                           &                           self%countMassParent                        , &
@@ -940,23 +940,23 @@ contains
                    end if
                    ! Record the mass of the branch at the parent time.
                 end do
-                ! Accumulate unevoled subhalo mass functions.
+                ! Accumulate unevolved subhalo mass functions.
                 if (self%extendedStatistics) then
                    if (.not.associated(nodeChild%firstChild)) then
                       ! This is a branch tip. Follow until it to the final time, storing its mass just prior to becoming a subhalo, and
                       ! the hierarchy depth.
                       depthHierarchy =  0
-                      descendentNode => nodeChild
-                      do while (associated(descendentNode).and.depthHierarchy <= self%depthHierarchySubhalo)
-                         if (associated(descendentNode%parent).and..not.descendentNode%isPrimaryProgenitor()) then
+                      descendantNode => nodeChild
+                      do while (associated(descendantNode).and.depthHierarchy <= self%depthHierarchySubhalo)
+                         if (associated(descendantNode%parent).and..not.descendantNode%isPrimaryProgenitor()) then
                             depthHierarchy=depthHierarchy+1
                             if (depthHierarchy == 1) then
-                               descendentBasic => descendentNode %basic()
-                               massUnevolved   =  descendentBasic%mass ()
-                               timeUnevolved   =  descendentBasic%time ()
+                               descendantBasic => descendantNode %basic()
+                               massUnevolved   =  descendantBasic%mass ()
+                               timeUnevolved   =  descendantBasic%time ()
                             end if
                          end if
-                         descendentNode => descendentNode%parent
+                         descendantNode => descendantNode%parent
                       end do
                       if (depthHierarchy > 0 .and. depthHierarchy <= self%depthHierarchySubhalo) then
                          basicParent => treeCurrent%nodeBase%basic()

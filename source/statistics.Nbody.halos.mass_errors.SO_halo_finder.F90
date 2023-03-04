@@ -136,7 +136,7 @@ contains
     ! Determine number of particles in the halo.
     particleCount                 =  +basic%mass        () &
          &                           /self %massParticle
-    ! Fractional error in mass wihtin fixed sphere, assuming Poisson statistics (which should be valid for a halo which contains a
+    ! Fractional error in mass within fixed sphere, assuming Poisson statistics (which should be valid for a halo which contains a
     ! fraction of all particles in the simulation that is much less than unity).
     errorFractionalFixedSphere    =  +1.0d0               &
          &                           /sqrt(particleCount)

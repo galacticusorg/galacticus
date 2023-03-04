@@ -223,7 +223,7 @@ contains
 
   function arnaud1985ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily arnaud1985} atomic ionization potentail class which builds the object from a
+    Constructor for the {\normalfont \ttfamily arnaud1985} atomic ionization potential class which builds the object from a
     parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters

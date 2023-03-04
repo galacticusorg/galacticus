@@ -65,7 +65,7 @@ program Test_Parameters
   call Assert('Test presence of reference',testParameters           %isPresent  ('cosmologicalMassVariance'),.true.               )
   call Assert('Test count of references'  ,testParameters           %copiesCount('cosmologicalMassVariance'),1                    )
   call Unit_Tests_End_Group()
-  ! Test adding, retrieving, reseting, readding a parameter.
+  ! Test adding, retrieving, resetting, reading a parameter.
   call Unit_Tests_Begin_Group("Parameter adding")
   call testParameters%addParameter('addedParameter','qwertyuiop'  )
   call testParameters%value       ('addedParameter',parameterValue)

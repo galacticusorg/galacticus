@@ -206,7 +206,7 @@ contains
     !![
     <referenceConstruct object="nodePropertyExtractorRatio_"            constructor="nodePropertyExtractorRatio              ('color','SDSS u-r color',nodePropertyExtractorBandU_,nodePropertyExtractorBandR_                                 )"/>
     !!]
-    ! Creat magnitude, and cosmological luminosity distance property operators.
+    ! Create magnitude, and cosmological luminosity distance property operators.
     allocate(outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_)
     allocate(outputAnalysisPropertyOperatorMagnitude_        )
     !![

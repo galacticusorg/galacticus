@@ -46,7 +46,7 @@
   !![
   <enumeration>
    <name>gordon2003Sample</name>
-   <description>Enumerates the samples available in the {\normalfont \ttfamily gordon2003} dust attenutation class.</description>
+   <description>Enumerates the samples available in the {\normalfont \ttfamily gordon2003} dust attenuation class.</description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
    <visibility>public</visibility>

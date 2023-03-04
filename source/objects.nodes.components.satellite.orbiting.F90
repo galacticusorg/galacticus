@@ -412,7 +412,7 @@ contains
   !!]
   subroutine Node_Component_Satellite_Orbiting_Pre_Host_Change(node,nodeHostNew)
     !!{
-    A satellite is about to move to a new host, adjust its position and velocity appopriately
+    A satellite is about to move to a new host, adjust its position and velocity appropriately
     !!}
     use :: Galacticus_Nodes, only : defaultSatelliteComponent, nodeComponentSatellite, treeNode
     implicit none
@@ -492,7 +492,7 @@ contains
        call orbit%assertIsDefined()
        ! Store the orbit.
        call self%virialOrbitSetValue(orbit)
-       ! Store orbitial position and velocity.
+       ! Store orbital position and velocity.
        virialOrbit=orbit
        position   =virialOrbit%position()
        velocity   =virialOrbit%velocity()

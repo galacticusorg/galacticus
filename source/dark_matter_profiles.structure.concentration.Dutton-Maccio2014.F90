@@ -68,7 +68,7 @@
     \begin{equation}
     \log_{10} c = A + B \log_{10} M_\mathrm{halo}.
     \end{equation}
-    The parameters are a functon of redshift, $z$. We use the following fit suggested by \cite{dutton_cold_2014} results:
+    The parameters are a function of redshift, $z$. We use the following fit suggested by \cite{dutton_cold_2014} results:
     \begin{eqnarray}
     A &amp;=&amp; A_1+(A_2-A_1)\exp[A_3 z^{A_4}] \nonumber \\
     B &amp;=&amp; B_1+B_2 z.

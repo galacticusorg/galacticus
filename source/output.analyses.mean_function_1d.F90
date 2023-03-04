@@ -806,7 +806,7 @@ contains
     type            (matrix                      )                                :: covariance
     integer                                                                       :: status
 
-    ! Check for existance of a target distribution.
+    ! Check for existence of a target distribution.
     if (allocated(self%meanValueTarget)) then
        ! Finalize analysis.
        call self%finalizeAnalysis()

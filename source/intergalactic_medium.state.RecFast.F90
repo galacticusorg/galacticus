@@ -136,7 +136,7 @@ contains
     ! Lock file.
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
     call File_Lock(char(self%fileName),self%fileLock,lockIsShared=.false.)
-    ! Check existance of file.
+    ! Check existence of file.
     buildFile=.false.
     if (File_Exists(char(self%fileName))) then
        ! Check file version number.

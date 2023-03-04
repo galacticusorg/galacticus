@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which provides tools for working with grids.
+Contains a module which provieds tools for working with grids.
 !!}
 
 module Meshes

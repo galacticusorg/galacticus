@@ -256,7 +256,7 @@ double precision function Node_Component_Spheroid_Standard_Rotation_Curve_Gradie
   ! Set to zero by default.
   Node_Component_Spheroid_Standard_Rotation_Curve_Gradient=0.0d0
 
-  ! Return immediatelt for non-positive radius.
+  ! Return immediately for non-positive radius.
   if (radius <= 0.0d0) return
 
   ! Compute if a spheroid is present.

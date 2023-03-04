@@ -95,7 +95,7 @@ contains
     <inputParameter>
       <name>includeBaryonGravity</name>
       <defaultValue>.true.</defaultValue>
-      <description>Specifies whether or not gravity from baryons is included when solving for sizes of galactic components in equilibriumally contracted dark matter halos.</description>
+      <description>Specifies whether or not gravity from baryons is included when solving for sizes of galactic components.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -326,7 +326,7 @@ contains
            &                                                                     radius                            , radiusNew          , &
            &                                                                     specificAngularMomentumMaximum
 
-      ! Count the number of active comonents.
+      ! Count the number of active components.
       countComponentsActive=countComponentsActive+1
       if (countIterations == 1) then
          ! If structure is to be reverted, do so now.

@@ -25,21 +25,14 @@ program Tests_IO_XML
   !!{
   Tests the XML I/O module.
   !!}
-  use            :: Display       , only : displayVerbositySet, verbosityLevelStandard
-  use            :: FoX_DOM       , only : destroy            , node                  , serialize
+  use            :: Unit_Tests    , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
+  use            :: IO_XML        , only : XML_Count_Elements_By_Tag_Name                        , XML_Array_Read      , XML_Array_Read_Static, XML_Get_First_Element_By_Tag_Name, &
+          &                                XML_Parse                                             , XML_Path_Exists     , xmlNodeList          , XML_Get_ELements_By_Tag_Name
+  use            :: Display       , only : displayVerbositySet           , verbosityLevelStandard
+  use            :: FoX_DOM       , only : destroy                       , node                  , serialize           , extractDataContent
   use            :: Error         , only : Error_Report
   use, intrinsic :: ISO_C_Binding , only : c_size_t
   use            :: System_Command, only : System_Command_Do
-  use            :: Unit_Tests    , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
-  use            :: IO_XML            , only : XML_Count_Elements_By_Tag_Name                       , XML_Array_Read        , XML_Array_Read_Static, XML_Get_First_Element_By_Tag_Name, &
-          &                                    XML_Parse                                            , XML_Path_Exists       , xmlNodeList          , XML_Get_ELements_By_Tag_Name     , &
-          &                                    extractDataContent            => extractDataContentTS
-  use            :: Display       , only : displayVerbositySet, verbosityLevelStandard
-  use            :: FoX_DOM       , only : destroy            , node                  , serialize
-  use            :: Error         , only : Error_Report
-  use, intrinsic :: ISO_C_Binding , only : c_size_t
-  use            :: System_Command, only : System_Command_Do
-  use            :: Unit_Tests    , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type            (node       )                           , pointer :: doc        , xmlElement
   type            (xmlNodeList), allocatable, dimension(:)          :: xmlElements

@@ -51,7 +51,7 @@
     monotonic---for example in cases where $\sigma(M)$ becomes constant or close to constant as a function of $M$ the
     interpolation can become non-monotonic over some ranges of $M$. If strict monotonicity is required set {\normalfont
     \ttfamily [monotonicInterpolation]}={\normalfont \ttfamily true}. This causes a monotonic spline interpolator to be used
-    instead which gaurantees monotonicity.
+    instead which guarantees monotonicity.
    </description>
   </cosmologicalMassVariance>
   !!]
@@ -235,7 +235,7 @@ contains
       <name>monotonicInterpolation</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true use a monotonic cubic spline interpolator to interpolate in the $\sigma(M)$ table. Otherwise use a standard cubic spline interpoltor. Use of the monotonic interpolator can be helpful is $\sigma(M)$ must be strictly monotonic but becomes a very weak function of $M$ at low masses.</description>
+      <description>If true use a monotonic cubic spline interpolator to interpolate in the $\sigma(M)$ table. Otherwise use a standard cubic spline interpolator. Use of the monotonic interpolator can be helpful is $\sigma(M)$ must be strictly monotonic but becomes a very weak function of $M$ at low masses.</description>
     </inputParameter>
     <inputParameter>
       <name>truncateAtParticleHorizon</name>
@@ -455,7 +455,7 @@ contains
 
   double precision function filteredPowerRootVarianceLogarithmicGradient(self,mass,time)
     !!{
-    Return the logairhtmic gradient with respect to mass of the root-variance of the cosmological density field in a spherical
+    Return the logarithmic gradient with respect to mass of the root-variance of the cosmological density field in a spherical
     region containing the given {\normalfont \ttfamily mass} on average.
     !!}
     implicit none
@@ -621,7 +621,7 @@ contains
 
   double precision function filteredPowerMass(self,rootVariance,time)
     !!{
-    Return the mass corrresponding to the given {\normalfont \ttfamily } root-variance of the cosmological density field.
+    Return the mass corresponding to the given {\normalfont \ttfamily } root-variance of the cosmological density field.
     !!}
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
@@ -1040,7 +1040,7 @@ contains
            &                                        wavenumberBAO       &
            &                           ]
       wavenumbers(5:size(wavenumbers))=wavenumbersLocalMinimaTransferFunction
-      ! Restrict the intervals to those between the minimum and maxmimum wavenumbers, and then sort them.
+      ! Restrict the intervals to those between the minimum and maximum wavenumbers, and then sort them.
       wavenumbersRestricted=pack(wavenumbers,wavenumbers >= wavenumberMinimum .and. wavenumbers < wavenumberMaximum)
       call sort(wavenumbersRestricted)
       ! Iterate over intervals, accumulation the integral.
@@ -1082,7 +1082,7 @@ contains
             ! The integration was successful, no need to try a logarithmic integral.
             computeLogarithmically=.false.
          end if
-         ! Recompue the integral using a logarithmic integral if necessary.
+         ! Recompute the integral using a logarithmic integral if necessary.
          if (computeLogarithmically) then
             integrandInterval=integratorLogarithmic_%integrate(log(wavenumberLower),log(wavenumberUpper))
             ! Check for zero power.

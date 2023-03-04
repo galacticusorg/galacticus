@@ -85,7 +85,7 @@ contains
       <name>storeBackToImported</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>If true, computed properties and results will be stored back to the file from which a simulation ws imported (assuming it is of HDF5 type).</description>
+      <description>If true, computed properties and results will be stored back to the file from which a simulation was imported (assuming it is of HDF5 type).</description>
     </inputParameter>
     <objectBuilder class="nbodyImporter" name="nbodyImporter_" source="parameters"/>
     <objectBuilder class="nbodyOperator" name="nbodyOperator_" source="parameters"/>
@@ -152,7 +152,7 @@ contains
     character(len=32          )                              :: label
     
     call displayIndent('Begin task: N-body analyze')
-    ! Call routines to perform initializations which must occur for all threads if run in parallel.
+    ! Call routines to perform initialization which must occur for all threads if run in parallel.
     call Node_Components_Thread_Initialize(self%parameters)
     ! Import N-body data.
     call self%nbodyImporter_%import (simulations)

@@ -499,7 +499,7 @@ contains
     !![
     <referenceConstruct object="outputAnalysisDistributionOperator_"      constructor="outputAnalysisDistributionOperatorSpinNBodyErrors(errorTolerant                                   ,haloSpinDistribution_ )"/>
     !!]
-    ! Create anit-log10 operator.
+    ! Create anti-log10 operator.
     allocate(outputAnalysisPropertyOperatorAntiLog10_)
     !![
     <referenceConstruct object="outputAnalysisPropertyOperatorAntiLog10_" constructor="outputAnalysisPropertyOperatorAntiLog10          (                                                                       )"/>
@@ -636,7 +636,7 @@ contains
          &                                                                             ii                        , jj
     integer                                                                         :: status
     
-    ! Check for existance of a target distribution.
+    ! Check for existence of a target distribution.
     if (allocated(self%functionValueTarget)) then
        ! Finalize analysis.
        call self%finalizeAnalysis()

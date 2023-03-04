@@ -158,9 +158,10 @@ contains
     !!{
     Get a named text property from the Local Group database.
     !!}
-    use                      :: FoX_DOM           , only : getAttributeNode            , getTextContent                            , hasAttribute, setAttribute
+    use                      :: FoX_DOM           , only : getAttributeNode            , getTextContent                            , hasAttribute, setAttribute, &
+         &                                                 extractDataContent
     use                      :: Error             , only : Error_Report
-    use                      :: IO_XML            , only : XML_Get_Elements_By_Tag_Name, extractDataContent => extractDataContentTS
+    use                      :: IO_XML            , only : XML_Get_Elements_By_Tag_Name
     {Type¦match¦^VarStr$¦use :: ISO_Varying_String, only : varying_string              , assignment(=)¦}
     implicit none
     class           (localGroupDB            ), intent(inout)                                      :: self
@@ -223,7 +224,7 @@ contains
        allocate(isPresent(countGalaxies))
        isPresent=.true.
     end if
-    ! Popuate the array.
+    ! Populate the array.
     countGalaxies=0
     do i=0,size(self%galaxies)-1
        if (.not.self%selected(i)) cycle
@@ -342,13 +343,14 @@ contains
     !!{
     Update the database.
     !!}
-    use :: FoX_DOM                         , only : appendChild                 , createElementNS                            , setAttribute      , getAttributeNode, &
-         &                                          getNamespaceURI             , getTextContent                             , hasAttribute      , serialize
+    use :: FoX_DOM                         , only : appendChild                 , createElementNS    , setAttribute      , getAttributeNode, &
+         &                                          getNamespaceURI             , getTextContent     , hasAttribute      , serialize       , &
+         &                                          extractDataContent
     use :: Error                           , only : Error_Report
     use :: Input_Paths                     , only : inputPath                   , pathTypeDataStatic
-    use :: IO_XML                          , only : XML_Get_Elements_By_Tag_Name, extractDataContent  => extractDataContentTS
+    use :: IO_XML                          , only : XML_Get_Elements_By_Tag_Name
     use :: ISO_Varying_String              , only : char
-    use :: Numerical_Constants_Astronomical, only : arcminutesToDegrees         , arcsecondsToDegrees                        , degreesToRadians  , hoursToDegrees  , &
+    use :: Numerical_Constants_Astronomical, only : arcminutesToDegrees         , arcsecondsToDegrees, degreesToRadians  , hoursToDegrees  , &
           &                                         minutesToDegrees            , secondsToDegrees
     implicit none
     class           (localGroupDB  ), intent(inout)             :: self
@@ -551,7 +553,7 @@ contains
     call extractDataContent(attribute,positionM31)
     attribute => getAttributeNode(propertyList1(0)%element,'uncertainty')
     call extractDataContent(attribute,uncertaintyPositionM31)
-    ! Compute galacto-centric distances.
+    ! Compute galactocentric distances.
     do i=0,size(self%galaxies)-1
        ! Milky Way.
        galaxy => self%galaxies(i)%element

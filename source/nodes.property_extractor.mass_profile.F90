@@ -31,7 +31,7 @@
   !!]
   type, extends(nodePropertyExtractorArray) :: nodePropertyExtractorMassProfile
      !!{
-     A property extractor class for the enclosed mass at a set fo radii.
+     A property extractor class for the enclosed mass at a set of radii.
      !!}
      private
      class  (darkMatterHaloScaleClass), pointer                   :: darkMatterHaloScale_          => null()
@@ -162,7 +162,7 @@ contains
 
   function massProfileSize(self,time)
     !!{
-    Return the number of array alements in the {\normalfont \ttfamily massProfile} property extractors.
+    Return the number of array elements in the {\normalfont \ttfamily massProfile} property extractors.
     !!}
     implicit none
     integer         (c_size_t                        )                :: massProfileSize

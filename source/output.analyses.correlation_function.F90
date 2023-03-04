@@ -58,7 +58,7 @@ Contains a module which implements a generic two-point correlation function outp
     respectively, where $w$ is the weight of the halo (i.e. the number of such model halos expected per unit volume), $b(M)$ is
     the bias of halos of mass $M$, $u(k|M)$ is the Fourier-transform of the halo density profile, and $P_\mathrm{lin}(k)$ is
     the linear theory power spectrum, and $P(p_1,\ldots,p_N)$ is the Poisson binomial distribution for $N$ events with
-    probabities $p_1,\ldots,p_N$. The contribution of the halo to the galaxy density, $n_\mathrm{gal}$, is simply $\Delta
+    probabilities $p_1,\ldots,p_N$. The contribution of the halo to the galaxy density, $n_\mathrm{gal}$, is simply $\Delta
     n_\mathrm{gal} = w \left[ p^\mathrm{(c)} + \sum_{i=1}^N p_i^\mathrm{(s)} \right]$.
    </description>
   </outputAnalysis>
@@ -600,7 +600,7 @@ contains
 
   subroutine correlationFunctionAccumulateHalo(self,indexOutput,node)
     !!{
-    Assumulate a single halo's contributions to the halo model one- and two-halo terms. For
+    Accumulate a single halo's contributions to the halo model one- and two-halo terms. For
     the one-halo term we count contributions from central-satellite pairs, and from
     satellite-satellite pairs. Contributions differ in the scalings applied to the
     Fourier-transformed dark matter halo density profile---see
@@ -1314,7 +1314,7 @@ contains
     type            (matrix                           )                                :: covariance
     integer                                                                            :: status
 
-    ! Check for existance of a target distribution.
+    ! Check for existence of a target distribution.
     if (allocated(self%binnedProjectedCorrelationTarget)) then
        ! Finalize analysis.
        call correlationFunctionFinalizeAnalysis(self)

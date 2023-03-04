@@ -366,9 +366,9 @@ contains
     massBlackHole2=blackHoleSecondary%mass()
     spinBlackHole1=blackHolePrimary  %spin()
     spinBlackHole2=blackHoleSecondary%spin()
-    ! Calculate the recoil velocity of the binary black hole and check wether it escapes the galaxy
+    ! Calculate the recoil velocity of the binary black hole and check whether it escapes the galaxy
     velocityRecoil=blackHoleBinaryRecoil_%velocity(blackHolePrimary,blackHoleSecondary)
-    ! Compare the recoil velocity to the potential and determine wether the binary is ejected or stays in the galaxy.
+    ! Compare the recoil velocity to the potential and determine whether the binary is ejected or stays in the galaxy.
     if (Node_Component_Black_Hole_Noncentral_Recoil_Escapes(node,velocityRecoil,radius=0.0d0,ignoreCentralBlackHole=.true.)) then
        massBlackHoleNew=blackHole1%massSeed()
        spinBlackHoleNew=blackHole1%spinSeed()
@@ -467,7 +467,7 @@ contains
          &      +blackHoleCentral           %mass()
     velocityEjected=sqrt(kineticEnergyChange/(1.0d0+massEjected/massBinary )/massEjected*2.0d0)
     velocityBinary =sqrt(kineticEnergyChange/(1.0d0+massBinary /massEjected)/massBinary *2.0d0)
-    ! Determine whether the ejected black hole is actualy ejected.
+    ! Determine whether the ejected black hole is actually ejected.
     removeEjected=Node_Component_Black_Hole_Noncentral_Recoil_Escapes(node,velocityEjected,ejectedBlackHoleComponent%radialPosition(),ignoreCentralBlackHole=.false.)
     ! Determine whether the binary black hole is ejected.
     removeBinary=Node_Component_Black_Hole_Noncentral_Recoil_Escapes(node,velocityBinary,newBinaryBlackHoleComponent%radialPosition(),ignoreCentralBlackHole=.true. )

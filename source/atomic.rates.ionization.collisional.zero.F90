@@ -63,7 +63,7 @@ contains
 
   double precision function zeroRate(self,atomicNumber,ionizationState,temperature)
     !!{
-    Returns a collisional ionizate rate of zero.
+    Returns a collisional ionization rate of zero.
     !!}
     implicit none
     class           (atomicIonizationRateCollisionalZero), intent(inout) :: self

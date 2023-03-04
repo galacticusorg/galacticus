@@ -591,7 +591,7 @@ contains
           massBlackHole2=blackHoleSecondary%mass()
           spinBlackHole1=blackHolePrimary  %spin()
           spinBlackHole2=blackHoleSecondary%spin()
-          ! Now calculate the recoil velocity of the binary black hole and check wether it escapes the galaxy.
+          ! Now calculate the recoil velocity of the binary black hole and check whether it escapes the galaxy.
           velocityRecoil=blackHoleBinaryRecoil_%velocity(blackHolePrimary,blackHoleSecondary)
           if (Node_Component_Black_Hole_Standard_Recoil_Escapes(node,velocityRecoil,radius=0.0d0,ignoreCentralBlackHole=.true.)) then
              massBlackHoleNew=0.0d0
@@ -1092,7 +1092,7 @@ contains
        call    outputGroup    %writeDataset(nodeIndex          ,"nodeIndex"          ,"The black hole host galaxy inices."    ,appendTo=.true.)
        call    outputGroup    %writeDataset(mergerTreeIndex    ,"mergerTreeIndex"    ,"The black hole merger tree indices."   ,appendTo=.true.)
        !$ call hdf5Access%unset()
-       ! Deallocatate profile arrays.
+       ! Deallocate profile arrays.
        deallocate(mass               )
        deallocate(spin               )
        deallocate(radius             )

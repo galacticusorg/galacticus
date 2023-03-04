@@ -116,7 +116,7 @@
     }
     \end{verbatim}
     The {\normalfont \ttfamily temperature} dataset should specify temperature (in Kelvin), while the {\normalfont \ttfamily
-    metallicity} dataset should give the logarithmic metallcity relative to Solar (a value of -999 or less is taken to imply
+    metallicity} dataset should give the logarithmic metallicity relative to Solar (a value of -999 or less is taken to imply
     zero metallicity). The {\normalfont \ttfamily coolingRate} dataset should specify the cooling function (in ergs cm$^3$
     s$^{-1}$ computed for a hydrogen density of 1 cm$^{-3}$) respectively at each temperature/metallicity pair. The
     {\normalfont \ttfamily extrapolateLow} and {\normalfont \ttfamily extrapolateHigh} attributes of the {\normalfont \ttfamily
@@ -663,7 +663,7 @@ contains
 
   subroutine cieFileInterpolatingFactors(self,temperature,metallicity,iTemperature,hTemperature,iMetallicity,hMetallicity)
     !!{
-    Determine the interpolating paramters.
+    Determine the interpolating parameters.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none

@@ -29,7 +29,7 @@
   !![
   <hotHaloRamPressureTimescale name="hotHaloRamPressureTimescaleRamPressureAcceleration">
    <description>
-    A hot halo ram pressure timescale class which computes the ram pressure stripping timecale from the acceleration imparted
+    A hot halo ram pressure timescale class which computes the ram pressure stripping timescale from the acceleration imparted
     by the ram pressure force. Following \cite{roediger_ram_2007} this is approximated as:
     \begin{equation}
      a_\mathrm{ram pressure} = P_\mathrm{ram pressure}/\Sigma,

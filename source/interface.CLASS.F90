@@ -59,6 +59,7 @@ contains
     !!{
     Initialize the interface with CLASS, including downloading and compiling CLASS if necessary.
     !!}
+    use :: Dependencies      , only : dependencyVersion
     use :: Display           , only : displayMessage   , verbosityLevelWorking
     use :: File_Utilities    , only : Directory_Make   , File_Exists          , File_Lock   , File_Unlock, &
           &                           lockDescriptor
@@ -81,8 +82,8 @@ contains
     !!]
 
     ! Set path and version
-    classVersion    ="3.0.2"
-    classPath       =inputPath(pathTypeDataDynamic)//"class_public-"//classVersion//"/"
+    classVersion=dependencyVersion("class")
+    classPath   =inputPath(pathTypeDataDynamic)//"class_public-"//classVersion//"/"
     ! Build the CLASS code.
     if (.not.File_Exists(classPath//"class")) then
        call Directory_Make(     classPath                                        )

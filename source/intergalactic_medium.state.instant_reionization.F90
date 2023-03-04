@@ -81,7 +81,7 @@ contains
          <name>electronScatteringOpticalDepth</name>
          <source>parameters</source>
          <variable>electronScatteringOpticalDepth</variable>
-         <description>The optical depth to reaionization in the instantReionization \gls{igm} state model.</description>
+         <description>The optical depth to reionization in the instantReionization \gls{igm} state model.</description>
        </inputParameter>
        !!]
      else

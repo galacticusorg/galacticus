@@ -457,7 +457,7 @@ contains
 
   double precision function staticUniverseDistanceComovingConvert(self,output,distanceLuminosity,distanceModulus,distanceModulusKCorrected,redshift)
     !!{
-    Convert bewteen different measures of distance.
+    Convert between different measures of distance.
     !!}
     use :: Cosmology_Functions_Options, only : distanceTypeComoving
     use :: Error                      , only : Error_Report

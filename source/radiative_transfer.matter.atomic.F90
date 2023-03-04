@@ -683,7 +683,7 @@ contains
 #ifdef USEMPI
   subroutine atomicAccumulationReduction(self,properties)
     !!{
-    Perform reduction of accumulated properaties across MPI processes.
+    Perform reduction of accumulated properties across MPI processes.
     !!}
     use :: Error        , only : Error_Report
     use :: MPI_Utilities, only : mpiSelf
@@ -921,7 +921,7 @@ contains
                 if (elementsPhotoRate(i)%photoHeatingRate   (j) > 0.0d0) heatingNonZero=.true.
              end do
           end do
-          ! If there is photoheating occuring, solve for the state of matter.
+          ! If there is photoheating occurring, solve for the state of matter.
           if (heatingNonZero) then
              ! Iterate over all states of all elements, computing the equilibrium ionization fractions.
              do i=1,self%countElements

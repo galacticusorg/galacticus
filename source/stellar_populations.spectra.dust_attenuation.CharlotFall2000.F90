@@ -49,7 +49,7 @@ contains
 
   function charlotFall2000ConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the {\normalfont \ttfamily charlotFall2000} stellar spectra dust attenuatio class.
+    Default constructor for the {\normalfont \ttfamily charlotFall2000} stellar spectra dust attenuation class.
     !!}
     implicit none
     type            (stellarSpectraDustAttenuationCharlotFall2000)                :: self
@@ -108,7 +108,7 @@ contains
   double precision function charlotFall2000Attenuation(self,wavelength,age,vBandAttenuation)
     !!{
     Return attenuation of stellar spectra according to the model of \cite{charlot_simple_2000}. Note that the V-band
-    attenuation is taken to be that due to the ISM alone (i.e. not including birthclouds).
+    attenuation is taken to be that due to the ISM alone (i.e. not including birth clouds).
     !!}
     implicit none
     class           (stellarSpectraDustAttenuationCharlotFall2000), intent(inout) :: self

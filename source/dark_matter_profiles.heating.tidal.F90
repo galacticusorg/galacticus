@@ -27,7 +27,7 @@
   <darkMatterProfileHeating name="darkMatterProfileHeatingTidal">
    <description>
     A dark matter profile heating model which accounts for heating due to tidal shocking. The model follows the general
-    approach of \cite{gnedin_tidal_1999}. The change in the specific energy of particles at radius $r$ in a halo is gievn by
+    approach of \cite{gnedin_tidal_1999}. The change in the specific energy of particles at radius $r$ in a halo is given by
     $\Delta \epsilon = \Delta \epsilon_1 + \Delta \epsilon_2$, where $\Delta \epsilon_1$, and $\Delta \epsilon_2$ are the first
     and second order perturbations respectively. The first order term is given by $\Delta \epsilon_1 = Q r^2$ where $Q$ is the
     tidal tensor integrated along the orbital path (see, for example, \citealt{taylor_dynamics_2001}), while the second order

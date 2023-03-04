@@ -188,7 +188,7 @@ contains
     ! Build anti-log10() property operator.
     allocate(outputAnalysisPropertyUnoperator_      )
     outputAnalysisPropertyUnoperator_      =  outputAnalysisPropertyOperatorAntiLog10           (                                                                                                                              )
-    ! Create a virial density contrast object matched to the defintion used by Ludlow et al. (2016).
+    ! Create a virial density contrast object matched to the definition used by Ludlow et al. (2016).
     allocate(virialDensityContrastDefinition_       )
     virialDensityContrastDefinition_       =  virialDensityContrastFixed                        (200.0d0,fixedDensityTypeCritical,2.0d0,cosmologyParameters_,cosmologyFunctions_                                               )
     ! Create a concentration weight property extractor.

@@ -143,7 +143,7 @@ contains
          &           +rateOutflowExpulsive
     ! Compute dynamical timescale.
     if (velocity <= 0.0d0 .or. radius <= 0.0d0) then
-       ! Velocity and/or radius is zero, so dynamical timescale is undefined. This is acceptable only if the ouflow rate is zero.
+       ! Velocity and/or radius is zero, so dynamical timescale is undefined. This is acceptable only if the outflow rate is zero.
        timescaleDynamical=1.0d0
        if (rateOutflowTotal > 0.0d0) call Error_Report('outflow in unphysical component'//{introspection:location})
     else

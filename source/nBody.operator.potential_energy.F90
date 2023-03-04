@@ -212,7 +212,7 @@ contains
        end do
        ! Store results to file.
        call simulations(iSimulation)%analysis%writeDataset(potentialEnergy,'energyPotential')
-       ! Dealclocate workspace.
+       ! Deallocate workspace.
        if (self%selfBoundParticlesOnly) then
           nullify   (selfBoundStatus )
        else

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Implementation of a normal 1D distibution function.
+  Implementation of a normal 1D distribution function.
   !!}
 
   !![
@@ -40,7 +40,7 @@
   !!]
   type, extends(distributionFunction1DClass) :: distributionFunction1DNormal
      !!{
-     Implementation of a normal 1D distibution function.
+     Implementation of a normal 1D distribution function.
      !!}
      private
      logical          :: limitLowerExists, limitUpperExists
@@ -278,7 +278,7 @@ contains
   double precision function normalStandardInverse(p)
     !!{
     Evaluates the inverse of the standard normal cumulative distribution function. Based on the Fortran90 version by John
-    Burkardt (itself based on the original Fortran 77 version by Michael Wichura), using the alogorithm of
+    Burkardt (itself based on the original Fortran 77 version by Michael Wichura), using the algorithm of
     \cite{wichura_percentage_1988}.
     !!}
     use :: Error, only : Error_Report

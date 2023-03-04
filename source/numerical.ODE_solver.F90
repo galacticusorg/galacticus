@@ -309,7 +309,7 @@ contains
 
   function odeSolverConstructor(dim,derivatives,jacobian,integrator,integrands,integratorErrorTolerant,stepperType,toleranceAbsolute,toleranceRelative,hStart,dydtScale,yScale,scale,finalState,postStep,errorAnalyzer,errorHandler) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily odeSolver} obejcts.
+    Constructor for {\normalfont \ttfamily odeSolver} objects.
     !!}
     use            :: Error        , only : Error_Report
     use, intrinsic :: ISO_C_Binding, only : c_funloc    , c_null_funptr
@@ -461,7 +461,7 @@ contains
     else
        latentIntegrator_=C_NULL_FUNPTR 
     end if
-    ! Initialize error analzyer.
+    ! Initialize error analyzer.
     if (associated(self%errorAnalyzer)) then
        errorAnalyzer_=c_funloc(self%errorAnalyzer)
     else
@@ -503,7 +503,7 @@ contains
           ! The evolution was interrupted. Reset the end time of the evolution and continue.
           x1_=interruptedAtX
           if (x > x1_) then
-             ! The timestep exceeded the time at which an interrupt occured. To maintain accuracy we need to repeat the step.
+             ! The timestep exceeded the time at which an interrupt occurred. To maintain accuracy we need to repeat the step.
              y=y0
              x=x0
              if (present(z)) z=z0

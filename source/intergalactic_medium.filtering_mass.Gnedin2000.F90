@@ -202,7 +202,7 @@ contains
 
   double precision function gnedin2000FractionBaryons(self,mass,time)
     !!{
-    Return the rate fo change of the fraction of baryons accreted into a halo of the given {\normalfont \ttfamily mass} at the
+    Return the rate of change of the fraction of baryons accreted into a halo of the given {\normalfont \ttfamily mass} at the
     {\normalfont \ttfamily time}.
     !!}
     implicit none

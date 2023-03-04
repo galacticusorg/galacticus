@@ -351,7 +351,7 @@ contains
 
  double precision function intergalacticBackgroundInternalFlux(self,wavelength,node)
     !!{
-    Return the flux in the internally-computed intergalatic background.
+    Return the flux in the internally-computed intergalactic background.
     !!}
     use            :: Error        , only : Error_Report
     use, intrinsic :: ISO_C_Binding, only : c_size_t
@@ -531,7 +531,7 @@ contains
              basic          =>                    node %basic()
              treeTimeLatest =  max(treeTimeLatest,basic%time ())
              if (basic%time() == event%time) then
-                ! Get the star formation rates and metallicites for this node.
+                ! Get the star formation rates and metallicities for this node.
                 disk                      => node    %disk                            (    )
                 spheroid                  => node    %spheroid                        (    )
                 starFormationRateDisk     =  self    %starFormationRateDisks_    %rate(node)
@@ -793,7 +793,7 @@ contains
 
   logical function intergalacticBackgroundInternalTimeDependentOnly(self)
     !!{
-    Return false as, while this radiation field depends only on time, it can not be evaulated for arbitrary times.
+    Return false as, while this radiation field depends only on time, it can not be evaluated for arbitrary times.
     !!}
     implicit none
     class(radiationFieldIntergalacticBackgroundInternal), intent(inout) :: self

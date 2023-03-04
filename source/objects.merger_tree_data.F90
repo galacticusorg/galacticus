@@ -59,7 +59,7 @@ module Merger_Tree_Data_Structure
    <entry label="null"                    />
    <entry label="treeIndex"               />
    <entry label="nodeIndex"               />
-   <entry label="descendentIndex"         />
+   <entry label="descendantIndex"         />
    <entry label="hostIndex"               />
    <entry label="redshift"                />
    <entry label="scaleFactor"             />
@@ -181,7 +181,7 @@ module Merger_Tree_Data_Structure
      double precision                                                                                       :: particleMass               =0.0d0
      type            (enumerationPropertyTypeType), allocatable, dimension(:                              ) :: columnProperties                   , particleColumnProperties 
      integer                                      , allocatable, dimension(:                              ) :: treeBeginsAt                       , treeNodeCount
-     integer         (kind=kind_int8             ), allocatable, dimension(:                              ) :: descendentIndex                    , hostIndex                        , &
+     integer         (kind=kind_int8             ), allocatable, dimension(:                              ) :: descendantIndex                    , hostIndex                        , &
           &                                                                                                    mostBoundParticleIndex             , nodeIndex                        , &
           &                                                                                                    particleIndex                      , forestID                         , &
           &                                                                                                    forestIndex
@@ -205,7 +205,7 @@ module Merger_Tree_Data_Structure
           &                                                                                                    hasAngularMomentumY                , hasAngularMomentumZ              , &
           &                                                                                                    hasSpecificAngularMomentumMagnitude, hasSpecificAngularMomentumX      , &
           &                                                                                                    hasSpecificAngularMomentumY        , hasSpecificAngularMomentumZ      , &
-          &                                                                                                    hasDescendentIndex                 , hasDummyHostId                   , &
+          &                                                                                                    hasDescendantIndex                 , hasDummyHostId                   , &
           &                                                                                                    hasHalfMassRadius                                                     , &
           &                                                                                                    hasHostIndex                       , hasMostBoundParticleIndex        , &
           &                                                                                                    hasNodeIndex                       , hasNodeMass                      , &
@@ -303,7 +303,7 @@ contains
     mergerTrees%hasForestWeight                    =.false.
     mergerTrees%hasBoxSize                         =.false.
     mergerTrees%hasNodeIndex                       =.false.
-    mergerTrees%hasDescendentIndex                 =.false.
+    mergerTrees%hasDescendantIndex                 =.false.
     mergerTrees%hasHostIndex                       =.false.
     mergerTrees%hasDummyHostID                     =.false.    
     mergerTrees%hasRedshift                        =.false.
@@ -345,7 +345,7 @@ contains
     if (allocated(mergerTrees%forestIndex           )) deallocate(mergerTrees%forestIndex           )
     if (allocated(mergerTrees%nodeIndex             )) deallocate(mergerTrees%nodeIndex             )
     if (allocated(mergerTrees%mostBoundParticleIndex)) deallocate(mergerTrees%mostBoundParticleIndex)
-    if (allocated(mergerTrees%descendentIndex       )) deallocate(mergerTrees%descendentIndex       )
+    if (allocated(mergerTrees%descendantIndex       )) deallocate(mergerTrees%descendantIndex       )
     if (allocated(mergerTrees%hostIndex             )) deallocate(mergerTrees%hostIndex             )
     if (allocated(mergerTrees%redshift              )) deallocate(mergerTrees%redshift              )
     if (allocated(mergerTrees%scaleFactor           )) deallocate(mergerTrees%scaleFactor           )
@@ -762,11 +762,11 @@ contains
        if (allocated(mergerTrees%hostIndex      )) deallocate(mergerTrees%hostIndex      )
        allocate(mergerTrees%hostIndex      (size(property)))
        mergerTrees%hostIndex      =property
-    case (propertyTypeDescendentIndex%ID)
-       mergerTrees%hasDescendentIndex=.true.
-       if (allocated(mergerTrees%descendentIndex)) deallocate(mergerTrees%descendentIndex)
-       allocate(mergerTrees%descendentIndex(size(property)))
-       mergerTrees%descendentIndex=property
+    case (propertyTypeDescendantIndex%ID)
+       mergerTrees%hasDescendantIndex=.true.
+       if (allocated(mergerTrees%descendantIndex)) deallocate(mergerTrees%descendantIndex)
+       allocate(mergerTrees%descendantIndex(size(property)))
+       mergerTrees%descendantIndex=property
     case (propertyTypeSnapshot       %ID)
        mergerTrees%hasSnapshot       =.true.
        if (allocated(mergerTrees%snapshot       )) deallocate(mergerTrees%snapshot       )
@@ -919,7 +919,7 @@ contains
     mergerTrees%hasForestIndex                     =any(mergerTrees%columnProperties == propertyTypeTreeIndex               )
     mergerTrees%hasForestWeight                    =any(mergerTrees%columnProperties == propertyTypeTreeWeight              )
     mergerTrees%hasNodeIndex                       =any(mergerTrees%columnProperties == propertyTypeNodeIndex               )
-    mergerTrees%hasDescendentIndex                 =any(mergerTrees%columnProperties == propertyTypeDescendentIndex         )
+    mergerTrees%hasDescendantIndex                 =any(mergerTrees%columnProperties == propertyTypeDescendantIndex         )
     mergerTrees%hasHostIndex                       =any(mergerTrees%columnProperties == propertyTypeHostIndex               )
     mergerTrees%hasRedshift                        =any(mergerTrees%columnProperties == propertyTypeRedshift                )
     mergerTrees%hasScaleFactor                     =any(mergerTrees%columnProperties == propertyTypeScaleFactor             )
@@ -995,7 +995,7 @@ contains
     if (allocated(mergerTrees%nodeIndex             )) deallocate(mergerTrees%nodeIndex             )
     if (allocated(mergerTrees%mostBoundParticleIndex)) deallocate(mergerTrees%mostBoundParticleIndex)
     if (allocated(mergerTrees%snapshot              )) deallocate(mergerTrees%snapshot              )
-    if (allocated(mergerTrees%descendentIndex       )) deallocate(mergerTrees%descendentIndex       )
+    if (allocated(mergerTrees%descendantIndex       )) deallocate(mergerTrees%descendantIndex       )
     if (allocated(mergerTrees%hostIndex             )) deallocate(mergerTrees%hostIndex             )
     if (allocated(mergerTrees%redshift              )) deallocate(mergerTrees%redshift              )
     if (allocated(mergerTrees%scaleFactor           )) deallocate(mergerTrees%scaleFactor           )
@@ -1017,7 +1017,7 @@ contains
     if (mergerTrees%hasNodeIndex                       ) allocate(mergerTrees%nodeIndex                       (mergerTrees%nodeCount))
     if (mergerTrees%hasMostBoundParticleIndex          ) allocate(mergerTrees%mostBoundParticleIndex          (mergerTrees%nodeCount))
     if (mergerTrees%hasSnapshot                        ) allocate(mergerTrees%snapshot                        (mergerTrees%nodeCount))
-    if (mergerTrees%hasDescendentIndex                 ) allocate(mergerTrees%descendentIndex                 (mergerTrees%nodeCount))
+    if (mergerTrees%hasDescendantIndex                 ) allocate(mergerTrees%descendantIndex                 (mergerTrees%nodeCount))
     if (mergerTrees%hasHostIndex                       ) allocate(mergerTrees%hostIndex                       (mergerTrees%nodeCount))
     if (mergerTrees%hasRedshift                        ) allocate(mergerTrees%redshift                        (mergerTrees%nodeCount))
     if (mergerTrees%hasScaleFactor                     ) allocate(mergerTrees%scaleFactor                     (mergerTrees%nodeCount))
@@ -1083,9 +1083,9 @@ contains
              case (propertyTypeNodeIndex               %ID)
                 ! Column is a node index.
                 read (inputColumns(iColumn),*) mergerTrees%nodeIndex                       (  iNode)
-             case (propertyTypeDescendentIndex         %ID)
-                ! Column is a descendent node index.
-                read (inputColumns(iColumn),*) mergerTrees%descendentIndex                 (  iNode)
+             case (propertyTypeDescendantIndex         %ID)
+                ! Column is a descendant node index.
+                read (inputColumns(iColumn),*) mergerTrees%descendantIndex                 (  iNode)
              case (propertyTypeHostIndex               %ID)
                 ! Column is a host index.
                 read (inputColumns(iColumn),*) mergerTrees%hostIndex                       (  iNode)
@@ -1579,7 +1579,7 @@ contains
 
     ! Write the data.
     if (mergerTrees%hasNodeIndex               ) call forestHalos%writeDataset(mergerTrees%nodeIndex               ,"nodeIndex"          ,"The index of each node."                            ,appendTo=appendActual                  )
-    if (mergerTrees%hasDescendentIndex         ) call forestHalos%writeDataset(mergerTrees%descendentIndex         ,"descendentIndex"    ,"The index of each descendent node."                 ,appendTo=appendActual                  )
+    if (mergerTrees%hasDescendantIndex         ) call forestHalos%writeDataset(mergerTrees%descendantIndex         ,"descendantIndex"    ,"The index of each descendant node."                 ,appendTo=appendActual                  )
     if (mergerTrees%hasHostIndex               ) call forestHalos%writeDataset(mergerTrees%hostIndex               ,"hostIndex"          ,"The index of each host node."                       ,appendTo=appendActual                  )
     if (mergerTrees%hasNodeMass                ) call forestHalos%writeDataset(mergerTrees%nodeMass                ,"nodeMass"           ,"The mass of each node."                             ,appendTo=appendActual                  )
     if (mergerTrees%hasRedshift                ) call forestHalos%writeDataset(mergerTrees%redshift                ,"redshift"           ,"The redshift of each node."                         ,appendTo=appendActual                  )
@@ -1805,11 +1805,11 @@ contains
          &                                                                               simulationGroup               , snapshotGroup       , &
          &                                                                               dataset
     integer                         , allocatable, dimension(:)                ::        nodeSnapshotIndices           , snapshotIndices
-    integer         (c_size_t      ), allocatable, dimension(:)                ::        descendentSnapshot
+    integer         (c_size_t      ), allocatable, dimension(:)                ::        descendantSnapshot
     double precision                , allocatable, dimension(:)                ::        particleMass
     integer                                                                    ::        iAttribute                    , nodesOnSnapshotCount, &
          &                                                                               particlesOnSnapshotCount
-    integer         (c_size_t      )                                           ::        iDescendent                   , iNode               , &
+    integer         (c_size_t      )                                           ::        iDescendant                   , iNode               , &
          &                                                                               iSnapshot                     , snapshotMaximum     , &
          &                                                                               snapshotMinimum
     character       (len=14        )                                           ::        snapshotGroupName
@@ -1826,7 +1826,7 @@ contains
     if (.not.mergerTrees%hasSnapshot       ) call Error_Report('snapshot indices are required for this format'  //{introspection:location})
     if (.not.mergerTrees%hasPositionX      ) call Error_Report('halo positions are required for this format'    //{introspection:location})
     if (.not.mergerTrees%hasNodeIndex      ) call Error_Report('halo indices are required for this format'      //{introspection:location})
-    if (.not.mergerTrees%hasDescendentIndex) call Error_Report('descendent indices are required for this format'//{introspection:location})
+    if (.not.mergerTrees%hasDescendantIndex) call Error_Report('descendant indices are required for this format'//{introspection:location})
 
     ! Open the output file.
     !$ call hdf5Access%set()
@@ -1909,16 +1909,16 @@ contains
     ! Specify the name of the halo catalog group.
     if (.not.fileExists) call mergerTreesGroup%writeAttribute("HaloCatalog","HaloCatalogName")
 
-    ! Build snapshot numbers for descendents.
-    allocate(descendentSnapshot(size(mergerTrees%nodeIndex)))
-    descendentSnapshot=-1
-    do iDescendent=1,size(mergerTrees%nodeIndex)
-       if (mergerTrees%descendentIndex(iDescendent) >= 0) then
+    ! Build snapshot numbers for descendants.
+    allocate(descendantSnapshot(size(mergerTrees%nodeIndex)))
+    descendantSnapshot=-1
+    do iDescendant=1,size(mergerTrees%nodeIndex)
+       if (mergerTrees%descendantIndex(iDescendant) >= 0) then
           iNode=0
-          do while (iNode < size(mergerTrees%nodeIndex) .and. descendentSnapshot(iDescendent) < 0)
+          do while (iNode < size(mergerTrees%nodeIndex) .and. descendantSnapshot(iDescendant) < 0)
              iNode=iNode+1
-             if (mergerTrees%nodeIndex(iNode) == mergerTrees%descendentIndex(iDescendent))&
-                  & descendentSnapshot(iDescendent)=mergerTrees%snapshot(iNode)
+             if (mergerTrees%nodeIndex(iNode) == mergerTrees%descendantIndex(iDescendant))&
+                  & descendantSnapshot(iDescendant)=mergerTrees%snapshot(iNode)
           end do
        end if
     end do
@@ -1926,12 +1926,12 @@ contains
     ! Output merger tree datasets.
     call                               mergerTreesGroup%writeDataset(mergerTrees%snapshot          ,"HaloSnapshot"      ,"The snapshot of each halo."           ,appendTo=appendActual)
     call                               mergerTreesGroup%writeDataset(mergerTrees%nodeIndex         ,"HaloID"            ,"The index of each halo."              ,appendTo=appendActual)
-    call                               mergerTreesGroup%writeDataset(mergerTrees%descendentIndex   ,"DescendentID"      ,"The index of each descendent halo."   ,appendTo=appendActual)
-    call                               mergerTreesGroup%writeDataset(            descendentSnapshot,"DescendentSnapshot","The snapshot of each descendent halo.",appendTo=appendActual)
+    call                               mergerTreesGroup%writeDataset(mergerTrees%descendantIndex   ,"DescendantID"      ,"The index of each descendant halo."   ,appendTo=appendActual)
+    call                               mergerTreesGroup%writeDataset(            descendantSnapshot,"DescendantSnapshot","The snapshot of each descendant halo.",appendTo=appendActual)
     if (mergerTrees%hasHostIndex) call mergerTreesGroup%writeDataset(mergerTrees%hostIndex         ,"HostID"            ,"The index of each host halo."         ,appendTo=appendActual)
     call                               mergerTreesGroup%writeDataset(mergerTrees%treeNodeCount     ,"HalosPerTree"      ,"Number of halos in each tree."        ,appendTo=appendActual)
     call                               mergerTreesGroup%writeDataset(mergerTrees%forestID          ,"TreeID"            ,"Unique index of tree."                ,appendTo=appendActual)
-    deallocate(descendentSnapshot)
+    deallocate(descendantSnapshot)
 
     if (mergerTrees%hasMostBoundParticleIndex) then
        ! Find the highest and lowest snapshot numbers in the particles.
@@ -2122,7 +2122,7 @@ contains
 
     if (.not.mergerTrees%hasForestIndex    ) call Error_Report("merger trees do not have required property 'forestIndex'"    //{introspection:location})
     if (.not.mergerTrees%hasNodeIndex      ) call Error_Report("merger trees do not have required property 'nodeIndex'"      //{introspection:location})
-    if (.not.mergerTrees%hasDescendentIndex) call Error_Report("merger trees do not have required property 'descendentIndex'"//{introspection:location})
+    if (.not.mergerTrees%hasDescendantIndex) call Error_Report("merger trees do not have required property 'descendantIndex'"//{introspection:location})
     if (.not.mergerTrees%hasRedshift       ) call Error_Report("merger trees do not have required property 'redshift'"       //{introspection:location})
     if (.not.mergerTrees%hasNodeMass       ) call Error_Report("merger trees do not have required property 'nodeMass'"       //{introspection:location})
     return

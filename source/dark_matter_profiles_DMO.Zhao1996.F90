@@ -301,7 +301,7 @@ contains
 
   double precision function zhao1996MassUnnormalized(self,node,radiusScaleFree)
     !!{
-    Returns the unnormalzied mass in the dark matter profile of {\normalfont \ttfamily node} at the given
+    Returns the unnormalized mass in the dark matter profile of {\normalfont \ttfamily node} at the given
     {\normalfont \ttfamily radiusScaleFree}.
     !!}
     use :: Error                   , only : Error_Report

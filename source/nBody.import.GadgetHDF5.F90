@@ -145,7 +145,7 @@ contains
 
   subroutine gadgetHDF5Destructor(self)
     !!{
-    Destructor for Gadget HF5 importer class.
+    Destructor for Gadget HDF5 importer class.
     !!}
     implicit none
     type(nbodyImporterGadgetHDF5), intent(inout) :: self
@@ -209,7 +209,7 @@ contains
          &          /massSolar
     ! Open the particle group - this group will be used for analysis output.
     simulations(1)%analysis=self%file%openGroup(particleGroupName)
-    ! Import the particle postions, velocities and IDs. Optionally import also
+    ! Import the particle positions, velocities and IDs. Optionally import also
     ! the bound status of particles.
     dataset=simulations(1)%analysis%openDataset('ParticleIDs')
     countParticles=dataset%size(1)

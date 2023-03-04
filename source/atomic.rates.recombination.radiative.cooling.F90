@@ -18,12 +18,12 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which provides a class implenting cooling rats due to atomic recombination.
+Contains a module which provides a class implementing cooling rats due to atomic recombination.
 !!}
 
 module Atomic_Rates_Recombination_Radiative_Cooling
   !!{
-  Provides a class implenting recombination cooling rates.
+  Provides a class implementing recombination cooling rates.
   !!}
   use :: Atomic_Rates_Recombination_Radiative, only : enumerationRecombinationCaseType
   private

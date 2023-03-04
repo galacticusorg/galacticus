@@ -229,7 +229,7 @@ contains
        <inputParameter>
          <name>efficiencyEnergeticOutflow</name>
          <defaultValue>1.0d-2</defaultValue>
-         <description>The proportionallity factor relating mass outflow rate from the spheroid to the energy input rate divided by $V_\mathrm{spheroid}^2$.</description>
+         <description>The proportionality factor relating mass outflow rate from the spheroid to the energy input rate divided by $V_\mathrm{spheroid}^2$.</description>
          <source>subParameters</source>
        </inputParameter>
        <inputParameter>
@@ -311,7 +311,7 @@ contains
        massDistributionSpheroidDensityMomentum2=massDistributionSpheroid%densityRadialMoment(2.0d0,isInfinite=densityMoment2IsInfinite)
        massDistributionSpheroidDensityMomentum3=massDistributionSpheroid%densityRadialMoment(3.0d0,isInfinite=densityMoment3IsInfinite)
        if (densityMoment2IsInfinite.or.densityMoment3IsInfinite) then
-          ! One of the moments is infinte, so we can not compute the appropriate ratio. Simply assume a value
+          ! One of the moments is infinite, so we can not compute the appropriate ratio. Simply assume a value
           ! of 0.5 as a default.
           ratioAngularMomentumScaleRadiusDefault=+0.5d0
        else
@@ -1543,7 +1543,7 @@ contains
   !!]
   subroutine Node_Component_Spheroid_Standard_State_Store(stateFile,gslStateFile,stateOperationID)
     !!{
-    Write the tablulation state to file.
+    Write the tabulation state to file.
     !!}
     use            :: Display                              , only : displayMessage          , verbosityLevelInfo
     use, intrinsic :: ISO_C_Binding                        , only : c_ptr                   , c_size_t

@@ -52,7 +52,7 @@ program Test_Hearin2021_Stochastic_MAH
   double precision                                                        , dimension(2,2,3  ), parameter   :: means  =reshape(                                    &
        &                                                                                                                       [                                   &
        !                                                                                                                       Each row is the mean of the stated parameter for:
-       !                                                                                                                         early foming/low mass : early forming/high mass : late forming/low mass : late forming/high mass
+       !                                                                                                                         early forming/low mass : early forming/high mass : late forming/low mass : late forming/high mass
        !                                                                                                                       u_early
        &                                                                                                                       +0.70d0, +3.50d0, +0.50d0, +2.81d0, &
        !                                                                                                                       u_late

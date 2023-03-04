@@ -30,7 +30,7 @@
   !![
   <chemicalReactionRate name="chemicalReactionRateHydrogenNetwork">
    <description>
-    A chemical reaction rate classs that computes rates using the network of reactions and fitting functions from
+    A chemical reaction rate class that computes rates using the network of reactions and fitting functions from
     \cite{abel_modeling_1997} and \cite{tegmark_small_1997}. The parameter {\normalfont \ttfamily [fast]}
     controls the approximations made. If set {\normalfont \ttfamily true} then H$^-$ is assumed to be at equilibrium abundance,
     H$_2^+$ reactions are ignored and other slow reactions are ignored (see \citealt{abel_modeling_1997}).

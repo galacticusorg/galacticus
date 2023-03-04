@@ -22,7 +22,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorIntegerTuple" abstract="yes">
-   <description>An abstract output analysis property extractor class which provides a tuple of integer properties.</description>
+   <description>An abstract output analysis property extractor class which provieds a tuple of integer properties.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorClass), abstract :: nodePropertyExtractorIntegerTuple

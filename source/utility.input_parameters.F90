@@ -279,10 +279,10 @@ contains
     specified as a variable length string.
     !!}
     use :: FoX_dom           , only : node
-    use :: ISO_Varying_String, only : char, extract, operator(==)
-    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, parseString => parseStringTS
-    use :: FoX_dom           , only : node
-    use :: ISO_Varying_String, only : char, extract, operator(==)
+    use :: ISO_Varying_String, only : char                             , extract    , operator(==)
+    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name
+    use :: FoX_dom           , only : node                             , parseString
+    use :: ISO_Varying_String, only : char                             , extract    , operator(==)
     implicit none
     type     (inputParameters)                                           :: self
     type     (varying_string    )              , intent(in   )           :: xmlString
@@ -402,11 +402,11 @@ contains
     !!}
     use :: Display           , only : displayGreen                     , displayMessage , displayReset
     use :: File_Utilities    , only : File_Name_Temporary
-    use :: FoX_dom           , only : getOwnerDocument                 , node           , setLiveNodeLists
+    use :: FoX_dom           , only : getOwnerDocument                 , node           , setLiveNodeLists, getTextContent
     use :: Error             , only : Error_Report
-    use :: ISO_Varying_String, only : assignment(=)                    , char           , operator(//)                      , operator(/=)
+    use :: ISO_Varying_String, only : assignment(=)                    , char           , operator(//)    , operator(/=)
     use :: String_Handling   , only : String_Strip
-    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists, getTextContent => getTextContentTS
+    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists
     use :: Display           , only : displayMessage
     use :: IO_HDF5           , only : ioHDF5AccessInitialize
     use :: HDF5_Access       , only : hdf5Access
@@ -955,10 +955,9 @@ contains
     !!{
     Get the value of a parameter.
     !!}
-    use :: FoX_dom           , only : DOMException                      , getAttributeNode, getNodeName, hasAttribute, &
-          &                           inException                       , node
+    use :: FoX_dom           , only : DOMException , getAttributeNode, getNodeName   , hasAttribute, &
+          &                           inException  , node            , getTextContent
     use :: ISO_Varying_String, only : assignment(=)
-    use :: IO_XML            , only : getTextContent => getTextContentTS
     use :: Error             , only : Error_Report
     implicit none
     type   (varying_string)                :: inputParameterGet
@@ -990,7 +989,8 @@ contains
     use :: Display            , only : displayIndent              , displayMagenta  , displayMessage                 , displayReset        , &
           &                            displayUnindent            , displayVerbosity, enumerationVerbosityLevelEncode, verbosityLevelSilent
     use :: FoX_dom            , only : DOMException               , destroy         , extractDataContent             , getAttributeNode    , &
-          &                            getNodeName                , hasAttribute    , inException                    , node
+          &                            getNodeName                , hasAttribute    , inException                    , node                , &
+          &                            getParentNode
     use :: ISO_Varying_String , only : assignment(=)              , char            , operator(//)                   , operator(==)
     use :: Regular_Expressions, only : regEx
     use :: String_Handling    , only : String_Levenshtein_Distance
@@ -998,7 +998,8 @@ contains
     class    (inputParameters                         )              , intent(inout)           :: self
     type     (varying_string                          ), dimension(:), intent(in   ), optional :: allowedParameterNames
     type     (varying_string                          ), dimension(:), intent(in   ), optional :: allowedMultiParameterNames
-    type     (node                                    ), pointer                               :: node_                     , ignoreWarningsNode
+    type     (node                                    ), pointer                               :: node_                     , ignoreWarningsNode  , &
+         &                                                                                        node__
     type     (inputParameter                          ), pointer                               :: currentParameter
     type     (regEx                                   ), save                                  :: regEx_
     !$omp threadprivate(regEx_)
@@ -1011,7 +1012,7 @@ contains
          &                                                                                        j
     character(len=1024                                )                                        :: parameterValue
     character(len=1024                                )                                        :: unknownName               , allowedParameterName, &
-         &                                                                                        parameterNameGuess
+         &                                                                                        parameterNameGuess        , unknownNamePath
     type     (varying_string                          )                                        :: message                   , verbosityLevel
     type     (integerHash                             )                                        :: parameterNamesSeen
     type     (DOMException                            )                                        :: exception
@@ -1098,8 +1099,16 @@ contains
                 call displayMessage(message)
              end if
              if (allowedParametersCount > 0 .and. .not.parameterMatched .and. .not.ignoreWarnings .and. verbose) then
+                node__          => getParentNode(node_)
+                unknownNamePath =  ""
                 !$omp critical (FoX_DOM_Access)
-                unknownName    =getNodeName(node_)
+                unknownName=getNodeName(node_)
+                unknownNamePath=""
+                do while (associated(node__))
+                   if (getNodeName(node__) /= "#document")                                     &
+                        & unknownNamePath =  getNodeName  (node__)//"/"//trim(unknownNamePath)
+                   node__                 => getParentNode(node__)
+                end do
                 !$omp end critical (FoX_DOM_Access)
                 distanceMinimum=-1
                 do j=1,allowedParametersCount
@@ -1112,17 +1121,19 @@ contains
                    end if
                 end do
                 if (verbose) then
-                   message='unrecognized parameter ['//trim(unknownName)//']'
+                   message='unrecognized parameter ['//trim(unknownName)//' in '//trim(unknownNamePath)//']'
                    if (distanceMinimum >= 0) message=message//' (did you mean ['//trim(parameterNameGuess)//']?)'
                    call displayMessage(message)
                 end if
              end if
              ! Check for duplicated parameters.
              !$omp critical (FoX_DOM_Access)
-             if (parameterNamesSeen%exists(getNodeName(node_))) then
+             unknownName=getNodeName(node_)
+             !$omp end critical (FoX_DOM_Access)
+             if (parameterNamesSeen%exists(unknownName)) then
                 parameterMatched=.false.
                 if (present(allowedMultiParameterNames)) &
-                     & parameterMatched=any(getNodeName(node_) == allowedMultiParameterNames)
+                     & parameterMatched=any(unknownName == allowedMultiParameterNames)
                 if (.not.parameterMatched .and. .not.ignoreWarnings) then
                    if (.not.warningsFound.and.verbose) call displayIndent(displayMagenta()//'WARNING:'//displayReset()//' problems found with input parameters:')
                    warningsFound=.true.
@@ -1132,9 +1143,8 @@ contains
                    end if
                 end if
              else
-                call parameterNamesSeen%set(getNodeName(node_),1)
+                call parameterNamesSeen%set(unknownName,1)
              end if
-             !$omp end critical (FoX_DOM_Access)
           end if
           currentParameter => currentParameter%sibling
        end do
@@ -1539,13 +1549,13 @@ contains
     !!{
     Return the value of the specified parameter.
     !!}
-    use :: FoX_dom           , only : DOMException                     , getAttributeNode  , getNodeName                        , hasAttribute                              , &
-          &                           inException                      , node
+    use :: FoX_dom           , only : DOMException                     , getAttributeNode  , getNodeName   , hasAttribute      , &
+          &                           inException                      , node              , getTextContent, extractDataContent
     use :: Error             , only : Error_Report
-    use :: ISO_Varying_String, only : assignment(=)                    , char              , operator(//)                       , operator(==)                              , &
+    use :: ISO_Varying_String, only : assignment(=)                    , char              , operator(//)  , operator(==)      , &
           &                           trim
     use :: String_Handling   , only : String_Count_Words               , String_Split_Words, operator(//)
-    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists   , getTextContent  => getTextContentTS, extractDataContent => extractDataContentTS
+    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists
     use :: HDF5_Access       , only : hdf5Access
     implicit none
     class           (inputParameters                         ), intent(inout), target      :: self

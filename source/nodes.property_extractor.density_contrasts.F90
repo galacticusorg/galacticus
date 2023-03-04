@@ -210,7 +210,7 @@ contains
 
   function densityContrastsSize(self,time)
     !!{
-    Return the number of array alements in the {\normalfont \ttfamily densityContrasts} property extractors.
+    Return the number of array elements in the {\normalfont \ttfamily densityContrasts} property extractors.
     !!}
     implicit none
     integer         (c_size_t                             )                :: densityContrastsSize

@@ -31,7 +31,7 @@
     this method, the following procedure should be followed:
     \begin{enumerate}
      \item Identify a point in the evolution of the tree suitably close to, but before, the point of failure;
-     \item Insert approrpiate code into \glc\ to have it call the function to store the state of the file and then stop, e.g.:
+     \item Insert appropriate code into \glc\ to have it call the function to store the state of the file and then stop, e.g.:
      \begin{verbatim}
       use :: Merger_Tree_Construction, only : mergerTreeStateStore
       .

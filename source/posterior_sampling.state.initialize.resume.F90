@@ -66,7 +66,7 @@ contains
     !![
     <inputParameter>
       <name>logFileRoot</name>
-      <description>The root file name of the stae files from which to resume.</description>
+      <description>The root file name of the state files from which to resume.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>

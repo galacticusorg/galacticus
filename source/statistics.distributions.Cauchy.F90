@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Implementation of a 1D Cauchy distibution function.
+  Implementation of a 1D Cauchy distribution function.
   !!}
 
   !![
@@ -38,7 +38,7 @@
   !!]
   type, extends(distributionFunction1DClass) :: distributionFunction1DCauchy
      !!{
-     Implementation of a 1D Cauchy distibution function.
+     Implementation of a 1D Cauchy distribution function.
      !!}
      private
      double precision :: median, scale

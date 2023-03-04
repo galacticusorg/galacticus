@@ -1887,7 +1887,7 @@ contains
 
   function mpiGatherIntScalar(self,scalar)
     !!{
-    Gather an integre scalar from all processes, returning it as a 1-D array.
+    Gather an integer scalar from all processes, returning it as a 1-D array.
     !!}
 #ifndef USEMPI
     use Error, only : Error_Report
@@ -2060,7 +2060,7 @@ contains
        call MPI_Win_Lock(MPI_Lock_Shared,0,0,self%window,iError)
        if (iError /= 0) call Error_Report('failed to lock RMA window'          //{introspection:location})
        ! Take a snapshot of the number of OpenMP threads that are currently waiting on the lock (plus the current thread). This is
-       ! done without locking, so is subject to race conditions, but this doesn't matter - we just want a good estimate of the
+       ! done without locking, so is subject to race conditions, but this does not matter - we just want a good estimate of the
        ! number of increments that we need to obtain.
        countThreadsWaiting=self%countThreadsWaiting
        counterIn          =countThreadsWaiting
@@ -2081,6 +2081,7 @@ contains
     self%countIncrementsHeld=self%countIncrementsHeld-1_c_size_t
     !$ call self%ompLock_%unset()
     ! Decrement the count of OpenMP threads waiting on the lock.
+    !$omp atomic
     self%countThreadsWaiting=self%countThreadsWaiting-1_c_size_t
 #else
     !$ call self%ompLock_%  set()

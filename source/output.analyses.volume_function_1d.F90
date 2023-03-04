@@ -77,7 +77,7 @@ mass function) output analysis class.
      In addition to the main branch galaxies, each tree will contain a number of other galaxies (these will be ``satellite''
      galaxies at $z=0$, but at higher redshifts may still be central galaxies in their own halos). Tests have established that
      the number of satellites in halos is well described by a Poisson process. Note that, as described above, each galaxy
-     contributes a Gaussian distribution to the mass function due to modelling of random errors in property value
+     contributes a Gaussian distribution to the mass function due to modeling of random errors in property value
      determinations. For main branch galaxies this is simply accounted for when accumulating the probabilities, $p_{ik}$. For
      satellite galaxies, off-diagonal contributions to the covariance matrix arise as a result, $C_{ij} = w_k f_i f_j$, where
      $f_i$ is the fraction of the galaxy contributing to bin $i$ of the mass function.
@@ -471,7 +471,7 @@ contains
     <constructorAssign variables="label, comment, propertyLabel, propertyComment, propertyUnits, propertyUnitsInSI, distributionLabel, distributionComment, distributionUnits, distributionUnitsInSI, binCenter, bufferCount, outputWeight, *nodePropertyExtractor_, *outputAnalysisPropertyOperator_, *outputAnalysisPropertyUnoperator_, *outputAnalysisWeightOperator_, *outputAnalysisDistributionOperator_, *outputAnalysisDistributionNormalizer_, *galacticFilter_, *outputTimes_, covarianceModel, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum, xAxisLabel='x', yAxisLabel='y', xAxisIsLog=.false., yAxisIsLog=.false., targetLabel, functionValueTarget, functionCovarianceTarget, binWidth"/>
     !!]
 
-    ! Assign 1D version of the target covariance for use in the decriptor.
+    ! Assign 1D version of the target covariance for use in the descriptor.
     if (present(functionCovarianceTarget)) self%functionCovarianceTarget1D=reshape(functionCovarianceTarget,[size(functionCovarianceTarget)])
     ! Validate.
     select type (nodePropertyExtractor_)
@@ -846,7 +846,7 @@ contains
     type            (matrix                        )                                :: covariance
     integer                                                                         :: status
 
-    ! Check for existance of a target distribution.
+    ! Check for existence of a target distribution.
     if (allocated(self%functionValueTarget)) then
        ! Finalize analysis.
        call self%finalizeAnalysis()

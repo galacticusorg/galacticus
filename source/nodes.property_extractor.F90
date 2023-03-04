@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which provides a class that implements on-the-fly analyses.
+Contains a module which provieds a class that implements on-the-fly analyses.
 !!}
 
 module Node_Property_Extractors

@@ -205,7 +205,7 @@ contains
 
   subroutine cllsnlssMttCsmlgclCnstntRadiusTurnaround(self,time,tableStore,radiusTurnaround_)
     !!{
-    Tabulate the ratio of turnaround to virial radiii for the spherical collapse model.
+    Tabulate the ratio of turnaround to virial radii for the spherical collapse model.
     !!}
     use :: Error , only : errorStatusSuccess
     use :: Tables, only : table1D
@@ -540,7 +540,7 @@ contains
 
   subroutine cllsnlssMttCsmlgclCnstntLinearNonlinearMap(self,time,linearNonlinearMap_)
     !!{
-    Tabulate the mapping between linea rna dnonlinear overdensity for the spherical collapse model.
+    Tabulate the mapping between linear and nonlinear overdensity for the spherical collapse model.
     !!}
     use :: Array_Utilities      , only : Array_Reverse
     use :: Arrays_Search        , only : searchArray
@@ -608,7 +608,7 @@ contains
        end if
        ! Estimate a suitably negative minimum value for ε.
        epsilonPerturbationMinimum=-10.0d0
-       ! Compute cosmological parametrers at this epoch.
+       ! Compute cosmological parameters at this epoch.
        OmegaMatterEpochal    =self%cosmologyFunctions_%omegaMatterEpochal    (expansionFactor=expansionFactor)
        OmegaDarkEnergyEpochal=self%cosmologyFunctions_%omegaDarkEnergyEpochal(expansionFactor=expansionFactor)
        hubbleTimeEpochal     =self%cosmologyFunctions_%expansionRate         (                expansionFactor)

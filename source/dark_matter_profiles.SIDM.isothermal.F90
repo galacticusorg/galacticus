@@ -119,7 +119,7 @@ contains
     call galacticStructureConstruct_(parameters,galacticStructure_)
     self=darkMatterProfileSIDMIsothermal(darkMatterProfile_,darkMatterHaloScale_,darkMatterParticle_,galacticStructure_)
     !![
-    <inputParametersValidate source="parameters"/>
+    <inputParametersValidate source="parameters" extraAllowedNames="galacticStructure"/>
     <objectDestructor name="darkMatterHaloScale_"/>
     <objectDestructor name="darkMatterParticle_" />
     <objectDestructor name="darkMatterProfile_"  />
@@ -148,7 +148,7 @@ contains
     class is (darkMatterParticleSelfInteractingDarkMatter)
        ! This is as expected.
     class default
-       call Error_Report('transfer function expects a self-interacting dark matter particle'//{introspection:location})
+       call Error_Report('SIDM isothermal dark matter profile expects a self-interacting dark matter particle'//{introspection:location})
     end select
     self%uniqueIDPrevious    =-1_kind_int8
     self%genericLastUniqueID =-1_kind_int8

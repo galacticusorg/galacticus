@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Implementation of a posterior sampling state initializor class which initializes all chains to values read from a parameter file.
+  Implementation of a posterior sampling state initializer class which initializes all chains to values read from a parameter file.
   !!}
 
   use :: ISO_Varying_String, only : varying_string

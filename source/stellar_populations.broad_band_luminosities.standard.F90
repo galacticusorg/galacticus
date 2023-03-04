@@ -357,7 +357,7 @@ contains
     populationID=stellarPopulation_%uniqueID()
     if (.not.allocated(self%luminosityTables).or.size(self%luminosityTables) < populationID) then
        ! A resize or allocation is required. Obtain a write lock on the tables and then re-test if resizing is required (as
-       ! another thread could potentially have alreaedy done this while we waited for the write lock).
+       ! another thread could potentially have already done this while we waited for the write lock).
        call self%luminosityTableLock%setWrite(haveReadLock=.true.)
        if (allocated(self%luminosityTables)) then
           if (size(self%luminosityTables) < populationID) then
@@ -687,7 +687,7 @@ contains
       use :: Numerical_Constants_Astronomical, only : luminositySolar, luminosityZeroPointAB
       implicit none
       double precision, intent(in   ) :: wavelength
-      ! Luminosity of a zeroth magintude (AB) source in Solar luminosities per Hz.
+      ! Luminosity of a zeroth magnitude (AB) source in Solar luminosities per Hz.
       double precision, parameter     :: luminosityZeroPointABSolar=luminosityZeroPointAB/luminositySolar
 
       integrandFilteredLuminosityAB=+filterResponse_           %interpolate(wavelength) &

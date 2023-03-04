@@ -325,7 +325,7 @@ contains
           outputWeight(:,i)=0.0d0
        end if
     end do
-    ! Construct the mean function analzyer.
+    ! Construct the mean function analyzer.
     self%outputAnalysisMeanFunction1D=outputAnalysisMeanFunction1D(                                                                                       &
          &                                                                              var_str('subhaloVelocityMaximumMean'                           ), &
          &                                                                              var_str('Subhalo mean maximum velocity vs. bound mass relation'), &

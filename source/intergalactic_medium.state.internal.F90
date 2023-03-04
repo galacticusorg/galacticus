@@ -329,7 +329,7 @@ contains
 
   subroutine internalStateSet(self,time,densityHydrogen1,densityHydrogen2,densityHelium1,densityHelium2,densityHelium3,temperature,massFiltering)
     !!{
-    Set state in the internal intergalatic medium state class.
+    Set state in the internal intergalactic medium state class.
     !!}
     use :: Error            , only : Error_Report
     implicit none

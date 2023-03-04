@@ -33,7 +33,7 @@ module Supernovae_Type_Ia
    <name>supernovaeTypeIa</name>
    <descriptiveName>Supernovae Type Ia</descriptiveName>
    <description>
-    Class providing models of supernovae type Ia, including the cumulative number occuring and metal yield.
+    Class providing models of supernovae type Ia, including the cumulative number occurring and metal yield.
    </description>
    <default>nagashima2005</default>
    <method name="number" >

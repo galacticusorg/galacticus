@@ -103,7 +103,7 @@ contains
       <name>analyzeAllParticles</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>If true, all particles are assumed to be self-bound at the beginning of the analysis. Unbound particles at previous times are allowed to become bound in the current snapshot. If false and the self-bound information from the previous snapshot is available, only the particles that are self-bound at the previous snapshot are assumed to be bound at the begnning of the anlysis.</description>
+      <description>If true, all particles are assumed to be self-bound at the beginning of the analysis. Unbound particles at previous times are allowed to become bound in the current snapshot. If false and the self-bound information from the previous snapshot is available, only the particles that are self-bound at the previous snapshot are assumed to be bound at the beginning of the analysis.</description>
     </inputParameter>
     <inputParameter>
       <name>useVelocityMostBound</name>
@@ -249,7 +249,7 @@ contains
     allocate(weightBound            (                         self%bootstrapSampleCount))
     allocate(weightBoundPrevious    (                         self%bootstrapSampleCount))
     allocate(isConverged            (                         self%bootstrapSampleCount))
-    ! Iterate over bootstrap samplings.
+    ! Iterate over bootstrap samples.
     call displayIndent('Performing self-bound analysis on bootstrap samples')
     ! If previous bound status is available, read in the self-bound status and sampling weights. If not, generate new values.
     if (previous > 0) then
@@ -345,7 +345,7 @@ contains
           if (.not.compute(i)) cycle
           ! Check how to accumulate changes to potentials.
           if (addSubtract == +1) then
-             ! Recomute potentials for all self-bound partiles.
+             ! Recompute potentials for all self-bound particles.
              computeActual        = compute
              isBoundComputeActual = isBoundCompute
           else

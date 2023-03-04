@@ -28,7 +28,7 @@
   !!]
   type, extends(mergerTreeBuildMassesSampledDistribution) :: mergerTreeBuildMassesSampledDistributionQuasiRandom
      !!{
-     Implementation of a merger tree masses class which samples masses from a distribution with pseudi-random sampling.
+     Implementation of a merger tree masses class which samples masses from a distribution with pseudo-random sampling.
      !!}
      private
    contains
