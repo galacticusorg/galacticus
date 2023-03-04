@@ -48,6 +48,7 @@
      procedure :: positionSample          => sphericalPositionSample
      procedure :: rotationCurve           => sphericalRotationCurve
      procedure :: rotationCurveGradient   => sphericalRotationCurveGradient
+     procedure :: surfaceDensity          => sphericalSurfaceDensity
   end type massDistributionSpherical
 
   ! Module scope variables used in integration and root finding.
@@ -288,7 +289,7 @@ contains
 
   double precision function sphericalRotationCurve(self,radius,componentType,massType)
     !!{
-    Return the rotation curve for a spherical mass distibution.
+    Return the rotation curve for a spherical mass distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
@@ -373,3 +374,20 @@ contains
          &                   ]
     return
   end function sphericalPositionSample
+
+  double precision function sphericalSurfaceDensity(self,coordinates,componentType,massType)
+    !!{
+    Return the surface density at the specified {\normalfont \ttfamily coordinates} in an exponential disk mass distribution.
+    !!}
+    use :: Coordinates, only : coordinate
+    use :: Error      , only : Error_Report
+    implicit none
+    class(massDistributionSpherical   ), intent(inout)           :: self
+    class(coordinate                  ), intent(in   )           :: coordinates
+    type (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type (enumerationMassTypeType     ), intent(in   ), optional :: massType
+
+    sphericalSurfaceDensity=0.0d0
+    if (self%matches(componentType,massType)) call Error_Report('surface density is not defined for spherically-symmetric distributions'//{introspection:location})
+    return
+  end function sphericalSurfaceDensity
