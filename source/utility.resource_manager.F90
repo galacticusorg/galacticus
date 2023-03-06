@@ -98,11 +98,17 @@ contains
     class(resourceManager), intent(  out) :: to
     class(resourceManager), intent(in   ) :: from
 
-    ! Copy pointers to the shared resource and shared counter.
-    to%resource => from%resource
-    to%counter  => from%counter
-    ! Increment the reference count to our shared object.
-    to%counter  =  to  %counter +1
+    if (associated(from%counter)) then
+       ! Copy pointers to the shared resource and shared counter.
+       to%resource => from%resource
+       to%counter  => from%counter
+       ! Increment the reference count to our shared object.
+       to%counter  =  to  %counter +1
+    else
+       ! No resource to manage - set null pointers.
+       to%resource => null()
+       to%counter  => null()
+    end if
     return
   end subroutine resourceManagerAssign
     
