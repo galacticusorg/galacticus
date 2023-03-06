@@ -25,8 +25,9 @@ module Locks
   !!{
   Provides advanced locks.
   !!}
-  use   , intrinsic :: ISO_C_Binding, only : c_size_t
-  !$ use            :: OMP_Lib      , only : omp_lock_kind
+  use   , intrinsic :: ISO_C_Binding   , only : c_size_t
+  !$ use            :: Resource_Manager, only : resourceManager
+  !$ use            :: OMP_Lib         , only : omp_lock_kind
   implicit none
   private
   public :: ompLock, ompReadWriteLock, ompIncrementalLock
@@ -36,8 +37,9 @@ module Locks
      OpenMP lock type which allows querying based on thread number.
      !!}
      private
-     !$ integer(omp_lock_kind) :: lock
-     integer                   :: ownerThread=-1
+     !$ type   (resourceManager)          :: lockManager
+     !$ integer(omp_lock_kind  ), pointer :: lock        => null()
+     integer                              :: ownerThread =  -1
    contains
      !![
      <methods>
@@ -130,8 +132,19 @@ contains
     Constructor for OpenMP lock objects.
     !!}
     implicit none
-    type(ompLock) :: self
+    type (ompLock)          :: self
+    class(*      ), pointer :: dummyPointer_
 
+    !$ allocate(self%lock)
+    !![
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    !!]
+    !$ dummyPointer_    => self%lock
+    !$ self%lockManager =  resourceManager(dummyPointer_)
+    !![
+    </workaround>
+    !!]
     call self%initialize()
     return
   end function ompLockConstructor

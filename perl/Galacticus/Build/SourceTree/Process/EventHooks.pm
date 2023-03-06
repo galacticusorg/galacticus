@@ -451,7 +451,7 @@ subroutine eventsHooksInitialize()
    eventsHooksFilterCopyIn   => eventsHooksFilterCopyIn_
    eventsHooksFilterCopyDone => eventsHooksFilterCopyDone_
    eventsHooksFilterRestore  => eventsHooksFilterRestore_
-   call copyLock%initialize()
+   copyLock=ompLock()
 CODE
 	    foreach my $hook ( @hooks ) {
 		$initializor .= "   ".$hook->{'name'}."EventGlobal%isGlobal=.true.\n";
