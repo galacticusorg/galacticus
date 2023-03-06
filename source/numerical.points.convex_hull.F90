@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which provieds tools for working with convex hulls of sets of points.
+Contains a module which provides tools for working with convex hulls of sets of points.
 !!}
 
 ! Specify an explicit dependence on the qhull.o object file.
@@ -28,17 +28,29 @@ module Points_Convex_Hull
   !!{
   Provide tools for working with convex hulls of sets of points.
   !!}
-  use, intrinsic :: ISO_C_Binding, only : c_ptr , c_null_ptr, c_double, c_int, &
-       &                                  c_long, c_bool
+  use, intrinsic :: ISO_C_Binding   , only : c_ptr          , c_null_ptr, c_double, c_int, &
+       &                                     c_long         , c_bool
+  use            :: Resource_Manager, only : resourceManager
   implicit none
   private
   public :: convexHull
 
+  type :: qhull
+     !!{
+     Wrapper class used to manage {\normalfont \ttfamily qhull} objects.
+     !!}
+     private
+     type(c_ptr) :: qhull_=c_null_ptr
+   contains
+     final :: qhullDestructor
+  end type qhull
+  
   type :: convexHull
      !!{
      Type used to wrap \href{http://www.qhull.org}{qhull} convex hull objects.
      !!}
-     type(c_ptr) :: qhull=c_null_ptr
+     type(qhull          ), pointer :: qhull_       => null()
+     type(resourceManager)          :: qhullManager
    contains
      !![
      <methods>
@@ -46,7 +58,6 @@ module Points_Convex_Hull
        <method method="pointIsInHull" description="Return true if the given point is inside the convex hull."/>
      </methods>
      !!]
-     final     ::                  convexHullDestructor
      procedure :: volume        => convexHullVolume
      procedure :: pointIsInHull => convexHullPointIsInHull
   end type convexHull
@@ -111,10 +122,21 @@ contains
     double precision            , dimension(:,:), intent(in   ) :: points    
 #ifdef QHULLAVAIL
     integer                                                     :: status
-
+    class           (*         ), pointer                       :: dummyPointer_
+    
     if (size(points,dim=1) /= 3) call Error_Report('3D points are required'//{introspection:location})
-    self%qhull=convexHullConstructorC(size(points,dim=2,kind=c_long),points,status)
+    allocate(self%qhull_)
+    self%qhull_%qhull_=convexHullConstructorC(size(points,dim=2,kind=c_long),points,status)
     if (status /= 0) call Error_Report('convex hull construction failed'//{introspection:location})
+    !![
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    !!]
+    !$ dummyPointer_     => self%qhull_
+    !$ self%qhullManager =  resourceManager(dummyPointer_)
+    !![
+    </workaround>
+    !!]
 #else
     !$GLC attributes unused :: points
     self%qhull=c_null_ptr
@@ -122,23 +144,23 @@ contains
     return
   end function convexHullConstructor
 
-  subroutine convexHullDestructor(self)
+  subroutine qhullDestructor(self)
     !!{
-    Destructor for {\normalfont \ttfamily convexHull} objects.
+    Destructor for {\normalfont \ttfamily qhull} objects.
     !!}
 #ifdef QHULLAVAIL
     use, intrinsic :: ISO_C_Binding, only : c_associated
 #endif
     implicit none
-    type(convexHull), intent(inout) :: self
+    type(qhull), intent(inout) :: self
     
 #ifdef QHULLAVAIL
-    if (c_associated(self%qhull)) call convexHullDestructorC(self%qhull)
+    if (c_associated(self%qhull_)) call convexHullDestructorC(self%qhull_)
 #else
     !$GLC attributes unused :: self
 #endif
     return
-  end subroutine convexHullDestructor
+  end subroutine qhullDestructor
 
   double precision function convexHullVolume(self)
     !!{
@@ -151,7 +173,7 @@ contains
     class(convexHull), intent(inout) :: self
 
 #ifdef QHULLAVAIL
-    convexHullVolume=convexHullVolumeC(self%qhull)
+    convexHullVolume=convexHullVolumeC(self%qhull_%qhull_)
 #else
     !$GLC attributes unused :: self
     convexHullVolume=0.0d0
@@ -172,7 +194,7 @@ contains
     real (c_double  ), dimension(3)  :: point
 
 #ifdef QHULLAVAIL
-    convexHullPointIsInHull=convexHullPointIsInHullC(self%qhull,point)
+    convexHullPointIsInHull=convexHullPointIsInHullC(self%qhull_%qhull_,point)
 #else
     !$GLC attributes unused :: self, point
     convexHullPointIsInHull=.false.
