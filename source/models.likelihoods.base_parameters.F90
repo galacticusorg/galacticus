@@ -73,7 +73,7 @@ contains
     integer                                                                           :: i                     , j                       , &
          &                                                                               instance              , indexElement            , &
          &                                                                               parameterCount
-    type     (inputParameters                        )                                :: parameters_           , subParameters_
+    type     (inputParameters                        ), pointer                       :: parameters_           , subParameters_
     character(len=10                                 )                                :: labelIndex
 
     ! On first call we must build pointers to all parameter nodes which will be modified as a function of chain state.
@@ -91,6 +91,7 @@ contains
           parameterCount=String_Count_Words(char(modelParametersActive_(i)%modelParameter_%name()),"::")
           allocate(parameterNames(parameterCount))
           call String_Split_Words(parameterNames,char(modelParametersActive_(i)%modelParameter_%name()),"::")
+          allocate(parameters_)
           parameters_=inputParameters(self%parametersModel)
           do j=1,parameterCount
              instance    =1
@@ -112,10 +113,15 @@ contains
                 self%modelParametersActive_(i)%indexElement =  indexElement
              else
                 ! This is an intermediate parameter, get the appropriate sub-parameters.
+                allocate  (subParameters_)
                 subParameters_                              =  parameters_%subParameters(char(parameterNames(j)),requireValue=.false.,copyInstance=instance)
+                deallocate(   parameters_)
+                allocate  (   parameters_)
                 parameters_                                 =  inputParameters(subParameters_)
+                deallocate(subParameters_)
              end if
           end do
+          deallocate(parameters_   )
           deallocate(parameterNames)
        end do
     end if
@@ -133,6 +139,7 @@ contains
           parameterCount=String_Count_Words(char(modelParametersInactive_(i)%modelParameter_%name()),"::")
           allocate(parameterNames(parameterCount))
           call String_Split_Words(parameterNames,char(modelParametersInactive_(i)%modelParameter_%name()),"::")
+          allocate(parameters_)
           parameters_=inputParameters(self%parametersModel)
           do j=1,parameterCount
              instance    =1
@@ -154,10 +161,15 @@ contains
                 self%modelParametersInactive_(i)%indexElement =  indexElement
              else
                 ! This is an intermediate parameter, get the appropriate sub-parameters.
+                allocate  (subParameters_)
                 subParameters_                                =  parameters_   %subParameters(char(parameterNames(j)),requireValue=.false.,copyInstance=instance)
+                deallocate(   parameters_)
+                allocate  (   parameters_)
                 parameters_                                   =  inputParameters(subParameters_)
+                deallocate(subParameters_)
              end if
           end do
+          deallocate(parameters_   )
           deallocate(parameterNames)
        end do
     end if

@@ -1784,10 +1784,10 @@ contains
     logical                                          , intent(in   ), optional :: hashed
     type   (node                                    ), pointer                 :: node_
     type   (inputParameter                          ), pointer                 :: currentParameter
+    type   (inputParameters                         ), allocatable             :: subParameters
     type   (enumerationInputParameterErrorStatusType)                          :: errorStatus
-    type   (varying_string                          )                          :: parameterValue  , nodeName
+    type   (varying_string                          )                          :: parameterValue                  , nodeName
     logical                                                                    :: firstParameter
-    type   (inputParameters                         )                          :: subParameters
     !![
     <optionalArgument name="hashed" defaultsTo=".false." />
     !!]
@@ -1810,11 +1810,13 @@ contains
           !$omp critical (FoX_DOM_Access)
           nodeName=getNodeName(node_)
           !$omp end critical (FoX_DOM_Access)
+          allocate(subParameters)
           subParameters=self%subParameters(char(nodeName))
           if (associated(subParameters%parameters%firstChild)) inputParametersSerializeToString=inputParametersSerializeToString // &
                &                                                                                "{"                              // &
                &                                                                                subParameters%serializeToString()// &
                &                                                                                "}"
+          deallocate(subParameters)
           firstParameter=.false.
        end if
        currentParameter => currentParameter%sibling
