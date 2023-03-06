@@ -26,11 +26,12 @@ module MPI_Utilities
   Implements useful MPI utilities.
   !!}
 #ifdef USEMPI
-  use               :: MPI_F08           , only : MPI_Win                , MPI_Datatype
+  use               :: MPI_F08           , only : MPI_Win        , MPI_Datatype
 #endif
   !$ use            :: Locks             , only : ompLock
-  use   , intrinsic :: ISO_C_Binding     , only : c_size_t              , c_ptr
+  use   , intrinsic :: ISO_C_Binding     , only : c_size_t       , c_ptr
   use               :: ISO_Varying_String, only : varying_string
+  use               :: Resource_Manager  , only : resourceManager
   private
   public :: mpiInitialize, mpiFinalize, mpiBarrier, mpiSelf, mpiCounter
 
@@ -125,22 +126,41 @@ module MPI_Utilities
   ! Declare an object for interaction with MPI.
   type(mpiObject) :: mpiSelf
 
+  ! Wrapper types for MPI shared resources.
+  type :: mpiMemory
+     !!{
+     A wrapper type for MPI shared memory.
+     !!}
+     type(c_ptr) :: memory
+   contains
+     final :: mpiMemoryDestructor
+  end type mpiMemory
+
+  type :: mpiWindow
+     !!{
+     A wrapper type for MPI windows.
+     !!}
+     type(MPI_Win) :: window
+   contains
+     final :: mpiWindowDestructor
+  end type mpiWindow
+  
   ! Define an MPI counter type.
   type :: mpiCounter
      !!{
      An MPI-global counter class. The counter can be incremented and will return a globally unique integer, beginning at 0.
      !!}
 #ifdef USEMPI
-     type   (MPI_Win     ) :: window
-     type   (MPI_Datatype) :: typeClass
-     type   (c_ptr       ) :: counter
-     integer(c_size_t    ) :: countThreadsWaiting, countIncrementsHeld, &
-          &                   counterHeld
+     type   (mpiWindow      ), pointer :: window              => null()
+     type   (MPI_Datatype   )          :: typeClass
+     type   (mpiMemory      ), pointer :: counter             => null()
+     type   (resourceManager)          :: windowManager                , counterManager
+     integer(c_size_t       )          :: countThreadsWaiting          , countIncrementsHeld, &
+          &                               counterHeld
 #else
-     integer(c_size_t    ) :: counter
+     integer(c_size_t       )          :: counter
 #endif
-     !$ type(ompLock )     :: ompLock_
-     logical               :: initialized=.false.
+     !$ type(ompLock        )          :: ompLock_
    contains
      !![
      <methods>
@@ -149,7 +169,6 @@ module MPI_Utilities
        <method description="Reset the counter."                              method="reset"    />
      </methods>
      !!]
-     final     ::              counterDestructor
      procedure :: increment => counterIncrement
      procedure :: decrement => counterDecrement
      procedure :: reset     => counterReset
@@ -1940,7 +1959,7 @@ contains
     use, intrinsic :: ISO_C_Binding, only : C_Null_Ptr           , C_F_Pointer
 #ifdef USEMPI
     use            :: Error        , only : Error_Report
-    use            :: MPI_F08      , only : MPI_Win_Create       , MPI_Address_Kind, MPI_Info_Null      , MPI_Comm_World    , &
+    use            :: MPI_F08      , only : MPI_Win_Create       , MPI_Address_Kind, MPI_Info_Null      , MPI_Comm_World, &
          &                                  MPI_TypeClass_Integer, MPI_SizeOf      , MPI_Type_Match_Size, MPI_Alloc_Mem
 #endif
     implicit none
@@ -1948,29 +1967,49 @@ contains
 #ifdef USEMPI
     integer                      :: mpiSize            , iError
     integer(c_size_t  ), pointer :: countInitialPointer
+    class  (*         ), pointer :: dummyPointer_
 
     call MPI_SizeOf(0_c_size_t,mpiSize,iError)
     if (iError /= 0) call Error_Report('failed to get type size'//{introspection:location})
     call MPI_Type_Match_Size(MPI_TypeClass_Integer,mpiSize,self%typeClass,iError)
     if (iError /= 0) call Error_Report('failed to get type'     //{introspection:location})
+    allocate(self%window)
     if (mpiSelf%rank() == 0) then
        ! The rank-0 process allocates space for the counter and creates its window.
-       call MPI_Alloc_Mem(int(mpiSize,kind=MPI_Address_Kind),MPI_Info_Null,self%counter,iError)
+       allocate(self%counter)
+       call MPI_Alloc_Mem(int(mpiSize,kind=MPI_Address_Kind),MPI_Info_Null,self%counter%memory,iError)
        if (iError /= 0) call Error_Report('failed to allocate counter memory'//{introspection:location})
-       call C_F_Pointer(self%counter,countInitialPointer)
-       call MPI_Win_Create(countInitialPointer,int(mpiSize,kind=MPI_Address_Kind),mpiSize,MPI_Info_Null,MPI_Comm_World,self%window,iError)
+       call C_F_Pointer(self%counter%memory,countInitialPointer)
+       !![
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+	 <description>ICE when passing a derived type component to a class(*) function argument.</description>
+       !!]
+       !$ dummyPointer_       => self%counter
+       !$ self%counterManager =  resourceManager(dummyPointer_)
+       !![
+       </workaround>
+       !!]
+       call MPI_Win_Create(countInitialPointer,int(mpiSize,kind=MPI_Address_Kind),mpiSize,MPI_Info_Null,MPI_Comm_World,self%window%window,iError)
        if (iError /= 0) call Error_Report('failed to create RMA window'//{introspection:location})
        call mpiBarrier()
     else
        ! Other processes create a zero-size window.
-       call MPI_Win_Create(C_Null_Ptr  ,               0_MPI_Address_Kind,mpiSize,MPI_Info_Null,MPI_Comm_World,self%window,iError)
+       call MPI_Win_Create(C_Null_Ptr  ,               0_MPI_Address_Kind,mpiSize,MPI_Info_Null,MPI_Comm_World,self%window%window,iError)
        if (iError /= 0) call Error_Report('failed to create RMA window'//{introspection:location})
        call mpiBarrier()
     end if
+    !![
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    !!]
+    !$ dummyPointer_      => self%window
+    !$ self%windowManager =  resourceManager(dummyPointer_)
+    !![
+    </workaround>
+    !!]
 #endif
     call self%reset()
-    !$ self%ompLock_=ompLock()
-    self%initialized=.true.
+    !$ self%ompLock_=ompLock()    
     return
   end function counterConstructor
 
@@ -1992,12 +2031,12 @@ contains
        ! The rank-0 process resets the counter.
        !$omp master
        ! Reset the counter to zero.
-       call MPI_Win_Lock(MPI_Lock_Exclusive,0,0,self%window,iError)
+       call MPI_Win_Lock(MPI_Lock_Exclusive,0,0,self%window%window,iError)
        if (iError /= 0) call Error_Report('failed to lock RMA window'  //{introspection:location})
        countInitial=0_c_size_t
-       call MPI_Put(countInitial,1,self%typeClass,0,0_MPI_Address_Kind,1,self%typeClass,self%window,iError)
+       call MPI_Put(countInitial,1,self%typeClass,0,0_MPI_Address_Kind,1,self%typeClass,self%window%window,iError)
        if (iError /= 0) call Error_Report('failed to set MPI counter'  //{introspection:location})
-       call MPI_Win_Unlock(0,self%window,iError)
+       call MPI_Win_Unlock(0,self%window%window,iError)
        if (iError /= 0) call Error_Report('failed to unlock RMA window'//{introspection:location})
        !$omp end master
     end if
@@ -2005,33 +2044,48 @@ contains
     self%countIncrementsHeld=0_c_size_t
     call mpiBarrier()
 #else
-    self%counter=0
+    self%counter%memory=0
 #endif
     return
   end subroutine counterReset
 
-  subroutine counterDestructor(self)
+  subroutine mpiWindowDestructor(self)
     !!{
-    Destructor for the MPI counter class.
+    Destructor for the {\normalfont \ttfamily mpiWindow} class.
     !!}
 #ifdef USEMPI
-    use :: MPI_F08, only : MPI_Win_Free, MPI_Free_Mem
+    use :: MPI_F08, only : MPI_Win_Free
 #endif
     implicit none
-    type   (mpiCounter), intent(inout) :: self
+    type   (mpiWindow), intent(inout) :: self
 #ifdef USEMPI
-    integer                            :: iError
+    integer                           :: iError
 
-    if (self%initialized) then
-       call MPI_Win_Free(self%window ,iError)
-       call MPI_Free_Mem(self%counter,iError)
-       self%initialized=.false.
-    end if
+    call MPI_Win_Free(self%window,iError)
 #else
     !$GLC attributes unused :: self
 #endif
     return
-  end subroutine counterDestructor
+  end subroutine mpiWindowDestructor
+  
+  subroutine mpiMemoryDestructor(self)
+    !!{
+    Destructor for the {\normalfont \ttfamily mpiMemory} class.
+    !!}
+#ifdef USEMPI
+    use :: MPI_F08, only : MPI_Free_Mem
+#endif
+    implicit none
+    type   (mpiMemory), intent(inout) :: self
+#ifdef USEMPI
+    integer                           :: iError
+
+    call MPI_Free_Mem(self%memory,iError)
+#else
+    !$GLC attributes unused :: self
+#endif
+    return
+  end subroutine mpiMemoryDestructor
 
   function counterIncrement(self)
     !!{
@@ -2057,7 +2111,7 @@ contains
     ! If we are currently not holding any increments from the counter, we need to get some now.
     if (self%countIncrementsHeld == 0_c_size_t) then
        ! Begin a lock on the MPI shared window.
-       call MPI_Win_Lock(MPI_Lock_Shared,0,0,self%window,iError)
+       call MPI_Win_Lock(MPI_Lock_Shared,0,0,self%window%window,iError)
        if (iError /= 0) call Error_Report('failed to lock RMA window'          //{introspection:location})
        ! Take a snapshot of the number of OpenMP threads that are currently waiting on the lock (plus the current thread). This is
        ! done without locking, so is subject to race conditions, but this does not matter - we just want a good estimate of the
@@ -2065,10 +2119,10 @@ contains
        countThreadsWaiting=self%countThreadsWaiting
        counterIn          =countThreadsWaiting
        ! Increment the counter by the number of waiting OpenMP threads.
-       call MPI_Get_Accumulate(counterIn,1,self%typeClass,counterOut,1,self%typeClass,0,0_MPI_Address_Kind,1,self%typeClass,MPI_Sum,self%window,iError)
+       call MPI_Get_Accumulate(counterIn,1,self%typeClass,counterOut,1,self%typeClass,0,0_MPI_Address_Kind,1,self%typeClass,MPI_Sum,self%window%window,iError)
        if (iError /= 0) call Error_Report('failed to accumulate to MPI counter'//{introspection:location})
        ! Unlock the MPI shared window to force synchronization to local variables.
-       call MPI_Win_Unlock(0,self%window,iError)
+       call MPI_Win_Unlock(0,self%window%window,iError)
        if (iError /= 0) call Error_Report('failed to unlock RMA window'        //{introspection:location})
        ! Record the current value of the counter for this MPI process, and the number of increments of it that we have held.
        self%countIncrementsHeld=countThreadsWaiting
@@ -2085,8 +2139,8 @@ contains
     self%countThreadsWaiting=self%countThreadsWaiting-1_c_size_t
 #else
     !$ call self%ompLock_%  set()
-    counterIncrement=self%counter
-    self%counter    =self%counter+1_c_size_t
+    counterIncrement   =self%counter%memory
+    self%counter%memory=self%counter%memory+1_c_size_t
     !$ call self%ompLock_%unset()
 #endif
     return
@@ -2110,18 +2164,18 @@ contains
 
     counterIn=-1_c_size_t
     !$ call self%ompLock_%  set()
-    call MPI_Win_Lock(MPI_Lock_Exclusive,0,0,self%window,iError)
+    call MPI_Win_Lock(MPI_Lock_Exclusive,0,0,self%window%window,iError)
     if (iError /= 0) call Error_Report('failed to lock RMA window'          //{introspection:location})
-    call MPI_Get_Accumulate(counterIn,1,self%typeClass,counterOut,1,self%typeClass,0,0_MPI_Address_Kind,1,self%typeClass,MPI_Sum,self%window,iError)
+    call MPI_Get_Accumulate(counterIn,1,self%typeClass,counterOut,1,self%typeClass,0,0_MPI_Address_Kind,1,self%typeClass,MPI_Sum,self%window%window,iError)
     if (iError /= 0) call Error_Report('failed to accumulate to MPI counter'//{introspection:location})
-    call MPI_Win_Unlock(0,self%window,iError)
+    call MPI_Win_Unlock(0,self%window%window,iError)
     if (iError /= 0) call Error_Report('failed to unlock RMA window'        //{introspection:location})
     !$ call self%ompLock_%unset()
     counterDecrement=counterOut(1)
 #else
     !$ call self%ompLock_%  set()
-    counterDecrement=self%counter
-    self%counter=self%counter-1_c_size_t
+    counterDecrement   =self%counter%memory
+    self%counter%memory=self%counter%memory-1_c_size_t
     !$ call self%ompLock_%unset()
 #endif
     return
