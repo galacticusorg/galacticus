@@ -140,7 +140,9 @@ module MPI_Utilities
      !!{
      A wrapper type for MPI windows.
      !!}
+#ifdef USEMPI
      type(MPI_Win) :: window
+#endif
    contains
      final :: mpiWindowDestructor
   end type mpiWindow
@@ -2044,7 +2046,7 @@ contains
     self%countIncrementsHeld=0_c_size_t
     call mpiBarrier()
 #else
-    self%counter%memory=0
+    self%counter=0
 #endif
     return
   end subroutine counterReset
@@ -2139,8 +2141,8 @@ contains
     self%countThreadsWaiting=self%countThreadsWaiting-1_c_size_t
 #else
     !$ call self%ompLock_%  set()
-    counterIncrement   =self%counter%memory
-    self%counter%memory=self%counter%memory+1_c_size_t
+    counterIncrement=self%counter
+    self%counter    =self%counter+1_c_size_t
     !$ call self%ompLock_%unset()
 #endif
     return
@@ -2174,8 +2176,8 @@ contains
     counterDecrement=counterOut(1)
 #else
     !$ call self%ompLock_%  set()
-    counterDecrement   =self%counter%memory
-    self%counter%memory=self%counter%memory-1_c_size_t
+    counterDecrement=self%counter
+    self%counter    =self%counter-1_c_size_t
     !$ call self%ompLock_%unset()
 #endif
     return
