@@ -1041,7 +1041,21 @@ CODE
 				    $allowedParametersCode     .= "     countNew=0\n";
 				    $allowedParametersCode     .= "     if (allocated(allowedParameters)) then\n";
 				    for(my $i=0;$i<$parameterCount;++$i) {
-					$allowedParametersCode .= "       if (.not.any(trim(allowedParameters) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}->[$i]."')) countNew=countNew+1\n";
+					# <workaround type="gfortran" PR="37336" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=37336">
+					#   <description>
+					#     Array constructors are not correctly finalized. So, avoid using thme
+					#   </description>
+					# $allowedParametersCode .= "       if (.not.any(trim(allowedParameters) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}->[$i]."')) countNew=countNew+1\n";
+					$allowedParametersCode .= "       isNew=.true.\n";
+					$allowedParametersCode .= "       do j=1,size(allowedParameters)\n";
+					$allowedParametersCode .= "          allowedParameter=trim(allowedParameters(j))\n";
+					$allowedParametersCode .= "          if (allowedParameter == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}->[$i]."') then\n";
+					$allowedParametersCode .= "             isNew=.false.\n";
+					$allowedParametersCode .= "             exit\n";
+					$allowedParametersCode .= "          end if\n";
+					$allowedParametersCode .= "       end do\n";
+					$allowedParametersCode .= "       if (isNew) countNew=countNew+1\n";
+					# </workaround>
 				    }
 				    $allowedParametersCode     .= "       if (countNew > 0) then\n";
 				    $allowedParametersCode     .= "         call move_alloc(allowedParameters,allowedParametersTmp)\n";
@@ -1049,7 +1063,21 @@ CODE
 				    $allowedParametersCode     .= "         allowedParameters(1:size(allowedParametersTmp))=allowedParametersTmp\n";
 				    $allowedParametersCode     .= "         deallocate(allowedParametersTmp)\n";
 				    for(my $i=0;$i<$parameterCount;++$i) {
-					$allowedParametersCode .= "         if (.not.any(trim(allowedParameters(1:size(allowedParameters)-countNew)) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}->[$i]."')) then\n";
+					# <workaround type="gfortran" PR="37336" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=37336">
+					#   <description>
+					#     Array constructors are not correctly finalized. So, avoid using thme
+					#   </description>
+					# $allowedParametersCode .= "         if (.not.any(trim(allowedParameters(1:size(allowedParameters)-countNew)) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}->[$i]."')) then\n";
+					$allowedParametersCode .= "       isNew=.true.\n";
+					$allowedParametersCode .= "       do j=1,size(allowedParameters)-countNew\n";
+					$allowedParametersCode .= "          allowedParameter=trim(allowedParameters(j))\n";
+					$allowedParametersCode .= "          if (allowedParameter == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}->[$i]."') then\n";
+					$allowedParametersCode .= "             isNew=.false.\n";
+					$allowedParametersCode .= "             exit\n";
+					$allowedParametersCode .= "          end if\n";
+					$allowedParametersCode .= "       end do\n";
+					$allowedParametersCode .= "       if (isNew) then\n";
+					# </workaround>
 					$allowedParametersCode .= "           countNew=countNew-1\n";
 					$allowedParametersCode .= "           allowedParameters(size(allowedParameters)-countNew)='".$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}->[$i]."'\n";
 					$allowedParametersCode .= "         end if\n";
@@ -1073,7 +1101,20 @@ CODE
 				    $allowedParametersCode     .= "     countNew=0\n";
 				    $allowedParametersCode     .= "     if (allocated(allowedParameters)) then\n";
 				    for(my $i=0;$i<$parameterCount;++$i) {
-					$allowedParametersCode .= "       if (.not.any(trim(allowedParameters) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'all'}->[$i]."')) countNew=countNew+1\n";
+					# <workaround type="gfortran" PR="37336" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=37336">
+					#   <description>
+					#     Array constructors are not correctly finalized. So, avoid using thme
+					#   </description>
+					# $allowedParametersCode .= "       if (.not.any(trim(allowedParameters) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'all'}->[$i]."')) countNew=countNew+1\n";
+					$allowedParametersCode .= "       isNew=.true.\n";
+					$allowedParametersCode .= "       do j=1,size(allowedParameters)\n";
+					$allowedParametersCode .= "          allowedParameter=trim(allowedParameters(j))\n";
+					$allowedParametersCode .= "          if (allowedParameter == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}->[$i]."') then\n";
+					$allowedParametersCode .= "             isNew=.false.\n";
+					$allowedParametersCode .= "             exit\n";
+					$allowedParametersCode .= "          end if\n";
+					$allowedParametersCode .= "       end do\n";
+					$allowedParametersCode .= "       if (isNew) countNew=countNew+1\n";
 				    }	
 				    $allowedParametersCode     .= "       if (countNew > 0) then\n";
 				    $allowedParametersCode     .= "         call move_alloc(allowedParameters,allowedParametersTmp)\n";
@@ -1081,7 +1122,21 @@ CODE
 				    $allowedParametersCode     .= "         allowedParameters(1:size(allowedParametersTmp))=allowedParametersTmp\n";
 				    $allowedParametersCode     .= "         deallocate(allowedParametersTmp)\n";
 				    for(my $i=0;$i<$parameterCount;++$i) {
-					$allowedParametersCode .= "         if (.not.any(trim(allowedParameters(1:size(allowedParameters)-countNew)) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'all'}->[$i]."')) then\n";
+					# <workaround type="gfortran" PR="37336" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=37336">
+					#   <description>
+					#     Array constructors are not correctly finalized. So, avoid using thme
+					#   </description>
+					# $allowedParametersCode .= "         if (.not.any(trim(allowedParameters(1:size(allowedParameters)-countNew)) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'all'}->[$i]."')) then\n";
+					$allowedParametersCode .= "       isNew=.true.\n";
+					$allowedParametersCode .= "       do j=1,size(allowedParameters)-countNew\n";
+					$allowedParametersCode .= "          allowedParameter=trim(allowedParameters(j))\n";
+					$allowedParametersCode .= "          if (allowedParameter == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}->[$i]."') then\n";
+					$allowedParametersCode .= "             isNew=.false.\n";
+					$allowedParametersCode .= "             exit\n";
+					$allowedParametersCode .= "          end if\n";
+					$allowedParametersCode .= "       end do\n";
+					$allowedParametersCode .= "       if (isNew) then\n";
+					# </workaround>
 					$allowedParametersCode .= "           countNew=countNew-1\n";
 					$allowedParametersCode .= "           allowedParameters(size(allowedParameters)-countNew)='".$allowedParameters->{$className}->{'parameters'}->{$source}->{'all'}->[$i]."'\n";
 					$allowedParametersCode .= "         end if\n";
@@ -1118,8 +1173,10 @@ CODE
 	    }
 	    $allowedParametersCode .= "end select\n";
 	    if ( $parametersPresent ) {
-		$allowedParametersCode = "type  (varying_string), allocatable, dimension(:) :: allowedParametersTmp\n".$directive->{'name'}."DsblVldtn=".$directive->{'name'}."DsblVldtn\n".$allowedParametersCode;
-		$allowedParametersCode = "integer                                           :: countNew\n"                                                                                 .$allowedParametersCode;
+		$allowedParametersCode = "type   (varying_string), allocatable, dimension(:) :: allowedParametersTmp\n".$directive->{'name'}."DsblVldtn=".$directive->{'name'}."DsblVldtn\n".$allowedParametersCode;
+		$allowedParametersCode = "integer                                            :: countNew, j\n"                                                                              .$allowedParametersCode;
+		$allowedParametersCode = "logical                                            :: isNew\n"                                                                                    .$allowedParametersCode;
+		$allowedParametersCode = "type   (varying_string)                            :: allowedParameter\n"                                                                         .$allowedParametersCode;
 	    } else {
 		$allowedParametersCode = "!\$GLC attributes unused :: self, allowedParameters, sourceName\n".$directive->{'name'}."DsblVldtn=".$directive->{'name'}."DsblVldtn\n";
 	    }
