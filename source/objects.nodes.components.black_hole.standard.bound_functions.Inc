@@ -52,10 +52,6 @@ function Node_Component_Black_Hole_Standard_Mass_Distribution(self) result(massD
   !!}
   use :: Galactic_Structure_Options, only : componentTypeBlackHole   , massTypeBlackHole
   use :: Mass_Distributions        , only : massDistributionBlackHole, massDistributionClass
-
-  use iso_varying_string
-
-  
   implicit none
   class(massDistributionClass         ), pointer       :: massDistribution_
   class(nodeComponentBlackHoleStandard), intent(inout) :: self
