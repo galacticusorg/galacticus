@@ -213,11 +213,9 @@ contains
     type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
     type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
 
-    if (.not.self%matches(componentType,massType)) then
+    if (.not.self%matches(componentType,massType) .or. self%mass <= 0.0d0) then
        blackHoleRotationCurve=0.0d0
-       return
-    end if
-    if (radius <= self%radiusGravitational) then
+    else if (radius <= self%radiusGravitational) then
        if (self%dimensionless) then
           blackHoleRotationCurve=+1.0d0
        else
@@ -248,11 +246,13 @@ contains
     type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
     type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
 
-    if (.not.self%matches(componentType,massType)) then
-       blackHoleRotationCurveGradient=+0.0d0
-       return
-    end if
-    if (radius < self%radiusGravitational) then
+    if     (                                                                 &
+         &   .not.self%matches            (componentType,massType)           &
+         &  .or.                                                             &
+         &        self%mass                                        <= 0.0d0  &
+         &  .or.                                                             &
+         &        self%radiusGravitational                         >  radius &
+         &) then
        blackHoleRotationCurveGradient=+0.0d0
     else
        blackHoleRotationCurveGradient=-self%mass      &
@@ -275,7 +275,7 @@ contains
     type (enumerationComponentTypeType), intent(in   ), optional :: componentType
     type (enumerationMassTypeType     ), intent(in   ), optional :: massType
 
-    if (.not.self%matches(componentType,massType)) then
+    if (.not.self%matches(componentType,massType) .or. self%mass <= 0.0d0) then
        blackHolePotential=0.0d0
        return
     end if
