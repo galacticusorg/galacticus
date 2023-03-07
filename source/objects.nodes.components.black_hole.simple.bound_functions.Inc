@@ -21,22 +21,22 @@
 Contains custom functions for the simple black hole component.
 !!}
 
-function Node_Component_Black_Hole_Simple_Mass_Distribution(self) result(massDistributionBlackHole)
+function Node_Component_Black_Hole_Simple_Mass_Distribution(self) result(massDistribution_)
   !!{
   Return the mass distribution for the simple black hole component.
   !!}
-  use :: Mass_Distributions                   , only : massDistributionClass, massDistributionSphericalScaler
-  use :: Node_Component_Black_Hole_Simple_Data, only : massDistribution_
+  use :: Galactic_Structure_Options, only : componentTypeBlackHole   , massTypeBlackHole
+  use :: Mass_Distributions        , only : massDistributionBlackHole, massDistributionClass
   implicit none
-  class(massDistributionClass       ), pointer       :: massDistributionBlackHole
+  class(massDistributionClass       ), pointer       :: massDistribution_
   class(nodeComponentBlackHoleSimple), intent(inout) :: self
 
-  ! Wrap the dimensionless mass distribution inside a scaler class to allow us to re-scale it to any black hole.
-  allocate(massDistributionSphericalScaler :: massDistributionBlackHole)
-  select type (massDistributionBlackHole)
-  type is (massDistributionSphericalScaler)
+  ! Create a black hole mass distribution.
+  allocate(massDistributionBlackHole :: massDistribution_)
+  select type (massDistribution_)
+  type is (massDistributionBlackHole)
      !![
-     <referenceConstruct object="massDistributionBlackHole" constructor="massDistributionSphericalScaler(factorScalingLength=1.0d0,factorScalingMass=self%mass(),massDistribution_=massDistribution_)"/>
+     <referenceConstruct object="massDistribution_" constructor="massDistributionBlackHole(mass=self%mass(),componentType=componentTypeBlackHole,massType=massTypeBlackHole)"/>
      !!]
   end select
   return
@@ -61,12 +61,12 @@ double precision function Node_Component_Black_Hole_Simple_Enclosed_Mass(self,ra
   if (weightBy == weightByMass) then
      massDistribution_ => self             %massDistribution    (                             )
      massEnclosed      =  massDistribution_%massEnclosedBySphere(radius,componentType,massType)
+     !![
+     <objectDestructor name="massDistribution_"/>
+     !!]
   else
      massEnclosed      =  0.0d0
   end if
-  !![
-  <objectDestructor name="massDistribution_"/>
-  !!]
   return
 end function Node_Component_Black_Hole_Simple_Enclosed_Mass
 

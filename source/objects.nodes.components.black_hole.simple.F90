@@ -60,12 +60,12 @@ module Node_Component_Black_Hole_Simple
    </properties>
    <bindings>
      <binding method="massDistribution"      function="Node_Component_Black_Hole_Simple_Mass_Distribution"       bindsTo="component"/>
-     <binding method="enclosedMass"          function="Node_Component_Black_Hole_Simple_Enclosed_Mass"           bindsTo="component" />
-     <binding method="acceleration"          function="Node_Component_Black_Hole_Simple_Acceleration"            bindsTo="component" />
+     <binding method="enclosedMass"          function="Node_Component_Black_Hole_Simple_Enclosed_Mass"           bindsTo="component"/>
+     <binding method="acceleration"          function="Node_Component_Black_Hole_Simple_Acceleration"            bindsTo="component"/>
      <binding method="potential"             function="Node_Component_Black_Hole_Simple_Potential"               bindsTo="component"/>
      <binding method="rotationCurve"         function="Node_Component_Black_Hole_Simple_Rotation_Curve"          bindsTo="component"/>
      <binding method="rotationCurveGradient" function="Node_Component_Black_Hole_Simple_Rotation_Curve_Gradient" bindsTo="component"/>
-     <binding method="tidalTensor"           function="Node_Component_Black_Hole_Simple_Tidal_Tensor"            bindsTo="component" />
+     <binding method="tidalTensor"           function="Node_Component_Black_Hole_Simple_Tidal_Tensor"            bindsTo="component"/>
    </bindings>
    <functions>objects.nodes.components.black_hole.simple.bound_functions.inc</functions>
   </component>
@@ -180,12 +180,9 @@ contains
     !!{
     Initializes the tree node random spin module.
     !!}
-    use :: Events_Hooks                           , only : satelliteMergerEvent     , openMPThreadBindingAtLevel, dependencyRegEx, dependencyDirectionAfter
-    use :: Galacticus_Nodes                       , only : defaultBlackHoleComponent
-    use :: Input_Parameters                       , only : inputParameter           , inputParameters
-    use :: Galactic_Structure_Options             , only : componentTypeBlackHole   , massTypeBlackHole
-    use :: Mass_Distributions                     , only : massDistributionPointMass
-    use :: Node_Component_Black_Hole_Standard_Data, only : massDistribution_
+    use :: Events_Hooks    , only : satelliteMergerEvent     , openMPThreadBindingAtLevel, dependencyRegEx, dependencyDirectionAfter
+    use :: Galacticus_Nodes, only : defaultBlackHoleComponent
+    use :: Input_Parameters, only : inputParameter           , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters
     type(dependencyRegEx), dimension(1)  :: dependencies
@@ -202,15 +199,6 @@ contains
        !!]
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
        call satelliteMergerEvent%attach(defaultBlackHoleComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentBlackHoleSimple',dependencies=dependencies)
-       ! Create the mass distribution.
-       allocate(massDistribution_)
-       !![
-       <referenceConstruct object="massDistribution_">
-	 <constructor>
-	   massDistributionPointMass(dimensionless=.true.,componentType=componentTypeBlackHole,massType=massTypeBlackHole)
-	 </constructor>
-       </referenceConstruct>
-       !!]       
     end if
     return
   end subroutine Node_Component_Black_Hole_Simple_Thread_Initialize
@@ -224,9 +212,8 @@ contains
     !!{
     Uninitializes the tree node random spin module.
     !!}
-    use :: Events_Hooks                           , only : satelliteMergerEvent
-    use :: Galacticus_Nodes                       , only : defaultBlackHoleComponent
-    use :: Node_Component_Black_Hole_Standard_Data, only : massDistribution_
+    use :: Events_Hooks    , only : satelliteMergerEvent
+    use :: Galacticus_Nodes, only : defaultBlackHoleComponent
     implicit none
 
     if (defaultBlackHoleComponent%simpleIsActive()) then
@@ -235,7 +222,6 @@ contains
        <objectDestructor name="coolingRadius_"             />
        <objectDestructor name="blackHoleBinaryMerger_"     />
        <objectDestructor name="starFormationRateSpheroids_"/>
-       <objectDestructor name="massDistribution_"          />
        !!]
        if (satelliteMergerEvent%isAttached(defaultBlackHoleComponent,satelliteMerger)) call satelliteMergerEvent%detach(defaultBlackHoleComponent,satelliteMerger)
     end if

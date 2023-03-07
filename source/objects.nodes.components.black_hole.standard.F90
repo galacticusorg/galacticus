@@ -296,12 +296,9 @@ contains
     !!{
     Initializes the tree node standard black hole module.
     !!}
-    use :: Events_Hooks                           , only : satelliteMergerEvent     , openMPThreadBindingAtLevel, dependencyRegEx, dependencyDirectionBefore
-    use :: Galacticus_Nodes                       , only : defaultBlackHoleComponent
-    use :: Galactic_Structure_Options             , only : componentTypeBlackHole   , massTypeBlackHole
-    use :: Mass_Distributions                     , only : massDistributionPointMass
-    use :: Node_Component_Black_Hole_Standard_Data, only : massDistribution_
-    use :: Input_Parameters                       , only : inputParameter           , inputParameters
+    use :: Events_Hooks              , only : satelliteMergerEvent     , openMPThreadBindingAtLevel, dependencyRegEx, dependencyDirectionBefore
+    use :: Galacticus_Nodes          , only : defaultBlackHoleComponent
+    use :: Input_Parameters          , only : inputParameter           , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters
     type(dependencyRegEx), dimension(1)  :: dependencies
@@ -323,16 +320,7 @@ contains
        <objectBuilder class="hotHaloTemperatureProfile"           name="hotHaloTemperatureProfile_"           source="subParameters"/>
        <objectBuilder class="darkMatterHaloScale"                 name="darkMatterHaloScale_"                 source="subParameters"/>
        <objectBuilder class="galacticStructure"                   name="galacticStructure_"                   source="subParameters"/>
-       !!]
-       ! Create the mass distribution.
-       allocate(massDistribution_)
-       !![
-       <referenceConstruct object="massDistribution_">
-	 <constructor>
-	   massDistributionPointMass(dimensionless=.true.,componentType=componentTypeBlackHole,massType=massTypeBlackHole)
-	 </constructor>
-       </referenceConstruct>
-       !!]       
+       !!]     
     end if
     return
   end subroutine Node_Component_Black_Hole_Standard_Thread_Initialize
@@ -346,9 +334,8 @@ contains
     !!{
     Uninitializes the tree node standard black hole module.
     !!}
-    use :: Events_Hooks                           , only : satelliteMergerEvent
-    use :: Galacticus_Nodes                       , only : defaultBlackHoleComponent
-    use :: Node_Component_Black_Hole_Standard_Data, only : massDistribution_
+    use :: Events_Hooks    , only : satelliteMergerEvent
+    use :: Galacticus_Nodes, only : defaultBlackHoleComponent
     implicit none
 
     if (defaultBlackHoleComponent%standardIsActive()) then
@@ -364,7 +351,6 @@ contains
        <objectDestructor name="hotHaloTemperatureProfile_"          />
        <objectDestructor name="darkMatterHaloScale_"                />
        <objectDestructor name="galacticStructure_"                  />
-       <objectDestructor name="massDistribution_"                   />
        !!]
     end if
     return
