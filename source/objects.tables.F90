@@ -46,10 +46,10 @@ module Tables
   !![
   <stateStorable class="table">
    <table1DGeneric>
-    <methodCall method="interpolatorReinitialize" arguments="gslFree=.true."/>
+    <methodCall method="interpolatorReinitialize"/>
    </table1DGeneric>
    <table2DLinLinLin>
-    <methodCall method="interpolatorReinitialize" arguments="gslFree=.true."/>
+    <methodCall method="interpolatorReinitialize"/>
    </table2DLinLinLin>
   </stateStorable>
   !!]
@@ -57,10 +57,10 @@ module Tables
   !![
   <deepCopyActions class="table">
    <table1DGeneric>
-    <methodCall method="interpolatorReinitialize" arguments="gslFree=.false."/>
+    <methodCall method="interpolatorReinitialize"/>
    </table1DGeneric>
    <table2DLinLinLin>
-    <methodCall method="interpolatorReinitialize" arguments="gslFree=.false."/>
+    <methodCall method="interpolatorReinitialize"/>
    </table2DLinLinLin>
   </deepCopyActions>
   !!]
@@ -751,18 +751,17 @@ contains
     return
   end function Table_Generic_1D_Interpolate_Gradient
 
-  subroutine Table_Generic_1D_Interpolator_Reinitialize(self,gslFree)
+  subroutine Table_Generic_1D_Interpolator_Reinitialize(self)
     !!{
     Reinitialize the interpolator.
     !!}
     implicit none
     class  (table1DGeneric), intent(inout) :: self
-    logical                , intent(in   ) :: gslFree
     integer                                :: i
 
     if (.not.allocated(self%interpolator_)) return
     do i=1,size(self%interpolator_)
-       call self%interpolator_(i)%GSLReallocate(gslFree)
+       call self%interpolator_(i)%GSLReallocate()
     end do
     return
   end subroutine Table_Generic_1D_Interpolator_Reinitialize
@@ -2761,16 +2760,15 @@ contains
     return
   end function Table_2D_LinLinLin_Zs
 
-  subroutine Table_2D_LinLinLin_Interpolator_Reinitialize(self,gslFree)
+  subroutine Table_2D_LinLinLin_Interpolator_Reinitialize(self)
     !!{
     Reinitialize the interpolator.
     !!}
     implicit none
-    class  (table2DLinLinLin), intent(inout) :: self
-    logical                  , intent(in   ) :: gslFree
+    class(table2DLinLinLin), intent(inout) :: self
 
-    call self%interpolatorX%GSLReallocate(gslFree)
-    call self%interpolatorY%GSLReallocate(gslFree)
+    call self%interpolatorX%GSLReallocate()
+    call self%interpolatorY%GSLReallocate()
     return
   end subroutine Table_2D_LinLinLin_Interpolator_Reinitialize
 
