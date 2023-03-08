@@ -1050,7 +1050,6 @@ contains
     type            (enumerationMassTypeType     ), intent(in   ), optional    :: massType
     type            (enumerationWeightByType     ), intent(in   ), optional    :: weightBy
     integer                                       , intent(in   ), optional    :: weightIndex
-    type            (galacticStructureState      ), dimension(:) , allocatable :: galacticStructureStateTmp
     !![
     <optionalArgument name="componentType" defaultsTo="componentTypeAll" />  
     <optionalArgument name="massType"      defaultsTo="massTypeAll"      />
