@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1678483318563,
+  "lastUpdate": 1678483326598,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "faee27d89b32f77f6a671ae2797baa2ec2a7648c",
-          "message": "Merge pull request #271 from galacticusorg/dev\n\nfix: Make additional classes compatible with auto-descriptor generation",
-          "timestamp": "2022-08-12T07:29:42-07:00",
-          "tree_id": "816e766967ae12eb1c1513dfb778ffb0a41a287c",
-          "url": "https://github.com/galacticusorg/galacticus/commit/faee27d89b32f77f6a671ae2797baa2ec2a7648c"
-        },
-        "date": 1660334927787,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 58.4483790787279,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 26.0576572807858,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 16028.715159035,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8737,6 +8698,45 @@ window.BENCHMARK_DATA = {
             "value": 51.542,
             "unit": "seconds",
             "range": 0.109332520322458
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "b844981ce953c7b895be99c7f94b98e28367e81c",
+          "message": "feat: Add a polynomial systematic in halo mass for the COSMO SHMR output analysis",
+          "timestamp": "2023-03-10T17:44:20Z",
+          "tree_id": "8b2468ff0a9d8e851babf87d6303135bf488f42d",
+          "url": "https://github.com/galacticusorg/galacticus/commit/b844981ce953c7b895be99c7f94b98e28367e81c"
+        },
+        "date": 1678483325531,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 57.399234412822,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 25.7769036125367,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 23989.8072123588,
+            "unit": "-logℒ"
           }
         ]
       }
