@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1678399915695,
+  "lastUpdate": 1678483322632,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
@@ -9090,6 +9090,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 4.67537446498706,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "b844981ce953c7b895be99c7f94b98e28367e81c",
+          "message": "feat: Add a polynomial systematic in halo mass for the COSMO SHMR output analysis",
+          "timestamp": "2023-03-10T17:44:20Z",
+          "tree_id": "8b2468ff0a9d8e851babf87d6303135bf488f42d",
+          "url": "https://github.com/galacticusorg/galacticus/commit/b844981ce953c7b895be99c7f94b98e28367e81c"
+        },
+        "date": 1678483321713,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 213.056,
+            "unit": "seconds",
+            "range": 0.122304537930657
           }
         ]
       }
