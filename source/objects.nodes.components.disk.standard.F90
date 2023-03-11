@@ -144,13 +144,8 @@ module Node_Component_Disk_Standard
     <binding method="attachPipes"               function="Node_Component_Disk_Standard_Attach_Pipes"              bindsTo="component" description="Attach pipes to the standard disk component." returnType="\void" arguments=""/>
     <binding method="massDistribution"          function="Node_Component_Disk_Standard_Mass_Distribution"         bindsTo="component"                                                                                           />
     <binding method="enclosedMass"              function="Node_Component_Disk_Standard_Enclosed_Mass"             bindsTo="component"                                                                                           />
-    <binding method="acceleration"              function="Node_Component_Disk_Standard_Acceleration"              bindsTo="component"                                                                                           />
-    <binding method="tidalTensor"               function="Node_Component_Disk_Standard_Tidal_Tensor"              bindsTo="component"                                                                                           />
     <binding method="density"                   function="Node_Component_Disk_Standard_Density"                   bindsTo="component"                                                                                           />
     <binding method="densitySphericalAverage"   function="Node_Component_Disk_Standard_Density_Spherical_Average" bindsTo="component"                                                                                           />
-    <binding method="potential"                 function="Node_Component_Disk_Standard_Potential"                 bindsTo="component"                                                                                           />
-    <binding method="rotationCurve"             function="Node_Component_Disk_Standard_Rotation_Curve"            bindsTo="component"                                                                                           />
-    <binding method="rotationCurveGradient"     function="Node_Component_Disk_Standard_Rotation_Curve_Gradient"   bindsTo="component"                                                                                           />
     <binding method="surfaceDensity"            function="Node_Component_Disk_Standard_Surface_Density"           bindsTo="component"                                                                                           />
     <binding method="chandrasekharIntegral"   isDeferred="true"                                                   bindsTo="component"                                                                                            >
       <interface>
@@ -1304,8 +1299,8 @@ contains
     use :: Numerical_Constants_Math        , only : Pi
     use :: Coordinates                     , only : assignment(=)                    , coordinateSpherical         , coordinateCartesian    , coordinateCylindrical
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
-    use :: Mass_Distributions              , only : massDistributionGaussianEllipsoid
-    use :: Linear_Algebra                  , only : vector                           , matrix             , assignment(=)
+    use :: Mass_Distributions              , only : massDistributionGaussianEllipsoid, massDistributionClass
+    use :: Linear_Algebra                  , only : vector                           , matrix                      , assignment(=)
     implicit none
     double precision                                                  , dimension(3) :: Node_Component_Disk_Standard_Chandrasekhar_Integral
     class           (nodeComponentDiskStandard        ), intent(inout)               :: self
@@ -1313,6 +1308,7 @@ contains
     double precision                                   , intent(in   ), dimension(3) :: positionCartesian                                          , velocityCartesian
     type            (enumerationComponentTypeType     ), intent(in   )               :: componentType
     type            (enumerationMassTypeType          ), intent(in   )               :: massType
+    class           (massDistributionClass            ), pointer                     :: massDistribution_
     double precision                                   , parameter                   :: toomreQRadiusHalfMass                              =1.50d0  ! The Toomre Q-parameter at the disk half-mass radius (Benson et al.,
     ! 2004 , https://ui.adsabs.harvard.edu/abs/2004MNRAS.351.1215B, Appendix A).
     double precision                                   , parameter                   :: toomreQFactor                                      =3.36d0  ! The factor appearing in the definition of the Toomre Q-parameter for
@@ -1344,24 +1340,28 @@ contains
     Node_Component_Disk_Standard_Chandrasekhar_Integral=0.0d0
     if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDisk) .or. self%radius() <= 0.0d0) return
     ! Construct the velocity vector of the disk rotation.
-    positionCartesianMidplane                    =[positionCartesian(1),positionCartesian(2),0.0d0]
-    coordinatesCartesian                         = positionCartesian
-    coordinatesSpherical                         = coordinatesCartesian
-    positionSpherical                            = coordinatesSpherical
-    coordinatesCartesian                         = positionCartesianMidplane
-    coordinatesSpherical                         = coordinatesCartesian
-    coordinatesCylindrical                       = coordinatesCartesian 
-    positionSphericalMidplane                    = coordinatesSpherical
-    positionCylindricalMidplane                  = coordinatesCylindrical
-    positionCylindricalHalfMass                  =[self%halfMassRadius(),0.0d0,0.0d0]
-    radiusMidplane                               = coordinatesCylindrical%r()
-    velocityCircular                             =self%rotationCurve        (     radiusMidplane  ,componentType,massType)
-    velocityCircularSquaredGradient              =self%rotationCurveGradient(     radiusMidplane  ,componentType,massType)
-    velocityCircularHalfMassRadius               =self%rotationCurve        (self%halfMassRadius(),componentType,massType)
-    velocityCircularSquaredGradientHalfMassRadius=self%rotationCurveGradient(self%halfMassRadius(),componentType,massType)
-    velocityDisk                                =+[positionCartesianMidplane(2),-positionCartesianMidplane(1),0.0d0] &
-         &                                        /radiusMidplane                                                     &
-         &                                        *velocityCircular
+    massDistribution_                             => self%massDistribution()
+    positionCartesianMidplane                     =  [positionCartesian(1),positionCartesian(2),0.0d0]
+    coordinatesCartesian                          =   positionCartesian
+    coordinatesSpherical                          =   coordinatesCartesian
+    positionSpherical                             =   coordinatesSpherical
+    coordinatesCartesian                          =   positionCartesianMidplane
+    coordinatesSpherical                          =   coordinatesCartesian
+    coordinatesCylindrical                        =   coordinatesCartesian 
+    positionSphericalMidplane                     =   coordinatesSpherical
+    positionCylindricalMidplane                   =   coordinatesCylindrical
+    positionCylindricalHalfMass                   =  [self%halfMassRadius(),0.0d0,0.0d0]
+    radiusMidplane                                =   coordinatesCylindrical%r()
+    velocityCircular                              =   massDistribution_%rotationCurve        (     radiusMidplane  ,componentType,massType)
+    velocityCircularSquaredGradient               =   massDistribution_%rotationCurveGradient(     radiusMidplane  ,componentType,massType)
+    velocityCircularHalfMassRadius                =   massDistribution_%rotationCurve        (self%halfMassRadius(),componentType,massType)
+    velocityCircularSquaredGradientHalfMassRadius =   massDistribution_%rotationCurveGradient(self%halfMassRadius(),componentType,massType)
+    velocityDisk                                  = +[positionCartesianMidplane(2),-positionCartesianMidplane(1),0.0d0] &
+         &                                          /radiusMidplane                                                     &
+         &                                          *velocityCircular
+    !![
+    <objectDestructor name="massDistribution_"/>
+    !!]
     ! Compute epicyclic frequency.
     frequencyCircular               =velocityCircular              /     radiusMidplane
     frequencyCircularHalfMassRadius =velocityCircularHalfMassRadius/self%halfMassRadius()

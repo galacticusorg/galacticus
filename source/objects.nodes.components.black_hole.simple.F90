@@ -61,11 +61,6 @@ module Node_Component_Black_Hole_Simple
    <bindings>
      <binding method="massDistribution"      function="Node_Component_Black_Hole_Simple_Mass_Distribution"       bindsTo="component"/>
      <binding method="enclosedMass"          function="Node_Component_Black_Hole_Simple_Enclosed_Mass"           bindsTo="component"/>
-     <binding method="acceleration"          function="Node_Component_Black_Hole_Simple_Acceleration"            bindsTo="component"/>
-     <binding method="potential"             function="Node_Component_Black_Hole_Simple_Potential"               bindsTo="component"/>
-     <binding method="rotationCurve"         function="Node_Component_Black_Hole_Simple_Rotation_Curve"          bindsTo="component"/>
-     <binding method="rotationCurveGradient" function="Node_Component_Black_Hole_Simple_Rotation_Curve_Gradient" bindsTo="component"/>
-     <binding method="tidalTensor"           function="Node_Component_Black_Hole_Simple_Tidal_Tensor"            bindsTo="component"/>
    </bindings>
    <functions>objects.nodes.components.black_hole.simple.bound_functions.inc</functions>
   </component>

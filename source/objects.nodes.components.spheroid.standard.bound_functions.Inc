@@ -133,57 +133,6 @@ double precision function Node_Component_Spheroid_Standard_Enclosed_Mass(self,ra
   return
 end function Node_Component_Spheroid_Standard_Enclosed_Mass
 
-function Node_Component_Spheroid_Standard_Acceleration(self,positionCartesian,componentType,massType) result(acceleration)
-  !!{
-  Computes the gravitational acceleration at a given position for a standard spheroid.
-  !!}
-  use :: Coordinates               , only : assignment(=)               , coordinateCartesian
-  use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType
-  use :: Mass_Distributions        , only : massDistributionClass
-  implicit none
-  double precision                                              , dimension(3) :: acceleration
-  class           (nodeComponentSpheroidStandard), intent(inout)               :: self
-  double precision                               , intent(in   ), dimension(3) :: positionCartesian
-  type            (enumerationComponentTypeType ), intent(in   )               :: componentType
-  type            (enumerationMassTypeType      ), intent(in   )               :: massType
-  class           (massDistributionClass        ), pointer                     :: massDistribution_
-  type            (coordinateCartesian          )                              :: position
-
-  position          =  positionCartesian
-  massDistribution_ => self             %massDistribution(                               )
-  acceleration      =  massDistribution_%acceleration    (position,componentType,massType)
-  !![
-  <objectDestructor name="massDistribution_"/>
-  !!]
-  return
-end function Node_Component_Spheroid_Standard_Acceleration
-
-function Node_Component_Spheroid_Standard_Tidal_Tensor(self,positionCartesian,componentType,massType) result(tidalTensor)
-  !!{
-  Computes the gravitational acceleration at a given position for a standard spheroid.
-  !!}
-  use :: Coordinates               , only : assignment(=)                 , coordinateCartesian
-  use :: Galactic_Structure_Options, only : enumerationComponentTypeType  , enumerationMassTypeType
-  use :: Mass_Distributions        , only : massDistributionClass
-  use :: Tensors                   , only : tensorRank2Dimension3Symmetric
-  implicit none
-  type            (tensorRank2Dimension3Symmetric)                              :: tidalTensor
-  class           (nodeComponentSpheroidStandard ), intent(inout)               :: self
-  double precision                                , intent(in   ), dimension(3) :: positionCartesian
-  type            (enumerationComponentTypeType  ), intent(in   )               :: componentType
-  type            (enumerationMassTypeType       ), intent(in   )               :: massType
-  class           (massDistributionClass         ), pointer                     :: massDistribution_
-  type            (coordinateCartesian           )                              :: position
-
-  position          =  positionCartesian
-  massDistribution_ => self             %massDistribution(                               )
-  tidalTensor       =  massDistribution_%tidalTensor     (position,componentType,massType)
-  !![
-  <objectDestructor name="massDistribution_"/>
-  !!]
-  return
-end function Node_Component_Spheroid_Standard_Tidal_Tensor
-
 function Node_Component_Spheroid_Standard_Chandrasekhar_Integral(self,nodeSatellite,positionCartesian,velocityCartesian,componentType,massType) result(integralChandrasekhar)
   !!{
   Computes the Chandrasekhar integral at a given position for a standard spheroid.
@@ -241,48 +190,6 @@ function Node_Component_Spheroid_Standard_Chandrasekhar_Integral(self,nodeSatell
   !!]
   return
 end function Node_Component_Spheroid_Standard_Chandrasekhar_Integral
-
-double precision function Node_Component_Spheroid_Standard_Rotation_Curve(self,radius,componentType,massType) result(rotationCurve)
-  !!{
-  Computes the rotation curve at a given radius for an standard spheroid.
-  !!}
-  use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType
-  use :: Mass_Distributions        , only : massDistributionClass
-  implicit none
-  class           (nodeComponentSpheroidStandard), intent(inout) :: self
-  type            (enumerationComponentTypeType ), intent(in   ) :: componentType
-  type            (enumerationMassTypeType      ), intent(in   ) :: massType
-  double precision                               , intent(in   ) :: radius
-  class           (massDistributionClass        ), pointer       :: massDistribution_
-
-  massDistribution_ => self             %massDistribution(                             )
-  rotationCurve     =  massDistribution_%rotationCurve   (radius,componentType,massType)
-  !![
-  <objectDestructor name="massDistribution_"/>
-  !!]
-  return
-end function Node_Component_Spheroid_Standard_Rotation_Curve
-
-double precision function Node_Component_Spheroid_Standard_Rotation_Curve_Gradient(self,radius,componentType,massType) result(rotationCurveGradient)
-  !!{
-  Computes the rotation curve gradient for an standard spheroid.
-  !!}
-  use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType
-  use :: Mass_Distributions        , only : massDistributionClass
-  implicit none
-  class           (nodeComponentSpheroidStandard), intent(inout) :: self
-  type            (enumerationComponentTypeType ), intent(in   ) :: componentType
-  type            (enumerationMassTypeType      ), intent(in   ) :: massType
-  double precision                               , intent(in   ) :: radius
-  class           (massDistributionClass        ), pointer       :: massDistribution_
-
-  massDistribution_     => self             %massDistribution     (                             )
-  rotationCurveGradient =  massDistribution_%rotationCurveGradient(radius,componentType,massType)
-  !![
-  <objectDestructor name="massDistribution_"/>
-  !!]
-  return
-end function Node_Component_Spheroid_Standard_Rotation_Curve_Gradient
 
 double precision function Node_Component_Spheroid_Standard_Density(self,positionSpherical,componentType,massType,weightBy,weightIndex) result(density)
   !!{
@@ -348,30 +255,4 @@ double precision function Node_Component_Spheroid_Standard_Density_Spherical_Ave
   <objectDestructor name="massDistribution_"/>
   !!]
   return
- end function Node_Component_Spheroid_Standard_Density_Spherical_Average
-
-double precision function Node_Component_Spheroid_Standard_Potential(self,radius,componentType,massType,status) result(potential)
-  !!{
-  Compute the gravitational potential due to an standard spheroid.
-  !!}
-  use :: Coordinates               , only : assignment(=)               , coordinateSpherical
-  use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType, enumerationStructureErrorCodeType
-  use :: Mass_Distributions        , only : massDistributionClass
-  implicit none
-  class           (nodeComponentSpheroidStandard    ), intent(inout)           :: self
-  type            (enumerationComponentTypeType     ), intent(in   )           :: componentType
-  type            (enumerationMassTypeType          ), intent(in   )           :: massType
-  double precision                                   , intent(in   )           :: radius
-  type            (enumerationStructureErrorCodeType), intent(inout), optional :: status
-  class           (massDistributionClass            ), pointer                 :: massDistribution_
-  type            (coordinateSpherical              )                          :: position
-  !$GLC attributes unused :: status
-
-  position          =  [radius,0.0d0,0.0d0]
-  massDistribution_ => self             %massDistribution(                               )
-  potential         =  massDistribution_%potential       (position,componentType,massType)
-  !![
-  <objectDestructor name="massDistribution_"/>
-  !!]
-  return
-end function Node_Component_Spheroid_Standard_Potential
+end function Node_Component_Spheroid_Standard_Density_Spherical_Average

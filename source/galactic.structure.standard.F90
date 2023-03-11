@@ -503,8 +503,9 @@ contains
     !!{
     Compute the rotation curve a given radius.
     !!}
-    use :: Galactic_Structure_Options, only : componentTypeAll                 , massTypeAll
-    use :: Galacticus_Nodes          , only : optimizeForRotationCurveSummation, reductionSummation, treeNode
+    use :: Galactic_Structure_Options, only : componentTypeAll     , massTypeAll
+    use :: Galacticus_Nodes          , only : treeNode
+    use :: Mass_Distributions        , only : massDistributionClass
     !![
     <include directive="rotationCurveTask" type="moduleUse">
     !!]
@@ -518,13 +519,14 @@ contains
     type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
     type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
     double precision                              , intent(in   )           :: radius
-    procedure       (velocityRotationComponent   )               , pointer  :: velocityRotationComponent_
+    class           (massDistributionClass       ), pointer                 :: massDistribution_
     double precision                                                        :: velocityRotationComponent__, rotationCurveSquared
 
     call self%defaults(radius=radius,componentType=componentType,massType=massType)
-    velocityRotationComponent_ => velocityRotationComponent
-    rotationCurveSquared       =  node%mapDouble0(velocityRotationComponent_,reductionSummation,optimizeFor=optimizeForRotationCurveSummation)
+    massDistribution_    => node             %massDistribution(                                                                                                                          )
+    rotationCurveSquared =  massDistribution_%rotationCurve   (galacticStructureState_%state%radius_,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_)**2
     !![
+    <objectDestructor name="massDistribution_"/>
     <include directive="rotationCurveTask" type="functionCall" functionType="function" returnParameter="velocityRotationComponent__">
      <functionArgs>node,galacticStructureState_%state%radius_,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_</functionArgs>
      <onReturn>rotationCurveSquared=rotationCurveSquared+velocityRotationComponent__**2</onReturn>
@@ -539,25 +541,13 @@ contains
     return
   end function standardVelocityRotation
 
-  double precision function velocityRotationComponent(component)
-    !!{
-    Unary function returning the squared rotation curve in a component. Suitable for mapping over components.
-    !!}
-    use :: Galacticus_Nodes, only : nodeComponent
-    implicit none
-    class(nodeComponent), intent(inout) :: component
-
-    velocityRotationComponent=component%rotationCurve(galacticStructureState_%state%radius_,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_)**2
-    return
-  end function velocityRotationComponent
-
   double precision function standardVelocityRotationGradient(self,node,radius,componentType,massType) result(velocityRotationGradient)
     !!{
     Solve for the rotation curve gradient at a given radius. Assumes the galactic structure has already been computed.
     !!}
-    use :: Error                     , only : Error_Report
-    use :: Galactic_Structure_Options, only : componentTypeAll                         , massTypeAll
-    use :: Galacticus_Nodes          , only : optimizeForRotationCurveGradientSummation, reductionSummation, treeNode
+    use :: Error             , only : Error_Report
+    use :: Galacticus_Nodes  , only : treeNode
+    use :: Mass_Distributions, only : massDistributionClass
     !![
     <include directive="rotationCurveGradientTask" type="moduleUse">
     !!]
@@ -566,20 +556,19 @@ contains
     </include>
     !!]
     implicit none
-    class           (galacticStructureStandard        ), intent(inout)           :: self
-    type            (treeNode                         ), intent(inout)           :: node
-    type            (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType          ), intent(in   ), optional :: massType
-    double precision                                   , intent(in   )           :: radius
-    procedure       (velocityRotationGradientComponent)               , pointer  :: velocityRotationGradientComponent_
-    double precision                                                             :: velocityRotationGradientComponent__, velocityRotation
+    class           (galacticStructureStandard   ), intent(inout)           :: self
+    type            (treeNode                    ), intent(inout)           :: node
+    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    double precision                              , intent(in   )           :: radius
+    class           (massDistributionClass       )               , pointer  :: massDistribution_
+    double precision                                                        :: velocityRotationGradientComponent__, velocityRotation
 
     call self%defaults(radius=radius,componentType=componentType,massType=massType)
-    ! Call routines to supply the gradient for all components' rotation curves. Specifically, the returned quantities are
-    ! dV²/dr so that they can be summed directly.
-    velocityRotationGradientComponent_ => velocityRotationGradientComponent
-    velocityRotationGradient           =  node%mapDouble0(velocityRotationGradientComponent_,reductionSummation,optimizeFor=optimizeForRotationCurveGradientSummation)
+    massDistribution_        => node             %massDistribution     (                                                                                                                          )
+    velocityRotationGradient =  massDistribution_%rotationCurveGradient(galacticStructureState_%state%radius_,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_)
     !![
+    <objectDestructor name="massDistribution_"/>
     <include directive="rotationCurveGradientTask" type="functionCall" functionType="function" returnParameter="velocityRotationGradientComponent__">
      <functionArgs>node,galacticStructureState_%state%radius_,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_</functionArgs>
      <onReturn>velocityRotationGradient=velocityRotationGradient+velocityRotationGradientComponent__</onReturn>
@@ -601,24 +590,13 @@ contains
     return
   end function standardVelocityRotationGradient
 
-  double precision function velocityRotationGradientComponent(component)
-    !!{
-    Unary function returning the gradient of the squared rotation curve in a component. Suitable for mapping over components.
-    !!}
-    use :: Galacticus_Nodes, only : nodeComponent
-    implicit none
-    class(nodeComponent), intent(inout) :: component
-
-    velocityRotationGradientComponent=component%rotationCurveGradient(galacticStructureState_%state%radius_,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_)
-    return
-  end function velocityRotationGradientComponent
-
   double precision function standardPotential(self,node,radius,componentType,massType,status) result(potential)
     !!{
     Solve for the gravitational potential at a given radius. Assumes the galactic structure has already been computed.
     !!}
-    use :: Galactic_Structure_Options, only : componentTypeAll             , massTypeAll       , structureErrorCodeSuccess
-    use :: Galacticus_Nodes          , only : optimizeForPotentialSummation, reductionSummation
+    use :: Coordinates               , only : assignment(=)        , coordinateCylindrical
+    use :: Galactic_Structure_Options, only : componentTypeAll     , massTypeAll          , structureErrorCodeSuccess
+    use :: Mass_Distributions        , only : massDistributionClass
     !![
     <include directive="potentialTask" type="moduleUse">
     !!]
@@ -633,20 +611,21 @@ contains
     type            (enumerationMassTypeType          ), intent(in   ), optional :: massType
     double precision                                   , intent(in   )           :: radius
     type            (enumerationStructureErrorCodeType), intent(  out), optional :: status
-    procedure       (potentialComponent               ), pointer                 :: potentialComponent_
+    class           (massDistributionClass            ), pointer                 :: massDistribution_
+    type            (coordinateCylindrical            )                          :: position
     double precision                                                             :: potentialComponent__
 
     ! Initialize status.
     if (present(status)) status=structureErrorCodeSuccess
-    ! Initialize pointer to function that supplies the potential for all components.
-    potentialComponent_ => potentialComponent
     ! Reset calculations if this is a new node.
     if (node%uniqueID() /= self%uniqueIDPrevious) call self%calculationReset(node)
+    ! Get the mass distribution for this calculation.
+    massDistribution_ => node%massDistribution()
     ! Evaluate the potential at the halo virial radius.
     if (.not.self%potentialOffsetComputed) then
        call self%defaults(componentType=componentTypeAll,massType=massTypeAll,radius=self%darkMatterHaloScale_%radiusVirial(node))
-       status_       =structureErrorCodeSuccess
-       potential     =node%mapDouble0(potentialComponent_,reductionSummation,optimizeFor=optimizeForPotentialSummation)
+       position =[galacticStructureState_%state%radius_,0.0d0,0.0d0]
+       potential=massDistribution_%potential(position,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_,status_)
        if (status_ /= structureErrorCodeSuccess) status=status_
        !![
        <include directive="potentialTask" type="functionCall" functionType="function" returnParameter="potentialComponent__">
@@ -670,26 +649,17 @@ contains
     else
        galacticStructureState_%state%componentType_=componentTypeAll
     end if
-    status_  = structureErrorCodeSuccess
-    potential=+node%mapDouble0(potentialComponent_,reductionSummation,optimizeFor=optimizeForPotentialSummation) &
+    position =[galacticStructureState_%state%radius_,0.0d0,0.0d0]
+    potential=+massDistribution_%potential(position,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_,status_) &
          &    +self%potentialOffset
     if (status_ /= structureErrorCodeSuccess) status=status_
     include 'galactic_structure.potential.tasks.inc'
+    !![
+    <objectDestructor name="massDistribution_"/>
+    !!]
     call self%restore()
     return
   end function standardPotential
-
-  double precision function potentialComponent(component)
-    !!{
-    Unary function returning the potential in a component. Suitable for mapping over components.
-    !!}
-    use :: Galacticus_Nodes, only : nodeComponent
-    implicit none
-    class(nodeComponent), intent(inout) :: component
-
-    potentialComponent=component%potential(galacticStructureState_%state%radius_,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_,status_)
-    return
-  end function potentialComponent
 
   double precision function standardSurfaceDensity(self,node,position,coordinateSystem,componentType,massType,weightBy,weightIndex) result(surfaceDensity)
     !!{
@@ -795,8 +765,9 @@ contains
     !!{
     Compute the gravitational acceleration at a given position.
     !!}
-    use :: Galactic_Structure_Options, only : componentTypeAll                , massTypeAll
-    use :: Galacticus_Nodes          , only : optimizeForAccelerationSummation, reductionSummation, treeNode
+    use :: Coordinates       , only : assignment(=)        , coordinateCartesian
+    use :: Galacticus_Nodes  , only : treeNode
+    use :: Mass_Distributions, only : massDistributionClass
     !![
     <include directive="accelerationTask" type="moduleUse">
     !!]
@@ -811,15 +782,17 @@ contains
     double precision                              , intent(in   ), dimension(3) :: positionCartesian
     type            (enumerationComponentTypeType), intent(in   ), optional     :: componentType
     type            (enumerationMassTypeType     ), intent(in   ), optional     :: massType
-    integer                                       , parameter                   :: accelerationSize       =3
-    procedure       (accelerationComponent       ), pointer                     :: accelerationComponent_
     double precision                                             , dimension(3) :: accelerationComponent__
+    class           (massDistributionClass       ), pointer                     :: massDistribution_
+    type            (coordinateCartesian         )                              :: position
 
     call self%defaults(componentType=componentType,massType=massType)
-    positionCartesian_     =  positionCartesian
-    accelerationComponent_ => accelerationComponent
-    acceleration           =  node%mapDouble1(accelerationComponent_,accelerationSize,reductionSummation,optimizeFor=optimizeForAccelerationSummation)
+    positionCartesian_ =  positionCartesian
+    position           =  positionCartesian
+    massDistribution_  => node             %massDistribution(                                                                                             )
+    acceleration       =  massDistribution_%acceleration    (position,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_)
     !![
+    <objectDestructor name="massDistribution_"/>
     <include directive="accelerationTask" type="functionCall" functionType="function" returnParameter="accelerationComponent__">
      <functionArgs>node,positionCartesian_,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_</functionArgs>
      <onReturn>acceleration=acceleration+accelerationComponent__</onReturn>
@@ -832,27 +805,14 @@ contains
     return
   end function standardAcceleration
 
-  function accelerationComponent(component,resultSize)
-    !!{
-    Function returning the acceleration in a component. Suitable for mapping over components.
-    !!}
-    use :: Galacticus_Nodes, only : nodeComponent
-    implicit none
-    integer                        , intent(in   )         :: resultSize
-    class           (nodeComponent), intent(inout)         :: component
-    double precision               , dimension(resultSize) :: accelerationComponent
-
-    accelerationComponent=component%acceleration(positionCartesian_,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_)
-    return
-  end function accelerationComponent
-
   function standardTidalTensor(self,node,positionCartesian,componentType,massType) result(tidalTensor)
     !!{
     Compute the gravitational tidal tensor at a given position.
     !!}
-    use :: Galactic_Structure_Options, only : componentTypeAll               , massTypeAll
-    use :: Galacticus_Nodes          , only : optimizeForTidalTensorSummation, reductionSummation, treeNode
-    use :: Tensors                   , only : tensorRank2Dimension3Symmetric , assignment(=)
+    use :: Galacticus_Nodes  , only : treeNode
+    use :: Mass_Distributions, only : massDistributionClass
+    use :: Coordinates       , only : assignment(=)                 , coordinateCartesian
+    use :: Tensors           , only : tensorRank2Dimension3Symmetric
     !![
     <include directive="tidalTensorTask" type="moduleUse">
     !!]
@@ -867,14 +827,17 @@ contains
     double precision                                , intent(in   ), dimension(3) :: positionCartesian
     type            (enumerationComponentTypeType  ), intent(in   ), optional     :: componentType
     type            (enumerationMassTypeType       ), intent(in   ), optional     :: massType
-    procedure       (tidalTensorComponent          ), pointer                     :: tidalTensorComponent_
     type            (tensorRank2Dimension3Symmetric)                              :: tidalTensorComponent__
-
+    class           (massDistributionClass         ), pointer                     :: massDistribution_
+    type            (coordinateCartesian           )                              :: position
+    
     call self%defaults(componentType=componentType,massType=massType)
-    positionCartesian_    =  positionCartesian
-    tidalTensorComponent_ => tidalTensorComponent
-    tidalTensor           =  node%mapTensorR2D3(tidalTensorComponent_,reductionSummation,optimizeFor=optimizeForTidalTensorSummation)
+    positionCartesian_ =  positionCartesian
+    position           =  positionCartesian
+    massDistribution_  => node             %massDistribution(                                                                                             )
+    tidalTensor        =  massDistribution_%tidalTensor     (position,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_)
     !![
+    <objectDestructor name="massDistribution_"/>
     <include directive="tidalTensorTask" type="functionCall" functionType="function" returnParameter="tidalTensorComponent__">
      <functionArgs>node,positionCartesian_,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_</functionArgs>
      <onReturn>tidalTensor=tidalTensor+tidalTensorComponent__</onReturn>
@@ -886,20 +849,6 @@ contains
     call self%restore()
     return
   end function standardTidalTensor
-
-  function tidalTensorComponent(component)
-    !!{
-    Function returning the tidal tensor in a component. Suitable for mapping over components.
-    !!}
-    use :: Galacticus_Nodes, only : nodeComponent
-    use :: Tensors         , only : tensorRank2Dimension3Symmetric
-    implicit none
-    class(nodeComponent                 ), intent(inout) :: component
-    type (tensorRank2Dimension3Symmetric)                :: tidalTensorComponent
-
-    tidalTensorComponent=component%tidalTensor(positionCartesian_,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_)
-    return
-  end function tidalTensorComponent
 
   function standardChandrasekharIntegral(self,node,nodeSatellite,positionCartesian,velocityCartesian,componentType,massType) result(chandrasekharIntegral)
     !!{

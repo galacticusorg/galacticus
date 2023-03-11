@@ -151,14 +151,9 @@ module Node_Component_Spheroid_Standard
    <bindings>
     <binding method="massDistribution"        function="Node_Component_Spheroid_Standard_Mass_Distribution"         bindsTo="component"/>
     <binding method="enclosedMass"            function="Node_Component_Spheroid_Standard_Enclosed_Mass"             bindsTo="component"/>
-    <binding method="acceleration"            function="Node_Component_Spheroid_Standard_Acceleration"              bindsTo="component"/>
-    <binding method="tidalTensor"             function="Node_Component_Spheroid_Standard_Tidal_Tensor"              bindsTo="component"/>
     <binding method="chandrasekharIntegral"   function="Node_Component_Spheroid_Standard_Chandrasekhar_Integral"    bindsTo="component"/>
     <binding method="density"                 function="Node_Component_Spheroid_Standard_Density"                   bindsTo="component"/>
     <binding method="densitySphericalAverage" function="Node_Component_Spheroid_Standard_Density_Spherical_Average" bindsTo="component"/>
-    <binding method="rotationCurve"           function="Node_Component_Spheroid_Standard_Rotation_Curve"            bindsTo="component"/>
-    <binding method="rotationCurveGradient"   function="Node_Component_Spheroid_Standard_Rotation_Curve_Gradient"   bindsTo="component"/>
-    <binding method="potential"               function="Node_Component_Spheroid_Standard_Potential"                 bindsTo="component"/>
    </bindings>
    <functions>objects.nodes.components.spheroid.standard.bound_functions.inc</functions>
   </component>

@@ -1373,23 +1373,6 @@ module Galacticus_Nodes
     return
   end function Node_Component_Enclosed_Mass_Null
 
-  function Node_Component_Acceleration_Null(self,positionCartesian,componentType,massType)
-    !!{
-    A null implementation of the acceleration due to a component. Always returns zero.
-    !!}
-    use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType
-    implicit none
-    double precision                              , dimension(3)                :: Node_Component_Acceleration_Null
-    class           (nodeComponent               )              , intent(inout) :: self
-    type            (enumerationComponentTypeType)              , intent(in   ) :: componentType
-    type            (enumerationMassTypeType     )              , intent(in   ) :: massType
-    double precision                              , dimension(3), intent(in   ) :: positionCartesian
-    !$GLC attributes unused :: self, positionCartesian, componentType, massType
-
-    Node_Component_Acceleration_Null=0.0d0
-    return
-  end function Node_Component_Acceleration_Null
-
   function Node_Component_Chandrasekhar_Integral_Null(self,nodeSatellite,positionCartesian,velocityCartesian,componentType,massType)
     !!{
     A null implementation of the acceleration due to a component. Always returns zero.
@@ -1407,23 +1390,6 @@ module Galacticus_Nodes
     Node_Component_Chandrasekhar_Integral_Null=0.0d0
     return
   end function Node_Component_Chandrasekhar_Integral_Null
-
-  function Node_Component_Tidal_Tensor_Null(self,positionCartesian,componentType,massType)
-    !!{
-    A null implementation of the tidal tensor due to a component. Always returns zero.
-    !!}
-    use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType
-    implicit none
-    type            (tensorRank2Dimension3Symmetric)                              :: Node_Component_Tidal_Tensor_Null
-    class           (nodeComponent                 )              , intent(inout) :: self
-    type            (enumerationComponentTypeType  )              , intent(in   ) :: componentType
-    type            (enumerationMassTypeType       )              , intent(in   ) :: massType
-    double precision                                , dimension(3), intent(in   ) :: positionCartesian
-    !$GLC attributes unused :: self, positionCartesian, componentType, massType
-
-    Node_Component_Tidal_Tensor_Null=tensorNullR2D3Sym
-    return
-  end function Node_Component_Tidal_Tensor_Null
 
   double precision function Node_Component_Density_Null(self,positionSpherical,componentType,massType,weightBy,weightIndex)
     !!{
@@ -1478,55 +1444,6 @@ module Galacticus_Nodes
     Node_Component_Surface_Density_Null=0.0d0
     return
   end function Node_Component_Surface_Density_Null
-
-  double precision function Node_Component_Potential_Null(self,radius,componentType,massType,status)
-    !!{
-    A null implementation of the gravitational potential in a component. Always returns zero.
-    !!}
-    use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType, enumerationStructureErrorCodeType
-    implicit none
-    class           (nodeComponent                    ), intent(inout)           :: self
-    type            (enumerationComponentTypeType     ), intent(in   )           :: componentType
-    type            (enumerationMassTypeType          ), intent(in   )           :: massType
-    double precision                                   , intent(in   )           :: radius
-    type            (enumerationStructureErrorCodeType), intent(inout), optional :: status
-    !$GLC attributes unused :: self, radius, componentType, massType, status
-
-    Node_Component_Potential_Null=0.0d0
-    return
-  end function Node_Component_Potential_Null
-
-  double precision function Node_Component_Rotation_Curve_Null(self,radius,componentType,massType)
-    !!{
-    A null implementation of the rotation curve due to a component. Always returns zero.
-    !!}
-    use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType
-    implicit none
-    class           (nodeComponent               ), intent(inout) :: self
-    type            (enumerationComponentTypeType), intent(in   ) :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ) :: massType
-    double precision                              , intent(in   ) :: radius
-    !$GLC attributes unused :: self, radius, componentType, massType
-
-    Node_Component_Rotation_Curve_Null=0.0d0
-    return
-  end function Node_Component_Rotation_Curve_Null
-
-  double precision function Node_Component_Rotation_Curve_Gradient_Null(self,radius,componentType,massType)
-    !!{
-    A null implementation of the gradient of the rotation curve due to a component. Always returns zero.
-    !!}
-    use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType
-    implicit none
-    class           (nodeComponent               ), intent(inout) :: self
-    type            (enumerationComponentTypeType), intent(in   ) :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ) :: massType
-    double precision                              , intent(in   ) :: radius
-    !$GLC attributes unused :: self, radius, componentType, massType
-
-    Node_Component_Rotation_Curve_Gradient_Null=0.0d0
-    return
-  end function Node_Component_Rotation_Curve_Gradient_Null
 
   ! Simple Boolean functions.
   logical function Boolean_False()

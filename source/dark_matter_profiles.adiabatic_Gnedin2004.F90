@@ -961,8 +961,7 @@ contains
     Compute various factors needed when solving for the initial radius in the dark matter halo using the adiabatic contraction
     algorithm of \cite{gnedin_response_2004}.
     !!}
-    use :: Galacticus_Nodes                , only : nodeComponentBasic             , optimizeForEnclosedMassSummation  , optimizeForRotationCurveGradientSummation , optimizeForRotationCurveSummation, &
-          &                                         reductionSummation             , treeNode
+    use :: Galacticus_Nodes                , only : nodeComponentBasic             , treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     use :: Functions_Global                , only : galacticStructureMassEnclosed_ , galacticStructureVelocityRotation_, galacticStructureVelocityRotationGradient_
     implicit none
