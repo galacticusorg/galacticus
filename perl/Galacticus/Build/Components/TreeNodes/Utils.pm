@@ -228,12 +228,15 @@ sub Tree_Node_Mass_Distribution {
 		 intrinsic  => "type",
 		 type       => "massDistributionList",
 		 attributes => [ "pointer" ],
-		 variables  => [ "massDistributionList_ => null()", "massDistributionList__ => null()", "next_ => null()", "next__ => null()" ]
+		 variables  => [ "massDistributionList_", "massDistributionList__", "next_", "next__" ]
 	     }
 	    ]
     };
     $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-massDistributionList_ => null()
+massDistributionList_  => null()
+massDistributionList__ => null()
+next_                  => null()
+next__                 => null()
 CODE
     # Iterate over all component classes
     foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
