@@ -182,18 +182,21 @@ contains
     return
   end function constantDensityCloudMassEnclosedBySphere
 
-  double precision function constantDensityCloudPotential(self,coordinates,componentType,massType)
+  double precision function constantDensityCloudPotential(self,coordinates,componentType,massType,status)
     !!{
     Return the potential at the specified {\normalfont \ttfamily coordinates} in a constant density cloud.
     !!}
+    use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (massDistributionConstantDensityCloud), intent(inout)           :: self
     class           (coordinate                          ), intent(in   )           :: coordinates
     type            (enumerationComponentTypeType        ), intent(in   ), optional :: componentType
     type            (enumerationMassTypeType             ), intent(in   ), optional :: massType
+    type            (enumerationStructureErrorCodeType   ), intent(  out), optional :: status
     double precision                                                                :: radius
 
+    if (present(status)) status=structureErrorCodeSuccess
     if (.not.self%matches(componentType,massType)) then
        constantDensityCloudPotential=0.0d0
        return

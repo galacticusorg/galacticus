@@ -543,21 +543,24 @@ contains
     return
   end function exponentialDiskRotationCurveGradient
 
-  double precision function exponentialDiskPotential(self,coordinates,componentType,massType)
+  double precision function exponentialDiskPotential(self,coordinates,componentType,massType,status)
     !!{
     Return the gravitational potential for an exponential disk.
     !!}
     use :: Coordinates                     , only : assignment(=)                  , coordinateCylindrical
+    use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    class           (massDistributionExponentialDisk), intent(inout)           :: self
-    class           (coordinate                     ), intent(in   )           :: coordinates
-    type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType        ), intent(in   ), optional :: massType
-    type            (coordinateCylindrical          )                          :: position
-    double precision                                                           :: correctionSmallRadius, halfRadius, &
-         &                                                                        radius
+    class           (massDistributionExponentialDisk  ), intent(inout)           :: self
+    class           (coordinate                       ), intent(in   )           :: coordinates
+    type            (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType          ), intent(in   ), optional :: massType
+    type            (enumerationStructureErrorCodeType), intent(  out), optional :: status
+    type            (coordinateCylindrical            )                          :: position
+    double precision                                                             :: correctionSmallRadius, halfRadius, &
+         &                                                                          radius
 
+    if (present(status)) status=structureErrorCodeSuccess
     if (.not.self%matches(componentType,massType)) then
        exponentialDiskPotential=0.0d0
        return

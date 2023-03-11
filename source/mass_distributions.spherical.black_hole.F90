@@ -264,17 +264,20 @@ contains
     return
   end function blackHoleRotationCurveGradient
 
-  double precision function blackHolePotential(self,coordinates,componentType,massType)
+  double precision function blackHolePotential(self,coordinates,componentType,massType,status)
     !!{
     Return the potential at the specified {\normalfont \ttfamily coordinates} for a point mass.
     !!}
+    use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    class(massDistributionBlackHole   ), intent(inout)           :: self
-    class(coordinate                  ), intent(in   )           :: coordinates
-    type (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    class(massDistributionBlackHole        ), intent(inout)           :: self
+    class(coordinate                       ), intent(in   )           :: coordinates
+    type (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
+    type (enumerationMassTypeType          ), intent(in   ), optional :: massType
+    type (enumerationStructureErrorCodeType), intent(  out), optional :: status
 
+    if (present(status)) status=structureErrorCodeSuccess
     if (.not.self%matches(componentType,massType) .or. self%mass <= 0.0d0) then
        blackHolePotential=0.0d0
        return

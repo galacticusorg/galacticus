@@ -656,20 +656,23 @@ contains
     return
   end function miyamotoNagaiRotationCurveGradient
 
-  double precision function miyamotoNagaiPotential(self,coordinates,componentType,massType)
+  double precision function miyamotoNagaiPotential(self,coordinates,componentType,massType,status)
     !!{
     Return the gravitational potential for an \citep{miyamoto_three-dimensional_1975} disk.
     !!}
     use :: Coordinates                     , only : assignment(=)                  , coordinateCylindrical
+    use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    class           (massDistributionMiyamotoNagai), intent(inout)           :: self
-    class           (coordinate                   ), intent(in   )           :: coordinates
-    type            (enumerationComponentTypeType ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType      ), intent(in   ), optional :: massType
-    type            (coordinateCylindrical        )                          :: position
-    double precision                                                         :: r          , z
+    class           (massDistributionMiyamotoNagai    ), intent(inout)           :: self
+    class           (coordinate                       ), intent(in   )           :: coordinates
+    type            (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType          ), intent(in   ), optional :: massType
+    type            (enumerationStructureErrorCodeType), intent(  out), optional :: status
+    type            (coordinateCylindrical            )                          :: position
+    double precision                                                             :: r          , z
 
+    if (present(status)) status=structureErrorCodeSuccess
     if (.not.self%matches(componentType,massType)) then
        miyamotoNagaiPotential=0.0d0
        return

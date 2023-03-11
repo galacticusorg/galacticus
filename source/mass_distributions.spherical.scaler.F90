@@ -241,26 +241,28 @@ contains
     return
   end function sphericalScalerMassEnclosedBySphere
 
-  double precision function sphericalScalerPotential(self,coordinates,componentType,massType)
+  double precision function sphericalScalerPotential(self,coordinates,componentType,massType,status)
     !!{
     Return the potential at the specified {\normalfont \ttfamily coordinates} in a scaled spherical mass distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    class(massDistributionSphericalScaler), intent(inout)              :: self
-    class(coordinate                     ), intent(in   )              :: coordinates
-    type (enumerationComponentTypeType   ), intent(in   ), optional    :: componentType
-    type (enumerationMassTypeType        ), intent(in   ), optional    :: massType
-    class(coordinate                     )               , allocatable :: coordinatesScaled
+    class(massDistributionSphericalScaler  ), intent(inout)              :: self
+    class(coordinate                       ), intent(in   )              :: coordinates
+    type (enumerationComponentTypeType     ), intent(in   ), optional    :: componentType
+    type (enumerationMassTypeType          ), intent(in   ), optional    :: massType
+    type (enumerationStructureErrorCodeType), intent(  out), optional    :: status
+    class(coordinate                       )               , allocatable :: coordinatesScaled
 
     call coordinates%scale(1.0d0/self%factorScalingLength,coordinatesScaled)
-    sphericalScalerPotential=+self%massDistribution_%potential                     (                           &
-         &                                                                          coordinatesScaled        , &
-         &                                                                          componentType            , &
-         &                                                                          massType                   &
-         &                                                                         )                           &
-         &                  *                       gravitationalConstantGalacticus                            &
-         &                  *self                  %factorScalingMass                                          &
+    sphericalScalerPotential=+self%massDistribution_%potential                     (                   &
+         &                                                                          coordinatesScaled, &
+         &                                                                          componentType    , &
+         &                                                                          massType         , &
+         &                                                                          status             &
+         &                                                                         )                   &
+         &                  *                       gravitationalConstantGalacticus                    &
+         &                  *self                  %factorScalingMass                                  &
          &                  /self                  %factorScalingLength
     return
   end function sphericalScalerPotential

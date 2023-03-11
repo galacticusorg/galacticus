@@ -112,9 +112,9 @@ contains
     !!{
     Internal constructor for ``composite'' mass distribution class.
     !!}
-    type(massDistributionComposite)                        :: self
-    type(massDistributionList     ), target, intent(in   ) :: massDistributions
-    type(massDistributionList     ), pointer               :: massDistribution_
+    type(massDistributionComposite)                         :: self
+    type(massDistributionList     ), pointer, intent(in   ) :: massDistributions
+    type(massDistributionList     ), pointer                :: massDistribution_
 
     self             %massDistributions => massDistributions
     massDistribution_                   => massDistributions
@@ -152,7 +152,7 @@ contains
 
   subroutine compositeInitialize(self)
     !!{
-    Destructor for composite mass distributions.
+    Initialize a composite mass distribution.
     !!}
     implicit none
     class(massDistributionComposite              ), intent(inout) :: self
@@ -517,23 +517,27 @@ contains
     return
   end function compositeTidalTensor
   
-  double precision function compositePotential(self,coordinates,componentType,massType)
+  double precision function compositePotential(self,coordinates,componentType,massType,status)
     !!{
     Return the gravitational potential for a composite mass distribution.
     !!}
+    use :: Galactic_Structure_Options, only : structureErrorCodeSuccess
     implicit none
-    class(massDistributionComposite   ), intent(inout)           :: self
-    class(coordinate                  ), intent(in   )           :: coordinates
-    type (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    type (massDistributionList        ), pointer                 :: massDistribution_
+    class(massDistributionComposite        ), intent(inout)           :: self
+    class(coordinate                       ), intent(in   )           :: coordinates
+    type (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
+    type (enumerationMassTypeType          ), intent(in   ), optional :: massType
+    type (enumerationStructureErrorCodeType), intent(  out), optional :: status
+    type (massDistributionList             ), pointer                 :: massDistribution_
 
+    if (present(status)) status=structureErrorCodeSuccess
     compositePotential=0.0d0
     if (associated(self%massDistributions)) then
        massDistribution_ => self%massDistributions
        do while (associated(massDistribution_))
-          compositePotential  =  +compositePotential                                                                 &
-               &                 +massDistribution_ %massDistribution_%potential(coordinates,componentType,massType)
+          compositePotential  =  +compositePotential                                                                        &
+               &                 +massDistribution_ %massDistribution_%potential(coordinates,componentType,massType,status)
+          if (present(status).and.status /= structureErrorCodeSuccess) return
           massDistribution_   =>  massDistribution_ %next
        end do
     end if

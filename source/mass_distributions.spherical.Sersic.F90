@@ -342,21 +342,24 @@ contains
     return
   end function sersicMassEnclosedBySphere
 
-  double precision function sersicPotential(self,coordinates,componentType,massType)
+  double precision function sersicPotential(self,coordinates,componentType,massType,status)
     !!{
     Return the potential at the specified {\normalfont \ttfamily coordinates} in a S\'ersic mass distribution.
     !!}
     use :: Coordinates                     , only : assignment(=)                  , coordinateSpherical
     use :: Error                           , only : Error_Report
+    use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    class           (massDistributionSersic      ), intent(inout)           :: self
-    class           (coordinate                  ), intent(in   )           :: coordinates
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    type            (coordinateSpherical         )                          :: position
-    double precision                                                        :: r
+    class           (massDistributionSersic           ), intent(inout)           :: self
+    class           (coordinate                       ), intent(in   )           :: coordinates
+    type            (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType          ), intent(in   ), optional :: massType
+    type            (enumerationStructureErrorCodeType), intent(  out), optional :: status
+    type            (coordinateSpherical              )                          :: position
+    double precision                                                             :: r
 
+    if (present(status)) status=structureErrorCodeSuccess
     if (.not.self%matches(componentType,massType)) then
        sersicPotential=0.0d0
        return

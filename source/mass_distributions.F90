@@ -26,9 +26,10 @@ module Mass_Distributions
   Implements a class that provides mass distributions.
   !!}
   use :: Coordinates               , only : coordinate
-  use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType, massTypeAll         , massTypeDark   , &
-       &                                    massTypeBaryonic            , massTypeGalactic       , massTypeGaseous     , massTypeStellar, &
-       &                                    massTypeBlackHole           , componentTypeAll       , componentTypeUnknown, massTypeUnknown
+  use :: Galactic_Structure_Options, only : enumerationComponentTypeType     , enumerationMassTypeType, massTypeAll         , massTypeDark   , &
+       &                                    massTypeBaryonic                 , massTypeGalactic       , massTypeGaseous     , massTypeStellar, &
+       &                                    massTypeBlackHole                , componentTypeAll       , componentTypeUnknown, massTypeUnknown, &
+       &                                    enumerationStructureErrorCodeType
   use :: Numerical_Random_Numbers  , only : randomNumberGeneratorClass
   use :: Tensors                   , only : tensorRank2Dimension3Symmetric
   private
@@ -160,9 +161,10 @@ module Mass_Distributions
     <description>Return the gravitational potential of the distribution at the given coordinates.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>class(coordinate                  ), intent(in   )           :: coordinates  </argument>
-    <argument>type (enumerationComponentTypeType), intent(in   ), optional :: componentType</argument>
-    <argument>type (enumerationMassTypeType     ), intent(in   ), optional :: massType     </argument>
+    <argument>class(coordinate                       ), intent(in   )           :: coordinates  </argument>
+    <argument>type (enumerationComponentTypeType     ), intent(in   ), optional :: componentType</argument>
+    <argument>type (enumerationMassTypeType          ), intent(in   ), optional :: massType     </argument>
+    <argument>type (enumerationStructureErrorCodeType), intent(  out), optional :: status       </argument>
    </method>
    <method name="massEnclosedBySphere" >
     <description>Return the mass enclosed in the distribution by a sphere of given radius.</description>

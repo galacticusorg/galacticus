@@ -369,26 +369,29 @@ contains
     return
   end function betaProfileMassEnclosedBySphere
 
-  double precision function betaProfilePotential(self,coordinates,componentType,massType)
+  double precision function betaProfilePotential(self,coordinates,componentType,massType,status)
     !!{
     Return the potential at the specified {\normalfont \ttfamily coordinates} in a $\beta$-profile mass distribution. Calculated using
     \href{http://www.wolframalpha.com/input/?i=integrate+4\%2F3+\%CF\%80+r+\%CF\%81+2F1\%283\%2F2\%2C+\%283+\%CE\%B2\%29\%2F2\%2C+5\%2F2\%2C+-r^2\%29}{Wolfram
     Alpha}.
     !!}
     use :: Coordinates                     , only : assignment(=)                  , coordinateSpherical
+    use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess
     use :: Hypergeometric_Functions        , only : Hypergeometric_2F1
     use :: Numerical_Comparison            , only : Values_Agree
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     use :: Numerical_Constants_Math        , only : Pi
     implicit none
-    class           (massDistributionBetaProfile ), intent(inout)           :: self
-    class           (coordinate                  ), intent(in   )           :: coordinates
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    type            (coordinateSpherical         )                          :: position
-    double precision                              , parameter               :: fractionalRadiusMinimum=1.0d-3
-    double precision                                                        :: fractionalRadius
+    class           (massDistributionBetaProfile      ), intent(inout)           :: self
+    class           (coordinate                       ), intent(in   )           :: coordinates
+    type            (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType          ), intent(in   ), optional :: massType
+    type            (enumerationStructureErrorCodeType), intent(  out), optional :: status
+    type            (coordinateSpherical              )                          :: position
+    double precision                                   , parameter               :: fractionalRadiusMinimum=1.0d-3
+    double precision                                                             :: fractionalRadius
 
+    if (present(status)) status=structureErrorCodeSuccess
     if (.not.self%matches(componentType,massType)) then
        betaProfilePotential=0.0d0
        return

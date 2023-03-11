@@ -293,19 +293,22 @@ contains
     return
   end function hernquistMassEnclosedBySphere
 
-  double precision function hernquistPotential(self,coordinates,componentType,massType)
+  double precision function hernquistPotential(self,coordinates,componentType,massType,status)
     !!{
     Return the potential at the specified {\normalfont \ttfamily coordinates} in a Hernquist mass distribution.
     !!}
     use :: Coordinates                     , only : assignment(=)                  , coordinateSpherical
+    use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    class(massDistributionHernquist   ), intent(inout)           :: self
-    class(coordinate                  ), intent(in   )           :: coordinates
-    type (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    type (coordinateSpherical         )                          :: position
+    class(massDistributionHernquist        ), intent(inout)           :: self
+    class(coordinate                       ), intent(in   )           :: coordinates
+    type (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
+    type (enumerationMassTypeType          ), intent(in   ), optional :: massType
+    type (enumerationStructureErrorCodeType), intent(  out), optional :: status
+    type (coordinateSpherical              )                          :: position
 
+    if (present(status)) status=structureErrorCodeSuccess
     if (.not.self%matches(componentType,massType)) then
        hernquistPotential=0.0d0
        return

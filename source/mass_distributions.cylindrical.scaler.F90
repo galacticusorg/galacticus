@@ -316,26 +316,29 @@ contains
     return
   end function cylindricalScalerRotationCurveGradient
 
-  double precision function cylindricalScalerPotential(self,coordinates,componentType,massType)
+  double precision function cylindricalScalerPotential(self,coordinates,componentType,massType,status)
     !!{
     Return the gravitational potential for a scaled cylindrical distribution.
     !!}
+    use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class(massDistributionCylindricalScaler), intent(inout)              :: self
     class(coordinate                       ), intent(in   )              :: coordinates
     type (enumerationComponentTypeType     ), intent(in   ), optional    :: componentType
     type (enumerationMassTypeType          ), intent(in   ), optional    :: massType
+    type (enumerationStructureErrorCodeType), intent(  out), optional    :: status
     class(coordinate                       )               , allocatable :: coordinatesScaled
 
     call coordinates%scale(1.0d0/self%factorScalingLength,coordinatesScaled)
-    cylindricalScalerPotential=+self%massDistribution_%potential                      (                           &
-         &                                                                             coordinatesScaled        , &
-         &                                                                             componentType            , &
-         &                                                                             massType                   &
-         &                                                                            )                           &
-         &                     *                       gravitationalConstantGalacticus                            &
-         &                     *self                  %factorScalingMass                                          &
+    cylindricalScalerPotential=+self%massDistribution_%potential                      (                   &
+         &                                                                             coordinatesScaled, &
+         &                                                                             componentType    , &
+         &                                                                             massType         , &
+         &                                                                             status             &
+         &                                                                            )                   &
+         &                     *                       gravitationalConstantGalacticus                    &
+         &                     *self                  %factorScalingMass                                  &
          &                     /self                  %factorScalingLength
     return
   end function cylindricalScalerPotential
