@@ -166,15 +166,6 @@ sub Build_Node_Component_Class {
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
-	     name        => "enclosedMass"                                                                                         ,
-	     function    => "Node_Component_Enclosed_Mass_Null"                                                                    ,
-	     description => "Compute the mass enclosed within a radius."                                                           ,
-	     mappable    => "summation"                                                                                            ,
-	     returnType  => "\\doublezero"                                                                                         ,
-	     arguments   => "\\doublezero\\ radius\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin, \\enumWeightBy\\ [weightBy]\\argin, \\intzero\\ [weightIndex]\\argin"
-	 },
-	 {
-	     type        => "procedure"                                                                                            ,
 	     name        => "chandrasekharIntegral"                                                                                ,
 	     function    => "Node_Component_Chandrasekhar_Integral_Null"                                                           ,
 	     description => "Compute the Chandrasekhar integral for a given position and velocity."                                ,

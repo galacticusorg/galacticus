@@ -21,27 +21,44 @@
 Contains custom functions for the very simple size disk component.
 !!}
 
-function Node_Component_Disk_Very_Simple_Size_Mass_Distribution(self) result(massDistribution_)
+function Node_Component_Disk_Very_Simple_Size_Mass_Distribution(self,weightBy,weightIndex) result(massDistribution_)
   !!{
   Return the mass distribution for the very simple size disk component.
   !!}
-   use :: Mass_Distributions                      , only : massDistributionClass      , massDistributionCylindricalScaler, massDistributionComposite, massDistributionList, &
-        &                                                  massDistributionCylindrical
+  use :: Mass_Distributions                       , only : massDistributionClass      , massDistributionCylindricalScaler, massDistributionComposite, massDistributionList   , &
+       &                                                   massDistributionCylindrical
   use :: Node_Component_Disk_Very_Simple_Size_Data, only : massDistributionStellar_   , massDistributionGas_
-  use :: Galactic_Structure_Options               , only : componentTypeDisk          , massTypeStellar                  , massTypeGaseous
+  use :: Galactic_Structure_Options               , only : componentTypeDisk          , massTypeStellar                  , massTypeGaseous          , enumerationWeightByType, &
+       &                                                   weightByMass               , weightByLuminosity
   implicit none
-  class          (massDistributionClass            ), pointer       :: massDistribution_
-  class          (nodeComponentDiskVerySimpleSize  ), intent(inout) :: self
-  type           (massDistributionCylindricalScaler), pointer       :: massDistributionStellar   , massDistributionGas
-  type           (massDistributionComposite        ), pointer       :: massDistributionTotal
-  type           (massDistributionList             ), pointer       :: massDistributionComponents
-  double precision                                                  :: massStellar               , massGas            , &
-       &                                                               radiusScale
+  class          (massDistributionClass            ), pointer                 :: massDistribution_
+  class          (nodeComponentDiskVerySimpleSize  ), intent(inout)           :: self
+  type           (enumerationWeightByType          ), intent(in   ), optional :: weightBy
+  integer                                           , intent(in   ), optional :: weightIndex
+  type           (massDistributionCylindricalScaler), pointer                 :: massDistributionStellar   , massDistributionGas
+  type           (massDistributionComposite        ), pointer                 :: massDistributionTotal
+  type           (massDistributionList             ), pointer                 :: massDistributionComponents
+  type           (stellarLuminosities              ), save                    :: luminosities
+  !$omp threadprivate(luminosities)
+  double precision                                                            :: massStellar               , massGas            , &
+       &                                                                         radiusScale
+  !![
+  <optionalArgument name="weightBy" defaultsTo="weightByMass" />
+  !!]
 
   ! Get properties of the mass distribution and ensure they are physical.
-  massStellar=max(0.0d0,self%massStellar())
-  massGas    =max(0.0d0,self%massGas    ())
-  radiusScale=          self%radius     ()
+  if      (weightBy_ == weightByMass      ) then
+     massStellar       =  max (0.0d0,self        %massStellar        (           ))
+     massGas           =  max (0.0d0,self        %massGas            (           ))
+  else if (weightBy_ == weightByLuminosity) then
+     luminosities      =             self        %luminositiesStellar(           )
+     massStellar       =  max (0.0d0,luminosities%luminosity         (weightIndex))
+     massGas           =       0.0d0
+  else
+     massDistribution_ => null()
+     return
+  end if
+  radiusScale=self%radius()
   if (radiusScale <= 0.0d0) then
      ! Disk has non-positive size. Set an arbitrary, positive size, but also set masses to zero. This results in an empty mass
      ! distribution.
@@ -100,37 +117,6 @@ double precision function Node_Component_Disk_Very_Simple_Size_Half_Mass_Radius(
   end select
   return
 end function Node_Component_Disk_Very_Simple_Size_Half_Mass_Radius
-
-double precision function Node_Component_Disk_Very_Simple_Size_Enclosed_Mass(self,radius,componentType,massType,weightBy,weightIndex) result(massEnclosed)
-  !!{
-  Computes the mass within a given radius for a very simple size disk.
-  !!}
-  use :: Galactic_Structure_Options, only : weightByLuminosity   , enumerationComponentTypeType, enumerationMassTypeType, enumerationWeightByType
-  use :: Mass_Distributions        , only : massDistributionClass
-  implicit none
-  class           (nodeComponentDiskVerySimpleSize), intent(inout) :: self
-  type            (enumerationComponentTypeType   ), intent(in   ) :: componentType
-  type            (enumerationMassTypeType        ), intent(in   ) :: massType
-  type            (enumerationWeightByType        ), intent(in   ) :: weightBy
-  integer                                          , intent(in   ) :: weightIndex
-  double precision                                 , intent(in   ) :: radius
-  class           (massDistributionClass          ), pointer       :: massDistribution_
-  type            (stellarLuminosities            ), save          :: luminositiesDisk
-  !$omp threadprivate(luminositiesDisk)
-
-  massDistribution_ => self             %massDistribution    (                             )
-  massEnclosed      =  massDistribution_%massEnclosedBySphere(radius,componentType,massType)
-  if (massEnclosed > 0.0d0 .and. weightBy     == weightByLuminosity) then
-     luminositiesDisk= self%luminositiesStellar()
-     massEnclosed    =+massEnclosed                                         &
-          &           *luminositiesDisk %luminosity(weightIndex           ) &
-          &           /massDistribution_%massTotal (componentType,massType)
-  end if
-  !![
-  <objectDestructor name="massDistribution_"/>
-  !!]
-  return
-end function Node_Component_Disk_Very_Simple_Size_Enclosed_Mass
 
 double precision function Node_Component_Disk_Very_Simple_Size_Surface_Density(self,positionCylindrical,componentType,massType,weightBy,weightIndex) result(surfaceDensity)
   !!{

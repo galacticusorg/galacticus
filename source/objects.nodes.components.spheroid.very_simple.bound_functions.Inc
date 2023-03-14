@@ -21,49 +21,6 @@
 Contains custom functions for the very simple spheroid component.
 !!}
 
-double precision function Node_Component_Spheroid_Very_Simple_Enclosed_Mass(self,radius,componentType,massType,weightBy,weightIndex)
-  !!{
-  Computes the mass within a given radius for an very simple spheroid.
-  !!}
-  use :: Galactic_Structure_Options, only : componentTypeAll, componentTypeSpheroid       , massTypeAll            , massTypeBaryonic       , &
-          &                                 massTypeGalactic, massTypeGaseous             , massTypeStellar        , radiusLarge            , &
-          &                                 weightByMass    , enumerationComponentTypeType, enumerationMassTypeType, enumerationWeightByType
-  use :: Error                     , only : Error_Report
-  implicit none
-  class           (nodeComponentSpheroidVerySimple), intent(inout) :: self
-  type            (enumerationComponentTypeType   ), intent(in   ) :: componentType
-  type            (enumerationMassTypeType        ), intent(in   ) :: massType
-  type            (enumerationWeightByType        ), intent(in   ) :: weightBy
-  integer                                          , intent(in   ) :: weightIndex
-  double precision                                 , intent(in   ) :: radius
-  !$GLC attributes unused :: weightIndex
-
-  ! Return zero mass if the mass and component types do not match.
-  Node_Component_Spheroid_Very_Simple_Enclosed_Mass=0.0d0
-  if (.not.(componentType == componentTypeAll .or. componentType == componentTypeSpheroid)) return
-  ! Determine mass contributed.
-  select case (weightBy%ID)
-  case (weightByMass      %ID)
-     select case (massType%ID)
-     case (massTypeAll%ID,massTypeBaryonic%ID,massTypeGalactic%ID)
-        Node_Component_Spheroid_Very_Simple_Enclosed_Mass=self%massGas()+self%massStellar()
-     case (massTypeGaseous%ID)
-        Node_Component_Spheroid_Very_Simple_Enclosed_Mass=self%massGas()
-     case (massTypeStellar%ID)
-        Node_Component_Spheroid_Very_Simple_Enclosed_Mass=               self%massStellar()
-     end select
-  case default
-     call Error_Report('this component does not track luminosity'//{introspection:location})
-  end select
-  ! Return if no mass.
-  if (Node_Component_Spheroid_Very_Simple_Enclosed_Mass <=       0.0d0) return
-  ! Return if the total mass was requested.
-  if (radius                                            >= radiusLarge) return
-  ! Otherwise we have an error.
-  call Error_Report('this component does not specify a mass profile'//{introspection:location})
-  return
-end function Node_Component_Spheroid_Very_Simple_Enclosed_Mass
-
 double precision function Node_Component_Spheroid_Very_Simple_Half_Mass_Radius(self)
   !!{
   Return the half-mass radius of the very simple spheroid.

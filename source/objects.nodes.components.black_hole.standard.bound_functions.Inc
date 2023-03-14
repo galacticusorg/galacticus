@@ -46,16 +46,27 @@ double precision function Node_Component_Black_Hole_Standard_Spin(self)
   return
 end function Node_Component_Black_Hole_Standard_Spin
 
-function Node_Component_Black_Hole_Standard_Mass_Distribution(self) result(massDistribution_)
+function Node_Component_Black_Hole_Standard_Mass_Distribution(self,weightBy,weightIndex) result(massDistribution_)
   !!{
   Return the mass distribution for the standard black hole component.
   !!}
-  use :: Galactic_Structure_Options, only : componentTypeBlackHole   , massTypeBlackHole
+  use :: Galactic_Structure_Options, only : componentTypeBlackHole   , massTypeBlackHole    , weightByMass, weightByLuminosity, &
+       &                                    enumerationWeightByType
   use :: Mass_Distributions        , only : massDistributionBlackHole, massDistributionClass
   implicit none
-  class(massDistributionClass         ), pointer       :: massDistribution_
-  class(nodeComponentBlackHoleStandard), intent(inout) :: self
+  class  (massDistributionClass         ), pointer                 :: massDistribution_
+  class  (nodeComponentBlackHoleStandard), intent(inout)           :: self
+  type   (enumerationWeightByType       ), intent(in   ), optional :: weightBy
+  integer                                , intent(in   ), optional :: weightIndex
+  !![
+  <optionalArgument name="weightBy" defaultsTo="weightByMass" />
+  !!]
+  !$GLC attributes unused :: weightIndex
 
+  if (weightBy_ /= weightByMass) then
+     massDistribution_ => null()
+     return
+  end if
   ! Create a black hole mass distribution.
   allocate(massDistributionBlackHole :: massDistribution_)
   select type (massDistribution_)
@@ -66,31 +77,3 @@ function Node_Component_Black_Hole_Standard_Mass_Distribution(self) result(massD
   end select
   return
 end function Node_Component_Black_Hole_Standard_Mass_Distribution
-
-double precision function Node_Component_Black_Hole_Standard_Enclosed_Mass(self,radius,componentType,massType,weightBy,weightIndex) result(massEnclosed)
-  !!{
-  Computes the mass within a given radius for a central black hole. Black hole is treated as a point mass.
-  !!}
-  use :: Galactic_Structure_Options, only : weightByMass         , enumerationComponentTypeType, enumerationMassTypeType, enumerationWeightByType
-  use :: Mass_Distributions        , only : massDistributionClass
-  implicit none
-  class           (nodeComponentBlackHoleStandard), intent(inout) :: self
-  type            (enumerationComponentTypeType  ), intent(in   ) :: componentType
-  type            (enumerationMassTypeType       ), intent(in   ) :: massType
-  type            (enumerationWeightByType       ), intent(in   ) :: weightBy
-  integer                                         , intent(in   ) :: weightIndex
-  double precision                                , intent(in   ) :: radius
-  class           (massDistributionClass         ), pointer       :: massDistribution_
-  !$GLC attributes unused :: weightIndex
-
-  if (weightBy == weightByMass) then
-     massDistribution_ => self             %massDistribution    (                             )
-     massEnclosed      =  massDistribution_%massEnclosedBySphere(radius,componentType,massType)
-     !![
-     <objectDestructor name="massDistribution_"/>
-     !!]
-  else
-     massEnclosed      =  0.0d0
-  end if
-  return
-end function Node_Component_Black_Hole_Standard_Enclosed_Mass

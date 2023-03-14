@@ -107,8 +107,7 @@ module Node_Component_Black_Hole_Standard
     </property>
    </properties>
    <bindings>
-    <binding method="massDistribution"      function="Node_Component_Black_Hole_Standard_Mass_Distribution"       bindsTo="component"/>
-    <binding method="enclosedMass"          function="Node_Component_Black_Hole_Standard_Enclosed_Mass"           bindsTo="component"/>
+    <binding method="massDistribution" function="Node_Component_Black_Hole_Standard_Mass_Distribution" bindsTo="component"/>
    </bindings>
    <functions>objects.nodes.components.black_hole.standard.bound_functions.inc</functions>
   </component>

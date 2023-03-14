@@ -110,9 +110,6 @@ module Node_Component_Spheroid_Very_Simple
       <output unitsInSI="kilo" comment="Circular velocity of the spheroid."/>
     </property>
    </properties>
-   <bindings>
-    <binding method="enclosedMass" function="Node_Component_Spheroid_Very_Simple_Enclosed_Mass" bindsTo="component" />
-   </bindings>
    <functions>objects.nodes.components.spheroid.very_simple.bound_functions.inc</functions>
   </component>
   !!]

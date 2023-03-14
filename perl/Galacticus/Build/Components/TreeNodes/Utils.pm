@@ -204,7 +204,8 @@ sub Tree_Node_Mass_Distribution {
 	description => "Construct and return the mass distribution associated with {\\normalfont \\ttfamily self}.",
 	modules     =>
 	    [
-	     "Mass_Distributions, only : massDistributionClass, massDistributionComposite, massDistributionList"
+	     "Mass_Distributions, only : massDistributionClass, massDistributionComposite, massDistributionList",
+	     "Galactic_Structure_Options, only : enumerationWeightByType"
 	    ],
 	variables   =>
 	    [
@@ -213,6 +214,17 @@ sub Tree_Node_Mass_Distribution {
 		 type       => "treeNode",
 		 attributes => [ "intent(inout)" ],
 		 variables  => [ "self" ]
+	     },
+	     {
+		 intrinsic  => "type",
+		 type       => "enumerationWeightByType",
+		 attributes => [ "intent(in   )", "optional" ],
+		 variables  => [ "weightBy" ]
+	     },
+	     {
+		 intrinsic  => "integer",
+		 attributes => [ "intent(in   )", "optional" ],
+		 variables  => [ "weightIndex" ]
 	     },
 	     {
 		 intrinsic  => "class",

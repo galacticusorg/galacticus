@@ -1341,37 +1341,22 @@ module Galacticus_Nodes
     return
   end function Node_Component_Null_TensorR2D3_InOut
 
-  function Node_Component_Mass_Distribution_Null(self) result(massDistribution_)
+  function Node_Component_Mass_Distribution_Null(self,weightBy,weightIndex) result(massDistribution_)
     !!{
     A null implementation of the enclosed mass in a component. Always returns zero.
     !!}
-    use :: Mass_Distributions, only : massDistributionClass
+    use :: Galactic_Structure_Options, only : enumerationWeightByType
+    use :: Mass_Distributions        , only : massDistributionClass
     implicit none
-    class(massDistributionClass), pointer       :: massDistribution_
-    class(nodeComponent        ), intent(inout) :: self
-    !$GLC attributes unused :: self
+    class  (massDistributionClass  ), pointer                 :: massDistribution_
+    class  (nodeComponent          ), intent(inout)           :: self
+    type   (enumerationWeightByType), intent(in   ), optional :: weightBy
+    integer                         , intent(in   ), optional :: weightIndex
+    !$GLC attributes unused :: self, weightBy, weightIndex
 
     massDistribution_ => null()
     return
   end function Node_Component_Mass_Distribution_Null
-
-  double precision function Node_Component_Enclosed_Mass_Null(self,radius,componentType,massType,weightBy,weightIndex)
-    !!{
-    A null implementation of the enclosed mass in a component. Always returns zero.
-    !!}
-    use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType, enumerationWeightByType
-    implicit none
-    class           (nodeComponent               ), intent(inout) :: self
-    type            (enumerationComponentTypeType), intent(in   ) :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ) :: massType
-    type            (enumerationWeightByType     ), intent(in   ) :: weightBy
-    integer                                       , intent(in   ) :: weightIndex
-    double precision                              , intent(in   ) :: radius
-    !$GLC attributes unused :: self, radius, componentType, massType, weightBy, weightIndex
-
-    Node_Component_Enclosed_Mass_Null=0.0d0
-    return
-  end function Node_Component_Enclosed_Mass_Null
 
   function Node_Component_Chandrasekhar_Integral_Null(self,nodeSatellite,positionCartesian,velocityCartesian,componentType,massType)
     !!{

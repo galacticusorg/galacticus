@@ -59,8 +59,7 @@ module Node_Component_Black_Hole_Simple
     </property>
    </properties>
    <bindings>
-     <binding method="massDistribution"      function="Node_Component_Black_Hole_Simple_Mass_Distribution"       bindsTo="component"/>
-     <binding method="enclosedMass"          function="Node_Component_Black_Hole_Simple_Enclosed_Mass"           bindsTo="component"/>
+     <binding method="massDistribution" function="Node_Component_Black_Hole_Simple_Mass_Distribution" bindsTo="component"/>
    </bindings>
    <functions>objects.nodes.components.black_hole.simple.bound_functions.inc</functions>
   </component>

@@ -362,7 +362,7 @@ contains
     !!{
     Compute the mass within a given radius, or the total mass if no radius is specified.
     !!}
-    use :: Galacticus_Nodes, only : optimizeForEnclosedMassSummation, reductionSummation
+    use :: Mass_Distributions, only : massDistributionClass
     !![
     <include directive="enclosedMassTask" type="moduleUse">
     !!]
@@ -378,15 +378,16 @@ contains
     type            (enumerationWeightByType     ), intent(in   ), optional :: weightBy
     integer                                       , intent(in   ), optional :: weightIndex
     double precision                              , intent(in   ), optional :: radius
-    procedure       (massComponentEnclosed       ), pointer                 :: massComponentEnclosed_
+    class           (massDistributionClass       ), pointer                 :: massDistribution_
     double precision                                                        :: massComponent
 
     call self%defaults(radius,componentType,massType,weightBy,weightIndex)
     ! Compute the contribution from components directly, by mapping a function over all components.
-    massComponentEnclosed_ => massComponentEnclosed
-    massEnclosed           =  node                 %mapDouble0(massComponentEnclosed_,reductionSummation,optimizeFor=optimizeForEnclosedMassSummation)
+    massDistribution_ => node             %massDistribution    (galacticStructureState_%state%weightBy_,galacticStructureState_%state%weightIndex_                                          )
+    massEnclosed      =  massDistribution_%massEnclosedBySphere(galacticStructureState_%state%radius_  ,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_)
     ! Call routines to supply the masses for all components.
     !![
+    <objectDestructor name="massDistribution_"/>
     <include directive="enclosedMassTask" type="functionCall" functionType="function" returnParameter="massComponent">
      <functionArgs>node,galacticStructureState_%state%radius_,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_,galacticStructureState_%state%weightBy_,galacticStructureState_%state%weightIndex_</functionArgs>
      <onReturn>massEnclosed=massEnclosed+massComponent</onReturn>
@@ -398,18 +399,6 @@ contains
     call self%restore()
     return
   end function standardMassEnclosed
-
-  double precision function massComponentEnclosed(component)
-    !!{
-    Unary function returning the enclosed mass in a component. Suitable for mapping over components.
-    !!}
-    use :: Galacticus_Nodes, only : nodeComponent
-    implicit none
-    class(nodeComponent), intent(inout) :: component
-
-    massComponentEnclosed=component%enclosedMass(galacticStructureState_%state%radius_,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_,galacticStructureState_%state%weightBy_,galacticStructureState_%state%weightIndex_)
-    return
-  end function massComponentEnclosed
 
   double precision function standardRadiusEnclosingMass(self,node,mass,massFractional,componentType,massType,weightBy,weightIndex)
     !!{
