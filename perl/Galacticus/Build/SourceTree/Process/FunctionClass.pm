@@ -1109,7 +1109,7 @@ CODE
 					$allowedParametersCode .= "       isNew=.true.\n";
 					$allowedParametersCode .= "       do j=1,size(allowedParameters)\n";
 					$allowedParametersCode .= "          allowedParameter=trim(allowedParameters(j))\n";
-					$allowedParametersCode .= "          if (allowedParameter == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}->[$i]."') then\n";
+					$allowedParametersCode .= "          if (allowedParameter == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'all'}->[$i]."') then\n";
 					$allowedParametersCode .= "             isNew=.false.\n";
 					$allowedParametersCode .= "             exit\n";
 					$allowedParametersCode .= "          end if\n";
@@ -1130,7 +1130,7 @@ CODE
 					$allowedParametersCode .= "       isNew=.true.\n";
 					$allowedParametersCode .= "       do j=1,size(allowedParameters)-countNew\n";
 					$allowedParametersCode .= "          allowedParameter=trim(allowedParameters(j))\n";
-					$allowedParametersCode .= "          if (allowedParameter == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}->[$i]."') then\n";
+					$allowedParametersCode .= "          if (allowedParameter == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'all'}->[$i]."') then\n";
 					$allowedParametersCode .= "             isNew=.false.\n";
 					$allowedParametersCode .= "             exit\n";
 					$allowedParametersCode .= "          end if\n";
