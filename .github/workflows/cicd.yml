@@ -213,13 +213,11 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Extract metadata (tags, labels) for Docker
-        if: ${{ env.HAVE_DOCKER_TOKEN == 'true' }}
         id: meta
         uses: docker/metadata-action@v4
         with:
           images: galacticusorg/galacticus
       - name: Build and push Docker image 
-        if: ${{ env.HAVE_DOCKER_TOKEN == 'true' }}
         uses: docker/build-push-action@v3
         with:
           context: .
