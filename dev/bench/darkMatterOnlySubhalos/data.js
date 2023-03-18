@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1679112498254,
+  "lastUpdate": 1679181521893,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "7823e04a3fac05bf5d9d4b96b9e9fcbe019547df",
-          "message": "feat: Add a nodeOperator which implements an empirical central disk model",
-          "timestamp": "2022-08-19T15:10:15Z",
-          "tree_id": "da71321ef12d43517a6160aba0ab1a2c28324f35",
-          "url": "https://github.com/galacticusorg/galacticus/commit/7823e04a3fac05bf5d9d4b96b9e9fcbe019547df"
-        },
-        "date": 1660928329297,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 42.892,
-            "unit": "seconds",
-            "range": 0.237815054190322
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8725,6 +8695,34 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 25619.8050208255,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "id": "37b460897d0ece5c27aa90ab4a35048eab3ff438",
+          "message": "fix: Switch from DockerHub to GitHub Container Registry",
+          "timestamp": "2023-03-18T20:13:18Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/37b460897d0ece5c27aa90ab4a35048eab3ff438"
+        },
+        "date": 1679181520021,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 49.524,
+            "unit": "seconds",
+            "range": 0.0352476949601105
           }
         ]
       }
