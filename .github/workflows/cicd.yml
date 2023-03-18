@@ -54,7 +54,7 @@ jobs:
   ### Static executable and test codes
   Build-Executable-Linux:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
@@ -106,7 +106,7 @@ jobs:
   ### Executable instrumented
   Build-Executables-Instrumented-Linux:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
@@ -135,7 +135,7 @@ jobs:
   ### Executable MPI
   Build-Executables-MPI-Linux:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
@@ -166,7 +166,7 @@ jobs:
   ### Library
   Build-Library-Linux:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
@@ -228,7 +228,7 @@ jobs:
   ### Documentation
   Build-Documentation-Linux:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
@@ -258,7 +258,7 @@ jobs:
   ### Tools
   Build-Tools:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -846,7 +846,7 @@ jobs:
   # Benchmarks
   Benchmark-Dark-Matter-Only-Subhalos:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -892,7 +892,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Benchmark-Milky-Way-Model:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -960,7 +960,7 @@ jobs:
   Profile-Dark-Matter-Only-Subhalos:
     runs-on: ubuntu-latest
     container:
-      image: docker://galacticusorg/buildenv:latest
+      image: ghcr.io/galacticusorg/buildenv:latest
       options: --privileged
     needs: Build-Executable-Linux
     steps:
@@ -1007,7 +1007,7 @@ jobs:
   Profile-Milky-Way-Model:
     runs-on: ubuntu-latest
     container:
-      image: docker://galacticusorg/buildenv:latest
+      image: ghcr.io/galacticusorg/buildenv:latest
       options: --privileged
     needs: Build-Executable-Linux
     steps:
@@ -1074,7 +1074,7 @@ jobs:
   Profile-Milky-Way-SIDM-Model:
     runs-on: ubuntu-latest
     container:
-      image: docker://galacticusorg/buildenv:latest
+      image: ghcr.io/galacticusorg/buildenv:latest
       options: --privileged
     needs: Build-Executable-Linux
     steps:
@@ -1141,7 +1141,7 @@ jobs:
   Profile-Dark-Matter-Only-Subhalos-GProf:
     runs-on: ubuntu-latest
     container:
-      image: docker://galacticusorg/buildenv:latest
+      image: ghcr.io/galacticusorg/buildenv:latest
       options: --privileged
     needs: Build-Executables-Instrumented-Linux
     steps:
@@ -1189,7 +1189,7 @@ jobs:
   Profile-Milky-Way-GProf:
     runs-on: ubuntu-latest
     container:
-      image: docker://galacticusorg/buildenv:latest
+      image: ghcr.io/galacticusorg/buildenv:latest
       options: --privileged
     needs: Build-Executables-Instrumented-Linux
     steps:
@@ -1257,7 +1257,7 @@ jobs:
   Profile-Milky-Way-SIDM-GProf:
     runs-on: ubuntu-latest
     container:
-      image: docker://galacticusorg/buildenv:latest
+      image: ghcr.io/galacticusorg/buildenv:latest
       options: --privileged
     needs: Build-Executables-Instrumented-Linux
     steps:
@@ -1325,7 +1325,7 @@ jobs:
   # Validation
   Validate-Dark-Matter-Only-Subhalos:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -1369,7 +1369,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Validate-Milky-Way-Model:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -1436,7 +1436,7 @@ jobs:
   ### Test Codes
   Test-Nodes:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -1471,7 +1471,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Parameters:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -1506,7 +1506,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Files:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -1541,7 +1541,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-IO-HDF5:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -1576,7 +1576,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-IO-XML:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -1611,7 +1611,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-ODE-Solver:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -1646,7 +1646,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Random:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -1681,7 +1681,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Random-Quasi:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -1716,7 +1716,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Arrays:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -1751,7 +1751,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Meshes:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -1786,7 +1786,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Convex-Hulls:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -1821,7 +1821,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Comparisons:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -1856,7 +1856,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Geometry-Coordinate-Systems:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -1891,7 +1891,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Hashes:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -1926,7 +1926,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Hashes-Perfect:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -1961,7 +1961,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Regular-Expressions:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -1996,7 +1996,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Hashes-Cryptographic:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -2031,7 +2031,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Integration:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -2066,7 +2066,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Integration2:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -2101,7 +2101,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Differentiation:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -2136,7 +2136,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Tables:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -2171,7 +2171,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Interpolation:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -2206,7 +2206,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Interpolation-2D:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -2241,7 +2241,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Make-Ranges:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -2276,7 +2276,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Mass-Distributions:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -2311,7 +2311,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Math-Special-Functions:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -2346,7 +2346,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Math-Distributions:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -2381,7 +2381,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Math-Fast:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -2416,7 +2416,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Math-Linear-Algebra:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -2451,7 +2451,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Root-Finding:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -2486,7 +2486,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Multi-Dimensional-Minimizer:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -2521,7 +2521,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Search:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -2556,7 +2556,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Roman-Numerals:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -2591,7 +2591,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Sort:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -2626,7 +2626,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Sort-Topological:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -2661,7 +2661,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-String-Utilities:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -2696,7 +2696,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Vectors:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -2731,7 +2731,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Multi-Counters:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -2766,7 +2766,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Tensors:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -2801,7 +2801,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Cosmic-Age:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -2836,7 +2836,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Spherical-Collapse-Open:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -2871,7 +2871,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Spherical-Collapse-Flat:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -2906,7 +2906,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Spherical-Collapse-Dark-Energy-EdS:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -2941,7 +2941,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Spherical-Collapse-Dark-Energy-Open:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -2976,7 +2976,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Spherical-Collapse-Dark-Energy-Lambda:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -3011,7 +3011,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Spherical-Collapse-Dark-Energy-ConstantEoSminusHalf:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -3046,7 +3046,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Spherical-Collapse-Dark-Energy-ConstantEoSminusTwoThirds:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -3081,7 +3081,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Spherical-Collapse-Dark-Energy-ConstantEoSminus0-6:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -3116,7 +3116,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Spherical-Collapse-Dark-Energy-ConstantEoSminus0-8:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -3151,7 +3151,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Spherical-Collapse-Baryons-Dark-Matter:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -3186,7 +3186,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Spherical-Collapse-Nonlinear:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -3221,7 +3221,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Warm-Dark-Matter:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -3256,7 +3256,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Linear-Growth-Cosmological-Constant:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -3291,7 +3291,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Linear-Growth-EdS:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -3326,7 +3326,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Linear-Growth-Open:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -3361,7 +3361,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Linear-Growth-Dark-Energy:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -3396,7 +3396,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Linear-Growth-Baryons-EdS:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -3431,7 +3431,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Halo-Mass-Function-Tinker:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -3466,7 +3466,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Halo-Mass-Function-Reed2007:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -3501,7 +3501,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Halo-Mass-Function-Environment-Averaged:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -3536,7 +3536,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Comoving-Distance:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -3571,7 +3571,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Mass-Accretion-History-Correa2015:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -3606,7 +3606,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Zhao2009-Algorithms-Dark-Energy:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -3641,7 +3641,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Zhao2009-Algorithms-EdS:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -3676,7 +3676,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Zhao2009-Algorithms-Open:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -3711,7 +3711,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-NFW96-Concentration-Dark-Energy:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -3746,7 +3746,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Prada2011-Concentration:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -3781,7 +3781,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-DiemerKravtsov2014-Concentration:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -3816,7 +3816,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Concentration-Correa2015:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -3851,7 +3851,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Concentrations:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -3886,7 +3886,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Biases:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -3921,7 +3921,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Kepler-Orbits:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -3956,7 +3956,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Abundances:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -3991,7 +3991,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Sigma:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -4026,7 +4026,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Power-Spectrum-Primordial:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -4061,7 +4061,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Power-Spectrum:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -4096,7 +4096,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Transfer-Functions:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -4131,7 +4131,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Black-Hole-Fundamentals:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -4166,7 +4166,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Bug745815:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -4201,7 +4201,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Gaunt-Factors:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -4236,7 +4236,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Cooling-Functions:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -4271,7 +4271,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Accretion-Disks:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -4306,7 +4306,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Mass-Accretion-History-Hearin2021:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -4341,7 +4341,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Mass-Accretion-History-Hearin2021-Stochastic:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -4376,7 +4376,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Dark-Matter-Profiles:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -4411,7 +4411,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Dark-Matter-Profiles-Adiabatic-Gnedin2004:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -4446,7 +4446,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."        
   Tests-Dark-Matter-Profiles-Heated:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -4481,7 +4481,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Dark-Matter-Halo-Radius-Enclosing-Mass:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -4516,7 +4516,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Dark-Matter-Profiles-Tidal-Tracks:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -4551,7 +4551,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Dark-Matter-Profiles-Generic:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -4586,7 +4586,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Dark-Matter-Profiles-Finite_Resolution:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -4621,7 +4621,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Spectra-Postprocess-Inoue2014:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -4656,7 +4656,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Recombination-Computed:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -4691,7 +4691,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Recombination-Cooling-Hummer:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -4726,7 +4726,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Locks:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -4761,7 +4761,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Initial-Mass-Functions:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -4796,7 +4796,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Stellar-Populations:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -4831,7 +4831,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Stellar-Populations-Luminosities:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -4866,7 +4866,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Crash:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -4899,7 +4899,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Fail:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -4934,7 +4934,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Excursion-Sets:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -4969,7 +4969,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Merger-Tree-Branching:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -5004,7 +5004,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Event-Hooks:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -5039,7 +5039,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Tree-Branch_Destroy:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -5079,7 +5079,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Binary-Search-Trees:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -5118,7 +5118,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Orbits:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -5154,7 +5154,7 @@ jobs:
   ### MPI Test Codes
   Test-MPI:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executables-MPI-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -5189,7 +5189,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-MPI-Radiative-Transfer-Atomic-Matter-State-Solver:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executables-MPI-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -5225,7 +5225,7 @@ jobs:
   ### Cosmology
   Test-Cosmology-01:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -5263,7 +5263,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Cosmology-02:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -5302,7 +5302,7 @@ jobs:
   ### Mass Conservation
   Test-Mass-Conservation-Simple:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -5345,7 +5345,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Mass-Conservation-Standard:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -5388,7 +5388,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Mass-Conservation-Cold-Mode:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -5432,7 +5432,7 @@ jobs:
   ### Merger Trees
   Test-Merger-Tree-Builder-01:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -5475,7 +5475,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Merger-Tree-Builder-02:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -5518,7 +5518,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Merger-Tree-Builder-03:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -5561,7 +5561,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Merger-Tree-Builder-04:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -5604,7 +5604,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Merger-Tree-Write:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -5648,7 +5648,7 @@ jobs:
   ## Model Integration
   Test-Model-Integration-01:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -5691,7 +5691,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Model-Integration-02:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -5735,7 +5735,7 @@ jobs:
   ## Misc Models
   Test-Allowed-Parameters:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -5772,7 +5772,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Bar-Instability:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -5809,7 +5809,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Transfer-Function-Axions:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -5852,7 +5852,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Mass-Definitions:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -5889,7 +5889,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Bolshoi-Tree-Builder:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -5926,7 +5926,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Branchless-Trees:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -5963,7 +5963,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Branch-Subsampling:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -6000,7 +6000,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-CGM-Mass-Cooled:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -6037,7 +6037,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Concentration-Ludlow2016:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -6074,7 +6074,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Constraint-Deterministic-Spins:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -6111,7 +6111,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Constraint-Mass-Function:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -6148,7 +6148,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Extract-Directives:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
@@ -6178,7 +6178,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Fortran-Utils:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
@@ -6208,7 +6208,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Halo-Mass-Functions:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -6245,7 +6245,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Inactive-Luminosities:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -6282,7 +6282,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Interoutput-Star-Formation-Rate:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -6320,7 +6320,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Mass-Host-Maximum:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -6358,7 +6358,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Satellite-Distance-Minimum:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -6396,7 +6396,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Constrained-Merger-Trees:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -6454,7 +6454,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Millennium-Tree-Builder:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -6491,7 +6491,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Output:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -6528,7 +6528,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Output-Tree-Contiguousity:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -6565,7 +6565,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Parameter-Validation:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
@@ -6595,7 +6595,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Parameter-Migration:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
@@ -6627,7 +6627,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Perl-Modules:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
@@ -6663,7 +6663,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Reproducibility:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -6700,7 +6700,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Split-Forests:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -6737,7 +6737,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Star-Formation-Histories-Adaptive:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -6774,7 +6774,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-State-Restore:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -6811,7 +6811,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Stellar-Mass-Weighted-Ages:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -6848,7 +6848,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Tidal-Tracks:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -6885,7 +6885,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-galacticStructureState-Deallocate-Bug:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -6922,7 +6922,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Inactive-Numerics:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -6959,7 +6959,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Impulsive-Heating:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -6996,7 +6996,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Halo-Triaxiality:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -7034,7 +7034,7 @@ jobs:
   ### Outputs
   Test-Outputs-01:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -7071,7 +7071,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Outputs-02:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -7108,7 +7108,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Outputs-03:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -7145,7 +7145,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Outputs-04:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -7182,7 +7182,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Outputs-05:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -7219,7 +7219,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Outputs-06:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -7256,7 +7256,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Outputs-07:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -7293,7 +7293,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Outputs-08:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -7330,7 +7330,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Outputs-09:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -7367,7 +7367,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Outputs-10:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -7405,7 +7405,7 @@ jobs:
   ### Regressions
   Regressions-Bug-1053153:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -7441,7 +7441,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Regressions-Bug-1066052:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -7478,7 +7478,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Regressions-Bug-711424:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -7514,7 +7514,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Regressions-Bug-725315:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -7550,7 +7550,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Regressions-Coincident-Merger-And-Branch-Jump:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -7586,7 +7586,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Regressions-Cole2000-Tree-Builder-WDM-Node-Well-Ordering:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -7642,7 +7642,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Regressions-Deadlock-Merge-Target-In-Descendent-Of-Mergee-2:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -7678,7 +7678,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Regressions-Deadlock-Merge-Target-In-Descendent-Of-Mergee:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -7714,7 +7714,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Regressions-Final-Time-Before-Output-Time:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -7750,7 +7750,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Regressions-Immediate-Sub-Sub-Merger-Then-Branch-Jump:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -7786,7 +7786,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Regressions-Initial-Satellite-No-Primary-Progenitor:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -7822,7 +7822,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Regressions-Issue-142:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -7878,7 +7878,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Regressions-Linear-Growth-For-Future-Model:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -7914,7 +7914,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Regressions-Ludlow-Scale-Set-Before-Tree-Initialization:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -7950,7 +7950,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Regressions-Merger-At-Final-Time-In-Tree:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -7986,7 +7986,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Regressions-Merger-Tree-Box-Size-Weight:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -8023,7 +8023,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Regressions-Particulate:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -8059,7 +8059,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Regressions-Satellite-Preset-Bound-Mass-Non-Zero:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -8096,7 +8096,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Regressions-Set-Properties:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -8139,7 +8139,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Regressions-Subhalo-Merges-At-Final-Time-Of-Tree:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -8175,7 +8175,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Regressions-Subhalo-Two-Consecutive-Mergers:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -8211,7 +8211,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Regressions-Tree-With-Initial-Satellite-In-Progenitorless-Host:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -8247,7 +8247,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Regressions-Tree-With-No-Primary-Progenitor:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -8283,7 +8283,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Regressions-Bar-Instability-FPE:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -8320,7 +8320,7 @@ jobs:
   ### Methods
   Test-Methods-01:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -8357,7 +8357,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Methods-02:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -8394,7 +8394,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Methods-03:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -8431,7 +8431,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Methods-04:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -8468,7 +8468,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Methods-05:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -8505,7 +8505,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Methods-06:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -8542,7 +8542,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Methods-07:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -8579,7 +8579,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Methods-08:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -8616,7 +8616,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Methods-09:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -8653,7 +8653,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Methods-10:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -8690,7 +8690,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Methods-11:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -8727,7 +8727,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Methods-12:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -8764,7 +8764,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Methods-13:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -8801,7 +8801,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Methods-14:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -8838,7 +8838,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Methods-15:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -8875,7 +8875,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Methods-16:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -8912,7 +8912,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Methods-17:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -8949,7 +8949,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Methods-18:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -8986,7 +8986,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Methods-19:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -9023,7 +9023,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-Methods-20:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -9061,7 +9061,7 @@ jobs:
   ### MPI Misc Models
   Test-MPI-State-Restore:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executables-MPI-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -9098,7 +9098,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-MPI-Radiative-Transfer-Stromgren-Sphere:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executables-MPI-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -9135,7 +9135,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-MPI-MCMC:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executables-MPI-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -9172,7 +9172,7 @@ jobs:
   ### MPI Methods  
   Test-MPI-Methods-01:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executables-MPI-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -9209,7 +9209,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Test-MPI-Methods-02:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executables-MPI-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -9247,7 +9247,7 @@ jobs:
   ## Python Interface
   Test-Python-Interface:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Library-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
