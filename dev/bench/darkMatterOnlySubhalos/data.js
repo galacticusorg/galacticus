@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1678827308590,
+  "lastUpdate": 1679112490207,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "1ceec7f914c9066d495aee5e2c393513cec27826",
-          "message": "Merge pull request #274 from galacticusorg/dev\n\nImplement a hyperbolic tangent power spectrum window function.",
-          "timestamp": "2022-08-18T06:58:37-07:00",
-          "tree_id": "6e7d7d79d53e6626d0fa7a57485a4ddfad8b3d3b",
-          "url": "https://github.com/galacticusorg/galacticus/commit/1ceec7f914c9066d495aee5e2c393513cec27826"
-        },
-        "date": 1660844434235,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 42.97,
-            "unit": "seconds",
-            "range": 0.179276323031792
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8729,6 +8699,34 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 24145.1797388743,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@obs.carnegiescience.edu"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "aff1fe9062b45f6bc502a6c2c42022abe2619640",
+          "message": "fix: Set permissions for Docker push",
+          "timestamp": "2023-03-17T23:17:20Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/aff1fe9062b45f6bc502a6c2c42022abe2619640"
+        },
+        "date": 1679112489072,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 62.622,
+            "unit": "seconds",
+            "range": 0.133265149232817
           }
         ]
       }
