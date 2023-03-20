@@ -163,9 +163,11 @@ sub checkLink {
 	    close($logFile);
 	}
 	unless ( $status ) {
-	    $options =~ s/\-\-silent//;
-	    $options =~ s/\-\-fail//;
-	    system("sleep 1; curl ".$options." \"".$url."\"");
+	    open(my $logFile,"curl.log");
+	    while ( my $line = <$logFile> ) {
+		print $line;
+	    }
+	    close($logFile);
 	}
     }
     return $status;
