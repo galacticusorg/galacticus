@@ -399,7 +399,7 @@ contains
     !$GLC attributes unused :: time
 
     allocate(descriptions(1))
-    descriptions(1)="Spectral energy density (SED) for the "//enumerationComponentTypeDecode(self%component,includePrefix=.false.)//" [L☉/Hz⁻¹]."
+    descriptions(1)="Spectral energy density (SED), dL/dν for the "//enumerationComponentTypeDecode(self%component,includePrefix=.false.)//" [L☉ Hz⁻¹]."
     return
   end subroutine sedDescriptions
 
