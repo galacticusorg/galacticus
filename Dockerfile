@@ -2,7 +2,7 @@
 # Uses Docker multi-stage build to build Galacticus.
 
 ARG tag=latest
-FROM galacticusorg/buildenv:$tag as build
+FROM ghcr.io/galacticusorg/buildenv:$tag as build
 
 # Set build options.
 ## * The flags are also set in galacticus/buildenv:latest so we don't really need to reset them here.
