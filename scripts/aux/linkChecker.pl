@@ -134,7 +134,7 @@ sub checkLink {
 	# An external link. Include a short sleep here to rate limit requests.
 	## --cipher 'DEFAULT:!DH' - this reduces the default security level which otherwise prevents some URLs from being downloaded.
 	## --range 0-0 - this causes no bytes to actually be downloaded - this is disabled on some sites as it seems to break them.
-	my $options = "--silent --insecure --location --output /dev/null --fail --cipher 'DEFAULT:!DH'";
+	my $options = "--max-time 60 --silent --insecure --location --output /dev/null --fail --cipher 'DEFAULT:!DH'";
 	$options .= " --range 0-0"
 	    unless ( $url =~ m/^https:\/\/www\.drdobbs\.com\// );
 	$options .= " --user-agent \"Mozilla\""
@@ -143,6 +143,8 @@ sub checkLink {
 	    if ( $url =~ m/docs\.github\.com/ );
 	$options .= " --http1.1"
 	    if ( $url =~ m/camb\.info/ );
+	$options .= " --retry 5"
+	    if ( $url =~ m/ui\.adsabs\.harvard\.edu/ );
 	sleep(1);
 	system("curl ".$options." \"".$url."\"");
 	$status = $? == 0 ? 1 : 0;
@@ -163,9 +165,11 @@ sub checkLink {
 	    close($logFile);
 	}
 	unless ( $status ) {
-	    $options =~ s/\-\-silent//;
-	    $options =~ s/\-\-fail//;
-	    system("sleep 1; curl ".$options." \"".$url."\"");
+	    open(my $logFile,"curl.log");
+	    while ( my $line = <$logFile> ) {
+		print $line;
+	    }
+	    close($logFile);
 	}
     }
     return $status;
