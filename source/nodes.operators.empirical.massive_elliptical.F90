@@ -38,10 +38,13 @@
      !!}
      private
      double precision :: massStellarFinal                  , rateStarFormationSpecific                , &
-          &              angularMomentumPseudoSpecificFinal, rateAngularMomentumPseudoSpecificSpecific
+          &              angularMomentumPseudoSpecificFinal, rateAngularMomentumPseudoSpecificSpecific, &
+          &              radiusFinal                       , rateRadiusSpecific
+     logical          :: useAngularMomentum
    contains
-     procedure :: nodeInitialize        => empiricalMassiveEllipticalNodeInitialize
-     procedure :: differentialEvolution => empiricalMassiveEllipticalDifferentialEvolution
+     procedure :: nodeInitialize                      => empiricalMassiveEllipticalNodeInitialize
+     procedure :: differentialEvolution               => empiricalMassiveEllipticalDifferentialEvolution
+     procedure :: differentialEvolutionSolveAnalytics => empiricalMassiveEllipticalSolveAnalytics
   end type nodeOperatorEmpiricalMassiveElliptical
   
   interface nodeOperatorEmpiricalMassiveElliptical
@@ -63,7 +66,8 @@ contains
     type            (nodeOperatorEmpiricalMassiveElliptical)                :: self
     type            (inputParameters                       ), intent(inout) :: parameters
     double precision                                                        :: massStellarFinal                  , rateStarFormationSpecific                , &
-         &                                                                     angularMomentumPseudoSpecificFinal, rateAngularMomentumPseudoSpecificSpecific
+         &                                                                     angularMomentumPseudoSpecificFinal, rateAngularMomentumPseudoSpecificSpecific, &
+         &                                                                     radiusFinal                       , rateRadiusSpecific
     
     !![
     <inputParameter>
@@ -76,36 +80,86 @@ contains
       <source>parameters</source>
       <description>The specific star formation rate of the elliptical galaxy.</description>
     </inputParameter>
-    <inputParameter>
-      <name>angularMomentumPseudoSpecificFinal</name>
-      <source>parameters</source>
-      <description>The final specific pseudo-angular momentum of the elliptical galaxy.</description>
-    </inputParameter>
-    <inputParameter>
-      <name>rateAngularMomentumPseudoSpecificSpecific</name>
-      <source>parameters</source>
-      <description>The specific growth rate of the specific pseudo-angular momentum of the elliptical galaxy.</description>
-    </inputParameter>
     !!]
-    self=nodeOperatorEmpiricalMassiveElliptical(massStellarFinal,rateStarFormationSpecific,angularMomentumPseudoSpecificFinal,rateAngularMomentumPseudoSpecificSpecific)
+    if (parameters%isPresent('angularMomentumPseudoSpecificFinal')) then
+       !![
+       <inputParameter>
+	 <name>angularMomentumPseudoSpecificFinal</name>
+	 <source>parameters</source>
+	 <description>The final specific pseudo-angular momentum of the elliptical galaxy.</description>
+       </inputParameter>
+       <inputParameter>
+	 <name>rateAngularMomentumPseudoSpecificSpecific</name>
+	 <source>parameters</source>
+	 <description>The specific growth rate of the specific pseudo-angular momentum of the elliptical galaxy.</description>
+       </inputParameter>
+       !!]
+    end if
+    if (parameters%isPresent(                       'radiusFinal')) then
+       !![
+       <inputParameter>
+	 <name>radiusFinal</name>
+	 <source>parameters</source>
+	 <description>The final radius of the elliptical galaxy.</description>
+       </inputParameter>
+       <inputParameter>
+	 <name>rateRadiusSpecific</name>
+	 <source>parameters</source>
+	 <description>The specific growth rate of the radius of the elliptical galaxy.</description>
+       </inputParameter>
+       !!]
+    end if
     !![
+    <conditionalCall>
+      <call>self=nodeOperatorEmpiricalMassiveElliptical(massStellarFinal,rateStarFormationSpecific{conditions})</call>
+      <argument name="angularMomentumPseudoSpecificFinal"        value="angularMomentumPseudoSpecificFinal"        parameterPresent="parameters"/>
+      <argument name="rateAngularMomentumPseudoSpecificSpecific" value="rateAngularMomentumPseudoSpecificSpecific" parameterPresent="parameters"/>
+      <argument name="radiusFinal"                               value="radiusFinal"                               parameterPresent="parameters"/>
+      <argument name="rateRadiusSpecific"                        value="rateRadiusSpecific"                        parameterPresent="parameters"/>
+    </conditionalCall>
     <inputParametersValidate source="parameters"/>
     !!]
     return
   end function empiricalMassiveEllipticalConstructorParameters
 
-  function empiricalMassiveEllipticalConstructorInternal(massStellarFinal,rateStarFormationSpecific,angularMomentumPseudoSpecificFinal,rateAngularMomentumPseudoSpecificSpecific) result(self)
+  function empiricalMassiveEllipticalConstructorInternal(massStellarFinal,rateStarFormationSpecific,angularMomentumPseudoSpecificFinal,rateAngularMomentumPseudoSpecificSpecific,radiusFinal,rateRadiusSpecific) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily empiricalMassiveElliptical} node operator class.
     !!}
     implicit none
-    type            (nodeOperatorEmpiricalMassiveElliptical)                :: self
-    double precision                                        , intent(in   ) :: massStellarFinal                  , rateStarFormationSpecific                , &
-         &                                                                     angularMomentumPseudoSpecificFinal, rateAngularMomentumPseudoSpecificSpecific
+    type            (nodeOperatorEmpiricalMassiveElliptical)                          :: self
+    double precision                                        , intent(in   )           :: massStellarFinal                  , rateStarFormationSpecific
+    double precision                                        , intent(in   ), optional :: angularMomentumPseudoSpecificFinal, rateAngularMomentumPseudoSpecificSpecific, &
+         &                                                                               radiusFinal                       , rateRadiusSpecific
     !![
-    <constructorAssign variables="massStellarFinal, rateStarFormationSpecific, angularMomentumPseudoSpecificFinal, rateAngularMomentumPseudoSpecificSpecific"/>
+    <constructorAssign variables="massStellarFinal, rateStarFormationSpecific, angularMomentumPseudoSpecificFinal, rateAngularMomentumPseudoSpecificSpecific, radiusFinal, rateRadiusSpecific"/>
     !!]
 
+    self%useAngularMomentum=.true.
+    if      (present(angularMomentumPseudoSpecificFinal)) then
+       if     (                                                                                                             &
+            &   .not.present(rateAngularMomentumPseudoSpecificSpecific)                                                     &
+            & ) call Error_Report('must provide angular momentum specific growth rate'          //{introspection:location})
+       if     (                                                                                                             &
+            &        present(                              radiusFinal)                                                     &
+            &  .or.&
+            &        present(                       rateRadiusSpecific)                                                     &
+            & ) call Error_Report('either angular momentum or radius must be provided, not both'//{introspection:location})
+       self%useAngularMomentum=.true.
+    else if (present(                       radiusFinal)) then
+       if     (                                                                                                             &
+            &   .not.present(                       rateRadiusSpecific)                                                     &
+            & ) call Error_Report('must provide radius specific growth rate'                    //{introspection:location})
+       if     (                                                                                                             &
+            &        present(       angularMomentumPseudoSpecificFinal)                                                     &
+            &  .or.&
+            &        present(rateAngularMomentumPseudoSpecificSpecific)                                                     &
+            & ) call Error_Report('either angular momentum or radius must be provided, not both'//{introspection:location})
+       self%useAngularMomentum=.false.
+    else
+       self%useAngularMomentum=.false.
+       call Error_Report('either angular momentum or radius must be provided'//{introspection:location})
+    end if
     return
   end function empiricalMassiveEllipticalConstructorInternal
 
@@ -126,15 +180,12 @@ contains
     ! Initialize only the leaf node on the main branch.
     if (associated(node%firstChild).or..not.node%isOnMainBranch()) return
     ! Get times in the leaf and root nodes.
-    nodeRoot => node
-    do while (associated(nodeRoot%parent))
-       nodeRoot => nodeRoot%parent
-    end do
-    basicLeaf => node     %basic   (                 )
-    basicRoot => nodeRoot %basic   (                 )
-    spheroid  => node     %spheroid(autoCreate=.true.)
-    timeLeaf  =  basicLeaf%time    (                 )
-    timeRoot  =  basicRoot%time    (                 )
+    nodeRoot  =>  node     %hostTree   %nodeBase
+    basicLeaf =>  node                 %basic   (                 )
+    basicRoot =>  nodeRoot             %basic   (                 )
+    spheroid  =>  node                 %spheroid(autoCreate=.true.)
+    timeLeaf  =   basicLeaf            %time    (                 )
+    timeRoot  =   basicRoot            %time    (                 )
     ! Compute the initial mass of the elliptical galaxy.
     massStellar    =+self%massStellarFinal                               &
          &          *exp(                                                &
@@ -175,18 +226,55 @@ contains
     double precision                                                                 :: rateStarFormation, rateAngularMomentum
 
     ! Return immediately for inactive property evolution.
-    if (propertyInactive(propertyType)) return
+    if (propertyInactive(propertyType).or..not.node%isOnMainBranch()) return
     ! Compute and set the rates of star formation and angular momentum growth.
-    spheroid            =>    node    %spheroid                                 ()
-    rateStarFormation   =  +  spheroid%massStellar                              () &
-         &                 *  self    %rateStarFormationSpecific
-    rateAngularMomentum =  +  spheroid%angularMomentum                          () &
-         &                 *(                                                      &
-         &                   +self    %rateStarFormationSpecific                   &
-         &                   +self    %rateAngularMomentumPseudoSpecificSpecific   &
-         &                   )
-    call spheroid%    massStellarRate(rateStarFormation  )
-    call spheroid%angularMomentumRate(rateAngularMomentum)
+    spheroid               =>    node    %spheroid                                 ()
+    rateStarFormation      =  +  spheroid%massStellar                              () &
+         &                    *  self    %rateStarFormationSpecific
+    call    spheroid%    massStellarRate(rateStarFormation  )
+    if (self%useAngularMomentum) then
+       rateAngularMomentum =  +  spheroid%angularMomentum                          () &
+            &                 *(                                                      &
+            &                   +self    %rateStarFormationSpecific                   &
+            &                   +self    %rateAngularMomentumPseudoSpecificSpecific   &
+            &                   )
+       call spheroid%angularMomentumRate(rateAngularMomentum)
+    end if
     return
   end subroutine empiricalMassiveEllipticalDifferentialEvolution
 
+  subroutine empiricalMassiveEllipticalSolveAnalytics(self,node,time)
+    !!{
+    Set radii of empirical elliptical galaxies.
+    !!}
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSpheroid
+    implicit none
+    class           (nodeOperatorEmpiricalMassiveElliptical), intent(inout) :: self
+    type            (treeNode                              ), intent(inout) :: node
+    double precision                                        , intent(in   ) :: time
+    type            (treeNode                              ), pointer       :: nodeRoot
+    class           (nodeComponentBasic                    ), pointer       :: basicLeaf, basicRoot
+    class           (nodeComponentSpheroid                 ), pointer       :: spheroid
+    double precision                                                        :: timeLeaf , timeRoot , &
+         &                                                                     radius
+
+    if (self%useAngularMomentum.or..not.node%isOnMainBranch()) return
+    ! Get times in the leaf and root nodes.
+    nodeRoot  =>  node     %hostTree   %nodeBase
+    basicLeaf =>  node                 %basic   ()
+    basicRoot =>  nodeRoot             %basic   ()
+    spheroid  =>  node                 %spheroid()
+    timeLeaf  =   basicLeaf            %time    ()
+    timeRoot  =   basicRoot            %time    ()
+    ! Compute the initial mass of the elliptical galaxy.
+    radius    =  +self     %radiusFinal        &
+         &       *exp(                         &
+         &            +self%rateRadiusSpecific &
+         &            *(                       &
+         &              +timeLeaf              &
+         &              -timeRoot              &
+         &             )                       &
+         &           )
+    call spheroid%radiusSet(radius)
+    return
+  end subroutine empiricalMassiveEllipticalSolveAnalytics
