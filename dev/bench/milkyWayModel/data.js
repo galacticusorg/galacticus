@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1679448294319,
+  "lastUpdate": 1679531807104,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
@@ -9742,6 +9742,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 4.4383754375548,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "ad2c49917e449b5c27d1127d9c9830c82f446c00",
+          "message": "feat: Update the empirical elliptical galaxy model to allow the radius to be specified directly",
+          "timestamp": "2023-03-22T14:57:44-07:00",
+          "tree_id": "cb5709c9cf0203aa8561c5253f18027e3442d7a1",
+          "url": "https://github.com/galacticusorg/galacticus/commit/ad2c49917e449b5c27d1127d9c9830c82f446c00"
+        },
+        "date": 1679531806149,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 163.27,
+            "unit": "seconds",
+            "range": 0.0340881211104489
           }
         ]
       }
