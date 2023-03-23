@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1679531803186,
+  "lastUpdate": 1679531811145,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "91f991ed02d02684b9c6fe322ab95105fc1c87c0",
-          "message": "Merge pull request #283 from galacticusorg/optimization\n\nOptimizations of Blitz2000 star formation rate class",
-          "timestamp": "2022-08-28T12:46:05-07:00",
-          "tree_id": "233fcaf34174c5f8df74f9b76c312ef6c3c86bf3",
-          "url": "https://github.com/galacticusorg/galacticus/commit/91f991ed02d02684b9c6fe322ab95105fc1c87c0"
-        },
-        "date": 1661738566698,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 56.420935650076,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 25.4765175966543,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 15561.6740983098,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8717,6 +8678,45 @@ window.BENCHMARK_DATA = {
             "value": 49.372,
             "unit": "seconds",
             "range": 0.0325207625988818
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "ad2c49917e449b5c27d1127d9c9830c82f446c00",
+          "message": "feat: Update the empirical elliptical galaxy model to allow the radius to be specified directly",
+          "timestamp": "2023-03-22T14:57:44-07:00",
+          "tree_id": "cb5709c9cf0203aa8561c5253f18027e3442d7a1",
+          "url": "https://github.com/galacticusorg/galacticus/commit/ad2c49917e449b5c27d1127d9c9830c82f446c00"
+        },
+        "date": 1679531810153,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 57.3275525628901,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 25.8647158159627,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 24145.1797388743,
+            "unit": "-logℒ"
           }
         ]
       }
