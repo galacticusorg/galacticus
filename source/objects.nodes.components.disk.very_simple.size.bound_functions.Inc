@@ -117,37 +117,3 @@ double precision function Node_Component_Disk_Very_Simple_Size_Half_Mass_Radius(
   end select
   return
 end function Node_Component_Disk_Very_Simple_Size_Half_Mass_Radius
-
-double precision function Node_Component_Disk_Very_Simple_Size_Surface_Density(self,positionCylindrical,componentType,massType,weightBy,weightIndex) result(surfaceDensity)
-  !!{
-  Computes the surface density at a given position for a very simple size disk.
-  !!}
-  use :: Coordinates               , only : assignment(=)               , coordinateCylindrical
-  use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType, enumerationWeightByType, weightByLuminosity 
-  use :: Mass_Distributions        , only : massDistributionClass
-  implicit none
-  class           (nodeComponentDiskVerySimpleSize), intent(inout) :: self
-  type            (enumerationComponentTypeType   ), intent(in   ) :: componentType
-  type            (enumerationMassTypeType        ), intent(in   ) :: massType
-  type            (enumerationWeightByType        ), intent(in   ) :: weightBy
-  integer                                          , intent(in   ) :: weightIndex
-  double precision                                 , intent(in   ) :: positionCylindrical(3)
-  class           (massDistributionClass          ), pointer       :: massDistribution_
-  type            (stellarLuminosities            ), save          :: luminositiesDisk
-  !$omp threadprivate(luminositiesDisk)
-  type            (coordinateCylindrical          )                :: position
-
-  position          =  positionCylindrical
-  massDistribution_ => self               %massDistribution(                               )
-  surfaceDensity    =  massDistribution_  %surfaceDensity  (position,componentType,massType)
-  if (surfaceDensity > 0.0d0 .and. weightBy == weightByLuminosity) then
-     luminositiesDisk= self%luminositiesStellar()
-     surfaceDensity  =+surfaceDensity                                       &
-          &           *luminositiesDisk %luminosity(weightIndex           ) &
-          &           /massDistribution_%massTotal (componentType,massType)
-  end if
-  !![
-  <objectDestructor name="massDistribution_"/>
-  !!]
-  return
-end function Node_Component_Disk_Very_Simple_Size_Surface_Density

@@ -25,11 +25,11 @@ function Node_Component_Spheroid_Standard_Mass_Distribution(self,weightBy,weight
   !!{
   Return the mass distribution for the standard spheroid component.
   !!}
-  use :: Mass_Distributions                   , only : massDistributionClass      , massDistributionSphericalScaler, massDistributionComposite, massDistributionList   , &
+  use :: Mass_Distributions                   , only : massDistributionClass    , massDistributionSphericalScaler, massDistributionComposite, massDistributionList   , &
         &                                              massDistributionSpherical
-  use :: Node_Component_Spheroid_Standard_Data, only : massDistributionStellar_   , massDistributionGas_
-  use :: Galactic_Structure_Options           , only : componentTypeSpheroid      , massTypeStellar                , massTypeGaseous          , enumerationWeightByType, &
-       &                                               weightByMass               , weightByLuminosity
+  use :: Node_Component_Spheroid_Standard_Data, only : massDistributionStellar_ , massDistributionGas_
+  use :: Galactic_Structure_Options           , only : componentTypeSpheroid    , massTypeStellar                , massTypeGaseous          , enumerationWeightByType, &
+       &                                               weightByMass             , weightByLuminosity
   implicit none
   class           (massDistributionClass          ), pointer                 :: massDistribution_
   class           (nodeComponentSpheroidStandard  ), intent(inout)           :: self
@@ -176,69 +176,3 @@ function Node_Component_Spheroid_Standard_Chandrasekhar_Integral(self,nodeSatell
   !!]
   return
 end function Node_Component_Spheroid_Standard_Chandrasekhar_Integral
-
-double precision function Node_Component_Spheroid_Standard_Density(self,positionSpherical,componentType,massType,weightBy,weightIndex) result(density)
-  !!{
-  Computes the density at a given position for an standard spheroid.
-  !!}
-  use :: Coordinates               , only : assignment(=)                 , coordinateSpherical
-  use :: Galactic_Structure_Options, only : enumerationComponentTypeType  , enumerationMassTypeType, enumerationWeightByType, weightByLuminosity
-  use :: Mass_Distributions        , only : massDistributionClass
-  implicit none
-  class           (nodeComponentSpheroidStandard), intent(inout) :: self
-  type            (enumerationComponentTypeType ), intent(in   ) :: componentType
-  type            (enumerationMassTypeType      ), intent(in   ) :: massType
-  type            (enumerationWeightByType      ), intent(in   ) :: weightBy
-  integer                                        , intent(in   ) :: weightIndex
-  double precision                               , intent(in   ) :: positionSpherical(3)
-  class           (massDistributionClass        ), pointer       :: massDistribution_
-  type            (stellarLuminosities          ), save          :: luminositiesSpheroid
-  !$omp threadprivate(luminositiesSpheroid)
-  type            (coordinateSpherical          )                :: position
-
-
-  position          =  positionSpherical
-  massDistribution_ => self             %massDistribution(                               )
-  density           =  massDistribution_%density         (position,componentType,massType)
-  if (density > 0.0d0 .and. weightBy == weightByLuminosity) then
-     luminositiesSpheroid= self                %luminositiesStellar(                      )
-     density             =+density                                                          &
-          &               *luminositiesSpheroid%luminosity         (weightIndex           ) &
-          &               /massDistribution_   %massTotal          (componentType,massType)
-  end if  
-  !![
-  <objectDestructor name="massDistribution_"/>
-  !!]
-  return
-end function Node_Component_Spheroid_Standard_Density
-
-double precision function Node_Component_Spheroid_Standard_Density_Spherical_Average(self,radius,componentType,massType,weightBy,weightIndex) result(density)
-  !!{
-  Computes the density at a given position for an standard spheroid.
-  !!}
-  use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType, enumerationWeightByType, weightByLuminosity
-  use :: Mass_Distributions        , only : massDistributionClass
-  implicit none
-  class           (nodeComponentSpheroidStandard), intent(inout) :: self
-  type            (enumerationComponentTypeType ), intent(in   ) :: componentType
-  type            (enumerationMassTypeType      ), intent(in   ) :: massType
-  type            (enumerationWeightByType      ), intent(in   ) :: weightBy
-  integer                                        , intent(in   ) :: weightIndex
-  double precision                               , intent(in   ) :: radius
-  type            (stellarLuminosities          ), save          :: luminositiesSpheroid
-  !$omp threadprivate(luminositiesSpheroid)
-  class           (massDistributionClass        ), pointer       :: massDistribution_
-
-  massDistribution_ => self             %massDistribution       (                             )
-  density           =  massDistribution_%densitySphericalAverage(radius,componentType,massType)
-  if (density > 0.0d0 .and. weightBy == weightByLuminosity) then
-     luminositiesSpheroid= self                %luminositiesStellar(                      )
-     density             =+density                                                          &
-          &               *luminositiesSpheroid%luminosity         (weightIndex           ) &
-          &               /massDistribution_   %massTotal          (componentType,massType)
-  end if
-  !![
-  <objectDestructor name="massDistribution_"/>
-  !!]
-  return
-end function Node_Component_Spheroid_Standard_Density_Spherical_Average

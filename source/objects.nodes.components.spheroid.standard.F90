@@ -149,10 +149,8 @@ module Node_Component_Spheroid_Standard
     </property>
    </properties>
    <bindings>
-    <binding method="massDistribution"        function="Node_Component_Spheroid_Standard_Mass_Distribution"         bindsTo="component"/>
-    <binding method="chandrasekharIntegral"   function="Node_Component_Spheroid_Standard_Chandrasekhar_Integral"    bindsTo="component"/>
-    <binding method="density"                 function="Node_Component_Spheroid_Standard_Density"                   bindsTo="component"/>
-    <binding method="densitySphericalAverage" function="Node_Component_Spheroid_Standard_Density_Spherical_Average" bindsTo="component"/>
+    <binding method="massDistribution"      function="Node_Component_Spheroid_Standard_Mass_Distribution"      bindsTo="component"/>
+    <binding method="chandrasekharIntegral" function="Node_Component_Spheroid_Standard_Chandrasekhar_Integral" bindsTo="component"/>
    </bindings>
    <functions>objects.nodes.components.spheroid.standard.bound_functions.inc</functions>
   </component>

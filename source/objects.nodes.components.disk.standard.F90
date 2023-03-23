@@ -141,12 +141,9 @@ module Node_Component_Disk_Standard
     </property>
    </properties>
    <bindings>
-    <binding method="attachPipes"               function="Node_Component_Disk_Standard_Attach_Pipes"              bindsTo="component" description="Attach pipes to the standard disk component." returnType="\void" arguments=""/>
-    <binding method="massDistribution"          function="Node_Component_Disk_Standard_Mass_Distribution"         bindsTo="component"                                                                                           />
-    <binding method="density"                   function="Node_Component_Disk_Standard_Density"                   bindsTo="component"                                                                                           />
-    <binding method="densitySphericalAverage"   function="Node_Component_Disk_Standard_Density_Spherical_Average" bindsTo="component"                                                                                           />
-    <binding method="surfaceDensity"            function="Node_Component_Disk_Standard_Surface_Density"           bindsTo="component"                                                                                           />
-    <binding method="chandrasekharIntegral"   isDeferred="true"                                                   bindsTo="component"                                                                                            >
+    <binding method="attachPipes"             function="Node_Component_Disk_Standard_Attach_Pipes"      bindsTo="component" description="Attach pipes to the standard disk component." returnType="\void" arguments=""/>
+    <binding method="massDistribution"        function="Node_Component_Disk_Standard_Mass_Distribution" bindsTo="component"                                                                                           />
+    <binding method="chandrasekharIntegral" isDeferred="true"                                           bindsTo="component"                                                                                            >
       <interface>
 	<type>double</type>
 	<shape>3</shape>

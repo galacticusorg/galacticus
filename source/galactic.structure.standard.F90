@@ -233,11 +233,11 @@ contains
     Compute the density (of given {\normalfont \ttfamily massType}) at the specified {\normalfont \ttfamily position}. Assumes that galactic structure has already
     been computed.
     !!}
+    use :: Mass_Distributions        , only : massDistributionClass
     use :: Coordinate_Systems        , only : Coordinates_Cartesian_To_Spherical, Coordinates_Cylindrical_To_Spherical
-    use :: Galactic_Structure_Options, only : componentTypeAll                  , coordinateSystemCartesian           , coordinateSystemCylindrical, coordinateSystemSpherical      , &
-          &                                   massTypeAll                       , weightByLuminosity                  , weightByMass               , enumerationCoordinateSystemType
+    use :: Galactic_Structure_Options, only : coordinateSystemCartesian         , coordinateSystemCylindrical         , coordinateSystemSpherical, enumerationCoordinateSystemType
+    use :: Coordinates               , only : assignment(=)                     , coordinateSpherical
     use :: Error                     , only : Error_Report
-    use :: Galacticus_Nodes          , only : optimizeForDensitySummation       , reductionSummation                  , treeNode
     !![
     <include directive="densityTask" type="moduleUse">
     !!]
@@ -254,8 +254,9 @@ contains
     integer                                          , intent(in   ), optional     :: weightIndex
     type            (enumerationCoordinateSystemType), intent(in   ), optional     :: coordinateSystem
     double precision                                 , intent(in   ), dimension(3) :: position
-    procedure       (densityComponent               ), pointer                     :: densityComponent_
     type            (enumerationCoordinateSystemType)                              :: coordinateSystemActual
+    class           (massDistributionClass          ), pointer                     :: massDistribution_
+    type            (coordinateSpherical            )                              :: position_
     double precision                                                               :: densityComponent__
 
     ! Determine position in spherical coordinate system to use.
@@ -275,10 +276,12 @@ contains
        call Error_Report('unknown coordinate system type'//{introspection:location})
     end select
     call self%defaults(componentType=componentType,massType=massType,weightBy=weightBy,weightIndex=weightIndex)
-    ! Call routines to supply the densities for all components.
-    densityComponent_ => densityComponent
-    density           =  node%mapDouble0(densityComponent_,reductionSummation,optimizeFor=optimizeForDensitySummation)
+    ! Evaluate the density.
+    position_         =  positionSpherical_
+    massDistribution_ => node              %massDistribution(          galacticStructureState_%state%weightBy_     ,galacticStructureState_%state%weightIndex_)
+    density           =  massDistribution_ %density         (position_,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_   )
     !![
+    <objectDestructor name="massDistribution_"/>
     <include directive="densityTask" type="functionCall" functionType="function" returnParameter="densityComponent__">
      <functionArgs>node,positionSpherical_,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_,galacticStructureState_%state%weightBy_,galacticStructureState_%state%weightIndex_</functionArgs>
      <onReturn>density=density+densityComponent__</onReturn>
@@ -291,26 +294,12 @@ contains
     return
   end function standardDensity
 
-  double precision function densityComponent(component)
-    !!{
-    Unary function returning the density in a component. Suitable for mapping over components.
-    !!}
-    use :: Galacticus_Nodes, only : nodeComponent
-    implicit none
-    class(nodeComponent), intent(inout) :: component
-
-    densityComponent=component%density(positionSpherical_,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_,galacticStructureState_%state%weightBy_,galacticStructureState_%state%weightIndex_)
-    return
-  end function densityComponent
-
   double precision function standardDensitySphericalAverage(self,node,radius,componentType,massType,weightBy,weightIndex) result(density)
     !!{
     Compute the density (of given {\normalfont \ttfamily massType}) at the specified {\normalfont \ttfamily position}. Assumes that galactic structure has already
     been computed.
     !!}
-    use :: Galactic_Structure_Options, only : componentTypeAll                           , massTypeAll       , weightByLuminosity, weightByMass
-    use :: Error                     , only : Error_Report
-    use :: Galacticus_Nodes          , only : optimizeForDensitySphericalAverageSummation, reductionSummation, treeNode
+    use :: Mass_Distributions, only : massDistributionClass
     !![
     <include directive="densitySphericalAverageTask" type="moduleUse">
     !!]
@@ -326,14 +315,15 @@ contains
     type            (enumerationMassTypeType         ), intent(in   ), optional :: massType
     type            (enumerationWeightByType         ), intent(in   ), optional :: weightBy
     integer                                           , intent(in   ), optional :: weightIndex
-    procedure       (densitySphericalAverageComponent), pointer                 :: densitySphericalAverageComponent_
+    class           (massDistributionClass           ), pointer                 :: massDistribution_
     double precision                                                            :: densitySphericalAverageComponent__
-
+    
     call self%defaults(radius=radius,componentType=componentType,massType=massType,weightBy=weightBy,weightIndex=weightIndex)
-    ! Call routines to supply the densities for all components.
-    densitySphericalAverageComponent_ => densitySphericalAverageComponent
-    density                           =  node%mapDouble0(densitySphericalAverageComponent_,reductionSummation,optimizeFor=optimizeForDensitySphericalAverageSummation)
+    ! Compute the spherically-averaged density.
+    massDistribution_ => node             %massDistribution       (       galacticStructureState_%state%weightBy_     ,galacticStructureState_%state%weightIndex_)
+    density           =  massDistribution_%densitySphericalAverage(radius,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_   )
     !![
+    <objectDestructor name="massDistribution_"/>
     <include directive="densitySphericalAverageTask" type="functionCall" functionType="function" returnParameter="densitySphericalAverageComponent__">
      <functionArgs>node,radius,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_,galacticStructureState_%state%weightBy_,galacticStructureState_%state%weightIndex_</functionArgs>
      <onReturn>density=density+densitySphericalAverageComponent__</onReturn>
@@ -346,18 +336,6 @@ contains
     return
   end function standardDensitySphericalAverage
   
-  double precision function densitySphericalAverageComponent(component)
-    !!{
-    Unary function returning the spherically-averaged density in a component. Suitable for mapping over components.
-    !!}
-    use :: Galacticus_Nodes, only : nodeComponent
-    implicit none
-    class(nodeComponent), intent(inout) :: component
-
-    densitySphericalAverageComponent=component%densitySphericalAverage(galacticStructureState_%state%radius_,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_,galacticStructureState_%state%weightBy_,galacticStructureState_%state%weightIndex_)
-    return
-  end function densitySphericalAverageComponent
-
   double precision function standardMassEnclosed(self,node,radius,componentType,massType,weightBy,weightIndex) result(massEnclosed)
     !!{
     Compute the mass within a given radius, or the total mass if no radius is specified.
@@ -654,12 +632,12 @@ contains
     !!{
     Compute the surface density of given {\normalfont \ttfamily massType}) at the specified {\normalfont \ttfamily position}.
     !!}
+    use :: Mass_Distributions        , only : massDistributionClass
     use :: Coordinate_Systems        , only : Coordinates_Cartesian_To_Cylindrical, Coordinates_Spherical_To_Cylindrical
-    use :: Galactic_Structure_Options, only : componentTypeAll                    , coordinateSystemCartesian           , coordinateSystemCylindrical, coordinateSystemSpherical      , &
-          &                                   massTypeAll                         , weightByMass                        , weightIndexNull            , enumerationCoordinateSystemType
+    use :: Galactic_Structure_Options, only : coordinateSystemCartesian           , coordinateSystemCylindrical         , coordinateSystemSpherical, enumerationCoordinateSystemType
     use :: Error                     , only : Error_Report
-    use :: Galacticus_Nodes          , only : optimizeForSurfaceDensitySummation  , optimizeforsurfacedensitysummation  , reductionSummation         , reductionsummation             , &
-          &                                   treeNode
+    use :: Galacticus_Nodes          , only : treeNode
+    use :: Coordinates               , only : assignment(=)                       , coordinateCylindrical
     implicit none
     class           (galacticStructureStandard      ), intent(inout)               :: self
     type            (treeNode                       ), intent(inout)               :: node
@@ -669,7 +647,8 @@ contains
     integer                                          , intent(in   ), optional     :: weightIndex
     type            (enumerationCoordinateSystemType), intent(in   ), optional     :: coordinateSystem
     double precision                                 , intent(in   ), dimension(3) :: position
-    procedure       (surfaceDensityComponent        ), pointer                     :: surfaceDensityComponent_
+    type            (coordinateCylindrical           )                             :: position_
+    class           (massDistributionClass          ), pointer                     :: massDistribution_
     !![
     <optionalArgument name="coordinateSystem" defaultsTo="coordinateSystemCylindrical" />
     !!]
@@ -686,9 +665,13 @@ contains
     case default
        call Error_Report('unknown coordinate system type'//{introspection:location})
     end select
-    ! Call routines to supply the densities for all components.
-    surfaceDensityComponent_ => surfaceDensityComponent
-    surfaceDensity           =  node%mapDouble0(surfaceDensityComponent_,reductionSummation,optimizeFor=optimizeForSurfaceDensitySummation)
+    ! Compute the surface density.
+    position_         =  positionCylindrical_
+    massDistribution_ => node                %massDistribution(          galacticStructureState_%state%weightBy_     ,galacticStructureState_%state%weightIndex_)
+    surfaceDensity    =  massDistribution_   %surfaceDensity  (position_,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_   )
+    !![
+    <objectDestructor name="massDistribution_"/>
+    !!]
     call self%restore()
     return
   end function standardSurfaceDensity
