@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1679628780351,
+  "lastUpdate": 1679628788237,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
@@ -9936,6 +9936,60 @@ window.BENCHMARK_DATA = {
             "value": 214.689,
             "unit": "seconds",
             "range": 0.235080624467007
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "d6f6c31b9dbba869c7d30ffcc0db1bec2a58640d",
+          "message": "feat: Add an option to make ram pressure stripping radius solver failures non-fatal\n\nAlso removes debugging code.",
+          "timestamp": "2023-03-24T00:02:11Z",
+          "tree_id": "12af966ee52995c3ba0684884d2c1ea0e7905571",
+          "url": "https://github.com/galacticusorg/galacticus/commit/d6f6c31b9dbba869c7d30ffcc0db1bec2a58640d"
+        },
+        "date": 1679628787282,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassMetallicityRelation",
+            "value": 4.17075252022424,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassSizeRelation",
+            "value": 8.86441096319093,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassVelocityDispersionRelation",
+            "value": 1.46615875509521,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupOccupationFraction",
+            "value": 23.6205876828087,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassFunction",
+            "value": 143.167759718882,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
+            "value": 12.1246291825675,
+            "unit": "-logℒ"
           }
         ]
       }
