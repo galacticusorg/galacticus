@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1679619743857,
+  "lastUpdate": 1679619751680,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "d1e8e4e440b41d3600c9ee22f18778565dcf27f9",
-          "message": "Merge pull request #284 from galacticusorg/dev\n\nCorrect bug in spherical averaged density",
-          "timestamp": "2022-08-29T08:36:10-07:00",
-          "tree_id": "c9e53a377448500d30e2b5c98bcb158c6cb56419",
-          "url": "https://github.com/galacticusorg/galacticus/commit/d1e8e4e440b41d3600c9ee22f18778565dcf27f9"
-        },
-        "date": 1661795000108,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 56.4094437954013,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 25.4220166168932,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 15006.1482196903,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8715,6 +8676,43 @@ window.BENCHMARK_DATA = {
             "value": 55.094,
             "unit": "seconds",
             "range": 0.0616636035278551
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "id": "9a481bc04207a47828a92ae6485f377a2f2794fa",
+          "message": "feat: Refactor density, spherically-averaged-density, and surface density in `galacticStructure` class\n\nThese now make use of the `massDistribution` object.",
+          "timestamp": "2023-03-23T21:52:10Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/9a481bc04207a47828a92ae6485f377a2f2794fa"
+        },
+        "date": 1679619750858,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 57.235741215839,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 25.7337765334936,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 25102.793154175,
+            "unit": "-logℒ"
           }
         ]
       }
