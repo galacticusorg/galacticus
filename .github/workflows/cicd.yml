@@ -2311,7 +2311,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Galactic-Structure:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
