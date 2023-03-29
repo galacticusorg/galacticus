@@ -49,6 +49,7 @@
      procedure :: rotationCurve           => sphericalRotationCurve
      procedure :: rotationCurveGradient   => sphericalRotationCurveGradient
      procedure :: surfaceDensity          => sphericalSurfaceDensity
+     procedure :: chandrasekharIntegral   => sphericalChandrasekharIntegral
   end type massDistributionSpherical
 
   ! Module scope variables used in integration and root finding.
@@ -391,3 +392,56 @@ contains
     if (self%matches(componentType,massType)) call Error_Report('surface density is not defined for spherically-symmetric distributions'//{introspection:location})
     return
   end function sphericalSurfaceDensity
+
+  function sphericalChandrasekharIntegral(self,massDistributionEmbedding,coordinates,velocity,extentPerturber,componentType,massType)
+    !!{
+    Compute the Chandrasekhar integral at the specified {\normalfont \ttfamily coordinates} in a spherical mass distribution.
+    !!}
+    use :: Coordinates               , only : coordinateCartesian, assignment(=)
+    use :: Numerical_Constants_Math  , only : Pi
+    use :: Galactic_Structure_Options, only : componentTypeAll   , massTypeAll
+    implicit none
+    double precision                              , dimension(3)            :: sphericalChandrasekharIntegral
+    class           (massDistributionSpherical   ), intent(inout)           :: self
+    class           (massDistributionClass       ), intent(inout)           :: massDistributionEmbedding
+    class           (coordinate                  ), intent(in   )           :: coordinates                          , velocity
+    double precision                              , intent(in   )           :: extentPerturber
+    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    double precision                              , dimension(3)            :: velocityCartesian_
+    double precision                              , parameter               :: XvMaximum                     =10.0d0
+    type            (coordinateCartesian         )                          :: velocityCartesian
+    double precision                                                        :: radius                               , velocity_       , &
+         &                                                                     density                              , velocityRotation, &
+         &                                                                     velocityDispersion                   , xV
+    !$GLC attributes unused :: extentPerturber
+    
+    sphericalChandrasekharIntegral=0.0d0
+    if (.not.self%matches(componentType,massType)) return
+    velocity_=velocity%rSpherical()
+    if (velocity_ <= 0.0d0) return
+    radius =coordinates%rSpherical(                                  )
+    density=self       %density   (coordinates,componentType,massType)
+    if (density  <= 0.0d0) return
+    velocityRotation              = massDistributionEmbedding%rotationCurve(radius,componentTypeAll,massTypeAll)
+    velocityDispersion            =+velocityRotation      &
+         &                         /sqrt(2.0d0)
+    xV                            =+velocity_             &
+         &                         /velocityDispersion    &
+         &                         /sqrt(2.0d0)
+    velocityCartesian             = velocity
+    velocityCartesian_            = velocityCartesian
+    sphericalChandrasekharIntegral=-density               &
+         &                         *velocityCartesian_    &
+         &                         /velocity_         **3
+    if (Xv <= XvMaximum)                                                  &
+         & sphericalChandrasekharIntegral=+sphericalChandrasekharIntegral &
+         &                                *(                              &
+         &                                  +erf ( xV   )                 &
+         &                                  -2.0d0                        &
+         &                                  *      xV                     &
+         &                                  *exp (-xV**2)                 &
+         &                                  /sqrt( Pi   )                 &
+         &                                 )
+    return
+  end function sphericalChandrasekharIntegral

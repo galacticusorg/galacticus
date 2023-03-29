@@ -254,8 +254,8 @@ contains
     integer                                          , intent(in   ), optional     :: weightIndex
     type            (enumerationCoordinateSystemType), intent(in   ), optional     :: coordinateSystem
     double precision                                 , intent(in   ), dimension(3) :: position
-    type            (enumerationCoordinateSystemType)                              :: coordinateSystemActual
     class           (massDistributionClass          ), pointer                     :: massDistribution_
+    type            (enumerationCoordinateSystemType)                              :: coordinateSystemActual
     type            (coordinateSpherical            )                              :: position_
     double precision                                                               :: densityComponent__
 
@@ -832,8 +832,10 @@ contains
     $f(\boldsymbol{v})$ is the velocity distribution function at velocity $\boldsymbol{v}$, and $\boldsymbol{v}_\mathrm{s}$ is
     the velocity of the perturber.
     !!}
-    use :: Galactic_Structure_Options, only : componentTypeAll                         , massTypeAll
-    use :: Galacticus_Nodes          , only : optimizeForChandrasekharIntegralSummation, reductionSummation, treeNode
+    use :: Galacticus_Nodes          , only : treeNode
+    use :: Galactic_Structure_Options, only : componentTypeAll     , massTypeAll
+    use :: Mass_Distributions        , only : massDistributionClass
+    use :: Coordinates               , only : assignment(=)        , coordinateCartesian
     !![
     <include directive="chandrasekharIntegralTask" type="moduleUse">
     !!]
@@ -849,16 +851,28 @@ contains
     type            (enumerationComponentTypeType  ), intent(in   ), optional     :: componentType
     type            (enumerationMassTypeType       ), intent(in   ), optional     :: massType
     integer                                         , parameter                   :: chandrasekharIntegralSize       =3
-    procedure       (chandrasekharIntegralComponent), pointer                     :: chandrasekharIntegralComponent_
     double precision                                               , dimension(3) :: chandrasekharIntegralComponent__
+    class           (massDistributionClass         ), pointer                     :: massDistribution_
+    double precision                                                              :: radiusHalfMass
+    type            (coordinateCartesian           )                              :: position                          , velocity
 
     call self%defaults(componentType=componentType,massType=massType)
-    positionCartesian_              =  positionCartesian
-    velocityCartesian_              =  velocityCartesian
-    nodeSatellite_                  => nodeSatellite
-    chandrasekharIntegralComponent_ => chandrasekharIntegralComponent
-    chandrasekharIntegral           =  node%mapDouble1(chandrasekharIntegralComponent_,chandrasekharIntegralSize,reductionSummation,optimizeFor=optimizeForChandrasekharIntegralSummation)
+    positionCartesian_ =  positionCartesian
+    velocityCartesian_ =  velocityCartesian
+    position           =  positionCartesian
+    velocity           =  positionCartesian
+    nodeSatellite_     => nodeSatellite
+    radiusHalfMass     =  self%radiusEnclosingMass(                                 &
+         &                                                        nodeSatellite   , &
+         &                                         massFractional=0.5d0           , &
+         &                                         componentType =componentTypeAll, &
+         &                                         massType      =massTypeAll       &
+         &                                        )    
+    ! Evaluate the density.
+    massDistribution_     => node             %massDistribution     (                                                   galacticStructureState_%state%weightBy_     ,galacticStructureState_%state%weightIndex_)
+    chandrasekharIntegral =  massDistribution_%chandrasekharIntegral(massDistribution_,position,velocity,radiusHalfMass,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_   )
     !![
+    <objectDestructor name="massDistribution_"/>
     <include directive="chandrasekharIntegralTask" type="functionCall" functionType="function" returnParameter="chandrasekharIntegralComponent__">
      <functionArgs>node,nodeSatellite,positionCartesian_,velocityCartesian_,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_</functionArgs>
      <onReturn>chandrasekharIntegral=chandrasekharIntegral+chandrasekharIntegralComponent__</onReturn>
@@ -870,20 +884,6 @@ contains
     call self%restore()
     return
   end function standardChandrasekharIntegral
-
-  function chandrasekharIntegralComponent(component,resultSize)
-    !!{
-    Function returning the Chandrasekhar integral in a component. Suitable for mapping over components.
-    !!}
-    use :: Galacticus_Nodes, only : nodeComponent
-    implicit none
-    integer                        , intent(in   )         :: resultSize
-    class           (nodeComponent), intent(inout)         :: component
-    double precision               , dimension(resultSize) :: chandrasekharIntegralComponent
-
-    chandrasekharIntegralComponent=component%chandrasekharIntegral(nodeSatellite_,positionCartesian_,velocityCartesian_,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_)
-    return
-  end function chandrasekharIntegralComponent
 
   double precision function standardVelocityDispersion(self,node,radius,radiusOuter,componentType,massType) result(velocityDispersion)
     !!{

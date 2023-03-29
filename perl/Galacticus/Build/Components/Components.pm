@@ -166,15 +166,6 @@ sub Build_Node_Component_Class {
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
-	     name        => "chandrasekharIntegral"                                                                                ,
-	     function    => "Node_Component_Chandrasekhar_Integral_Null"                                                           ,
-	     description => "Compute the Chandrasekhar integral for a given position and velocity."                                ,
-	     mappable    => "summation"                                                                                            ,
-	     returnType  => "\\doubleone"                                                                                          ,
-	     arguments   => "\\doubleone\\ position\\argin, \\doubleone\\ velocity\\argin, \\doublezero\\ radiusHalfMass\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin"
-	 },
-	 {
-	     type        => "procedure"                                                                                            ,
 	     name        => "density"                                                                                              ,
 	     function    => "Node_Component_Density_Null"                                                                          ,
 	     description => "Compute the density."                                                                                 ,

@@ -1358,24 +1358,6 @@ module Galacticus_Nodes
     return
   end function Node_Component_Mass_Distribution_Null
 
-  function Node_Component_Chandrasekhar_Integral_Null(self,nodeSatellite,positionCartesian,velocityCartesian,componentType,massType)
-    !!{
-    A null implementation of the acceleration due to a component. Always returns zero.
-    !!}
-    use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType
-    implicit none
-    double precision                              , dimension(3)                :: Node_Component_Chandrasekhar_Integral_Null
-    class           (nodeComponent               )              , intent(inout) :: self
-    type            (treeNode                    )              , intent(inout) :: nodeSatellite
-    type            (enumerationComponentTypeType)              , intent(in   ) :: componentType
-    type            (enumerationMassTypeType     )              , intent(in   ) :: massType
-    double precision                              , dimension(3), intent(in   ) :: positionCartesian                         , velocityCartesian
-    !$GLC attributes unused :: self, nodeSatellite, positionCartesian, velocityCartesian, componentType, massType
-
-    Node_Component_Chandrasekhar_Integral_Null=0.0d0
-    return
-  end function Node_Component_Chandrasekhar_Integral_Null
-
   double precision function Node_Component_Density_Null(self,positionSpherical,componentType,massType,weightBy,weightIndex)
     !!{
     A null implementation of the density in a component. Always returns zero.

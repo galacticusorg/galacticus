@@ -226,6 +226,16 @@ module Mass_Distributions
     <argument>double precision, intent(in   ), optional :: radiusMinimum, radiusMaximum</argument>
     <argument>logical         , intent(  out), optional :: isInfinite                  </argument>
    </method>
+   <method name="chandrasekharIntegral" >
+    <description>Return the Chandresekhar integral of the distribution.</description>
+    <type>double precision, dimension(3)</type>
+    <pass>yes</pass>
+    <argument>class           (massDistributionClass       ), intent(inout)           :: massDistributionEmbedding          </argument>
+    <argument>class           (coordinate                  ), intent(in   )           :: coordinates              , velocity</argument>
+    <argument>double precision                              , intent(in   )           :: extentPerturber                    </argument>
+    <argument>type            (enumerationComponentTypeType), intent(in   ), optional :: componentType                      </argument>
+    <argument>type            (enumerationMassTypeType     ), intent(in   ), optional :: massType                           </argument>
+    </method>
    <method name="positionSample" >
     <description>Return a position sampled from the distribution.</description>
     <type>double precision, dimension(3)</type>

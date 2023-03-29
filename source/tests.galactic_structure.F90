@@ -365,7 +365,7 @@ program Test_Galactic_Structure
      call Assert("g⃡"//trim(label)//"(r="//trim(labelRadius)//"kpc) [indirect]",tidalTensorComponentsIndirect,tidalTensorSphericalComponents,absTol=1.0d-6,relTol=3.0d-3)
   end do
   call Unit_Tests_End_Group()
-  ! Test disk mass distribution.
+  ! Test black hole distribution.
   call Unit_Tests_Begin_Group("Black hole")
   do j=1,3
      select case (j)

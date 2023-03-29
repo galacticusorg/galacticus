@@ -63,6 +63,7 @@
      procedure :: massEnclosedBySphere    => compositeMassEnclosedBySphere
      procedure :: rotationCurve           => compositeRotationCurve
      procedure :: rotationCurveGradient   => compositeRotationCurveGradient
+     procedure :: chandrasekharIntegral   => compositeChandrasekharIntegral
      procedure :: positionSample          => compositePositionSample
   end type massDistributionComposite
 
@@ -544,6 +545,32 @@ contains
     return
   end function compositePotential
   
+  function compositeChandrasekharIntegral(self,massDistributionEmbedding,coordinates,velocity,extentPerturber,componentType,massType)
+    !!{
+    Compute the Chandrasekhar integral at the specified {\normalfont \ttfamily coordinates} in a spherical mass distribution.
+    !!}
+    implicit none
+    double precision                              , dimension(3)            :: compositeChandrasekharIntegral
+    class           (massDistributionComposite   ), intent(inout)           :: self
+    class           (massDistributionClass       ), intent(inout)           :: massDistributionEmbedding
+    class           (coordinate                  ), intent(in   )           :: coordinates                   , velocity
+    double precision                              , intent(in   )           :: extentPerturber
+    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    type            (massDistributionList        ), pointer                 :: massDistribution_
+
+    compositeChandrasekharIntegral=0.0d0
+    if (associated(self%massDistributions)) then
+       massDistribution_ => self%massDistributions
+       do while (associated(massDistribution_))
+          compositeChandrasekharIntegral =  +compositeChandrasekharIntegral                                                                                                                   &
+               &                            +massDistribution_%massDistribution_%chandrasekharIntegral(massDistributionEmbedding,coordinates,velocity,extentPerturber,componentType,massType)
+          massDistribution_              =>  massDistribution_%next
+       end do
+    end if
+    return
+  end function compositeChandrasekharIntegral
+
   function compositePositionSample(self,randomNumberGenerator_,componentType,massType)
     !!{
     Sample a position from a composite distribution.
