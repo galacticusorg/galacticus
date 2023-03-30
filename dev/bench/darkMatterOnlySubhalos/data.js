@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1679628784165,
+  "lastUpdate": 1680216439290,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "c0610544c7e5bbaa9fc9ebb0ce2eef76a15f34f4",
-          "message": "Merge pull request #286 from galacticusorg/optimization\n\nOptimize root finding",
-          "timestamp": "2022-08-30T21:47:49-07:00",
-          "tree_id": "0ec77612dd411783afd8f114fc392c846d1e63d0",
-          "url": "https://github.com/galacticusorg/galacticus/commit/c0610544c7e5bbaa9fc9ebb0ce2eef76a15f34f4"
-        },
-        "date": 1661924979746,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 61.576,
-            "unit": "seconds",
-            "range": 0.081451826254614
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8713,6 +8683,34 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 25371.9758848307,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "id": "09d0c2ca3c666123da18e8fd807809e23f8ae7fa",
+          "message": "fix: Workaround perturber extent calculation until dark matter profiles are implemented as `massDistributionClass` objects",
+          "timestamp": "2023-03-30T19:38:09Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/09d0c2ca3c666123da18e8fd807809e23f8ae7fa"
+        },
+        "date": 1680216438252,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 54.091,
+            "unit": "seconds",
+            "range": 0.0473803756854681
           }
         ]
       }
