@@ -32,6 +32,7 @@
      !!}
      double precision :: mass, radiusGravitational
    contains
+     procedure :: massTotal             => blackHoleMassTotal
      procedure :: density               => blackHoleDensity
      procedure :: densityGradientRadial => blackHoleDensityGradientRadial
      procedure :: densityRadialMoment   => blackHoleDensityRadialMoment
@@ -145,6 +146,23 @@ contains
     end if
     return
   end function blackHoleConstructorInternal
+
+  double precision function blackHoleMassTotal(self,componentType,massType)
+    !!{
+    Return the total mass in the black hole.
+    !!}
+    implicit none
+    class(massDistributionBlackHole   ), intent(inout)           :: self
+    type (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type (enumerationMassTypeType     ), intent(in   ), optional :: massType
+
+    if (self%matches(componentType,massType)) then
+       blackHoleMassTotal=self%mass
+    else
+       blackHoleMassTotal=0.0d0
+    end if
+    return
+  end function blackHoleMassTotal
 
   double precision function blackHoleDensity(self,coordinates,componentType,massType)
     !!{
