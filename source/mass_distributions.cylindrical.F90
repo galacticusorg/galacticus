@@ -80,7 +80,20 @@ contains
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     use :: Linear_Algebra                  , only : vector                         , matrix             , assignment(=)
+
+
+    !! WORKAROUND
+    use    :: Display      , only : displayBold       , displayRed     , displayReset
+
+
+
     implicit none
+
+
+    !! WORKAROUND
+    logical :: warned=.false.
+    
+
     double precision                                   , dimension(3)            :: cylindricalChandrasekharIntegral
     class           (massDistributionCylindrical      ), intent(inout)           :: self
     class           (massDistributionClass            ), intent(inout)           :: massDistributionEmbedding                           , massDistributionPerturber
@@ -187,11 +200,20 @@ contains
     ! Compute suppression factor due to satellite being an extended mass distribution. This is largely untested - it is meant to
     ! simply avoid extremely large accelerations for subhalo close to the disk plane when that subhalo is much more extended than
     ! the disk.
-    extentPerturber=massDistributionPerturber%radiusEnclosingMass(                                 &
-         &                                                        massFractional=0.5d0           , &
-         &                                                        componentType =componentTypeAll, &
-         &                                                        massType      =massTypeAll       &
-         &                                                       )    
+
+    !! WORKAROUND - this is disabled until we have all components implementing massDistributions (as we need to include the dark matter here)
+    ! extentPerturber=massDistributionPerturber%radiusEnclosingMass(                                 &
+    !      &                                                        massFractional=0.5d0           , &
+    !      &                                                        componentType =componentTypeAll, &
+    !      &                                                        massType      =massTypeAll       &
+    !      &                                                       )    
+    extentPerturber=1.0d-2
+    if (.not.warned) then
+       write (0,*) displayRed()//displayBold()//'WORKAROUND - can not compute extent of perturber for Chandrasekhar integral'//displayReset()
+       call sleep(10)
+       warned=.true.
+    end if
+    
     if (extentPerturber > heightScale) then
        factorSuppressionExtendedMass=+heightScale     &
             &                        /extentPerturber
