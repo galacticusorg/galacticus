@@ -26,13 +26,13 @@ An implementation of the hot halo temperature class which uses the ``hydrostatic
   !![
   <hotHaloTemperatureProfile name="hotHaloTemperatureProfileEnzoHydrostatic">
    <description>
-    A hot halo temperature profile class wjocj implements the ``hydrostatic'' temperature profile available in the \gls{enzo}
+    A hot halo temperature profile class that implements the ``hydrostatic'' temperature profile available in the \gls{enzo}
     code. Specifically,
     \begin{equation}
       T(r) = \hbox{max}\left( {\mathrm{G} M(&lt;r) \mu m_\mathrm{H} \over 3 \mathrm{k_B} r} , T_\mathrm{min} \right),
     \end{equation}
     where $M(&lt;r)$ is the total mass enclosed within radius $r$, $\mu$ is the primordial mean atomic mass, and
-    $T_\mathrm{min}=100$~K is a temperature floor introduced so as to avoid the temperature reaching arbitrarily low masses.
+    $T_\mathrm{min}=100$~K is a temperature floor introduced so as to avoid the temperature reaching arbitrarily low values.
    </description>
   </hotHaloTemperatureProfile>
   !!]
