@@ -174,7 +174,7 @@ contains
 
   double precision function hernquistMassTotal(self,componentType,massType)
     !!{
-    Return the total mass in an exponential disk distribution.
+    Return the total mass in an Hernquist mass distribution.
     !!}
     implicit none
     class(massDistributionHernquist   ), intent(inout)           :: self
