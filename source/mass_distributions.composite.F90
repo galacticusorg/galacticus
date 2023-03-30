@@ -545,16 +545,15 @@ contains
     return
   end function compositePotential
   
-  function compositeChandrasekharIntegral(self,massDistributionEmbedding,coordinates,velocity,extentPerturber,componentType,massType)
+  function compositeChandrasekharIntegral(self,massDistributionEmbedding,massDistributionPerturber,coordinates,velocity,componentType,massType)
     !!{
     Compute the Chandrasekhar integral at the specified {\normalfont \ttfamily coordinates} in a spherical mass distribution.
     !!}
     implicit none
     double precision                              , dimension(3)            :: compositeChandrasekharIntegral
     class           (massDistributionComposite   ), intent(inout)           :: self
-    class           (massDistributionClass       ), intent(inout)           :: massDistributionEmbedding
+    class           (massDistributionClass       ), intent(inout)           :: massDistributionEmbedding     , massDistributionPerturber
     class           (coordinate                  ), intent(in   )           :: coordinates                   , velocity
-    double precision                              , intent(in   )           :: extentPerturber
     type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
     type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
     type            (massDistributionList        ), pointer                 :: massDistribution_
@@ -563,8 +562,8 @@ contains
     if (associated(self%massDistributions)) then
        massDistribution_ => self%massDistributions
        do while (associated(massDistribution_))
-          compositeChandrasekharIntegral =  +compositeChandrasekharIntegral                                                                                                                   &
-               &                            +massDistribution_%massDistribution_%chandrasekharIntegral(massDistributionEmbedding,coordinates,velocity,extentPerturber,componentType,massType)
+          compositeChandrasekharIntegral =  +compositeChandrasekharIntegral                                                                                                                             &
+               &                            +massDistribution_%massDistribution_%chandrasekharIntegral(massDistributionEmbedding,massDistributionPerturber,coordinates,velocity,componentType,massType)
           massDistribution_              =>  massDistribution_%next
        end do
     end if

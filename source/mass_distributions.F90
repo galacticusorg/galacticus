@@ -175,6 +175,51 @@ module Mass_Distributions
     <argument>type            (enumerationComponentTypeType), intent(in   ), optional :: componentType</argument>
     <argument>type            (enumerationMassTypeType     ), intent(in   ), optional :: massType     </argument>
    </method>
+   <method name="radiusEnclosingMass" >
+    <description>Return the radius enclosing a specified mass.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <selfTarget>yes</selfTarget>
+    <argument>double precision                              , intent(in   ), optional :: mass         , massFractional</argument>
+    <argument>type            (enumerationComponentTypeType), intent(in   ), optional :: componentType                </argument>
+    <argument>type            (enumerationMassTypeType     ), intent(in   ), optional :: massType                     </argument>
+    <modules>Root_Finder</modules>
+    <code>
+      type            (rootFinder), save      :: finder
+      logical                     , save      :: finderConstructed=.false.
+      !$omp threadprivate(finder,finderConstructed)
+      double precision            , parameter :: toleranceAbsolute=0.0d0  , toleranceRelative=1.0d-6
+
+      if      (present(mass          )) then
+       massTarget=     mass
+      else if (present(massFractional)) then
+       massTarget=self%massTotal(componentType,massType)*massFractional
+      else
+       call Error_Report('either "mass" or "massFractional" must be provided'//{introspection:location})
+      end if
+      if (massTarget &lt;= 0.0d0 .or. .not.self%matches(componentType,massType)) then
+       massDistributionRadiusEnclosingMass=0.0d0
+       return
+      end if
+      if (.not.finderConstructed) then
+       finder           =rootFinder(                                                             &amp;
+            &amp;                   rootFunction                 =massEnclosedRoot             , &amp;
+            &amp;                   toleranceAbsolute            =toleranceAbsolute            , &amp;
+            &amp;                   toleranceRelative            =toleranceRelative            , &amp;
+            &amp;                   solverType                   =GSL_Root_fSolver_Brent       , &amp;
+            &amp;                   rangeExpandUpward            =2.0d0                        , &amp;
+            &amp;                   rangeExpandDownward          =0.5d0                        , &amp;
+            &amp;                   rangeExpandType              =rangeExpandMultiplicative    , &amp;
+            &amp;                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &amp;
+            &amp;                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive  &amp;
+            &amp;                  )
+       finderConstructed=.true.
+    end if
+    self_                               =&gt; self
+    massTarget                          =     mass
+    massDistributionRadiusEnclosingMass =     finder%find(rootGuess=1.0d0)
+    </code>
+   </method>
    <method name="rotationCurve" >
     <description>Return the rotation curve at the given radius.</description>
     <type>double precision</type>
@@ -230,11 +275,10 @@ module Mass_Distributions
     <description>Return the Chandresekhar integral of the distribution.</description>
     <type>double precision, dimension(3)</type>
     <pass>yes</pass>
-    <argument>class           (massDistributionClass       ), intent(inout)           :: massDistributionEmbedding          </argument>
-    <argument>class           (coordinate                  ), intent(in   )           :: coordinates              , velocity</argument>
-    <argument>double precision                              , intent(in   )           :: extentPerturber                    </argument>
-    <argument>type            (enumerationComponentTypeType), intent(in   ), optional :: componentType                      </argument>
-    <argument>type            (enumerationMassTypeType     ), intent(in   ), optional :: massType                           </argument>
+    <argument>class           (massDistributionClass       ), intent(inout)           :: massDistributionEmbedding, massDistributionPerturber</argument>
+    <argument>class           (coordinate                  ), intent(in   )           :: coordinates              , velocity                 </argument>
+    <argument>type            (enumerationComponentTypeType), intent(in   ), optional :: componentType                                       </argument>
+    <argument>type            (enumerationMassTypeType     ), intent(in   ), optional :: massType                                            </argument>
     </method>
    <method name="positionSample" >
     <description>Return a position sampled from the distribution.</description>
@@ -262,4 +306,23 @@ module Mass_Distributions
   </enumeration>
   !!]
 
+  ! Module-scope variables used in root finding.
+  class           (massDistributionClass), pointer :: self_
+  double precision                                 :: massTarget
+  !$omp threadprivate(self_,massTarget)
+  
+contains
+  
+  double precision function massEnclosedRoot(radius)
+    !!{
+    Root function used in finding radii enclosing a target mass.
+    !!}
+    implicit none
+    double precision, intent(in   ) :: radius
+
+    massEnclosedRoot=+self_%massEnclosedBySphere(radius) &
+         &           -      massTarget
+    return
+  end function massEnclosedRoot
+  
 end module Mass_Distributions

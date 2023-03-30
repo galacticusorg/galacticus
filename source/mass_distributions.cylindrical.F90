@@ -71,7 +71,7 @@ contains
     return
   end function cylindricalSymmetry
 
-  function cylindricalChandrasekharIntegral(self,massDistributionEmbedding,coordinates,velocity,extentPerturber,componentType,massType)
+  function cylindricalChandrasekharIntegral(self,massDistributionEmbedding,massDistributionPerturber,coordinates,velocity,componentType,massType)
     !!{
     Compute the Chandrasekhar integral at the specified {\normalfont \ttfamily coordinates} in a spherical mass distribution.
     !!}
@@ -83,9 +83,8 @@ contains
     implicit none
     double precision                                   , dimension(3)            :: cylindricalChandrasekharIntegral
     class           (massDistributionCylindrical      ), intent(inout)           :: self
-    class           (massDistributionClass            ), intent(inout)           :: massDistributionEmbedding
+    class           (massDistributionClass            ), intent(inout)           :: massDistributionEmbedding                           , massDistributionPerturber
     class           (coordinate                       ), intent(in   )           :: coordinates                                         , velocity
-    double precision                                   , intent(in   )           :: extentPerturber
     type            (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
     type            (enumerationMassTypeType          ), intent(in   ), optional :: massType
     double precision                                   , dimension(3)            :: velocityCartesian_
@@ -111,7 +110,7 @@ contains
          &                                                                          frequencyCircularHalfMassRadius                      , frequencyEpicyclicHalfMassRadius, &
          &                                                                          densitySurfaceRadiusHalfMass                         , velocityDispersionRadialHalfMass, &
          &                                                                          velocityDispersionMaximum                            , velocityRelativeMagnitude       , &
-         &                                                                          factorSuppressionExtendedMass
+         &                                                                          factorSuppressionExtendedMass                        , extentPerturber
     type            (matrix                           )                          :: rotation
 
     cylindricalChandrasekharIntegral=0.0d0
@@ -188,6 +187,11 @@ contains
     ! Compute suppression factor due to satellite being an extended mass distribution. This is largely untested - it is meant to
     ! simply avoid extremely large accelerations for subhalo close to the disk plane when that subhalo is much more extended than
     ! the disk.
+    extentPerturber=massDistributionPerturber%radiusEnclosingMass(                                 &
+         &                                                        massFractional=0.5d0           , &
+         &                                                        componentType =componentTypeAll, &
+         &                                                        massType      =massTypeAll       &
+         &                                                       )    
     if (extentPerturber > heightScale) then
        factorSuppressionExtendedMass=+heightScale     &
             &                        /extentPerturber

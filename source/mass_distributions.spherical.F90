@@ -34,8 +34,7 @@
    contains
      !![
      <methods>
-       <method description="Returns the radius enclosing half of the mass of the mass distribution." method="radiusHalfMass"     />
-       <method description="Returns the radius enclosing the given mass."                            method="radiusEnclosingMass"/>
+       <method description="Returns the radius enclosing half of the mass of the mass distribution." method="radiusHalfMass"/>
      </methods>
      !!]
      procedure :: symmetry                => sphericalSymmetry
@@ -44,7 +43,6 @@
      procedure :: radiusHalfMass          => sphericalRadiusHalfMass
      procedure :: acceleration            => sphericalAcceleration
      procedure :: tidalTensor             => sphericalTidalTensor
-     procedure :: radiusEnclosingMass     => sphericalRadiusEnclosingMass
      procedure :: positionSample          => sphericalPositionSample
      procedure :: rotationCurve           => sphericalRotationCurve
      procedure :: rotationCurveGradient   => sphericalRotationCurveGradient
@@ -53,9 +51,8 @@
   end type massDistributionSpherical
 
   ! Module scope variables used in integration and root finding.
-  class           (massDistributionSpherical), pointer :: self_
-  double precision                                     :: massTarget
-  !$omp threadprivate(self_,massTarget)
+  class(massDistributionSpherical), pointer :: self_
+  !$omp threadprivate(self_)
 
 contains
 
@@ -131,46 +128,6 @@ contains
     return
   end function sphericalMassEnclosedBySphereIntegrand
 
-  double precision function sphericalRadiusEnclosingMass(self,mass,componentType,massType)
-    !!{
-    Computes the radius enclosing a given mass in a spherically symmetric mass distribution using numerical root finding.
-    !!}
-    use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder, &
-         &                     GSL_Root_fSolver_Brent
-    implicit none
-    class           (massDistributionSpherical   ), intent(inout), target   :: self
-    double precision                              , intent(in   )           :: mass
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    type            (rootFinder                  ), save                    :: finder
-    logical                                       , save                    :: finderConstructed=.false.
-    !$omp threadprivate(finder,finderConstructed)
-    double precision                              , parameter               :: toleranceAbsolute=0.0d0  , toleranceRelative=1.0d-6
-
-    if (mass <= 0.0d0 .or. .not.self%matches(componentType,massType)) then
-       sphericalRadiusEnclosingMass=0.0d0
-       return
-    end if
-    if (.not.finderConstructed) then
-       finder           =rootFinder(                                                             &
-            &                       rootFunction                 =sphericalMassRoot            , &
-            &                       toleranceAbsolute            =toleranceAbsolute            , &
-            &                       toleranceRelative            =toleranceRelative            , &
-            &                       solverType                   =GSL_Root_fSolver_Brent       , &
-            &                       rangeExpandUpward            =2.0d0                        , &
-            &                       rangeExpandDownward          =0.5d0                        , &
-            &                       rangeExpandType              =rangeExpandMultiplicative    , &
-            &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
-            &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive  &
-            &                      )
-       finderConstructed=.true.
-    end if
-    self_              => self
-    massTarget          =  mass
-    sphericalRadiusEnclosingMass =  finder%find(rootGuess=1.0d0)
-    return
-  end function sphericalRadiusEnclosingMass
-
   double precision function sphericalRadiusHalfMass(self,componentType,massType)
     !!{
     Computes the half-mass radius of a spherically symmetric mass distribution using numerical root finding.
@@ -187,18 +144,6 @@ contains
     sphericalRadiusHalfMass=self%radiusEnclosingMass(0.5d0*self%massTotal())
     return
   end function sphericalRadiusHalfMass
-
-  double precision function sphericalMassRoot(radius)
-    !!{
-    Root function used in finding half mass radii of spherically symmetric mass distributions.
-    !!}
-    implicit none
-    double precision, intent(in   ) :: radius
-
-    sphericalMassRoot=+self_%massEnclosedBySphere(radius) &
-         &            -      massTarget
-    return
-  end function sphericalMassRoot
   
   function sphericalAcceleration(self,coordinates,componentType,massType)
     !!{
@@ -393,7 +338,7 @@ contains
     return
   end function sphericalSurfaceDensity
 
-  function sphericalChandrasekharIntegral(self,massDistributionEmbedding,coordinates,velocity,extentPerturber,componentType,massType)
+  function sphericalChandrasekharIntegral(self,massDistributionEmbedding,massDistributionPerturber,coordinates,velocity,componentType,massType)
     !!{
     Compute the Chandrasekhar integral at the specified {\normalfont \ttfamily coordinates} in a spherical mass distribution.
     !!}
@@ -403,9 +348,8 @@ contains
     implicit none
     double precision                              , dimension(3)            :: sphericalChandrasekharIntegral
     class           (massDistributionSpherical   ), intent(inout)           :: self
-    class           (massDistributionClass       ), intent(inout)           :: massDistributionEmbedding
+    class           (massDistributionClass       ), intent(inout)           :: massDistributionEmbedding            , massDistributionPerturber
     class           (coordinate                  ), intent(in   )           :: coordinates                          , velocity
-    double precision                              , intent(in   )           :: extentPerturber
     type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
     type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
     double precision                              , dimension(3)            :: velocityCartesian_
@@ -414,7 +358,7 @@ contains
     double precision                                                        :: radius                               , velocity_       , &
          &                                                                     density                              , velocityRotation, &
          &                                                                     velocityDispersion                   , xV
-    !$GLC attributes unused :: extentPerturber
+    !$GLC attributes unused :: massDistributionPerturber
     
     sphericalChandrasekharIntegral=0.0d0
     if (.not.self%matches(componentType,massType)) return

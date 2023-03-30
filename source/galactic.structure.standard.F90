@@ -109,9 +109,9 @@ Contains a module which implements the standard galactic structure functions.
 
   ! Submodule-scope variables used in root finding.
   double precision                                                                :: massTarget                   , surfaceDensityTarget
-  type            (treeNode                         ), pointer                    :: node_                        , nodeSatellite_
+  type            (treeNode                         ), pointer                    :: node_
   class           (galacticStructureStandard        ), pointer                    :: self_
-  !$omp threadprivate(self_,node_,nodeSatellite_,massTarget,surfaceDensityTarget)
+  !$omp threadprivate(self_,node_,massTarget,surfaceDensityTarget)
 
 contains
 
@@ -852,8 +852,7 @@ contains
     type            (enumerationMassTypeType       ), intent(in   ), optional     :: massType
     integer                                         , parameter                   :: chandrasekharIntegralSize       =3
     double precision                                               , dimension(3) :: chandrasekharIntegralComponent__
-    class           (massDistributionClass         ), pointer                     :: massDistribution_
-    double precision                                                              :: radiusHalfMass
+    class           (massDistributionClass         ), pointer                     :: massDistribution_                 , massDistributionPerturber
     type            (coordinateCartesian           )                              :: position                          , velocity
 
     call self%defaults(componentType=componentType,massType=massType)
@@ -861,18 +860,13 @@ contains
     velocityCartesian_ =  velocityCartesian
     position           =  positionCartesian
     velocity           =  positionCartesian
-    nodeSatellite_     => nodeSatellite
-    radiusHalfMass     =  self%radiusEnclosingMass(                                 &
-         &                                                        nodeSatellite   , &
-         &                                         massFractional=0.5d0           , &
-         &                                         componentType =componentTypeAll, &
-         &                                         massType      =massTypeAll       &
-         &                                        )    
     ! Evaluate the density.
-    massDistribution_     => node             %massDistribution     (                                                   galacticStructureState_%state%weightBy_     ,galacticStructureState_%state%weightIndex_)
-    chandrasekharIntegral =  massDistribution_%chandrasekharIntegral(massDistribution_,position,velocity,radiusHalfMass,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_   )
+    massDistribution_         => node             %massDistribution     (                                                              galacticStructureState_%state%weightBy_     ,galacticStructureState_%state%weightIndex_)
+    massDistributionPerturber => nodeSatellite    %massDistribution     (                                                              galacticStructureState_%state%weightBy_     ,galacticStructureState_%state%weightIndex_)
+    chandrasekharIntegral     =  massDistribution_%chandrasekharIntegral(massDistribution_,massDistributionPerturber,position,velocity,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_   )
     !![
-    <objectDestructor name="massDistribution_"/>
+    <objectDestructor name="massDistribution_"        />
+    <objectDestructor name="massDistributionPerturber"/>
     <include directive="chandrasekharIntegralTask" type="functionCall" functionType="function" returnParameter="chandrasekharIntegralComponent__">
      <functionArgs>node,nodeSatellite,positionCartesian_,velocityCartesian_,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_</functionArgs>
      <onReturn>chandrasekharIntegral=chandrasekharIntegral+chandrasekharIntegralComponent__</onReturn>

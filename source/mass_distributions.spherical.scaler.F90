@@ -53,7 +53,6 @@
      procedure :: potential               => sphericalScalerPotential
      procedure :: radiusHalfMass          => sphericalScalerRadiusHalfMass
      procedure :: tidalTensor             => sphericalScalerTidalTensor
-     procedure :: radiusEnclosingMass     => sphericalScalerRadiusEnclosingMass
      procedure :: acceleration            => sphericalScalerAcceleration
      procedure :: positionSample          => sphericalScalerPositionSample
      procedure :: isDimensionless         => sphericalScalerIsDimensionless
@@ -292,26 +291,6 @@ contains
          &                             /self%factorScalingLength**(3.0d0-moment)
     return    
   end function sphericalScalerDensityRadialMoment
-
-  double precision function sphericalScalerRadiusEnclosingMass(self,mass,componentType,massType)
-    !!{
-    Computes the radius enclosing a given mass in a scaled spherical mass distribution.
-    !!}
-    implicit none
-    class           (massDistributionSphericalScaler), intent(inout), target   :: self
-    double precision                                 , intent(in   )           :: mass
-    type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType        ), intent(in   ), optional :: massType
-
-   sphericalScalerRadiusEnclosingMass=+self%massDistribution_%radiusEnclosingMass(                         &
-         &                                                                        +     mass               &
-         &                                                                        /self%factorScalingMass, &
-         &                                                                        componentType          , &
-         &                                                                        massType                 &
-         &                                                                       )                         &
-         &                            *self                  %factorScalingLength
-    return
-  end function sphericalScalerRadiusEnclosingMass
 
   double precision function sphericalScalerRadiusHalfMass(self,componentType,massType)
     !!{
