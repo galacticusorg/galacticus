@@ -216,7 +216,6 @@ module Mass_Distributions
        finderConstructed=.true.
     end if
     self_                               =&gt; self
-    massTarget                          =     mass
     massDistributionRadiusEnclosingMass =     finder%find(rootGuess=1.0d0)
     </code>
    </method>
