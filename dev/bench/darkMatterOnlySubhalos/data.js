@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1680216446970,
+  "lastUpdate": 1680250297088,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "6a4599182dfac142533685f1af7e2a9d8d24b25d",
-          "message": "feat: Add generation of validation plots",
-          "timestamp": "2022-08-31T15:06:50Z",
-          "tree_id": "37f4c679284cc43eb2f5a910fd3c896459373a28",
-          "url": "https://github.com/galacticusorg/galacticus/commit/6a4599182dfac142533685f1af7e2a9d8d24b25d"
-        },
-        "date": 1661964422359,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 68.908,
-            "unit": "seconds",
-            "range": 0.202671162230671
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8709,6 +8679,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 24145.1797388743,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0f60eb30a53a2afeac453171d801e6dd63621bae",
+          "message": "fix: Remove FFTW3 library from linker if not available",
+          "timestamp": "2023-03-30T19:23:34-07:00",
+          "tree_id": "e009512541cfffe168d7818f2e8653403017b5b0",
+          "url": "https://github.com/galacticusorg/galacticus/commit/0f60eb30a53a2afeac453171d801e6dd63621bae"
+        },
+        "date": 1680250295207,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 49.57,
+            "unit": "seconds",
+            "range": 0.025139610178064
           }
         ]
       }
