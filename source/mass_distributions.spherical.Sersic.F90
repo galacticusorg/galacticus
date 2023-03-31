@@ -378,7 +378,6 @@ contains
             &            -(position%r()/self%tableRadius(1))**(self%gradientLogarithmicMassCentral-1.0d0) &
             &           )                                                                                 &
             &          /                                      (self%gradientLogarithmicMassCentral-1.0d0)
-       if (position%r() <= 0.0d0) stop
     else
        ! Compute the potential at this position.
        r       =+position%r             () &
