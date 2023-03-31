@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1680216451124,
+  "lastUpdate": 1680250302573,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
@@ -10070,6 +10070,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 4.50721401915105,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0f60eb30a53a2afeac453171d801e6dd63621bae",
+          "message": "fix: Remove FFTW3 library from linker if not available",
+          "timestamp": "2023-03-30T19:23:34-07:00",
+          "tree_id": "e009512541cfffe168d7818f2e8653403017b5b0",
+          "url": "https://github.com/galacticusorg/galacticus/commit/0f60eb30a53a2afeac453171d801e6dd63621bae"
+        },
+        "date": 1680250301033,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 226.093,
+            "unit": "seconds",
+            "range": 0.30597075023678
           }
         ]
       }
