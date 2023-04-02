@@ -161,6 +161,20 @@ sub checkLink {
 			last;
 		    }
 		}
+		if ( $url =~ m/^http:\/\/adsabs\.harvard\.edu\/abs\// ) {
+		    # ADS server has issues.
+		    if ( $line =~ m/^curl: \(28\) Operation timed out after/ ) {
+			$status = 1;
+			last;
+		    }
+		    if ( $line =~ m/curl: \(22\) The requested URL returned error: (\d+)/ ) {
+			my $httpErrorCode = $1;
+			if ( $httpErrorCode == 500 || $httpErrorCode == 502 || $httpErrorCode == 504 ) {
+			    $status = 1;
+			    last;
+			}
+		    }
+		}
 	    }
 	    close($logFile);
 	}
