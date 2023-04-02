@@ -149,7 +149,6 @@ sub checkLink {
 	&System::Redirect::tofile("curl ".$options." \"".$url."\"","curl.log");
 	$status = $? == 0 ? 1 : 0;
 	unless ( $status ) {
-		    print "BAD STATUS FOR ".$url."\n";
 	    # Check for known problems.
 	    open(my $logFile,"curl.log");
 	    while ( my $line = <$logFile> ) {
@@ -160,17 +159,14 @@ sub checkLink {
 			last;
 		    }
 		}
-		if ( $url =~ m/^http:\/\/adsabs\.harvard\.edu\/abs\// ) {
-		    print "ADS URL ".$url."\n";
+		if ( $url =~ m/^http:\/\/adsabs\.harvard\.edu\/abs\// || $url =~ m/^http:\/\/ui\.adsabs\.harvard\.edu\/abs\// ) {
 		    # ADS server has issues.
 		    if ( $line =~ m/^curl: \(28\) Operation timed out after/ ) {
-			print "TIME OUT\n";
 			$status = 1;
 			last;
 		    }
 		    if ( $line =~ m/^curl: \(22\) The requested URL returned error: (\d+)/ ) {
 			my $httpErrorCode = $1;
-			print "SERVER ".$httpErrorCode."\n";
 			if ( $httpErrorCode == 500 || $httpErrorCode == 502 || $httpErrorCode == 504 ) {
 			    $status = 1;
 			    last;
