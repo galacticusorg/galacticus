@@ -159,7 +159,7 @@ sub checkLink {
 			last;
 		    }
 		}
-		if ( $url =~ m/^http:\/\/adsabs\.harvard\.edu\/abs\// || $url =~ m/^http:\/\/ui\.adsabs\.harvard\.edu\/abs\// ) {
+		if ( $url =~ m/^https?:\/\/adsabs\.harvard\.edu\/abs\// || $url =~ m/^https?:\/\/ui\.adsabs\.harvard\.edu\/abs\// ) {
 		    # ADS server has issues.
 		    if ( $line =~ m/^curl: \(28\) Operation timed out after/ ) {
 			$status = 1;
