@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1680268672481,
+  "lastUpdate": 1680584666268,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
@@ -10234,6 +10234,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 4.54274301479992,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "cc4eee10982e01c5d5bced0d79a894ac1462c74d",
+          "message": "fix: Filter out unrealistically tiny galaxies when computing the Local Group mass-size relation",
+          "timestamp": "2023-04-03T23:54:26Z",
+          "tree_id": "645ad338920c918458b3e3e346279b8f9b1cddbc",
+          "url": "https://github.com/galacticusorg/galacticus/commit/cc4eee10982e01c5d5bced0d79a894ac1462c74d"
+        },
+        "date": 1680584665446,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 204.771,
+            "unit": "seconds",
+            "range": 0.343946071356451
           }
         ]
       }
