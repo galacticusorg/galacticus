@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1680641658950,
+  "lastUpdate": 1680825355137,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
@@ -10402,6 +10402,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 4.69120733767007,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "f24b6658837bbb9e810e1f71acf27311444e2220",
+          "message": "fix: Filter out unphysical galaxies in the Local Group mass-velocity dispersion analysis",
+          "timestamp": "2023-04-06T21:04:42Z",
+          "tree_id": "90614c3c6c4000f4605125120c7ae64d82fe8387",
+          "url": "https://github.com/galacticusorg/galacticus/commit/f24b6658837bbb9e810e1f71acf27311444e2220"
+        },
+        "date": 1680825354005,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 374.089,
+            "unit": "seconds",
+            "range": 0.162323442556393
           }
         ]
       }
