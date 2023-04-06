@@ -502,6 +502,7 @@ contains
     <objectDestructor name="outputAnalysisDistributionOperator_"                   />
     <objectDestructor name="galacticFilterHaloNotIsolated_"                        />
     <objectDestructor name="galacticFilterHostMassRange_"                          />
+    <objectDestructor name="galacticFilterHighPass_"                               />
     <objectDestructor name="galacticFilter_"                                       />
     <objectDestructor name="surveyGeometry_"                                       />
     !!]
