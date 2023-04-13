@@ -105,7 +105,7 @@ contains
     <inputParameter>
       <name>solverFailureIsFatal</name>
       <defaultValue>.true.</defaultValue>
-      <description>If true, faulure to bracket the ram pressure radius is fatal.</description>
+      <description>If true, failure to bracket the ram pressure radius is fatal.</description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale"     name="darkMatterHaloScale_"     source="parameters"/>
