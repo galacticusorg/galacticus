@@ -174,6 +174,22 @@ sub Process_ObjectBuilder {
 	    $builderCode .= "      end if\n";
 	    $builderCode .= $copyLoopClose;
 	    if ( $defaultName ) {
+		my $i = 0;
+		my $warnStatus = "warnObjectBuilder".$i."__";
+		while ( &Galacticus::Build::SourceTree::Parse::Declarations::DeclarationExists($node->{'parent'},$warnStatus) ) {
+		    ++$i;
+		    $warnStatus = "warnObjectBuilder".$i."__";
+		}
+		my @warnDeclaration =
+		    (
+		     {
+			 intrinsic     => "logical"                 ,
+			 variables     => [ $warnStatus."=.false." ],
+			 attributes    => [ "save"                 ],
+			 threadprivate => 1
+		     }
+		    );
+		&Galacticus::Build::SourceTree::Parse::Declarations::AddDeclarations($node->{'parent'},\@warnDeclaration);
 		$builderCode .= "   else\n";
 		$builderCode .= "      ! Object is not explicitly defined. Cause a default object of the class to be added to the parameters. Increment the reference count here as this is a new object.\n";
 		$builderCode .= $copyLoopOpen;
@@ -182,7 +198,10 @@ sub Process_ObjectBuilder {
 		$builderCode .= "      call ".$node->{'directive'}->{'name'}."%autoHook()\n";
 		$builderCode .= $debugMessage;
 		$builderCode .= $copyLoopClose;
-		$builderCode .= "      if (mpiSelf%isMaster()) call Warn('Using default class for parameter ''['//char(parametersCurrent%path())//'".$parameterName."]''')\n";
+		$builderCode .= "      if (mpiSelf%isMaster() .and. .not.".$warnStatus.") then\n";
+		$builderCode .= "         call Warn('Using default class for parameter ''['//char(parametersCurrent%path())//'".$parameterName."]''')\n";
+		$builderCode .= "         ".$warnStatus."=.true.\n";
+		$builderCode .= "      end if\n";
 		$builderCode .= "   end if\n";
 	    }
 	    if ( exists($node->{'directive'}->{'parameterName'}) ) {
