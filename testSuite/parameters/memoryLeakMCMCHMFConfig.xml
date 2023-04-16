@@ -1,0 +1,73 @@
+<parameters formatVersion="2" version="0.9.4">
+  <outputFileName value="testSuite/outputs/memoryLeakMCMCHMF.hdf5" />
+  <posteriorSampleLikelihood value="haloMassFunction">
+    <baseParametersFileName value="testSuite/parameters/memoryLeakMCMCHMFParameters.xml"/>
+    <binCountMinimum value="0" />
+    <fileName value="%DATASTATICPATH%/darkMatter/haloMassFunction_MilkyWay_Halo004_z0.000.hdf5" />
+    <likelihoodModel value="simulationSphere" />
+    <likelihoodPoisson value="true" />
+    <massRangeMaximum value="1.03214e+11" />
+    <massRangeMinimum value="1.20849e+09" />
+    <massSphere value=" 6.334263e+12" />
+    <redshift value="0.00000e+00" />
+    <truncatePower value="true" />
+  </posteriorSampleLikelihood>
+  <posteriorSampleSimulation value="differentialEvolution">
+    <acceptanceAverageCount value="    10" />
+    <logFileRoot value="testSuite/outputs/memoryLeakMCMCHMFChains" />
+    <logFlushCount value="     1" />
+    <modelParameter value="active">
+      <name value="haloMassFunctionParameters::a" />
+      <distributionFunction1DPerturber value="cauchy">
+        <median value="0.0" />
+        <scale value="1.0e-4" />
+      </distributionFunction1DPerturber>
+      <distributionFunction1DPrior value="uniform">
+        <limitLower value="  0.03" />
+        <limitUpper value="300.00" />
+      </distributionFunction1DPrior>
+      <operatorUnaryMapper value="identity" />
+    </modelParameter>
+    <posteriorSampleConvergence value="gelmanRubin">
+      <burnCount value="10" />
+      <logFileName value="testSuite/outputs/memoryLeakMCMCHMF.convergence.log" />
+      <outlierCountMaximum value="0" />
+      <outlierLogLikelihoodOffset value="60" />
+      <outlierSignificance value=" 0.95" />
+      <reportCount value=" 1" />
+      <testCount value="20" />
+      <thresholdHatR value=" 1.20" />
+    </posteriorSampleConvergence>
+    <posteriorSampleDffrntlEvltnProposalSize value="adaptive">
+      <acceptanceRateMaximum value="0.90e+0" />
+      <acceptanceRateMinimum value="0.10e+0" />
+      <gammaAdjustFactor value="1.10e+0" />
+      <gammaInitial value="0.50e+0" />
+      <gammaMaximum value="3.00e+0" />
+      <gammaMinimum value="1.00e-2" />
+      <updateCount value="10" />
+    </posteriorSampleDffrntlEvltnProposalSize>
+    <posteriorSampleDffrntlEvltnRandomJump value="adaptive" />
+    <posteriorSampleState value="correlation">
+      <acceptedStateCount value="100" />
+    </posteriorSampleState>
+    <posteriorSampleStateInitialize value="latinHypercube">
+      <maximinTrialCount value="100" />
+    </posteriorSampleStateInitialize>
+    <posteriorSampleStoppingCriterion value="correlationLength">
+      <stopAfterCount value="1000" />
+    </posteriorSampleStoppingCriterion>
+    <reportCount value="    10" />
+    <sampleOutliers value="false" />
+    <stateSwapCount value="    10" />
+    <stepsMaximum value="  32" />
+  </posteriorSampleSimulation>
+  <randomNumberGenerator value="GSL">
+    <mpiRankOffset value="true" />
+    <seed value="219" />
+  </randomNumberGenerator>
+  <task value="posteriorSample">
+    <initializeNodeClassHierarchy value="true" />
+  </task>
+  <verbosityLevel value="standard" />
+</parameters>

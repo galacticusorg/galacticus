@@ -1,0 +1,106 @@
+<parameters>
+  <cosmologicalMassVariance value="peakBackgroundSplit">
+    <cosmologicalMassVariance value="filteredPower">
+      <monotonicInterpolation value="true" />
+      <nonMonotonicIsFatal value="false" />
+      <sigma_8 value="0.820" />
+      <tolerance value="4.0e-4" />
+      <toleranceTopHat value="2.0e-4" />
+    </cosmologicalMassVariance>
+    <factorMassEnvironment value="=[haloMassFunctionParameters::alpha]" />
+  </cosmologicalMassVariance>
+  <cosmologyFunctions value="matterLambda" />
+  <cosmologyParameters value="simple">
+    <HubbleConstant value="70.000000" />
+    <OmegaBaryon value=" 0.047000" />
+    <OmegaDarkEnergy value=" 0.714000" />
+    <OmegaMatter value=" 0.286000" />
+    <temperatureCMB value=" 2.725480" />
+  </cosmologyParameters>
+  <criticalOverdensity value="peakBackgroundSplit">
+    <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt" />
+  </criticalOverdensity>
+  <formatVersion>2</formatVersion>
+  <formatVersion>2</formatVersion>
+  <formatVersion>2</formatVersion>
+  <formatVersion>2</formatVersion>
+  <formatVersion>2</formatVersion>
+  <formatVersion>2</formatVersion>
+  <haloEnvironment value="fixed">
+    <massEnvironment value=" 6.334263e+12" />
+    <overdensity value="-0.748223" />
+    <redshift ignoreWarnings="true" value="0.000" />
+  </haloEnvironment>
+  <haloMassFunction value="errorConvolved">
+    <errorFractionalMaximum value="1.0e+0" />
+    <haloMassFunction value="bhattacharya2011">
+      <a value="=[haloMassFunctionParameters::a]" />
+      <b value="=[haloMassFunctionParameters::b]" />
+      <f value="=[haloMassFunctionParameters::f]" />
+      <g value="=[haloMassFunctionParameters::g]" />
+      <normalization value="=[haloMassFunctionParameters::normalization]" />
+      <p value="=[haloMassFunctionParameters::p]" />
+      <q value="=[haloMassFunctionParameters::q]" />
+    </haloMassFunction>
+    <toleranceRelative value="3.0e-4" />
+  </haloMassFunction>
+  <haloMassFunctionParameters ignoreWarnings="true" value="">
+    <a value="+0.8745" />
+    <alpha value="+1.0000" />
+    <b value="+1.0000" />
+    <beta value="+4.4100" />
+    <cW value="+1.8500" />
+    <f value="+0.0000" />
+    <g value="+0.0000" />
+    <normalization value="+0.3318" />
+    <p value="-0.0306" />
+    <q value="+1.0000" />
+  </haloMassFunctionParameters>
+  <linearGrowth value="collisionlessMatter" />
+  <nbodyHaloMassError value="trenti2010">
+    <massParticle value="=[simulation::massParticle]" />
+  </nbodyHaloMassError>
+  <outputFileName value="mw.hdf5" />
+  <outputTimes value="list">
+    <redshifts value="0.000" />
+  </outputTimes>
+  <powerSpectrumPrimordial value="powerLaw">
+    <index value="0.960" />
+    <running value="0.000" />
+    <wavenumberReference value="1.000" />
+  </powerSpectrumPrimordial>
+  <powerSpectrumPrimordialTransferred value="simple" />
+  <powerSpectrumSimulation ignoreWarnings="true" value="standard">
+    <cosmologicalMassVariance value="filteredPower">
+      <monotonicInterpolation value="true" />
+      <nonMonotonicIsFatal value="false" />
+      <sigma_8 value="0.820" />
+      <tolerance value="4.0e-4" />
+      <toleranceTopHat value="2.0e-4" />
+    </cosmologicalMassVariance>
+  </powerSpectrumSimulation>
+  <powerSpectrumWindowFunction value="ETHOS">
+    <beta value="=[haloMassFunctionParameters::beta]" />
+    <cW value="=[haloMassFunctionParameters::cW]" />
+  </powerSpectrumWindowFunction>
+  <simulation ignoreWarnings="true" value="">
+    <massParticle value="4.02830e05" />
+  </simulation>
+  <task value="haloMassFunction">
+    <haloMassMaximum value=" 1.122018454e16" />
+    <haloMassMinimum value=" 1.122018454e06" />
+    <includeMassAccretionRate value="false" />
+    <includeUnevolvedSubhaloMassFunction value="false" />
+    <pointsPerDecade value="10.0" />
+  </task>
+  <transferFunction value="CAMB">
+    <redshift value="99.0" />
+  </transferFunction>
+  <version>0.9.4</version>
+  <version>0.9.4</version>
+  <version>0.9.4</version>
+  <version>0.9.4</version>
+  <version>0.9.4</version>
+  <version>0.9.4</version>
+  <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt" />
+</parameters>
