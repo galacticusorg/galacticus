@@ -28,7 +28,8 @@ An implementation of the hot halo outflow reincorporation class in which impleme
   !![
   <hotHaloOutflowReincorporation name="hotHaloOutflowReincorporationHenriques2013">
    <description>
-    An implementation of the hot halo outflow reincorporation class which implements the model of \cite{henriques_simulations_2013}. Specifically, outflowed gas is returned at a rate:
+    An implementation of the hot halo outflow reincorporation class which implements the model of
+    \cite{henriques_simulations_2013}. Specifically, outflowed gas is returned at a rate:
     \begin{equation}
      \dot{M}_\mathrm{return} = \gamma (1+z)^{-\delta_1} \left({V_\mathrm{vir}\over 200\hbox{km/s}}\right)^{\delta_2} {M_\mathrm{outflowed} \over \tau_\mathrm{dyn}}
     \end{equation}
@@ -40,9 +41,9 @@ An implementation of the hot halo outflow reincorporation class in which impleme
      An implementation of the hot halo outflow reincorporation class which implements the model of \cite{henriques_simulations_2013}.
      !!}
      private
-     double precision                                    :: gamma               , delta1, &
+     double precision                                    :: gamma                         , delta1, &
           &                                                 delta2
-     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_ => null()
+     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
      class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
    contains
      final     ::         henriques2013Destructor
