@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1681718299379,
+  "lastUpdate": 1681718307202,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "91f991ed02d02684b9c6fe322ab95105fc1c87c0",
-          "message": "Merge pull request #283 from galacticusorg/optimization\n\nOptimizations of Blitz2000 star formation rate class",
-          "timestamp": "2022-08-28T12:46:05-07:00",
-          "tree_id": "233fcaf34174c5f8df74f9b76c312ef6c3c86bf3",
-          "url": "https://github.com/galacticusorg/galacticus/commit/91f991ed02d02684b9c6fe322ab95105fc1c87c0"
-        },
-        "date": 1661745586347,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 514.439,
-            "unit": "seconds",
-            "range": 8.50665204413952
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10594,6 +10564,58 @@ window.BENCHMARK_DATA = {
             "value": 146.768,
             "unit": "seconds",
             "range": 0.181833990223515
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@obs.carnegiescience.edu"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "96daacc6391e2035fee11e4c21c405fac90746dd",
+          "message": "fix: Handle malformed XML\n\nSometimes the XML produced by `valgrind` running under MPI can be malformed. Handle such cases by ignoring them.",
+          "timestamp": "2023-04-17T05:07:44Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/96daacc6391e2035fee11e4c21c405fac90746dd"
+        },
+        "date": 1681718306126,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassMetallicityRelation",
+            "value": 3.95588558726728,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassSizeRelation",
+            "value": 6.90016548757795,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassVelocityDispersionRelation",
+            "value": 1.31035125268713,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupOccupationFraction",
+            "value": 24.2518695796989,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassFunction",
+            "value": 141.477773290414,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
+            "value": 4.58859052153581,
+            "unit": "-logℒ"
           }
         ]
       }
