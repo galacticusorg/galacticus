@@ -103,6 +103,44 @@ jobs:
           name: build-profile
           path: 'buildProfile.html'
       - run: echo "This job's status is ${{ job.status }}."
+  ### Non-static executable
+  Build-Executable-Linux-Non-Static:
+    runs-on: ubuntu-latest
+    container: ghcr.io/galacticusorg/buildenv:latest
+    steps:
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
+      - name: Check out repository code
+        uses: actions/checkout@v3
+      - name: Check out repository analysis-perl
+        uses: actions/checkout@v3
+        with:
+          repository: galacticusorg/analysis-perl
+          path: analysis-perl
+      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_ANALYSIS_PERL_PATH=$GITHUB_WORKSPACE/analysis-perl" >> $GITHUB_ENV
+          echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
+      - name: Build the code
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
+          export BUILDPATH=./work/build
+          set -o pipefail
+          make -j2 Galacticus.exe 2>&1 | tee build.log
+          grep -v -q Error: build.log
+          grep -v -q Warning: build.log
+          set +o pipefail
+          grep -v 'is up to date' build.log | grep -v -q make: 
+      - name: Upload Galacticus executable
+        uses: actions/upload-artifact@v3
+        with:
+          name: galacticus-exec-non-static
+          path: 'Galacticus.exe'
+      - run: echo "This job's status is ${{ job.status }}."
   ### Executable instrumented
   Build-Executables-Instrumented-Linux:
     runs-on: ubuntu-latest
@@ -9248,7 +9286,7 @@ jobs:
   Test-Memory-Leaks:
     runs-on: ubuntu-latest
     container: ghcr.io/galacticusorg/buildenv:latest
-    needs: Build-Executable-Linux
+    needs: Build-Executable-Linux-Non-Static
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
@@ -9268,7 +9306,7 @@ jobs:
       - name: Download executables
         uses: actions/download-artifact@v3
         with:
-          name: galacticus-exec
+          name: galacticus-exec-non-static
       - name: Install valgrind
         run: |
           apt -y update
