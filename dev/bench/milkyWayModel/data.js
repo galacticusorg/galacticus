@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1681699224477,
+  "lastUpdate": 1681718299379,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "b6b29bbd34d7663c51e218e1d0a594b00aef6cd0",
-          "message": "Merge pull request #279 from galacticusorg/igmMetallicity\n\nIGM metallicity support",
-          "timestamp": "2022-08-26T07:30:11-07:00",
-          "tree_id": "ad646e2409e7de0183b728f8a4143c9051456598",
-          "url": "https://github.com/galacticusorg/galacticus/commit/b6b29bbd34d7663c51e218e1d0a594b00aef6cd0"
-        },
-        "date": 1661541649156,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 440.475,
-            "unit": "seconds",
-            "range": 3.80334129416979
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10596,6 +10566,34 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 4.6820950873926,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@obs.carnegiescience.edu"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "96daacc6391e2035fee11e4c21c405fac90746dd",
+          "message": "fix: Handle malformed XML\n\nSometimes the XML produced by `valgrind` running under MPI can be malformed. Handle such cases by ignoring them.",
+          "timestamp": "2023-04-17T05:07:44Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/96daacc6391e2035fee11e4c21c405fac90746dd"
+        },
+        "date": 1681718297669,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 146.768,
+            "unit": "seconds",
+            "range": 0.181833990223515
           }
         ]
       }
