@@ -66,8 +66,12 @@ foreach my $model ( @models ) {
     my $xml = new XML::Simple;
     foreach my $valgrindOutput ( @valgrindOutputs ) {
 	print "\tAnalyzing output file '".$valgrindOutput."'\n";
-	my $valgrind = $xml->XMLin("outputs/memoryLeaks/".$model->{'label'}."/".$valgrindOutput);
-	
+	my $valgrind = eval { $xml->XMLin("outputs/memoryLeaks/".$model->{'label'}."/".$valgrindOutput) };
+	if ( $@ ) {
+           print "   malformed XML\n";
+           next;
+        }
+
 	# Iterate over errors, looking for memory leaks.
 	foreach my $error ( &List::ExtraUtils::as_array($valgrind->{'error'}) ) {
 	    # Skip errors that are not memory leaks.
