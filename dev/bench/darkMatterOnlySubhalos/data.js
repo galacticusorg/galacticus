@@ -1,45 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1681718303309,
+  "lastUpdate": 1681755630977,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@obs.carnegiescience.edu"
-          },
-          "committer": {
-            "name": "GitHub",
-            "username": "web-flow",
-            "email": "noreply@github.com"
-          },
-          "id": "62e2f176b90c274707012ee8a7bda3c2ccb0d6f5",
-          "message": "Merge pull request #290 from galacticusorg/optimization\n\nCorrect calculation of Local Group occupation fraction",
-          "timestamp": "2022-09-07T02:45:38Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/62e2f176b90c274707012ee8a7bda3c2ccb0d6f5"
-        },
-        "date": 1662566770408,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 56.4862273307091,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 25.5165582430658,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 15423.3632579593,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8700,6 +8663,34 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 25371.9758848307,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "id": "37b2de62363d5d06bec6c741ff4c79e3cadfe3bb",
+          "message": "fix: Add a non-static build for use with `valgrind`",
+          "timestamp": "2023-04-17T15:36:52Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/37b2de62363d5d06bec6c741ff4c79e3cadfe3bb"
+        },
+        "date": 1681755628910,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 49.506,
+            "unit": "seconds",
+            "range": 0.0605012396566364
           }
         ]
       }
