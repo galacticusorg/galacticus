@@ -793,6 +793,23 @@ contains
     return
   end subroutine IO_HDF5_Remove
 
+  subroutine IO_HDF5_Character_Types_Destroy(dataTypeID)
+    !!{
+    Destroy an array of character types.
+    !!}
+    use :: Error, only : Error_Report
+    use :: HDF5 , only : h5tclose_f
+    implicit none
+    integer(kind=HID_T), intent(in   ), dimension(:) :: dataTypeID
+    integer                                          :: i         , errorCode
+
+    do i=1,size(dataTypeID)
+       call h5tclose_f(dataTypeID(i),errorCode)
+       if (errorCode /= 0) call Error_Report("unable to close data type")
+    end do
+    return
+  end subroutine IO_HDF5_Character_Types_Destroy
+
   function IO_HDF5_Character_Types(stringLength)
     !!{
     Return datatypes for character data of a given length. Types are for Fortran native and C native types.
@@ -3200,7 +3217,7 @@ contains
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : HID_T        , HSIZE_T                    , h5aget_space_f, h5aread_f, &
-          &                           h5sclose_f   , h5sget_simple_extent_dims_f, h5tclose_f
+          &                           h5sclose_f   , h5sget_simple_extent_dims_f
     use :: ISO_Varying_String, only : assignment(=), operator(//)               , trim
     implicit none
     character(len=*                  )              , intent(  out)           :: attributeValue
@@ -3312,16 +3329,7 @@ contains
     end if
 
     ! Close the datatype.
-    call h5tclose_f(dataTypeID(1),errorCode)
-    if (errorCode < 0) then
-       message="unable to close custom datatype for attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
-    end if
-    call h5tclose_f(dataTypeID(2),errorCode)
-    if (errorCode < 0) then
-       message="unable to close custom datatype for attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
-    end if
+    call IO_HDF5_Character_Types_Destroy(dataTypeID)
 
     ! Close the attribute unless this was an attribute object.
     if (self%hdf5ObjectType /= hdf5ObjectTypeAttribute) call attributeObject%close()
@@ -3335,7 +3343,7 @@ contains
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : HID_T        , HSIZE_T                    , h5aget_space_f, h5aread_f, &
-          &                           h5sclose_f   , h5sget_simple_extent_dims_f, h5tclose_f
+          &                           h5sclose_f   , h5sget_simple_extent_dims_f
     use :: ISO_Varying_String, only : assignment(=), operator(//)               , trim
     implicit none
     character(len=*         ), allocatable, dimension(:), intent(  out)           :: attributeValue
@@ -3428,16 +3436,7 @@ contains
     end if
 
     ! Close the datatype.
-    call h5tclose_f(dataTypeID(1),errorCode)
-    if (errorCode < 0) then
-       message="unable to close custom datatype for attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
-    end if
-    call h5tclose_f(dataTypeID(2),errorCode)
-    if (errorCode < 0) then
-       message="unable to close custom datatype for attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
-    end if
+    call IO_HDF5_Character_Types_Destroy(dataTypeID)
 
     ! Close the attribute unless this was an attribute object.
     if (self%hdf5ObjectType /= hdf5ObjectTypeAttribute) call attributeObject%close()
@@ -3451,7 +3450,7 @@ contains
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : HID_T        , HSIZE_T                    , h5aget_space_f, h5aread_f, &
-          &                           h5sclose_f   , h5sget_simple_extent_dims_f, h5tclose_f
+          &                           h5sclose_f   , h5sget_simple_extent_dims_f
     use :: ISO_Varying_String, only : assignment(=), operator(//)               , trim
     implicit none
     character(len=*         ), dimension(:), intent(  out)           :: attributeValue
@@ -3544,16 +3543,7 @@ contains
     end if
 
     ! Close the datatype.
-    call h5tclose_f(dataTypeID(1),errorCode)
-    if (errorCode < 0) then
-       message="unable to close custom datatype for attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
-    end if
-    call h5tclose_f(dataTypeID(2),errorCode)
-    if (errorCode < 0) then
-       message="unable to close custom datatype for attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
-    end if
+    call IO_HDF5_Character_Types_Destroy(dataTypeID)
 
     ! Close the attribute unless this was an attribute object.
     if (self%hdf5ObjectType /= hdf5ObjectTypeAttribute) call attributeObject%close()
@@ -13904,7 +13894,7 @@ contains
           &                                      HID_T             , HSIZE_T               , h5dclose_f                 , h5dget_space_f       , &
           &                                      h5dread_f         , h5rdereference_f      , h5rget_region_f            , h5sclose_f           , &
           &                                      h5screate_simple_f, h5sget_select_bounds_f, h5sget_simple_extent_dims_f, h5sselect_hyperslab_f, &
-          &                                      h5tclose_f        , hdset_reg_ref_t_f     , hsize_t
+          &                                      hdset_reg_ref_t_f , hsize_t
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)     , operator(//)          , trim
     implicit none
@@ -14175,16 +14165,7 @@ contains
     end if
 
     ! Close the datatype.
-    call h5tclose_f(dataTypeID(1),errorCode)
-    if (errorCode < 0) then
-       message="unable to close custom datatype for attribute '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
-    end if
-    call h5tclose_f(dataTypeID(2),errorCode)
-    if (errorCode < 0) then
-       message="unable to close custom datatype for attribute '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
-    end if
+    call IO_HDF5_Character_Types_Destroy(dataTypeID)
 
     ! Determine how to close the object.
     if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
@@ -14485,16 +14466,7 @@ contains
     end if
 
     ! Close the datatype.
-    call h5tclose_f(dataTypeID(1),errorCode)
-    if (errorCode < 0) then
-       message="unable to close custom datatype for attribute '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
-    end if
-    call h5tclose_f(dataTypeID(2),errorCode)
-    if (errorCode < 0) then
-       message="unable to close custom datatype for attribute '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
-    end if
+    call IO_HDF5_Character_Types_Destroy(dataTypeID)
 
     ! Determine how to close the object.
     if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
