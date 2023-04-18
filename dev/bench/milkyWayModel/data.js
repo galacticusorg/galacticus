@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1681796161472,
+  "lastUpdate": 1681796169342,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "9ed42a34055c81d2131b4af2c51351ffd6f74fe6",
-          "message": "Merge pull request #285 from galacticusorg/optimization\n\nOptimize tidal heating functions",
-          "timestamp": "2022-08-30T07:47:14-07:00",
-          "tree_id": "8799dda3d19cd36e353191c5a5c0bacfd67c02ef",
-          "url": "https://github.com/galacticusorg/galacticus/commit/9ed42a34055c81d2131b4af2c51351ffd6f74fe6"
-        },
-        "date": 1661887693062,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 393.227,
-            "unit": "seconds",
-            "range": 0.857123153346505
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10588,6 +10558,60 @@ window.BENCHMARK_DATA = {
             "value": 232.177,
             "unit": "seconds",
             "range": 0.233195411613946
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "6ebc45062686ef0809ad3ced3fb32692a6fa0cef",
+          "message": "feat: Add option to ignore integration errors for line-of-sight velocity dispersions",
+          "timestamp": "2023-04-18T02:44:45Z",
+          "tree_id": "f4c3ac104865e3e7477666f39fdf15250169b01b",
+          "url": "https://github.com/galacticusorg/galacticus/commit/6ebc45062686ef0809ad3ced3fb32692a6fa0cef"
+        },
+        "date": 1681796168040,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassMetallicityRelation",
+            "value": 4.40848388147287,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassSizeRelation",
+            "value": 7.90776852188703,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassVelocityDispersionRelation",
+            "value": 1.40081185287867,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupOccupationFraction",
+            "value": 23.6940050229357,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassFunction",
+            "value": 164.224255022934,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
+            "value": 4.43847832308561,
+            "unit": "-logℒ"
           }
         ]
       }
