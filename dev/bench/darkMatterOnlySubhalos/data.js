@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1681755640617,
+  "lastUpdate": 1681796157350,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "c18590d4d66fae9b67d976192406a3c275c4eddd",
-          "message": "Merge pull request #291 from galacticusorg/dev\n\nFix build dependencies",
-          "timestamp": "2022-09-07T22:17:05-07:00",
-          "tree_id": "0562c216f25ee41c9af54af50f743d2d9375dec4",
-          "url": "https://github.com/galacticusorg/galacticus/commit/c18590d4d66fae9b67d976192406a3c275c4eddd"
-        },
-        "date": 1662620788474,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 56.4862273307091,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 25.5165582430658,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 15423.3632579593,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8698,6 +8659,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 24145.1797388743,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "6ebc45062686ef0809ad3ced3fb32692a6fa0cef",
+          "message": "feat: Add option to ignore integration errors for line-of-sight velocity dispersions",
+          "timestamp": "2023-04-18T02:44:45Z",
+          "tree_id": "f4c3ac104865e3e7477666f39fdf15250169b01b",
+          "url": "https://github.com/galacticusorg/galacticus/commit/6ebc45062686ef0809ad3ced3fb32692a6fa0cef"
+        },
+        "date": 1681796155707,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 51.081,
+            "unit": "seconds",
+            "range": 0.140871927650447
           }
         ]
       }
