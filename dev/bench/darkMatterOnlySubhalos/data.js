@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1681796165334,
+  "lastUpdate": 1681960461825,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "428ce0d7a1c07317ffd200bc62e1e92000c94844",
-          "message": "Merge pull request #292 from galacticusorg/dev\n\nImplement auto-descriptors for `functionClass` objects that use linked lists",
-          "timestamp": "2022-09-08T16:48:20-07:00",
-          "tree_id": "3e24106b374a547e05ba040918f7e7a12071d465",
-          "url": "https://github.com/galacticusorg/galacticus/commit/428ce0d7a1c07317ffd200bc62e1e92000c94844"
-        },
-        "date": 1662689070196,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 56.4862273307091,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 25.5165582430658,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 15423.3632579593,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8698,6 +8659,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 24145.1797388743,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "b60e818869ea0bad7e2fcc2b9320cabbe02cf550",
+          "message": "fix: Avoid outputting state if failures are non-fatal\n\nDebug state should only be output if we are about to abort because of a radius solver failure. If such failures are being ignored there is no need to output state.",
+          "timestamp": "2023-04-19T23:49:35Z",
+          "tree_id": "143810e6de1c30da807e3a8537a6544a3cd88959",
+          "url": "https://github.com/galacticusorg/galacticus/commit/b60e818869ea0bad7e2fcc2b9320cabbe02cf550"
+        },
+        "date": 1681960460303,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 51.729,
+            "unit": "seconds",
+            "range": 0.0369986486244301
           }
         ]
       }
