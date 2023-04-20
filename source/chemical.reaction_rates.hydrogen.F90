@@ -73,7 +73,7 @@
        <method description="Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \gamma \rightarrow \hbox{H} + \hbox{H}^+$."        method="rateH2plus_Gamma_to_H_Hplus"        />
        <method description="Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \gamma \rightarrow 2\hbox{H}^+ + \hbox{e}^-$."    method="rateH2plus_Gamma_to_2Hplus_Electron"/>
        <method description="Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \gamma \rightarrow 2\hbox{H}^+ + \hbox{e}^-$."    method="rateH2_Gamma_to_H2star_to_2H"       />
-       <method description="Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \gamma \rightarrow 2\hbox{H}^+ + \hbox{e}^-$."    method="rateH2_Gamma_to_2H"                 />
+       <method description="Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2 + \gamma \rightarrow 2\hbox{H}$."                     method="rateH2_Gamma_to_2H"                 />
      </methods>
      !!]
      final     ::                                        hydrogenNetworkDestructor
@@ -1852,8 +1852,7 @@ contains
 
   subroutine hydrogenNetworkRateH2_Gamma_to_2H(self,temperature,radiation,chemicalDensity,chemicalRates,node)
     !!{
-    Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2 + \gamma \rightarrow 2\hbox{H} +
-    \hbox{e}^-$.
+    Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2 + \gamma \rightarrow 2\hbox{H}$.
     !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Index
     use :: Numerical_Constants_Physical , only : plancksConstant    , speedLight

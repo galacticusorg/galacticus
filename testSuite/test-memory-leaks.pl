@@ -60,7 +60,7 @@ foreach my $model ( @models ) {
     
     # Run the model.
     print "Running model '".$model->{'label'}."'...\n";
-    system("mkdir -p outputs/memoryLeaks/".$model->{'label'}."; cd ..; ".($model->{'mpi'} ? "export OMP_NUM_THREADS=".$model->{'mpi'}->{'threads'}."; mpirun --n ".$model->{'mpi'}->{'processes'}." " : "")."valgrind --leak-check=full --xml=yes --xml-file=testSuite/outputs/memoryLeaks/".$model->{'label'}."/memory-leaks-%p.xml ./Galacticus.exe ".$model->{'parameters'});
+    system("mkdir -p outputs/memoryLeaks/".$model->{'label'}."; cd ..; ".($model->{'mpi'} ? "export OMP_NUM_THREADS=".$model->{'mpi'}->{'threads'}."; mpirun --allow-run-as-root --n ".$model->{'mpi'}->{'processes'}." " : "")."valgrind --leak-check=full --xml=yes --xml-file=testSuite/outputs/memoryLeaks/".$model->{'label'}."/memory-leaks-%p.xml ./Galacticus.exe ".$model->{'parameters'});
     unless ( $? == 0 ) {
     	print "\tFAILED:  model run:\n";
     } else {
@@ -75,8 +75,12 @@ foreach my $model ( @models ) {
     my $xml = new XML::Simple;
     foreach my $valgrindOutput ( @valgrindOutputs ) {
 	print "\tAnalyzing output file '".$valgrindOutput."'\n";
-	my $valgrind = $xml->XMLin("outputs/memoryLeaks/".$model->{'label'}."/".$valgrindOutput);
-	
+	my $valgrind = eval { $xml->XMLin("outputs/memoryLeaks/".$model->{'label'}."/".$valgrindOutput) };
+	if ( $@ ) {
+           print "   malformed XML\n";
+           next;
+        }
+
 	# Iterate over errors, looking for memory leaks.
 	foreach my $error ( &List::ExtraUtils::as_array($valgrind->{'error'}) ) {
 	    # Skip errors that are not memory leaks.

@@ -252,12 +252,6 @@ contains
                 write (label,'(e12.6)') font2008RadiusSolver(radiusSmallestOverRadiusVirial*radiusVirial/(1.0d0+radiusTolerance))
                 message=message//" : "//trim(adjustl(label))
                 call displayMessage(message,verbosityLevelSilent)
-
-                message="save state on bug"
-                call State_Set_(var_str('debugState'))
-                call State_Store_(message)
-                call mergerTreeStateStore_(node_%hostTree,'storedTree.dat')
-
                 select case (status)
                 case (errorStatusOutOfRange)
                    call displayMessage('could not bracket the root',verbosityLevelSilent)
@@ -279,12 +273,17 @@ contains
                    call GSL_Error_Details(reason,file,line,status)
                    call displayMessage(var_str('GSL error ')//status//': "'//reason//'" at line '//line//' of file "'//file//'"',verbosityLevelSilent)
                 end select
-                if     (&
+                if     (                                 &
                      &   self%solverFailureIsFatal       &
                      &  .or.                             &
                      &   status /= errorStatusOutOfRange &
-                     & )                                 &
-                     & call Error_Report('root finding failed'//{introspection:location})
+                     & ) then                   
+                   message="save state due to falure of hotHaloRamPressureStrippingFont2008 radius solver"
+                   call State_Set_           (var_str('debugState'))
+                   call State_Store_         (message)
+                   call mergerTreeStateStore_(node_%hostTree,'storedTree.dat')
+                   call Error_Report         ('root finding failed'//{introspection:location})
+                end if
              end if
              self%radiusLast=font2008RadiusStripped
           end if
