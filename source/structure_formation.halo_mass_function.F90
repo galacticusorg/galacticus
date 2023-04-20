@@ -56,10 +56,14 @@ module Halo_Mass_Functions
     <selfTarget>yes</selfTarget>
     <argument>double precision          , intent(in   )                   :: time, massLow, massHigh</argument>
     <argument>type            (treeNode), intent(inout), target, optional :: node                   </argument>
-    <modules>Numerical_Integration</modules>
+    <argument>integer                   , intent(  out)        , optional :: status                 </argument>
+    <modules>Numerical_Integration Error String_Handling</modules>
     <code>
-     double precision             :: logMassHigh, logMassLow
-     type            (integrator) :: integrator_
+     double precision                       :: logMassHigh, logMassLow
+     type            (integrator          ) :: integrator_
+     integer                                :: status_    , line
+     type            (varying_string), save :: reason     , file
+     !$omp threadprivate(reason,file)
      globalSelf => self
      if (present(node)) then
         self%node => node
@@ -70,7 +74,12 @@ module Halo_Mass_Functions
      logMassLow =log(massLow )
      logMassHigh=log(massHigh)
      integrator_=integrator(integratedIntegrand,toleranceRelative=1.0d-3,toleranceAbsolute=1.0d-100,integrationRule=GSL_Integ_Gauss15)
-     haloMassFunctionIntegrated=integrator_%integrate(logMassLow,logMassHigh)
+     haloMassFunctionIntegrated=integrator_%integrate(logMassLow,logMassHigh,status=status_)
+     if (present(status)) status=status_
+     if (status_ /= errorStatusSuccess .and. .not.present(status)) then
+        call GSL_Error_Details(reason,file,line,status_)
+        call Error_Report(var_str('integration of dark matter halo mass function failed (GSL error ')//status_//': "'//reason//'" at line '//line//' of file "'//file//'")'//{introspection:location})
+     end if
      return
     </code>
    </method>
