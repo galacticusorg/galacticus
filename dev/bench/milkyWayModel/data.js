@@ -1,62 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1681796169342,
+  "lastUpdate": 1681960465799,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "9ed42a34055c81d2131b4af2c51351ffd6f74fe6",
-          "message": "Merge pull request #285 from galacticusorg/optimization\n\nOptimize tidal heating functions",
-          "timestamp": "2022-08-30T07:47:14-07:00",
-          "tree_id": "8799dda3d19cd36e353191c5a5c0bacfd67c02ef",
-          "url": "https://github.com/galacticusorg/galacticus/commit/9ed42a34055c81d2131b4af2c51351ffd6f74fe6"
-        },
-        "date": 1661893931707,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Likelihood - localGroupMassMetallicityRelation",
-            "value": 13.4954615596566,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupMassSizeRelation",
-            "value": 8.06038133640159,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupMassVelocityDispersionRelation",
-            "value": 1.86272629644888,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupOccupationFraction",
-            "value": 8.5301452873717,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupStellarMassFunction",
-            "value": 285.419817606714,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
-            "value": 10.653219833373,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10612,6 +10558,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 4.43847832308561,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "b60e818869ea0bad7e2fcc2b9320cabbe02cf550",
+          "message": "fix: Avoid outputting state if failures are non-fatal\n\nDebug state should only be output if we are about to abort because of a radius solver failure. If such failures are being ignored there is no need to output state.",
+          "timestamp": "2023-04-19T23:49:35Z",
+          "tree_id": "143810e6de1c30da807e3a8537a6544a3cd88959",
+          "url": "https://github.com/galacticusorg/galacticus/commit/b60e818869ea0bad7e2fcc2b9320cabbe02cf550"
+        },
+        "date": 1681960464829,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 164.502,
+            "unit": "seconds",
+            "range": 0.183601742911915
           }
         ]
       }
