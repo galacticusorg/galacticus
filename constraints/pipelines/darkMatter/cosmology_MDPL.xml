@@ -3,7 +3,6 @@
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
 
-
   <!-- Cosmological parameters and options -->
   <cosmologyFunctions  value="matterLambda"/>
   <cosmologyParameters value="simple"       >
@@ -63,6 +62,25 @@
   </cosmologicalMassVariance>
   <transferFunction value="CAMB"/>
   <powerSpectrumPrimordialTransferred value="simple"/>
+
+  <!-- Power spectrum used for variance calculations -->
+  <powerSpectrumSimulation value="standard" ignoreWarnings="true">
+    <powerSpectrumPrimordialTransferred value="simple"/>
+    <powerSpectrumPrimordial value="powerLaw">
+      <!-- MDPL simulation power spectrum; https://www.cosmosim.org/cms/simulations/mdpl -->
+      <index               value="0.960"/>
+      <wavenumberReference value="1.000"/>
+      <running             value="0.000"/>
+    </powerSpectrumPrimordial>
+    <cosmologicalMassVariance value="filteredPower">
+      <!-- MDPL simulation power spectrum; https://www.cosmosim.org/cms/simulations/mdpl -->
+      <sigma_8                value="0.8228"/>
+      <tolerance              value="4.0e-4"/>
+      <toleranceTopHat        value="2.0e-4"/>
+      <nonMonotonicIsFatal    value="false" />
+      <monotonicInterpolation value="true"  />
+    </cosmologicalMassVariance>
+  </powerSpectrumSimulation>
 
   <!-- Structure formation options -->
   <linearGrowth          value="collisionlessMatter"                      />
