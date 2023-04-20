@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1681960465799,
+  "lastUpdate": 1681960473254,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "c0610544c7e5bbaa9fc9ebb0ce2eef76a15f34f4",
-          "message": "Merge pull request #286 from galacticusorg/optimization\n\nOptimize root finding",
-          "timestamp": "2022-08-30T21:47:49-07:00",
-          "tree_id": "0ec77612dd411783afd8f114fc392c846d1e63d0",
-          "url": "https://github.com/galacticusorg/galacticus/commit/c0610544c7e5bbaa9fc9ebb0ce2eef76a15f34f4"
-        },
-        "date": 1661940716337,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 651.111,
-            "unit": "seconds",
-            "range": 3.55411436225391
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10588,6 +10558,60 @@ window.BENCHMARK_DATA = {
             "value": 164.502,
             "unit": "seconds",
             "range": 0.183601742911915
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "b60e818869ea0bad7e2fcc2b9320cabbe02cf550",
+          "message": "fix: Avoid outputting state if failures are non-fatal\n\nDebug state should only be output if we are about to abort because of a radius solver failure. If such failures are being ignored there is no need to output state.",
+          "timestamp": "2023-04-19T23:49:35Z",
+          "tree_id": "143810e6de1c30da807e3a8537a6544a3cd88959",
+          "url": "https://github.com/galacticusorg/galacticus/commit/b60e818869ea0bad7e2fcc2b9320cabbe02cf550"
+        },
+        "date": 1681960472456,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassMetallicityRelation",
+            "value": 3.95588558726728,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassSizeRelation",
+            "value": 6.90016548757795,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassVelocityDispersionRelation",
+            "value": 1.31035125268713,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupOccupationFraction",
+            "value": 24.2518695796989,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassFunction",
+            "value": 141.477773290414,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
+            "value": 4.58859052153581,
+            "unit": "-logℒ"
           }
         ]
       }
