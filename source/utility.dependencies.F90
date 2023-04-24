@@ -35,7 +35,7 @@ module Dependencies
   
 contains
 
-  function dependencyVersion(dependency)
+  function dependencyVersion(dependency,majorOnly)
     !!{
     Return the version number to use for a named dependency.
     !!}
@@ -43,13 +43,17 @@ contains
     use :: Input_Paths       , only : inputPath     , pathTypeExec
     use :: ISO_Varying_String, only : varying_string, trim        , assignment(=), char
     implicit none
-    type     (varying_string)                :: dependencyVersion
-    character(len=*         ), intent(in   ) :: dependency
-    integer                                  :: fileUnit
-    character(len=256       )                :: line             , dependency_
-    type     (varying_string)                :: version_
-    integer                                  :: indexSeparator   , status
-
+    type     (varying_string)                          :: dependencyVersion
+    character(len=*         ), intent(in   )           :: dependency
+    logical                  , intent(in   ), optional :: majorOnly
+    integer                                            :: fileUnit
+    character(len=256       )                          :: line             , dependency_
+    type     (varying_string)                          :: version_
+    integer                                            :: indexSeparator   , status
+    !![
+    <optionalArgument name="majorOnly" defaultsTo=".false."/>
+    !!]
+    
     !$omp critical(dependenciesInitialize)
     if (.not.initialized) then
        call dependencies_%initialize()
@@ -72,6 +76,8 @@ contains
     !$omp end critical(dependenciesInitialize)
     if (dependencies_%exists(trim(dependency))) then
        dependencyVersion=dependencies_%value(trim(dependency))
+       if (majorOnly_ .and. index(dependencyVersion,".") > 1) &
+            & dependencyVersion=extract(dependencyVersion,1,index(dependencyVersion,".")-1)
     else
        call Error_Report('dependency not found'//{introspection:location})
     end if
