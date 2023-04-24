@@ -34,6 +34,7 @@ contains
     !!{
     Initialize the interface with Cloudy, including downloading and compiling Cloudy if necessary.
     !!}
+    use :: Dependencies      , only : dependencyVersion
     use :: Display           , only : displayMessage   , verbosityLevelWorking
     use :: File_Utilities    , only : File_Exists
     use :: Error             , only : Error_Report
@@ -48,15 +49,16 @@ contains
     logical                  , intent(in   ), optional :: static
     integer                                            :: status       , statusEnvironment, &
          &                                                statusPath
-    character(len=3         )                          :: staticDefault
+    character(len=   3      )                          :: staticDefault
     character(len=1024      )                          :: compilerPath
-    type     (varying_string)                          :: command
+    type     (varying_string)                          :: command      , cloudyVersionMajor
     !![
     <optionalArgument name="static" defaultsTo=".false." />
     !!]
 
     ! Specify Cloudy version.
-    cloudyVersion="c17.03"
+    cloudyVersion     ="c"//dependencyVersion("cloudy"                 )
+    cloudyVersionMajor=     dependencyVersion("cloudy",majorOnly=.true.)
     ! Specify Cloudy path.
     cloudyPath   =inputPath(pathTypeDataDynamic)//cloudyVersion
     ! Check for existence of executable - build if necessary.
@@ -66,7 +68,7 @@ contains
           ! Check for existence of tarball - download the Cloudy code if necessary.
           if (.not.File_Exists(cloudyPath//".tar.gz")) then
              call displayMessage("downloading Cloudy code....",verbosityLevelWorking)
-             call download('"http://data.nublado.org/cloudy_releases/c17/'//char(cloudyVersion)//'.tar.gz"',char(cloudyPath)//'.tar.gz',status)
+             call download('"http://data.nublado.org/cloudy_releases/c'//char(cloudyVersionMajor)//'/'//char(cloudyVersion)//'.tar.gz"',char(cloudyPath)//'.tar.gz',status)
              if (status /= 0) call Error_Report("failed to download Cloudy code"//{introspection:location})
           end if
           ! Unpack and patch the code.
