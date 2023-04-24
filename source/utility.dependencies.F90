@@ -41,7 +41,8 @@ contains
     !!}
     use :: Error             , only : Error_Report
     use :: Input_Paths       , only : inputPath     , pathTypeExec
-    use :: ISO_Varying_String, only : varying_string, trim        , assignment(=), char
+    use :: ISO_Varying_String, only : varying_string, trim        , assignment(=), char, index, &
+         &                            extract
     implicit none
     type     (varying_string)                          :: dependencyVersion
     character(len=*         ), intent(in   )           :: dependency
