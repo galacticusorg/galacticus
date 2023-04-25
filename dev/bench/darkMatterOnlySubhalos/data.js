@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1682451996405,
+  "lastUpdate": 1682452003679,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "177d7819ed7bbc7abaebbdf14a764bc8a5c2e35b",
-          "message": "Merge pull request #294 from galacticusorg/dev\n\nAllow more `functionClass` objects to support auto-descriptors",
-          "timestamp": "2022-09-10T06:26:23-07:00",
-          "tree_id": "bbc9951cd311f3631e464e30181dc2739203f1d2",
-          "url": "https://github.com/galacticusorg/galacticus/commit/177d7819ed7bbc7abaebbdf14a764bc8a5c2e35b"
-        },
-        "date": 1662821928038,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 57.488,
-            "unit": "seconds",
-            "range": 0.0782789882407195
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8689,6 +8659,45 @@ window.BENCHMARK_DATA = {
             "value": 49.155,
             "unit": "seconds",
             "range": 0.0732700484502023
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3828701f378f6883a1975d81949e9f28238302d9",
+          "message": "Merge pull request #403 from galacticusorg/cloudyDependency\n\nUse the dependency file to specify the version of Cloudy to use",
+          "timestamp": "2023-04-25T14:23:37Z",
+          "tree_id": "5b111a285d94e7e0fd2f6d3bf2ed7d110ae8debf",
+          "url": "https://github.com/galacticusorg/galacticus/commit/3828701f378f6883a1975d81949e9f28238302d9"
+        },
+        "date": 1682452003198,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 57.3717638717242,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 25.689755316789,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 25371.9758848307,
+            "unit": "-logℒ"
           }
         ]
       }
