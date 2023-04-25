@@ -131,7 +131,7 @@ jobs:
           versionFull=`curl --silent https://data.nublado.org/cloudy_releases/c${versionMajor}/ | grep -o -E 'href="c[[:digit:]]*\.[[:digit:]]*\.tar\.gz">' | sed 's/href="c//;s/\.tar\.gz">//'`
           sed -i~ -r s/"^cloudy:\s+[0-9\.]+"/"cloudy: ${versionFull}"/ aux/dependencies.yml
           echo "latest=${versionFull}" >> "$GITHUB_OUTPUT"
-          echo "branch=cloudy}" >> "$GITHUB_OUTPUT"
+          echo "branch=cloudy" >> "$GITHUB_OUTPUT"
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v4
         with:
