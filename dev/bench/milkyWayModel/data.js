@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1682452000160,
+  "lastUpdate": 1682452007287,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "6a4599182dfac142533685f1af7e2a9d8d24b25d",
-          "message": "feat: Add generation of validation plots",
-          "timestamp": "2022-08-31T15:06:50Z",
-          "tree_id": "37f4c679284cc43eb2f5a910fd3c896459373a28",
-          "url": "https://github.com/galacticusorg/galacticus/commit/6a4599182dfac142533685f1af7e2a9d8d24b25d"
-        },
-        "date": 1661975459369,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 416.638,
-            "unit": "seconds",
-            "range": 1.09997072688151
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10588,6 +10558,60 @@ window.BENCHMARK_DATA = {
             "value": 215.223,
             "unit": "seconds",
             "range": 0.816993329225781
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3828701f378f6883a1975d81949e9f28238302d9",
+          "message": "Merge pull request #403 from galacticusorg/cloudyDependency\n\nUse the dependency file to specify the version of Cloudy to use",
+          "timestamp": "2023-04-25T14:23:37Z",
+          "tree_id": "5b111a285d94e7e0fd2f6d3bf2ed7d110ae8debf",
+          "url": "https://github.com/galacticusorg/galacticus/commit/3828701f378f6883a1975d81949e9f28238302d9"
+        },
+        "date": 1682452006485,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassMetallicityRelation",
+            "value": 4.37318010105767,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassSizeRelation",
+            "value": 7.16737114123167,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassVelocityDispersionRelation",
+            "value": 1.40060454861053,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupOccupationFraction",
+            "value": 23.7555252763289,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassFunction",
+            "value": 141.886141942288,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
+            "value": 4.59228627570489,
+            "unit": "-logℒ"
           }
         ]
       }
