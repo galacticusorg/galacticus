@@ -35,13 +35,14 @@ program Test_Mass_Distributions
   use :: Mass_Distributions        , only : massDistributionBetaProfile      , massDistributionClass              , massDistributionExponentialDisk        , massDistributionGaussianEllipsoid, &
        &                                    massDistributionHernquist        , massDistributionSersic             , massDistributionSpherical              , massDistributionComposite        , &
        &                                    massDistributionList             , massDistributionSymmetryCylindrical, enumerationMassDistributionSymmetryType, massDistributionSphericalScaler  , &
-       &                                    massDistributionCylindricalScaler, massDistributionCylindrical
+       &                                    massDistributionCylindricalScaler, massDistributionCylindrical        , massDistributionPatejLoeb2015          , massDistributionNFW
   use :: Numerical_Constants_Math  , only : Pi
   use :: Tensors                   , only : assignment(=)
   use :: Unit_Tests                , only : Assert                           , Unit_Tests_Begin_Group             , Unit_Tests_End_Group                   , Unit_Tests_Finish
   implicit none
   class           (massDistributionClass                  )                             , allocatable :: massDistribution_                                                                                               , massDistributionRotated       , &
-       &                                                                                                 massDistributionDisk                                                                                            , massDistributionSpheroid
+       &                                                                                                 massDistributionDisk                                                                                            , massDistributionSpheroid      , &
+       &                                                                                                 massDistributionDMO
   type            (massDistributionList                   )                             , pointer     :: massDistributions
   integer                                                  , parameter                                :: sersicTableCount             =8
   double precision                                         , dimension(sersicTableCount)              :: sersicTableRadius            =[1.0000d-06,1.0000d-5,1.0000d-4,1.0000d-3,1.0000d-2,1.0000d-1,1.0000d+0,1.0000d+1]
@@ -64,6 +65,7 @@ program Test_Mass_Distributions
   character       (len=4                                  )                                           :: label
   double precision                                         , dimension(3,3)                           :: tidalTensorComponents                                                                                           , tidalTensorSphericalComponents
   double precision                                         , dimension(3  )                           :: acceleration
+  double precision                                         , dimension(4  )                           :: massPatejLoeb, densityPatejLoeb, densitySlopePatejLoeb, densityMomentPatejLoeb, potentialPatejLoeb
   type            (vector                                 ), dimension(:  )             , allocatable :: axes
   
   ! Set verbosity level.
@@ -463,6 +465,66 @@ program Test_Mass_Distributions
   nullify   (massDistributions)
   deallocate(massDistribution_)
   call Unit_Tests_End_Group()
+
+  ! Patej & Loeb (2015) profile.
+  call Unit_Tests_Begin_Group("Patej-Loeb (2015) profile")
+  allocate(massDistributionNFW :: massDistributionDMO)
+  select type (massDistributionDMO)
+  type is (massDistributionNFW)
+     massDistributionDMO=massDistributionNFW(scaleLength=30.0d-3,virialRadius=300.0d-3,mass=1.0d12,dimensionless=.false.)
+  end select
+  allocate(massDistributionPatejLoeb2015 :: massDistribution_)
+  select type (massDistribution_)
+  type is (massDistributionPatejLoeb2015)
+     massDistribution_=massDistributionPatejLoeb2015(gamma=1.15d0,massDistribution_=massDistributionDMO,mass=1.0d11,radiusOuter=450.0d-3,radiusShock=450.0d-3)
+  end select
+  do i=1,4
+     radius=450.0d-3/2.0d0**(4-i)
+     position=[radius,0.0d0,0.0d0]
+     massPatejLoeb(i)=massDistribution_%massEnclosedBySphere(radius)
+     densityPatejLoeb(i)=massDistribution_%density(position)
+     densitySlopePatejLoeb(i)=massDistribution_%densityGradientRadial(position,logarithmic=.true.)
+     densityMomentPatejLoeb(i)=massDistribution_%densityRadialMoment(-dble(i-1),450.0d-3/8.0d0,450.0d-3/1.0d0)
+     potentialPatejLoeb(i)=massDistribution_%potential(position)
+  end do
+  call Assert("M(r) at r=[⅛,¼,½,1]rₛ" ,&
+       &massPatejLoeb,&
+       &[&
+     &1.555565950166512d10,3.514143268178815d10,6.418101338664305d10,1.d11&
+       &]            ,&
+       &relTol=1.0d-6&
+       &)
+  call Assert("ρ(r) at r=[⅛,¼,½,1]rₛ" ,&
+       &densityPatejLoeb,&
+       &[&
+     &9.37771485315597d12,1.985078164671267d12,3.322331875771639d11,4.809898607847662d10&
+       &]            ,&
+       &relTol=1.0d-6&
+       &)
+  call Assert("α(r) at r=[⅛,¼,½,1]rₛ" ,&
+       &densitySlopePatejLoeb,&
+       &[&
+     &-2.030591309692208d0,-2.431529802045667d0,-2.70358450628274d0,-2.85625d0&
+       &]            ,&
+       &relTol=1.0d-6&
+       &)
+  call Assert("φ(r) at r=[⅛,¼,½,1]rₛ" ,&
+       & potentialPatejLoeb,&
+       &[&
+     &-4.079034939868978d3,-3.184928656647174d3,-2.280711782065997d3,-1.519863241200194d3&
+       &]            ,&
+       &relTol=1.0d-3&
+       &)
+  call Assert("ℛᵢ(⅛rₛ,rₛ)" ,&
+       &densityMomentPatejLoeb,&
+       &[&
+     &3.765562121061061d11,4.129007833522932d12,5.196937885662541d13,7.105224104533233d14&
+       &]            ,&
+       &relTol=1.0d-6&
+       &)
+  deallocate(massDistribution_)
+  call Unit_Tests_End_Group()
+
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish()
