@@ -32,6 +32,7 @@ Contains a module which implements a high-pass filter analysis property operator
      !!}
      private
      double precision :: filterThreshold, filterWidth
+     logical          :: normalized
    contains
      procedure :: operate => filterHighPassOperate
   end type outputAnalysisPropertyOperatorFilterHighPass
@@ -55,6 +56,7 @@ contains
     type            (outputAnalysisPropertyOperatorFilterHighPass)                :: self
     type            (inputParameters                             ), intent(inout) :: parameters
     double precision                                                              :: filterThreshold, filterWidth
+    logical                                                                       :: normalized
 
     ! Check and read parameters.
     !![
@@ -69,15 +71,21 @@ contains
       <source>parameters</source>
       <description>The width of the filter (0 for a sharp transition; $&gt;0$ for a smoothed transition.</description>
     </inputParameter>
+    <inputParameter>
+      <name>normalized</name>
+      <defaultValue>.false.</defaultValue>
+      <source>parameters</source>
+      <description>If true, the property value is set to the filter value, otherwise it is multiplied by it.</description>
+    </inputParameter>
     !!]
-    self=outputAnalysisPropertyOperatorFilterHighPass(filterThreshold,filterWidth)
+    self=outputAnalysisPropertyOperatorFilterHighPass(filterThreshold,filterWidth,normalized)
     !![
     <inputParametersValidate source="parameters"/>
     !!]
     return
   end function filterHighPassConstructorParameters
 
-  function filterHighPassConstructorInternal(filterThreshold,filterWidth) result (self)
+  function filterHighPassConstructorInternal(filterThreshold,filterWidth,normalized) result (self)
     !!{
     Internal constructor for the ``filterHighPass'' output analysis distribution operator class.
     !!}
@@ -85,11 +93,13 @@ contains
     type            (outputAnalysisPropertyOperatorFilterHighPass)                          :: self
     double precision                                              , intent(in   )           :: filterThreshold
     double precision                                              , intent(in   ), optional :: filterWidth
+    logical                                                       , intent(in   ), optional :: normalized
     !![
-    <constructorAssign variables="filterThreshold, filterWidth"/>
+    <constructorAssign variables="filterThreshold, filterWidth, normalized"/>
     !!]
 
     if (.not.present(filterWidth)) self%filterWidth=0.0d0
+    if (.not.present(normalized )) self%normalized =.false.
     return
   end function filterHighPassConstructorInternal
 
@@ -104,28 +114,35 @@ contains
     type            (treeNode                                    ), intent(inout), optional :: node
     type            (enumerationOutputAnalysisPropertyTypeType   ), intent(inout), optional :: propertyType
     integer         (c_size_t                                    ), intent(in   ), optional :: outputIndex
+    double precision                                                                        :: filterValue
     !$GLC attributes unused :: propertyType, outputIndex, node
 
     if (self%filterWidth <= 0.0d0) then
        ! Sharp filter.
        if (propertyValue > self%filterThreshold) then
-          filterHighPassOperate=propertyValue
+          filterValue=+1.0d0
        else
-          filterHighPassOperate=0.0d0
+          filterValue=+0.0d0
        end if
     else
        ! Smooth filter using a sigmoid function
-       filterHighPassOperate=+propertyValue                 &
-            &                /(                             &
-            &                  +1.0d0                       &
-            &                  +exp(                        &
-            &                       -(                      &
-            &                         +     propertyValue   &
-            &                         -self%filterThreshold &
-            &                        )                      &
-            &                       /  self%filterWidth     &
-            &                      )                        &
-            &                 )
+       filterValue   =+1.0d0                         &
+            &         /(                             &
+            &           +1.0d0                       &
+            &           +exp(                        &
+            &                -(                      &
+            &                  +     propertyValue   &
+            &                  -self%filterThreshold &
+            &                 )                      &
+            &                /  self%filterWidth     &
+            &               )                        &
+            &          )
+    end if
+    if (self%normalized) then
+       filterHighPassOperate=+filterValue
+    else
+       filterHighPassOperate=+filterValue   &
+            &                *propertyValue
     end if
     return
   end function filterHighPassOperate
