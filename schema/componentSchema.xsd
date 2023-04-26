@@ -149,6 +149,7 @@
 			<xs:attribute name="intent" type="intent"     use="required"/>
 		      </xs:complexType>
 		    </xs:element>
+		    <xs:element name="module"   minOccurs="0"/>
 		    <xs:element name="argument" minOccurs="0"/>
 		  </xs:complexType>
 		</xs:element>
