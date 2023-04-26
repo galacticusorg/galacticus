@@ -72,7 +72,7 @@ function Node_Component_Black_Hole_Standard_Mass_Distribution(self,weightBy,weig
   select type (massDistribution_)
   type is (massDistributionBlackHole)
      !![
-     <referenceConstruct object="massDistribution_" constructor="massDistributionBlackHole(mass=self%mass(),componentType=componentTypeBlackHole,massType=massTypeBlackHole)"/>
+     <referenceConstruct object="massDistribution_" constructor="massDistributionBlackHole(mass=max(0.0d0,self%mass()),componentType=componentTypeBlackHole,massType=massTypeBlackHole)"/>
      !!]
   end select
   return
