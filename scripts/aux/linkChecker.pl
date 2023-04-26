@@ -146,11 +146,9 @@ sub checkLink {
 	$options .= " --retry 5"
 	    if ( $url =~ m/ui\.adsabs\.harvard\.edu/ );
 	sleep(1);
-	system("curl ".$options." \"".$url."\"");
+	&System::Redirect::tofile("curl ".$options." \"".$url."\"","curl.log");
 	$status = $? == 0 ? 1 : 0;
 	unless ( $status ) {
-	    $options =~ s/\-\-silent//;
-	    &System::Redirect::tofile("curl ".$options." \"".$url."\"","curl.log");
 	    # Check for known problems.
 	    open(my $logFile,"curl.log");
 	    while ( my $line = <$logFile> ) {
@@ -159,6 +157,20 @@ sub checkLink {
 		    if ( $line =~ m/error:0A000126:SSL routines::unexpected eof while reading, errno 0/ ) {
 			$status = 1;
 			last;
+		    }
+		}
+		if ( $url =~ m/^https?:\/\/adsabs\.harvard\.edu\/abs\// || $url =~ m/^https?:\/\/ui\.adsabs\.harvard\.edu\/abs\// ) {
+		    # ADS server has issues.
+		    if ( $line =~ m/^curl: \(28\) Operation timed out after/ ) {
+			$status = 1;
+			last;
+		    }
+		    if ( $line =~ m/^curl: \(22\) The requested URL returned error: (\d+)/ ) {
+			my $httpErrorCode = $1;
+			if ( $httpErrorCode == 500 || $httpErrorCode == 502 || $httpErrorCode == 504 ) {
+			    $status = 1;
+			    last;
+			}
 		    }
 		}
 	    }

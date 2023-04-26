@@ -163,7 +163,7 @@ contains
     Constructor for the ``localGroupMassSizeRelation'' output analysis class for internal use.
     !!}
     use :: Galactic_Filters                        , only : filterList                                          , galacticFilterAll                         , galacticFilterHaloNotIsolated         , galacticFilterHostMassRange                    , &
-          &                                                 galacticFilterSurveyGeometry                        , enumerationPositionTypeType
+          &                                                 galacticFilterSurveyGeometry                        , galacticFilterHighPass                    , enumerationPositionTypeType
     use :: Geometry_Surveys                        , only : surveyGeometryFullSky
     use :: Interface_Local_Group_DB                , only : comparisonEquals                                    , comparisonLessThan                        , localGroupDB                          , setOperatorIntersection                        , &
           &                                                 setOperatorRelativeComplement                       , setOperatorUnion                          , attributeUncertainty
@@ -200,6 +200,7 @@ contains
     type            (galacticFilterHaloNotIsolated                         )               , pointer        :: galacticFilterHaloNotIsolated_
     type            (galacticFilterHostMassRange                           )               , pointer        :: galacticFilterHostMassRange_
     type            (galacticFilterSurveyGeometry                          )               , pointer        :: galacticFilterSurveyGeometry_
+    type            (galacticFilterHighPass                                )               , pointer        :: galacticFilterHighPass_
     type            (galacticFilterAll                                     )               , pointer        :: galacticFilter_
     type            (filterList                                            )               , pointer        :: filters_
     type            (propertyOperatorList                                  )               , pointer        :: operators_                                                  , weightPropertyOperators_
@@ -218,7 +219,8 @@ contains
          &                                                                                                     sizeUndefined                                   =-3.0d+0
     integer         (c_size_t                                              ), parameter                     :: binCount                                        = 7_c_size_t, bufferCountMinimum                                   = 5_c_size_t
     double precision                                                        , parameter                     :: massMinimum                                     =+1.0d+3    , massMaximum                                          = 1.00d9    , &
-         &                                                                                                     radiusOuter                                     =+3.0d-1    , sizeUncertaintyDefault                               = 0.25d0
+         &                                                                                                     radiusOuter                                     =+3.0d-1    , sizeUncertaintyDefault                               = 0.25d0    , &
+         &                                                                                                     radiusHalfMassMinimum                           =+1.0d-9
     logical                                                                 , parameter                     :: likelihoodNormalize                             =.false.
     integer         (c_size_t                                              )                                :: i                                                           , j                                                                , &
          &                                                                                                     bufferCount                                                 , binCountNonZero
@@ -394,20 +396,33 @@ contains
     !![
     <referenceConstruct object="galacticFilterHostMassRange_">
      <constructor>
-      galacticFilterHostMassRange(                      &amp;
-        &amp;                     massMinimum =1.00d12, &amp;
-        &amp;                     massMaximum =2.00d12, &amp;
-        &amp;                     useFinalHost=.true.   &amp;
+      galacticFilterHostMassRange(                                                               &amp;
+        &amp;                     massMinimum           =1.00d12                               , &amp;
+        &amp;                     massMaximum           =2.00d12                               , &amp;
+        &amp;                     useFinalHost          =.true.                                  &amp;
         &amp;                    )
      </constructor>
     </referenceConstruct>
     !!]
-    allocate(filters_          )
-    allocate(filters_%next     )
-    allocate(filters_%next%next)
-    filters_          %filter_ => galacticFilterHaloNotIsolated_ 
-    filters_%next     %filter_ => galacticFilterHostMassRange_
-    filters_%next%next%filter_ => galacticFilterSurveyGeometry_
+    allocate(galacticFilterHighPass_       )
+    !![
+    <referenceConstruct object="galacticFilterHighPass_"     >
+     <constructor>
+      galacticFilterHighPass     (                                                               &amp;
+        &amp;                     threshold             =radiusHalfMassMinimum                 , &amp;
+        &amp;                     nodePropertyExtractor_=outputAnalysisWeightPropertyExtractor_  &amp;
+        &amp;                    )
+     </constructor>
+    </referenceConstruct>
+    !!]
+    allocate(filters_               )
+    allocate(filters_%next          )
+    allocate(filters_%next%next     )
+    allocate(filters_%next%next%next)
+    filters_               %filter_ => galacticFilterHaloNotIsolated_ 
+    filters_%next          %filter_ => galacticFilterHostMassRange_
+    filters_%next%next     %filter_ => galacticFilterSurveyGeometry_
+    filters_%next%next%next%filter_ => galacticFilterHighPass_
     allocate(galacticFilter_)
     !![
     <referenceConstruct object="galacticFilter_" constructor="galacticFilterAll(filters_)"/>
@@ -487,6 +502,7 @@ contains
     <objectDestructor name="outputAnalysisDistributionOperator_"                   />
     <objectDestructor name="galacticFilterHaloNotIsolated_"                        />
     <objectDestructor name="galacticFilterHostMassRange_"                          />
+    <objectDestructor name="galacticFilterHighPass_"                               />
     <objectDestructor name="galacticFilter_"                                       />
     <objectDestructor name="surveyGeometry_"                                       />
     !!]

@@ -92,6 +92,7 @@ contains
     self=mergerTreeBuildMassesSampledDistribution(massTreeMinimum,massTreeMaximum,treesPerDecade,mergerTreeBuildMassDistribution_)
     !![
     <inputParametersValidate source="parameters"/>
+    <objectDestructor name="mergerTreeBuildMassDistribution_"/>
     !!]
     return
   end function sampledDistributionConstructorParameters
