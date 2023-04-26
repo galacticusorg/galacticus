@@ -5,7 +5,6 @@ on:
   push:
     branches:
       - 'master'
-      - 'depup/**'
     paths:
       - 'Makefile'
       - 'source/**'
