@@ -426,7 +426,9 @@ sub interfacesMethods {
 	} elsif ( $ext::method->{'type'} eq "void" ) {
 	    	$ext::procedure = "subroutine";
 	} else {
-	    die("unsupported type '".$ext::method->{'type'}."'");
+	    print "unsupported type '".$ext::method->{'type'}."'\n";
+	    delete($ext::functionClass->{'methods'}->{$ext::method});
+	    next;
 	}
 	$ext::functionDeclaration  = $ext::method->{'type'} eq "void" ? "" : $functionCType." :: ".$ext::functionClass->{'name'}.ucfirst($ext::method->{'name'})."L\n";
 	# Create a list of arguments.
