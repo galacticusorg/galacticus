@@ -39,6 +39,7 @@ An implementation of the hot halo temperature class which uses an isothermal vir
      class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
    contains
      final     ::                        virialDestructor
+     procedure :: get                 => virialGet
      procedure :: temperature         => virialTemperature
      procedure :: temperatureLogSlope => virialTemperatureLogSlope
   end type hotHaloTemperatureProfileVirial
@@ -100,6 +101,35 @@ contains
     !!]
     return
   end subroutine virialDestructor
+
+  function virialGet(self,node) result(kinematicsDistribution_)
+    !!{
+    Return the virial hot halo temperature distribution for the given {\normalfont \ttfamily node}.
+    !!}
+    use :: Mass_Distributions              , only : kinematicsDistributionIsothermal
+    use :: Numerical_Constants_Astronomical, only : meanAtomicMassPrimordial
+    implicit none
+    class(kinematicsDistributionClass    ), pointer       :: kinematicsDistribution_
+    class(hotHaloTemperatureProfileVirial), intent(inout) :: self
+    type (treeNode                       ), intent(inout) :: node
+
+    ! Create an isothermal kinematics distribution.
+    allocate(kinematicsDistributionIsothermal :: kinematicsDistribution_)
+    select type(kinematicsDistribution_)
+    type is (kinematicsDistributionIsothermal)
+       !![
+       <referenceConstruct object="kinematicsDistribution_">
+	 <constructor>
+           kinematicsDistributionIsothermal(                                                                         &amp;
+             &amp;                          temperature_  =self%darkMatterHaloScale_%temperatureVirial       (node), &amp;
+             &amp;                          massAtomicMean=                          meanAtomicMassPrimordial        &amp;
+             &amp;                         )
+	 </constructor>
+       </referenceConstruct>
+       !!]
+    end select
+    return
+  end function virialGet
 
   double precision function virialTemperature(self,node,radius)
     !!{

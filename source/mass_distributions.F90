@@ -39,6 +39,20 @@ module Mass_Distributions
    <name>massDistribution</name>
    <descriptiveName>Mass Distributions</descriptiveName>
    <description>Class providing mass distributions.</description>
+   <destructor>
+    <code>
+     call kinematicsDistributionDestructor(self)
+    </code>
+   </destructor>
+   <method name="setKinematicsDistribution">
+     <description>Set the kinematics distribution for this mass distribution.</description>
+     <type>void</type>
+     <pass>yes</pass>
+     <argument>class(kinematicsDistributionClass), intent(in   ) :: kinematicsDistribution_</argument>
+     <code>
+       call kinematicsDistributionAcquire(self,kinematicsDistribution_)
+     </code>
+   </method>
    <method name="setTypes">
      <description>Set the component and mass types of the mass distribution.</description>
      <type>void</type>
@@ -287,9 +301,36 @@ module Mass_Distributions
     <argument>type (enumerationComponentTypeType), intent(in   ), optional :: componentType         </argument>
     <argument>type (enumerationMassTypeType     ), intent(in   ), optional :: massType              </argument>
    </method>
-   <data>logical                               :: dimensionless                     </data>
-   <data>type   (enumerationComponentTypeType) :: componentType=componentTypeUnknown</data>
-   <data>type   (enumerationMassTypeType     ) :: massType     =massTypeUnknown     </data>
+   <data>class  (kinematicsDistributionClass ), pointer :: kinematicsDistribution_ => null()              </data>
+   <data>logical                                        :: dimensionless                                  </data>
+   <data>type   (enumerationComponentTypeType)          :: componentType           =  componentTypeUnknown</data>
+   <data>type   (enumerationMassTypeType     )          :: massType                =  massTypeUnknown     </data>
+  </functionClass>
+  !!]
+
+  !![
+  <functionClass>
+   <name>kinematicsDistribution</name>
+   <descriptiveName>Kinematics Distributions</descriptiveName>
+   <description>Class providing kinematics distributions.</description>
+   <method name="isCollisional" >
+    <description>Return true if the kinematics is collisional.</description>
+    <type>logical</type>
+    <pass>yes</pass>
+   </method>
+   <method name="temperature" >
+    <description>Return the temperature of the distribution at the given coordinates.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>class(coordinate), intent(in   ) :: coordinates</argument>
+   </method>
+   <method name="velocityDispersion1D" >
+    <description>Return the 1D velocity dispersion at the given coordinate.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>class(coordinate           ), intent(in   ) :: coordinates              </argument>
+    <argument>class(massDistributionClass), intent(inout) :: massDistributionEmbedding</argument>
+   </method>
   </functionClass>
   !!]
 
@@ -311,6 +352,33 @@ module Mass_Distributions
   !$omp threadprivate(self_,massTarget)
   
 contains
+  
+  subroutine kinematicsDistributionDestructor(self)
+    !!{
+    Destroy a kinematics distribution.
+    !!}
+    implicit none
+    type(massDistributionClass ), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%kinematicsDistribution_"/>
+    !!]
+    return
+  end subroutine kinematicsDistributionDestructor
+  
+  subroutine kinematicsDistributionAcquire(self,kinematicsDistribution_)
+    !!{
+    Acquire a reference to a kinematics distribution.
+    !!}
+    implicit none
+    class(massDistributionClass      ), intent(inout)         :: self
+    class(kinematicsDistributionClass), intent(in   ), target :: kinematicsDistribution_
+
+    !![
+    <referenceAcquire owner="self" target="kinematicsDistribution_" source="kinematicsDistribution_"/>
+    !!]
+    return
+  end subroutine kinematicsDistributionAcquire
   
   double precision function massEnclosedRoot(radius)
     !!{

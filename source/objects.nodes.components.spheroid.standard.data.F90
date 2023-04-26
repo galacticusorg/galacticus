@@ -25,12 +25,13 @@ module Node_Component_Spheroid_Standard_Data
   !!{
   Contains data for standard spheroid components.
   !!}
-  use :: Mass_Distributions, only : massDistributionClass
+  use :: Mass_Distributions, only : massDistributionClass, kinematicsDistributionLocal
   implicit none
   public
 
   ! The mass distribution objects.
-  class(massDistributionClass), pointer :: massDistributionStellar_, massDistributionGas_
-  !$omp threadprivate(massDistributionStellar_,massDistributionGas_)
+  class(massDistributionClass      ), pointer :: massDistributionStellar_, massDistributionGas_
+  type (kinematicsDistributionLocal), pointer :: kinematicDistribution_
+  !$omp threadprivate(massDistributionStellar_,massDistributionGas_,kinematicDistribution_)
 
 end module Node_Component_Spheroid_Standard_Data

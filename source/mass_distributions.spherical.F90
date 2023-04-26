@@ -244,7 +244,7 @@ contains
     type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
     type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
 
-    if (radius <=0.0d0) then
+    if (radius <= 0.0d0) then
        sphericalRotationCurve=+0.0d0
     else
        sphericalRotationCurve=+sqrt(                                                          &
@@ -342,9 +342,11 @@ contains
     !!{
     Compute the Chandrasekhar integral at the specified {\normalfont \ttfamily coordinates} in a spherical mass distribution.
     !!}
-    use :: Coordinates               , only : coordinateCartesian, assignment(=)
+    use :: Coordinates               , only : coordinateCartesian  , assignment(=)
     use :: Numerical_Constants_Math  , only : Pi
-    use :: Galactic_Structure_Options, only : componentTypeAll   , massTypeAll
+    use :: Galactic_Structure_Options, only : componentTypeAll     , massTypeAll
+    use :: Ideal_Gases_Thermodynamics, only : Ideal_Gas_Sound_Speed
+    use :: Error                     , only : Error_Report
     implicit none
     double precision                              , dimension(3)            :: sphericalChandrasekharIntegral
     class           (massDistributionSpherical   ), intent(inout)           :: self
@@ -355,9 +357,9 @@ contains
     double precision                              , dimension(3)            :: velocityCartesian_
     double precision                              , parameter               :: XvMaximum                     =10.0d0
     type            (coordinateCartesian         )                          :: velocityCartesian
-    double precision                                                        :: radius                               , velocity_       , &
-         &                                                                     density                              , velocityRotation, &
-         &                                                                     velocityDispersion                   , xV
+    double precision                                                        :: radius                               , velocity_                , &
+         &                                                                     density                              , velocityDispersion       , &
+         &                                                                     xV
     !$GLC attributes unused :: massDistributionPerturber
     
     sphericalChandrasekharIntegral=0.0d0
@@ -367,9 +369,12 @@ contains
     radius =coordinates%rSpherical(                                  )
     density=self       %density   (coordinates,componentType,massType)
     if (density  <= 0.0d0) return
-    velocityRotation              = massDistributionEmbedding%rotationCurve(radius,componentTypeAll,massTypeAll)
-    velocityDispersion            =+velocityRotation      &
-         &                         /sqrt(2.0d0)
+    if (.not.associated(self%kinematicsDistribution_)) call Error_Report('a kinematics distribution is needed to compute the Chandrasekhar integral'//{introspection:location})
+    if (self%kinematicsDistribution_%isCollisional()) then
+       velocityDispersion=Ideal_Gas_Sound_Speed(self%kinematicsDistribution_%temperature         (coordinates                          ))
+    else
+       velocityDispersion=                      self%kinematicsDistribution_%velocityDispersion1D(coordinates,massDistributionEmbedding)
+    end if
     xV                            =+velocity_             &
          &                         /velocityDispersion    &
          &                         /sqrt(2.0d0)

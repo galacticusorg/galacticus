@@ -27,7 +27,7 @@ function Node_Component_Spheroid_Standard_Mass_Distribution(self,weightBy,weight
   !!}
   use :: Mass_Distributions                   , only : massDistributionClass    , massDistributionSphericalScaler, massDistributionComposite, massDistributionList   , &
         &                                              massDistributionSpherical
-  use :: Node_Component_Spheroid_Standard_Data, only : massDistributionStellar_ , massDistributionGas_
+  use :: Node_Component_Spheroid_Standard_Data, only : massDistributionStellar_ , massDistributionGas_           , kinematicDistribution_
   use :: Galactic_Structure_Options           , only : componentTypeSpheroid    , massTypeStellar                , massTypeGaseous          , enumerationWeightByType, &
        &                                               weightByMass             , weightByLuminosity
   implicit none
@@ -86,6 +86,8 @@ function Node_Component_Spheroid_Standard_Mass_Distribution(self,weightBy,weight
      <referenceConstruct object="massDistributionGas"     constructor="massDistributionSphericalScaler(factorScalingLength=radiusScale,factorScalingMass=massGas    ,massDistribution_=massDistributionGas_      )"/>
      !!]
   end select
+  call massDistributionStellar%setKinematicsDistribution(kinematicDistribution_)
+  call massDistributionGas    %setKinematicsDistribution(kinematicDistribution_)
   !![
   <referenceConstruct    object="massDistributionTotal"   constructor="massDistributionComposite      (                                                                                massDistributionComponents)"/>
   <objectDestructor name="massDistributionStellar"/>

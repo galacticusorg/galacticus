@@ -256,21 +256,21 @@ contains
     !!{
     Initializes the standard spheroid module for each thread.
     !!}
-    use :: Events_Hooks                         , only : dependencyDirectionAfter , dependencyRegEx     , openMPThreadBindingAtLevel, postEvolveEvent, &
+    use :: Events_Hooks                         , only : dependencyDirectionAfter , dependencyRegEx            , openMPThreadBindingAtLevel, postEvolveEvent, &
           &                                              satelliteMergerEvent
     use :: Error                                , only : Error_Report
     use :: Galacticus_Nodes                     , only : defaultSpheroidComponent
     use :: Input_Parameters                     , only : inputParameter           , inputParameters
-    use :: Mass_Distributions                   , only : massDistributionSpherical
-    use :: Node_Component_Spheroid_Standard_Data, only : massDistributionStellar_ , massDistributionGas_
-    use :: Galactic_Structure_Options           , only : componentTypeSpheroid    , massTypeStellar     , massTypeGaseous
+    use :: Mass_Distributions                   , only : massDistributionSpherical, kinematicsDistributionLocal
+    use :: Node_Component_Spheroid_Standard_Data, only : massDistributionStellar_ , massDistributionGas_       , kinematicDistribution_
+    use :: Galactic_Structure_Options           , only : componentTypeSpheroid    , massTypeStellar            , massTypeGaseous
     implicit none
-    type            (inputParameters), intent(inout) :: parameters
-    logical                                          :: densityMoment2IsInfinite                   , densityMoment3IsInfinite
-    double precision                                 :: massDistributionSpheroidDensityMomentum2   , massDistributionSpheroidDensityMomentum3, &
-         &                                              ratioAngularMomentumScaleRadiusDefault
-    type            (dependencyRegEx), dimension(2)  :: dependencies
-    type            (inputParameters)                :: subParameters
+    type            (inputParameters            ), intent(inout) :: parameters
+    type            (dependencyRegEx            ), dimension(2)  :: dependencies
+    logical                                                      :: densityMoment2IsInfinite                   , densityMoment3IsInfinite
+    double precision                                             :: massDistributionSpheroidDensityMomentum2   , massDistributionSpheroidDensityMomentum3, &
+         &                                                          ratioAngularMomentumScaleRadiusDefault
+    type            (inputParameters            )                :: subParameters
 
     ! Check if this implementation is selected. If so, initialize the mass distribution.
     if (defaultSpheroidComponent%standardIsActive()) then
@@ -313,6 +313,11 @@ contains
        !$omp end critical(spheroidStandardDeepCopy)
        call massDistributionStellar_%setTypes(componentTypeSpheroid,massTypeStellar)
        call massDistributionGas_    %setTypes(componentTypeSpheroid,massTypeGaseous)
+       ! Construct the kinematic distribution.
+       allocate(kinematicDistribution_)
+       !![
+       <referenceConstruct object="kinematicDistribution_" constructor="kinematicsDistributionLocal(alpha=1.0d0/sqrt(2.0d0))"/>
+       !!]
        ! Determine the specific angular momentum at the scale radius in units of the mean specific angular
        ! momentum of the spheroid. This is equal to the ratio of the 2nd to 3rd radial moments of the density
        ! distribution (assuming a flat rotation curve).
@@ -353,7 +358,7 @@ contains
     !!}
     use :: Events_Hooks                         , only : postEvolveEvent         , satelliteMergerEvent
     use :: Galacticus_Nodes                     , only : defaultSpheroidComponent
-    use :: Node_Component_Spheroid_Standard_Data, only : massDistributionStellar_, massDistributionGas_
+    use :: Node_Component_Spheroid_Standard_Data, only : massDistributionStellar_, massDistributionGas_, kinematicDistribution_
     implicit none
 
     if (defaultSpheroidComponent%standardIsActive()) then
@@ -367,7 +372,8 @@ contains
        <objectDestructor name="mergerRemnantSize_"          />
        <objectDestructor name="massDistributionStellar_"    />
        <objectDestructor name="massDistributionGas_"        />
-        !!]
+       <objectDestructor name="kinematicDistribution_"      />
+       !!]
     end if
     return
   end subroutine Node_Component_Spheroid_Standard_Thread_Uninitialize
