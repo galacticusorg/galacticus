@@ -31,7 +31,7 @@ RUN     cd /opt/galacticus &&\
         cambVersion=`awk '{if ($1 == "camb:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml` &&\
         forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml` &&\
         fspsVersion=`awk '{if ($1 == "fsps:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml` &&\
-        cloudyVersion=`awk '{if ($1 == "cloudy:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+        cloudyVersion=`awk '{if ($1 == "cloudy:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml` &&\
 	./Galacticus.exe parameters/buildTools.xml &&\
 	rm /opt/datasets/dynamic/c${cloudyVersion}.tar.gz /opt/datasets/dynamic/CAMB_${cambVersion}.tar.gz /opt/datasets/dynamic/class_public-${classVersion}.tar.gz /opt/datasets/dynamic/FSPS_${fspsVersion}.tar.gz
 	
