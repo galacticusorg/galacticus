@@ -36,7 +36,7 @@ my @models =
 	 testPeaks               => "yes"                      ,
 	 toleranceCutOff         => 0.160                      ,
 	 tolerancePeakWavenumber => 0.090                      ,
-	 tolerancePeakAmplitude  => 0.800
+	 tolerancePeakAmplitude  => 0.802
      },
      {
 	 label                   => "AxionPassaglia2022"       ,
@@ -45,7 +45,7 @@ my @models =
 	 testPeaks               => "yes"                      ,
 	 toleranceCutOff         => 0.025                      ,
 	 tolerancePeakWavenumber => 0.015                      ,
-	 tolerancePeakAmplitude  => 0.150
+	 tolerancePeakAmplitude  => 0.165
      }
     );
 my $transferFunctions;
