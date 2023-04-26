@@ -33,8 +33,10 @@
      private
      double precision :: densityNormalization, scaleLength
    contains
-     procedure :: density    => nfwDensity
-     procedure :: descriptor => nfwDescriptor
+     procedure :: density               => nfwDensity
+     procedure :: densityGradientRadial => nfwDensityGradientRadial
+     procedure :: densityRadialMoment   => nfwDensityRadialMoment
+     procedure :: descriptor            => nfwDescriptor
   end type massDistributionNFW
 
   interface massDistributionNFW
@@ -58,7 +60,7 @@ contains
     implicit none
     type            (massDistributionNFW)                :: self
     type            (inputParameters    ), intent(inout) :: parameters
-    double precision                                     :: mass                , scaleLength, &
+    double precision                                     :: mass                , scaleLength  , &
          &                                                  densityNormalization, concentration, &
          &                                                  virialRadius
     logical                                              :: dimensionless
@@ -142,7 +144,7 @@ contains
     logical                                       , intent(in   ), optional :: dimensionless
     type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
     type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    double precision                                                        :: r
+    double precision                                                        :: radiusScaleFree
     !![
     <constructorAssign variables="componentType, massType"/>
     !!]
@@ -169,8 +171,8 @@ contains
          &   present(mass                ).and. &
          &   present(virialRadius        )      &
          &  ) then
-       r=virialRadius/self%scaleLength
-       self%densityNormalization=mass/4.0d0/Pi/self%scaleLength**3/(log(1.0d0+r)-r/(1.0d0+r))
+       radiusScaleFree          =+virialRadius/self%scaleLength
+       self%densityNormalization=+mass/4.0d0/Pi/self%scaleLength**3/(log(1.0d0+radiusScaleFree)-radiusScaleFree/(1.0d0+radiusScaleFree))
     else
        call Error_Report('either "densityNormalization", or "mass" and "virialRadius" must be specified'//{introspection:location})
     end if
@@ -187,30 +189,143 @@ contains
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in an NFW mass distribution.
     !!}
-    use :: Coordinates, only : assignment(=), coordinate, coordinateSpherical
     implicit none
     class           (massDistributionNFW         ), intent(inout)           :: self
     class           (coordinate                  ), intent(in   )           :: coordinates
-    type            (coordinateSpherical         )                          :: position
     type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
     type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    double precision                                                        :: r
+    double precision                                                        :: radiusScaleFree
 
     if (.not.self%matches(componentType,massType)) then
        nfwDensity=0.0d0
        return
-    end if
-    ! Get position in spherical coordinate system.
-    position  = coordinates
+    end if    
     ! Compute the density at this position.
-    r         =+position%r                   () &
-         &     /self    %scaleLength
-    nfwDensity=+self    %densityNormalization   &
-         &     /       r                        &
-         &     /(1.0d0+r)**2
+    radiusScaleFree=+coordinates%rSpherical          () &
+         &          /self       %scaleLength
+    nfwDensity     =+self       %densityNormalization   &
+         &          /       radiusScaleFree             &
+         &          /(1.0d0+radiusScaleFree)**2
     return
   end function nfwDensity
-  
+
+  double precision function nfwDensityGradientRadial(self,coordinates,logarithmic,componentType,massType) result(densityGradientRadial)
+    !!{
+    Return the density at the specified {\normalfont \ttfamily coordinates} in an NFW \citep{navarro_structure_1996} mass distribution.
+    !!}
+    implicit none
+    class           (massDistributionNFW         ), intent(inout)           :: self
+    class           (coordinate                  ), intent(in   )           :: coordinates
+    logical                                       , intent(in   ), optional :: logarithmic
+    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    double precision                                                        :: radiusScaleFree
+    !![
+    <optionalArgument name="logarithmic" defaultsTo=".false."/>
+    !!]
+
+    densityGradientRadial=0.0d0
+    if (.not.self%matches(componentType,massType)) return
+    radiusScaleFree      =+coordinates%rSpherical()         &
+         &                /self       %scaleLength
+    densityGradientRadial=-self       %densityNormalization &
+         &                /self       %scaleLength          &
+         &                /             radiusScaleFree **2 &
+         &                *(1.0d0+3.0d0*radiusScaleFree)    &
+         &                /(1.0d0+      radiusScaleFree)**3
+    if (logarithmic_) densityGradientRadial=+            densityGradientRadial              &
+         &                                  /self       %density              (coordinates) &
+         &                                  *coordinates%rSpherical           (           )
+    return
+  end function nfwDensityGradientRadial
+
+  double precision function nfwDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite,componentType,massType) result(densityRadialMoment)
+    !!{
+    Computes radial moments of the density in an NFW \citep{navarro_structure_1996} mass distribution.
+    !!}
+    implicit none
+    class           (massDistributionNFW         ), intent(inout)           :: self
+    double precision                              , intent(in   )           :: moment
+    double precision                              , intent(in   ), optional :: radiusMinimum      , radiusMaximum
+    logical                                       , intent(  out), optional :: isInfinite
+    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    double precision                                                        :: radialMomentMinimum, radialMomentMaximum
+
+    densityRadialMoment=0.0d0
+    if (present(isInfinite)) isInfinite=.false.
+    if (.not.self%matches(componentType,massType)) return
+    if (present(radiusMinimum)) then
+       radialMomentMinimum=radialMomentScaleFree(radiusMinimum/self%scaleLength)
+    else
+       radialMomentMinimum=radialMomentScaleFree(                         0.0d0)
+    end if
+    if (present(radiusMaximum)) then
+       radialMomentMaximum=radialMomentScaleFree(radiusMaximum/self%scaleLength)
+    else
+       radialMomentMaximum=0.0d0
+       if (moment >= 3.0d0) then
+          if (present(isInfinite)) then
+             isInfinite=.true.
+             return
+          else
+             call Error_Report('moment is infinite'//{introspection:location})
+          end if
+       end if
+    end if
+    densityRadialMoment=+self%densityNormalization                 &
+         &              *self%scaleLength         **(moment+1.0d0) &
+         &              *(                                         &
+         &                +radialMomentMaximum                     &
+         &                -radialMomentMinimum                     &
+         &               )    
+    return
+
+  contains
+
+    double precision function radialMomentScaleFree(radius)
+      !!{
+      Provides the scale-free part of the radial moment of the NFW density profile.
+      !!}
+      use :: Hypergeometric_Functions, only : Hypergeometric_2F1
+      use :: Numerical_Comparison    , only : Values_Agree
+      implicit none
+      double precision, intent(in   ) :: radius
+
+      if (Values_Agree(moment,0.0d0,absTol=1.0d-6)) then
+         ! Take the real part of this improper integral. The imaginary parts must cancel when taking differences to compute a
+         ! proper integral.
+         radialMomentScaleFree=+1.0d0/                 (1.0d0+      radius        ) &
+              &                -2.0d0*real(atanh(dcmplx(1.0d0+2.0d0*radius,0.0d0)))
+      else if (Values_Agree(moment,1.0d0,absTol=1.0d-6)) then
+         radialMomentScaleFree=-1.0d0/                 (1.0d0      +radius        )
+      else if (Values_Agree(moment,2.0d0,absTol=1.0d-6)) then
+         radialMomentScaleFree=+1.0d0/                 (1.0d0      +radius        ) &
+              &                +      log              (1.0d0      +radius        )
+      else if (Values_Agree(moment,3.0d0,absTol=1.0d-6)) then
+         radialMomentScaleFree=+                                    radius          &
+              &                -1.0d0/                 (1.0d0      +radius        ) &
+              &                -2.0d0*log              (1.0d0      +radius        )
+      else
+         radialMomentScaleFree=+(1.0d0+radius)**(moment-1.0d0)                                                     &
+              &                /moment                                                                             &
+              &                /                (moment-1.0d0)                                                     &
+              &                *(                                                                                  &
+              &                  - moment                                                                          &
+              &                  *  Hypergeometric_2F1([1.0d0-moment,-moment],[2.0d0-moment],1.0d0/(1.0d0+radius)) &
+              &                  +(1.0d0+radius)                                                                   &
+              &                  *(moment-1.0d0)                                                                   &
+              &                  *(                                                                                &
+              &                    +(radius/(1.0d0+radius))**moment                                                &
+              &                    -Hypergeometric_2F1([     -moment,-moment],[1.0d0-moment],1.0d0/(1.0d0+radius)) &
+              &                  )                                                                                 &
+              &                 )
+      end if
+      return
+    end function radialMomentScaleFree
+
+  end function nfwDensityRadialMoment
+
   subroutine nfwDescriptor(self,descriptor,includeClass)
     !!{
     Return an input parameter list descriptor which could be used to recreate this object.
