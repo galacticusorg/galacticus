@@ -54,6 +54,7 @@ An implementation of the hot halo mass distribution class for $\beta$-profile di
      </methods>
      !!]
      final     ::                           betaProfileDestructor
+     procedure :: get                    => betaProfileGet
      procedure :: initialize             => betaProfileInitialize
      procedure :: density                => betaProfileDensity
      procedure :: densityLogSlope        => betaProfileDensityLogSlope
@@ -160,6 +161,59 @@ contains
     return
   end subroutine betaProfileDestructor
 
+  function betaProfileGet(self,node,weightBy,weightIndex) result(massDistribution_)
+    !!{
+    Return the $\beta$-profile hot halo mass distribution for the given {\normalfont \ttfamily node}.
+    !!}
+    use :: Galacticus_Nodes          , only : nodeComponentHotHalo, treeNode
+    use :: Galactic_Structure_Options, only : componentTypeHotHalo, massTypeGaseous, weightByMass
+    implicit none
+    class           (massDistributionClass             ), pointer                 :: massDistribution_
+    class           (hotHaloMassDistributionBetaProfile), intent(inout)           :: self
+    type            (treeNode                          ), intent(inout)           :: node
+    type            (enumerationWeightByType           ), intent(in   ), optional :: weightBy
+    integer                                             , intent(in   ), optional :: weightIndex
+    class           (nodeComponentHotHalo              ), pointer                 :: hotHalo
+    double precision                                                              :: radiusScale      , radiusOuter, &
+         &                                                                           mass
+    !![
+    <optionalArgument name="weightBy" defaultsTo="weightByMass" />
+    !!]
+
+    ! Assume a null distribution by default.
+    massDistribution_ => null()
+    ! If weighting is not by mass, return a null profile.
+    if (weightBy_ /= weightByMass) return
+    ! Get properties of the hot halo.
+    radiusScale =  self   %hotHaloMassDistributionCoreRadius_%radius     (node)
+    hotHalo     => node                                      %hotHalo    (    )
+    radiusOuter =  hotHalo                                   %outerRadius(    )
+    mass        =  hotHalo                                   %mass       (    )
+    ! If outer radius is non-positive return a null profile.
+    if (radiusOuter <= 0.0d0 .or. mass <= 0.0d0) return
+    ! Create the beta-profile distribution.
+    allocate(massDistributionBetaProfile :: massDistribution_)
+    select type(massDistribution_)
+    type is (massDistributionBetaProfile)
+       !![
+       <referenceConstruct object="massDistribution_">
+	 <constructor>
+           massDistributionBetaProfile(                                                 &amp;
+             &amp;                     beta                 =self%beta                , &amp;
+             &amp;                     coreRadius           =     radiusScale         , &amp;
+             &amp;                     mass                 =     mass                , &amp;
+             &amp;                     outerRadius          =     radiusOuter         , &amp;
+             &amp;                     truncateAtOuterRadius=     .true.              , &amp;
+             &amp;                     componentType        =     componentTypeHotHalo, &amp;
+             &amp;                     massType             =     massTypeGaseous       &amp;
+             &amp;                    )
+	 </constructor>
+       </referenceConstruct>
+       !!]
+    end select
+    return
+  end function betaProfileGet
+
   subroutine betaProfileInitialize(self,node)
     !!{
     Initialize the $\beta$-profile hot halo density profile for the given {\normalfont \ttfamily node}.
@@ -181,11 +235,11 @@ contains
        mass=0.0d0
        radiusOuter=1.0d0
     end if
-    self%distribution=massDistributionBetaProfile(                         &
-         &                                        beta       =self%beta  , &
-         &                                        coreRadius =radiusScale, &
-         &                                        mass       =mass       , &
-         &                                        outerRadius=radiusOuter  &
+    self%distribution=massDistributionBetaProfile(                           &
+         &                                        beta         =self%beta  , &
+         &                                        coreRadius   =radiusScale, &
+         &                                        mass         =mass       , &
+         &                                        outerRadius  =radiusOuter  &
          &                                       )
     return
   end subroutine betaProfileInitialize

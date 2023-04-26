@@ -35,6 +35,7 @@ A null implementation of the hot halo mass distribution class.
      !!}
      private
    contains
+     procedure :: get                   => nullGet
      procedure :: density               => nullDensity
      procedure :: densityLogSlope       => nullDensityLogSlope
      procedure :: enclosedMass          => nullEnclosedMass
@@ -66,6 +67,21 @@ contains
     !!]
     return
   end function nullConstructorParameters
+
+  function nullGet(self,node,weightBy,weightIndex) result(massDistribution_)
+    !!{
+    Return a null hot halo mass distribution.
+    !!}
+    implicit none
+    class  (massDistributionClass      ), pointer                 :: massDistribution_
+    class  (hotHaloMassDistributionNull), intent(inout)           :: self
+    type   (treeNode                   ), intent(inout)           :: node
+    type   (enumerationWeightByType    ), intent(in   ), optional :: weightBy
+    integer                             , intent(in   ), optional :: weightIndex
+
+    massDistribution_ => null()
+    return
+  end function nullGet
 
   double precision function nullDensity(self,node,radius)
     !!{

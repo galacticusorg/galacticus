@@ -36,6 +36,7 @@ module Node_Component_Hot_Halo_Standard
   use :: Dark_Matter_Halo_Scales                   , only : darkMatterHaloScaleClass
   use :: Galactic_Structure                        , only : galacticStructureClass
   use :: Hot_Halo_Mass_Distributions               , only : hotHaloMassDistributionClass
+  use :: Hot_Halo_Temperature_Profiles             , only : hotHaloTemperatureProfileClass
   use :: Hot_Halo_Outflows_Reincorporations        , only : hotHaloOutflowReincorporationClass
   use :: Hot_Halo_Ram_Pressure_Stripping           , only : hotHaloRamPressureStrippingClass
   use :: Hot_Halo_Ram_Pressure_Stripping_Timescales, only : hotHaloRamPressureTimescaleClass
@@ -221,7 +222,7 @@ module Node_Component_Hot_Halo_Standard
       <interface>
        <type>void</type>
        <self pass="true" intent="inout" />
-       <argument>logical, intent(inout) :: interrupt</argument>
+       <argument>logical                 , intent(inout)          :: interrupt</argument>
        <argument>procedure(interruptTask), intent(inout), pointer :: interruptProcedure</argument>
       </interface>
      </binding>
@@ -230,6 +231,17 @@ module Node_Component_Hot_Halo_Standard
        <type>double</type>
        <rank>0</rank>
        <self pass="true" intent="inout" />
+      </interface>
+     </binding>
+     <binding method="massDistribution" bindsTo="component" isDeferred="true" >
+      <interface>
+       <type>class(massDistributionClass), pointer</type>
+       <rank>0</rank>
+       <module>Galactic_Structure_Options, only : enumerationWeightByType</module>
+       <module>Mass_Distributions        , only : massDistributionClass  </module>
+       <self pass="true" intent="inout" />
+       <argument>type   (enumerationWeightByType), intent(in   ), optional :: weightBy   </argument>
+       <argument>integer                         , intent(in   ), optional :: weightIndex</argument>
       </interface>
      </binding>
    </bindings>
@@ -243,6 +255,7 @@ module Node_Component_Hot_Halo_Standard
   class(coolingSpecificAngularMomentumClass), pointer :: coolingSpecificAngularMomentum_
   class(coolingInfallRadiusClass           ), pointer :: coolingInfallRadius_
   class(hotHaloMassDistributionClass       ), pointer :: hotHaloMassDistribution_
+  class(hotHaloTemperatureProfileClass     ), pointer :: hotHaloTemperatureProfile_
   class(accretionHaloClass                 ), pointer :: accretionHalo_
   class(hotHaloRamPressureStrippingClass   ), pointer :: hotHaloRamPressureStripping_
   class(hotHaloRamPressureTimescaleClass   ), pointer :: hotHaloRamPressureTimescale_
@@ -251,36 +264,39 @@ module Node_Component_Hot_Halo_Standard
   class(coolingRateClass                   ), pointer :: coolingRate_
   class(cosmologyParametersClass           ), pointer :: cosmologyParameters_
   class(galacticStructureClass             ), pointer :: galacticStructure_
-  !$omp threadprivate(cosmologyFunctions_,darkMatterHaloScale_,coolingSpecificAngularMomentum_,coolingInfallRadius_,hotHaloMassDistribution_,accretionHalo_,chemicalState_,hotHaloRamPressureStripping_,hotHaloRamPressureTimescale_,coolingRate_,cosmologyParameters_,hotHaloOutflowReincorporation_,galacticStructure_)
+  !$omp threadprivate(cosmologyFunctions_,darkMatterHaloScale_,coolingSpecificAngularMomentum_,coolingInfallRadius_,hotHaloMassDistribution_,hotHaloTemperatureProfile_,accretionHalo_,chemicalState_,hotHaloRamPressureStripping_,hotHaloRamPressureTimescale_,coolingRate_,cosmologyParameters_,hotHaloOutflowReincorporation_,galacticStructure_)
 
   ! Internal count of abundances and chemicals.
-  integer                                                             :: abundancesCount                            , chemicalsCount
+  integer                                                                         :: abundancesCount                                             , chemicalsCount
 
   ! Configuration variables.
-  logical                                                             :: hotHaloExcessHeatDrivesOutflow
-  double precision                                                    :: rateMaximumExpulsion                       , efficiencyStrippingOutflow
+  logical                                                                         :: hotHaloExcessHeatDrivesOutflow
+  double precision                                                                :: rateMaximumExpulsion                                        , efficiencyStrippingOutflow
 
   ! Quantities stored to avoid repeated computation.
-  integer         (kind=kind_int8                        )            :: uniqueIDPrevious
-  logical                                                             :: gotAngularMomentumCoolingRate      =.false., gotCoolingRate                   =.false., &
-       &                                                                 gotOuterRadiusGrowthRate           =.false.
-  double precision                                                    :: angularMomentumHeatingRateRemaining        , rateCooling                              , &
-       &                                                                 massHeatingRateRemaining                   , outerRadiusGrowthRateStored
+  integer         (kind=kind_int8                                    )            :: uniqueIDPrevious
+  logical                                                                         :: gotAngularMomentumCoolingRate                       =.false., gotCoolingRate                   =.false., &
+       &                                                                             gotOuterRadiusGrowthRate                            =.false.
+  double precision                                                                :: angularMomentumHeatingRateRemaining                         , rateCooling                              , &
+       &                                                                             massHeatingRateRemaining                                    , outerRadiusGrowthRateStored
   !$omp threadprivate(gotCoolingRate,gotAngularMomentumCoolingRate,gotOuterRadiusGrowthRate,rateCooling,massHeatingRateRemaining,angularMomentumHeatingRateRemaining,outerRadiusGrowthRateStored,uniqueIDPrevious)
   ! Radiation structure.
-  type           (radiationFieldSummation                ), pointer   :: radiation
-  type           (radiationFieldCosmicMicrowaveBackground), pointer   :: radiationCosmicMicrowaveBackground
-  class          (radiationFieldClass                    ), pointer   :: radiationIntergalacticBackground
-  type           (radiationFieldList                     ), pointer   :: radiationFieldList_
+  type           (radiationFieldSummation                            ), pointer   :: radiation
+  type           (radiationFieldCosmicMicrowaveBackground            ), pointer   :: radiationCosmicMicrowaveBackground
+  class          (radiationFieldClass                                ), pointer   :: radiationIntergalacticBackground
+  type           (radiationFieldList                                 ), pointer   :: radiationFieldList_
   !$omp threadprivate(radiation,radiationCosmicMicrowaveBackground,radiationIntergalacticBackground,radiationFieldList_)
 
   ! Tracked properties control.
-  logical                                                             :: trackStrippedGas
+  logical                                                                         :: trackStrippedGas
 
   ! Parameters controlling absolute tolerance scales.
-  double precision                                        , parameter :: scaleMassRelative                 =1.0d-3
-  double precision                                        , parameter :: scaleRadiusRelative               =1.0d-1
+  double precision                                                    , parameter :: scaleMassRelative                                  =1.0d-3
+  double precision                                                    , parameter :: scaleRadiusRelative                                =1.0d-1
 
+  ! Procedure pointer to mass distribution function.
+  procedure       (Node_Component_Hot_Halo_Standard_Mass_Distribution), pointer   :: Node_Component_Hot_Halo_Standard_Mass_Distribution_
+  
 contains
 
   !![
@@ -449,6 +465,9 @@ contains
        call hotHalo%     outflowingAbundancesRateFunction(Node_Component_Hot_Halo_Standard_Outflowing_Abundances_Rate)
        ! Bind a creation function.
        call hotHalo%                    createFunctionSet(Node_Component_Hot_Halo_Standard_Initializor               )
+       ! Bind the mass distribution function.
+       Node_Component_Hot_Halo_Standard_Mass_Distribution_ => Node_Component_Hot_Halo_Standard_Mass_Distribution
+       call hotHalo%             massDistributionFunction(Node_Component_Hot_Halo_Standard_Mass_Distribution_        )
        ! Bind the mass sink function.
        call hotHalo%                 massSinkRateFunction(Node_Component_Hot_Halo_Standard_Mass_Sink                 )
        ! Bind the outflow return function.
@@ -491,6 +510,7 @@ contains
        <objectBuilder class="coolingSpecificAngularMomentum" name="coolingSpecificAngularMomentum_" source="subParameters"/>
        <objectBuilder class="coolingInfallRadius"            name="coolingInfallRadius_"            source="subParameters"/>
        <objectBuilder class="hotHaloMassDistribution"        name="hotHaloMassDistribution_"        source="subParameters"/>
+       <objectBuilder class="hotHaloTemperatureProfile"      name="hotHaloTemperatureProfile_"      source="subParameters"/>
        <objectBuilder class="accretionHalo"                  name="accretionHalo_"                  source="subParameters"/>
        <objectBuilder class="chemicalState"                  name="chemicalState_"                  source="subParameters"/>
        <objectBuilder class="hotHaloRamPressureStripping"    name="hotHaloRamPressureStripping_"    source="subParameters"/>
@@ -554,6 +574,7 @@ contains
        <objectDestructor name="coolingSpecificAngularMomentum_"   />
        <objectDestructor name="coolingInfallRadius_"              />
        <objectDestructor name="hotHaloMassDistribution_"          />
+       <objectDestructor name="hotHaloTemperatureProfile_"        />
        <objectDestructor name="accretionHalo_"                    />
        <objectDestructor name="chemicalState_"                    />
        <objectDestructor name="hotHaloRamPressureStripping_"      />
@@ -2202,7 +2223,7 @@ contains
 
     call displayMessage('Storing state for: componentHotHalo -> standard',verbosity=verbosityLevelInfo)
     !![
-    <stateStore variables="cosmologyFunctions_ darkMatterHaloScale_ coolingSpecificAngularMomentum_ coolingInfallRadius_ hotHaloMassDistribution_ accretionHalo_ chemicalState_ hotHaloRamPressureStripping_ hotHaloRamPressureTimescale_ coolingRate_ cosmologyParameters_ hotHaloOutflowReincorporation_ galacticStructure_"/>
+    <stateStore variables="cosmologyFunctions_ darkMatterHaloScale_ coolingSpecificAngularMomentum_ coolingInfallRadius_ hotHaloMassDistribution_ hotHaloTemperatureProfile_ accretionHalo_ chemicalState_ hotHaloRamPressureStripping_ hotHaloRamPressureTimescale_ coolingRate_ cosmologyParameters_ hotHaloOutflowReincorporation_ galacticStructure_"/>
     !!]
     return
   end subroutine Node_Component_Hot_Halo_Standard_State_Store
@@ -2225,9 +2246,34 @@ contains
 
     call displayMessage('Retrieving state for: componentHotHalo -> standard',verbosity=verbosityLevelInfo)
     !![
-    <stateRestore variables="cosmologyFunctions_ darkMatterHaloScale_ coolingSpecificAngularMomentum_ coolingInfallRadius_ hotHaloMassDistribution_ accretionHalo_ chemicalState_ hotHaloRamPressureStripping_ hotHaloRamPressureTimescale_ coolingRate_ cosmologyParameters_ hotHaloOutflowReincorporation_ galacticStructure_"/>
+    <stateRestore variables="cosmologyFunctions_ darkMatterHaloScale_ coolingSpecificAngularMomentum_ coolingInfallRadius_ hotHaloMassDistribution_ hotHaloTemperatureProfile_ accretionHalo_ chemicalState_ hotHaloRamPressureStripping_ hotHaloRamPressureTimescale_ coolingRate_ cosmologyParameters_ hotHaloOutflowReincorporation_ galacticStructure_"/>
     !!]
     return
   end subroutine Node_Component_Hot_Halo_Standard_State_Restore
+
+  function Node_Component_Hot_Halo_Standard_Mass_Distribution(self,weightBy,weightIndex) result(massDistribution_)
+    !!{
+    Return the mass distribution associated with the hot halo.
+    !!}
+    use :: Galacticus_Nodes          , only : nodeComponentHotHaloStandard
+    use :: Galactic_Structure_Options, only : enumerationWeightByType
+    use :: Mass_Distributions        , only : massDistributionClass       , kinematicsDistributionClass
+    implicit none
+    class  (massDistributionClass       ), pointer                 :: massDistribution_
+    class  (kinematicsDistributionClass ), pointer                 :: kinematicsDistribution_
+    class  (nodeComponentHotHaloStandard), intent(inout)           :: self
+    type   (enumerationWeightByType     ), intent(in   ), optional :: weightBy
+    integer                              , intent(in   ), optional :: weightIndex
+
+    massDistribution_          => hotHaloMassDistribution_  %get(self%hostNode,weightBy,weightIndex)
+    if (associated(massDistribution_)) then
+       kinematicsDistribution_ => hotHaloTemperatureProfile_%get(self%hostNode                     )
+       call massDistribution_%setKinematicsDistribution(kinematicsDistribution_)
+       !![
+       <objectDestructor name="kinematicsDistribution_"/>
+       !!]
+     end if
+    return
+  end function Node_Component_Hot_Halo_Standard_Mass_Distribution
 
 end module Node_Component_Hot_Halo_Standard

@@ -25,17 +25,17 @@ program Test_Galactic_Structure
   !!{
   Tests galactic structure functions.
   !!}
-  use :: Coordinates                     , only : assignment(=)                                                 , coordinateSpherical             , coordinateCartesian
+  use :: Coordinates                     , only : assignment(=)                                                 , coordinateSpherical              , coordinateCartesian
   use :: Display                         , only : displayVerbositySet                                           , verbosityLevelStandard
   use :: Events_Hooks                    , only : eventsHooksInitialize
   use :: Functions_Global_Utilities      , only : Functions_Global_Set
   use :: Galacticus_Nodes                , only : nodeClassHierarchyFinalize                                    , nodeClassHierarchyInitialize     , treeNode                           , nodeComponentDisk           , &
-       &                                          nodeComponentBasic                                            , nodeComponentBlackHole
+       &                                          nodeComponentBasic                                            , nodeComponentBlackHole           , nodeComponentHotHalo
   use :: Input_Parameters                , only : inputParameters
   use :: Node_Components                 , only : Node_Components_Initialize                                    , Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
   use :: Galactic_Structure_Options      , only : componentTypeSpheroid                                         , componentTypeDisk                , massTypeAll                        , componentTypeDisk           , &
        &                                          coordinateSystemCartesian                                     , massTypeStellar                  , massTypeGaseous                    , enumerationMassTypeType     , &
-       &                                          componentTypeBlackHole                                        , massTypeBlackHole
+       &                                          componentTypeBlackHole                                        , massTypeBlackHole                , componentTypeHotHalo
   use :: Unit_Tests                      , only : Assert                                                        , Unit_Tests_Begin_Group           , Unit_Tests_End_Group               , Unit_Tests_Finish
   use :: Mass_Distributions              , only : massDistributionClass
   use :: Cosmology_Parameters            , only : cosmologyParametersSimple
@@ -58,6 +58,7 @@ program Test_Galactic_Structure
   class           (nodeComponentBasic                                            ), pointer        :: basic_
   class           (nodeComponentDisk                                             ), pointer        :: disk_
   class           (nodeComponentBlackHole                                        ), pointer        :: blackHole_
+  class           (nodeComponentHotHalo                                          ), pointer        :: hotHalo_
   class           (massDistributionClass                                         ), pointer        :: massDistribution_
   type            (darkMatterProfileDMONFW                                       ), pointer        :: darkMatterProfileDMO_
   type            (darkMatterProfileAdiabaticGnedin2004                          ), pointer        :: darkMatterProfile_
@@ -68,29 +69,29 @@ program Test_Galactic_Structure
   type            (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt), pointer        :: virialDensityContrast_
   type            (coordinateCartesian                                           )                 :: positionCartesian                    , positionCartesianOuter
   type            (enumerationMassTypeType                                       )                 :: massType
-  double precision                                                                , dimension(3  ) :: coordinatesCartesian                 , coordinatesCartesianOuter              , &
-       &                                                                                              accelerationDirect                   , accelerationIndirect                   , &
+  double precision                                                                , dimension(3  ) :: coordinatesCartesian                 , coordinatesCartesianOuter               , &
+       &                                                                                              accelerationDirect                   , accelerationIndirect                    , &
        &                                                                                              accelerationTarget
-  double precision                                                                , dimension(3,3) :: tidalTensorComponentsDirect          , tidalTensorSphericalComponents         , &
+  double precision                                                                , dimension(3,3) :: tidalTensorComponentsDirect          , tidalTensorSphericalComponents          , &
        &                                                                                              tidalTensorComponentsIndirect
-  double precision                                                                , parameter      :: massDiskStellar              =1.0d+10, massDiskGas                    =1.000d9, &
-       &                                                                                              radiusDisk                   =3.5d-03, scaleHeightFractionalDisk      =0.137d0, &
-       &                                                                                              massBlackHole                =1.0d+05
-  double precision                                                                                 :: densityTarget                        , surfaceDensityTarget                   , &
-       &                                                                                              massTarget                           , radius                                 , &
-       &                                                                                              densityDirect                        , densityIndirect                        , &
-       &                                                                                              surfaceDensityDirect                 , surfaceDensityIndirect                 , &
-       &                                                                                              massEnclosedDirect                   , massEnclosedIndirect                   , &
-       &                                                                                              massEnclosedTarget                   , densitySphericalAverageTarget          , &
-       &                                                                                              densitySphericalAverageDirect        , densitySphericalAverageIndirect        , &
-       &                                                                                              rotationCurveDirect                  , rotationCurveIndirect                  , &
-       &                                                                                              rotationCurveTarget                  , radiusHalf                             , &
-       &                                                                                              rotationCurveGradientDirect          , rotationCurveGradientIndirect          , &
-       &                                                                                              rotationCurveGradientTarget          , potentialTarget                        , &
-       &                                                                                              potentialDirect                      , potentialIndirect                      , &
+  double precision                                                                , parameter      :: massDiskStellar              =1.0d+10, massDiskGas                    =1.000d09, &
+       &                                                                                              radiusDisk                   =3.5d-03, scaleHeightFractionalDisk      =0.137d00, &
+       &                                                                                              massBlackHole                =1.0d+05, massHotHaloGas                 =8.000d11
+  double precision                                                                                 :: densityTarget                        , surfaceDensityTarget                    , &
+       &                                                                                              massTarget                           , radius                                  , &
+       &                                                                                              densityDirect                        , densityIndirect                         , &
+       &                                                                                              surfaceDensityDirect                 , surfaceDensityIndirect                  , &
+       &                                                                                              massEnclosedDirect                   , massEnclosedIndirect                    , &
+       &                                                                                              massEnclosedTarget                   , densitySphericalAverageTarget           , &
+       &                                                                                              densitySphericalAverageDirect        , densitySphericalAverageIndirect         , &
+       &                                                                                              rotationCurveDirect                  , rotationCurveIndirect                   , &
+       &                                                                                              rotationCurveTarget                  , radiusHalf                              , &
+       &                                                                                              rotationCurveGradientDirect          , rotationCurveGradientIndirect           , &
+       &                                                                                              rotationCurveGradientTarget          , potentialTarget                         , &
+       &                                                                                              potentialDirect                      , potentialIndirect                       , &
        &                                                                                              radiusOuter
   integer                                                                                          :: i                                    , j
-  character       (len=15                                                        )                 :: label                                , labelRadius                            , &
+  character       (len=15                                                        )                 :: label                                , labelRadius                             , &
        &                                                                                              labelRadiusOuter
   
   ! Set verbosity level.
@@ -184,6 +185,7 @@ program Test_Galactic_Structure
   basic_     =>  node_   %basic    (autoCreate=.true.)
   disk_      =>  node_   %disk     (autoCreate=.true.)
   blackHole_ =>  node_   %blackHole(autoCreate=.true.)
+  hotHalo_   =>  node_   %hotHalo  (autoCreate=.true.)
   ! Set properties of the basic component.
   call basic_    %massSet            (1.00d12        )
   call basic_    %timeSet            (1.38d01        )
@@ -194,6 +196,8 @@ program Test_Galactic_Structure
   call disk_     %         massGasSet(massDiskGas    )
   ! Set properties of the black hole component.
   call blackHole_%            massSet(massBlackHole  )
+  ! Set properties of the hot halo component.
+  call hotHalo_  %            massSet(massHotHaloGas )
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Galactic structure functions")
   ! Get the mass distribution.
@@ -274,18 +278,16 @@ program Test_Galactic_Structure
         call Assert("M"//trim(label)//"(r="//trim(labelRadius)//"kpc) [  direct]",massEnclosedDirect  ,massEnclosedTarget,relTol=1.0d-6)
         call Assert("M"//trim(label)//"(r="//trim(labelRadius)//"kpc) [indirect]",massEnclosedIndirect,massEnclosedTarget,relTol=1.0d-6)
         ! Density spherical average.
-        densitySphericalAverageTarget=+massTarget             &
-             &                        *     radius/radiusDisk &
-             &                        *exp(                   &
-             &                             -radius/radiusDisk &
-             &                            )                   &
-             &                        /4.0d0                  &
-             &                        /Pi                     &
+        densitySphericalAverageTarget=+massTarget              &
+             &                        /   (+radius/radiusDisk) &
+             &                        *exp(-radius/radiusDisk) &
+             &                        /4.0d0                   &
+             &                        /Pi                      &
              &                        /radiusDisk**3
         densitySphericalAverageDirect  =+massDistribution_ %densitySphericalAverage(      radius,componentType=componentTypeDisk,massType=massType)
         densitySphericalAverageIndirect=+galacticStructure_%densitySphericalAverage(node_,radius,componentType=componentTypeDisk,massType=massType)
-        call Assert("⟨ρ̂⟩"//char(8)//char(8)//trim(label)//"(r="//trim(labelRadius)//"kpc) [  direct]",massEnclosedDirect  ,massEnclosedTarget,relTol=1.0d-6)
-        call Assert("⟨ρ̂⟩"//char(8)//char(8)//trim(label)//"(r="//trim(labelRadius)//"kpc) [indirect]",massEnclosedIndirect,massEnclosedTarget,relTol=1.0d-6)
+        call Assert("⟨ρ̂⟩"//char(8)//char(8)//trim(label)//"(r="//trim(labelRadius)//"kpc) [  direct]",densitySphericalAverageDirect  ,densitySphericalAverageTarget,relTol=1.0d-6)
+        call Assert("⟨ρ̂⟩"//char(8)//char(8)//trim(label)//"(r="//trim(labelRadius)//"kpc) [indirect]",densitySphericalAverageIndirect,densitySphericalAverageTarget,relTol=1.0d-6)
         ! Rotation curve.
         rotationCurveTarget  =+sqrt(                                                                           &
              &                      +2.0d0                                                                     &
@@ -431,6 +433,49 @@ program Test_Galactic_Structure
      call Assert("g⃡"//trim(label)//"(r="//trim(labelRadius)//"kpc) [indirect]",tidalTensorComponentsIndirect,tidalTensorSphericalComponents,absTol=1.0d-6,relTol=3.0d-3)
   end do
   call Unit_Tests_End_Group()
+  ! Test hot halo mass distribution.
+  call Unit_Tests_Begin_Group("Hot halo")
+  do j=1,3
+     select case (j)
+     case (1)
+        radius= 5.0d-3
+     case (2)
+        radius= 8.0d-3
+     case (3)
+        radius=15.0d-3
+     end select
+     radiusHalf=+0.5d0      &
+          &     *radius     &
+          &     /radiusDisk
+     write (labelRadius,'(f4.1)') kilo*radius
+     massTarget=+massHotHaloGas
+     massType  = massTypeGaseous
+     label     ='☁    '
+     coordinatesCartesian=[radius,0.0d0,0.0d0]
+     positionCartesian   =coordinatesCartesian
+     ! Density.
+     densityDirect  =+massDistribution_ %density(      positionCartesian   ,componentType=componentTypeHotHalo,massType=massType                                           )
+     densityIndirect=+galacticStructure_%density(node_,coordinatesCartesian,componentType=componentTypeHotHalo,massType=massType,coordinateSystem=coordinateSystemCartesian)
+     call Assert("ρ"//trim(label)//"(r="//trim(labelRadius)//"kpc) [direct=indirect]",densityDirect,densityIndirect,relTol=1.0d-6)
+     ! Enclosed mass.
+     massEnclosedDirect  =+massDistribution_ %massEnclosedBySphere(      radius,componentType=componentTypeHotHalo,massType=massType)
+     massEnclosedIndirect=+galacticStructure_%massEnclosed        (node_,radius,componentType=componentTypeHotHalo,massType=massType)
+     call Assert("M"//trim(label)//"(r="//trim(labelRadius)//"kpc) [direct=indirect]",massEnclosedDirect,massEnclosedIndirect,relTol=1.0d-6)
+     ! Density spherical average.
+     densitySphericalAverageDirect  =+massDistribution_ %densitySphericalAverage(      radius,componentType=componentTypeHotHalo,massType=massType)
+     densitySphericalAverageIndirect=+galacticStructure_%densitySphericalAverage(node_,radius,componentType=componentTypeHotHalo,massType=massType)
+     call Assert("⟨ρ̂⟩"//char(8)//char(8)//trim(label)//"(r="//trim(labelRadius)//"kpc) [direct=indirect]",densitySphericalAverageDirect,densitySphericalAverageIndirect,relTol=1.0d-6)
+     ! Rotation curve.
+     rotationCurveDirect  =+massDistribution_ %rotationCurve   (      radius,componentType=componentTypeHotHalo,massType=massType)
+     rotationCurveIndirect=+galacticStructure_%velocityRotation(node_,radius,componentType=componentTypeHotHalo,massType=massType)
+     call Assert("V"//trim(label)//"(r="//trim(labelRadius)//"kpc) [direct=indirect]",rotationCurveDirect,rotationCurveIndirect,relTol=1.0d-2)
+     ! Rotation curve gradient.
+     rotationCurveGradientDirect  =+massDistribution_ %rotationCurveGradient   (      radius,componentType=componentTypeHotHalo,massType=massType)
+     rotationCurveGradientIndirect=+galacticStructure_%velocityRotationGradient(node_,radius,componentType=componentTypeHotHalo,massType=massType) &
+          &                        *2.0d0                                                                                                       &
+          &                        *rotationCurveIndirect
+     call Assert("dV"//trim(label)//"/dr(r="//trim(labelRadius)//"kpc) [direct=indirect]",rotationCurveGradientDirect,rotationCurveGradientIndirect,relTol=1.0d-2)
+  end do
   ! Clean up objects.
   !![
   <objectDestructor name="massDistribution_"     />
