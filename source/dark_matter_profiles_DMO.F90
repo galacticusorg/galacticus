@@ -28,7 +28,8 @@ module Dark_Matter_Profiles_DMO
   use :: Dark_Matter_Halo_Scales     , only : darkMatterHaloScale              , darkMatterHaloScaleClass
   use :: Dark_Matter_Profiles_Generic, only : darkMatterProfileGeneric
   use :: Galacticus_Nodes            , only : treeNode
-  use :: Galactic_Structure_Options  , only : enumerationStructureErrorCodeType
+  use :: Mass_Distributions          , only : massDistributionClass
+  use :: Galactic_Structure_Options  , only : enumerationStructureErrorCodeType, enumerationWeightByType
   private
 
   !![
@@ -40,6 +41,14 @@ module Dark_Matter_Profiles_DMO
     Class providing dark matter-only halo profiles.
    </description>
    <default>NFW</default>
+   <method name="get" >
+    <description>Return the mass distribution of the dark matter-only profile.</description>
+    <type>class(massDistributionClass)</type>
+    <pass>yes</pass>
+    <argument>type   (treeNode               ), intent(inout)           :: node       </argument>
+    <argument>type   (enumerationWeightByType), intent(in   ), optional :: weightBy   </argument>
+    <argument>integer                         , intent(in   ), optional :: weightIndex</argument>
+   </method>
    <method name="density" >
     <description>Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc).</description>
     <type>double precision</type>

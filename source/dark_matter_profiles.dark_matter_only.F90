@@ -39,6 +39,7 @@
      double precision                                     :: darkMatterFraction
    contains
      final     ::                                      darkMatterOnlyDestructor
+     procedure :: get                               => darkMatterOnlyGet
      procedure :: density                           => darkMatterOnlyDensity
      procedure :: densityLogSlope                   => darkMatterOnlyDensityLogSlope
      procedure :: radiusEnclosingDensity            => darkMatterOnlyRadiusEnclosingDensity
@@ -129,6 +130,55 @@ contains
     !!]
     return
   end subroutine darkMatterOnlyDestructor
+
+  function darkMatterOnlyGet(self,node,weightBy,weightIndex) result(massDistribution_)
+    !!{
+    Return the dark matter mass distribution for the given {\normalfont \ttfamily node}.
+    !!}
+    use :: Galactic_Structure_Options, only : weightByMass
+    use :: Mass_Distributions        , only : massDistributionSpherical, massDistributionSphericalScaler
+    use :: Error                     , only : Error_Report
+    implicit none
+    class           (massDistributionClass          ), pointer                 :: massDistribution_
+    class           (darkMatterProfileDarkMatterOnly), intent(inout)           :: self
+    type            (treeNode                       ), intent(inout)           :: node
+    type            (enumerationWeightByType        ), intent(in   ), optional :: weightBy
+    integer                                          , intent(in   ), optional :: weightIndex
+    class           (massDistributionClass          ), pointer                 :: massDistributionDMO
+    !![
+    <optionalArgument name="weightBy" defaultsTo="weightByMass" />
+    !!]
+
+    ! Assume a null distribution by default.
+    massDistribution_ => null()
+    ! If weighting is not by mass, return a null profile.
+    if (weightBy_ /= weightByMass) return
+    ! Get the dark matter-only mass distribution.
+    massDistributionDMO => self%darkMatterProfileDMO_%get(node,weightBy,weightIndex)
+    if (.not.associated(massDistributionDMO)) return
+    select type (massDistributionDMO)
+    class is (massDistributionSpherical)
+       ! Create the mass distribution.
+       allocate(massDistributionSphericalScaler :: massDistribution_)
+       select type(massDistribution_)
+       type is (massDistributionSphericalScaler)
+          !![
+	  <referenceConstruct object="massDistribution_">
+	    <constructor>
+	      massDistributionSphericalScaler(                                              &amp;
+	      &amp;                         factorScalingLength=     1.0d0              , &amp;
+	      &amp;                         factorScalingMass  =self%darkMatterFraction , &amp;
+	      &amp;                         massDistribution_  =     massDistributionDMO  &amp;
+	      &amp;                        )
+	    </constructor>
+	  </referenceConstruct>
+          !!]
+       end select
+    class default
+       call Error_Report('a spherical mass distribution is required'//{introspection:location})
+    end select
+    return
+  end function darkMatterOnlyGet
 
   double precision function darkMatterOnlyDensity(self,node,radius)
     !!{

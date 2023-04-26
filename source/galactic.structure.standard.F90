@@ -382,12 +382,11 @@ contains
     !!{
     Return the radius enclosing a given mass (or fractional mass) in {\normalfont \ttfamily node}.
     !!}
-    use :: Dark_Matter_Profile_Structure_Tasks, only : Dark_Matter_Profile_Radius_Enclosing_Mass
-    use :: Display                            , only : displayMessage                           , verbosityLevelWarn
-    use :: Galactic_Structure_Options         , only : componentTypeDarkHalo                    , massTypeDark
-    use :: Error                              , only : Error_Report
-    use :: ISO_Varying_String                 , only : assignment(=)                            , operator(//)      , varying_string
-    use :: String_Handling                    , only : operator(//)
+    use :: Display                   , only : displayMessage       , verbosityLevelWarn
+    use :: Galactic_Structure_Options, only : componentTypeDarkHalo, massTypeDark
+    use :: Error                     , only : Error_Report
+    use :: ISO_Varying_String        , only : assignment(=)        , operator(//)      , varying_string
+    use :: String_Handling           , only : operator(//)
     implicit none
     class           (galacticStructureStandard   ), intent(inout), target   :: self
     type            (treeNode                    ), intent(inout), target   :: node
@@ -417,40 +416,27 @@ contains
     end if
     self_ => self
     node_ => node
-    ! If the dark matter component is queried and its density profile is unaffected by baryons, compute the radius from the dark
-    ! matter profile. Otherwise, find the radius numerically.
-    if     (                                                                       &
-         &   galacticStructureState_%state%componentType_ == componentTypeDarkHalo &
-         &  .or.                                                                   &
-         &   galacticStructureState_%state%massType_      == massTypeDark          &
-         & ) then
-       if (.not.associated(self%darkMatterProfile_)) call Error_Report('object is not expecting dark matter requests'//{introspection:location})       
-       ! Use the function provided by the dark matter profile structure tasks module here. This ensures precise consistency
-       ! between calculations here and in the enclosed mass function.
-       standardRadiusEnclosingMass=Dark_Matter_Profile_Radius_Enclosing_Mass(node_,massTarget)
-    else
-       ! Solve for the radius.
-       if (massEnclosedRoot(0.0d0) >= 0.0d0) then
-          message='Enclosed mass in galaxy (ID='
-          write (massLabel,'(e10.4)') self%massEnclosed(node_,0.0d0,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_,galacticStructureState_%state%weightBy_,galacticStructureState_%state%weightIndex_)
-          message=message//node%index()//') seems to be finite ('//trim(massLabel)
-          write (massLabel,'(e10.4)') massTarget
-          message=message//') at zero radius (was seeking '      //trim(massLabel)
-          message=message//') - returning zero radius.'
-          call displayMessage(message,verbosityLevelWarn)
-          standardRadiusEnclosingMass=0.0d0
-          call self%restore()
-          return
-       end if
-       if (self%radiusEnclosingMassPrevious >= 0.0d0) then
-          radiusGuess=self                     %radiusEnclosingMassPrevious
-       else
-          radiusGuess=self%darkMatterHaloScale_%radiusVirial               (node)
-       end if
-       self%radiusEnclosingMassPrevious=self%finderMass%find                       (rootGuess=radiusGuess)
-       self%uniqueIDPrevious           =node           %uniqueID                   (                     )
-       standardRadiusEnclosingMass     =self           %radiusEnclosingMassPrevious
+    ! Solve for the radius.
+    if (massEnclosedRoot(0.0d0) >= 0.0d0) then
+       message='Enclosed mass in galaxy (ID='
+       write (massLabel,'(e10.4)') self%massEnclosed(node_,0.0d0,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_,galacticStructureState_%state%weightBy_,galacticStructureState_%state%weightIndex_)
+       message=message//node%index()//') seems to be finite ('//trim(massLabel)
+       write (massLabel,'(e10.4)') massTarget
+       message=message//') at zero radius (was seeking '      //trim(massLabel)
+       message=message//') - returning zero radius.'
+       call displayMessage(message,verbosityLevelWarn)
+       standardRadiusEnclosingMass=0.0d0
+       call self%restore()
+       return
     end if
+    if (self%radiusEnclosingMassPrevious >= 0.0d0) then
+       radiusGuess=self                     %radiusEnclosingMassPrevious
+    else
+       radiusGuess=self%darkMatterHaloScale_%radiusVirial               (node)
+    end if
+    self%radiusEnclosingMassPrevious=self%finderMass%find                       (rootGuess=radiusGuess)
+    self%uniqueIDPrevious           =node           %uniqueID                   (                     )
+    standardRadiusEnclosingMass     =self           %radiusEnclosingMassPrevious
     call self%restore()
     return
   end function standardRadiusEnclosingMass
@@ -564,13 +550,6 @@ contains
     use :: Coordinates               , only : assignment(=)        , coordinateCylindrical
     use :: Galactic_Structure_Options, only : componentTypeAll     , massTypeAll          , structureErrorCodeSuccess
     use :: Mass_Distributions        , only : massDistributionClass
-    !![
-    <include directive="potentialTask" type="moduleUse">
-    !!]
-    include 'galactic_structure.potential.tasks.modules.inc'
-    !![
-    </include>
-    !!]
     implicit none
     class           (galacticStructureStandard        ), intent(inout)           :: self
     type            (treeNode                         ), intent(inout)           :: node
@@ -580,8 +559,8 @@ contains
     type            (enumerationStructureErrorCodeType), intent(  out), optional :: status
     class           (massDistributionClass            ), pointer                 :: massDistribution_
     type            (coordinateCylindrical            )                          :: position
-    double precision                                                             :: potentialComponent__
 
+    
     ! Initialize status.
     if (present(status)) status=structureErrorCodeSuccess
     ! Reset calculations if this is a new node.
@@ -594,15 +573,6 @@ contains
        position =[galacticStructureState_%state%radius_,0.0d0,0.0d0]
        potential=massDistribution_%potential(position,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_,status_)
        if (status_ /= structureErrorCodeSuccess) status=status_
-       !![
-       <include directive="potentialTask" type="functionCall" functionType="function" returnParameter="potentialComponent__">
-        <functionArgs>node,galacticStructureState_%state%radius_,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_,status</functionArgs>
-        <onReturn>potential=potential+potentialComponent__</onReturn>
-       !!]
-       include 'galactic_structure.potential.tasks.inc'
-       !![
-       </include>
-       !!]
        call self%restore()
        ! Compute the potential offset such that the total gravitational potential at the virial radius is -V² where V is the
        ! virial velocity.
@@ -620,7 +590,6 @@ contains
     potential=+massDistribution_%potential(position,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_,status_) &
          &    +self%potentialOffset
     if (status_ /= structureErrorCodeSuccess) status=status_
-    include 'galactic_structure.potential.tasks.inc'
     !![
     <objectDestructor name="massDistribution_"/>
     !!]

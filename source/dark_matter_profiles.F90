@@ -27,7 +27,8 @@ module Dark_Matter_Profiles
   !!}
   use :: Dark_Matter_Profiles_Generic, only : darkMatterProfileGeneric
   use :: Galacticus_Nodes            , only : treeNode
-  use :: Galactic_Structure_Options  , only : enumerationStructureErrorCodeType
+  use :: Mass_Distributions          , only : massDistributionClass
+  use :: Galactic_Structure_Options  , only : enumerationStructureErrorCodeType, enumerationWeightByType
   use :: Kind_Numbers                , only : kind_int8
   private
 
@@ -38,6 +39,14 @@ module Dark_Matter_Profiles
    <descriptiveName>Dark Matter Halo Profiles</descriptiveName>
    <description>Object providing dark matter halo profiles.</description>
    <default>adiabaticGnedin2004</default>
+   <method name="get" >
+    <description>Return the mass distribution of the dark matter profile.</description>
+    <type>class(massDistributionClass)</type>
+    <pass>yes</pass>
+    <argument>type   (treeNode               ), intent(inout)           :: node       </argument>
+    <argument>type   (enumerationWeightByType), intent(in   ), optional :: weightBy   </argument>
+    <argument>integer                         , intent(in   ), optional :: weightIndex</argument>
+   </method>
    <method name="density" >
     <description>Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc).</description>
     <type>double precision</type>

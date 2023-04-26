@@ -39,6 +39,7 @@
      private
    contains
      final     ::                                      isothermalDestructor
+     procedure :: get                               => isothermalGet
      procedure :: density                           => isothermalDensity
      procedure :: densityLogSlope                   => isothermalDensityLogSlope
      procedure :: radialMoment                      => isothermalRadialMoment
@@ -114,6 +115,49 @@ contains
     !!]
     return
   end subroutine isothermalDestructor
+
+  function isothermalGet(self,node,weightBy,weightIndex) result(massDistribution_)
+    !!{
+    Return the dark matter mass distribution for the given {\normalfont \ttfamily node}.
+    !!}
+    use :: Galacticus_Nodes          , only : nodeComponentBasic
+    use :: Galactic_Structure_Options, only : componentTypeDarkHalo     , massTypeDark, weightByMass
+    use :: Mass_Distributions        , only : massDistributionIsothermal
+    implicit none
+    class           (massDistributionClass         ), pointer                 :: massDistribution_
+    class           (darkMatterProfileDMOIsothermal), intent(inout)           :: self
+    type            (treeNode                      ), intent(inout)           :: node
+    type            (enumerationWeightByType       ), intent(in   ), optional :: weightBy
+    integer                                         , intent(in   ), optional :: weightIndex
+    class           (nodeComponentBasic            ), pointer                 :: basic
+    !![
+    <optionalArgument name="weightBy" defaultsTo="weightByMass" />
+    !!]
+
+    ! Assume a null distribution by default.
+    massDistribution_ => null()
+    ! If weighting is not by mass, return a null profile.
+    if (weightBy_ /= weightByMass) return
+    ! Create the mass distribution.
+    allocate(massDistributionIsothermal :: massDistribution_)
+    select type(massDistribution_)
+    type is (massDistributionIsothermal)
+       basic => node%basic()
+       !![
+       <referenceConstruct object="massDistribution_">
+	 <constructor>
+           massDistributionIsothermal(                                                                        &amp;
+           &amp;                      mass           =basic                     %mass                 (    ), &amp;
+           &amp;                      lengthReference=self %darkMatterHaloScale_%radiusVirial         (node), &amp;
+           &amp;                      componentType  =                           componentTypeDarkHalo      , &amp;
+           &amp;                      massType       =                           massTypeDark                 &amp;
+           &amp;                     )
+	 </constructor>
+       </referenceConstruct>
+       !!]
+    end select
+    return
+  end function isothermalGet
 
   double precision function isothermalDensity(self,node,radius)
     !!{

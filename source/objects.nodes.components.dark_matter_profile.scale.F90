@@ -26,11 +26,13 @@ module Node_Component_Dark_Matter_Profile_Scale
   Implements a dark matter profile method that provides a scale radius.
   !!}
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
+  use :: Dark_Matter_Profiles   , only : darkMatterProfileClass
   implicit none
   private
   public :: Node_Component_Dark_Matter_Profile_Scale_Scale_Set        , Node_Component_Dark_Matter_Profile_Scale_Plausibility       , &
        &    Node_Component_Dark_Matter_Profile_Scale_Thread_Initialize, Node_Component_Dark_Matter_Profile_Scale_Thread_Uninitialize, &
-       &    Node_Component_Dark_Matter_Profile_Scale_State_Store      , Node_Component_Dark_Matter_Profile_Scale_State_Restore
+       &    Node_Component_Dark_Matter_Profile_Scale_State_Store      , Node_Component_Dark_Matter_Profile_Scale_State_Restore      , &
+       &    Node_Component_Dark_Matter_Profile_Scale_Initialize
 
   !![
   <component>
@@ -47,15 +49,56 @@ module Node_Component_Dark_Matter_Profile_Scale
       <classDefault>-1.0d0</classDefault>
     </property>
    </properties>
+   <bindings>
+     <binding method="massDistribution" bindsTo="component" isDeferred="true" >
+      <interface>
+       <type>class(massDistributionClass), pointer</type>
+       <rank>0</rank>
+       <module>Galactic_Structure_Options, only : enumerationWeightByType</module>
+       <module>Mass_Distributions        , only : massDistributionClass  </module>
+       <self pass="true" intent="inout" />
+       <argument>type   (enumerationWeightByType), intent(in   ), optional :: weightBy   </argument>
+       <argument>integer                         , intent(in   ), optional :: weightIndex</argument>
+      </interface>
+     </binding>
+   </bindings>
   </component>
   !!]
 
   ! Objects used by this component.
   class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
-  !$omp threadprivate(darkMatterHaloScale_)
+  class(darkMatterProfileClass  ), pointer :: darkMatterProfile_
+  !$omp threadprivate(darkMatterHaloScale_,darkMatterProfile_)
+  
+  ! Procedure pointer to mass distribution function.
+  procedure(Node_Component_Dark_Matter_Profile_Scale_Mass_Distribution), pointer :: Node_Component_Dark_Matter_Profile_Scale_Mass_Distribution_
   
 contains
 
+  !![
+  <nodeComponentInitializationTask>
+   <unitName>Node_Component_Dark_Matter_Profile_Scale_Initialize</unitName>
+  </nodeComponentInitializationTask>
+  !!]
+  subroutine Node_Component_Dark_Matter_Profile_Scale_Initialize(parameters)
+    !!{
+    Initializes the scale dark matter profile component.
+    !!}
+    use :: Input_Parameters, only : inputParameters
+    use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent, nodeComponentDarkMatterProfileScale
+    type(inputParameters                    ), intent(inout) :: parameters
+    type(nodeComponentDarkMatterProfileScale)                :: darkMatterProfile
+    !$GLC attributes unused :: parameters
+
+    !$omp critical (Node_Component_Dark_Matter_Profile_Initialize)
+    if (defaultDarkMatterProfileComponent%scaleIsActive()) then
+       Node_Component_Dark_Matter_Profile_Scale_Mass_Distribution_ => Node_Component_Dark_Matter_Profile_Scale_Mass_Distribution
+       call darkMatterProfile%massDistributionFunction(Node_Component_Dark_Matter_Profile_Scale_Mass_Distribution_)
+    end if
+    !$omp end critical (Node_Component_Dark_Matter_Profile_Initialize)
+    return
+  end subroutine Node_Component_Dark_Matter_Profile_Scale_Initialize
+    
   !![
   <nodeComponentThreadInitializationTask>
    <unitName>Node_Component_Dark_Matter_Profile_Scale_Thread_Initialize</unitName>
@@ -74,6 +117,7 @@ contains
     if (defaultDarkMatterProfileComponent%scaleIsActive()) then
        !![
        <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters_"/>
+       <objectBuilder class="darkMatterProfile"   name="darkMatterProfile_"   source="parameters_"/>
        !!]
      end if
      return
@@ -94,6 +138,7 @@ contains
     if (defaultDarkMatterProfileComponent%scaleIsActive()) then
        !![
        <objectDestructor name="darkMatterHaloScale_"/>
+       <objectDestructor name="darkMatterProfile_"  />
        !!]
     end if
     return
@@ -177,7 +222,7 @@ contains
 
     call displayMessage('Storing state for: componentDarkMatterProfile -> scale',verbosity=verbosityLevelInfo)
     !![
-    <stateStore variables="darkMatterHaloScale_"/>
+    <stateStore variables="darkMatterHaloScale_ darkMatterProfile_"/>
     !!]
     return
   end subroutine Node_Component_Dark_Matter_Profile_Scale_State_Store
@@ -198,11 +243,28 @@ contains
     integer(c_size_t), intent(in   ) :: stateOperationID
     type   (c_ptr   ), intent(in   ) :: gslStateFile
 
-    call displayMessage('Retrieving state for: componentDarkMatterProfile -> scale',verbosity=verbosityLevelInfo)
+    call displayMessage('Retrieving state for: componentDar -> scale',verbosity=verbosityLevelInfo)
     !![
-    <stateRestore variables="darkMatterHaloScale_"/>
+    <stateRestore variables="darkMatterHaloScale_ darkMatterProfile_"/>
     !!]
     return
   end subroutine Node_Component_Dark_Matter_Profile_Scale_State_Restore
+
+  function Node_Component_Dark_Matter_Profile_Scale_Mass_Distribution(self,weightBy,weightIndex) result(massDistribution_)
+    !!{
+    Return the mass distribution associated with the hot halo.
+    !!}
+    use :: Galacticus_Nodes          , only : nodeComponentDarkMatterProfileScale
+    use :: Galactic_Structure_Options, only : enumerationWeightByType
+    use :: Mass_Distributions        , only : massDistributionClass
+    implicit none
+    class  (massDistributionClass              ), pointer                 :: massDistribution_
+    class  (nodeComponentDarkMatterProfileScale), intent(inout)           :: self
+    type   (enumerationWeightByType            ), intent(in   ), optional :: weightBy
+    integer                                     , intent(in   ), optional :: weightIndex
+
+    massDistribution_ => darkMatterProfile_%get(self%hostNode,weightBy,weightIndex)
+    return
+  end function Node_Component_Dark_Matter_Profile_Scale_Mass_Distribution
 
 end module Node_Component_Dark_Matter_Profile_Scale
