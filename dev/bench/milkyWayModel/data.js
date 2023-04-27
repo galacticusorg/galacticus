@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1682546185929,
+  "lastUpdate": 1682622202446,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "df745f66d461921cb4f2dfdace0c93b6ec7e32c9",
-          "message": "Merge pull request #288 from galacticusorg/dev\n\nAllow trailimg underscores in variable names for auto-descriptors",
-          "timestamp": "2022-09-03T22:19:00-07:00",
-          "tree_id": "a0730866ce50ce26ef9e239a66ba26f5879574d3",
-          "url": "https://github.com/galacticusorg/galacticus/commit/df745f66d461921cb4f2dfdace0c93b6ec7e32c9"
-        },
-        "date": 1662288199777,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 452.259,
-            "unit": "seconds",
-            "range": 1.73459012449896
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10586,6 +10556,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 4.58859052153581,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "6790efb69d319a54319aedee5e34836118291824",
+          "message": "fix: Set a tree volume weight (of `1.0`) in the `mergerTreeConstructorFullySpecified` class",
+          "timestamp": "2023-04-27T16:05:58Z",
+          "tree_id": "61c50f26e43f6942e9e0bca0b35035c58e4a047b",
+          "url": "https://github.com/galacticusorg/galacticus/commit/6790efb69d319a54319aedee5e34836118291824"
+        },
+        "date": 1682622201526,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 176.57,
+            "unit": "seconds",
+            "range": 3.18538851633524
           }
         ]
       }
