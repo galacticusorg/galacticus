@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1682622198150,
+  "lastUpdate": 1682622206500,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "6f5aed52e93245c27db43d1663a88a685d9c9cb4",
-          "message": "Merge pull request #295 from galacticusorg/dev\n\nUse correct URL for CLASS code",
-          "timestamp": "2022-09-12T07:42:50-07:00",
-          "tree_id": "1cde74ec126e260520a2b4ad3fe751e16a4bfc05",
-          "url": "https://github.com/galacticusorg/galacticus/commit/6f5aed52e93245c27db43d1663a88a685d9c9cb4"
-        },
-        "date": 1663010868264,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 81.899,
-            "unit": "seconds",
-            "range": 0.263110053020186
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8685,6 +8655,45 @@ window.BENCHMARK_DATA = {
             "value": 67.898,
             "unit": "seconds",
             "range": 0.411921837245655
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "6790efb69d319a54319aedee5e34836118291824",
+          "message": "fix: Set a tree volume weight (of `1.0`) in the `mergerTreeConstructorFullySpecified` class",
+          "timestamp": "2023-04-27T16:05:58Z",
+          "tree_id": "61c50f26e43f6942e9e0bca0b35035c58e4a047b",
+          "url": "https://github.com/galacticusorg/galacticus/commit/6790efb69d319a54319aedee5e34836118291824"
+        },
+        "date": 1682622205618,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 57.3275525628901,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 25.8647158159627,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 24145.1797388743,
+            "unit": "-logℒ"
           }
         ]
       }
