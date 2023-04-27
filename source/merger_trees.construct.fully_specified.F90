@@ -293,6 +293,7 @@ contains
        !$omp end critical (FoX_DOM_Access)
        ! Initialize the tree root to null.
        tree%index            =  int(treeNumber)
+       tree%volumeWeight     =  1.0d0
        tree%initializedUntil =  0.0d0
        tree%firstTree        => tree
        tree%nodeBase         => null()
