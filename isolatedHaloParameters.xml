@@ -61,6 +61,19 @@
     <darkMatterProfileDMO     value="NFW"/>
   </darkMatterProfileDMO>
 
+  <!-- Dark matter profile scale radii model -->
+  <darkMatterProfileScaleRadius value="concentrationLimiter">
+    <!-- Limit scale radii to keep concentrations within a reasonable range. -->
+    <concentrationMinimum value="  3.0"/>
+    <concentrationMaximum value="100.0"/>
+    <darkMatterProfileScaleRadius value="concentration" >
+      <correctForConcentrationDefinition value="true"/>
+      <darkMatterProfileConcentration value="gao2008">
+	<scatter value="0.16"/>
+      </darkMatterProfileConcentration>
+    </darkMatterProfileScaleRadius>
+  </darkMatterProfileScaleRadius>
+
   <!-- Heating model - currently set to null - replace with the DDM model -->
   <darkMatterProfileHeating value="null"/>
 
