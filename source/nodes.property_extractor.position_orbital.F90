@@ -90,7 +90,8 @@ contains
     !!{
     Implement a positionOrbital output analysis.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentSatellite
+    use :: Galacticus_Nodes    , only : nodeComponentSatellite, nodeComponentBasic
+    use :: Numerical_Comparison, only : Values_Agree
     implicit none
     double precision                                      , dimension(:) , allocatable :: positionOrbitalExtract
     class           (nodePropertyExtractorPositionOrbital), intent(inout), target      :: self
@@ -98,6 +99,7 @@ contains
     double precision                                      , intent(in   )              :: time
     type            (multiCounter                        ), intent(inout), optional    :: instance
     type            (treeNode                            ), pointer                    :: nodeWork
+    class           (nodeComponentBasic                  ), pointer                    :: basic
     class           (nodeComponentSatellite              ), pointer                    :: satellite
     !$GLC attributes unused :: self, instance, time
 
@@ -106,13 +108,30 @@ contains
     nodeWork               => node
     ! Walk up through all host halos of this node, accumulating position offsets from the host node center.
     do while (associated(nodeWork))
+       basic                   =>  nodeWork %basic                 ()
        satellite               =>  nodeWork %satellite             ()
        positionOrbitalExtract  =  +          positionOrbitalExtract   &
             &                     +satellite%position              ()
        if (nodeWork%isSatellite()) then
+          ! Current node is a satellite, simply move to its parent.
           nodeWork => nodeWork%parent
        else
-          nodeWork => null()
+          ! Node is a host halo.          
+          if (nodeWork%isOnMainBranch()) then
+             ! We are on the main branch - so we are done.
+             nodeWork => null()
+          else
+             ! We are not on the main branch - find the host halo at this time time on the branch with which we will merge.
+             do while (nodeWork%isPrimaryProgenitor())
+                nodeWork => nodeWork%parent
+             end do
+             nodeWork => nodeWork%parent
+             basic => nodeWork%basic()
+             do while (.not.Values_Agree(basic%time(),time,relTol=1.0d-6))
+                nodeWork => nodeWork%firstChild
+                basic => nodeWork%basic()
+             end do
+          end if
        end if
     end do
     return
