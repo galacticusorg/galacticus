@@ -389,18 +389,21 @@ contains
        ! Set the initial bound mass of this satellite.
        call Node_Component_Satellite_Orbiting_Bound_Mass_Initialize(satellite,node)
     end if
-    ! Create an orbit for the satellite.   
+    ! Create an orbit for the satellite if needed.
     select type (satellite)
     class is (nodeComponentSatelliteOrbiting)
-       ! Get an orbit for this satellite.
-       if (node%isSatellite()) then
-          nodeHost => node%parent
-       else
-          nodeHost => node%parent%firstChild
+       orbit=satellite%virialOrbitValue()
+       if (.not.orbit%isDefined()) then
+          ! Get an orbit for this satellite.
+          if (node%isSatellite()) then
+             nodeHost => node%parent
+          else
+             nodeHost => node%parent%firstChild
+          end if          
+          orbit=virialOrbit_%orbit(node,nodeHost,acceptUnboundOrbits)
+          ! Store the orbit.
+          call satellite%virialOrbitSet(orbit)          
        end if
-       orbit=virialOrbit_%orbit(node,nodeHost,acceptUnboundOrbits)
-       ! Store the orbit.
-       call satellite%virialOrbitSet(orbit)
     end select
     return
   end subroutine Node_Component_Satellite_Orbiting_Create
@@ -459,9 +462,9 @@ contains
     class(nodeComponentSatelliteOrbiting), intent(inout) :: self
     type (treeNode                      ), pointer       :: selfNode
 
-    selfNode => self%host()
-    if (selfNode%isSatellite().or.(.not.selfNode%isPrimaryProgenitor().and.associated(selfNode%parent))) then
-       orbit=self%virialOrbitValue()
+    selfNode => self%host            ()
+    orbit    =  self%virialOrbitValue()
+    if (orbit%isDefined().or.selfNode%isSatellite().or.(.not.selfNode%isPrimaryProgenitor().and.associated(selfNode%parent))) then
        if (.not.orbit%isDefined()) then
           ! Orbit has not been defined - define it now.
           call Node_Component_Satellite_Orbiting_Create(selfNode)
@@ -501,7 +504,7 @@ contains
        ! Set the merging/destruction time to -1 to indicate that we don't know when merging/destruction will occur.
        call self%destructionTimeSet          (           -1.0d0)
        call self%tidalTensorPathIntegratedSet(tensorNullR2D3Sym)
-       call self%tidalHeatingNormalizedSet   (            0.0d0)
+       call self%tidalHeatingNormalizedSet   (            0.0d0)       
     end select
     return
   end subroutine Node_Component_Satellite_Orbiting_Virial_Orbit_Set
