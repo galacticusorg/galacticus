@@ -138,7 +138,7 @@ contains
     use :: Galacticus_Nodes      , only : nodeComponentBasic                     , nodeComponentSpin
     use :: Dark_Matter_Halo_Spins, only : Dark_Matter_Halo_Angular_Momentum_Scale
     implicit none
-    class           (nodeOperatorHaloAngularMomentumRandomWalk), intent(inout)               :: self
+    class           (nodeOperatorHaloAngularMomentumRandomWalk), intent(inout), target       :: self
     type            (treeNode                                 ), intent(inout), target       :: node
     type            (treeNode                                 )               , pointer      :: nodeProgenitor
     class           (nodeComponentSpin                        )               , pointer      :: spinProgenitor         , spin

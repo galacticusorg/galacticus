@@ -118,7 +118,7 @@ contains
     Initialize node formation times.
     !!}
     implicit none
-    class(nodeOperatorNodeFormationTimeCole2000), intent(inout)          :: self
+    class(nodeOperatorNodeFormationTimeCole2000), intent(inout), target  :: self
     type (treeNode                             ), intent(inout), target  :: node
 
     ! Initialize the formation time in any leaf node.

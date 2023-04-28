@@ -169,7 +169,7 @@ contains
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSpheroid
     implicit none
-    class           (nodeOperatorEmpiricalMassiveElliptical), intent(inout)          :: self
+    class           (nodeOperatorEmpiricalMassiveElliptical), intent(inout), target  :: self
     type            (treeNode                              ), intent(inout), target  :: node
     type            (treeNode                              )               , pointer :: nodeRoot
     class           (nodeComponentBasic                    )               , pointer :: basicLeaf  , basicRoot

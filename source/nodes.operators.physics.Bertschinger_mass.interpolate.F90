@@ -152,7 +152,7 @@ contains
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasic
     implicit none
-    class           (nodeOperatorBertschingerMass), intent(inout)          :: self
+    class           (nodeOperatorBertschingerMass), intent(inout), target  :: self
     type            (treeNode                    ), intent(inout), target  :: node
     type            (treeNode                    )               , pointer :: nodeChild          , nodeParent
     class           (nodeComponentBasic          )               , pointer :: basicChild         , basicParent   , &

@@ -335,7 +335,7 @@ contains
     Trigger interpolation calculation at node initialization
     !!}
     implicit none
-    class(nodeOperatorPositionInterpolated), intent(inout)         :: self
+    class(nodeOperatorPositionInterpolated), intent(inout), target :: self
     type (treeNode                        ), intent(inout), target :: node
 
     call self%computeInterpolation(node)

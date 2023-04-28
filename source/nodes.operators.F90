@@ -43,6 +43,7 @@ module Nodes_Operators
       </description>
       <type>void</type>
       <pass>yes</pass>
+      <selfTarget>yes</selfTarget>
       <argument>type(treeNode), intent(inout), target :: node</argument>
       <code>
 	!$GLC attributes unused :: self, node

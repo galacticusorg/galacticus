@@ -135,7 +135,7 @@ contains
     Initialize bound mass of any initial satellites in a tree.
     !!}
     implicit none
-    class(nodeOperatorSatelliteMassLoss), intent(inout)         :: self
+    class(nodeOperatorSatelliteMassLoss), intent(inout), target :: self
     type (treeNode                     ), intent(inout), target :: node
 
     if     (                                               &

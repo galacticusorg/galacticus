@@ -89,7 +89,7 @@ contains
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile
     implicit none
-    class           (nodeOperatorHaloAxisRatiosInterpolate), intent(inout)          :: self
+    class           (nodeOperatorHaloAxisRatiosInterpolate), intent(inout), target  :: self
     type            (treeNode                             ), intent(inout), target  :: node
     class           (nodeComponentBasic                   )               , pointer :: basic            , basicParent
     class           (nodeComponentDarkMatterProfile       )               , pointer :: darkMatterProfile, darkMatterProfileParent
