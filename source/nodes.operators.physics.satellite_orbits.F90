@@ -37,6 +37,7 @@
      class  (galacticStructureClass   ), pointer :: galacticStructure_    => null()
      class  (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
      logical                                     :: trackPreInfallOrbit
+     integer                                     :: rateGrowthMassBoundID
    contains
      final     ::                          satelliteOrbitDestructor
      procedure :: nodeInitialize        => satelliteOrbitNodeInitialize
@@ -106,7 +107,12 @@ contains
     !![
     <constructorAssign variables="trackPreInfallOrbit, *galacticStructure_, *darkMatterProfileDMO_"/>
     !!]
- 
+
+    if (self%trackPreInfallOrbit) then
+       !![
+       <addMetaProperty component="satellite" name="rateGrowthMassBound" id="self%rateGrowthMassBoundID" isEvolvable="no" isCreator="yes"/>
+       !!]
+    end if
     return
   end function satelliteOrbitConstructorInternal
   
@@ -132,9 +138,6 @@ contains
     use :: Kepler_Orbits                   , only : keplerOrbit
     use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr  
     use :: Numerical_ODE_Solvers           , only : odeSolver
-
-use kind_numbers
-    
     implicit none
     class           (nodeOperatorSatelliteOrbit), intent(inout), target  :: self
     type            (treeNode                  ), intent(inout), target  :: node
@@ -147,7 +150,8 @@ use kind_numbers
     double precision                            , dimension(6)           :: phaseSpaceCoordinates
     type            (keplerOrbit               )                         :: orbit
     double precision                                                     :: time                 , timeProgenitor     , &
-         &                                                                  timeDescendent
+         &                                                                  timeDescendent       , massBoundDescendent, &
+         &                                                                  massBound            , rateGrowthMassBound
     !$GLC attributes unused :: self
 
     ! Compute the pre-infall orbit only for leaf nodes not on the main branch.
@@ -163,6 +167,7 @@ use kind_numbers
     orbit              =  satellite     %virialOrbit(                 )
     positionProgenitor =  satellite     %position   (                 )
     velocityProgenitor =  satellite     %velocity   (                 )
+    massBound          =  satellite     %boundMass  (                 )
     time               =  basicHost     %time       (                 )
     ! Integrate the orbit backward in time to each progenitor halo.
     allocate(solver)
@@ -174,21 +179,30 @@ use kind_numbers
        timeProgenitor      =  basicProgenitor%time              (                 )
        positionDescendent  =                  positionProgenitor
        timeDescendent      =                  time
+       massBoundDescendent =                  massBound
        ! Solve the ODEs here.
        phaseSpaceCoordinates(1:3)=positionProgenitor
        phaseSpaceCoordinates(4:6)=velocityProgenitor
        call solver%solve(time,timeProgenitor,phaseSpaceCoordinates)
        positionProgenitor=phaseSpaceCoordinates(1:3)
        velocityProgenitor=phaseSpaceCoordinates(4:6)
-       ! Set the position and velocity (i.e. the constant velocity required to reproduce the position evolution) for
-       ! this progenitor.
+       ! Comput the constant velocity required to reproduce the position evolution) for this progenitor.
        velocityEffective=+(+positionDescendent-positionProgenitor) &
             &            /(+    timeDescendent-    timeProgenitor) &
             &            *Mpc_per_km_per_s_To_Gyr
-       call satelliteProgenitor%virialOrbitSet(satellite%virialOrbit       ())
-       call satelliteProgenitor%boundMassSet  (satellite%boundMass         ())
-       call satelliteProgenitor% positionSet  (          positionProgenitor  )
-       call satelliteProgenitor% velocitySet  (          velocityEffective   )
+       ! Compute the bound mass growth rate.
+       massBound=satelliteProgenitor%boundMass()
+       if (nodeProgenitor%isPrimaryProgenitor()) then
+          rateGrowthMassBound=+(+massBoundDescendent-massBound     ) &
+               &              /(+timeDescendent     -timeProgenitor)
+       else
+          rateGrowthMassBound=+0.0d0
+       end if
+       ! Set all properties.
+       call satelliteProgenitor%           virialOrbitSet(                           satellite%virialOrbit        ())
+       call satelliteProgenitor%              positionSet(                                     positionProgenitor   )
+       call satelliteProgenitor%              velocitySet(                                     velocityEffective    )
+       call satelliteProgenitor%floatRank0MetaPropertySet(self%rateGrowthMassBoundID,          rateGrowthMassBound  )
        ! Move to the next progenitor.
        time           =  timeProgenitor
        nodeProgenitor => nodeProgenitor%firstChild
@@ -297,8 +311,9 @@ use kind_numbers
     if (     node%isOnMainBranch     ()) return
     satellite       => node       %satellite()
     satelliteParent => node%parent%satellite()   
-    call satellite%positionSet(satelliteParent%position())
-    call satellite%velocitySet(satelliteParent%velocity())
+    call satellite%              positionSet(                           satelliteParent%position                 (                          ))
+    call satellite%              velocitySet(                           satelliteParent%velocity                 (                          ))
+    call satellite%floatRank0MetaPropertySet(self%rateGrowthMassBoundID,satelliteParent%floatRank0MetaPropertyGet(self%rateGrowthMassBoundID))
     return
   end subroutine satelliteOrbitNodePromote
 
@@ -346,6 +361,7 @@ use kind_numbers
          &                      /megaParsec &
          &                      *velocity   &
          &                     )
+    call satellite%boundMassRate(satellite%floatRank0MetaPropertyGet(self%rateGrowthMassBoundID))
     ! If the node is not a satellite, we assume no acceleration (if tracking pre-infall orbits we are using a kick-drift approach,
     ! so the velocity remains constant between kicks).
     if (.not.node%isSatellite()) return
