@@ -48,6 +48,7 @@ module Node_Component_Satellite_Orbiting
    <class>satellite</class>
    <name>orbiting</name>
    <isDefault>false</isDefault>
+   <createFunction isDeferred="true" />
    <properties>
     <property>
       <name>position</name>
@@ -203,6 +204,8 @@ contains
        ! Specify the function to use for setting virial orbits.
        call satellite%virialOrbitSetFunction(Node_Component_Satellite_Orbiting_Virial_Orbit_Set)
        call satellite%virialOrbitFunction   (Node_Component_Satellite_Orbiting_Virial_Orbit    )
+       ! Bind a creation function.
+       call satellite%createFunctionSet     (Node_Component_Satellite_Orbiting_Initializor     )
     end if
     return
   end subroutine Node_Component_Satellite_Orbiting_Initialize
@@ -354,6 +357,18 @@ contains
     end select
     return
   end subroutine Node_Component_Satellite_Orbiting_Scale_Set
+
+  subroutine Node_Component_Satellite_Orbiting_Initializor(self)
+    !!{
+    Initializes an orbiting satellite component.
+    !!}
+    use :: Galacticus_Nodes, only : nodeComponentSatelliteOrbiting
+    implicit none
+    type(nodeComponentSatelliteOrbiting) :: self
+
+    call Node_Component_Satellite_Orbiting_Create(self%hostNode)
+    return
+  end subroutine Node_Component_Satellite_Orbiting_Initializor
 
   !![
   <nodeMergerTask>
