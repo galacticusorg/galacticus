@@ -126,10 +126,10 @@ contains
                 nodeWork => nodeWork%parent
              end do
              nodeWork => nodeWork%parent
-             basic => nodeWork%basic()
-             do while (.not.Values_Agree(basic%time(),time,relTol=1.0d-6))
+             basic    => nodeWork%basic ()
+             do while (associated(nodeWork%firstChild).and..not.Values_Agree(basic%time(),time,relTol=1.0d-6))
                 nodeWork => nodeWork%firstChild
-                basic => nodeWork%basic()
+                basic    => nodeWork%basic     ()
              end do
           end if
        end if
@@ -137,7 +137,6 @@ contains
     return
   end function positionOrbitalExtract
 
-  
   subroutine positionOrbitalNames(self,time,names)
     !!{
     Return the name of the positionOrbital property.
