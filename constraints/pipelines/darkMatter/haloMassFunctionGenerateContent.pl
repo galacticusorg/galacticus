@@ -262,7 +262,7 @@ my @types =
      },
      {
 	 label        => "LMC",
-	 simulation   => "MilkyWay",
+	 simulation   => "LMC",
 	 suite        => "Symphony",
 	 transfer     => "CDM",
 	 name         => "LMC",
@@ -282,11 +282,12 @@ foreach my $type ( @types ) {
     my @halos = sort map {$_ =~ m/^Halo\d+/ ? $_ : ()} readdir($dir);
     closedir($dir);    
     foreach my $halo ( @halos ) {
-	$code::label       = $type->{'label'};
-	$code::name        = $type->{'name'};
-	$code::suite       = $type->{'suite'};
-	$code::simulation  = $type->{'simulation'};
-	$code::transfer    = $type->{'transfer'};
+	$code::label       = $type->{'label'     }                              ;
+	$code::name        = $type->{'name'      }                              ;
+	$code::suite       = $type->{'suite'     }                              ;
+	$code::simulation  = $type->{'simulation'}                              ;
+	$code::hires       = $type->{'label'     } =~ m/_hires$/ ? "_hires" : "";
+	$code::transfer    = $type->{'transfer'  }                              ;
 	$code::halo        = $halo;
 	$code::massMinimum = sprintf("%11.5e",3000.0*$type->{'massParticle'});
 	foreach my $redshift ( @{$type->{'redshifts'}} ) {
@@ -322,9 +323,10 @@ foreach my $type ( @types ) {
     <!-- Zoom-in: {$name} {$halo} -->
     <parameterMap value="haloMassFunctionParameters::a             haloMassFunctionParameters::p
                          haloMassFunctionParameters::normalization haloMassFunctionParameters::q
+                         haloMassFunctionParameters::b
                          haloMassFunctionParameters::cW            haloMassFunctionParameters::beta
-                         haloMassFunctionParameters::alpha"/>
-     <parameterInactiveMap value="" ignoreWarnings="true"/>
+                         haloMassFunctionParameters::alpha         varianceFractionalModelDiscrepancy"/>
+    <parameterInactiveMap value="" ignoreWarnings="true"/>
     <posteriorSampleLikelihood value="haloMassFunction">
       <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
       <baseParametersFileName value="constraints/pipelines/darkMatter/haloMassFunctionBase_{$label}_{$halo}_z{$redshiftShort}.xml"/>
@@ -334,8 +336,9 @@ foreach my $type ( @types ) {
       <massRangeMaximum       value="{$massMaximum}"    /> <!-- 1/10 of the target halo mass             -->
       <binCountMinimum        value="0"                 />    
       <likelihoodPoisson      value="true"              />
-      <likelihoodModel        value="environment"       />
-      <massEnvironment        value="{$massEnvironment}"/>
+      <likelihoodModel        value="simulatonSphere"   />
+      <massSphere             value="{$massEnvironment}"/>
+      <truncatePower          value="true"              />
     </posteriorSampleLikelihood>
 CODE
 		    print $configFile $config;
@@ -359,11 +362,11 @@ CODE
   </haloEnvironment>
 
   <!-- Include Milky Way cosmology and mass function parameters -->
-  <xi:include href="haloMassFunctionParameters.xml"            xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
-  <xi:include href="simulation_{$suite}.xml"                   xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
-  <xi:include href="cosmology_{$suite}.xml"                    xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
-  <xi:include href="haloMassFunction_{$suite}.xml"             xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
-  <xi:include href="transferFunction_{$suite}_{$transfer}.xml" xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="haloMassFunctionParameters.xml"                xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="simulation_{$suite}_{$simulation}{$hires}.xml" xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="cosmology_{$suite}.xml"                        xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="haloMassFunction_{$suite}.xml"                 xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="transferFunction_{$suite}_{$transfer}.xml"     xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
 
 </parameters>
 CODE

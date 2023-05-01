@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+
+  <!-- Simulation defintion -->
+  <simulation value="" ignoreWarnings="true">
+    <!-- Hi-res Milky Way zoom-in simulation properties -->
+    <massParticle value="5.03538e04"/>
+  </simulation>
+
+</parameters>
