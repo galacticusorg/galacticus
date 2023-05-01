@@ -195,7 +195,7 @@ contains
     !!}
     use :: Error                           , only : Error_Report             , errorStatusSuccess
     use :: Galactic_Structure_Options      , only : coordinateSystemCartesian, massTypeDark
-    use :: Galacticus_Nodes                , only : nodeComponentSatellite   , treeNode
+    use :: Galacticus_Nodes                , only : nodeComponentSatellite   , nodeComponentBasic             , treeNode
     use :: Linear_Algebra                  , only : assignment(=)            , matrix                         , vector
     use :: Numerical_Constants_Astronomical, only : gigaYear                 , gravitationalConstantGalacticus, megaParsec
     use :: Numerical_Constants_Math        , only : Pi
@@ -207,6 +207,7 @@ contains
     class           (satelliteTidalStrippingRadiusKing1962), intent(inout), target :: self
     type            (treeNode                             ), intent(inout), target :: node
     type            (treeNode                             ), pointer               :: nodeHost
+    class           (nodeComponentBasic                   ), pointer               :: basic                                  , basicHost
     class           (nodeComponentSatellite               ), pointer               :: satellite
     double precision                                       , dimension(3  )        :: position                               , velocity                        , &
          &                                                                            tidalTensorEigenValueComponents
@@ -221,13 +222,25 @@ contains
     type            (matrix                               )                        :: tidalTensorMatrix                      , tidalTensorEigenVectors
     type            (vector                               )                        :: tidalTensorEigenValues
 
-    ! Test for a satellite node.
-    if (.not.node%isSatellite()) then
-       king1962Radius=self%darkMatterHaloScale_%radiusVirial(node)
-       return
+    ! Find the host node.
+    if (node%isSatellite()) then
+       nodeHost => node%mergesWith()
+    else
+       ! Walk up the branch to find the node with which this node will merge.
+       nodeHost => node
+       do while (nodeHost%isPrimaryProgenitor())
+          nodeHost => nodeHost%parent
+       end do
+       ! Follow that node back through descendents until we find the node at the corresponding time.
+       basic     => node    %basic()
+       basicHost => nodeHost%basic()
+       do while (basicHost%time() > basic%time())
+          if (.not.associated(nodeHost%firstChild)) exit
+          nodeHost  => nodeHost%firstChild
+          basicHost => nodeHost%basic     ()
+       end do
     end if
     ! Get required quantities from satellite and host nodes.
-    nodeHost          => node     %mergesWith(        )
     satellite         => node     %satellite (        )
     massSatellite     =  satellite%boundMass (        )
     position          =  satellite%position  (        )
@@ -246,18 +259,22 @@ contains
     ! distributions this reduces to:
     !
     ! -2GM(r)r⁻³ - 4πGρ(r)
-    tidalTensor                     = self%galacticStructure_%tidalTensor(nodeHost,position)
-    tidalTensorComponents           = tidalTensor
-    tidalTensorMatrix               = tidalTensorComponents
-    call tidalTensorMatrix%eigenSystem(tidalTensorEigenVectors,tidalTensorEigenValues)
-    tidalTensorEigenValueComponents = tidalTensorEigenValues
-    tidalTensorEigenVectorComponents= tidalTensorEigenVectors
-    tidalFieldRadial                =-abs(tidalTensor%vectorProject(tidalTensorEigenVectorComponents(maxloc(tidalTensorEigenValueComponents,dim=1),:))) &
-         &                           *(                                                                                                                 &
-         &                             +kilo                                                                                                            &
-         &                             *gigaYear                                                                                                        &
-         &                             /megaParsec                                                                                                      &
-         &                            )**2
+    if (associated(nodeHost)) then
+       tidalTensor                     = self%galacticStructure_%tidalTensor(nodeHost,position)
+       tidalTensorComponents           = tidalTensor
+       tidalTensorMatrix               = tidalTensorComponents
+       call tidalTensorMatrix%eigenSystem(tidalTensorEigenVectors,tidalTensorEigenValues)
+       tidalTensorEigenValueComponents = tidalTensorEigenValues
+       tidalTensorEigenVectorComponents= tidalTensorEigenVectors
+       tidalFieldRadial                =-abs(tidalTensor%vectorProject(tidalTensorEigenVectorComponents(maxloc(tidalTensorEigenValueComponents,dim=1),:))) &
+            &                           *(                                                                                                                 &
+            &                             +kilo                                                                                                            &
+            &                             *gigaYear                                                                                                        &
+            &                             /megaParsec                                                                                                      &
+            &                            )**2
+    else
+       tidalFieldRadial                =+0.0d0
+    end if
     ! If the tidal force is stretching (not compressing), compute the tidal radius.
     if     (                                                                          &
          &   frequencyAngular**2                                   > tidalFieldRadial &

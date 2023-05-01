@@ -33,7 +33,8 @@
      A node operator class that applies tidal mass loss to orbiting satellite halos.
      !!}
      private
-     class(satelliteTidalStrippingClass), pointer :: satelliteTidalStripping_ => null()
+     class  (satelliteTidalStrippingClass), pointer :: satelliteTidalStripping_ => null()
+     logical                                        :: applyPreInfall
    contains
      final     ::                          satelliteTidalStrippingDestructor
      procedure :: differentialEvolution => satelliteTidalStrippingDifferentialEvolution
@@ -55,14 +56,21 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type (nodeOperatorSatelliteTidalMassLoss)                :: self
-    type (inputParameters                   ), intent(inout) :: parameters
-    class(satelliteTidalStrippingClass      ), pointer       :: satelliteTidalStripping_
+    type   (nodeOperatorSatelliteTidalMassLoss)                :: self
+    type   (inputParameters                   ), intent(inout) :: parameters
+    class  (satelliteTidalStrippingClass      ), pointer       :: satelliteTidalStripping_
+    logical                                                    :: applyPreInfall
     
     !![
-    <objectBuilder class="satelliteTidalStripping" name="satelliteTidalStripping_" source="parameters"/>
+     <inputParameter>
+      <name>applyPreInfall</name>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, tidal mass loss is applied pre-infall.</description>
+      <source>parameters</source>
+    </inputParameter>
+   <objectBuilder class="satelliteTidalStripping" name="satelliteTidalStripping_" source="parameters"/>
     !!]
-    self=nodeOperatorSatelliteTidalMassLoss(satelliteTidalStripping_)
+    self=nodeOperatorSatelliteTidalMassLoss(applyPreInfall,satelliteTidalStripping_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="satelliteTidalStripping_"/>
@@ -70,15 +78,16 @@ contains
     return
   end function satelliteTidalStrippingConstructorParameters
 
-  function satelliteTidalStrippingConstructorInternal(satelliteTidalStripping_) result(self)
+  function satelliteTidalStrippingConstructorInternal(applyPreInfall,satelliteTidalStripping_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily satelliteTidalStripping} node operator class.
     !!}
     implicit none
-    type (nodeOperatorSatelliteTidalMassLoss)                        :: self
-    class(satelliteTidalStrippingClass      ), intent(in   ), target :: satelliteTidalStripping_
-    !![
-    <constructorAssign variables="*satelliteTidalStripping_"/>
+    type   (nodeOperatorSatelliteTidalMassLoss)                        :: self
+    class  (satelliteTidalStrippingClass      ), intent(in   ), target :: satelliteTidalStripping_
+    logical                                    , intent(in   )         :: applyPreInfall
+    !![ 
+    <constructorAssign variables="applyPreInfall, *satelliteTidalStripping_"/>
     !!]
 
     return
@@ -111,7 +120,7 @@ contains
     class    (nodeComponentSatellite            )               , pointer :: satellite
     !$GLC attributes unused :: interrupt, functionInterrupt, propertyType
 
-    if (.not.node%isSatellite()) return
+    if (.not.self%applyPreInfall.and..not.node%isSatellite()) return
     satellite => node%satellite()
     call satellite%boundMassRate(self%satelliteTidalStripping_%massLossRate(node))
     return
