@@ -57,17 +57,18 @@
      class           (darkMatterHaloBiasClass                       ), pointer                     :: darkMatterHaloBias_       => null()
      class           (powerSpectrumClass                            ), pointer                     :: powerSpectrum_            => null()
      class           (cosmologicalMassVarianceClass                 ), pointer                     :: cosmologicalMassVariance_ => null()
-     double precision                                                , dimension(:  ), allocatable :: mass                               , massFunction        , &
+     double precision                                                , dimension(:  ), allocatable :: mass                               , massFunction                      , &
           &                                                                                           massMinimum                        , massMaximum
      double precision                                                , dimension(:,:), allocatable :: covarianceMatrix
      integer         (c_size_t                                      ), dimension(:  ), allocatable :: countHalos
-     double precision                                                                              :: time                               , massParticle        , &
-          &                                                                                           massRangeMinimum                   , massRangeMaximum    , &
-          &                                                                                           countConversionFactor              , redshift            , &
-          &                                                                                           varianceSimulation                 , lengthSimulationCube, &
-          &                                                                                           massSphere
-     logical                                                                                       :: likelihoodPoisson                  , truncatePower
-     integer                                                                                       :: binCountMinimum
+     double precision                                                                              :: time                               , massParticle                      , &
+          &                                                                                           massRangeMinimum                   , massRangeMaximum                  , &
+          &                                                                                           countConversionFactor              , redshift                          , &
+          &                                                                                           varianceSimulation                 , lengthSimulationCube              , &
+          &                                                                                           massSphere                         , varianceFractionalModelDiscrepancy
+     logical                                                                                       :: likelihoodPoisson                  , truncatePower                     , &
+          &                                                                                           includeDiscrepancyChecked
+     integer                                                                                       :: binCountMinimum                    , indexDiscrepancy
      type            (vector                                        )                              :: means
      type            (matrix                                        )                              :: covariance
      type            (varying_string                                )                              :: fileName
@@ -110,9 +111,9 @@ contains
     type            (posteriorSampleLikelihoodHaloMassFunction)                :: self
     type            (inputParameters                          ), intent(inout) :: parameters
     type            (varying_string                           )                :: fileName                 , baseParametersFileName
-    double precision                                                           :: redshift                 , massRangeMinimum      , &
-         &                                                                        massRangeMaximum         , lengthSimulationCube  , &
-         &                                                                        massSphere
+    double precision                                                           :: redshift                 , massRangeMinimum                  , &
+         &                                                                        massRangeMaximum         , lengthSimulationCube              , &
+         &                                                                        massSphere               , varianceFractionalModelDiscrepancy
     integer                                                                    :: binCountMinimum
     logical                                                                    :: likelihoodPoisson        , truncatePower
     type            (inputParameters                          ), pointer       :: parametersModel
@@ -167,6 +168,12 @@ contains
       <description>The likelihood model to use for this halo mass function.</description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter>
+      <name>varianceFractionalModelDiscrepancy</name>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The fractional variance due to model discrepancy.</description>
+      <source>parameters</source>
+    </inputParameter>
     !!]
     if      (likelihoodModel == 'simulationCube'  ) then
        !![
@@ -215,7 +222,7 @@ contains
     <objectBuilder class="darkMatterHaloBias"       name="darkMatterHaloBias_"       source="parametersModel"/>
     <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parametersModel"/>
     <conditionalCall>
-      <call>self=posteriorSampleLikelihoodHaloMassFunction(char(fileName),redshift,massRangeMinimum,massRangeMaximum,binCountMinimum,likelihoodPoisson,enumerationHaloMassFunctionLikelihoodModelEncode(char(likelihoodModel),includesPrefix=.false.),parametersModel,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloBias_,powerSpectrum_,cosmologicalMassVariance_{conditions})</call>
+      <call>self=posteriorSampleLikelihoodHaloMassFunction(char(fileName),redshift,massRangeMinimum,massRangeMaximum,binCountMinimum,likelihoodPoisson,varianceFractionalModelDiscrepancy,enumerationHaloMassFunctionLikelihoodModelEncode(char(likelihoodModel),includesPrefix=.false.),parametersModel,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloBias_,powerSpectrum_,cosmologicalMassVariance_{conditions})</call>
       <argument name="lengthSimulationCube" value="lengthSimulationCube" condition="likelihoodModel == 'simulationCube'"                                           />
       <argument name="massSphere"           value="massSphere"           condition="likelihoodModel == 'simulationSphere'"                                         />
       <argument name="truncatePower"        value="truncatePower"        condition="likelihoodModel == 'simulationCube' .or. likelihoodModel == 'simulationSphere'"/>
@@ -231,7 +238,7 @@ contains
     return
   end function haloMassFunctionConstructorParameters
 
-  function haloMassFunctionConstructorInternal(fileName,redshift,massRangeMinimum,massRangeMaximum,binCountMinimum,likelihoodPoisson,likelihoodModel,parametersModel,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloBias_,powerSpectrum_,cosmologicalMassVariance_,lengthSimulationCube,massSphere,truncatePower) result(self)
+  function haloMassFunctionConstructorInternal(fileName,redshift,massRangeMinimum,massRangeMaximum,binCountMinimum,likelihoodPoisson,varianceFractionalModelDiscrepancy,likelihoodModel,parametersModel,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloBias_,powerSpectrum_,cosmologicalMassVariance_,lengthSimulationCube,massSphere,truncatePower) result(self)
     !!{
     Constructor for ``haloMassFunction'' posterior sampling likelihood class.
     !!}
@@ -248,8 +255,8 @@ contains
     implicit none
     type            (posteriorSampleLikelihoodHaloMassFunction     )                                :: self
     character       (len=*                                         ), intent(in   )                 :: fileName
-    double precision                                                , intent(in   )                 :: redshift                            , massRangeMinimum, &
-         &                                                                                             massRangeMaximum
+    double precision                                                , intent(in   )                 :: redshift                            , massRangeMinimum                  , &
+         &                                                                                             massRangeMaximum                    , varianceFractionalModelDiscrepancy
     integer                                                         , intent(in   )                 :: binCountMinimum
     logical                                                         , intent(in   )                 :: likelihoodPoisson
     type            (enumerationHaloMassFunctionLikelihoodModelType), intent(in   )                 :: likelihoodModel
@@ -261,17 +268,17 @@ contains
     class           (cosmologicalMassVarianceClass                 ), intent(inout), target         :: cosmologicalMassVariance_
     double precision                                                , intent(in   ), optional       :: lengthSimulationCube                , massSphere
     logical                                                         , intent(in   ), optional       :: truncatePower
-    double precision                                                , allocatable  , dimension(:  ) :: eigenValueArray                     , massOriginal    , &
+    double precision                                                , allocatable  , dimension(:  ) :: eigenValueArray                     , massOriginal                      , &
          &                                                                                             massFunctionOriginal
     integer         (c_size_t                                      ), allocatable  , dimension(:  ) :: massFunctionCountOriginal
     double precision                                                , allocatable  , dimension(:,:) :: massFunctionCovarianceOriginal
     double precision                                                , parameter                     :: wavenumberMaximumFractional   =1.0d2
-    character       (len=12                                        )                                :: redshiftLabel                       , lengthCubeLabel , &
+    character       (len=12                                        )                                :: redshiftLabel                       , lengthCubeLabel                   , &
          &                                                                                             timeLabel
-    type            (hdf5Object                                    )                                :: massFunctionFile                    , simulationGroup , &
+    type            (hdf5Object                                    )                                :: massFunctionFile                    , simulationGroup                   , &
          &                                                                                             varianceFile
-    integer                                                                                         :: i                                   , j               , &
-         &                                                                                             ii                                  , jj              , &
+    integer                                                                                         :: i                                   , j                                 , &
+         &                                                                                             ii                                  , jj                                , &
          &                                                                                             massCountReduced
     double precision                                                                                :: massIntervalLogarithmic
     type            (matrix                                        )                                :: eigenVectors
@@ -279,7 +286,7 @@ contains
     type            (varying_string                                )                                :: fileNameVariance
     type            (lockDescriptor                                )                                :: fileLock
     !![
-    <constructorAssign variables="fileName, redshift, binCountMinimum, massRangeMinimum, massRangeMaximum, likelihoodPoisson, likelihoodModel, *parametersModel, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterHaloBias_, *powerSpectrum_, *cosmologicalMassVariance_, lengthSimulationCube, massSphere, truncatePower"/>
+    <constructorAssign variables="fileName, redshift, binCountMinimum, massRangeMinimum, massRangeMaximum, likelihoodPoisson, varianceFractionalModelDiscrepancy, likelihoodModel, *parametersModel, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterHaloBias_, *powerSpectrum_, *cosmologicalMassVariance_, lengthSimulationCube, massSphere, truncatePower"/>
     !!]
 
     ! Convert redshift to time.
@@ -288,6 +295,8 @@ contains
          &                                                     redshift &
          &                                                    )         &
          &                                                   )
+    ! Record that we have not yet checked if model discrepancy terms should be included.
+    self%includeDiscrepancyChecked=.false.
     ! Read the halo mass function file.
     write (redshiftLabel,'(f6.3)') redshift
     !$ call hdf5Access%set()
@@ -689,6 +698,7 @@ contains
     use :: Posterior_Sampling_State         , only : posteriorSampleStateClass
     use :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassErrorClass         , nbodyHaloMassErrorPowerLaw, nbodyHaloMassErrorSOHaloFinder, nbodyHaloMassErrorTrenti2010
     use :: Factorials                       , only : Logarithmic_Factorial
+    use :: Gamma_Functions                  , only : Gamma_Function_Logarithmic
     use :: Root_Finder                      , only : rootFinder                      , rangeExpandMultiplicative , rangeExpandSignExpectPositive , rangeExpandSignExpectNegative
     implicit none
     class           (posteriorSampleLikelihoodHaloMassFunction), intent(inout)               :: self
@@ -707,10 +717,11 @@ contains
     type            (vector                                   )                              :: difference
     type            (integrator                               ), allocatable                 :: integrator_
     type            (rootFinder                               ), allocatable                 :: finder_
-    logical                       :: evaluationFailed
+    logical                                                                                  :: evaluationFailed
     integer                                                                                  :: i                                            , status
     double precision                                                                         :: countHalosMean                               , likelihood                                   , &
-         &                                                                                      argumentOffset                               , amplitudeFractionalPerturbationPeak
+         &                                                                                      argumentOffset                               , amplitudeFractionalPerturbationPeak          , &
+         &                                                                                      varianceFractionalModelDiscrepancy           , stoppingTimeParameter
     !$GLC attributes unused :: simulationConvergence, temperature, timeEvaluate, logLikelihoodCurrent, logPriorCurrent, modelParametersInactive_, forceAcceptance
 
     ! There is no variance in our likelihood estimate.
@@ -727,10 +738,31 @@ contains
     stateVector=simulationState%get()
     ! Update parameter values.
     call self%update(simulationState,modelParametersActive_,modelParametersInactive_,stateVector)
+    if (.not.self%includeDiscrepancyChecked) then
+       self%includeDiscrepancyChecked=.true.
+       self%indexDiscrepancy         =-1
+       do i=1,size(self%modelParametersActive_)
+          if (self%modelParametersActive_(i)%definition == "varianceFractionalModelDiscrepancy") then
+             if (self%indexDiscrepancy > 0) call Error_Report('multiple instances of parameter [varianceFractionalModelDiscrepancy] found'//{introspection:location})
+             self%indexDiscrepancy=i
+          end if
+       end do
+    end if
     ! Get the halo mass function object.
     !![
     <objectBuilder class="haloMassFunction" name="haloMassFunction_" source="self%parametersModel"/>
     !!]
+    ! Determine the model discrepancy variance term.
+    if (self%indexDiscrepancy > 0) then
+       varianceFractionalModelDiscrepancy=stateVector(self%indexDiscrepancy)
+    else
+       varianceFractionalModelDiscrepancy=self%varianceFractionalModelDiscrepancy
+    end if
+    if (varianceFractionalModelDiscrepancy > 0.0d0) then
+       stoppingTimeParameter=1.0d0/varianceFractionalModelDiscrepancy
+    else
+       stoppingTimeParameter=0.0d0
+    end if
     ! Compute the mass function.
     allocate(massFunction(size(self%mass)))
     evaluationFailed=.false.
@@ -797,11 +829,23 @@ contains
                    countHalosMean=+self%countConversionFactor                                                                                                      &
                         &         *     massFunction                                                                 (i)                                           &
                         &         *     amplitudeFractionalPerturbationPeak**(self%darkMatterHaloBias_%bias(self%mass(i),self%time)*sqrt(self%varianceSimulation))
-                   argumentOffset=+argumentOffset                                     &
-                        &         +dble                 (    self%countHalos    (i))  &
-                        &         *log                  (         countHalosMean   )  &
-                        &         -                               countHalosMean      &
-                        &         -Logarithmic_Factorial(int(self%countHalos    (i)))
+                   if (varianceFractionalModelDiscrepancy <= 0.0d0) then
+                      ! Evaluate the Poisson likelihood (zero model discrepancy term).
+                      argumentOffset=+argumentOffset                                     &
+                           &         +dble                 (    self%countHalos    (i))  &
+                           &         *log                  (         countHalosMean   )  &
+                           &         -                               countHalosMean      &
+                           &         -Logarithmic_Factorial(int(self%countHalos    (i)))
+                   else
+                      ! Evaluate the negative binomial likelihood (non-zero model discrepancy term).
+                      argumentOffset=+argumentOffset                                     &
+                           &         +dble(self%countHalos           (i))*log                       (                                               countHalosMean    ) &
+                           &         -                                    Logarithmic_Factorial     (                                    +int (self%countHalos    (i))) &
+                           &         +                                    Gamma_Function_Logarithmic(               stoppingTimeParameter+dble(self%countHalos    (i))) &
+                           &         -                                    Gamma_Function_Logarithmic(               stoppingTimeParameter                             ) &
+                           &         -dble(self%countHalos           (i))*Gamma_Function_Logarithmic(               stoppingTimeParameter+          countHalosMean    ) &
+                           &         -          stoppingTimeParameter    *log                       (countHalosMean/stoppingTimeParameter+1.0d0                       )
+                   end if
                 end do
                 ! Integrate the Poisson distribution over the distribution of mean parameters.
                 allocate(integrator_)             
@@ -824,7 +868,7 @@ contains
                 end if
              end if
           else
-             ! No simulation variance is to be included. We treat each bin as independent with a pure Poisson distribution.
+             ! No simulation variance is to be included. We treat each bin as independent with a pure Poisson/negative binomial distribution.
              haloMassFunctionEvaluate=0.0d0
              do i=1,size(self%mass)
                 ! Find the mean number of halos expected in this bin based on our model mass function.
@@ -837,12 +881,27 @@ contains
                       exit
                    end if
                 else
-                   ! Evaluate the Poisson likelihood.
-                   haloMassFunctionEvaluate=+                               haloMassFunctionEvaluate      &
-                        &                   +dble                 (    self%countHalos              (i))  &
-                        &                   *log                  (         countHalosMean             )  &
-                        &                   -                               countHalosMean                &
-                        &                   -Logarithmic_Factorial(int(self%countHalos              (i)))
+                   if (varianceFractionalModelDiscrepancy <= 0.0d0) then
+                      ! Evaluate the Poisson likelihood (zero model discrepancy term).
+                      haloMassFunctionEvaluate=+                               haloMassFunctionEvaluate      &
+                           &                   +dble                 (    self%countHalos              (i))  &
+                           &                   *log                  (         countHalosMean             )  &
+                           &                   -                               countHalosMean                &
+                           &                   -Logarithmic_Factorial(int(self%countHalos              (i)))
+                   else
+                      ! Evaluate the negative binomial likelihood (non-zero model discrepancy term).
+                      haloMassFunctionEvaluate=+haloMassFunctionEvaluate                                                                                                          &
+                           &                   +dble(self%countHalos           (i))*log                       (                                               countHalosMean    ) &
+                           &                   -                                    Logarithmic_Factorial     (                                    +int (self%countHalos    (i))) &
+                           &                   +                                    Gamma_Function_Logarithmic(               stoppingTimeParameter+dble(self%countHalos    (i))) &
+                           &                   -                                    Gamma_Function_Logarithmic(               stoppingTimeParameter                             ) &
+                           &                   -dble(self%countHalos           (i))*Gamma_Function_Logarithmic(               stoppingTimeParameter+          countHalosMean    ) &
+                           &                   -          stoppingTimeParameter    *log                       (countHalosMean/stoppingTimeParameter+1.0d0                       )
+
+
+write (0,*) "WTF ",i,haloMassFunctionEvaluate
+
+                   end if
                 end if
              end do
           end if
@@ -884,11 +943,23 @@ contains
          countHalosMean=+self%countConversionFactor                                                                                                  &
               &         *     massFunction                                                             (i)                                           &
               &         *     amplitudeFractionalPerturbation**(self%darkMatterHaloBias_%bias(self%mass(i),self%time)*sqrt(self%varianceSimulation))
-         argument      =+argument                                           &
-              &         +dble                 (    self%countHalos    (i))  &
-              &         *log                  (         countHalosMean   )  &
-              &         -                               countHalosMean      &
-              &         -Logarithmic_Factorial(int(self%countHalos    (i)))
+         if (varianceFractionalModelDiscrepancy <= 0.0d0) then
+            ! Evaluate the Poisson likelihood (zero model discrepancy term).
+            argument      =+argument                                           &
+                 &         +dble                 (    self%countHalos    (i))  &
+                 &         *log                  (         countHalosMean   )  &
+                 &         -                               countHalosMean      &
+                 &         -Logarithmic_Factorial(int(self%countHalos    (i)))
+         else
+            ! Evaluate the negative binomial likelihood (non-zero model discrepancy term).
+            argument      =+argument                                                                                                                          &
+                 &         +dble(self%countHalos           (i))*log                       (                                               countHalosMean    ) &
+                 &         -                                    Logarithmic_Factorial     (                                    +int (self%countHalos    (i))) &
+                 &         +                                    Gamma_Function_Logarithmic(               stoppingTimeParameter+dble(self%countHalos    (i))) &
+                 &         -                                    Gamma_Function_Logarithmic(               stoppingTimeParameter                             ) &
+                 &         -dble(self%countHalos           (i))*Gamma_Function_Logarithmic(               stoppingTimeParameter+          countHalosMean    ) &
+                 &         -          stoppingTimeParameter    *log                       (countHalosMean/stoppingTimeParameter+1.0d0                       )
+         end if
       end do
       integrandLikelihoodPoisson=+exp(                            &
            &                          +argument                   &
@@ -903,6 +974,7 @@ contains
       !!{
       Root function used to find the value of the perturbation amplitude which maximizes the integrand for the Poisson likelihood.
       !!}
+      use :: Gamma_Functions, only : Digamma_Function
       implicit none
       double precision, intent(in   ) :: amplitudeFractionalPerturbation
       integer                         :: i
@@ -916,14 +988,22 @@ contains
          ! Skip empty bins.
          if (massFunction(i) <= 0.0d0) cycle
          ! Find the mean number of halos in this bin according to the model.
-         countHalosMean     =+     self                     %countConversionFactor                          &
-              &              *                              massFunction          (          i           )
+         countHalosMean  =+     self                     %countConversionFactor                         &
+              &           *                              massFunction          (          i           )
          ! Compute the contribution to the gradient of the argument.
-         amplitudeScaling   =     +self%darkMatterHaloBias_%bias                  (self%mass(i),self%time)  &
-              &              *sqrt(self                    %varianceSimulation                            )
-         argumentMaximumRoot=+argumentMaximumRoot                                                                                        &
-              &              +amplitudeScaling   *dble(self%countHalos    (i))*amplitudeFractionalPerturbation**(                -1.0d0) &              
-              &              -amplitudeScaling   *          countHalosMean    *amplitudeFractionalPerturbation**(amplitudeScaling-1.0d0)
+         amplitudeScaling=+     self%darkMatterHaloBias_%bias                  (self%mass(i),self%time) &
+              &           *sqrt(self                    %varianceSimulation                           )
+         if (varianceFractionalModelDiscrepancy <= 0.0d0) then
+            ! Evaluate the Poisson likelihood (zero model discrepancy term).
+             argumentMaximumRoot=+argumentMaximumRoot                                                                                                                                                                &
+              &                  +amplitudeScaling                  *dble(self%countHalos(i))*amplitudeFractionalPerturbation**(                -1.0d0)                                                              &              
+              &                  -amplitudeScaling   *countHalosMean                         *amplitudeFractionalPerturbation**(amplitudeScaling-1.0d0)
+         else
+             argumentMaximumRoot=+argumentMaximumRoot                                                                                                                                                                &
+                 &               +amplitudeScaling                  *dble(self%countHalos(i))*amplitudeFractionalPerturbation**(                -1.0d0)                                                              &
+                 &               -amplitudeScaling   *countHalosMean                         *amplitudeFractionalPerturbation**(                -1.0d0)/                (1.0d0+countHalosMean/stoppingTimeParameter) &
+                 &               -amplitudeScaling   *countHalosMean*dble(self%countHalos(i))*amplitudeFractionalPerturbation**(                -1.0d0)*Digamma_Function(      countHalosMean+stoppingTimeParameter)
+         end if
       end do
       return
     end function argumentMaximumRoot
