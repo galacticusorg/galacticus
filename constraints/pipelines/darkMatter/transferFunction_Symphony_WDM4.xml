@@ -17,8 +17,8 @@
     <nu               value="1.000"   />
     <!-- Dark matter particle properties -->
     <darkMatterParticle value="WDMThermal">
-      <degreesOfFreedomEffective value=" 1.5"/>
-      <mass                      value="10.0"/>
+      <degreesOfFreedomEffective value="1.5"/>
+      <mass                      value="4.0"/>
     </darkMatterParticle>
     <!-- Bode2001 transfer function works by modifying a CDM transfer function - so feed it a CDM transfer function here -->
     <transferFunction value="CAMB">

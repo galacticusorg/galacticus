@@ -24,8 +24,7 @@
     <transferFunction value="CAMB">
       <!-- Feed this transfer function a CDM particle - otherwise it will see the WDM particle defined above and complain that it
 	   can not compute WDM transfer functions -->
-      <darkMatterParticle value="CDM"  />
-      <redshift           value="3.046"/>
+      <darkMatterParticle value="CDM"/>
     </transferFunction>
   </transferFunction>
 
