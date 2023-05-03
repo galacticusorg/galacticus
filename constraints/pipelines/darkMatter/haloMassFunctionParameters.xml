@@ -3,9 +3,10 @@
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
 
-  <!-- Controllable parameters -->
+  <!-- Controllable parameters of the halo mass function -->
   <haloMassFunctionParameters value="" ignoreWarnings="true">
     <a             value="+0.8745"/>
+    <b             value="+1.0000"/>
     <p             value="-0.0306"/>
     <q             value="+1.0000"/>
     <normalization value="+0.3318"/>
@@ -13,5 +14,8 @@
     <cW            value="+1.8500"/>
     <beta          value="+4.4100"/>
   </haloMassFunctionParameters>
+
+  <!-- Parameter controlling the fractional variance due to model discrepancy -->
+  <varianceFractionalModelDiscrepancy value="0.0"/>
 
 </parameters>

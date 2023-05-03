@@ -23,6 +23,7 @@
     <toleranceRelative      value="3.0e-4"/>
     <haloMassFunction value="bhattacharya2011">
       <a             value="=[haloMassFunctionParameters::a]"            />
+      <b             value="=[haloMassFunctionParameters::b]"            />
       <p             value="=[haloMassFunctionParameters::p]"            />
       <q             value="=[haloMassFunctionParameters::q]"            />
       <normalization value="=[haloMassFunctionParameters::normalization]"/>
