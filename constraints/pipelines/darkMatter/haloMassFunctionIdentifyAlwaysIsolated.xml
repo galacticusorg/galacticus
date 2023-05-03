@@ -21,7 +21,7 @@
       <missingHostsAreFatal value="false"/>
     </nbodyOperator>
     <nbodyOperator value="deleteProperties">
-      <propertyNames value="descendantID hostID isolatedHostID isMostMassiveProgenitor radiusVirial position snapshotID"/>
+      <propertyNames value="descendentID hostID isolatedHostID isMostMassiveProgenitor radiusVirial position snapshotID"/>
     </nbodyOperator>
     <nbodyOperator value="exportIRATE">
       <fileName value="alwaysIsolated_subVolume0_0_0.hdf5"/>
