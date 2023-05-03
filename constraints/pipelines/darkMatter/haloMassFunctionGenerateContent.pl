@@ -464,7 +464,7 @@ foreach my $type ( @types ) {
         <massRangeMaximum       value="{$massMaximum}"    /> <!-- 1/10 of the target halo mass             -->
         <binCountMinimum        value="0"                 />    
         <likelihoodPoisson      value="true"              />
-        <likelihoodModel        value="simulatonSphere"   />
+        <likelihoodModel        value="simulationSphere"  />
         <massSphere             value="{$massEnvironment}"/>
         <truncatePower          value="true"              />
       </posteriorSampleLikelihood>
