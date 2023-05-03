@@ -17,12 +17,24 @@
   <MilkyWay_WDM10_hires Halo004="26174044" />
   <MilkyWay_WDM3 Halo004="1889038" Halo023="1801126" Halo113="3365592" />
   <MilkyWay_WDM3_hires Halo004="7748313" />
+  <MilkyWay_WDM4 Halo004="2474249" Halo023="2373967" Halo113="4391711" />
+  <MilkyWay_WDM4_hires Halo004="10717188" />
+  <MilkyWay_WDM5 Halo004="2992840" Halo023="2914080" Halo113="5330129" />
+  <MilkyWay_WDM5_hires Halo004="13681032" />
+  <MilkyWay_WDM6 Halo004="3498758" Halo023="3416990" Halo113="6221709" />
+  <MilkyWay_WDM6_hires Halo004="16485958" />
   <MilkyWay_WDM6.5 Halo004="3748000" Halo023="3689954" Halo113="6642869" />
   <MilkyWay_WDM6.5_hires Halo004="17700097" />
   <MilkyWay_fdm_185e-22eV Halo004="3910587" Halo023="3862528" Halo113="6907393" />
   <MilkyWay_fdm_185e-22eV_hires Halo004="17809555" />
   <MilkyWay_fdm_25.9e-22eV Halo004="1830021" Halo023="1739218" Halo113="3212308" />
   <MilkyWay_fdm_25.9e-22eV_hires Halo004="7142909" />
+  <MilkyWay_fdm_69.4e-22eV Halo004="2732848" Halo023="2650337" Halo113="4818911" />
+  <MilkyWay_fdm_69.4e-22eV_hires Halo004="11426744" />
+  <MilkyWay_fdm_113e-22eV Halo004="3275786" Halo023="3186876" Halo113="5786205" />
+  <MilkyWay_fdm_113e-22eV_hires Halo004="14346703" />
+  <MilkyWay_fdm_151e-22eV Halo004="3638289" Halo023="3546665" Halo113="6431978" />
+  <MilkyWay_fdm_151e-22eV_hires Halo004="16319922" />
   <MilkyWay_fdm_490e-22eV Halo004="5424974" Halo023="5314898" Halo113="9529989" />
   <MilkyWay_fdm_490e-22eV_hires Halo004="26071539" />
   <MilkyWay_hires Halo004="56005717" />
