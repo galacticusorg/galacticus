@@ -111,6 +111,7 @@ contains
                 ! This is the final parameter - so get and store a pointer to its node.
                 self%modelParametersActive_(i)%parameter_   => parameters_%node         (char(parameterNames(j)),requireValue=.true. ,copyInstance=instance)
                 self%modelParametersActive_(i)%indexElement =  indexElement
+                self%modelParametersActive_(i)%definition   =  modelParametersActive_(i)%modelParameter_%name()
              else
                 ! This is an intermediate parameter, get the appropriate sub-parameters.
                 allocate  (subParameters_)
@@ -235,7 +236,7 @@ contains
     if (size(modelParametersInactive_) > 0) then
        do i=1,size(modelParametersInactive_)
           select type (modelParameter_ => modelParametersInactive_(i)%modelParameter_)
-             class is (modelParameterDerived)
+          class is (modelParameterDerived)
              self%modelParametersInactive_(i)%definition=modelParameter_%definition()
              self%modelParametersInactive_(i)%resolved  =.false.
           end select
