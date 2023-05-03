@@ -58,7 +58,7 @@
     \dot{M}_\mathrm{hot} = - {\alpha_\mathrm{adjust} \over \tau_\mathrm{dyn}} [M_\mathrm{hot}+M_\mathrm{unaccreted}]
     [f_\mathrm{accreted}-f(M_\mathrm{200b}/M_\mathrm{F})],
     \end{equation}
-    where $\alpha_\mathrm{adjust} = $[{\normalfont \ttfamily accretionHaloNaozBarkana2007RateAdjust}].
+    where $\alpha_\mathrm{adjust} = $[{\normalfont \ttfamily rateAdjust}].
    </description>
   </accretionHalo>
   !!]
