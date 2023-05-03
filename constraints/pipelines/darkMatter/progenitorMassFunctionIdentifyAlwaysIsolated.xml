@@ -30,7 +30,7 @@
       <selectedValues value=""/>
     </nbodyOperator>
     <nbodyOperator value="deleteProperties">
-      <propertyNames value="alwaysIsolated descendantID isolatedHostID hostID isMostMassiveProgenitor"/>
+      <propertyNames value="alwaysIsolated descendentID isolatedHostID hostID isMostMassiveProgenitor"/>
     </nbodyOperator>
     <nbodyOperator value="exportIRATE">
       <fileName value="alwaysIsolated_progenitors_subVolume0_0_0.hdf5"/>
