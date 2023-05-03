@@ -93,903 +93,1299 @@ my @simulations =
          subvolumes          => 10,
          expansionFactors    => [ 1.00000, 0.67120, 0.50320, 0.33030, 0.24770 ]
      },
-     # {
-     # 	 # Milky Way zoom-in simulations from the Symphony suite. Host halo IDs were found (by Ethan Nadler) by matching the MAH to
-     # 	 # that of the target halo in the originasl cosmological box simulation.
-     # 	 label                   => "MilkyWay",
-     # 	 subpath                 => "ZoomIns",
-     # 	 realizations            => [ "Halo023", "Halo088", "Halo119", "Halo188", "Halo247", "Halo268", "Halo270", "Halo288", "Halo327", "Halo349", "Halo364", "Halo374", "Halo414", "Halo415", "Halo416", "Halo440", "Halo460", "Halo469", "Halo490", "Halo530", "Halo558", "Halo567", "Halo570", "Halo606", "Halo628", "Halo641", "Halo675", "Halo718", "Halo738", "Halo749", "Halo797", "Halo800", "Halo825", "Halo829", "Halo852", "Halo878", "Halo881", "Halo925", "Halo926", "Halo937", "Halo939", "Halo967", "Halo9749", "Halo9829", "Halo990", "Halo004", "Halo113" ],
-     # 	 description             => "Halo mass function for non-backsplash halos from Milky Way zoom-in simulations.",
-     # 	 simulationReference     => "Nadler et al.",
-     # 	 simulationURL           => "https://www",
-     # 	 hubbleConstant          => 0.7,
-     # 	 massParticle            => 2.81981e5,
-     # 	 massHostLogMin          => 12.0, 
-     # 	 massHostLogMax          => 12.3, 
-     # 	 subvolumes              => 1,
-     # 	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
-     # 	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
-     # 	 processIdentify         => \&zoomInsProcessIdentify,
-     # 	 preprocessExtract       => [
-     # 	     \&zoomInsPreProcessExtractLocate,
-     # 	     \&zoomInsPreProcessExtractUncontaminated,
-     # 	     ],
-     # 	 processExtract          => \&zoomInsProcessExtract,
-     # 	 postprocessExtract      =>
-     # 	     [
-     # 	      \&zoomInsPostprocessSelectInSphere    ,
-     # 	      \&zoomInsPostprocessExtractSelectedIDs,
-     # 	      \&zoomInsPostprocessSelectInICs       ,
-     # 	      \&zoomInsPostprocessAnalyze           ,
-     # 	      \&zoomInsPostprocessSetVolume
-     # 	     ],
-     # 	 postprocessMassFunction =>
-     # 	     [
-     # 	      \&zoomInsPostProcessMassFunction
-     # 	     ]
-     # },
-     # {
-     # 	 label                   => "MilkyWay_hires",
-     # 	 subpath                 => "ZoomIns",
-     # 	 realizations            => [ "Halo004", ],
-     # 	 description             => "Halo mass function for non-backsplash halos from Milky Way zoom-in simulations.",
-     # 	 simulationReference     => "Nadler et al.",
-     # 	 simulationURL           => "https://www",
-     # 	 hubbleConstant          => 0.7,
-     # 	 massParticle            => 3.5247625e4,
-     # 	 massHostLogMin          => 12.0, 
-     # 	 massHostLogMax          => 12.3, 
-     # 	 subvolumes              => 1,
-     # 	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
-     # 	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
-     # 	 processIdentify         => \&zoomInsProcessIdentify,
-     # 	 preprocessExtract       => [
-     # 	     \&zoomInsPreProcessExtractLocate,
-     # 	     \&zoomInsPreProcessExtractUncontaminated,
-     # 	     ],
-     # 	 processExtract          => \&zoomInsProcessExtract,
-     # 	 postprocessExtract      =>
-     # 	     [
-     # 	      \&zoomInsPostprocessSelectInSphere    ,
-     # 	      \&zoomInsPostprocessExtractSelectedIDs,
-     # 	      \&zoomInsPostprocessSelectInICs       ,
-     # 	      \&zoomInsPostprocessAnalyze           ,
-     # 	      \&zoomInsPostprocessSetVolume
-     # 	     ],
-     # 	 postprocessMassFunction =>
-     # 	     [
-     # 	      \&zoomInsPostProcessMassFunction
-     # 	     ]
-     # },
-     # {
-     # 	 label                   => "MilkyWay_WDM3",
-     # 	 subpath                 => "ZoomIns",
-     # 	 realizations            => [ "Halo004", "Halo113", "Halo023" ],
-     # 	 description             => "Halo mass function for non-backsplash halos from Milky Way, 3keV WDM zoom-in simulations.",
-     # 	 simulationReference     => "Nadler et al.",
-     # 	 simulationURL           => "https://www",
-     # 	 hubbleConstant          => 0.7,
-     # 	 massHostLogMin          => 12.0, 
-     # 	 massHostLogMax          => 12.3, 
-     # 	 massParticle            => 2.81981e5,
-     # 	 subvolumes              => 1,
-     # 	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
-     # 	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
-     # 	 processIdentify         => \&zoomInsProcessIdentify,
-     # 	 processExtract          => \&zoomInsProcessExtract,
-     # 	 preprocessExtract       => [
-     # 	     \&zoomInsPreProcessExtractLocate,
-     # 	     \&zoomInsPreProcessExtractUncontaminated,
-     # 	     ],
-     # 	 postprocessExtract      =>
-     # 	     [
-     # 	      \&zoomInsPostprocessSelectInSphere    ,
-     # 	      \&zoomInsPostprocessExtractSelectedIDs,
-     # 	      \&zoomInsPostprocessSelectInICs       ,
-     # 	      \&zoomInsPostprocessAnalyze           ,
-     # 	      \&zoomInsPostprocessSetVolume
-     # 	     ],
-     # 	 postprocessMassFunction =>
-     # 	     [
-     # 	      \&zoomInsPostProcessMassFunction
-     # 	     ]
-     # },
-     # {
-     # 	 label                   => "MilkyWay_WDM6.5",
-     # 	 subpath                 => "ZoomIns",
-     # 	 realizations            => [ "Halo004", "Halo113", "Halo023" ],
-     # 	 description             => "Halo mass function for non-backsplash halos from Milky Way, 6.5keV WDM zoom-in simulations.",
-     # 	 simulationReference     => "Nadler et al.",
-     # 	 simulationURL           => "https://www",
-     # 	 hubbleConstant          => 0.7,
-     # 	 massHostLogMin          => 12.0, 
-     # 	 massHostLogMax          => 12.3, 
-     # 	 massParticle            => 2.81981e5,
-     # 	 subvolumes              => 1,
-     # 	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
-     # 	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
-     # 	 processIdentify         => \&zoomInsProcessIdentify,
-     # 	 processExtract          => \&zoomInsProcessExtract,
-     # 	 preprocessExtract       => [
-     # 	     \&zoomInsPreProcessExtractLocate,
-     # 	     \&zoomInsPreProcessExtractUncontaminated,
-     # 	     ],
-     # 	 postprocessExtract      =>
-     # 	     [
-     # 	      \&zoomInsPostprocessSelectInSphere    ,
-     # 	      \&zoomInsPostprocessExtractSelectedIDs,
-     # 	      \&zoomInsPostprocessSelectInICs       ,
-     # 	      \&zoomInsPostprocessAnalyze           ,
-     # 	      \&zoomInsPostprocessSetVolume
-     # 	     ],
-     # 	 postprocessMassFunction =>
-     # 	     [
-     # 	      \&zoomInsPostProcessMassFunction
-     # 	     ]
-     # },
-     # {
-     # 	 label                   => "MilkyWay_WDM10",
-     # 	 subpath                 => "ZoomIns",
-     # 	 realizations            => [ "Halo004", "Halo113", "Halo023" ],
-     # 	 description             => "Halo mass function for non-backsplash halos from Milky Way, 10keV WDM zoom-in simulations.",
-     # 	 simulationReference     => "Nadler et al.",
-     # 	 simulationURL           => "https://www",
-     # 	 hubbleConstant          => 0.7,
-     # 	 massHostLogMin          => 12.0, 
-     # 	 massHostLogMax          => 12.3, 
-     # 	 massParticle            => 2.81981e5,
-     # 	 subvolumes              => 1,
-     # 	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
-     # 	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
-     # 	 processIdentify         => \&zoomInsProcessIdentify,
-     # 	 processExtract          => \&zoomInsProcessExtract,
-     # 	 preprocessExtract       => [
-     # 	     \&zoomInsPreProcessExtractLocate,
-     # 	     \&zoomInsPreProcessExtractUncontaminated,
-     # 	     ],
-     # 	 postprocessExtract      =>
-     # 	     [
-     # 	      \&zoomInsPostprocessSelectInSphere    ,
-     # 	      \&zoomInsPostprocessExtractSelectedIDs,
-     # 	      \&zoomInsPostprocessSelectInICs       ,
-     # 	      \&zoomInsPostprocessAnalyze           ,
-     # 	      \&zoomInsPostprocessSetVolume
-     # 	     ],
-     # 	 postprocessMassFunction =>
-     # 	     [
-     # 	      \&zoomInsPostProcessMassFunction
-     # 	     ]
-     # },
-     # {
-     # 	 label                   => "MilkyWay_IDM1GeV_envelope",
-     # 	 subpath                 => "ZoomIns",
-     # 	 realizations            => [ "Halo004", "Halo113", "Halo023" ],
-     # 	 description             => "Halo mass function for non-backsplash halos from Milky Way, 1GeV (envelope) IDM zoom-in simulations.",
-     # 	 simulationReference     => "Nadler et al.",
-     # 	 simulationURL           => "https://www",
-     # 	 hubbleConstant          => 0.7,
-     # 	 massParticle            => 2.81981e5,
-     # 	 massHostLogMin          => 12.0, 
-     # 	 massHostLogMax          => 12.3, 
-     # 	 subvolumes              => 1,
-     # 	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
-     # 	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
-     # 	 processIdentify         => \&zoomInsProcessIdentify,
-     # 	 preprocessExtract       => [
-     # 	     \&zoomInsPreProcessExtractLocate,
-     # 	     \&zoomInsPreProcessExtractUncontaminated,
-     # 	     ],
-     # 	 processExtract          => \&zoomInsProcessExtract,
-     # 	 postprocessExtract      =>
-     # 	     [
-     # 	      \&zoomInsPostprocessSelectInSphere    ,
-     # 	      \&zoomInsPostprocessExtractSelectedIDs,
-     # 	      \&zoomInsPostprocessSelectInICs       ,
-     # 	      \&zoomInsPostprocessAnalyze           ,
-     # 	      \&zoomInsPostprocessSetVolume
-     # 	     ],
-     # 	 postprocessMassFunction =>
-     # 	     [
-     # 	      \&zoomInsPostProcessMassFunction
-     # 	     ]
-     # },
-     # {
-     # 	 label                   => "MilkyWay_IDM1GeV_halfmode",
-     # 	 subpath                 => "ZoomIns",
-     # 	 realizations            => [ "Halo004", "Halo023", "Halo113" ],
-     # 	 description             => "Halo mass function for non-backsplash halos from Milky Way, 1GeV (halfmode) IDM zoom-in simulations.",
-     # 	 simulationReference     => "Nadler et al.",
-     # 	 simulationURL           => "https://www",
-     # 	 hubbleConstant          => 0.7,
-     # 	 massParticle            => 2.81981e5,
-     # 	 massHostLogMin          => 12.0, 
-     # 	 massHostLogMax          => 12.3, 
-     # 	 subvolumes              => 1,
-     # 	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
-     # 	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
-     # 	 processIdentify         => \&zoomInsProcessIdentify,
-     # 	 preprocessExtract       => [
-     # 	     \&zoomInsPreProcessExtractLocate,
-     # 	     \&zoomInsPreProcessExtractUncontaminated,
-     # 	     ],
-     # 	 processExtract          => \&zoomInsProcessExtract,
-     # 	 postprocessExtract      =>
-     # 	     [
-     # 	      \&zoomInsPostprocessSelectInSphere    ,
-     # 	      \&zoomInsPostprocessExtractSelectedIDs,
-     # 	      \&zoomInsPostprocessSelectInICs       ,
-     # 	      \&zoomInsPostprocessAnalyze           ,
-     # 	      \&zoomInsPostprocessSetVolume
-     # 	     ],
-     # 	 postprocessMassFunction =>
-     # 	     [
-     # 	      \&zoomInsPostProcessMassFunction
-     # 	     ]
-     # },
-     # {
-     # 	 label                   => "MilkyWay_IDM1e-2GeV_envelope",
-     # 	 subpath                 => "ZoomIns",
-     # 	 realizations            => [ "Halo004", "Halo113", "Halo023" ],
-     # 	 description             => "Halo mass function for non-backsplash halos from Milky Way, 1e-2GeV (envelope) IDM zoom-in simulations.",
-     # 	 simulationReference     => "Nadler et al.",
-     # 	 simulationURL           => "https://www",
-     # 	 hubbleConstant          => 0.7,
-     # 	 massParticle            => 2.81981e5,
-     # 	 massHostLogMin          => 12.0, 
-     # 	 massHostLogMax          => 12.3, 
-     # 	 subvolumes              => 1,
-     # 	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
-     # 	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
-     # 	 processIdentify         => \&zoomInsProcessIdentify,
-     # 	 preprocessExtract       => [
-     # 	     \&zoomInsPreProcessExtractLocate,
-     # 	     \&zoomInsPreProcessExtractUncontaminated,
-     # 	     ],
-     # 	 processExtract          => \&zoomInsProcessExtract,
-     # 	 postprocessExtract      =>
-     # 	     [
-     # 	      \&zoomInsPostprocessSelectInSphere    ,
-     # 	      \&zoomInsPostprocessExtractSelectedIDs,
-     # 	      \&zoomInsPostprocessSelectInICs       ,
-     # 	      \&zoomInsPostprocessAnalyze           ,
-     # 	      \&zoomInsPostprocessSetVolume
-     # 	     ],
-     # 	 postprocessMassFunction =>
-     # 	     [
-     # 	      \&zoomInsPostProcessMassFunction
-     # 	     ]
-     # },
-     # {
-     # 	 label                   => "MilkyWay_IDM1e-2GeV_halfmode",
-     # 	 subpath                 => "ZoomIns",
-     # 	 realizations            => [ "Halo004", "Halo113", "Halo023" ],
-     # 	 description             => "Halo mass function for non-backsplash halos from Milky Way, 1e-2GeV (halfmode) IDM zoom-in simulations.",
-     # 	 simulationReference     => "Nadler et al.",
-     # 	 simulationURL           => "https://www",
-     # 	 hubbleConstant          => 0.7,
-     # 	 massParticle            => 2.81981e5,
-     # 	 massHostLogMin          => 12.0, 
-     # 	 massHostLogMax          => 12.3, 
-     # 	 subvolumes              => 1,
-     # 	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
-     # 	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
-     # 	 processIdentify         => \&zoomInsProcessIdentify,
-     # 	 preprocessExtract       => [
-     # 	     \&zoomInsPreProcessExtractLocate,
-     # 	     \&zoomInsPreProcessExtractUncontaminated,
-     # 	     ],
-     # 	 processExtract          => \&zoomInsProcessExtract,
-     # 	 postprocessExtract      =>
-     # 	     [
-     # 	      \&zoomInsPostprocessSelectInSphere    ,
-     # 	      \&zoomInsPostprocessExtractSelectedIDs,
-     # 	      \&zoomInsPostprocessSelectInICs       ,
-     # 	      \&zoomInsPostprocessAnalyze           ,
-     # 	      \&zoomInsPostprocessSetVolume
-     # 	     ],
-     # 	 postprocessMassFunction =>
-     # 	     [
-     # 	      \&zoomInsPostProcessMassFunction
-     # 	     ]
-     # },
-     # {
-     # 	 label                   => "MilkyWay_IDM1e-4GeV_envelope",
-     # 	 subpath                 => "ZoomIns",
-     # 	 realizations            => [ "Halo004", "Halo113", "Halo023" ],
-     # 	 description             => "Halo mass function for non-backsplash halos from Milky Way, 1e-4GeV (envelope) IDM zoom-in simulations.",
-     # 	 simulationReference     => "Nadler et al.",
-     # 	 simulationURL           => "https://www",
-     # 	 hubbleConstant          => 0.7,
-     # 	 massParticle            => 2.81981e5,
-     # 	 massHostLogMin          => 12.0, 
-     # 	 massHostLogMax          => 12.3, 
-     # 	 subvolumes              => 1,
-     # 	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
-     # 	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
-     # 	 processIdentify         => \&zoomInsProcessIdentify,
-     # 	 preprocessExtract       => [
-     # 	     \&zoomInsPreProcessExtractLocate,
-     # 	     \&zoomInsPreProcessExtractUncontaminated,
-     # 	     ],
-     # 	 processExtract          => \&zoomInsProcessExtract,
-     # 	 postprocessExtract      =>
-     # 	     [
-     # 	      \&zoomInsPostprocessSelectInSphere    ,
-     # 	      \&zoomInsPostprocessExtractSelectedIDs,
-     # 	      \&zoomInsPostprocessSelectInICs       ,
-     # 	      \&zoomInsPostprocessAnalyze           ,
-     # 	      \&zoomInsPostprocessSetVolume
-     # 	     ],
-     # 	 postprocessMassFunction =>
-     # 	     [
-     # 	      \&zoomInsPostProcessMassFunction
-     # 	     ]
-     # },
-     # {
-     # 	 label                   => "MilkyWay_IDM1e-4GeV_halfmode",
-     # 	 subpath                 => "ZoomIns",
-     # 	 realizations            => [ "Halo004", "Halo113", "Halo023" ],
-     # 	 description             => "Halo mass function for non-backsplash halos from Milky Way, 1e-4GeV (halfmode) IDM zoom-in simulations.",
-     # 	 simulationReference     => "Nadler et al.",
-     # 	 simulationURL           => "https://www",
-     # 	 hubbleConstant          => 0.7,
-     # 	 massParticle            => 2.81981e5,
-     # 	 massHostLogMin          => 12.0, 
-     # 	 massHostLogMax          => 12.3, 
-     # 	 subvolumes              => 1,
-     # 	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
-     # 	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
-     # 	 processIdentify         => \&zoomInsProcessIdentify,
-     # 	 preprocessExtract       => [
-     # 	     \&zoomInsPreProcessExtractLocate,
-     # 	     \&zoomInsPreProcessExtractUncontaminated,
-     # 	     ],
-     # 	 processExtract          => \&zoomInsProcessExtract,
-     # 	 postprocessExtract      =>
-     # 	     [
-     # 	      \&zoomInsPostprocessSelectInSphere    ,
-     # 	      \&zoomInsPostprocessExtractSelectedIDs,
-     # 	      \&zoomInsPostprocessSelectInICs       ,
-     # 	      \&zoomInsPostprocessAnalyze           ,
-     # 	      \&zoomInsPostprocessSetVolume
-     # 	     ],
-     # 	 postprocessMassFunction =>
-     # 	     [
-     # 	      \&zoomInsPostProcessMassFunction
-     # 	     ]
-     # },
-     # {
-     # 	 label                   => "MilkyWay_fdm_25.9e-22eV",
-     # 	 subpath                 => "ZoomIns",
-     # 	 realizations            => [ "Halo004", "Halo113", "Halo023" ],
-     # 	 description             => "Halo mass function for non-backsplash halos from Milky Way, 25.9-22eV FDM zoom-in simulations.",
-     # 	 simulationReference     => "Nadler et al.",
-     # 	 simulationURL           => "https://www",
-     # 	 hubbleConstant          => 0.7,
-     # 	 massParticle            => 2.81981e5,
-     # 	 massHostLogMin          => 12.0, 
-     # 	 massHostLogMax          => 12.3, 
-     # 	 subvolumes              => 1,
-     # 	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
-     # 	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
-     # 	 processIdentify         => \&zoomInsProcessIdentify,
-     # 	 preprocessExtract       => [
-     # 	     \&zoomInsPreProcessExtractLocate,
-     # 	     \&zoomInsPreProcessExtractUncontaminated,
-     # 	     ],
-     # 	 processExtract          => \&zoomInsProcessExtract,
-     # 	 postprocessExtract      =>
-     # 	     [
-     # 	      \&zoomInsPostprocessSelectInSphere    ,
-     # 	      \&zoomInsPostprocessExtractSelectedIDs,
-     # 	      \&zoomInsPostprocessSelectInICs       ,
-     # 	      \&zoomInsPostprocessAnalyze           ,
-     # 	      \&zoomInsPostprocessSetVolume
-     # 	     ],
-     # 	 postprocessMassFunction =>
-     # 	     [
-     # 	      \&zoomInsPostProcessMassFunction
-     # 	     ]
-     # },
-     # {
-     # 	 label                   => "MilkyWay_fdm_185e-22eV",
-     # 	 subpath                 => "ZoomIns",
-     # 	 realizations            => [ "Halo004", "Halo113", "Halo023" ],
-     # 	 description             => "Halo mass function for non-backsplash halos from Milky Way, 185-22eV FDM zoom-in simulations.",
-     # 	 simulationReference     => "Nadler et al.",
-     # 	 simulationURL           => "https://www",
-     # 	 hubbleConstant          => 0.7,
-     # 	 massParticle            => 2.81981e5,
-     # 	 massHostLogMin          => 12.0, 
-     # 	 massHostLogMax          => 12.3, 
-     # 	 subvolumes              => 1,
-     # 	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
-     # 	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
-     # 	 processIdentify         => \&zoomInsProcessIdentify,
-     # 	 preprocessExtract       => [
-     # 	     \&zoomInsPreProcessExtractLocate,
-     # 	     \&zoomInsPreProcessExtractUncontaminated,
-     # 	     ],
-     # 	 processExtract          => \&zoomInsProcessExtract,
-     # 	 postprocessExtract      =>
-     # 	     [
-     # 	      \&zoomInsPostprocessSelectInSphere    ,
-     # 	      \&zoomInsPostprocessExtractSelectedIDs,
-     # 	      \&zoomInsPostprocessSelectInICs       ,
-     # 	      \&zoomInsPostprocessAnalyze           ,
-     # 	      \&zoomInsPostprocessSetVolume
-     # 	     ],
-     # 	 postprocessMassFunction =>
-     # 	     [
-     # 	      \&zoomInsPostProcessMassFunction
-     # 	     ]
-     # },
-     # {
-     # 	 label                   => "MilkyWay_fdm_490e-22eV",
-     # 	 subpath                 => "ZoomIns",
-     # 	 realizations            => [ "Halo004", "Halo113", "Halo023" ],
-     # 	 description             => "Halo mass function for non-backsplash halos from Milky Way, 490e-22eV FDM zoom-in simulations.",
-     # 	 simulationReference     => "Nadler et al.",
-     # 	 simulationURL           => "https://www",
-     # 	 hubbleConstant          => 0.7,
-     # 	 massParticle            => 2.81981e5,
-     # 	 massHostLogMin          => 12.0, 
-     # 	 massHostLogMax          => 12.3, 
-     # 	 subvolumes              => 1,
-     # 	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
-     # 	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
-     # 	 processIdentify         => \&zoomInsProcessIdentify,
-     # 	 preprocessExtract       => [
-     # 	     \&zoomInsPreProcessExtractLocate,
-     # 	     \&zoomInsPreProcessExtractUncontaminated,
-     # 	     ],
-     # 	 processExtract          => \&zoomInsProcessExtract,
-     # 	 postprocessExtract      =>
-     # 	     [
-     # 	      \&zoomInsPostprocessSelectInSphere    ,
-     # 	      \&zoomInsPostprocessExtractSelectedIDs,
-     # 	      \&zoomInsPostprocessSelectInICs       ,
-     # 	      \&zoomInsPostprocessAnalyze           ,
-     # 	      \&zoomInsPostprocessSetVolume
-     # 	     ],
-     # 	 postprocessMassFunction =>
-     # 	     [
-     # 	      \&zoomInsPostProcessMassFunction
-     # 	     ]
-     # },
-     # {
-     # 	 label                   => "MilkyWay_WDM3_hires",
-     # 	 subpath                 => "ZoomIns",
-     # 	 realizations            => [ "Halo004" ],
-     # 	 description             => "Halo mass function for non-backsplash halos from Milky Way, 3keV WDM zoom-in simulations.",
-     # 	 simulationReference     => "Nadler et al.",
-     # 	 simulationURL           => "https://www",
-     # 	 hubbleConstant          => 0.7,
-     # 	 massHostLogMin          => 12.0, 
-     # 	 massHostLogMax          => 12.3, 
-     # 	 massParticle            => 3.5247625e4,
-     # 	 subvolumes              => 1,
-     # 	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
-     # 	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
-     # 	 processIdentify         => \&zoomInsProcessIdentify,
-     # 	 processExtract          => \&zoomInsProcessExtract,
-     # 	 preprocessExtract       => [
-     # 	     \&zoomInsPreProcessExtractLocate,
-     # 	     \&zoomInsPreProcessExtractUncontaminated,
-     # 	     ],
-     # 	 postprocessExtract      =>
-     # 	     [
-     # 	      \&zoomInsPostprocessSelectInSphere    ,
-     # 	      \&zoomInsPostprocessExtractSelectedIDs,
-     # 	      \&zoomInsPostprocessSelectInICs       ,
-     # 	      \&zoomInsPostprocessAnalyze           ,
-     # 	      \&zoomInsPostprocessSetVolume
-     # 	     ],
-     # 	 postprocessMassFunction =>
-     # 	     [
-     # 	      \&zoomInsPostProcessMassFunction
-     # 	     ]
-     # },
-     # {
-     # 	 label                   => "MilkyWay_WDM6.5_hires",
-     # 	 subpath                 => "ZoomIns",
-     # 	 realizations            => [ "Halo004" ],
-     # 	 description             => "Halo mass function for non-backsplash halos from Milky Way, 6.5keV WDM zoom-in simulations.",
-     # 	 simulationReference     => "Nadler et al.",
-     # 	 simulationURL           => "https://www",
-     # 	 hubbleConstant          => 0.7,
-     # 	 massHostLogMin          => 12.0, 
-     # 	 massHostLogMax          => 12.3, 
-     # 	 massParticle            => 3.5247625e4,
-     # 	 subvolumes              => 1,
-     # 	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
-     # 	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
-     # 	 processIdentify         => \&zoomInsProcessIdentify,
-     # 	 processExtract          => \&zoomInsProcessExtract,
-     # 	 preprocessExtract       => [
-     # 	     \&zoomInsPreProcessExtractLocate,
-     # 	     \&zoomInsPreProcessExtractUncontaminated,
-     # 	     ],
-     # 	 postprocessExtract      =>
-     # 	     [
-     # 	      \&zoomInsPostprocessSelectInSphere    ,
-     # 	      \&zoomInsPostprocessExtractSelectedIDs,
-     # 	      \&zoomInsPostprocessSelectInICs       ,
-     # 	      \&zoomInsPostprocessAnalyze           ,
-     # 	      \&zoomInsPostprocessSetVolume
-     # 	     ],
-     # 	 postprocessMassFunction =>
-     # 	     [
-     # 	      \&zoomInsPostProcessMassFunction
-     # 	     ]
-     # },
-     # {
-     # 	 label                   => "MilkyWay_WDM10_hires",
-     # 	 subpath                 => "ZoomIns",
-     # 	 realizations            => [ "Halo004" ],
-     # 	 description             => "Halo mass function for non-backsplash halos from Milky Way, 10keV WDM zoom-in simulations.",
-     # 	 simulationReference     => "Nadler et al.",
-     # 	 simulationURL           => "https://www",
-     # 	 hubbleConstant          => 0.7,
-     # 	 massHostLogMin          => 12.0, 
-     # 	 massHostLogMax          => 12.3, 
-     # 	 massParticle            => 3.5247625e4,
-     # 	 subvolumes              => 1,
-     # 	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
-     # 	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
-     # 	 processIdentify         => \&zoomInsProcessIdentify,
-     # 	 processExtract          => \&zoomInsProcessExtract,
-     # 	 preprocessExtract       => [
-     # 	     \&zoomInsPreProcessExtractLocate,
-     # 	     \&zoomInsPreProcessExtractUncontaminated,
-     # 	     ],
-     # 	 postprocessExtract      =>
-     # 	     [
-     # 	      \&zoomInsPostprocessSelectInSphere    ,
-     # 	      \&zoomInsPostprocessExtractSelectedIDs,
-     # 	      \&zoomInsPostprocessSelectInICs       ,
-     # 	      \&zoomInsPostprocessAnalyze           ,
-     # 	      \&zoomInsPostprocessSetVolume
-     # 	     ],
-     # 	 postprocessMassFunction =>
-     # 	     [
-     # 	      \&zoomInsPostProcessMassFunction
-     # 	     ]
-     # },
-     # {
-     # 	 label                   => "MilkyWay_IDM1GeV_envelope_hires",
-     # 	 subpath                 => "ZoomIns",
-     # 	 realizations            => [ "Halo004" ],
-     # 	 description             => "Halo mass function for non-backsplash halos from Milky Way, 1GeV (envelope) IDM zoom-in simulations.",
-     # 	 simulationReference     => "Nadler et al.",
-     # 	 simulationURL           => "https://www",
-     # 	 hubbleConstant          => 0.7,
-     # 	 massParticle            => 3.5247625e4,
-     # 	 massHostLogMin          => 12.0, 
-     # 	 massHostLogMax          => 12.3, 
-     # 	 subvolumes              => 1,
-     # 	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
-     # 	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
-     # 	 processIdentify         => \&zoomInsProcessIdentify,
-     # 	 preprocessExtract       => [
-     # 	     \&zoomInsPreProcessExtractLocate,
-     # 	     \&zoomInsPreProcessExtractUncontaminated,
-     # 	     ],
-     # 	 processExtract          => \&zoomInsProcessExtract,
-     # 	 postprocessExtract      =>
-     # 	     [
-     # 	      \&zoomInsPostprocessSelectInSphere    ,
-     # 	      \&zoomInsPostprocessExtractSelectedIDs,
-     # 	      \&zoomInsPostprocessSelectInICs       ,
-     # 	      \&zoomInsPostprocessAnalyze           ,
-     # 	      \&zoomInsPostprocessSetVolume
-     # 	     ],
-     # 	 postprocessMassFunction =>
-     # 	     [
-     # 	      \&zoomInsPostProcessMassFunction
-     # 	     ]
-     # },
-     # {
-     # 	 label                   => "MilkyWay_IDM1GeV_halfmode_hires",
-     # 	 subpath                 => "ZoomIns",
-     # 	 realizations            => [ "Halo004" ],
-     # 	 description             => "Halo mass function for non-backsplash halos from Milky Way, 1GeV (halfmode) IDM zoom-in simulations.",
-     # 	 simulationReference     => "Nadler et al.",
-     # 	 simulationURL           => "https://www",
-     # 	 hubbleConstant          => 0.7,
-     # 	 massParticle            => 3.5247625e4,
-     # 	 massHostLogMin          => 12.0, 
-     # 	 massHostLogMax          => 12.3, 
-     # 	 subvolumes              => 1,
-     # 	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
-     # 	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
-     # 	 processIdentify         => \&zoomInsProcessIdentify,
-     # 	 preprocessExtract       => [
-     # 	     \&zoomInsPreProcessExtractLocate,
-     # 	     \&zoomInsPreProcessExtractUncontaminated,
-     # 	     ],
-     # 	 processExtract          => \&zoomInsProcessExtract,
-     # 	 postprocessExtract      =>
-     # 	     [
-     # 	      \&zoomInsPostprocessSelectInSphere    ,
-     # 	      \&zoomInsPostprocessExtractSelectedIDs,
-     # 	      \&zoomInsPostprocessSelectInICs       ,
-     # 	      \&zoomInsPostprocessAnalyze           ,
-     # 	      \&zoomInsPostprocessSetVolume
-     # 	     ],
-     # 	 postprocessMassFunction =>
-     # 	     [
-     # 	      \&zoomInsPostProcessMassFunction
-     # 	     ]
-     # },
-     # {
-     # 	 label                   => "MilkyWay_IDM1e-2GeV_envelope_hires",
-     # 	 subpath                 => "ZoomIns",
-     # 	 realizations            => [ "Halo004" ],
-     # 	 description             => "Halo mass function for non-backsplash halos from Milky Way, 1e-2GeV (envelope) IDM zoom-in simulations.",
-     # 	 simulationReference     => "Nadler et al.",
-     # 	 simulationURL           => "https://www",
-     # 	 hubbleConstant          => 0.7,
-     # 	 massParticle            => 3.5247625e4,
-     # 	 massHostLogMin          => 12.0, 
-     # 	 massHostLogMax          => 12.3, 
-     # 	 subvolumes              => 1,
-     # 	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
-     # 	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
-     # 	 processIdentify         => \&zoomInsProcessIdentify,
-     # 	 preprocessExtract       => [
-     # 	     \&zoomInsPreProcessExtractLocate,
-     # 	     \&zoomInsPreProcessExtractUncontaminated,
-     # 	     ],
-     # 	 processExtract          => \&zoomInsProcessExtract,
-     # 	 postprocessExtract      =>
-     # 	     [
-     # 	      \&zoomInsPostprocessSelectInSphere    ,
-     # 	      \&zoomInsPostprocessExtractSelectedIDs,
-     # 	      \&zoomInsPostprocessSelectInICs       ,
-     # 	      \&zoomInsPostprocessAnalyze           ,
-     # 	      \&zoomInsPostprocessSetVolume
-     # 	     ],
-     # 	 postprocessMassFunction =>
-     # 	     [
-     # 	      \&zoomInsPostProcessMassFunction
-     # 	     ]
-     # },
-     # {
-     # 	 label                   => "MilkyWay_IDM1e-2GeV_halfmode_hires",
-     # 	 subpath                 => "ZoomIns",
-     # 	 realizations            => [ "Halo004" ],
-     # 	 description             => "Halo mass function for non-backsplash halos from Milky Way, 1e-2GeV (halfmode) IDM zoom-in simulations.",
-     # 	 simulationReference     => "Nadler et al.",
-     # 	 simulationURL           => "https://www",
-     # 	 hubbleConstant          => 0.7,
-     # 	 massParticle            => 3.5247625e4,
-     # 	 massHostLogMin          => 12.0, 
-     # 	 massHostLogMax          => 12.3, 
-     # 	 subvolumes              => 1,
-     # 	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
-     # 	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
-     # 	 processIdentify         => \&zoomInsProcessIdentify,
-     # 	 preprocessExtract       => [
-     # 	     \&zoomInsPreProcessExtractLocate,
-     # 	     \&zoomInsPreProcessExtractUncontaminated,
-     # 	     ],
-     # 	 processExtract          => \&zoomInsProcessExtract,
-     # 	 postprocessExtract      =>
-     # 	     [
-     # 	      \&zoomInsPostprocessSelectInSphere    ,
-     # 	      \&zoomInsPostprocessExtractSelectedIDs,
-     # 	      \&zoomInsPostprocessSelectInICs       ,
-     # 	      \&zoomInsPostprocessAnalyze           ,
-     # 	      \&zoomInsPostprocessSetVolume
-     # 	     ],
-     # 	 postprocessMassFunction =>
-     # 	     [
-     # 	      \&zoomInsPostProcessMassFunction
-     # 	     ]
-     # },
-     # {
-     # 	 label                   => "MilkyWay_IDM1e-4GeV_envelope_hires",
-     # 	 subpath                 => "ZoomIns",
-     # 	 realizations            => [ "Halo004" ],
-     # 	 description             => "Halo mass function for non-backsplash halos from Milky Way, 1e-4GeV (envelope) IDM zoom-in simulations.",
-     # 	 simulationReference     => "Nadler et al.",
-     # 	 simulationURL           => "https://www",
-     # 	 hubbleConstant          => 0.7,
-     # 	 massParticle            => 3.5247625e4,
-     # 	 massHostLogMin          => 12.0, 
-     # 	 massHostLogMax          => 12.3, 
-     # 	 subvolumes              => 1,
-     # 	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
-     # 	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
-     # 	 processIdentify         => \&zoomInsProcessIdentify,
-     # 	 preprocessExtract       => [
-     # 	     \&zoomInsPreProcessExtractLocate,
-     # 	     \&zoomInsPreProcessExtractUncontaminated,
-     # 	     ],
-     # 	 processExtract          => \&zoomInsProcessExtract,
-     # 	 postprocessExtract      =>
-     # 	     [
-     # 	      \&zoomInsPostprocessSelectInSphere    ,
-     # 	      \&zoomInsPostprocessExtractSelectedIDs,
-     # 	      \&zoomInsPostprocessSelectInICs       ,
-     # 	      \&zoomInsPostprocessAnalyze           ,
-     # 	      \&zoomInsPostprocessSetVolume
-     # 	     ],
-     # 	 postprocessMassFunction =>
-     # 	     [
-     # 	      \&zoomInsPostProcessMassFunction
-     # 	     ]
-     # },
-     # {
-     # 	 label                   => "MilkyWay_IDM1e-4GeV_halfmode_hires",
-     # 	 subpath                 => "ZoomIns",
-     # 	 realizations            => [ "Halo004" ],
-     # 	 description             => "Halo mass function for non-backsplash halos from Milky Way, 1e-4GeV (halfmode) IDM zoom-in simulations.",
-     # 	 simulationReference     => "Nadler et al.",
-     # 	 simulationURL           => "https://www",
-     # 	 hubbleConstant          => 0.7,
-     # 	 massParticle            => 3.5247625e4,
-     # 	 massHostLogMin          => 12.0, 
-     # 	 massHostLogMax          => 12.3, 
-     # 	 subvolumes              => 1,
-     # 	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
-     # 	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
-     # 	 processIdentify         => \&zoomInsProcessIdentify,
-     # 	 preprocessExtract       => [
-     # 	     \&zoomInsPreProcessExtractLocate,
-     # 	     \&zoomInsPreProcessExtractUncontaminated,
-     # 	     ],
-     # 	 processExtract          => \&zoomInsProcessExtract,
-     # 	 postprocessExtract      =>
-     # 	     [
-     # 	      \&zoomInsPostprocessSelectInSphere    ,
-     # 	      \&zoomInsPostprocessExtractSelectedIDs,
-     # 	      \&zoomInsPostprocessSelectInICs       ,
-     # 	      \&zoomInsPostprocessAnalyze           ,
-     # 	      \&zoomInsPostprocessSetVolume
-     # 	     ],
-     # 	 postprocessMassFunction =>
-     # 	     [
-     # 	      \&zoomInsPostProcessMassFunction
-     # 	     ]
-     # },
-     # {
-     # 	 label                   => "MilkyWay_fdm_25.9e-22eV_hires",
-     # 	 subpath                 => "ZoomIns",
-     # 	 realizations            => [ "Halo004" ],
-     # 	 description             => "Halo mass function for non-backsplash halos from Milky Way, 25.9-22eV FDM zoom-in simulations.",
-     # 	 simulationReference     => "Nadler et al.",
-     # 	 simulationURL           => "https://www",
-     # 	 hubbleConstant          => 0.7,
-     # 	 massParticle            => 3.5247625e4,
-     # 	 massHostLogMin          => 12.0, 
-     # 	 massHostLogMax          => 12.3, 
-     # 	 subvolumes              => 1,
-     # 	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
-     # 	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
-     # 	 processIdentify         => \&zoomInsProcessIdentify,
-     # 	 preprocessExtract       => [
-     # 	     \&zoomInsPreProcessExtractLocate,
-     # 	     \&zoomInsPreProcessExtractUncontaminated,
-     # 	     ],
-     # 	 processExtract          => \&zoomInsProcessExtract,
-     # 	 postprocessExtract      =>
-     # 	     [
-     # 	      \&zoomInsPostprocessSelectInSphere    ,
-     # 	      \&zoomInsPostprocessExtractSelectedIDs,
-     # 	      \&zoomInsPostprocessSelectInICs       ,
-     # 	      \&zoomInsPostprocessAnalyze           ,
-     # 	      \&zoomInsPostprocessSetVolume
-     # 	     ],
-     # 	 postprocessMassFunction =>
-     # 	     [
-     # 	      \&zoomInsPostProcessMassFunction
-     # 	     ]
-     # },
-     # {
-     # 	 label                   => "MilkyWay_fdm_185e-22eV_hires",
-     # 	 subpath                 => "ZoomIns",
-     # 	 realizations            => [ "Halo004" ],
-     # 	 description             => "Halo mass function for non-backsplash halos from Milky Way, 185-22eV FDM zoom-in simulations.",
-     # 	 simulationReference     => "Nadler et al.",
-     # 	 simulationURL           => "https://www",
-     # 	 hubbleConstant          => 0.7,
-     # 	 massParticle            => 3.5247625e4,
-     # 	 massHostLogMin          => 12.0, 
-     # 	 massHostLogMax          => 12.3, 
-     # 	 subvolumes              => 1,
-     # 	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
-     # 	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
-     # 	 processIdentify         => \&zoomInsProcessIdentify,
-     # 	 preprocessExtract       => [
-     # 	     \&zoomInsPreProcessExtractLocate,
-     # 	     \&zoomInsPreProcessExtractUncontaminated,
-     # 	     ],
-     # 	 processExtract          => \&zoomInsProcessExtract,
-     # 	 postprocessExtract      =>
-     # 	     [
-     # 	      \&zoomInsPostprocessSelectInSphere    ,
-     # 	      \&zoomInsPostprocessExtractSelectedIDs,
-     # 	      \&zoomInsPostprocessSelectInICs       ,
-     # 	      \&zoomInsPostprocessAnalyze           ,
-     # 	      \&zoomInsPostprocessSetVolume
-     # 	     ],
-     # 	 postprocessMassFunction =>
-     # 	     [
-     # 	      \&zoomInsPostProcessMassFunction
-     # 	     ]
-     # },
-     # {
-     # 	 label                   => "MilkyWay_fdm_490e-22eV_hires",
-     # 	 subpath                 => "ZoomIns",
-     # 	 realizations            => [ "Halo004" ],
-     # 	 description             => "Halo mass function for non-backsplash halos from Milky Way, 490e-22eV FDM zoom-in simulations.",
-     # 	 simulationReference     => "Nadler et al.",
-     # 	 simulationURL           => "https://www",
-     # 	 hubbleConstant          => 0.7,
-     # 	 massParticle            => 3.5247625e4,
-     # 	 massHostLogMin          => 12.0, 
-     # 	 massHostLogMax          => 12.3, 
-     # 	 subvolumes              => 1,
-     # 	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
-     # 	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
-     # 	 processIdentify         => \&zoomInsProcessIdentify,
-     # 	 preprocessExtract       => [
-     # 	     \&zoomInsPreProcessExtractLocate,
-     # 	     \&zoomInsPreProcessExtractUncontaminated,
-     # 	     ],
-     # 	 processExtract          => \&zoomInsProcessExtract,
-     # 	 postprocessExtract      =>
-     # 	     [
-     # 	      \&zoomInsPostprocessSelectInSphere    ,
-     # 	      \&zoomInsPostprocessExtractSelectedIDs,
-     # 	      \&zoomInsPostprocessSelectInICs       ,
-     # 	      \&zoomInsPostprocessAnalyze           ,
-     # 	      \&zoomInsPostprocessSetVolume
-     # 	     ],
-     # 	 postprocessMassFunction =>
-     # 	     [
-     # 	      \&zoomInsPostProcessMassFunction
-     # 	     ]
-     # },
-     # {
-     # 	 # LMC zoom-in simulations from the Symphony suite. Host halo IDs were found (by Ethan Nadler) by matching the MAH to that of
-     # 	 # the target halo in the originasl cosmological box simulation.
-     # 	 label                   => "LMC",
-     # 	 subpath                 => "ZoomIns",
-     # 	 # Halo479 and Halo888 have been excluded due to contamination by low-res particles 
-     # 	 realizations            => [ "Halo032", "Halo059", "Halo0662", "Halo083", "Halo088", "Halo097", "Halo104", "Halo110", "Halo202", "Halo208", "Halo218", "Halo296", "Halo301", "Halo303", "Halo340", "Halo374", "Halo380", "Halo391", "Halo405", "Halo440", "Halo463", "Halo4662", "Halo511", "Halo524", "Halo539", "Halo567", "Halo575", "Halo602", "Halo697", "Halo711", "Halo721", "Halo767", "Halo802", "Halo824", "Halo850", "Halo853", "Halo914", "Halo932", "Halo933" ],
-     # 	 description             => "Halo mass function for non-backsplash halos from LMC zoom-in simulations.",
-     # 	 simulationReference     => "Nadler et al.",
-     # 	 simulationURL           => "https://www",
-     # 	 hubbleConstant          => 0.7,
-     # 	 massParticle            => 3.52476e4,
-     # 	 massHostLogMin          => 10.95, 
-     # 	 massHostLogMax          => 11.50, 
-     # 	 subvolumes              => 1,
-     # 	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
-     # 	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
-     # 	 processIdentify         => \&zoomInsProcessIdentify,
-     # 	 preprocessExtract       =>
-     # 	     [
-     # 	      \&zoomInsPreProcessExtractLocate,
-     # 	      \&zoomInsPreProcessExtractUncontaminated,
-     # 	     ],
-     # 	 processExtract          => \&zoomInsProcessExtract,
-     # 	 postprocessExtract      =>
-     # 	     [
-     # 	      \&zoomInsPostprocessSelectInSphere    ,
-     # 	      \&zoomInsPostprocessExtractSelectedIDs,
-     # 	      \&zoomInsPostprocessSelectInICs       ,
-     # 	      \&zoomInsPostprocessAnalyze           ,
-     # 	      \&zoomInsPostprocessSetVolume
-     # 	     ],
-     # 	 postprocessMassFunction =>
-     # 	     [
-     # 	      \&zoomInsPostProcessMassFunction
-     # 	     ]
-     # }
+     {
+     	 # Milky Way zoom-in simulations from the Symphony suite. Host halo IDs were found (by Ethan Nadler) by matching the MAH to
+     	 # that of the target halo in the originasl cosmological box simulation.
+     	 label                   => "MilkyWay",
+     	 subpath                 => "ZoomIns",
+     	 realizations            => [ "Halo023", "Halo088", "Halo119", "Halo188", "Halo247", "Halo268", "Halo270", "Halo288", "Halo327", "Halo349", "Halo364", "Halo374", "Halo414", "Halo415", "Halo416", "Halo440", "Halo460", "Halo469", "Halo490", "Halo530", "Halo558", "Halo567", "Halo570", "Halo606", "Halo628", "Halo641", "Halo675", "Halo718", "Halo738", "Halo749", "Halo797", "Halo800", "Halo825", "Halo829", "Halo852", "Halo878", "Halo881", "Halo925", "Halo926", "Halo937", "Halo939", "Halo967", "Halo9749", "Halo9829", "Halo990", "Halo004", "Halo113" ],
+     	 description             => "Halo mass function for non-backsplash halos from Milky Way zoom-in simulations.",
+     	 simulationReference     => "Nadler et al.",
+     	 simulationURL           => "https://www",
+     	 hubbleConstant          => 0.7,
+     	 massParticle            => 2.81981e5,
+     	 massHostLogMin          => 12.0, 
+     	 massHostLogMax          => 12.3, 
+     	 subvolumes              => 1,
+     	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
+     	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
+     	 processIdentify         => \&zoomInsProcessIdentify,
+     	 preprocessExtract       => [
+     	     \&zoomInsPreProcessExtractLocate,
+     	     \&zoomInsPreProcessExtractUncontaminated,
+     	     ],
+     	 processExtract          => \&zoomInsProcessExtract,
+     	 postprocessExtract      =>
+     	     [
+     	      \&zoomInsPostprocessSelectInSphere    ,
+     	      \&zoomInsPostprocessExtractSelectedIDs,
+     	      \&zoomInsPostprocessSelectInICs       ,
+     	      \&zoomInsPostprocessAnalyze           ,
+     	      \&zoomInsPostprocessSetVolume
+     	     ],
+     	 postprocessMassFunction =>
+     	     [
+     	      \&zoomInsPostProcessMassFunction
+     	     ]
+     },
+     {
+     	 label                   => "MilkyWay_hires",
+     	 subpath                 => "ZoomIns",
+     	 realizations            => [ "Halo004", ],
+     	 description             => "Halo mass function for non-backsplash halos from Milky Way zoom-in simulations.",
+     	 simulationReference     => "Nadler et al.",
+     	 simulationURL           => "https://www",
+     	 hubbleConstant          => 0.7,
+     	 massParticle            => 3.5247625e4,
+     	 massHostLogMin          => 12.0, 
+     	 massHostLogMax          => 12.3, 
+     	 subvolumes              => 1,
+     	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
+     	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
+     	 processIdentify         => \&zoomInsProcessIdentify,
+     	 preprocessExtract       => [
+     	     \&zoomInsPreProcessExtractLocate,
+     	     \&zoomInsPreProcessExtractUncontaminated,
+     	     ],
+     	 processExtract          => \&zoomInsProcessExtract,
+     	 postprocessExtract      =>
+     	     [
+     	      \&zoomInsPostprocessSelectInSphere    ,
+     	      \&zoomInsPostprocessExtractSelectedIDs,
+     	      \&zoomInsPostprocessSelectInICs       ,
+     	      \&zoomInsPostprocessAnalyze           ,
+     	      \&zoomInsPostprocessSetVolume
+     	     ],
+     	 postprocessMassFunction =>
+     	     [
+     	      \&zoomInsPostProcessMassFunction
+     	     ]
+     },
+     {
+     	 label                   => "MilkyWay_WDM3",
+     	 subpath                 => "ZoomIns",
+     	 realizations            => [ "Halo004", "Halo113", "Halo023" ],
+     	 description             => "Halo mass function for non-backsplash halos from Milky Way, 3keV WDM zoom-in simulations.",
+     	 simulationReference     => "Nadler et al.",
+     	 simulationURL           => "https://www",
+     	 hubbleConstant          => 0.7,
+     	 massHostLogMin          => 12.0, 
+     	 massHostLogMax          => 12.3, 
+     	 massParticle            => 2.81981e5,
+     	 subvolumes              => 1,
+     	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
+     	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
+     	 processIdentify         => \&zoomInsProcessIdentify,
+     	 processExtract          => \&zoomInsProcessExtract,
+     	 preprocessExtract       => [
+     	     \&zoomInsPreProcessExtractLocate,
+     	     \&zoomInsPreProcessExtractUncontaminated,
+     	     ],
+     	 postprocessExtract      =>
+     	     [
+     	      \&zoomInsPostprocessSelectInSphere    ,
+     	      \&zoomInsPostprocessExtractSelectedIDs,
+     	      \&zoomInsPostprocessSelectInICs       ,
+     	      \&zoomInsPostprocessAnalyze           ,
+     	      \&zoomInsPostprocessSetVolume
+     	     ],
+     	 postprocessMassFunction =>
+     	     [
+     	      \&zoomInsPostProcessMassFunction
+     	     ]
+     },
+     {
+     	 label                   => "MilkyWay_WDM4",
+     	 subpath                 => "ZoomIns",
+     	 realizations            => [ "Halo004", "Halo113", "Halo023" ],
+     	 description             => "Halo mass function for non-backsplash halos from Milky Way, 4keV WDM zoom-in simulations.",
+     	 simulationReference     => "Nadler et al.",
+     	 simulationURL           => "https://www",
+     	 hubbleConstant          => 0.7,
+     	 massHostLogMin          => 12.0, 
+     	 massHostLogMax          => 12.3, 
+     	 massParticle            => 2.81981e5,
+     	 subvolumes              => 1,
+     	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
+     	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
+     	 processIdentify         => \&zoomInsProcessIdentify,
+     	 processExtract          => \&zoomInsProcessExtract,
+     	 preprocessExtract       => [
+     	     \&zoomInsPreProcessExtractLocate,
+     	     \&zoomInsPreProcessExtractUncontaminated,
+     	     ],
+     	 postprocessExtract      =>
+     	     [
+     	      \&zoomInsPostprocessSelectInSphere    ,
+     	      \&zoomInsPostprocessExtractSelectedIDs,
+     	      \&zoomInsPostprocessSelectInICs       ,
+     	      \&zoomInsPostprocessAnalyze           ,
+     	      \&zoomInsPostprocessSetVolume
+     	     ],
+     	 postprocessMassFunction =>
+     	     [
+     	      \&zoomInsPostProcessMassFunction
+     	     ]
+     },
+     {
+     	 label                   => "MilkyWay_WDM5",
+     	 subpath                 => "ZoomIns",
+     	 realizations            => [ "Halo004", "Halo113", "Halo023" ],
+     	 description             => "Halo mass function for non-backsplash halos from Milky Way, 5keV WDM zoom-in simulations.",
+     	 simulationReference     => "Nadler et al.",
+     	 simulationURL           => "https://www",
+     	 hubbleConstant          => 0.7,
+     	 massHostLogMin          => 12.0, 
+     	 massHostLogMax          => 12.3, 
+     	 massParticle            => 2.81981e5,
+     	 subvolumes              => 1,
+     	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
+     	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
+     	 processIdentify         => \&zoomInsProcessIdentify,
+     	 processExtract          => \&zoomInsProcessExtract,
+     	 preprocessExtract       => [
+     	     \&zoomInsPreProcessExtractLocate,
+     	     \&zoomInsPreProcessExtractUncontaminated,
+     	     ],
+     	 postprocessExtract      =>
+     	     [
+     	      \&zoomInsPostprocessSelectInSphere    ,
+     	      \&zoomInsPostprocessExtractSelectedIDs,
+     	      \&zoomInsPostprocessSelectInICs       ,
+     	      \&zoomInsPostprocessAnalyze           ,
+     	      \&zoomInsPostprocessSetVolume
+     	     ],
+     	 postprocessMassFunction =>
+     	     [
+     	      \&zoomInsPostProcessMassFunction
+     	     ]
+     },
+     {
+     	 label                   => "MilkyWay_WDM6",
+     	 subpath                 => "ZoomIns",
+     	 realizations            => [ "Halo004", "Halo113", "Halo023" ],
+     	 description             => "Halo mass function for non-backsplash halos from Milky Way, 6keV WDM zoom-in simulations.",
+     	 simulationReference     => "Nadler et al.",
+     	 simulationURL           => "https://www",
+     	 hubbleConstant          => 0.7,
+     	 massHostLogMin          => 12.0, 
+     	 massHostLogMax          => 12.3, 
+     	 massParticle            => 2.81981e5,
+     	 subvolumes              => 1,
+     	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
+     	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
+     	 processIdentify         => \&zoomInsProcessIdentify,
+     	 processExtract          => \&zoomInsProcessExtract,
+     	 preprocessExtract       => [
+     	     \&zoomInsPreProcessExtractLocate,
+     	     \&zoomInsPreProcessExtractUncontaminated,
+     	     ],
+     	 postprocessExtract      =>
+     	     [
+     	      \&zoomInsPostprocessSelectInSphere    ,
+     	      \&zoomInsPostprocessExtractSelectedIDs,
+     	      \&zoomInsPostprocessSelectInICs       ,
+     	      \&zoomInsPostprocessAnalyze           ,
+     	      \&zoomInsPostprocessSetVolume
+     	     ],
+     	 postprocessMassFunction =>
+     	     [
+     	      \&zoomInsPostProcessMassFunction
+     	     ]
+     },
+     {
+     	 label                   => "MilkyWay_WDM6.5",
+     	 subpath                 => "ZoomIns",
+     	 realizations            => [ "Halo004", "Halo113", "Halo023" ],
+     	 description             => "Halo mass function for non-backsplash halos from Milky Way, 6.5keV WDM zoom-in simulations.",
+     	 simulationReference     => "Nadler et al.",
+     	 simulationURL           => "https://www",
+     	 hubbleConstant          => 0.7,
+     	 massHostLogMin          => 12.0, 
+     	 massHostLogMax          => 12.3, 
+     	 massParticle            => 2.81981e5,
+     	 subvolumes              => 1,
+     	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
+     	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
+     	 processIdentify         => \&zoomInsProcessIdentify,
+     	 processExtract          => \&zoomInsProcessExtract,
+     	 preprocessExtract       => [
+     	     \&zoomInsPreProcessExtractLocate,
+     	     \&zoomInsPreProcessExtractUncontaminated,
+     	     ],
+     	 postprocessExtract      =>
+     	     [
+     	      \&zoomInsPostprocessSelectInSphere    ,
+     	      \&zoomInsPostprocessExtractSelectedIDs,
+     	      \&zoomInsPostprocessSelectInICs       ,
+     	      \&zoomInsPostprocessAnalyze           ,
+     	      \&zoomInsPostprocessSetVolume
+     	     ],
+     	 postprocessMassFunction =>
+     	     [
+     	      \&zoomInsPostProcessMassFunction
+     	     ]
+     },
+     {
+     	 label                   => "MilkyWay_WDM10",
+     	 subpath                 => "ZoomIns",
+     	 realizations            => [ "Halo004", "Halo113", "Halo023" ],
+     	 description             => "Halo mass function for non-backsplash halos from Milky Way, 10keV WDM zoom-in simulations.",
+     	 simulationReference     => "Nadler et al.",
+     	 simulationURL           => "https://www",
+     	 hubbleConstant          => 0.7,
+     	 massHostLogMin          => 12.0, 
+     	 massHostLogMax          => 12.3, 
+     	 massParticle            => 2.81981e5,
+     	 subvolumes              => 1,
+     	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
+     	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
+     	 processIdentify         => \&zoomInsProcessIdentify,
+     	 processExtract          => \&zoomInsProcessExtract,
+     	 preprocessExtract       => [
+     	     \&zoomInsPreProcessExtractLocate,
+     	     \&zoomInsPreProcessExtractUncontaminated,
+     	     ],
+     	 postprocessExtract      =>
+     	     [
+     	      \&zoomInsPostprocessSelectInSphere    ,
+     	      \&zoomInsPostprocessExtractSelectedIDs,
+     	      \&zoomInsPostprocessSelectInICs       ,
+     	      \&zoomInsPostprocessAnalyze           ,
+     	      \&zoomInsPostprocessSetVolume
+     	     ],
+     	 postprocessMassFunction =>
+     	     [
+     	      \&zoomInsPostProcessMassFunction
+     	     ]
+     },
+     {
+     	 label                   => "MilkyWay_IDM1GeV_envelope",
+     	 subpath                 => "ZoomIns",
+     	 realizations            => [ "Halo004", "Halo113", "Halo023" ],
+     	 description             => "Halo mass function for non-backsplash halos from Milky Way, 1GeV (envelope) IDM zoom-in simulations.",
+     	 simulationReference     => "Nadler et al.",
+     	 simulationURL           => "https://www",
+     	 hubbleConstant          => 0.7,
+     	 massParticle            => 2.81981e5,
+     	 massHostLogMin          => 12.0, 
+     	 massHostLogMax          => 12.3, 
+     	 subvolumes              => 1,
+     	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
+     	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
+     	 processIdentify         => \&zoomInsProcessIdentify,
+     	 preprocessExtract       => [
+     	     \&zoomInsPreProcessExtractLocate,
+     	     \&zoomInsPreProcessExtractUncontaminated,
+     	     ],
+     	 processExtract          => \&zoomInsProcessExtract,
+     	 postprocessExtract      =>
+     	     [
+     	      \&zoomInsPostprocessSelectInSphere    ,
+     	      \&zoomInsPostprocessExtractSelectedIDs,
+     	      \&zoomInsPostprocessSelectInICs       ,
+     	      \&zoomInsPostprocessAnalyze           ,
+     	      \&zoomInsPostprocessSetVolume
+     	     ],
+     	 postprocessMassFunction =>
+     	     [
+     	      \&zoomInsPostProcessMassFunction
+     	     ]
+     },
+     {
+     	 label                   => "MilkyWay_IDM1GeV_halfmode",
+     	 subpath                 => "ZoomIns",
+     	 realizations            => [ "Halo004", "Halo023", "Halo113" ],
+     	 description             => "Halo mass function for non-backsplash halos from Milky Way, 1GeV (halfmode) IDM zoom-in simulations.",
+     	 simulationReference     => "Nadler et al.",
+     	 simulationURL           => "https://www",
+     	 hubbleConstant          => 0.7,
+     	 massParticle            => 2.81981e5,
+     	 massHostLogMin          => 12.0, 
+     	 massHostLogMax          => 12.3, 
+     	 subvolumes              => 1,
+     	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
+     	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
+     	 processIdentify         => \&zoomInsProcessIdentify,
+     	 preprocessExtract       => [
+     	     \&zoomInsPreProcessExtractLocate,
+     	     \&zoomInsPreProcessExtractUncontaminated,
+     	     ],
+     	 processExtract          => \&zoomInsProcessExtract,
+     	 postprocessExtract      =>
+     	     [
+     	      \&zoomInsPostprocessSelectInSphere    ,
+     	      \&zoomInsPostprocessExtractSelectedIDs,
+     	      \&zoomInsPostprocessSelectInICs       ,
+     	      \&zoomInsPostprocessAnalyze           ,
+     	      \&zoomInsPostprocessSetVolume
+     	     ],
+     	 postprocessMassFunction =>
+     	     [
+     	      \&zoomInsPostProcessMassFunction
+     	     ]
+     },
+     {
+     	 label                   => "MilkyWay_IDM1e-2GeV_envelope",
+     	 subpath                 => "ZoomIns",
+     	 realizations            => [ "Halo004", "Halo113", "Halo023" ],
+     	 description             => "Halo mass function for non-backsplash halos from Milky Way, 1e-2GeV (envelope) IDM zoom-in simulations.",
+     	 simulationReference     => "Nadler et al.",
+     	 simulationURL           => "https://www",
+     	 hubbleConstant          => 0.7,
+     	 massParticle            => 2.81981e5,
+     	 massHostLogMin          => 12.0, 
+     	 massHostLogMax          => 12.3, 
+     	 subvolumes              => 1,
+     	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
+     	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
+     	 processIdentify         => \&zoomInsProcessIdentify,
+     	 preprocessExtract       => [
+     	     \&zoomInsPreProcessExtractLocate,
+     	     \&zoomInsPreProcessExtractUncontaminated,
+     	     ],
+     	 processExtract          => \&zoomInsProcessExtract,
+     	 postprocessExtract      =>
+     	     [
+     	      \&zoomInsPostprocessSelectInSphere    ,
+     	      \&zoomInsPostprocessExtractSelectedIDs,
+     	      \&zoomInsPostprocessSelectInICs       ,
+     	      \&zoomInsPostprocessAnalyze           ,
+     	      \&zoomInsPostprocessSetVolume
+     	     ],
+     	 postprocessMassFunction =>
+     	     [
+     	      \&zoomInsPostProcessMassFunction
+     	     ]
+     },
+     {
+     	 label                   => "MilkyWay_IDM1e-2GeV_halfmode",
+     	 subpath                 => "ZoomIns",
+     	 realizations            => [ "Halo004", "Halo113", "Halo023" ],
+     	 description             => "Halo mass function for non-backsplash halos from Milky Way, 1e-2GeV (halfmode) IDM zoom-in simulations.",
+     	 simulationReference     => "Nadler et al.",
+     	 simulationURL           => "https://www",
+     	 hubbleConstant          => 0.7,
+     	 massParticle            => 2.81981e5,
+     	 massHostLogMin          => 12.0, 
+     	 massHostLogMax          => 12.3, 
+     	 subvolumes              => 1,
+     	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
+     	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
+     	 processIdentify         => \&zoomInsProcessIdentify,
+     	 preprocessExtract       => [
+     	     \&zoomInsPreProcessExtractLocate,
+     	     \&zoomInsPreProcessExtractUncontaminated,
+     	     ],
+     	 processExtract          => \&zoomInsProcessExtract,
+     	 postprocessExtract      =>
+     	     [
+     	      \&zoomInsPostprocessSelectInSphere    ,
+     	      \&zoomInsPostprocessExtractSelectedIDs,
+     	      \&zoomInsPostprocessSelectInICs       ,
+     	      \&zoomInsPostprocessAnalyze           ,
+     	      \&zoomInsPostprocessSetVolume
+     	     ],
+     	 postprocessMassFunction =>
+     	     [
+     	      \&zoomInsPostProcessMassFunction
+     	     ]
+     },
+     {
+     	 label                   => "MilkyWay_IDM1e-4GeV_envelope",
+     	 subpath                 => "ZoomIns",
+     	 realizations            => [ "Halo004", "Halo113", "Halo023" ],
+     	 description             => "Halo mass function for non-backsplash halos from Milky Way, 1e-4GeV (envelope) IDM zoom-in simulations.",
+     	 simulationReference     => "Nadler et al.",
+     	 simulationURL           => "https://www",
+     	 hubbleConstant          => 0.7,
+     	 massParticle            => 2.81981e5,
+     	 massHostLogMin          => 12.0, 
+     	 massHostLogMax          => 12.3, 
+     	 subvolumes              => 1,
+     	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
+     	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
+     	 processIdentify         => \&zoomInsProcessIdentify,
+     	 preprocessExtract       => [
+     	     \&zoomInsPreProcessExtractLocate,
+     	     \&zoomInsPreProcessExtractUncontaminated,
+     	     ],
+     	 processExtract          => \&zoomInsProcessExtract,
+     	 postprocessExtract      =>
+     	     [
+     	      \&zoomInsPostprocessSelectInSphere    ,
+     	      \&zoomInsPostprocessExtractSelectedIDs,
+     	      \&zoomInsPostprocessSelectInICs       ,
+     	      \&zoomInsPostprocessAnalyze           ,
+     	      \&zoomInsPostprocessSetVolume
+     	     ],
+     	 postprocessMassFunction =>
+     	     [
+     	      \&zoomInsPostProcessMassFunction
+     	     ]
+     },
+     {
+     	 label                   => "MilkyWay_IDM1e-4GeV_halfmode",
+     	 subpath                 => "ZoomIns",
+     	 realizations            => [ "Halo004", "Halo113", "Halo023" ],
+     	 description             => "Halo mass function for non-backsplash halos from Milky Way, 1e-4GeV (halfmode) IDM zoom-in simulations.",
+     	 simulationReference     => "Nadler et al.",
+     	 simulationURL           => "https://www",
+     	 hubbleConstant          => 0.7,
+     	 massParticle            => 2.81981e5,
+     	 massHostLogMin          => 12.0, 
+     	 massHostLogMax          => 12.3, 
+     	 subvolumes              => 1,
+     	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
+     	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
+     	 processIdentify         => \&zoomInsProcessIdentify,
+     	 preprocessExtract       => [
+     	     \&zoomInsPreProcessExtractLocate,
+     	     \&zoomInsPreProcessExtractUncontaminated,
+     	     ],
+     	 processExtract          => \&zoomInsProcessExtract,
+     	 postprocessExtract      =>
+     	     [
+     	      \&zoomInsPostprocessSelectInSphere    ,
+     	      \&zoomInsPostprocessExtractSelectedIDs,
+     	      \&zoomInsPostprocessSelectInICs       ,
+     	      \&zoomInsPostprocessAnalyze           ,
+     	      \&zoomInsPostprocessSetVolume
+     	     ],
+     	 postprocessMassFunction =>
+     	     [
+     	      \&zoomInsPostProcessMassFunction
+     	     ]
+     },
+     {
+     	 label                   => "MilkyWay_fdm_25.9e-22eV",
+     	 subpath                 => "ZoomIns",
+     	 realizations            => [ "Halo004", "Halo113", "Halo023" ],
+     	 description             => "Halo mass function for non-backsplash halos from Milky Way, 25.9-22eV FDM zoom-in simulations.",
+     	 simulationReference     => "Nadler et al.",
+     	 simulationURL           => "https://www",
+     	 hubbleConstant          => 0.7,
+     	 massParticle            => 2.81981e5,
+     	 massHostLogMin          => 12.0, 
+     	 massHostLogMax          => 12.3, 
+     	 subvolumes              => 1,
+     	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
+     	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
+     	 processIdentify         => \&zoomInsProcessIdentify,
+     	 preprocessExtract       => [
+     	     \&zoomInsPreProcessExtractLocate,
+     	     \&zoomInsPreProcessExtractUncontaminated,
+     	     ],
+     	 processExtract          => \&zoomInsProcessExtract,
+     	 postprocessExtract      =>
+     	     [
+     	      \&zoomInsPostprocessSelectInSphere    ,
+     	      \&zoomInsPostprocessExtractSelectedIDs,
+     	      \&zoomInsPostprocessSelectInICs       ,
+     	      \&zoomInsPostprocessAnalyze           ,
+     	      \&zoomInsPostprocessSetVolume
+     	     ],
+     	 postprocessMassFunction =>
+     	     [
+     	      \&zoomInsPostProcessMassFunction
+     	     ]
+     },
+     {
+     	 label                   => "MilkyWay_fdm_69.4e-22eV",
+     	 subpath                 => "ZoomIns",
+     	 realizations            => [ "Halo004", "Halo113", "Halo023" ],
+     	 description             => "Halo mass function for non-backsplash halos from Milky Way, 69.4e-22eV FDM zoom-in simulations.",
+     	 simulationReference     => "Nadler et al.",
+     	 simulationURL           => "https://www",
+     	 hubbleConstant          => 0.7,
+     	 massParticle            => 2.81981e5,
+     	 massHostLogMin          => 12.0, 
+     	 massHostLogMax          => 12.3, 
+     	 subvolumes              => 1,
+     	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
+     	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
+     	 processIdentify         => \&zoomInsProcessIdentify,
+     	 preprocessExtract       => [
+     	     \&zoomInsPreProcessExtractLocate,
+     	     \&zoomInsPreProcessExtractUncontaminated,
+     	     ],
+     	 processExtract          => \&zoomInsProcessExtract,
+     	 postprocessExtract      =>
+     	     [
+     	      \&zoomInsPostprocessSelectInSphere    ,
+     	      \&zoomInsPostprocessExtractSelectedIDs,
+     	      \&zoomInsPostprocessSelectInICs       ,
+     	      \&zoomInsPostprocessAnalyze           ,
+     	      \&zoomInsPostprocessSetVolume
+     	     ],
+     	 postprocessMassFunction =>
+     	     [
+     	      \&zoomInsPostProcessMassFunction
+     	     ]
+     },
+     {
+     	 label                   => "MilkyWay_fdm_113e-22eV",
+     	 subpath                 => "ZoomIns",
+     	 realizations            => [ "Halo004", "Halo113", "Halo023" ],
+     	 description             => "Halo mass function for non-backsplash halos from Milky Way, 113e-22eV FDM zoom-in simulations.",
+     	 simulationReference     => "Nadler et al.",
+     	 simulationURL           => "https://www",
+     	 hubbleConstant          => 0.7,
+     	 massParticle            => 2.81981e5,
+     	 massHostLogMin          => 12.0, 
+     	 massHostLogMax          => 12.3, 
+     	 subvolumes              => 1,
+     	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
+     	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
+     	 processIdentify         => \&zoomInsProcessIdentify,
+     	 preprocessExtract       => [
+     	     \&zoomInsPreProcessExtractLocate,
+     	     \&zoomInsPreProcessExtractUncontaminated,
+     	     ],
+     	 processExtract          => \&zoomInsProcessExtract,
+     	 postprocessExtract      =>
+     	     [
+     	      \&zoomInsPostprocessSelectInSphere    ,
+     	      \&zoomInsPostprocessExtractSelectedIDs,
+     	      \&zoomInsPostprocessSelectInICs       ,
+     	      \&zoomInsPostprocessAnalyze           ,
+     	      \&zoomInsPostprocessSetVolume
+     	     ],
+     	 postprocessMassFunction =>
+     	     [
+     	      \&zoomInsPostProcessMassFunction
+     	     ]
+     },
+     {
+     	 label                   => "MilkyWay_fdm_151e-22eV",
+     	 subpath                 => "ZoomIns",
+     	 realizations            => [ "Halo004", "Halo113", "Halo023" ],
+     	 description             => "Halo mass function for non-backsplash halos from Milky Way, 151e-22eV FDM zoom-in simulations.",
+     	 simulationReference     => "Nadler et al.",
+     	 simulationURL           => "https://www",
+     	 hubbleConstant          => 0.7,
+     	 massParticle            => 2.81981e5,
+     	 massHostLogMin          => 12.0, 
+     	 massHostLogMax          => 12.3, 
+     	 subvolumes              => 1,
+     	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
+     	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
+     	 processIdentify         => \&zoomInsProcessIdentify,
+     	 preprocessExtract       => [
+     	     \&zoomInsPreProcessExtractLocate,
+     	     \&zoomInsPreProcessExtractUncontaminated,
+     	     ],
+     	 processExtract          => \&zoomInsProcessExtract,
+     	 postprocessExtract      =>
+     	     [
+     	      \&zoomInsPostprocessSelectInSphere    ,
+     	      \&zoomInsPostprocessExtractSelectedIDs,
+     	      \&zoomInsPostprocessSelectInICs       ,
+     	      \&zoomInsPostprocessAnalyze           ,
+     	      \&zoomInsPostprocessSetVolume
+     	     ],
+     	 postprocessMassFunction =>
+     	     [
+     	      \&zoomInsPostProcessMassFunction
+     	     ]
+     },
+     {
+     	 label                   => "MilkyWay_fdm_185e-22eV",
+     	 subpath                 => "ZoomIns",
+     	 realizations            => [ "Halo004", "Halo113", "Halo023" ],
+     	 description             => "Halo mass function for non-backsplash halos from Milky Way, 185-22eV FDM zoom-in simulations.",
+     	 simulationReference     => "Nadler et al.",
+     	 simulationURL           => "https://www",
+     	 hubbleConstant          => 0.7,
+     	 massParticle            => 2.81981e5,
+     	 massHostLogMin          => 12.0, 
+     	 massHostLogMax          => 12.3, 
+     	 subvolumes              => 1,
+     	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
+     	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
+     	 processIdentify         => \&zoomInsProcessIdentify,
+     	 preprocessExtract       => [
+     	     \&zoomInsPreProcessExtractLocate,
+     	     \&zoomInsPreProcessExtractUncontaminated,
+     	     ],
+     	 processExtract          => \&zoomInsProcessExtract,
+     	 postprocessExtract      =>
+     	     [
+     	      \&zoomInsPostprocessSelectInSphere    ,
+     	      \&zoomInsPostprocessExtractSelectedIDs,
+     	      \&zoomInsPostprocessSelectInICs       ,
+     	      \&zoomInsPostprocessAnalyze           ,
+     	      \&zoomInsPostprocessSetVolume
+     	     ],
+     	 postprocessMassFunction =>
+     	     [
+     	      \&zoomInsPostProcessMassFunction
+     	     ]
+     },
+     {
+     	 label                   => "MilkyWay_fdm_490e-22eV",
+     	 subpath                 => "ZoomIns",
+     	 realizations            => [ "Halo004", "Halo113", "Halo023" ],
+     	 description             => "Halo mass function for non-backsplash halos from Milky Way, 490e-22eV FDM zoom-in simulations.",
+     	 simulationReference     => "Nadler et al.",
+     	 simulationURL           => "https://www",
+     	 hubbleConstant          => 0.7,
+     	 massParticle            => 2.81981e5,
+     	 massHostLogMin          => 12.0, 
+     	 massHostLogMax          => 12.3, 
+     	 subvolumes              => 1,
+     	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
+     	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
+     	 processIdentify         => \&zoomInsProcessIdentify,
+     	 preprocessExtract       => [
+     	     \&zoomInsPreProcessExtractLocate,
+     	     \&zoomInsPreProcessExtractUncontaminated,
+     	     ],
+     	 processExtract          => \&zoomInsProcessExtract,
+     	 postprocessExtract      =>
+     	     [
+     	      \&zoomInsPostprocessSelectInSphere    ,
+     	      \&zoomInsPostprocessExtractSelectedIDs,
+     	      \&zoomInsPostprocessSelectInICs       ,
+     	      \&zoomInsPostprocessAnalyze           ,
+     	      \&zoomInsPostprocessSetVolume
+     	     ],
+     	 postprocessMassFunction =>
+     	     [
+     	      \&zoomInsPostProcessMassFunction
+     	     ]
+     },
+     {
+     	 label                   => "MilkyWay_WDM3_hires",
+     	 subpath                 => "ZoomIns",
+     	 realizations            => [ "Halo004" ],
+     	 description             => "Halo mass function for non-backsplash halos from Milky Way, 3keV WDM zoom-in simulations.",
+     	 simulationReference     => "Nadler et al.",
+     	 simulationURL           => "https://www",
+     	 hubbleConstant          => 0.7,
+     	 massHostLogMin          => 12.0, 
+     	 massHostLogMax          => 12.3, 
+     	 massParticle            => 3.5247625e4,
+     	 subvolumes              => 1,
+     	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
+     	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
+     	 processIdentify         => \&zoomInsProcessIdentify,
+     	 processExtract          => \&zoomInsProcessExtract,
+     	 preprocessExtract       => [
+     	     \&zoomInsPreProcessExtractLocate,
+     	     \&zoomInsPreProcessExtractUncontaminated,
+     	     ],
+     	 postprocessExtract      =>
+     	     [
+     	      \&zoomInsPostprocessSelectInSphere    ,
+     	      \&zoomInsPostprocessExtractSelectedIDs,
+     	      \&zoomInsPostprocessSelectInICs       ,
+     	      \&zoomInsPostprocessAnalyze           ,
+     	      \&zoomInsPostprocessSetVolume
+     	     ],
+     	 postprocessMassFunction =>
+     	     [
+     	      \&zoomInsPostProcessMassFunction
+     	     ]
+     },
+     {
+     	 label                   => "MilkyWay_WDM4_hires",
+     	 subpath                 => "ZoomIns",
+     	 realizations            => [ "Halo004" ],
+     	 description             => "Halo mass function for non-backsplash halos from Milky Way, 4keV WDM zoom-in simulations.",
+     	 simulationReference     => "Nadler et al.",
+     	 simulationURL           => "https://www",
+     	 hubbleConstant          => 0.7,
+     	 massHostLogMin          => 12.0, 
+     	 massHostLogMax          => 12.3, 
+     	 massParticle            => 3.5247625e4,
+     	 subvolumes              => 1,
+     	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
+     	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
+     	 processIdentify         => \&zoomInsProcessIdentify,
+     	 processExtract          => \&zoomInsProcessExtract,
+     	 preprocessExtract       => [
+     	     \&zoomInsPreProcessExtractLocate,
+     	     \&zoomInsPreProcessExtractUncontaminated,
+     	     ],
+     	 postprocessExtract      =>
+     	     [
+     	      \&zoomInsPostprocessSelectInSphere    ,
+     	      \&zoomInsPostprocessExtractSelectedIDs,
+     	      \&zoomInsPostprocessSelectInICs       ,
+     	      \&zoomInsPostprocessAnalyze           ,
+     	      \&zoomInsPostprocessSetVolume
+     	     ],
+     	 postprocessMassFunction =>
+     	     [
+     	      \&zoomInsPostProcessMassFunction
+     	     ]
+     },
+     {
+     	 label                   => "MilkyWay_WDM5_hires",
+     	 subpath                 => "ZoomIns",
+     	 realizations            => [ "Halo004" ],
+     	 description             => "Halo mass function for non-backsplash halos from Milky Way, 5keV WDM zoom-in simulations.",
+     	 simulationReference     => "Nadler et al.",
+     	 simulationURL           => "https://www",
+     	 hubbleConstant          => 0.7,
+     	 massHostLogMin          => 12.0, 
+     	 massHostLogMax          => 12.3, 
+     	 massParticle            => 3.5247625e4,
+     	 subvolumes              => 1,
+     	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
+     	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
+     	 processIdentify         => \&zoomInsProcessIdentify,
+     	 processExtract          => \&zoomInsProcessExtract,
+     	 preprocessExtract       => [
+     	     \&zoomInsPreProcessExtractLocate,
+     	     \&zoomInsPreProcessExtractUncontaminated,
+     	     ],
+     	 postprocessExtract      =>
+     	     [
+     	      \&zoomInsPostprocessSelectInSphere    ,
+     	      \&zoomInsPostprocessExtractSelectedIDs,
+     	      \&zoomInsPostprocessSelectInICs       ,
+     	      \&zoomInsPostprocessAnalyze           ,
+     	      \&zoomInsPostprocessSetVolume
+     	     ],
+     	 postprocessMassFunction =>
+     	     [
+     	      \&zoomInsPostProcessMassFunction
+     	     ]
+     },
+     {
+     	 label                   => "MilkyWay_WDM6_hires",
+     	 subpath                 => "ZoomIns",
+     	 realizations            => [ "Halo004" ],
+     	 description             => "Halo mass function for non-backsplash halos from Milky Way, 6keV WDM zoom-in simulations.",
+     	 simulationReference     => "Nadler et al.",
+     	 simulationURL           => "https://www",
+     	 hubbleConstant          => 0.7,
+     	 massHostLogMin          => 12.0, 
+     	 massHostLogMax          => 12.3, 
+     	 massParticle            => 3.5247625e4,
+     	 subvolumes              => 1,
+     	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
+     	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
+     	 processIdentify         => \&zoomInsProcessIdentify,
+     	 processExtract          => \&zoomInsProcessExtract,
+     	 preprocessExtract       => [
+     	     \&zoomInsPreProcessExtractLocate,
+     	     \&zoomInsPreProcessExtractUncontaminated,
+     	     ],
+     	 postprocessExtract      =>
+     	     [
+     	      \&zoomInsPostprocessSelectInSphere    ,
+     	      \&zoomInsPostprocessExtractSelectedIDs,
+     	      \&zoomInsPostprocessSelectInICs       ,
+     	      \&zoomInsPostprocessAnalyze           ,
+     	      \&zoomInsPostprocessSetVolume
+     	     ],
+     	 postprocessMassFunction =>
+     	     [
+     	      \&zoomInsPostProcessMassFunction
+     	     ]
+     },
+     {
+     	 label                   => "MilkyWay_WDM6.5_hires",
+     	 subpath                 => "ZoomIns",
+     	 realizations            => [ "Halo004" ],
+     	 description             => "Halo mass function for non-backsplash halos from Milky Way, 6.5keV WDM zoom-in simulations.",
+     	 simulationReference     => "Nadler et al.",
+     	 simulationURL           => "https://www",
+     	 hubbleConstant          => 0.7,
+     	 massHostLogMin          => 12.0, 
+     	 massHostLogMax          => 12.3, 
+     	 massParticle            => 3.5247625e4,
+     	 subvolumes              => 1,
+     	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
+     	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
+     	 processIdentify         => \&zoomInsProcessIdentify,
+     	 processExtract          => \&zoomInsProcessExtract,
+     	 preprocessExtract       => [
+     	     \&zoomInsPreProcessExtractLocate,
+     	     \&zoomInsPreProcessExtractUncontaminated,
+     	     ],
+     	 postprocessExtract      =>
+     	     [
+     	      \&zoomInsPostprocessSelectInSphere    ,
+     	      \&zoomInsPostprocessExtractSelectedIDs,
+     	      \&zoomInsPostprocessSelectInICs       ,
+     	      \&zoomInsPostprocessAnalyze           ,
+     	      \&zoomInsPostprocessSetVolume
+     	     ],
+     	 postprocessMassFunction =>
+     	     [
+     	      \&zoomInsPostProcessMassFunction
+     	     ]
+     },
+     {
+     	 label                   => "MilkyWay_WDM10_hires",
+     	 subpath                 => "ZoomIns",
+     	 realizations            => [ "Halo004" ],
+     	 description             => "Halo mass function for non-backsplash halos from Milky Way, 10keV WDM zoom-in simulations.",
+     	 simulationReference     => "Nadler et al.",
+     	 simulationURL           => "https://www",
+     	 hubbleConstant          => 0.7,
+     	 massHostLogMin          => 12.0, 
+     	 massHostLogMax          => 12.3, 
+     	 massParticle            => 3.5247625e4,
+     	 subvolumes              => 1,
+     	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
+     	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
+     	 processIdentify         => \&zoomInsProcessIdentify,
+     	 processExtract          => \&zoomInsProcessExtract,
+     	 preprocessExtract       => [
+     	     \&zoomInsPreProcessExtractLocate,
+     	     \&zoomInsPreProcessExtractUncontaminated,
+     	     ],
+     	 postprocessExtract      =>
+     	     [
+     	      \&zoomInsPostprocessSelectInSphere    ,
+     	      \&zoomInsPostprocessExtractSelectedIDs,
+     	      \&zoomInsPostprocessSelectInICs       ,
+     	      \&zoomInsPostprocessAnalyze           ,
+     	      \&zoomInsPostprocessSetVolume
+     	     ],
+     	 postprocessMassFunction =>
+     	     [
+     	      \&zoomInsPostProcessMassFunction
+     	     ]
+     },
+     {
+     	 label                   => "MilkyWay_IDM1GeV_envelope_hires",
+     	 subpath                 => "ZoomIns",
+     	 realizations            => [ "Halo004" ],
+     	 description             => "Halo mass function for non-backsplash halos from Milky Way, 1GeV (envelope) IDM zoom-in simulations.",
+     	 simulationReference     => "Nadler et al.",
+     	 simulationURL           => "https://www",
+     	 hubbleConstant          => 0.7,
+     	 massParticle            => 3.5247625e4,
+     	 massHostLogMin          => 12.0, 
+     	 massHostLogMax          => 12.3, 
+     	 subvolumes              => 1,
+     	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
+     	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
+     	 processIdentify         => \&zoomInsProcessIdentify,
+     	 preprocessExtract       => [
+     	     \&zoomInsPreProcessExtractLocate,
+     	     \&zoomInsPreProcessExtractUncontaminated,
+     	     ],
+     	 processExtract          => \&zoomInsProcessExtract,
+     	 postprocessExtract      =>
+     	     [
+     	      \&zoomInsPostprocessSelectInSphere    ,
+     	      \&zoomInsPostprocessExtractSelectedIDs,
+     	      \&zoomInsPostprocessSelectInICs       ,
+     	      \&zoomInsPostprocessAnalyze           ,
+     	      \&zoomInsPostprocessSetVolume
+     	     ],
+     	 postprocessMassFunction =>
+     	     [
+     	      \&zoomInsPostProcessMassFunction
+     	     ]
+     },
+     {
+     	 label                   => "MilkyWay_IDM1GeV_halfmode_hires",
+     	 subpath                 => "ZoomIns",
+     	 realizations            => [ "Halo004" ],
+     	 description             => "Halo mass function for non-backsplash halos from Milky Way, 1GeV (halfmode) IDM zoom-in simulations.",
+     	 simulationReference     => "Nadler et al.",
+     	 simulationURL           => "https://www",
+     	 hubbleConstant          => 0.7,
+     	 massParticle            => 3.5247625e4,
+     	 massHostLogMin          => 12.0, 
+     	 massHostLogMax          => 12.3, 
+     	 subvolumes              => 1,
+     	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
+     	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
+     	 processIdentify         => \&zoomInsProcessIdentify,
+     	 preprocessExtract       => [
+     	     \&zoomInsPreProcessExtractLocate,
+     	     \&zoomInsPreProcessExtractUncontaminated,
+     	     ],
+     	 processExtract          => \&zoomInsProcessExtract,
+     	 postprocessExtract      =>
+     	     [
+     	      \&zoomInsPostprocessSelectInSphere    ,
+     	      \&zoomInsPostprocessExtractSelectedIDs,
+     	      \&zoomInsPostprocessSelectInICs       ,
+     	      \&zoomInsPostprocessAnalyze           ,
+     	      \&zoomInsPostprocessSetVolume
+     	     ],
+     	 postprocessMassFunction =>
+     	     [
+     	      \&zoomInsPostProcessMassFunction
+     	     ]
+     },
+     {
+     	 label                   => "MilkyWay_IDM1e-2GeV_envelope_hires",
+     	 subpath                 => "ZoomIns",
+     	 realizations            => [ "Halo004" ],
+     	 description             => "Halo mass function for non-backsplash halos from Milky Way, 1e-2GeV (envelope) IDM zoom-in simulations.",
+     	 simulationReference     => "Nadler et al.",
+     	 simulationURL           => "https://www",
+     	 hubbleConstant          => 0.7,
+     	 massParticle            => 3.5247625e4,
+     	 massHostLogMin          => 12.0, 
+     	 massHostLogMax          => 12.3, 
+     	 subvolumes              => 1,
+     	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
+     	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
+     	 processIdentify         => \&zoomInsProcessIdentify,
+     	 preprocessExtract       => [
+     	     \&zoomInsPreProcessExtractLocate,
+     	     \&zoomInsPreProcessExtractUncontaminated,
+     	     ],
+     	 processExtract          => \&zoomInsProcessExtract,
+     	 postprocessExtract      =>
+     	     [
+     	      \&zoomInsPostprocessSelectInSphere    ,
+     	      \&zoomInsPostprocessExtractSelectedIDs,
+     	      \&zoomInsPostprocessSelectInICs       ,
+     	      \&zoomInsPostprocessAnalyze           ,
+     	      \&zoomInsPostprocessSetVolume
+     	     ],
+     	 postprocessMassFunction =>
+     	     [
+     	      \&zoomInsPostProcessMassFunction
+     	     ]
+     },
+     {
+     	 label                   => "MilkyWay_IDM1e-2GeV_halfmode_hires",
+     	 subpath                 => "ZoomIns",
+     	 realizations            => [ "Halo004" ],
+     	 description             => "Halo mass function for non-backsplash halos from Milky Way, 1e-2GeV (halfmode) IDM zoom-in simulations.",
+     	 simulationReference     => "Nadler et al.",
+     	 simulationURL           => "https://www",
+     	 hubbleConstant          => 0.7,
+     	 massParticle            => 3.5247625e4,
+     	 massHostLogMin          => 12.0, 
+     	 massHostLogMax          => 12.3, 
+     	 subvolumes              => 1,
+     	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
+     	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
+     	 processIdentify         => \&zoomInsProcessIdentify,
+     	 preprocessExtract       => [
+     	     \&zoomInsPreProcessExtractLocate,
+     	     \&zoomInsPreProcessExtractUncontaminated,
+     	     ],
+     	 processExtract          => \&zoomInsProcessExtract,
+     	 postprocessExtract      =>
+     	     [
+     	      \&zoomInsPostprocessSelectInSphere    ,
+     	      \&zoomInsPostprocessExtractSelectedIDs,
+     	      \&zoomInsPostprocessSelectInICs       ,
+     	      \&zoomInsPostprocessAnalyze           ,
+     	      \&zoomInsPostprocessSetVolume
+     	     ],
+     	 postprocessMassFunction =>
+     	     [
+     	      \&zoomInsPostProcessMassFunction
+     	     ]
+     },
+     {
+     	 label                   => "MilkyWay_IDM1e-4GeV_envelope_hires",
+     	 subpath                 => "ZoomIns",
+     	 realizations            => [ "Halo004" ],
+     	 description             => "Halo mass function for non-backsplash halos from Milky Way, 1e-4GeV (envelope) IDM zoom-in simulations.",
+     	 simulationReference     => "Nadler et al.",
+     	 simulationURL           => "https://www",
+     	 hubbleConstant          => 0.7,
+     	 massParticle            => 3.5247625e4,
+     	 massHostLogMin          => 12.0, 
+     	 massHostLogMax          => 12.3, 
+     	 subvolumes              => 1,
+     	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
+     	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
+     	 processIdentify         => \&zoomInsProcessIdentify,
+     	 preprocessExtract       => [
+     	     \&zoomInsPreProcessExtractLocate,
+     	     \&zoomInsPreProcessExtractUncontaminated,
+     	     ],
+     	 processExtract          => \&zoomInsProcessExtract,
+     	 postprocessExtract      =>
+     	     [
+     	      \&zoomInsPostprocessSelectInSphere    ,
+     	      \&zoomInsPostprocessExtractSelectedIDs,
+     	      \&zoomInsPostprocessSelectInICs       ,
+     	      \&zoomInsPostprocessAnalyze           ,
+     	      \&zoomInsPostprocessSetVolume
+     	     ],
+     	 postprocessMassFunction =>
+     	     [
+     	      \&zoomInsPostProcessMassFunction
+     	     ]
+     },
+     {
+     	 label                   => "MilkyWay_IDM1e-4GeV_halfmode_hires",
+     	 subpath                 => "ZoomIns",
+     	 realizations            => [ "Halo004" ],
+     	 description             => "Halo mass function for non-backsplash halos from Milky Way, 1e-4GeV (halfmode) IDM zoom-in simulations.",
+     	 simulationReference     => "Nadler et al.",
+     	 simulationURL           => "https://www",
+     	 hubbleConstant          => 0.7,
+     	 massParticle            => 3.5247625e4,
+     	 massHostLogMin          => 12.0, 
+     	 massHostLogMax          => 12.3, 
+     	 subvolumes              => 1,
+     	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
+     	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
+     	 processIdentify         => \&zoomInsProcessIdentify,
+     	 preprocessExtract       => [
+     	     \&zoomInsPreProcessExtractLocate,
+     	     \&zoomInsPreProcessExtractUncontaminated,
+     	     ],
+     	 processExtract          => \&zoomInsProcessExtract,
+     	 postprocessExtract      =>
+     	     [
+     	      \&zoomInsPostprocessSelectInSphere    ,
+     	      \&zoomInsPostprocessExtractSelectedIDs,
+     	      \&zoomInsPostprocessSelectInICs       ,
+     	      \&zoomInsPostprocessAnalyze           ,
+     	      \&zoomInsPostprocessSetVolume
+     	     ],
+     	 postprocessMassFunction =>
+     	     [
+     	      \&zoomInsPostProcessMassFunction
+     	     ]
+     },
+     {
+     	 label                   => "MilkyWay_fdm_25.9e-22eV_hires",
+     	 subpath                 => "ZoomIns",
+     	 realizations            => [ "Halo004" ],
+     	 description             => "Halo mass function for non-backsplash halos from Milky Way, 25.9-22eV FDM zoom-in simulations.",
+     	 simulationReference     => "Nadler et al.",
+     	 simulationURL           => "https://www",
+     	 hubbleConstant          => 0.7,
+     	 massParticle            => 3.5247625e4,
+     	 massHostLogMin          => 12.0, 
+     	 massHostLogMax          => 12.3, 
+     	 subvolumes              => 1,
+     	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
+     	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
+     	 processIdentify         => \&zoomInsProcessIdentify,
+     	 preprocessExtract       => [
+     	     \&zoomInsPreProcessExtractLocate,
+     	     \&zoomInsPreProcessExtractUncontaminated,
+     	     ],
+     	 processExtract          => \&zoomInsProcessExtract,
+     	 postprocessExtract      =>
+     	     [
+     	      \&zoomInsPostprocessSelectInSphere    ,
+     	      \&zoomInsPostprocessExtractSelectedIDs,
+     	      \&zoomInsPostprocessSelectInICs       ,
+     	      \&zoomInsPostprocessAnalyze           ,
+     	      \&zoomInsPostprocessSetVolume
+     	     ],
+     	 postprocessMassFunction =>
+     	     [
+     	      \&zoomInsPostProcessMassFunction
+     	     ]
+     },
+     {
+     	 label                   => "MilkyWay_fdm_69.4e-22eV_hires",
+     	 subpath                 => "ZoomIns",
+     	 realizations            => [ "Halo004" ],
+     	 description             => "Halo mass function for non-backsplash halos from Milky Way, 69.4e-22eV FDM zoom-in simulations.",
+     	 simulationReference     => "Nadler et al.",
+     	 simulationURL           => "https://www",
+     	 hubbleConstant          => 0.7,
+     	 massParticle            => 3.5247625e4,
+     	 massHostLogMin          => 12.0, 
+     	 massHostLogMax          => 12.3, 
+     	 subvolumes              => 1,
+     	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
+     	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
+     	 processIdentify         => \&zoomInsProcessIdentify,
+     	 preprocessExtract       => [
+     	     \&zoomInsPreProcessExtractLocate,
+     	     \&zoomInsPreProcessExtractUncontaminated,
+     	     ],
+     	 processExtract          => \&zoomInsProcessExtract,
+     	 postprocessExtract      =>
+     	     [
+     	      \&zoomInsPostprocessSelectInSphere    ,
+     	      \&zoomInsPostprocessExtractSelectedIDs,
+     	      \&zoomInsPostprocessSelectInICs       ,
+     	      \&zoomInsPostprocessAnalyze           ,
+     	      \&zoomInsPostprocessSetVolume
+     	     ],
+     	 postprocessMassFunction =>
+     	     [
+     	      \&zoomInsPostProcessMassFunction
+     	     ]
+     },
+     {
+     	 label                   => "MilkyWay_fdm_113e-22eV_hires",
+     	 subpath                 => "ZoomIns",
+     	 realizations            => [ "Halo004" ],
+     	 description             => "Halo mass function for non-backsplash halos from Milky Way, 113e-22eV FDM zoom-in simulations.",
+     	 simulationReference     => "Nadler et al.",
+     	 simulationURL           => "https://www",
+     	 hubbleConstant          => 0.7,
+     	 massParticle            => 3.5247625e4,
+     	 massHostLogMin          => 12.0, 
+     	 massHostLogMax          => 12.3, 
+     	 subvolumes              => 1,
+     	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
+     	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
+     	 processIdentify         => \&zoomInsProcessIdentify,
+     	 preprocessExtract       => [
+     	     \&zoomInsPreProcessExtractLocate,
+     	     \&zoomInsPreProcessExtractUncontaminated,
+     	     ],
+     	 processExtract          => \&zoomInsProcessExtract,
+     	 postprocessExtract      =>
+     	     [
+     	      \&zoomInsPostprocessSelectInSphere    ,
+     	      \&zoomInsPostprocessExtractSelectedIDs,
+     	      \&zoomInsPostprocessSelectInICs       ,
+     	      \&zoomInsPostprocessAnalyze           ,
+     	      \&zoomInsPostprocessSetVolume
+     	     ],
+     	 postprocessMassFunction =>
+     	     [
+     	      \&zoomInsPostProcessMassFunction
+     	     ]
+     },
+     {
+     	 label                   => "MilkyWay_fdm_151e-22eV_hires",
+     	 subpath                 => "ZoomIns",
+     	 realizations            => [ "Halo004" ],
+     	 description             => "Halo mass function for non-backsplash halos from Milky Way, 151e-22eV FDM zoom-in simulations.",
+     	 simulationReference     => "Nadler et al.",
+     	 simulationURL           => "https://www",
+     	 hubbleConstant          => 0.7,
+     	 massParticle            => 3.5247625e4,
+     	 massHostLogMin          => 12.0, 
+     	 massHostLogMax          => 12.3, 
+     	 subvolumes              => 1,
+     	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
+     	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
+     	 processIdentify         => \&zoomInsProcessIdentify,
+     	 preprocessExtract       => [
+     	     \&zoomInsPreProcessExtractLocate,
+     	     \&zoomInsPreProcessExtractUncontaminated,
+     	     ],
+     	 processExtract          => \&zoomInsProcessExtract,
+     	 postprocessExtract      =>
+     	     [
+     	      \&zoomInsPostprocessSelectInSphere    ,
+     	      \&zoomInsPostprocessExtractSelectedIDs,
+     	      \&zoomInsPostprocessSelectInICs       ,
+     	      \&zoomInsPostprocessAnalyze           ,
+     	      \&zoomInsPostprocessSetVolume
+     	     ],
+     	 postprocessMassFunction =>
+     	     [
+     	      \&zoomInsPostProcessMassFunction
+     	     ]
+     },
+     {
+     	 label                   => "MilkyWay_fdm_185e-22eV_hires",
+     	 subpath                 => "ZoomIns",
+     	 realizations            => [ "Halo004" ],
+     	 description             => "Halo mass function for non-backsplash halos from Milky Way, 185-22eV FDM zoom-in simulations.",
+     	 simulationReference     => "Nadler et al.",
+     	 simulationURL           => "https://www",
+     	 hubbleConstant          => 0.7,
+     	 massParticle            => 3.5247625e4,
+     	 massHostLogMin          => 12.0, 
+     	 massHostLogMax          => 12.3, 
+     	 subvolumes              => 1,
+     	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
+     	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
+     	 processIdentify         => \&zoomInsProcessIdentify,
+     	 preprocessExtract       => [
+     	     \&zoomInsPreProcessExtractLocate,
+     	     \&zoomInsPreProcessExtractUncontaminated,
+     	     ],
+     	 processExtract          => \&zoomInsProcessExtract,
+     	 postprocessExtract      =>
+     	     [
+     	      \&zoomInsPostprocessSelectInSphere    ,
+     	      \&zoomInsPostprocessExtractSelectedIDs,
+     	      \&zoomInsPostprocessSelectInICs       ,
+     	      \&zoomInsPostprocessAnalyze           ,
+     	      \&zoomInsPostprocessSetVolume
+     	     ],
+     	 postprocessMassFunction =>
+     	     [
+     	      \&zoomInsPostProcessMassFunction
+     	     ]
+     },
+     {
+     	 label                   => "MilkyWay_fdm_490e-22eV_hires",
+     	 subpath                 => "ZoomIns",
+     	 realizations            => [ "Halo004" ],
+     	 description             => "Halo mass function for non-backsplash halos from Milky Way, 490e-22eV FDM zoom-in simulations.",
+     	 simulationReference     => "Nadler et al.",
+     	 simulationURL           => "https://www",
+     	 hubbleConstant          => 0.7,
+     	 massParticle            => 3.5247625e4,
+     	 massHostLogMin          => 12.0, 
+     	 massHostLogMax          => 12.3, 
+     	 subvolumes              => 1,
+     	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
+     	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
+     	 processIdentify         => \&zoomInsProcessIdentify,
+     	 preprocessExtract       => [
+     	     \&zoomInsPreProcessExtractLocate,
+     	     \&zoomInsPreProcessExtractUncontaminated,
+     	     ],
+     	 processExtract          => \&zoomInsProcessExtract,
+     	 postprocessExtract      =>
+     	     [
+     	      \&zoomInsPostprocessSelectInSphere    ,
+     	      \&zoomInsPostprocessExtractSelectedIDs,
+     	      \&zoomInsPostprocessSelectInICs       ,
+     	      \&zoomInsPostprocessAnalyze           ,
+     	      \&zoomInsPostprocessSetVolume
+     	     ],
+     	 postprocessMassFunction =>
+     	     [
+     	      \&zoomInsPostProcessMassFunction
+     	     ]
+     },
+     {
+     	 # LMC zoom-in simulations from the Symphony suite. Host halo IDs were found (by Ethan Nadler) by matching the MAH to that of
+     	 # the target halo in the originasl cosmological box simulation.
+     	 label                   => "LMC",
+     	 subpath                 => "ZoomIns",
+     	 # Halo479 and Halo888 have been excluded due to contamination by low-res particles 
+     	 realizations            => [ "Halo032", "Halo059", "Halo0662", "Halo083", "Halo088", "Halo097", "Halo104", "Halo110", "Halo202", "Halo208", "Halo218", "Halo296", "Halo301", "Halo303", "Halo340", "Halo374", "Halo380", "Halo391", "Halo405", "Halo440", "Halo463", "Halo4662", "Halo511", "Halo524", "Halo539", "Halo567", "Halo575", "Halo602", "Halo697", "Halo711", "Halo721", "Halo767", "Halo802", "Halo824", "Halo850", "Halo853", "Halo914", "Halo932", "Halo933" ],
+     	 description             => "Halo mass function for non-backsplash halos from LMC zoom-in simulations.",
+     	 simulationReference     => "Nadler et al.",
+     	 simulationURL           => "https://www",
+     	 hubbleConstant          => 0.7,
+     	 massParticle            => 3.52476e4,
+     	 massHostLogMin          => 10.95, 
+     	 massHostLogMax          => 11.50, 
+     	 subvolumes              => 1,
+     	 expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
+     	 snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
+     	 processIdentify         => \&zoomInsProcessIdentify,
+     	 preprocessExtract       =>
+     	     [
+     	      \&zoomInsPreProcessExtractLocate,
+     	      \&zoomInsPreProcessExtractUncontaminated,
+     	     ],
+     	 processExtract          => \&zoomInsProcessExtract,
+     	 postprocessExtract      =>
+     	     [
+     	      \&zoomInsPostprocessSelectInSphere    ,
+     	      \&zoomInsPostprocessExtractSelectedIDs,
+     	      \&zoomInsPostprocessSelectInICs       ,
+     	      \&zoomInsPostprocessAnalyze           ,
+     	      \&zoomInsPostprocessSetVolume
+     	     ],
+     	 postprocessMassFunction =>
+     	     [
+     	      \&zoomInsPostProcessMassFunction
+     	     ]
+     }
     );
 
 # Parse config options.
