@@ -31,8 +31,8 @@ module Gamma_Functions
   use, intrinsic :: ISO_C_Binding, only : c_double
   implicit none
   private
-  public :: Gamma_Function_Incomplete        , Gamma_Function_Incomplete_Complementary        , Gamma_Function_Logarithmic            , Gamma_Function, &
-       &    Inverse_Gamma_Function_Incomplete, Inverse_Gamma_Function_Incomplete_Complementary, Gamma_Function_Incomplete_Unnormalized
+  public :: Gamma_Function_Incomplete        , Gamma_Function_Incomplete_Complementary        , Gamma_Function_Logarithmic            , Gamma_Function  , &
+       &    Inverse_Gamma_Function_Incomplete, Inverse_Gamma_Function_Incomplete_Complementary, Gamma_Function_Incomplete_Unnormalized, Digamma_Function
 
   interface
      function gsl_sf_gamma_inc(a,x) bind(c,name='gsl_sf_gamma_inc')
@@ -77,6 +77,15 @@ module Gamma_Functions
        real(c_double)        :: gsl_sf_lngamma
        real(c_double), value :: x
      end function gsl_sf_lngamma
+
+     function gsl_sf_psi(x) bind(c,name='gsl_sf_psi')
+       !!{
+       Template for the GSL digamma (aka ``polygamma'' or ``$\psi$'') function of order 0.
+       !!}
+       import
+       real(c_double)        :: gsl_sf_psi
+       real(c_double), value :: x
+     end function gsl_sf_psi
   end interface
   
 contains
@@ -135,6 +144,17 @@ contains
     Gamma_Function_Logarithmic=GSL_SF_lnGamma(argument)
     return
   end function Gamma_Function_Logarithmic
+
+  double precision function Digamma_Function(argument)
+    !!{
+    Computes the digamma function.
+    !!}
+    implicit none
+    double precision, intent(in   ) :: argument
+
+    Digamma_Function=GSL_SF_Psi(argument)
+    return
+  end function Digamma_Function
 
   double precision function Inverse_Gamma_Function_Incomplete_Complementary(a,P)
     !!{

@@ -34,7 +34,7 @@ program Test_Math_Special_Functions
   use :: Exponential_Integrals   , only : Cosine_Integral                  , Sine_Integral
   use :: Factorials              , only : Factorial                        , Logarithmic_Double_Factorial
   use :: Gamma_Functions         , only : Gamma_Function                   , Gamma_Function_Incomplete                      , Gamma_Function_Incomplete_Complementary, Gamma_Function_Logarithmic    , &
-          &                               Inverse_Gamma_Function_Incomplete, Inverse_Gamma_Function_Incomplete_Complementary
+          &                               Inverse_Gamma_Function_Incomplete, Inverse_Gamma_Function_Incomplete_Complementary, Digamma_Function
   use :: Hypergeometric_Functions, only : Hypergeometric_1F1               , Hypergeometric_2F1                             , Hypergeometric_pFq                     , Hypergeometric_pFq_Regularized
   use :: Polylogarithms          , only : Polylogarithm_2                  , Polylogarithm_3
   use :: Unit_Tests              , only : Assert                           , Unit_Tests_Begin_Group                         , Unit_Tests_End_Group                   , Unit_Tests_Finish
@@ -58,7 +58,7 @@ program Test_Math_Special_Functions
        &                             hypergeometric3F2NegativeArgument                                                                                                                                                           , hypergeometric3F2Accelerated               , &
        &                             polylogarithm2                                                                                                                                                                              , polylogarithm3                             , &
        &                             hypergeometric1F2Regularized                                                                                                                                                                , BesselI2                                   , &
-       &                             BesselIHalf
+       &                             BesselIHalf                                                                                                                                                                                 , digammaFunction
   double complex  , dimension(17) :: errorFunctionComplex
   integer                         :: i
 
@@ -87,6 +87,7 @@ program Test_Math_Special_Functions
      factorials                                 (i)=Factorial                                      (                                                   i                                       )
      doubleFactorial                            (i)=Logarithmic_Double_Factorial                   (                                                   i                                       )
      gammaFunction                              (i)=Gamma_Function                                 (                                          argument(i)                                      )
+     digammaFunction                            (i)=Digamma_Function                               (                                          argument(i)                                      )
      logGammaFunction                           (i)=Gamma_Function_Logarithmic                     (                                          argument(i)                                      )
      incompleteGammaFunction                    (i)=Gamma_Function_Incomplete                      (                                          argument(i),2.0d0                                )
      incompleteComplementaryGammaFunction       (i)=Gamma_Function_Incomplete_Complementary        (                                          argument(i),2.0d0                                )
@@ -380,6 +381,22 @@ program Test_Math_Special_Functions
        &         5040.0d0,              &
        &        40320.0d0,              &
        &            3.62880d5           &
+       &       ],                       &
+       &       relTol=1.0d-6            &
+       &     )
+  call Assert("digamma function, ψ(x)", &
+       &       digammaFunction,         &
+       &       [                        &
+       &        -5.772156649015328d-1 , &
+       &        +4.227843350984672d-1 , &
+       &        +9.227843350984670d-1 , &
+       &        +1.256117668431800d+0 , &
+       &        +1.506117668431801d+0 , &
+       &        +1.706117668431800d+0 , &
+       &        +1.872784335098467d+0 , &
+       &        +2.015641477955610d+0 , &
+       &        +2.140641477955610d+0 , &
+       &        +2.251752589066721d+0   &
        &       ],                       &
        &       relTol=1.0d-6            &
        &     )
