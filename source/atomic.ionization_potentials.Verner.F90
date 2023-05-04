@@ -21,20 +21,20 @@
 
 !!{
 Implements an atomic ionization potential class, which provides potentials for all ionization stages of all atoms from H to Zn
-using data taken from Dima Verner's \href{http://www.pa.uky.edu/~verner/dima/col/cfit.f}{code}.
+using data taken from Dima Verner's \href{https://web.archive.org/web/20220313133801/https://www.pa.uky.edu/~verner/dima/col/cfit.f}{code}.
 !!}
 
   !![
   <atomicIonizationPotential name="atomicIonizationPotentialVerner">
    <description>
-    Implements an atomic ionization potential class, which provides potentials for all ionization stages of all atoms from H to Zn using data taken from Dima Verner's \href{http://www.pa.uky.edu/~verner/dima/col/cfit.f}{code}.
+    Implements an atomic ionization potential class, which provides potentials for all ionization stages of all atoms from H to Zn using data taken from Dima Verner's \href{https://web.archive.org/web/20220313133801/https://www.pa.uky.edu/~verner/dima/col/cfit.f}{code}.
    </description>
   </atomicIonizationPotential>
   !!]
   type, extends(atomicIonizationPotentialClass) :: atomicIonizationPotentialVerner
      !!{
      Implements an atomic ionization potential class, which provides potentials for all ionization stages of all atoms from H
-     to Zn using data taken from Dima Verner's \href{http://www.pa.uky.edu/~verner/dima/col/cfit.f}{code}.
+     to Zn using data taken from Dima Verner's \href{https://web.archive.org/web/20220313133801/https://www.pa.uky.edu/~verner/dima/col/cfit.f}{code}.
      !!}
      private
    contains
@@ -544,7 +544,7 @@ contains
     !!{
     Return the ionization potential (in units of electron volts) for the ion with given {\normalfont \ttfamily atomicNumber} and
     {\normalfont \ttfamily electronNumber} using data taken from Dima Verner's
-    \href{http://www.pa.uky.edu/~verner/dima/col/cfit.f}{code}.
+    \href{https://web.archive.org/web/20220313133801/https://www.pa.uky.edu/~verner/dima/col/cfit.f}{code}.
     !!}
     implicit none
     class  (atomicIonizationPotentialVerner), intent(inout) :: self
