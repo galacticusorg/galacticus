@@ -311,9 +311,10 @@ contains
     if (     node%isOnMainBranch     ()) return
     satellite       => node       %satellite()
     satelliteParent => node%parent%satellite()   
-    call satellite%              positionSet(                           satelliteParent%position                 (                          ))
-    call satellite%              velocitySet(                           satelliteParent%velocity                 (                          ))
-    call satellite%floatRank0MetaPropertySet(self%rateGrowthMassBoundID,satelliteParent%floatRank0MetaPropertyGet(self%rateGrowthMassBoundID))
+    call        satellite%              positionSet(                           satelliteParent%position                 (                          ))
+    call        satellite%              velocitySet(                           satelliteParent%velocity                 (                          ))
+    if (self%trackPreInfallOrbit) &
+         & call satellite%floatRank0MetaPropertySet(self%rateGrowthMassBoundID,satelliteParent%floatRank0MetaPropertyGet(self%rateGrowthMassBoundID))
     return
   end subroutine satelliteOrbitNodePromote
 
@@ -361,7 +362,8 @@ contains
          &                      /megaParsec &
          &                      *velocity   &
          &                     )
-    call satellite%boundMassRate(satellite%floatRank0MetaPropertyGet(self%rateGrowthMassBoundID))
+    if (self%trackPreInfallOrbit)                                                                        &
+         & call satellite%boundMassRate(satellite%floatRank0MetaPropertyGet(self%rateGrowthMassBoundID))
     ! If the node is not a satellite, we assume no acceleration (if tracking pre-infall orbits we are using a kick-drift approach,
     ! so the velocity remains constant between kicks).
     if (.not.node%isSatellite()) return
