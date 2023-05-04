@@ -213,7 +213,7 @@ contains
     use :: Numerical_Constants_Math         , only : Pi
     implicit none
     class           (nodeOperatorCoolingEnergyRadiated), intent(inout), target  :: self
-    type            (treeNode                         ), intent(inout)          :: node
+    type            (treeNode                         ), intent(inout), target  :: node
     logical                                            , intent(inout)          :: interrupt
     procedure       (interruptTask                    ), intent(inout), pointer :: functionInterrupt
     integer                                            , intent(in   )          :: propertyType

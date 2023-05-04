@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which provieds a class that implements physical processes.
+Contains a module which provides a class that implements physical processes.
 !!}
 
 module Nodes_Operators
@@ -132,7 +132,7 @@ module Nodes_Operators
       <type>void</type>
       <pass>yes</pass>
       <selfTarget>yes</selfTarget>
-      <argument>type     (treeNode     ), intent(inout)          :: node             </argument>
+      <argument>type     (treeNode     ), intent(inout), target  :: node             </argument>
       <argument>logical                 , intent(inout)          :: interrupt        </argument>
       <argument>procedure(interruptTask), intent(inout), pointer :: functionInterrupt</argument>
       <argument>integer                 , intent(in   )          :: propertyType     </argument>
