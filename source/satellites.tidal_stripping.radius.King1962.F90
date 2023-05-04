@@ -231,7 +231,7 @@ contains
        do while (nodeHost%isPrimaryProgenitor())
           nodeHost => nodeHost%parent
        end do
-       ! Follow that node back through descendents until we find the node at the corresponding time.
+       ! Follow that node back through descendants until we find the node at the corresponding time.
        basic     => node    %basic()
        basicHost => nodeHost%basic()
        do while (basicHost%time() > basic%time())
