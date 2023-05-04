@@ -186,7 +186,7 @@ contains
        call solver%solve(time,timeProgenitor,phaseSpaceCoordinates)
        positionProgenitor=phaseSpaceCoordinates(1:3)
        velocityProgenitor=phaseSpaceCoordinates(4:6)
-       ! Comput the constant velocity required to reproduce the position evolution) for this progenitor.
+       ! Compute the constant velocity required to reproduce the position evolution) for this progenitor.
        velocityEffective=+(+positionDescendent-positionProgenitor) &
             &            /(+    timeDescendent-    timeProgenitor) &
             &            *Mpc_per_km_per_s_To_Gyr
