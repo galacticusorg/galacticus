@@ -1,62 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1683218498034,
+  "lastUpdate": 1683218505936,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "c18590d4d66fae9b67d976192406a3c275c4eddd",
-          "message": "Merge pull request #291 from galacticusorg/dev\n\nFix build dependencies",
-          "timestamp": "2022-09-07T22:17:05-07:00",
-          "tree_id": "0562c216f25ee41c9af54af50f743d2d9375dec4",
-          "url": "https://github.com/galacticusorg/galacticus/commit/c18590d4d66fae9b67d976192406a3c275c4eddd"
-        },
-        "date": 1662628566503,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Likelihood - localGroupMassMetallicityRelation",
-            "value": 13.4724051054378,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupMassSizeRelation",
-            "value": 8.14361890232308,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupMassVelocityDispersionRelation",
-            "value": 1.87319917950248,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupOccupationFraction",
-            "value": 37.0077918252162,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupStellarMassFunction",
-            "value": 285.355949077026,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
-            "value": 10.6260388538573,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10590,6 +10536,60 @@ window.BENCHMARK_DATA = {
             "value": 146.611,
             "unit": "seconds",
             "range": 0.126463038075957
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "b8451cd19add1a6cac8e7866ca0c4b06ce7c07eb",
+          "message": "fix: Point broken links to the Internet Archive",
+          "timestamp": "2023-05-04T06:46:36-07:00",
+          "tree_id": "0741ca16be1c47084de04770bbb117423e804547",
+          "url": "https://github.com/galacticusorg/galacticus/commit/b8451cd19add1a6cac8e7866ca0c4b06ce7c07eb"
+        },
+        "date": 1683218504901,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassMetallicityRelation",
+            "value": 4.34005003963681,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassSizeRelation",
+            "value": 7.21152816469245,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassVelocityDispersionRelation",
+            "value": 1.44655802394222,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupOccupationFraction",
+            "value": 23.8230528475217,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassFunction",
+            "value": 165.687788789493,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
+            "value": 4.71390650619909,
+            "unit": "-logℒ"
           }
         ]
       }
