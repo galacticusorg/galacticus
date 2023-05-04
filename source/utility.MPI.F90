@@ -39,8 +39,10 @@ module MPI_Utilities
      private
      integer                                            :: rankValue        , countValue    , &
           &                                                nodeCountValue   , iCommunicator
+#ifdef USEMPI
      type   (MPI_Comm      )                            :: communicator
      type   (MPI_Comm      ), allocatable, dimension(:) :: communicatorStack
+#endif
      type   (varying_string)                            :: hostName
      integer                , allocatable, dimension(:) :: allRanks         , nodeAffinities
    contains
@@ -1920,6 +1922,7 @@ contains
     self%communicator=self%communicatorStack(self%iCommunicator)
     call self%stateInitialize()
 #else
+    !$GLC attributes unused :: self, color
     call Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
     return
@@ -1945,6 +1948,7 @@ contains
     self%communicator =self%communicatorStack(self%iCommunicator)
     call self%stateInitialize()
 #else
+    !$GLC attributes unused :: self
     call Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
     return
@@ -2015,6 +2019,8 @@ contains
        end if
     end do
     deallocate(processorNames)
+#else
+    !$GLC attributes unused :: self
 #endif
     return
   end subroutine mpiStateInitialize
