@@ -123,7 +123,7 @@ contains
     Initialize the module by determining the requested verbosity level.
     !!}
 #ifdef USEMPI
-    use    :: MPI          , only : MPI_Comm_Size      , MPI_Comm_Rank, MPI_Comm_World
+    use    :: MPI_F08      , only : MPI_Comm_Size      , MPI_Comm_Rank, MPI_Comm_World
 #endif
     !$ use :: OMP_Lib      , only : OMP_Get_Max_Threads
     use    :: System_Output, only : stdOutIsATTY
