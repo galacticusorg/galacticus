@@ -824,7 +824,7 @@ contains
       \begin{equation}
         \langle L_\nu \rangle = \frac{\mathrm{h} \bar{\nu}}{\Delta \nu} \int_{\lambda_\mathrm{min}}^{\lambda_\mathrm{max}} \mathrm{d}\nu \frac{L_\nu}{\mathrm{h}\nu}.
       \end{equation}
-      Using the factor that $\Delta\nu = \nu_1-\nu_2 = (\mathrm{c}/\bar{\lambda})(f-f^{-1})$ this can be written as
+      Using the fact that $\Delta\nu = \nu_1-\nu_2 = (\mathrm{c}/\bar{\lambda})(f-f^{-1})$ this can be written as
       \begin{equation}
         \langle L_\nu \rangle = (f-f^{-1})^{-1} \int_{\lambda_\mathrm{min}}^{\lambda_\mathrm{max}} \frac{\mathrm{d}\lambda}{\lambda} L_\nu.
       \end{equation}
