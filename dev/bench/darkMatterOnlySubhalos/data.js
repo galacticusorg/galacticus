@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1683218501977,
+  "lastUpdate": 1683266468339,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "4291ea323872a7d25aa90550a6fed06e14d39e39",
-          "message": "Merge pull request #296 from galacticusorg/dev\n\nFurther enablement of auto-descriptors",
-          "timestamp": "2022-09-13T05:54:14-07:00",
-          "tree_id": "3f34546e116222c93b77b00408bbb09f95ed1fb6",
-          "url": "https://github.com/galacticusorg/galacticus/commit/4291ea323872a7d25aa90550a6fed06e14d39e39"
-        },
-        "date": 1663078230055,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 58.075,
-            "unit": "seconds",
-            "range": 0.0921222014504204
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8694,6 +8664,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 24200.3940817449,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "f833d28846fc288fd519bef8d6977b5163d1af11",
+          "message": "fix: Avoid attempts to get `git` revision information in Cloudy builds\n\nAs we build Cloudy within the Galacticus `datasets` repo seeking the `git` revision will erroneously get the revision of the `datasets` repo, which can break the build.",
+          "timestamp": "2023-05-04T14:48:48-07:00",
+          "tree_id": "79e85e410b340d691849451589862e74af5c83c1",
+          "url": "https://github.com/galacticusorg/galacticus/commit/f833d28846fc288fd519bef8d6977b5163d1af11"
+        },
+        "date": 1683266466402,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 60.725,
+            "unit": "seconds",
+            "range": 0.194762676095309
           }
         ]
       }
