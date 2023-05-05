@@ -44,6 +44,7 @@ An implementation of the hot halo temperature class which uses the ``hydrostatic
      class(darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
    contains
      final     ::                        enzoHydrostaticDestructor
+     procedure :: get                 => enzoHydrostaticGet
      procedure :: temperature         => enzoHydrostaticTemperature
      procedure :: temperatureLogSlope => enzoHydrostaticTemperatureLogSlope
   end type hotHaloTemperatureProfileEnzoHydrostatic
@@ -108,6 +109,34 @@ contains
     return
   end subroutine enzoHydrostaticDestructor
 
+  function enzoHydrostaticGet(self,node) result(kinematicsDistribution_)
+    !!{
+    Return the virial hot halo temperature distribution for the given {\normalfont \ttfamily node}.
+    !!}
+    use :: Mass_Distributions, only : massDistributionClass, kinematicsDistributionEnzoHydrostatic
+    implicit none
+    class(kinematicsDistributionClass             ), pointer       :: kinematicsDistribution_
+    class(hotHaloTemperatureProfileEnzoHydrostatic), intent(inout) :: self
+    type (treeNode                                ), intent(inout) :: node
+    class(massDistributionClass                   ), pointer       :: massDistribution_
+    
+    ! Create an isothermal kinematics distribution.
+    allocate(kinematicsDistributionEnzoHydrostatic :: kinematicsDistribution_)
+    select type(kinematicsDistribution_)
+    type is (kinematicsDistributionEnzoHydrostatic)
+       massDistribution_ => self%darkMatterProfileDMO_%get(node)
+       !![
+       <referenceConstruct object="kinematicsDistribution_">
+	 <constructor>
+           kinematicsDistributionEnzoHydrostatic(massDistribution_=massDistribution_)
+	 </constructor>
+       </referenceConstruct>
+       <objectDestructor name="massDistribution_"/>
+       !!]
+    end select
+    return
+  end function enzoHydrostaticGet
+
   double precision function enzoHydrostaticTemperature(self,node,radius)
     !!{
     Return the density in a {\normalfont \ttfamily enzoHydrostatic} hot halo mass distribution.
@@ -120,19 +149,19 @@ contains
     class           (hotHaloTemperatureProfileEnzoHydrostatic), intent(inout) :: self
     type            (treeNode                                ), intent(inout) :: node
     double precision                                          , intent(in   ) :: radius
-    double precision                                                          :: enclosedMass
+    double precision                                                          :: massEnclosed
 
     if (radius == 0.0d0) then
        enzoHydrostaticTemperature=temperatureMinimum
     else
-       enclosedMass              =self%darkMatterProfileDMO_%enclosedMass(        &
+       massEnclosed              =self%darkMatterProfileDMO_%enclosedMass(        &
             &                                                             node  , &
             &                                                             radius  &
             &                                                            )
        enzoHydrostaticTemperature=max(                                     &
             &                         +kilo                           **2  &
             &                         *gravitationalConstantGalacticus     &
-            &                         *enclosedMass                        &
+            &                         *massEnclosed                        &
             &                         *meanAtomicMassPrimordial            &
             &                         *massHydrogenAtom                    &
             &                         /3.0d0                               &
