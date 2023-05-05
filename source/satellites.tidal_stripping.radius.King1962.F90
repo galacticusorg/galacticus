@@ -54,6 +54,7 @@
           &                                                 fractionDarkMatter
      integer         (kind_int8               )          :: lastUniqueID
      type            (rootFinder              )          :: finder
+     logical                                             :: applyPreInfall
    contains
      !![
      <methods>
@@ -88,18 +89,25 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type (satelliteTidalStrippingRadiusKing1962)                :: self
-    type (inputParameters                      ), intent(inout) :: parameters
-    class(cosmologyParametersClass             ), pointer       :: cosmologyParameters_
-    class(darkMatterHaloScaleClass             ), pointer       :: darkMatterHaloScale_
-    class(galacticStructureClass               ), pointer       :: galacticStructure_
+    type   (satelliteTidalStrippingRadiusKing1962)                :: self
+    type   (inputParameters                      ), intent(inout) :: parameters
+    class  (cosmologyParametersClass             ), pointer       :: cosmologyParameters_
+    class  (darkMatterHaloScaleClass             ), pointer       :: darkMatterHaloScale_
+    class  (galacticStructureClass               ), pointer       :: galacticStructure_
+    logical                                                       :: applyPreInfall
 
     !![
+     <inputParameter>
+      <name>applyPreInfall</name>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, tidal radii are computed pre-infall.</description>
+      <source>parameters</source>
+    </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     <objectBuilder class="galacticStructure"   name="galacticStructure_"   source="parameters"/>
     !!]
-    self=satelliteTidalStrippingRadiusKing1962(cosmologyParameters_,darkMatterHaloScale_,galacticStructure_)
+    self=satelliteTidalStrippingRadiusKing1962(applyPreInfall,cosmologyParameters_,darkMatterHaloScale_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"/>
@@ -109,7 +117,7 @@ contains
     return
   end function king1962ConstructorParameters
 
-  function king1962ConstructorInternal(cosmologyParameters_,darkMatterHaloScale_,galacticStructure_) result(self)
+  function king1962ConstructorInternal(applyPreInfall,cosmologyParameters_,darkMatterHaloScale_,galacticStructure_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily king1962} satellite tidal stripping class.
     !!}
@@ -118,9 +126,10 @@ contains
     class           (cosmologyParametersClass             ), intent(in   ), target :: cosmologyParameters_
     class           (darkMatterHaloScaleClass             ), intent(in   ), target :: darkMatterHaloScale_
     class           (galacticStructureClass               ), intent(in   ), target :: galacticStructure_
+    logical                                                , intent(in   )         :: applyPreInfall
     double precision                                       , parameter             :: toleranceAbsolute   =0.0d0, toleranceRelative=1.0d-3
     !![
-    <constructorAssign variables="*cosmologyParameters_, *darkMatterHaloScale_, *galacticStructure_"/>
+    <constructorAssign variables="applyPreInfall, *cosmologyParameters_, *darkMatterHaloScale_, *galacticStructure_"/>
     !!]
 
     self%fractionDarkMatter=+(                                         & 
@@ -223,7 +232,12 @@ contains
     type            (vector                               )                        :: tidalTensorEigenValues
 
     ! Find the host node.
-    if (node%isSatellite()) then
+    if (node%isOnMainBranch().or.(.not.self%applyPreInfall.and..not.node%isSatellite())) then
+       ! For nodes on the main branch, always return the virial radius.
+       king1962Radius=self%darkMatterHaloScale_%radiusVirial(node)
+       return
+    else if (node%isSatellite()) then
+       ! For satellites, use the node with which they will merge.
        nodeHost => node%mergesWith()
     else
        ! Walk up the branch to find the node with which this node will merge.
