@@ -142,7 +142,7 @@ contains
     Assign the position of a subhalo during tree initialization.
     !!}
     implicit none
-    class(nodeOperatorPositionTraceDarkMatter), intent(inout)         :: self
+    class(nodeOperatorPositionTraceDarkMatter), intent(inout), target :: self
     type (treeNode                           ), intent(inout), target :: node
     
     call self%assignPosition(node,checkSatelliteStatus=.true.)

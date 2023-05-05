@@ -127,7 +127,7 @@ contains
     use :: Stellar_Luminosities_Structure, only : operator(*)     , stellarLuminosities, zeroStellarLuminosities, max
     implicit none
     class           (nodeOperatorBarInstability), intent(inout), target  :: self
-    type            (treeNode                  ), intent(inout)          :: node
+    type            (treeNode                  ), intent(inout), target  :: node
     logical                                     , intent(inout)          :: interrupt
     procedure       (interruptTask             ), intent(inout), pointer :: functionInterrupt
     integer                                     , intent(in   )          :: propertyType

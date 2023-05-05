@@ -204,7 +204,7 @@ contains
     use :: Galacticus_Nodes, only : propertyInactive, nodeComponentBasic, nodeComponentDisk, nodeComponentSpheroid
     implicit none
     class           (nodeOperatorStarFormationRateInterOutput), intent(inout), target  :: self
-    type            (treeNode                                ), intent(inout)          :: node
+    type            (treeNode                                ), intent(inout), target  :: node
     logical                                                   , intent(inout)          :: interrupt
     procedure       (interruptTask                           ), intent(inout), pointer :: functionInterrupt
     integer                                                   , intent(in   )          :: propertyType
