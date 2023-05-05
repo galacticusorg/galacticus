@@ -38,9 +38,9 @@
      \nu_\mathrm{SF}(R) = \nu_\mathrm{SF,0} \left[ 1 + \left({\Sigma_\mathrm{HI}\over \Sigma_0}\right)^q \right],
     \end{equation}
     where $q=${\normalfont \ttfamily [surfaceDensityExponent]} and $\Sigma_0=${\normalfont \ttfamily [surfaceDensityCritical]}
-    are parameters and the surface density of molecular gas $\Sigma_\mathrm{H_2} = (P_\mathrm{ext}/P_0)^\alpha
+    are parameters, the surface density of molecular gas $\Sigma_\mathrm{H_2} = (P_\mathrm{ext}/P_0)^\alpha
     \Sigma_\mathrm{HI}$, where $\alpha=${\normalfont \ttfamily [pressureExponent]} and $P_0=${\normalfont \ttfamily
-    [pressureCharacteristic]} are parameters and the hydrostatic pressure in the disk plane assuming location isothermal gas
+    [pressureCharacteristic]} are parameters, and the hydrostatic pressure in the disk plane assuming locally isothermal gas
     and stellar components is given by
     \begin{equation}
      P_\mathrm{ext} \approx {\pi\over 2} \G \Sigma_\mathrm{gas} \left[ \Sigma_\mathrm{gas} + \left({\sigma_\mathrm{gas}\over

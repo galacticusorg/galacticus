@@ -308,9 +308,9 @@ contains
          &   self%objectType()             // &
          &   '.hdf5'
     call Directory_Make(char(File_Path(char(fileName))))
-    ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-    call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
     if (File_Exists(fileName)) then
+       ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
+       call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
        ! Restore tables from file.
        !$ call hdf5Access%set()
        file=hdf5Object(char(fileName))
@@ -327,8 +327,8 @@ contains
        retabulate= xiRequired < self%xiTabulatedMinimum &
             &     .or.                                  &
             &      xiRequired > self%xiTabulatedMaximum
+       call File_Unlock(fileLock)
     end if
-    call File_Unlock(fileLock)
     ! Retabulate now if necessary.
     if (retabulate) then
        if (allocated(     xi                         )) deallocate(     xi                         )
@@ -732,7 +732,7 @@ contains
 
   double precision function sidmIsothermalRadiusCircularVelocityMaximum(self,node)
     !!{
-    Returns the radius (in Mpc) at which the maximum circular velocity is achieved in the dark matter profile of {\normalfont \ttfamily node}.
+    Returns the radius (in Mpc) at which the maximum circular velocity is acheived in the dark matter profile of {\normalfont \ttfamily node}.
     !!}
     implicit none
     class(darkMatterProfileDMOSIDMIsothermal), intent(inout) :: self

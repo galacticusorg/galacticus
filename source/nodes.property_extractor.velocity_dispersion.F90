@@ -53,7 +53,7 @@
      class  (darkMatterHaloScaleClass), pointer                   :: darkMatterHaloScale_          => null()
      class  (galacticStructureClass  ), pointer                   :: galacticStructure_            => null()
      integer                                                      :: radiiCount                             , elementCount_
-     logical                                                      :: includeRadii
+     logical                                                      :: includeRadii                           , integrationFailureIsFatal
      double precision                                             :: toleranceRelative
      type   (varying_string          ), allocatable, dimension(:) :: radiusSpecifiers
      type   (radiusSpecifier         ), allocatable, dimension(:) :: radii
@@ -102,7 +102,7 @@ contains
     class  (darkMatterHaloScaleClass               ), pointer                     :: darkMatterHaloScale_
     class  (galacticStructureClass                 ), pointer                     :: galacticStructure_
     double precision                                                              :: toleranceRelative
-    logical                                                                       :: includeRadii
+    logical                                                                       :: includeRadii        , integrationFailureIsFatal
 
     allocate(radiusSpecifiers(parameters%count('radiusSpecifiers')))
     !![
@@ -118,6 +118,12 @@ contains
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
+      <name>integrationFailureIsFatal</name>
+      <defaultValue>.true.</defaultValue>
+      <description>If true, failure of line-of-sight integrals is fatal. Otherwise, such errors are tolerated.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
       <name>toleranceRelative</name>
       <defaultValue>1.0d-3</defaultValue>
       <description>The relative tolerance to use in integrals.</description>
@@ -126,7 +132,7 @@ contains
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     <objectBuilder class="galacticStructure"   name="galacticStructure_"   source="parameters"/>
     !!]
-    self=nodePropertyExtractorVelocityDispersion(radiusSpecifiers,includeRadii,toleranceRelative,darkMatterHaloScale_,galacticStructure_)
+    self=nodePropertyExtractorVelocityDispersion(radiusSpecifiers,includeRadii,integrationFailureIsFatal,toleranceRelative,darkMatterHaloScale_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterHaloScale_"/>
@@ -135,7 +141,7 @@ contains
     return
   end function velocityDispersionConstructorParameters
 
-  function velocityDispersionConstructorInternal(radiusSpecifiers,includeRadii,toleranceRelative,darkMatterHaloScale_,galacticStructure_) result(self)
+  function velocityDispersionConstructorInternal(radiusSpecifiers,includeRadii,integrationFailureIsFatal,toleranceRelative,darkMatterHaloScale_,galacticStructure_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily velocityDispersion} property extractor class.
     !!}
@@ -145,10 +151,10 @@ contains
     type            (varying_string                         ), intent(in   ), dimension(:) :: radiusSpecifiers
     class           (darkMatterHaloScaleClass               ), intent(in   ), target       :: darkMatterHaloScale_
     class           (galacticStructureClass                 ), intent(in   ), target       :: galacticStructure_
-    logical                                                  , intent(in   )               :: includeRadii
+    logical                                                  , intent(in   )               :: includeRadii        , integrationFailureIsFatal
     double precision                                         , intent(in   )               :: toleranceRelative
     !![
-    <constructorAssign variables="radiusSpecifiers, includeRadii, toleranceRelative, *darkMatterHaloScale_, *galacticStructure_"/>
+    <constructorAssign variables="radiusSpecifiers, includeRadii, integrationFailureIsFatal, toleranceRelative, *darkMatterHaloScale_, *galacticStructure_"/>
     !!]
 
     if (includeRadii) then
@@ -683,16 +689,27 @@ contains
     !!{
     Compute the line-of-sight velocity dispersion at the given {\normalfont \ttfamily radius}.
     !!}
+    use :: Error                , only : Error_Report, errorStatusSuccess
     use :: Numerical_Integration, only : integrator
     implicit none
     double precision            , intent(in   ) :: radius
     type            (integrator)                :: integratorVelocityDensity, integratorDensity
     double precision                            :: densityIntegral          , velocityDensityIntegral
+    integer                                     :: statusVelocityDensity    , statusDensity
 
-    integratorVelocityDensity=integrator                         (velocityDispersionVelocityDensityIntegrand,toleranceRelative=self_%toleranceRelative)
-    integratorDensity        =integrator                         (velocityDispersionDensityIntegrand        ,toleranceRelative=self_%toleranceRelative)
-    velocityDensityIntegral  =integratorVelocityDensity%integrate(radius                                    ,radiusOuter_                             )
-    densityIntegral          =integratorDensity        %integrate(radius                                    ,radiusOuter_                             )
+    integratorVelocityDensity=integrator                         (velocityDispersionVelocityDensityIntegrand,toleranceRelative=self_%toleranceRelative                             )
+    integratorDensity        =integrator                         (velocityDispersionDensityIntegrand        ,toleranceRelative=self_%toleranceRelative                             )
+    velocityDensityIntegral  =integratorVelocityDensity%integrate(radius                                    ,radiusOuter_                             ,status=statusVelocityDensity)
+    densityIntegral          =integratorDensity        %integrate(radius                                    ,radiusOuter_                             ,status=statusDensity        )
+    if     (                                                                                                   &
+         &   (                                                                                                 &
+         &     statusVelocityDensity /= errorStatusSuccess                                                     &
+         &    .or.                                                                                             &
+         &     statusDensity         /= errorStatusSuccess                                                     &
+         &   )                                                                                                 &
+         &  .and.                                                                                              &
+         &   self_%integrationFailureIsFatal                                                                   &
+         & ) call Error_Report('line-of-sight velocity dispersion integral failure'//{introspection:location})
     if (velocityDensityIntegral <= 0.0d0) then
        velocityDispersionLineOfSightVelocityDispersionIntegrand=0.0d0
     else

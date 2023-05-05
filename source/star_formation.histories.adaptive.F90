@@ -130,7 +130,7 @@
      procedure :: scales                      => adaptiveScales
      procedure :: outputBuffers               => adaptiveOutputBuffers
      procedure :: metallicityBoundaries       => adaptiveMetallicityBoundaries
-     procedure :: perOutputTabualtionIsStatic => adaptivePerOutputTabualtionIsStatic
+     procedure :: perOutputTabulationIsStatic => adaptivePerOutputTabulationIsStatic
      procedure :: descriptor                  => adaptiveDescriptor
   end type starFormationHistoryAdaptive
 
@@ -626,16 +626,16 @@ contains
     return
   end function adaptiveMetallicityBoundaries
 
-  logical function adaptivePerOutputTabualtionIsStatic(self)
+  logical function adaptivePerOutputTabulationIsStatic(self)
     !!{
     Return true since the tabulation (in time and metallicity) is static (independent of node) per output.
     !!}
     implicit none
     class(starFormationHistoryAdaptive), intent(inout) :: self
 
-    adaptivePerOutputTabualtionIsStatic=.true.
+    adaptivePerOutputTabulationIsStatic=.true.
     return
-  end function adaptivePerOutputTabualtionIsStatic
+  end function adaptivePerOutputTabulationIsStatic
 
   subroutine adaptiveDescriptor(self,descriptor,includeClass)
     !!{

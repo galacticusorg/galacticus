@@ -212,7 +212,7 @@ contains
     self%metallicityPopulationMaximum=metallicities(metallicitiesCount)/metallicitySolar
     self%metallicityPopulationMinimum=metallicities(                 1)/metallicitySolar
     self%abundanceIndex              =Abundance_Pattern_Lookup(abundanceName="solar")
-    self%useSEDTemplates             =self%starFormationHistory_%perOutputTabualtionIsStatic()
+    self%useSEDTemplates             =self%starFormationHistory_%perOutputTabulationIsStatic()
     ! Compute the factor by which the minimum/maximum wavelength in a resolution element differ from the central wavelength.
     if (resolution > 0.0d0) self%factorWavelength=(1.0d0+sqrt(1.0d0+4.0d0*resolution**2))/2.0d0/resolution
     return
@@ -399,7 +399,7 @@ contains
     !$GLC attributes unused :: time
 
     allocate(descriptions(1))
-    descriptions(1)="Spectral energy density (SED) for the "//enumerationComponentTypeDecode(self%component,includePrefix=.false.)//" [L☉/Hz⁻¹]."
+    descriptions(1)="Spectral energy density (SED), dL/dν for the "//enumerationComponentTypeDecode(self%component,includePrefix=.false.)//" [L☉ Hz⁻¹]."
     return
   end subroutine sedDescriptions
 
@@ -801,7 +801,7 @@ contains
            &              )
       if (self%resolution < 0.0d0) then
          ! Full resolution - evaluate at the given wavelength.
-         if (parallelize) then
+         if (parallelize_) then
             sedIntegrandTime=     stellarPopulationSpectra_%luminosity(abundancesStellar,age,wavelength)
          else
             sedIntegrandTime=self%stellarPopulationSpectra_%luminosity(abundancesStellar,age,wavelength)
@@ -822,7 +822,7 @@ contains
       \begin{equation}
         \langle L_\nu \rangle = \frac{\mathrm{h} \bar{\nu}}{\Delta \nu} \int_{\lambda_\mathrm{min}}^{\lambda_\mathrm{max}} \mathrm{d}\nu \frac{L_\nu}{\mathrm{h}\nu}.
       \end{equation}
-      Using the factor that $\Delta\nu = \nu_1-\nu_2 = (\mathrm{c}/\bar{\lambda})(f-f^{-1})$ this can be written as
+      Using the fact that $\Delta\nu = \nu_1-\nu_2 = (\mathrm{c}/\bar{\lambda})(f-f^{-1})$ this can be written as
       \begin{equation}
         \langle L_\nu \rangle = (f-f^{-1})^{-1} \int_{\lambda_\mathrm{min}}^{\lambda_\mathrm{max}} \frac{\mathrm{d}\lambda}{\lambda} L_\nu.
       \end{equation}
@@ -830,7 +830,7 @@ contains
       implicit none
       double precision, intent(in   ) :: wavelength
 
-      if (parallelize) then
+      if (parallelize_) then
          sedIntegrandWavelength=     stellarPopulationSpectra_%luminosity(abundancesStellar,age,wavelength)
       else
          sedIntegrandWavelength=self%stellarPopulationSpectra_%luminosity(abundancesStellar,age,wavelength)

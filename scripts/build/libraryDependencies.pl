@@ -101,6 +101,9 @@ while ( scalar(keys(%libraries)) != $libraryCount) {
 	}
     }
 }
+# Remove FFTW3 library if not used.
+delete($libraries{'fftw3'})
+    if ( exists($libraries{'fftw3'}) && ! grep {$_ eq "-DFFTW3AVAIL"} @compilerOptions );
 # Remove ANN library if not used.
 delete($libraries{'ANN'})
     if ( exists($libraries{'ANN'}) && ! grep {$_ eq "-DANNAVAIL"} @compilerOptions );

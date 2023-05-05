@@ -2,7 +2,7 @@
 # Uses Docker multi-stage build to build Galacticus.
 
 ARG tag=latest
-FROM galacticusorg/buildenv:$tag as build
+FROM ghcr.io/galacticusorg/buildenv:$tag as build
 
 # Set build options.
 ## * The flags are also set in galacticus/buildenv:latest so we don't really need to reset them here.
@@ -31,6 +31,7 @@ RUN     cd /opt/galacticus &&\
         cambVersion=`awk '{if ($1 == "camb:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml` &&\
         forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml` &&\
         fspsVersion=`awk '{if ($1 == "fsps:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml` &&\
+        cloudyVersion=`awk '{if ($1 == "cloudy:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml` &&\
 	./Galacticus.exe parameters/buildTools.xml &&\
-	rm /opt/datasets/dynamic/c17.03.tar.gz /opt/datasets/dynamic/CAMB_${cambVersion}.tar.gz /opt/datasets/dynamic/class_public-${classVersion}.tar.gz /opt/datasets/dynamic/FSPS_${fspsVersion}.tar.gz
+	rm /opt/datasets/dynamic/c${cloudyVersion}.tar.gz /opt/datasets/dynamic/CAMB_${cambVersion}.tar.gz /opt/datasets/dynamic/class_public-${classVersion}.tar.gz /opt/datasets/dynamic/FSPS_${fspsVersion}.tar.gz
 	

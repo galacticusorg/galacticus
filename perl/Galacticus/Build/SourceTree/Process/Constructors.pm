@@ -30,8 +30,13 @@ sub Process_Constructors {
     while ( $node ) {
 	if ( $node->{'type'} eq "constructorAssign" && ! $node->{'directive'}->{'processed'} ) {
 	    # Assert that our parent is a function.
-	    die("Process_Constructors: parent node must be a function")
-		unless ( $node->{'parent'}->{'type'} eq "function" || $node->{'parent'}->{'type'} eq "moduleProcedure" );
+	    unless ( $node->{'parent'}->{'type'} eq "function" || $node->{'parent'}->{'type'} eq "moduleProcedure" ) {
+		my $nodeRoot = $node;
+		while ( defined($nodeRoot->{'parent'}) ) {
+		    $nodeRoot = $nodeRoot->{'parent'};
+		}
+		die("Process_Constructors: parent node must be a function (current parent is '".$node->{'parent'}->{'type'}."') in file '".$nodeRoot->{'name'}."'");
+	    }
 	    # Get state storables database if we do not have it.
 	    $stateStorables = $xml->XMLin($ENV{'BUILDPATH'}."/stateStorables.xml")
 		unless ( $stateStorables );
