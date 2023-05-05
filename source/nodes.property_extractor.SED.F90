@@ -803,7 +803,7 @@ contains
            &              )
       if (self%resolution < 0.0d0) then
          ! Full resolution - evaluate at the given wavelength.
-         if (parallelize) then
+         if (parallelize_) then
             sedIntegrandTime=     stellarPopulationSpectra_%luminosity(abundancesStellar,age,wavelength)
          else
             sedIntegrandTime=self%stellarPopulationSpectra_%luminosity(abundancesStellar,age,wavelength)
@@ -832,7 +832,7 @@ contains
       implicit none
       double precision, intent(in   ) :: wavelength
 
-      if (parallelize) then
+      if (parallelize_) then
          sedIntegrandWavelength=     stellarPopulationSpectra_%luminosity(abundancesStellar,age,wavelength)
       else
          sedIntegrandWavelength=self%stellarPopulationSpectra_%luminosity(abundancesStellar,age,wavelength)
