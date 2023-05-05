@@ -212,7 +212,7 @@ contains
     self%metallicityPopulationMaximum=metallicities(metallicitiesCount)/metallicitySolar
     self%metallicityPopulationMinimum=metallicities(                 1)/metallicitySolar
     self%abundanceIndex              =Abundance_Pattern_Lookup(abundanceName="solar")
-    self%useSEDTemplates             =self%starFormationHistory_%perOutputTabualtionIsStatic()
+    self%useSEDTemplates             =self%starFormationHistory_%perOutputTabulationIsStatic()
     ! Compute the factor by which the minimum/maximum wavelength in a resolution element differ from the central wavelength.
     if (resolution > 0.0d0) self%factorWavelength=(1.0d0+sqrt(1.0d0+4.0d0*resolution**2))/2.0d0/resolution
     return
