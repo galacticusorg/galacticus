@@ -26,21 +26,25 @@ module MPI_Utilities
   Implements useful MPI utilities.
   !!}
 #ifdef USEMPI
-  use               :: MPI_F08           , only : MPI_Win                , MPI_Datatype
+  use               :: MPI_F08           , only : MPI_Win                , MPI_Datatype, MPI_Comm
 #endif
   !$ use            :: Locks             , only : ompLock
   use   , intrinsic :: ISO_C_Binding     , only : c_size_t              , c_ptr
   use               :: ISO_Varying_String, only : varying_string
   private
   public :: mpiInitialize, mpiFinalize, mpiBarrier, mpiSelf, mpiCounter
-
+ 
   ! Define a type for interacting with MPI.
   type :: mpiObject
      private
-     integer                                            :: rankValue     , countValue    , &
-          &                                                nodeCountValue
+     integer                                            :: rankValue        , countValue    , &
+          &                                                nodeCountValue   , iCommunicator
+#ifdef USEMPI
+     type   (MPI_Comm      )                            :: communicator
+     type   (MPI_Comm      ), allocatable, dimension(:) :: communicatorStack
+#endif
      type   (varying_string)                            :: hostName
-     integer                , allocatable, dimension(:) :: allRanks      , nodeAffinities
+     integer                , allocatable, dimension(:) :: allRanks         , nodeAffinities
    contains
      !![
      <methods>
@@ -65,61 +69,67 @@ module MPI_Utilities
        <method description="Return true if every {\normalfont \ttfamily scalar} is true over all processes." method="all" />
        <method description="Return the rank of the process with the minimum value of {\normalfont \ttfamily array} over all processes." method="minloc" />
        <method description="Gather arrays from all processes into an array of rank one higher." method="gather" />
+       <method description="Create a new communicator and push onto the stack." method="communicatorPush" />
+       <method description="Pop a communicator off of the stack, restoring the previous communicator." method="communicatorPop" />
+       <method description="Initialize the state of the MPI group." method="stateInitialize" />
      </methods>
      !!]
-     procedure :: isMaster       => mpiIsMaster
-     procedure :: isActive       => mpiIsActive
-     procedure :: rank           => mpiGetRank
-     procedure :: rankLabel      => mpiGetRankLabel
-     procedure :: count          => mpiGetCount
-     procedure :: nodeCount      => mpiGetNodeCount
-     procedure :: nodeAffinity   => mpiGetNodeAffinity
-     procedure :: hostAffinity   => mpiGetHostAffinity
-     procedure ::                   mpiRequestData1D           , mpiRequestData2D       , &
-          &                         mpiRequestDataInt1D        , mpiRequestDataLogical1D
-     generic   :: requestData    => mpiRequestData1D           , mpiRequestData2D       , &
-          &                         mpiRequestDataInt1D        , mpiRequestDataLogical1D
-     procedure ::                   mpiBroadcastData1D         , mpiBroadcastData2D     , &
-          &                         mpiBroadcastData3D         , mpiBroadcastDataScalar , &
-          &                         mpiBroadcastDataSizeTScalar
-     generic   :: broadcastData  => mpiBroadcastData1D         , mpiBroadcastData2D     , &
-          &                         mpiBroadcastData3D         , mpiBroadcastDataScalar , &
-          &                         mpiBroadcastDataSizeTScalar
-     procedure :: messageWaiting => mpiMessageWaiting
-     procedure ::                   mpiAverageScalar           , mpiAverageArray
-     generic   :: average        => mpiAverageScalar           , mpiAverageArray
-     procedure ::                   mpiMedianArray
-     generic   :: median         => mpiMedianArray
-     procedure ::                   mpiSumScalarInt            , mpiSumArrayInt
-     procedure ::                   mpiSumScalarSizeT          , mpiSumArraySizeT       , &
-          &                         mpiSumArrayTwoSizeT        , mpiSumArrayThreeSizeT
-     procedure ::                   mpiSumScalarDouble         , mpiSumArrayDouble      , &
-          &                         mpiSumArrayTwoDouble       , mpiSumArrayThreeDouble
-     generic   :: sum            => mpiSumScalarInt            , mpiSumArrayInt         , &
-          &                         mpiSumScalarDouble         , mpiSumArrayDouble      , &
-          &                         mpiSumArrayTwoDouble       , mpiSumArrayThreeDouble , &
-          &                         mpiSumScalarSizeT          , mpiSumArraySizeT       , &
-          &                         mpiSumArrayTwoSizeT        , mpiSumArrayThreeSizeT
-     procedure ::                   mpiAnyLogicalScalar
-     generic   :: any            => mpiAnyLogicalScalar
-     procedure ::                   mpiAllLogicalScalar
-     generic   :: all            => mpiAllLogicalScalar
-     procedure :: maxloc         => mpiMaxloc
-     procedure ::                   mpiMaxvalScalar            , mpiMaxvalArray         , &
-          &                         mpiMaxvalScalarSizeT       , mpiMaxvalArraySizeT
-     generic   :: maxval         => mpiMaxvalScalar            , mpiMaxvalArray         , &
-          &                         mpiMaxvalScalarSizeT       , mpiMaxvalArraySizeT
-     procedure :: minloc         => mpiMinloc
-     procedure ::                   mpiMinvalScalar            , mpiMinvalArray         , &
-          &                         mpiMinValIntScalar         , mpiMinvalIntArray
-     generic   :: minval         => mpiMinvalScalar            , mpiMinvalArray         , &
-          &                         mpiMinValIntScalar         , mpiMinvalIntArray
-     procedure ::                   mpiGather1D                , mpiGather2D            , &
-          &                         mpiGatherScalar            , mpiGatherInt1D         , &
-          &                         mpiGatherIntScalar         , mpiGatherLogicalScalar
-     generic   :: gather         => mpiGather1D                , mpiGather2D            , &
-          &                         mpiGatherScalar            , mpiGatherInt1D         , &
-          &                         mpiGatherIntScalar         , mpiGatherLogicalScalar
+     procedure :: isMaster         => mpiIsMaster
+     procedure :: isActive         => mpiIsActive
+     procedure :: rank             => mpiGetRank
+     procedure :: rankLabel        => mpiGetRankLabel
+     procedure :: count            => mpiGetCount
+     procedure :: nodeCount        => mpiGetNodeCount
+     procedure :: nodeAffinity     => mpiGetNodeAffinity
+     procedure :: hostAffinity     => mpiGetHostAffinity
+     procedure ::                     mpiRequestData1D           , mpiRequestData2D       , &
+          &                           mpiRequestDataInt1D        , mpiRequestDataLogical1D
+     generic   :: requestData      => mpiRequestData1D           , mpiRequestData2D       , &
+          &                           mpiRequestDataInt1D        , mpiRequestDataLogical1D
+     procedure ::                     mpiBroadcastData1D         , mpiBroadcastData2D     , &
+          &                           mpiBroadcastData3D         , mpiBroadcastDataScalar , &
+          &                           mpiBroadcastDataSizeTScalar
+     generic   :: broadcastData    => mpiBroadcastData1D         , mpiBroadcastData2D     , &
+          &                           mpiBroadcastData3D         , mpiBroadcastDataScalar , &
+          &                           mpiBroadcastDataSizeTScalar
+     procedure :: messageWaiting   => mpiMessageWaiting
+     procedure ::                     mpiAverageScalar           , mpiAverageArray
+     generic   :: average          => mpiAverageScalar           , mpiAverageArray
+     procedure ::                     mpiMedianArray
+     generic   :: median           => mpiMedianArray
+     procedure ::                     mpiSumScalarInt            , mpiSumArrayInt
+     procedure ::                     mpiSumScalarSizeT          , mpiSumArraySizeT       , &
+          &                           mpiSumArrayTwoSizeT        , mpiSumArrayThreeSizeT
+     procedure ::                     mpiSumScalarDouble         , mpiSumArrayDouble      , &
+          &                           mpiSumArrayTwoDouble       , mpiSumArrayThreeDouble
+     generic   :: sum              => mpiSumScalarInt            , mpiSumArrayInt         , &
+          &                           mpiSumScalarDouble         , mpiSumArrayDouble      , &
+          &                           mpiSumArrayTwoDouble       , mpiSumArrayThreeDouble , &
+          &                           mpiSumScalarSizeT          , mpiSumArraySizeT       , &
+          &                           mpiSumArrayTwoSizeT        , mpiSumArrayThreeSizeT
+     procedure ::                     mpiAnyLogicalScalar
+     generic   :: any              => mpiAnyLogicalScalar
+     procedure ::                     mpiAllLogicalScalar
+     generic   :: all              => mpiAllLogicalScalar
+     procedure :: maxloc           => mpiMaxloc
+     procedure ::                     mpiMaxvalScalar            , mpiMaxvalArray         , &
+          &                           mpiMaxvalScalarSizeT       , mpiMaxvalArraySizeT
+     generic   :: maxval           => mpiMaxvalScalar            , mpiMaxvalArray         , &
+          &                           mpiMaxvalScalarSizeT       , mpiMaxvalArraySizeT
+     procedure :: minloc           => mpiMinloc
+     procedure ::                     mpiMinvalScalar            , mpiMinvalArray         , &
+          &                           mpiMinValIntScalar         , mpiMinvalIntArray
+     generic   :: minval           => mpiMinvalScalar            , mpiMinvalArray         , &
+          &                           mpiMinValIntScalar         , mpiMinvalIntArray
+     procedure ::                     mpiGather1D                , mpiGather2D            , &
+          &                           mpiGatherScalar            , mpiGatherInt1D         , &
+          &                           mpiGatherIntScalar         , mpiGatherLogicalScalar
+     generic   :: gather           => mpiGather1D                , mpiGather2D            , &
+          &                           mpiGatherScalar            , mpiGatherInt1D         , &
+          &                           mpiGatherIntScalar         , mpiGatherLogicalScalar
+     procedure :: communicatorPush => mpiCommunicatorPush
+     procedure :: communicatorPop  => mpiCommunicatorPop
+     procedure :: stateInitialize  => mpiStateInitialize
   end type mpiObject
 
   ! Declare an object for interaction with MPI.
@@ -173,23 +183,13 @@ contains
     Initialize MPI.
     !!}
 #ifdef USEMPI
-    use :: MPI               , only : MPI_Max_Processor_Name , MPI_Thread_Funneled, MPI_Thread_Single, MPI_Comm_World, &
-         &                            MPI_Character
-    use :: Error             , only : Error_Report
-    use :: Hashes            , only : integerHash
-    use :: ISO_Varying_String, only : assignment(=)          , operator(==), var_str, operator(//), char
-    use :: String_Handling   , only : operator(//)
+    use :: MPI_F08, only : MPI_Thread_Funneled, MPI_Thread_Single, MPI_Comm_World
+    use :: Error  , only : Error_Report
 #endif
     implicit none
-    integer                              , optional    , intent(in   ) :: mpiThreadingRequired
+    integer, optional, intent(in   ) :: mpiThreadingRequired
 #ifdef USEMPI
-    integer                                                            :: i                   , iError             , &
-         &                                                                mpiThreadingProvided, processorNameLength, &
-         &                                                                iProcess
-    character(len=MPI_Max_Processor_Name), dimension(1)                :: processorName
-    character(len=MPI_Max_Processor_Name), dimension(:), allocatable   :: processorNames
-    type     (integerHash               )                              :: processCount
-    type     (varying_string            )                              :: message
+    integer                          :: iError             , mpiThreadingProvided
     !![
     <optionalArgument name="mpiThreadingRequired" defaultsTo="MPI_Thread_Funneled" />
     !!]
@@ -202,47 +202,12 @@ contains
        if (iError               /= 0                    ) call Error_Report('failed to initialize MPI'                                        //{introspection:location})
        if (mpiThreadingProvided <  mpiThreadingRequired_) call Error_Report('MPI library does not provide required level of threading support'//{introspection:location})
     end if
-    call    MPI_Comm_Size         (MPI_Comm_World       ,mpiSelf%countValue  ,iError)
-    if    (iError               /= 0                    ) call Error_Report('failed to determine MPI count'                                   //{introspection:location})
-    call    MPI_Comm_Rank         (MPI_Comm_World       ,mpiSelf% rankValue  ,iError)
-    if    (iError               /= 0                    ) call Error_Report('failed to determine MPI rank'                                    //{introspection:location})
-    call    MPI_Get_Processor_Name(processorName(1)     ,processorNameLength ,iError)
-    if    (iError               /= 0                    ) call Error_Report('failed to get MPI processor name'                                //{introspection:location})
-    mpiSelf%hostName=trim(processorName(1))
-    call mpiBarrier()
-    ! Construct an array containing all ranks.
-    allocate(mpiSelf%allRanks(0:mpiSelf%countValue-1))
-    forall(i=0:mpiSelf%countValue-1)
-       mpiSelf%allRanks(i)=i
-    end forall
-    ! Get processor names from all processes.
-    allocate(processorNames(0:mpiSelf%countValue-1))
-    call MPI_AllGather(processorName,MPI_Max_Processor_Name,MPI_Character,processorNames,MPI_Max_Processor_Name,MPI_Character,MPI_Comm_World,iError)
-    ! Count processes per node.
-    call processCount%initialize()
-    do iProcess=0,mpiSelf%countValue-1
-       if (processCount%exists(trim(processorNames(iProcess)))) then
-          call processCount%set(trim(processorNames(iProcess)),processCount%value(trim(processorNames(iProcess)))+1)
-       else
-          call processCount%set(trim(processorNames(iProcess)),1)
-       end if
-    end do
-    mpiself%nodeCountValue=processCount%size()
-    allocate(mpiSelf%nodeAffinities(0:mpiSelf%countValue-1))
-    mpiSelf%nodeAffinities=-1
-    do iProcess=0,mpiSelf%countValue-1
-       do i=1,mpiSelf%nodeCountValue
-          if (trim(processorNames(iProcess)) == processCount%key(i)) mpiSelf%nodeAffinities(iProcess)=i
-       end do
-       if (mpiSelf%nodeAffinities(iProcess) < 0) then
-          message=var_str('failed to determine node affinity for process ')//iProcess//' with processor name "'//processorNames(iProcess)//' - known processor names are:'
-          do i=1,mpiSelf%nodeCountValue
-             message=message//char(10)//'   '//processCount%key(i)
-          end do
-          call Error_Report(message//{introspection:location})
-       end if
-    end do
-    deallocate(processorNames)
+    ! Initialize our communicator to "world".
+    allocate(mpiSelf%communicatorStack(1))
+    mpiSelf%iCommunicator                           =1
+    mpiSelf%communicatorStack(mpiSelf%iCommunicator)=MPI_Comm_World
+    mpiSelf%communicator                            =mpiSelf%communicatorStack(mpiSelf%iCommunicator)
+    call mpiSelf%stateInitialize()
     ! Record that MPI is active.
     mpiIsActiveValue=.true.
 #else
@@ -273,12 +238,12 @@ contains
     Block until all MPI processes are synchronized.
     !!}
 #ifdef USEMPI
-    use :: Error, only : Error_Report
-    use :: MPI  , only : MPI_Barrier , MPI_Comm_World
+    use :: Error  , only : Error_Report
+    use :: MPI_F08, only : MPI_Barrier
     implicit none
     integer :: iError
 
-    call MPI_Barrier(MPI_Comm_World,iError)
+    call MPI_Barrier(mpiSelf%communicator,iError)
     if (iError /= 0) call Error_Report('MPI barrier failed'//{introspection:location})
 #endif
     return
@@ -455,8 +420,7 @@ contains
     Return true if an MPI message (matching the optional {\normalfont \ttfamily from} and {\normalfont \ttfamily tag} if given) is waiting for receipt.
     !!}
 #ifdef USEMPI
-    use :: MPI_F08, only : MPI_Status    , MPI_Any_Source, MPI_Any_Tag, MPI_IProbe, &
-         &                 MPI_Comm_World
+    use :: MPI_F08, only : MPI_Status  , MPI_Any_Source, MPI_Any_Tag, MPI_IProbe
 #endif
     use :: Error  , only : Error_Report
     implicit none
@@ -472,7 +436,7 @@ contains
     tagActual =MPI_Any_Tag
     if (present(from)) fromActual=from
     if (present(tag ) ) tagActual=tag
-    call MPI_IProbe(fromActual,tagActual,MPI_Comm_World,mpiMessageWaiting,messageStatus,iError)
+    call MPI_IProbe(fromActual,tagActual,mpiSelf%communicator,mpiMessageWaiting,messageStatus,iError)
     if (iError /= 0) call Error_Report('failed to probe for waiting messages'//{introspection:location})
 #else
     !$GLC attributes unused :: self, from, tag
@@ -489,9 +453,8 @@ contains
 #ifndef USEMPI
     use :: Error  , only : Error_Report
 #else
-    use :: MPI_F08, only : MPI_Request         , MPI_Status , MPI_Wait      , MPI_ISend     , &
-         &                 MPI_Recv            , MPI_Integer, MPI_Any_Source, MPI_Comm_World, &
-         &                 MPI_Double_Precision
+    use :: MPI_F08, only : MPI_Request , MPI_Status , MPI_Wait      , MPI_ISend           , &
+         &                 MPI_Recv    , MPI_Integer, MPI_Any_Source, MPI_Double_Precision
 #endif
     implicit none
     class           (mpiObject), intent(in   )                                           :: self
@@ -516,9 +479,9 @@ contains
     call mpiBarrier()
     do i=0,self%count()-1
        if (any(requestFrom == i)) then
-          call MPI_ISend(requester    ,1,MPI_Integer,i,tagRequestForData,MPI_Comm_World,requestFromID(i),iError)
+          call MPI_ISend(requester    ,1,MPI_Integer,i,tagRequestForData,mpiSelf%communicator,requestFromID(i),iError)
        else
-          call MPI_ISend(nullRequester,1,MPI_Integer,i,tagRequestForData,MPI_Comm_World,requestFromID(i),iError)
+          call MPI_ISend(nullRequester,1,MPI_Integer,i,tagRequestForData,mpiSelf%communicator,requestFromID(i),iError)
        end if
     end do
     call mpiBarrier()
@@ -527,7 +490,7 @@ contains
     iRequest=0
     do i=0,self%count()-1
        ! Receive the request.
-       call MPI_Recv(requestedBy,1,MPI_Integer,MPI_Any_Source,tagRequestForData,MPI_Comm_World,messageStatus,iError)
+       call MPI_Recv(requestedBy,1,MPI_Integer,MPI_Any_Source,tagRequestForData,mpiSelf%communicator,messageStatus,iError)
        ! Check for a non-null request.
        if (requestedBy(1) /= nullRequester) then
           ! Expand the requestID buffer as required.
@@ -539,7 +502,7 @@ contains
              deallocate(requestIDtemp)
           end if
           ! Send our data in reply.
-          call MPI_ISend(array,size(array),MPI_Double_Precision,requestedBy(1),tagState,MPI_Comm_World,requestID(iRequest),iError)
+          call MPI_ISend(array,size(array),MPI_Double_Precision,requestedBy(1),tagState,mpiSelf%communicator,requestID(iRequest),iError)
        end if
     end do
     call mpiBarrier()
@@ -549,7 +512,7 @@ contains
     end do
     ! Receive data.
     do i=1,size(requestFrom)
-       call MPI_Recv(receivedData,size(array),MPI_Double_Precision,MPI_Any_Source,tagState,MPI_Comm_World,messageStatus,iError)
+       call MPI_Recv(receivedData,size(array),MPI_Double_Precision,MPI_Any_Source,tagState,mpiSelf%communicator,messageStatus,iError)
        ! Find who sent this data and apply to the relevant part of the results array.
        receivedFrom=messageStatus%MPI_Source
        do j=1,size(requestFrom)
@@ -578,9 +541,8 @@ contains
 #ifndef USEMPI
     use :: Error  , only : Error_Report
 #else
-    use :: MPI_F08, only : MPI_Request         , MPI_Status , MPI_Wait      , MPI_ISend     , &
-         &                 MPI_Recv            , MPI_Integer, MPI_Any_Source, MPI_Comm_World, &
-         &                 MPI_Double_Precision
+    use :: MPI_F08, only : MPI_Request , MPI_Status , MPI_Wait      , MPI_ISend           , &
+         &                 MPI_Recv    , MPI_Integer, MPI_Any_Source, MPI_Double_Precision
 #endif
     implicit none
     class           (mpiObject  ), intent(in   )                                                                   :: self
@@ -605,9 +567,9 @@ contains
     call mpiBarrier()
     do i=0,self%count()-1
        if (any(requestFrom == i)) then
-          call MPI_ISend(requester    ,1,MPI_Integer,i,tagRequestForData,MPI_Comm_World,requestFromID(i),iError)
+          call MPI_ISend(requester    ,1,MPI_Integer,i,tagRequestForData,mpiSelf%communicator,requestFromID(i),iError)
        else
-          call MPI_ISend(nullRequester,1,MPI_Integer,i,tagRequestForData,MPI_Comm_World,requestFromID(i),iError)
+          call MPI_ISend(nullRequester,1,MPI_Integer,i,tagRequestForData,mpiSelf%communicator,requestFromID(i),iError)
        end if
     end do
     call mpiBarrier()
@@ -616,7 +578,7 @@ contains
     iRequest=0
     do i=0,self%count()-1
        ! Receive the request.
-       call MPI_Recv(requestedBy,1,MPI_Integer,MPI_Any_Source,tagRequestForData,MPI_Comm_World,messageStatus,iError)
+       call MPI_Recv(requestedBy,1,MPI_Integer,MPI_Any_Source,tagRequestForData,mpiSelf%communicator,messageStatus,iError)
        ! Check for a non-null request.
        if (requestedBy(1) /= nullRequester) then
           ! Expand the requestID buffer as required.
@@ -628,7 +590,7 @@ contains
              deallocate(requestIDtemp)
           end if
           ! Send our data in reply.
-          call MPI_ISend(array,product(shape(array)),MPI_Double_Precision,requestedBy(1),tagState,MPI_Comm_World,requestID(iRequest),iError)
+          call MPI_ISend(array,product(shape(array)),MPI_Double_Precision,requestedBy(1),tagState,mpiSelf%communicator,requestID(iRequest),iError)
        end if
     end do
     call mpiBarrier()
@@ -638,7 +600,7 @@ contains
     end do
     ! Receive data.
     do i=1,size(requestFrom)
-       call MPI_Recv(receivedData,product(shape(array)),MPI_Double_Precision,requestFrom(i),tagState,MPI_Comm_World,messageStatus,iError)
+       call MPI_Recv(receivedData,product(shape(array)),MPI_Double_Precision,requestFrom(i),tagState,mpiSelf%communicator,messageStatus,iError)
        ! Find who sent this data and apply to the relevant part of the results array.
        receivedFrom=messageStatus%MPI_Source
        do j=1,size(requestFrom)
@@ -667,8 +629,8 @@ contains
 #ifndef USEMPI
     use :: Error  , only : Error_Report
 #else
-    use :: MPI_F08, only : MPI_Request              , MPI_Status    , MPI_Wait      , MPI_ISend, &
-         &                 MPI_Recv    , MPI_Integer, MPI_Any_Source, MPI_Comm_World
+    use :: MPI_F08, only : MPI_Request              , MPI_Status    , MPI_Wait, MPI_ISend, &
+         &                 MPI_Recv    , MPI_Integer, MPI_Any_Source
 #endif
     implicit none
     class  (mpiObject  ), intent(in   )                                           :: self
@@ -693,9 +655,9 @@ contains
     call mpiBarrier()
     do i=0,self%count()-1
        if (any(requestFrom == i)) then
-          call MPI_ISend(requester    ,1,MPI_Integer,i,tagRequestForData,MPI_Comm_World,requestFromID(i),iError)
+          call MPI_ISend(requester    ,1,MPI_Integer,i,tagRequestForData,mpiSelf%communicator,requestFromID(i),iError)
        else
-          call MPI_ISend(nullRequester,1,MPI_Integer,i,tagRequestForData,MPI_Comm_World,requestFromID(i),iError)
+          call MPI_ISend(nullRequester,1,MPI_Integer,i,tagRequestForData,mpiSelf%communicator,requestFromID(i),iError)
        end if
     end do
     call mpiBarrier()
@@ -704,7 +666,7 @@ contains
     iRequest=0
     do i=0,self%count()-1
        ! Receive the request.
-       call MPI_Recv(requestedBy,1,MPI_Integer,MPI_Any_Source,tagRequestForData,MPI_Comm_World,messageStatus,iError)
+       call MPI_Recv(requestedBy,1,MPI_Integer,MPI_Any_Source,tagRequestForData,mpiSelf%communicator,messageStatus,iError)
        ! Check for a non-null request.
        if (requestedBy(1) /= nullRequester) then
           ! Expand the requestID buffer as required.
@@ -716,7 +678,7 @@ contains
              deallocate(requestIDtemp)
           end if
           ! Send our data in reply.
-          call MPI_ISend(array,size(array),MPI_Integer,requestedBy(1),tagState,MPI_Comm_World,requestID(iRequest),iError)
+          call MPI_ISend(array,size(array),MPI_Integer,requestedBy(1),tagState,mpiSelf%communicator,requestID(iRequest),iError)
        end if
     end do
     call mpiBarrier()
@@ -726,7 +688,7 @@ contains
     end do
     ! Receive data.
     do i=1,size(requestFrom)
-       call MPI_Recv(receivedData,size(array),MPI_Integer,requestFrom(i),tagState,MPI_Comm_World,messageStatus,iError)
+       call MPI_Recv(receivedData,size(array),MPI_Integer,requestFrom(i),tagState,mpiSelf%communicator,messageStatus,iError)
        ! Find who sent this data and apply to the relevant part of the results array.
        receivedFrom=messageStatus%MPI_Source
        do j=1,size(requestFrom)
@@ -755,8 +717,8 @@ contains
 #ifndef USEMPI
     use :: Error  , only : Error_Report
 #else
-    use :: MPI_F08, only : MPI_Request , MPI_Status , MPI_Wait      , MPI_ISend     , &
-         &                 MPI_Recv    , MPI_Logical, MPI_Any_Source, MPI_Comm_World
+    use :: MPI_F08, only : MPI_Request , MPI_Status , MPI_Wait      , MPI_ISend, &
+         &                 MPI_Recv    , MPI_Logical, MPI_Any_Source
 #endif
     implicit none
     class  (mpiObject  ), intent(in   )                                           :: self
@@ -765,12 +727,12 @@ contains
     logical                            , dimension(size(array),size(requestFrom)) :: mpiRequestDataLogical1D
 #ifdef USEMPI
     logical                            , dimension(size(array)                  ) :: receivedData
-    integer                            , dimension(                            1) :: requester       , requestedBy
+    integer                            , dimension(                            1) :: requester              , requestedBy
     type   (MPI_Request)               , dimension(         0: self%countValue-1) :: requestFromID
-    type   (MPI_Request), allocatable  , dimension(                            :) :: requestID       , requestIDtemp
+    type   (MPI_Request), allocatable  , dimension(                            :) :: requestID              , requestIDtemp
     type   (MPI_Status )                                                          :: messageStatus
-    integer                                                                       :: i               , iError       , &
-         &                                                                           iRequest        , j            , &
+    integer                                                                       :: i                      , iError       , &
+         &                                                                           iRequest               , j            , &
          &                                                                           receivedFrom
 #endif
 
@@ -781,9 +743,9 @@ contains
     call mpiBarrier()
     do i=0,self%count()-1
        if (any(requestFrom == i)) then
-          call MPI_ISend(requester    ,1,MPI_Logical,i,tagRequestForData,MPI_Comm_World,requestFromID(i),iError)
+          call MPI_ISend(requester    ,1,MPI_Logical,i,tagRequestForData,mpiSelf%communicator,requestFromID(i),iError)
        else
-          call MPI_ISend(nullRequester,1,MPI_Logical,i,tagRequestForData,MPI_Comm_World,requestFromID(i),iError)
+          call MPI_ISend(nullRequester,1,MPI_Logical,i,tagRequestForData,mpiSelf%communicator,requestFromID(i),iError)
        end if
     end do
     call mpiBarrier()
@@ -792,7 +754,7 @@ contains
     iRequest=0
     do i=0,self%count()-1
        ! Receive the request.
-       call MPI_Recv(requestedBy,1,MPI_Logical,MPI_Any_Source,tagRequestForData,MPI_Comm_World,messageStatus,iError)
+       call MPI_Recv(requestedBy,1,MPI_Logical,MPI_Any_Source,tagRequestForData,mpiSelf%communicator,messageStatus,iError)
        ! Check for a non-null request.
        if (requestedBy(1) /= nullRequester) then
           ! Expand the requestID buffer as required.
@@ -804,7 +766,7 @@ contains
              deallocate(requestIDtemp)
           end if
           ! Send our data in reply.
-          call MPI_ISend(array,size(array),MPI_Logical,requestedBy(1),tagState,MPI_Comm_World,requestID(iRequest),iError)
+          call MPI_ISend(array,size(array),MPI_Logical,requestedBy(1),tagState,mpiSelf%communicator,requestID(iRequest),iError)
        end if
     end do
     call mpiBarrier()
@@ -814,7 +776,7 @@ contains
     end do
     ! Receive data.
     do i=1,size(requestFrom)
-       call MPI_Recv(receivedData,size(array),MPI_Logical,requestFrom(i),tagState,MPI_Comm_World,messageStatus,iError)
+       call MPI_Recv(receivedData,size(array),MPI_Logical,requestFrom(i),tagState,mpiSelf%communicator,messageStatus,iError)
        ! Find who sent this data and apply to the relevant part of the results array.
        receivedFrom=messageStatus%MPI_Source
        do j=1,size(requestFrom)
@@ -842,7 +804,7 @@ contains
     !!}
     use :: Error  , only : Error_Report
 #ifdef USEMPI
-    use :: MPI_F08, only : MPI_Comm_World, MPI_Double_Precision, MPI_Bcast
+    use :: MPI_F08, only : MPI_Double_Precision, MPI_Bcast
 #endif
     implicit none
     class           (mpiObject), intent(in   ) :: self
@@ -852,7 +814,7 @@ contains
     integer                                    :: status
     !$GLC attributes unused :: self
     
-    call MPI_Bcast(scalar,1,MPI_Double_Precision,sendFrom,MPI_Comm_World,status)
+    call MPI_Bcast(scalar,1,MPI_Double_Precision,sendFrom,mpiSelf%communicator,status)
     if (status /= 0) call Error_Report('failed to broadcast data'//{introspection:location})
 #else
     !$GLC attributes unused :: self, sendFrom, scalar
@@ -867,7 +829,7 @@ contains
     !!}
     use :: Error  , only : Error_Report
 #ifdef USEMPI
-    use :: MPI_F08, only : MPI_Comm_World, MPI_Integer8, MPI_Bcast
+    use :: MPI_F08, only : MPI_Integer8, MPI_Bcast
 #endif
     implicit none
     class           (mpiObject), intent(in   ) :: self
@@ -877,7 +839,7 @@ contains
     integer                                    :: status
     !$GLC attributes unused :: self
     
-    call MPI_Bcast(scalar,1,MPI_Integer8,sendFrom,MPI_Comm_World,status)
+    call MPI_Bcast(scalar,1,MPI_Integer8,sendFrom,mpiSelf%communicator,status)
     if (status /= 0) call Error_Report('failed to broadcast data'//{introspection:location})
 #else
     !$GLC attributes unused :: self, sendFrom, scalar
@@ -892,7 +854,7 @@ contains
     !!}
     use :: Error  , only : Error_Report
 #ifdef USEMPI
-    use :: MPI_F08, only : MPI_Comm_World, MPI_Double_Precision, MPI_Bcast
+    use :: MPI_F08, only : MPI_Double_Precision, MPI_Bcast
 #endif
     implicit none
     class           (mpiObject), intent(in   )               :: self
@@ -902,7 +864,7 @@ contains
     integer                                                  :: status
     !$GLC attributes unused :: self
     
-    call MPI_Bcast(array,size(array),MPI_Double_Precision,sendFrom,MPI_Comm_World,status)
+    call MPI_Bcast(array,size(array),MPI_Double_Precision,sendFrom,mpiSelf%communicator,status)
     if (status /= 0) call Error_Report('failed to broadcast data'//{introspection:location})
 #else
     !$GLC attributes unused :: self, sendFrom, array
@@ -917,7 +879,7 @@ contains
     !!}
     use :: Error  , only : Error_Report
 #ifdef USEMPI
-    use :: MPI_F08, only : MPI_Comm_World, MPI_Double_Precision, MPI_Bcast
+    use :: MPI_F08, only : MPI_Double_Precision, MPI_Bcast
 #endif
     implicit none
     class           (mpiObject), intent(in   )                 :: self
@@ -927,7 +889,7 @@ contains
     integer                                                    :: status
     !$GLC attributes unused :: self
     
-    call MPI_Bcast(array,size(array),MPI_Double_Precision,sendFrom,MPI_Comm_World,status)
+    call MPI_Bcast(array,size(array),MPI_Double_Precision,sendFrom,mpiSelf%communicator,status)
     if (status /= 0) call Error_Report('failed to broadcast data'//{introspection:location})
 #else
     !$GLC attributes unused :: self, sendFrom, array
@@ -942,7 +904,7 @@ contains
     !!}
     use :: Error  , only : Error_Report
 #ifdef USEMPI
-    use :: MPI_F08, only : MPI_Comm_World, MPI_Double_Precision, MPI_Bcast
+    use :: MPI_F08, only : MPI_Double_Precision, MPI_Bcast
 #endif
     implicit none
     class           (mpiObject), intent(in   )                   :: self
@@ -952,7 +914,7 @@ contains
     integer                                                      :: status
     !$GLC attributes unused :: self
 
-    call MPI_Bcast(array,size(array),MPI_Double_Precision,sendFrom,MPI_Comm_World,status)
+    call MPI_Bcast(array,size(array),MPI_Double_Precision,sendFrom,mpiSelf%communicator,status)
     if (status /= 0) call Error_Report('failed to broadcast data'//{introspection:location})
 #else
     !$GLC attributes unused :: self, sendFrom, array
@@ -965,9 +927,9 @@ contains
     !!{
     Sum an integer array over all processes, returning it to all processes.
     !!}
-    use :: Error, only : Error_Report
+    use :: Error  , only : Error_Report
 #ifdef USEMPI
-    use :: MPI  , only : MPI_AllReduce, MPI_Integer, MPI_Sum, MPI_Comm_World
+    use :: MPI_F08, only : MPI_AllReduce, MPI_Integer, MPI_Sum
 #endif
     implicit none
     class  (mpiObject), intent(in   )                                    :: self
@@ -987,7 +949,7 @@ contains
        if (.not.mask(self%rank())) maskedArray=0
        activeCount=count(mask)
     end if
-    call MPI_AllReduce(maskedArray,mpiSumArrayInt,size(array),MPI_Integer,MPI_Sum,MPI_Comm_World,iError)
+    call MPI_AllReduce(maskedArray,mpiSumArrayInt,size(array),MPI_Integer,MPI_Sum,mpiSelf%communicator,iError)
     if (iError /= 0) call Error_Report('MPI all reduce failed'//{introspection:location})
 #else
     !$GLC attributes unused :: self, array, mask
@@ -1001,9 +963,9 @@ contains
     !!{
     Sum an integer array over all processes, returning it to all processes.
     !!}
-    use :: Error, only : Error_Report
+    use :: Error  , only : Error_Report
 #ifdef USEMPI
-    use :: MPI  , only : MPI_AllReduce, MPI_Integer8, MPI_Sum, MPI_Comm_World
+    use :: MPI_F08, only : MPI_AllReduce, MPI_Integer8, MPI_Sum
 #endif
     implicit none
     class  (mpiObject), intent(in   )                                    :: self
@@ -1023,7 +985,7 @@ contains
        if (.not.mask(self%rank())) maskedArray=0_c_size_t
        activeCount=count(mask)
     end if
-    call MPI_AllReduce(maskedArray,mpiSumArraySizeT,size(array),MPI_Integer8,MPI_Sum,MPI_Comm_World,iError)
+    call MPI_AllReduce(maskedArray,mpiSumArraySizeT,size(array),MPI_Integer8,MPI_Sum,mpiSelf%communicator,iError)
     if (iError /= 0) call Error_Report('MPI all reduce failed'//{introspection:location})
 #else
     !$GLC attributes unused :: self, array, mask
@@ -1037,9 +999,9 @@ contains
     !!{
     Sum a rank-2 integer array over all processes, returning it to all processes.
     !!}
-    use :: Error, only : Error_Report
+    use :: Error  , only : Error_Report
 #ifdef USEMPI
-    use :: MPI  , only : MPI_AllReduce, MPI_Integer8, MPI_Sum, MPI_Comm_World
+    use :: MPI_F08, only : MPI_AllReduce, MPI_Integer8, MPI_Sum
 #endif
     implicit none
     class  (mpiObject), intent(in   )                                                           :: self
@@ -1059,7 +1021,7 @@ contains
        if (.not.mask(self%rank())) maskedArray=0_c_size_t
        activeCount=count(mask)
     end if
-    call MPI_AllReduce(maskedArray,mpiSumArrayTwoSizeT,size(array),MPI_Integer8,MPI_Sum,MPI_Comm_World,iError)
+    call MPI_AllReduce(maskedArray,mpiSumArrayTwoSizeT,size(array),MPI_Integer8,MPI_Sum,mpiSelf%communicator,iError)
     if (iError /= 0) call Error_Report('MPI all reduce failed'//{introspection:location})
 #else
     !$GLC attributes unused :: self, array, mask
@@ -1073,9 +1035,9 @@ contains
     !!{
     Sum a rank-3 integer array over all processes, returning it to all processes.
     !!}
-    use :: Error, only : Error_Report
+    use :: Error  , only : Error_Report
 #ifdef USEMPI
-    use :: MPI  , only : MPI_AllReduce, MPI_Integer8, MPI_Sum, MPI_Comm_World
+    use :: MPI_F08, only : MPI_AllReduce, MPI_Integer8, MPI_Sum
 #endif
     implicit none
     class  (mpiObject), intent(in   )                                                                             :: self
@@ -1095,7 +1057,7 @@ contains
        if (.not.mask(self%rank())) maskedArray=0_c_size_t
        activeCount=count(mask)
     end if
-    call MPI_AllReduce(maskedArray,mpiSumArrayThreeSizeT,size(array),MPI_Integer8,MPI_Sum,MPI_Comm_World,iError)
+    call MPI_AllReduce(maskedArray,mpiSumArrayThreeSizeT,size(array),MPI_Integer8,MPI_Sum,mpiSelf%communicator,iError)
     if (iError /= 0) call Error_Report('MPI all reduce failed'//{introspection:location})
 #else
     !$GLC attributes unused :: self, array, mask
@@ -1162,9 +1124,9 @@ contains
     !!{
     Sum an integer array over all processes, returning it to all processes.
     !!}
-    use :: Error, only : Error_Report
+    use :: Error  , only : Error_Report
 #ifdef USEMPI
-    use :: MPI  , only : MPI_AllReduce, MPI_Double_Precision, MPI_Sum, MPI_Comm_World
+    use :: MPI_F08, only : MPI_AllReduce, MPI_Double_Precision, MPI_Sum
 #endif
     implicit none
     class           (mpiObject), intent(in   )                                    :: self
@@ -1184,7 +1146,7 @@ contains
        if (.not.mask(self%rank())) maskedArray=0.0d0
        activeCount=count(mask)
     end if
-    call MPI_AllReduce(maskedArray,mpiSumArrayDouble,size(array),MPI_Double_Precision,MPI_Sum,MPI_Comm_World,iError)
+    call MPI_AllReduce(maskedArray,mpiSumArrayDouble,size(array),MPI_Double_Precision,MPI_Sum,mpiSelf%communicator,iError)
     if (iError /= 0) call Error_Report('MPI all reduce failed'//{introspection:location})
 #else
     !$GLC attributes unused :: self, array, mask
@@ -1198,9 +1160,9 @@ contains
     !!{
     Sum an rank-2 double array over all processes, returning it to all processes.
     !!}
-    use :: Error, only : Error_Report
+    use :: Error  , only : Error_Report
 #ifdef USEMPI
-    use :: MPI  , only : MPI_AllReduce, MPI_Double_Precision, MPI_Sum, MPI_Comm_World
+    use :: MPI_F08, only : MPI_AllReduce, MPI_Double_Precision, MPI_Sum
 #endif
     implicit none
     class           (mpiObject), intent(in   )                                                           :: self
@@ -1220,7 +1182,7 @@ contains
        if (.not.mask(self%rank())) maskedArray=0.0d0
        activeCount=count(mask)
     end if
-    call MPI_AllReduce(maskedArray,mpiSumArrayTwoDouble,size(array),MPI_Double_Precision,MPI_Sum,MPI_Comm_World,iError)
+    call MPI_AllReduce(maskedArray,mpiSumArrayTwoDouble,size(array),MPI_Double_Precision,MPI_Sum,mpiSelf%communicator,iError)
     if (iError /= 0) call Error_Report('MPI all reduce failed'//{introspection:location})
 #else
     !$GLC attributes unused :: self, array, mask
@@ -1234,9 +1196,9 @@ contains
     !!{
     Sum an rank-3 double array over all processes, returning it to all processes.
     !!}
-    use :: Error, only : Error_Report
+    use :: Error  , only : Error_Report
 #ifdef USEMPI
-    use :: MPI  , only : MPI_AllReduce, MPI_Double_Precision, MPI_Sum, MPI_Comm_World
+    use :: MPI_F08, only : MPI_AllReduce, MPI_Double_Precision, MPI_Sum
 #endif
     implicit none
     class           (mpiObject), intent(in   )                                                                             :: self
@@ -1256,7 +1218,7 @@ contains
        if (.not.mask(self%rank())) maskedArray=0.0d0
        activeCount=count(mask)
     end if
-    call MPI_AllReduce(maskedArray,mpiSumArrayThreeDouble,size(array),MPI_Double_Precision,MPI_Sum,MPI_Comm_World,iError)
+    call MPI_AllReduce(maskedArray,mpiSumArrayThreeDouble,size(array),MPI_Double_Precision,MPI_Sum,mpiSelf%communicator,iError)
     if (iError /= 0) call Error_Report('MPI all reduce failed'//{introspection:location})
 #else
     !$GLC attributes unused :: self, array, mask
@@ -1296,9 +1258,9 @@ contains
     !!{
     Average an array over all processes, returning it to all processes.
     !!}
-    use :: Error, only : Error_Report
+    use :: Error  , only : Error_Report
 #ifdef USEMPI
-    use :: MPI  , only : MPI_AllReduce, MPI_Double_Precision, MPI_Sum, MPI_Comm_World
+    use :: MPI_F08, only : MPI_AllReduce, MPI_Double_Precision, MPI_Sum
 #endif
     implicit none
     class           (mpiObject), intent(in   )                                    :: self
@@ -1318,7 +1280,7 @@ contains
        if (.not.mask(self%rank())) maskedArray=0.0d0
        activeCount=count(mask)
     end if
-    call MPI_AllReduce(maskedArray,mpiAverageArray,size(array),MPI_Double_Precision,MPI_Sum,MPI_Comm_World,iError)
+    call MPI_AllReduce(maskedArray,mpiAverageArray,size(array),MPI_Double_Precision,MPI_Sum,mpiSelf%communicator,iError)
     if (iError /= 0) call Error_Report('MPI all reduce failed'//{introspection:location})
     ! Convert the sum into an average.
     mpiAverageArray=mpiAverageArray/dble(activeCount)
@@ -1416,9 +1378,9 @@ contains
     !!{
     Find the maximum values of an array over all processes, returning it to all processes.
     !!}
-    use :: Error, only : Error_Report
+    use :: Error  , only : Error_Report
 #ifdef USEMPI
-    use :: MPI  , only : MPI_AllReduce, MPI_Double_Precision, MPI_Max, MPI_Comm_World
+    use :: MPI_F08, only : MPI_AllReduce, MPI_Double_Precision, MPI_Max
 #endif
     implicit none
     class           (mpiObject), intent(in   )                                    :: self
@@ -1436,7 +1398,7 @@ contains
     if (present(mask)) then
        if (.not.mask(self%rank())) maskedArray=-HUGE(1.0d0)
     end if
-    call MPI_AllReduce(maskedArray,mpiMaxvalArray,size(array),MPI_Double_Precision,MPI_Max,MPI_Comm_World,iError)
+    call MPI_AllReduce(maskedArray,mpiMaxvalArray,size(array),MPI_Double_Precision,MPI_Max,mpiSelf%communicator,iError)
     if (iError /= 0) call Error_Report('MPI all reduce failed'//{introspection:location})
 #else
     !$GLC attributes unused :: self, array, mask
@@ -1476,9 +1438,9 @@ contains
     !!{
     Find the maximum values of an array over all processes, returning it to all processes.
     !!}
-    use :: Error, only : Error_Report
+    use :: Error  , only : Error_Report
 #ifdef USEMPI
-    use :: MPI  , only : MPI_AllReduce, MPI_Integer8, MPI_Max, MPI_Comm_World
+    use :: MPI_F08, only : MPI_AllReduce, MPI_Integer8, MPI_Max
 #endif
     implicit none
     class  (mpiObject), intent(in   )                                    :: self
@@ -1496,7 +1458,7 @@ contains
     if (present(mask)) then
        if (.not.mask(self%rank())) maskedArray=-huge(1_c_size_t)
     end if
-    call MPI_AllReduce(maskedArray,mpiMaxvalArraySizeT,size(array),MPI_Integer8,MPI_Max,MPI_Comm_World,iError)
+    call MPI_AllReduce(maskedArray,mpiMaxvalArraySizeT,size(array),MPI_Integer8,MPI_Max,mpiSelf%communicator,iError)
     if (iError /= 0) call Error_Report('MPI all reduce failed'//{introspection:location})
 #else
     !$GLC attributes unused :: self, array, mask
@@ -1537,9 +1499,9 @@ contains
     !!{
     Find the rank of the process having maximum values of an array over all processes, returning it to all processes.
     !!}
-    use :: Error, only : Error_Report
+    use :: Error  , only : Error_Report
 #ifdef USEMPI
-    use :: MPI  , only : MPI_AllReduce, MPI_2Double_Precision, MPI_MaxLoc, MPI_Comm_World
+    use :: MPI_F08, only : MPI_AllReduce, MPI_2Double_Precision, MPI_MaxLoc
 #endif
     implicit none
     class           (mpiObject), intent(in   )                                      :: self
@@ -1558,7 +1520,7 @@ contains
        if (.not.mask(self%rank())) arrayIn(1,:)=-HUGE(1.0d0)
     end if
     arrayIn(2,:)=self%rank()
-    call MPI_AllReduce(arrayIn,arrayOut,size(array),MPI_2Double_Precision,MPI_MaxLoc,MPI_Comm_World,iError)
+    call MPI_AllReduce(arrayIn,arrayOut,size(array),MPI_2Double_Precision,MPI_MaxLoc,mpiSelf%communicator,iError)
     if (iError /= 0) call Error_Report('MPI all reduce failed'//{introspection:location})
     mpiMaxloc=int(arrayOut(2,:))
 #else
@@ -1573,9 +1535,9 @@ contains
     !!{
     Find the minimum values of an array over all processes, returning it to all processes.
     !!}
-    use :: Error, only : Error_Report
+    use :: Error  , only : Error_Report
 #ifdef USEMPI
-    use :: MPI  , only : MPI_AllReduce, MPI_Double_Precision, MPI_Min, MPI_Comm_World
+    use :: MPI_F08, only : MPI_AllReduce, MPI_Double_Precision, MPI_Min
 #endif
     implicit none
     class           (mpiObject), intent(in   )                                    :: self
@@ -1593,7 +1555,7 @@ contains
     if (present(mask)) then
        if (.not.mask(self%rank())) maskedArray=-HUGE(1.0d0)
     end if
-    call MPI_AllReduce(maskedArray,mpiMinvalArray,size(array),MPI_Double_Precision,MPI_Min,MPI_Comm_World,iError)
+    call MPI_AllReduce(maskedArray,mpiMinvalArray,size(array),MPI_Double_Precision,MPI_Min,mpiSelf%communicator,iError)
     if (iError /= 0) call Error_Report('MPI all reduce failed'//{introspection:location})
 #else
     !$GLC attributes unused :: self, array, mask
@@ -1607,9 +1569,9 @@ contains
     !!{
     Find the minimum values of an array over all processes, returning it to all processes.
     !!}
-    use :: Error, only : Error_Report
+    use :: Error  , only : Error_Report
 #ifdef USEMPI
-    use :: MPI  , only : MPI_AllReduce, MPI_Integer, MPI_Min, MPI_Comm_World
+    use :: MPI_F08, only : MPI_AllReduce, MPI_Integer, MPI_Min
 #endif
     implicit none
     class           (mpiObject), intent(in   )                                    :: self
@@ -1627,7 +1589,7 @@ contains
     if (present(mask)) then
        if (.not.mask(self%rank())) maskedArray=-huge(1)
     end if
-    call MPI_AllReduce(maskedArray,mpiMinvalIntArray,size(array),MPI_Integer,MPI_Min,MPI_Comm_World,iError)
+    call MPI_AllReduce(maskedArray,mpiMinvalIntArray,size(array),MPI_Integer,MPI_Min,mpiSelf%communicator,iError)
     if (iError /= 0) call Error_Report('MPI all reduce failed'//{introspection:location})
 #else
     !$GLC attributes unused :: self, array, mask
@@ -1693,9 +1655,9 @@ contains
     !!{
     Find the rank of the process having minimum values of an array over all processes, returning it to all processes.
     !!}
-    use :: Error, only : Error_Report
+    use :: Error  , only : Error_Report
 #ifdef USEMPI
-    use :: MPI  , only : MPI_AllReduce, MPI_2Double_Precision, MPI_MinLoc, MPI_Comm_World
+    use :: MPI_F08, only : MPI_AllReduce, MPI_2Double_Precision, MPI_MinLoc
 #endif
     implicit none
     class           (mpiObject), intent(in   )                                      :: self
@@ -1714,7 +1676,7 @@ contains
        if (.not.mask(self%rank())) arrayIn(1,:)=-HUGE(1.0d0)
     end if
     arrayIn(2,:)=self%rank()
-    call MPI_AllReduce(arrayIn,arrayOut,size(array),MPI_2Double_Precision,MPI_MinLoc,MPI_Comm_World,iError)
+    call MPI_AllReduce(arrayIn,arrayOut,size(array),MPI_2Double_Precision,MPI_MinLoc,mpiSelf%communicator,iError)
     if (iError /= 0) call Error_Report('MPI all reduce failed'//{introspection:location})
     mpiMinloc=int(arrayOut(2,:))
 #else
@@ -1730,9 +1692,9 @@ contains
     Return true if any of the given booleans is true over all processes.
     !!}
 #ifndef USEMPI
-    use :: Error, only : Error_Report
+    use :: Error  , only : Error_Report
 #else
-    use :: MPI  , only : MPI_AllReduce, MPI_Logical, MPI_LOr, MPI_Comm_World
+    use :: MPI_F08, only : MPI_AllReduce, MPI_Logical, MPI_LOr
 #endif
     implicit none
     class  (mpiObject), intent(in   )                         :: self
@@ -1748,7 +1710,7 @@ contains
     if (present(mask)) then
        if (.not.mask(self%rank())) array=.false.
     end if
-    call MPI_AllReduce(array,mpiAnyLogicalScalar,size(array),MPI_Logical,MPI_LOr,MPI_Comm_World,iError)
+    call MPI_AllReduce(array,mpiAnyLogicalScalar,size(array),MPI_Logical,MPI_LOr,mpiSelf%communicator,iError)
 #else
     !$GLC attributes unused :: self, boolean, mask
     mpiAnyLogicalScalar=.false.
@@ -1762,9 +1724,9 @@ contains
     Return true if all of the given booleans are true over all processes.
     !!}
 #ifndef USEMPI
-    use :: Error, only : Error_Report
+    use :: Error  , only : Error_Report
 #else
-    use :: MPI  , only : MPI_AllReduce, MPI_Logical, MPI_LAnd, MPI_Comm_World
+    use :: MPI_F08, only : MPI_AllReduce, MPI_Logical, MPI_LAnd
 #endif
     implicit none
     class  (mpiObject), intent(in   )                         :: self
@@ -1780,7 +1742,7 @@ contains
     if (present(mask)) then
        if (.not.mask(self%rank())) array=.false.
     end if
-    call MPI_AllReduce(array,mpiAllLogicalScalar,size(array),MPI_Logical,MPI_LAnd,MPI_Comm_World,iError)
+    call MPI_AllReduce(array,mpiAllLogicalScalar,size(array),MPI_Logical,MPI_LAnd,mpiSelf%communicator,iError)
 #else
     !$GLC attributes unused :: self, boolean, mask
     mpiAllLogicalScalar=.false.
@@ -1933,6 +1895,136 @@ contains
     return
   end function mpiGatherInt1D
 
+  subroutine mpiCommunicatorPush(self,color)
+    !!{
+    Create a new communicator and push it onto the stack.
+    !!}
+    use :: Error  , only : Error_Report
+#ifdef USEMPI
+    use :: MPI_F08, only : MPI_Comm_Split
+#endif
+    implicit none
+    class  (mpiObject), intent(inout)               :: self
+    integer           , intent(in   )               :: color
+#ifdef USEMPI
+    integer                                         :: iError
+    type   (MPI_Comm ), allocatable  , dimension(:) :: communicatorStack
+    
+    self%iCommunicator=self%iCommunicator+1
+    if (self%iCommunicator > size(self%communicatorStack)) then
+       call move_alloc(self%communicatorStack,communicatorStack)
+       allocate(self%communicatorStack(self%iCommunicator))
+       self%communicatorStack(1:self%iCommunicator-1)=communicatorStack
+       deallocate(communicatorStack)
+    end if
+    call MPI_Comm_Split(self%communicatorStack(self%iCommunicator-1),color,0,self%communicatorStack(self%iCommunicator),iError)
+    if (iError /= 0) call Error_Report('failed to split communicator'//{introspection:location})
+    self%communicator=self%communicatorStack(self%iCommunicator)
+    call self%stateInitialize()
+#else
+    !$GLC attributes unused :: self, color
+    call Error_Report('code was not compiled for MPI'//{introspection:location})
+#endif
+    return
+  end subroutine mpiCommunicatorPush
+  
+  subroutine mpiCommunicatorPop(self)
+    !!{
+    Pop a communicator off of the stack and destroy it.
+    !!}
+    use :: Error  , only : Error_Report
+#ifdef USEMPI
+    use :: MPI_F08, only : MPI_Comm_Free
+#endif
+    implicit none
+    class  (mpiObject), intent(inout) :: self
+#ifdef USEMPI
+    integer                           :: iError
+    
+    if (self%iCommunicator == 1) call Error_Report('can not pop MPI_Comm_World off of the stack'//{introspection:location})
+    call MPI_Comm_Free(self%communicator,iError)
+    if (iError /= 0) call Error_Report('failed to free communicator'//{introspection:location})
+    self%iCommunicator=self%iCommunicator-1
+    self%communicator =self%communicatorStack(self%iCommunicator)
+    call self%stateInitialize()
+#else
+    !$GLC attributes unused :: self
+    call Error_Report('code was not compiled for MPI'//{introspection:location})
+#endif
+    return
+  end subroutine mpiCommunicatorPop
+
+  subroutine mpiStateInitialize(self)
+    !!{
+    Initialize the state (rank, group, node affinities, etc.) of the current MPI group.
+    !!}
+#ifdef USEMPI
+    use :: MPI_F08           , only : MPI_Max_Processor_Name, MPI_Character
+    use :: Error             , only : Error_Report
+    use :: Hashes            , only : integerHash
+    use :: ISO_Varying_String, only : assignment(=)         , operator(==), var_str, operator(//), char
+    use :: String_Handling   , only : operator(//)
+#endif
+    implicit none
+    class    (mpiObject                 ), intent(inout)             :: self
+#ifdef USEMPI
+    character(len=MPI_Max_Processor_Name), dimension(1)              :: processorName
+    character(len=MPI_Max_Processor_Name), dimension(:), allocatable :: processorNames
+    type     (integerHash               )                            :: processCount
+    type     (varying_string            )                            :: message
+    integer                                                          :: i                  , iError  , &
+         &                                                              processorNameLength, iProcess
+    
+    ! Determine ranks, counts, and processors.
+    call    MPI_Comm_Size         (self%communicator,self%countValue  ,iError)
+    if    (iError               /= 0                    ) call Error_Report('failed to determine MPI count'                                   //{introspection:location})
+    call    MPI_Comm_Rank         (self%communicator,self% rankValue  ,iError)
+    if    (iError               /= 0                    ) call Error_Report('failed to determine MPI rank'                                    //{introspection:location})
+    call    MPI_Get_Processor_Name(processorName(1) ,processorNameLength ,iError)
+    if    (iError               /= 0                    ) call Error_Report('failed to get MPI processor name'                                //{introspection:location})
+    self%hostName=trim(processorName(1))
+    call mpiBarrier()
+    ! Construct an array containing all ranks.
+    if (allocated(self%allRanks)) deallocate(self%allRanks)
+    allocate(self%allRanks(0:self%countValue-1))
+    forall(i=0:self%countValue-1)
+       self%allRanks(i)=i
+    end forall
+    ! Get processor names from all processes.
+    allocate(processorNames(0:self%countValue-1))
+    call MPI_AllGather(processorName,MPI_Max_Processor_Name,MPI_Character,processorNames,MPI_Max_Processor_Name,MPI_Character,self%communicator,iError)
+    ! Count processes per node.
+    call processCount%initialize()
+    do iProcess=0,self%countValue-1
+       if (processCount%exists(trim(processorNames(iProcess)))) then
+          call processCount%set(trim(processorNames(iProcess)),processCount%value(trim(processorNames(iProcess)))+1)
+       else
+          call processCount%set(trim(processorNames(iProcess)),1)
+       end if
+    end do
+    mpiself%nodeCountValue=processCount%size()
+    if (allocated(self%nodeAffinities)) deallocate(self%nodeAffinities)
+    allocate(self%nodeAffinities(0:self%countValue-1))
+    self%nodeAffinities=-1
+    do iProcess=0,self%countValue-1
+       do i=1,self%nodeCountValue
+          if (trim(processorNames(iProcess)) == processCount%key(i)) self%nodeAffinities(iProcess)=i
+       end do
+       if (self%nodeAffinities(iProcess) < 0) then
+          message=var_str('failed to determine node affinity for process ')//iProcess//' with processor name "'//processorNames(iProcess)//' - known processor names are:'
+          do i=1,self%nodeCountValue
+             message=message//char(10)//'   '//processCount%key(i)
+          end do
+          call Error_Report(message//{introspection:location})
+       end if
+    end do
+    deallocate(processorNames)
+#else
+    !$GLC attributes unused :: self
+#endif
+    return
+  end subroutine mpiStateInitialize
+  
   function counterConstructor() result(self)
     !!{
     Constructor for MPI counter class.
@@ -1940,8 +2032,8 @@ contains
     use, intrinsic :: ISO_C_Binding, only : C_Null_Ptr           , C_F_Pointer
 #ifdef USEMPI
     use            :: Error        , only : Error_Report
-    use            :: MPI_F08      , only : MPI_Win_Create       , MPI_Address_Kind, MPI_Info_Null      , MPI_Comm_World    , &
-         &                                  MPI_TypeClass_Integer, MPI_SizeOf      , MPI_Type_Match_Size, MPI_Alloc_Mem
+    use            :: MPI_F08      , only : MPI_Win_Create       , MPI_Address_Kind, MPI_Info_Null      , MPI_Alloc_Mem, &
+         &                                  MPI_TypeClass_Integer, MPI_SizeOf      , MPI_Type_Match_Size
 #endif
     implicit none
     type   (mpiCounter)          :: self
@@ -1958,12 +2050,12 @@ contains
        call MPI_Alloc_Mem(int(mpiSize,kind=MPI_Address_Kind),MPI_Info_Null,self%counter,iError)
        if (iError /= 0) call Error_Report('failed to allocate counter memory'//{introspection:location})
        call C_F_Pointer(self%counter,countInitialPointer)
-       call MPI_Win_Create(countInitialPointer,int(mpiSize,kind=MPI_Address_Kind),mpiSize,MPI_Info_Null,MPI_Comm_World,self%window,iError)
+       call MPI_Win_Create(countInitialPointer,int(mpiSize,kind=MPI_Address_Kind),mpiSize,MPI_Info_Null,mpiSelf%communicator,self%window,iError)
        if (iError /= 0) call Error_Report('failed to create RMA window'//{introspection:location})
        call mpiBarrier()
     else
        ! Other processes create a zero-size window.
-       call MPI_Win_Create(C_Null_Ptr  ,               0_MPI_Address_Kind,mpiSize,MPI_Info_Null,MPI_Comm_World,self%window,iError)
+       call MPI_Win_Create(C_Null_Ptr  ,               0_MPI_Address_Kind,mpiSize,MPI_Info_Null,mpiSelf%communicator,self%window,iError)
        if (iError /= 0) call Error_Report('failed to create RMA window'//{introspection:location})
        call mpiBarrier()
     end if

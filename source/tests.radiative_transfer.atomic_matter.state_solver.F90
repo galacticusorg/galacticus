@@ -41,7 +41,7 @@ program Test_Radiative_Transfer_State_Solver
   use :: ISO_Varying_String                          , only : var_str
   use :: Input_Parameters                            , only : inputParameters
 #ifdef USEMPI
-  use :: MPI                                         , only : MPI_Thread_Single
+  use :: MPI_F08                                     , only : MPI_Thread_Single
 #endif
 #ifdef USEMPI
   use :: MPI_Utilities                               , only : mpiFinalize                                     , mpiInitialize

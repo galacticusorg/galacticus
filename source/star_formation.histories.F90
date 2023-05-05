@@ -96,13 +96,13 @@ module Star_Formation_Histories
     <type>double precision, allocatable, dimension(:)</type>
     <pass>yes</pass>
    </method>
-   <method name="perOutputTabualtionIsStatic" >
+   <method name="perOutputTabulationIsStatic" >
     <description>Return true if the tabulation (in time and metallicity) is static (independent of node) per output.</description>
     <type>logical</type>
     <pass>yes</pass>
     <code>
      !$GLC attributes unused :: self
-     starFormationHistoryPerOutputTabualtionIsStatic=.false.
+     starFormationHistoryPerOutputTabulationIsStatic=.false.
     </code>
    </method>
   </functionClass>
