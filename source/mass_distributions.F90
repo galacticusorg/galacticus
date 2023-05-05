@@ -324,6 +324,12 @@ module Mass_Distributions
     <pass>yes</pass>
     <argument>class(coordinate), intent(in   ) :: coordinates</argument>
    </method>
+   <method name="temperatureGradientLogarithmic" >
+    <description>Return the logarithmic gradient of the temperature of the distribution at the given coordinates.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>class(coordinate), intent(in   ) :: coordinates</argument>
+   </method>
    <method name="velocityDispersion1D" >
     <description>Return the 1D velocity dispersion at the given coordinate.</description>
     <type>double precision</type>
