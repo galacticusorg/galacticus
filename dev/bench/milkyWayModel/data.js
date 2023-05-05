@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1683218505936,
+  "lastUpdate": 1683266472788,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "c18590d4d66fae9b67d976192406a3c275c4eddd",
-          "message": "Merge pull request #291 from galacticusorg/dev\n\nFix build dependencies",
-          "timestamp": "2022-09-07T22:17:05-07:00",
-          "tree_id": "0562c216f25ee41c9af54af50f743d2d9375dec4",
-          "url": "https://github.com/galacticusorg/galacticus/commit/c18590d4d66fae9b67d976192406a3c275c4eddd"
-        },
-        "date": 1662635205950,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 629.418,
-            "unit": "seconds",
-            "range": 5.79611314589329
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10590,6 +10560,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 4.71390650619909,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "f833d28846fc288fd519bef8d6977b5163d1af11",
+          "message": "fix: Avoid attempts to get `git` revision information in Cloudy builds\n\nAs we build Cloudy within the Galacticus `datasets` repo seeking the `git` revision will erroneously get the revision of the `datasets` repo, which can break the build.",
+          "timestamp": "2023-05-04T14:48:48-07:00",
+          "tree_id": "79e85e410b340d691849451589862e74af5c83c1",
+          "url": "https://github.com/galacticusorg/galacticus/commit/f833d28846fc288fd519bef8d6977b5163d1af11"
+        },
+        "date": 1683266471541,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 221.373,
+            "unit": "seconds",
+            "range": 0.185876571949277
           }
         ]
       }
