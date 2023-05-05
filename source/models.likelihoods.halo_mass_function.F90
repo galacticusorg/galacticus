@@ -922,7 +922,7 @@ contains
 
     double precision function integrandLikelihoodPoisson(amplitudeFractionalPerturbation)
       !!{
-      Integrand function for Poission likelihood.
+      Integrand function for Poisson likelihood.
       !!}
       use :: Numerical_Constants_Math, only : Pi
       implicit none
