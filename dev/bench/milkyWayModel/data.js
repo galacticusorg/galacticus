@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1683266481615,
+  "lastUpdate": 1683306934737,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "428ce0d7a1c07317ffd200bc62e1e92000c94844",
-          "message": "Merge pull request #292 from galacticusorg/dev\n\nImplement auto-descriptors for `functionClass` objects that use linked lists",
-          "timestamp": "2022-09-08T16:48:20-07:00",
-          "tree_id": "3e24106b374a547e05ba040918f7e7a12071d465",
-          "url": "https://github.com/galacticusorg/galacticus/commit/428ce0d7a1c07317ffd200bc62e1e92000c94844"
-        },
-        "date": 1662699563025,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 441.316,
-            "unit": "seconds",
-            "range": 1.38676183968366
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10590,6 +10560,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 4.69120733767007,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "b3e73beaca12b4a769d59ce6d66bc022013bae30",
+          "message": "fix: Merge branch 'master' of github.com:galacticusorg/galacticus",
+          "timestamp": "2023-05-05T14:11:29Z",
+          "tree_id": "ba226965ee134069f86b3f7928eb5c74008630ad",
+          "url": "https://github.com/galacticusorg/galacticus/commit/b3e73beaca12b4a769d59ce6d66bc022013bae30"
+        },
+        "date": 1683306934234,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 310.196,
+            "unit": "seconds",
+            "range": 0.591158523576856
           }
         ]
       }
