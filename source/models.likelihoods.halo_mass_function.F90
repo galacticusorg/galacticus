@@ -234,6 +234,7 @@ contains
     <objectDestructor name="powerSpectrum_"           />
     <objectDestructor name="cosmologicalMassVariance_"/>
     !!]
+    self%baseParametersFileName=baseParametersFileName
     nullify(parametersModel)
     return
   end function haloMassFunctionConstructorParameters
@@ -897,10 +898,6 @@ contains
                            &                   -                                    Gamma_Function_Logarithmic(               stoppingTimeParameter                             ) &
                            &                   -dble(self%countHalos           (i))*Gamma_Function_Logarithmic(               stoppingTimeParameter+          countHalosMean    ) &
                            &                   -          stoppingTimeParameter    *log                       (countHalosMean/stoppingTimeParameter+1.0d0                       )
-
-
-write (0,*) "WTF ",i,haloMassFunctionEvaluate
-
                    end if
                 end if
              end do
