@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1683340046226,
+  "lastUpdate": 1683340053855,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "177d7819ed7bbc7abaebbdf14a764bc8a5c2e35b",
-          "message": "Merge pull request #294 from galacticusorg/dev\n\nAllow more `functionClass` objects to support auto-descriptors",
-          "timestamp": "2022-09-10T06:26:23-07:00",
-          "tree_id": "bbc9951cd311f3631e464e30181dc2739203f1d2",
-          "url": "https://github.com/galacticusorg/galacticus/commit/177d7819ed7bbc7abaebbdf14a764bc8a5c2e35b"
-        },
-        "date": 1662831910605,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 347.936,
-            "unit": "seconds",
-            "range": 0.592646943805336
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10590,6 +10560,60 @@ window.BENCHMARK_DATA = {
             "value": 225.929,
             "unit": "seconds",
             "range": 0.533931549920959
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6e8872ed1bb5b58cb9a6098a21bb2d3513d0b906",
+          "message": "Merge pull request #409 from galacticusorg/preInfallOrbit\n\nAdd support for tidal evolution of halos pre-infall",
+          "timestamp": "2023-05-05T23:35:50Z",
+          "tree_id": "2f7f7c98dfce6d9e7b3f427368ab6b04e53848aa",
+          "url": "https://github.com/galacticusorg/galacticus/commit/6e8872ed1bb5b58cb9a6098a21bb2d3513d0b906"
+        },
+        "date": 1683340052768,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassMetallicityRelation",
+            "value": 3.93880700013043,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassSizeRelation",
+            "value": 5.8438243414472,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassVelocityDispersionRelation",
+            "value": 1.05304502286597,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupOccupationFraction",
+            "value": 23.6916426681282,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassFunction",
+            "value": 78.6006755767918,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
+            "value": 6.17751562217427,
+            "unit": "-logℒ"
           }
         ]
       }
