@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1683340042156,
+  "lastUpdate": 1683340049878,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "0dbba3591f5cfcd5630fed699b2b0e2481982dc7",
-          "message": "Merge pull request #298 from galacticusorg/dev\n\nAdd a workaround for missing `pthread_mutex_destroy()` function in `GLIBC >= 2.34`",
-          "timestamp": "2022-09-16T21:50:37-07:00",
-          "tree_id": "3b8dba61a247c4b2bd3edba2f306dc14f241d068",
-          "url": "https://github.com/galacticusorg/galacticus/commit/0dbba3591f5cfcd5630fed699b2b0e2481982dc7"
-        },
-        "date": 1663401727889,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 56.4862273307091,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 25.5165582430658,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 15423.3632579593,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8694,6 +8655,45 @@ window.BENCHMARK_DATA = {
             "value": 64.024,
             "unit": "seconds",
             "range": 0.0976237675980581
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6e8872ed1bb5b58cb9a6098a21bb2d3513d0b906",
+          "message": "Merge pull request #409 from galacticusorg/preInfallOrbit\n\nAdd support for tidal evolution of halos pre-infall",
+          "timestamp": "2023-05-05T23:35:50Z",
+          "tree_id": "2f7f7c98dfce6d9e7b3f427368ab6b04e53848aa",
+          "url": "https://github.com/galacticusorg/galacticus/commit/6e8872ed1bb5b58cb9a6098a21bb2d3513d0b906"
+        },
+        "date": 1683340049208,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 57.4991777473382,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 26.0216488557544,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 24211.0957851519,
+            "unit": "-logℒ"
           }
         ]
       }
