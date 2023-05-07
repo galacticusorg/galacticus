@@ -12,3 +12,5 @@ Here you can find:
 * Benchmark and validation metrics for:
     * [Dark matter-only subhalos](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalos/)
     * [Milky Way model](https://galacticusorg.github.io/galacticus/dev/bench/milkyWayModel/)
+* Meta metrics
+    * [Build profile](https://galacticusorg.github.io/galacticus/dev/bench/meta/buildProfile)
