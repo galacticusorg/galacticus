@@ -479,49 +479,44 @@ program Test_Mass_Distributions
      massDistribution_=massDistributionPatejLoeb2015(gamma=1.15d0,massDistribution_=massDistributionDMO,mass=1.0d11,radiusOuter=450.0d-3,radiusShock=450.0d-3)
   end select
   do i=1,4
-     radius=450.0d-3/2.0d0**(4-i)
-     position=[radius,0.0d0,0.0d0]
-     massPatejLoeb(i)=massDistribution_%massEnclosedBySphere(radius)
-     densityPatejLoeb(i)=massDistribution_%density(position)
-     densitySlopePatejLoeb(i)=massDistribution_%densityGradientRadial(position,logarithmic=.true.)
-     densityMomentPatejLoeb(i)=massDistribution_%densityRadialMoment(-dble(i-1),450.0d-3/8.0d0,450.0d-3/1.0d0)
-     potentialPatejLoeb(i)=massDistribution_%potential(position)
+     radius                  =450.0d-3/2.0d0**(4-i)
+     position                =[radius,0.0d0,0.0d0]
+     massPatejLoeb         (i)=massDistribution_%massEnclosedBySphere (radius                     )
+     densityPatejLoeb      (i)=massDistribution_%density              (position                   )
+     densitySlopePatejLoeb (i)=massDistribution_%densityGradientRadial(position,logarithmic=.true.)
+     potentialPatejLoeb    (i)=massDistribution_%potential            (position                   )
+     densityMomentPatejLoeb(i)=massDistribution_%densityRadialMoment  (-dble(i-1),450.0d-3/8.0d0,450.0d-3/1.0d0)
   end do
-  call Assert("M(r) at r=[⅛,¼,½,1]rₛ" ,&
-       &massPatejLoeb,&
-       &[&
-     &1.555565950166512d10,3.514143268178815d10,6.418101338664305d10,1.d11&
-       &]            ,&
-       &relTol=1.0d-6&
-       &)
-  call Assert("ρ(r) at r=[⅛,¼,½,1]rₛ" ,&
-       &densityPatejLoeb,&
-       &[&
-     &9.37771485315597d12,1.985078164671267d12,3.322331875771639d11,4.809898607847662d10&
-       &]            ,&
-       &relTol=1.0d-6&
-       &)
-  call Assert("α(r) at r=[⅛,¼,½,1]rₛ" ,&
-       &densitySlopePatejLoeb,&
-       &[&
-     &-2.030591309692208d0,-2.431529802045667d0,-2.70358450628274d0,-2.85625d0&
-       &]            ,&
-       &relTol=1.0d-6&
-       &)
-  call Assert("φ(r) at r=[⅛,¼,½,1]rₛ" ,&
-       & potentialPatejLoeb,&
-       &[&
-     &-4.079034939868978d3,-3.184928656647174d3,-2.280711782065997d3,-1.519863241200194d3&
-       &]            ,&
-       &relTol=1.0d-3&
-       &)
-  call Assert("ℛᵢ(⅛rₛ,rₛ)" ,&
-       &densityMomentPatejLoeb,&
-       &[&
-     &3.765562121061061d11,4.129007833522932d12,5.196937885662541d13,7.105224104533233d14&
-       &]            ,&
-       &relTol=1.0d-6&
-       &)
+  call Assert(                                                                                            &
+       &      "M(r) at r=[⅛,¼,½,1]rₛ"                                                                   , &
+       &      massPatejLoeb                                                                             , &
+       &      [+1.555565950166512d10,+3.514143268178815d10,+6.418101338664305d10,+1.0000000000000000d11], &
+       &      relTol=1.0d-6                                                                               &
+       &     )
+  call Assert(                                                                                            &
+       &      "ρ(r) at r=[⅛,¼,½,1]rₛ"                                                                   , &
+       &      densityPatejLoeb                                                                          , &
+       &      [+9.377714853155970d12,+1.985078164671267d12,+3.3223318757716390d11,+4.809898607847662d10], &
+       &      relTol=1.0d-6                                                                               &
+       &     )
+  call Assert(                                                                                            &
+       &      "α(r) at r=[⅛,¼,½,1]rₛ"                                                                   , &
+       &      densitySlopePatejLoeb                                                                     , &
+       &      [-2.030591309692208d00,-2.431529802045667d00,-2.7035845062827400d00,-2.856250000000000d00], &
+       &      relTol=1.0d-6                                                                               &
+       &     )
+  call Assert(                                                                                            &
+       &      "φ(r) at r=[⅛,¼,½,1]rₛ"                                                                   , &
+       &      potentialPatejLoeb                                                                        , &
+       &      [-4.079034939868978d03,-3.184928656647174d03,-2.280711782065997d03,-1.5198632412001940d03], &
+       &      relTol=1.0d-3                                                                               &
+       &     )
+  call Assert(                                                                                            &
+       &      "ℛᵢ(⅛rₛ,rₛ)"                                                                              , &
+       &      densityMomentPatejLoeb                                                                    , &
+       &      [+3.765562121061061d11,+4.129007833522932d12,+5.196937885662541d13,+7.1052241045332330d14], &
+       &      relTol=1.0d-6                                                                               &
+       &     )
   deallocate(massDistribution_)
   call Unit_Tests_End_Group()
 
