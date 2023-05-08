@@ -114,7 +114,7 @@ contains
     class(coordinate                 ), intent(in   ) :: coordinates
     class(massDistributionClass      ), intent(inout) :: massDistributionEmbedding
     
-    localVelocityDispersion1D=+self                     %alpha                                   &
+    localVelocityDispersion1D=+self                     %alpha                                                                &
          &                    *massDistributionEmbedding%rotationCurve(coordinates%rSpherical(),componentTypeAll,massTypeAll)
     return
   end function localVelocityDispersion1D
