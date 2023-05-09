@@ -34,25 +34,38 @@
    contains
      !![
      <methods>
-       <method description="Returns the radius enclosing half of the mass of the mass distribution." method="radiusHalfMass"/>
+       <method description="Returns the radius enclosing half of the mass of the mass distribution." method="radiusHalfMass"          />
+       <method description="Compute the potential energy of mass distribution."                      method="energyPotential"         />
+       <method description="Compute the kinetic energy of the mass distribution."                    method="energyKinetic"           />
+       <method description="Compute (numerically) the potential energy of mass distribution."        method="energyPotentialNumerical"/>
+       <method description="Compute (numerically) the kinetic energy of the mass distribution."      method="energyKineticNumerical"  />
      </methods>
      !!]
-     procedure :: symmetry                => sphericalSymmetry
-     procedure :: densitySphericalAverage => sphericalDensitySphericalAverage
-     procedure :: massEnclosedBySphere    => sphericalMassEnclosedBySphere
-     procedure :: radiusHalfMass          => sphericalRadiusHalfMass
-     procedure :: acceleration            => sphericalAcceleration
-     procedure :: tidalTensor             => sphericalTidalTensor
-     procedure :: positionSample          => sphericalPositionSample
-     procedure :: rotationCurve           => sphericalRotationCurve
-     procedure :: rotationCurveGradient   => sphericalRotationCurveGradient
-     procedure :: surfaceDensity          => sphericalSurfaceDensity
-     procedure :: chandrasekharIntegral   => sphericalChandrasekharIntegral
+     procedure :: symmetry                   => sphericalSymmetry
+     procedure :: densitySphericalAverage    => sphericalDensitySphericalAverage
+     procedure :: massEnclosedBySphere       => sphericalMassEnclosedBySphere
+     procedure :: radiusHalfMass             => sphericalRadiusHalfMass
+     procedure :: acceleration               => sphericalAcceleration
+     procedure :: tidalTensor                => sphericalTidalTensor
+     procedure :: positionSample             => sphericalPositionSample
+     procedure :: rotationCurve              => sphericalRotationCurve
+     procedure :: rotationCurveGradient      => sphericalRotationCurveGradient
+     procedure :: surfaceDensity             => sphericalSurfaceDensity
+     procedure :: chandrasekharIntegral      => sphericalChandrasekharIntegral
+     procedure :: fourierTransform           => sphericalFourierTransform
+     procedure :: radiusFreefall             => sphericalRadiusFreefall
+     procedure :: radiusFreefallIncreaseRate => sphericalRadiusFreefallIncreaseRate
+     procedure :: energy                     => sphericalEnergy
+     procedure :: energyPotential            => sphericalEnergyPotential
+     procedure :: energyKinetic              => sphericalEnergyKinetic
+     procedure :: energyPotentialNumerical   => sphericalEnergyPotentialNumerical
+     procedure :: energyKineticNumerical     => sphericalEnergyKineticNumerical
   end type massDistributionSpherical
 
   ! Module scope variables used in integration and root finding.
-  class(massDistributionSpherical), pointer :: self_
-  !$omp threadprivate(self_)
+  class           (massDistributionSpherical), pointer :: self_
+  double precision                                     :: time_, radiusFreefall_
+  !$omp threadprivate(self_,time_,radiusFreefall_)
 
 contains
 
@@ -394,3 +407,291 @@ contains
          &                                 )
     return
   end function sphericalChandrasekharIntegral
+
+  double precision function sphericalFourierTransform(self,radiusOuter,wavenumber,componentType,massType) result(fourierTransform)
+    !!{
+    Compute the Fourier transform of the density profile at the given {\normalfont \ttfamily wavenumber} in a spherical mass distribution.
+    !!}
+    use :: Numerical_Integration, only : integrator
+    implicit none
+    class           (massDistributionSpherical   ), intent(inout)           :: self
+    double precision                              , intent(in   )           :: radiusOuter  , wavenumber
+    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    type            (integrator                  )                          :: integrator_
+
+    fourierTransform=0.0d0
+    if (.not.self%matches(componentType,massType)) return
+    integrator_     = integrator                      (integrandFourierTransform,toleranceRelative=1.0d-3)
+    fourierTransform=+integrator_%integrate           (0.0d0                    ,radiusOuter             ) &
+         &           /self       %massEnclosedBySphere(                          radiusOuter             )
+    return
+
+  contains
+
+    double precision function integrandFourierTransform(radius)
+      !!{
+      Integrand for Fourier transform of a spherical mass distribution.
+      !!}
+      use :: Numerical_Constants_Math, only : Pi
+      use :: Coordinates             , only : assignment(=), coordinateSpherical
+      implicit none
+      double precision                     , intent(in   ) :: radius
+      type            (coordinateSpherical)                :: coordinates
+      
+      if (radius > 0.0d0) then
+         coordinates              =[radius,0.0d0,0.0d0]
+         integrandFourierTransform=+4.0d0                     &
+              &                    *Pi                        &
+              &                    *               radius **2 &
+              &                    *sin(wavenumber*radius)    &
+              &                    /   (waveNumber*radius)    &
+              &                    *self%density(coordinates)
+      else
+         integrandFourierTransform=0.0d0
+      end if
+      return
+    end function integrandFourierTransform
+    
+  end function sphericalFourierTransform
+  
+  double precision function sphericalRadiusFreefall(self,time,componentType,massType) result(radius)
+    !!{
+    Compute the freefall radius at the given {\normalfont \ttfamily time} in a spherical mass distribution.
+    !!}
+    use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
+    implicit none
+    class           (massDistributionSpherical   ), intent(inout)           :: self
+    double precision                              , intent(in   )           :: time
+    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    double precision                              , parameter               :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-3
+    type            (rootFinder                  )                          :: finder
+
+    if (.not.self%matches(componentType,massType)) then
+       radius=0.0d0
+       return
+    end if
+    time_  =  time
+    finder =  rootFinder(                                                             &
+         &               rootFunction                 =rootRadiusFreefall           , &
+         &               toleranceAbsolute            =toleranceAbsolute            , &
+         &               toleranceRelative            =toleranceRelative            , &
+         &               rangeExpandDownward          =0.5d0                        , &
+         &               rangeExpandUpward            =2.0d0                        , &
+         &               rangeExpandType              =rangeExpandMultiplicative    , &
+         &               rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+         &               rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative  &
+         &              )
+    radius=finder%find(rootGuess=1.0d0)
+    return
+  end function sphericalRadiusFreefall
+  
+  double precision function rootRadiusFreefall(radiusFreefall)
+    !!{
+    Root function used in finding the radius corresponding to a given freefall time.
+    !!}
+    use :: Numerical_Integration, only : integrator
+    implicit none
+    double precision            , intent(in   ) :: radiusFreefall
+    type            (integrator)                :: integrator_
+
+    radiusFreefall_   =+radiusFreefall
+    integrator_       = integrator              (integrandTimeFreefall,toleranceRelative=1.0d-3)
+    rootRadiusFreefall=+integrator_   %integrate(0.0d0                ,radiusFreefall          ) &
+         &             -time_
+    return
+  end function rootRadiusFreefall
+
+  double precision function integrandTimeFreefall(radius)
+    !!{
+    Integrand for freefall time in a spherical mass distribution.
+    !!}
+    use :: Coordinates                     , only : assignment(=)          , coordinateSpherical
+    use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
+    implicit none
+    double precision                     , intent(in   ) :: radius
+    double precision                                     :: potentialDifference
+    type            (coordinateSpherical)                :: coordinates        , coordinatesFreefall
+
+    coordinates        =[radius         ,0.0d0,0.0d0]
+    coordinatesFreefall=[radiusFreefall_,0.0d0,0.0d0]
+    potentialDifference=+self_%potential(coordinates        ) &
+         &              -self_%potential(coordinatesFreefall)
+    if (potentialDifference < 0.0d0) then
+       integrandTimeFreefall=+Mpc_per_km_per_s_To_Gyr   &
+            &                /sqrt(                     &
+            &                      -2.0d0               &
+            &                      *potentialDifference &
+            &                     )
+    else
+       ! Avoid floating point errors arising from rounding errors.
+       integrandTimeFreefall=0.0d0
+    end if
+    return
+  end function integrandTimeFreefall
+
+  double precision function sphericalRadiusFreefallIncreaseRate(self,time,componentType,massType) result(radiusIncreaseRate)
+    !!{
+    Compute the rate of increase of the freefall radius at the given {\normalfont \ttfamily time} in an spherical mass
+    distribution.
+    !!}
+    use :: Numerical_Differentiation, only : differentiator
+    implicit none
+    class           (massDistributionSpherical   ), intent(inout)           :: self
+    double precision                              , intent(in   )           :: time
+    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    double precision                              , parameter               :: timeLogarithmicStep=0.1d0
+    type            (differentiator              )                          :: differentiator_
+
+    if (.not.self%matches(componentType,massType)) then
+       radiusIncreaseRate=0.0d0
+       return
+    end if
+    differentiator_   = differentiator            (radiusFreefallEvaluate                    )
+    radiusIncreaseRate=+differentiator_%derivative(log(time)             ,timeLogarithmicStep) &
+         &             /                               time
+    return
+  end function sphericalRadiusFreefallIncreaseRate
+
+  double precision function radiusFreefallEvaluate(timeLogarithmic)
+    !!{
+    GSL-callable function to evaluate the freefall radius of the mass distribution.
+    !!}
+    implicit none
+    double precision, intent(in   ), value :: timeLogarithmic
+
+    radiusFreefallEvaluate=self_%radiusFreefall(exp(timeLogarithmic))
+    return
+  end function radiusFreefallEvaluate
+
+  double precision function sphericalEnergy(self,radiusOuter,massDistributionEmbedding,componentType,massType) result(energy)
+    !!{
+    Compute the energy within a given {\normalfont \ttfamily radius} in a spherical mass distribution.
+    !!}
+    implicit none
+    class           (massDistributionSpherical   ), intent(inout)           :: self
+    double precision                              , intent(in   )           :: radiusOuter
+    class           (massDistributionClass       ), intent(inout)           :: massDistributionEmbedding
+    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+
+    if (.not.self%matches(componentType,massType)) then
+       energy=0.0d0
+       return
+    end if
+    energy=+self%energyPotential(radiusOuter                          ) &
+         & +self%energyKinetic  (radiusOuter,massDistributionEmbedding)
+    return
+  end function sphericalEnergy
+
+  double precision function sphericalEnergyPotential(self,radiusOuter) result(energy)
+    !!{
+    Compute the potential energy within a given {\normalfont \ttfamily radius} in a spherical mass distribution.
+    !!}
+    implicit none
+    class           (massDistributionSpherical), intent(inout) :: self
+    double precision                           , intent(in   ) :: radiusOuter
+
+    energy=self%energyPotentialNumerical(radiusOuter)
+    return
+  end function sphericalEnergyPotential
+
+  double precision function sphericalEnergyKinetic(self,radiusOuter,massDistributionEmbedding) result(energy)
+    !!{
+    Compute the kinetic energy within a given {\normalfont \ttfamily radius} in a spherical mass distribution.
+    !!}
+    implicit none
+    class           (massDistributionSpherical), intent(inout) :: self
+    double precision                           , intent(in   ) :: radiusOuter
+    class           (massDistributionClass    ), intent(inout) :: massDistributionEmbedding
+
+    energy=self%energyKineticNumerical(radiusOuter,massDistributionEmbedding)
+    return
+  end function sphericalEnergyKinetic
+  
+  double precision function sphericalEnergyPotentialNumerical(self,radiusOuter) result(energy)
+    !!{
+    Compute (numerically) the potential energy within a given {\normalfont \ttfamily radius} in a spherical mass distribution.
+    !!}
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Integration           , only : integrator
+    implicit none
+    class           (massDistributionSpherical), intent(inout) :: self
+    double precision                           , intent(in   ) :: radiusOuter
+    type            (integrator               )                :: integrator_
+
+    integrator_= integrator(integrandEnergyPotential,toleranceRelative=1.0d-3)
+    energy     =-0.5d0                                                    &
+         &      *gravitationalConstantGalacticus                          &
+         &      *(                                                        &
+         &        +integrator_%integrate           (0.0d0,radiusOuter)    &
+         &        +self       %massEnclosedBySphere(      radiusOuter)**2 &
+         &        /            radiusOuter                                &
+         &       )
+    return
+
+  contains
+
+    double precision function integrandEnergyPotential(radius)
+      !!{
+      Integrand for potential energy of a spherical mass distribution.
+      !!}
+      implicit none
+      double precision, intent(in   ) :: radius
+
+      if (radius > 0.0d0) then
+         integrandEnergyPotential=(                                   &
+              &                    +self%massEnclosedBySphere(radius) &
+              &                    /                          radius  &
+              &                   )**2
+      else
+         integrandEnergyPotential=0.0d0
+      end if
+      return
+    end function integrandEnergyPotential
+
+  end function sphericalEnergyPotentialNumerical
+
+  double precision function sphericalEnergyKineticNumerical(self,radiusOuter,massDistributionEmbedding) result(energy)
+    !!{
+    Compute (numerically) the kinetic energy within a given {\normalfont \ttfamily radius} in a spherical mass distribution.
+    !!}
+    use :: Numerical_Constants_Math, only : Pi
+    use :: Numerical_Integration   , only : integrator
+    implicit none
+    class           (massDistributionSpherical), intent(inout) :: self
+    double precision                           , intent(in   ) :: radiusOuter
+    class           (massDistributionClass    ), intent(inout) :: massDistributionEmbedding
+    type            (integrator               )                :: integrator_
+
+    integrator_= integrator(integrandEnergyKinetic,toleranceRelative=1.0d-3)
+    energy     =+6.0d0                                    &
+         &      *Pi                                       &
+         &      *integrator_%integrate(0.0d0,radiusOuter)
+    return
+
+  contains
+
+    double precision function integrandEnergyKinetic(radius)
+      !!{
+      Integrand for kinetic energy of the halo.
+      !!}
+      use :: Coordinates, only : coordinateSpherical, assignment(=)
+      implicit none
+      double precision                     , intent(in   ) :: radius
+      type            (coordinateSpherical)                :: coordinates
+
+      if (radius > 0.0d0) then
+         coordinates           =[radius,0.0d0,0.0d0]
+         integrandEnergyKinetic=+self                        %density             (coordinates                          )    &
+              &                 *self%kinematicsDistribution_%velocityDispersion1D(coordinates,massDistributionEmbedding)**2 &
+              &                 *                             radius                                                     **2
+      else
+         integrandEnergyKinetic=0.0d0
+      end if
+      return
+    end function integrandEnergyKinetic
+
+  end function sphericalEnergyKineticNumerical
