@@ -877,13 +877,22 @@ CODE
 	    # Add a "objectType" method.
 	    $code::directiveName = $directive->{'name'};
 	    my $objectTypeCode = fill_in_string(<<'CODE', PACKAGE => 'code');
+logical :: short_
+short_=.false.
+if (present(short)) short_=short
 select type (self)
 CODE
 	    foreach my $nonAbstractClass ( @nonAbstractClasses ) {
-		$code::type = $nonAbstractClass->{'name'};
+		$code::type       = $nonAbstractClass->{'name'};
+		($code::typeShort = $nonAbstractClass->{'name'}) =~ s/^$directive->{'name'}//;
+		$code::typeShort  = lcfirst($code::typeShort);
 		$objectTypeCode .= fill_in_string(<<'CODE', PACKAGE => 'code');
 type is ({$type})
-{$directiveName}ObjectType='{$type}'
+if (short_) then
+ {$directiveName}ObjectType='{$typeShort}'
+else
+ {$directiveName}ObjectType='{$type}'
+end if
 CODE
 	    }
 	    $objectTypeCode .= fill_in_string(<<'CODE', PACKAGE => 'code');
@@ -895,6 +904,7 @@ CODE
 		type        => "type(varying_string)",
 		pass        => "yes",
 		modules     => "ISO_Varying_String",
+		argument    => [ "logical, intent(in   ), optional :: short" ],
 		code        => $objectTypeCode
 	    };
 	    # Add "allowedParameters" method.
