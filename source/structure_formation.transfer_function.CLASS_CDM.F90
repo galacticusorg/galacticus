@@ -76,7 +76,7 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type            (transferFunctionCLASSCDM   )                :: self
+    type            (transferFunctionCLASSCDM)                :: self
     type            (inputParameters         ), intent(inout) :: parameters
     class           (cosmologyParametersClass), pointer       :: cosmologyParameters_
     class           (cosmologyFunctionsClass ), pointer       :: cosmologyFunctions_
