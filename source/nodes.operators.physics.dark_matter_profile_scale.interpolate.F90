@@ -93,7 +93,7 @@ contains
     use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile
     implicit none
-    class           (nodeOperatorDarkMatterProfileScaleInterpolate), intent(inout)          :: self
+    class           (nodeOperatorDarkMatterProfileScaleInterpolate), intent(inout), target  :: self
     type            (treeNode                                     ), intent(inout), target  :: node
     class           (nodeComponentBasic                           )               , pointer :: basic            , basicParent
     class           (nodeComponentDarkMatterProfile               )               , pointer :: darkMatterProfile, darkMatterProfileParent

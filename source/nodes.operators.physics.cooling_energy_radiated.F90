@@ -178,7 +178,7 @@ contains
     class           (nodeOperatorCoolingEnergyRadiated), intent(inout) :: self
     type            (treeNode                         ), intent(inout) :: node
     ! The radiated energy is ∫ Λ n N dt, with (Λ n) in units of ergs s⁻¹ and t in units of Gyr. A suitable scale for the thermal
-    ! energy of the halo is mv². The following provieds the unit conversion needed to put mv² in units of ergs s⁻¹ Gyr.
+    ! energy of the halo is mv². The following provides the unit conversion needed to put mv² in units of ergs s⁻¹ Gyr.
     double precision                                   , parameter     :: unitEnergyRadiated=+massSolar    &
          &                                                                                   *kilo     **2 &
          &                                                                                   /ergs         &
@@ -213,7 +213,7 @@ contains
     use :: Numerical_Constants_Math         , only : Pi
     implicit none
     class           (nodeOperatorCoolingEnergyRadiated), intent(inout), target  :: self
-    type            (treeNode                         ), intent(inout)          :: node
+    type            (treeNode                         ), intent(inout), target  :: node
     logical                                            , intent(inout)          :: interrupt
     procedure       (interruptTask                    ), intent(inout), pointer :: functionInterrupt
     integer                                            , intent(in   )          :: propertyType

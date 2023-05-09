@@ -115,7 +115,7 @@ contains
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDisk
     implicit none
-    class           (nodeOperatorEmpiricalCentralDisk), intent(inout)          :: self
+    class           (nodeOperatorEmpiricalCentralDisk), intent(inout), target  :: self
     type            (treeNode                        ), intent(inout), target  :: node
     type            (treeNode                        )               , pointer :: nodeRoot
     class           (nodeComponentBasic              )               , pointer :: basicLeaf  , basicRoot
@@ -167,7 +167,7 @@ contains
     use :: Galacticus_Nodes, only : propertyInactive, nodeComponentDisk
     implicit none
     class           (nodeOperatorEmpiricalCentralDisk), intent(inout), target  :: self
-    type            (treeNode                        ), intent(inout)          :: node
+    type            (treeNode                        ), intent(inout), target  :: node
     logical                                           , intent(inout)          :: interrupt
     procedure       (interruptTask                   ), intent(inout), pointer :: functionInterrupt
     integer                                           , intent(in   )          :: propertyType
