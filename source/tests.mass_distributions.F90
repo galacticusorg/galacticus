@@ -35,14 +35,16 @@ program Test_Mass_Distributions
   use :: Mass_Distributions        , only : massDistributionBetaProfile      , massDistributionClass              , massDistributionExponentialDisk        , massDistributionGaussianEllipsoid, &
        &                                    massDistributionHernquist        , massDistributionSersic             , massDistributionSpherical              , massDistributionComposite        , &
        &                                    massDistributionList             , massDistributionSymmetryCylindrical, enumerationMassDistributionSymmetryType, massDistributionSphericalScaler  , &
-       &                                    massDistributionCylindricalScaler, massDistributionCylindrical        , massDistributionPatejLoeb2015          , massDistributionNFW
+       &                                    massDistributionCylindricalScaler, massDistributionCylindrical        , massDistributionPatejLoeb2015          , massDistributionNFW              , &
+       &                                    massDistributionIsothermal       , kinematicsDistributionClass        , kinematicsDistributionLocal
   use :: Numerical_Constants_Math  , only : Pi
   use :: Tensors                   , only : assignment(=)
   use :: Unit_Tests                , only : Assert                           , Unit_Tests_Begin_Group             , Unit_Tests_End_Group                   , Unit_Tests_Finish
   implicit none
-  class           (massDistributionClass                  )                             , allocatable :: massDistribution_                                                                                               , massDistributionRotated       , &
-       &                                                                                                 massDistributionDisk                                                                                            , massDistributionSpheroid      , &
+  class           (massDistributionClass                  )                             , allocatable :: massDistribution_                                                                                               , massDistributionRotated           , &
+       &                                                                                                 massDistributionDisk                                                                                            , massDistributionSpheroid          , &
        &                                                                                                 massDistributionDMO
+  class           (kinematicsDistributionClass            )                             , allocatable :: kinematicsDistribution_
   type            (massDistributionList                   )                             , pointer     :: massDistributions
   integer                                                  , parameter                                :: sersicTableCount             =8
   double precision                                         , dimension(sersicTableCount)              :: sersicTableRadius            =[1.0000d-06,1.0000d-5,1.0000d-4,1.0000d-3,1.0000d-2,1.0000d-1,1.0000d+0,1.0000d+1]
@@ -52,20 +54,26 @@ program Test_Mass_Distributions
   double precision                                         , dimension(sersicTableCount)              :: sersicTableDensityTarget     =[2.5553d+06,3.5797d+5,4.2189d+4,3.7044d+3,1.9679d+2,4.4047d+0,2.1943d-2,7.8166d-6]
   ! Potential targets for Sersic profile from Young (1976).
   double precision                                         , dimension(sersicTableCount)              :: sersicTablePotentialTarget   =[1.0000d+00,9.9993d-1,9.9908d-1,9.9027d-1,9.2671d-1,6.7129d-1,2.4945d-1,3.7383d-2]
-  double precision                                         , dimension(sersicTableCount)              :: sersicTableDensity                                                                                              , sersicTableMass               , &
+  double precision                                         , dimension(sersicTableCount)              :: sersicTableDensity                                                                                              , sersicTableMass                   , &
        &                                                                                                 sersicTablePotential
   type            (coordinateSpherical                    )                                           :: position                                                                                                        , positionZero
   type            (coordinateCartesian                    )                                           :: positionCartesian
   type            (enumerationMassDistributionSymmetryType)                                           :: symmetry_
   integer                                                                                             :: i
-  double precision                                                                                    :: radiusInProjection                                                                                              , radius                        , &
-       &                                                                                                 rotationCurveGradientAnalytic                                                                                   , rotationCurveGradientNumerical, &
-       &                                                                                                 massFraction
+  double precision                                                                                    :: radiusInProjection                                                                                              , radius                            , &
+       &                                                                                                 rotationCurveGradientAnalytic                                                                                   , rotationCurveGradientNumerical    , &
+       &                                                                                                 massFraction                                                                                                    , time
   double precision                                         , parameter                                :: epsilonFiniteDifference      =0.01d0
   character       (len=4                                  )                                           :: label
   double precision                                         , dimension(3,3)                           :: tidalTensorComponents                                                                                           , tidalTensorSphericalComponents
   double precision                                         , dimension(3  )                           :: acceleration
-  double precision                                         , dimension(4  )                           :: massPatejLoeb, densityPatejLoeb, densitySlopePatejLoeb, densityMomentPatejLoeb, potentialPatejLoeb
+  double precision                                         , dimension(4  )                           :: massPatejLoeb                                                                                                   , densityPatejLoeb                  , &
+       &                                                                                                 densitySlopePatejLoeb                                                                                           , densityMomentPatejLoeb            , &
+       &                                                                                                 potentialPatejLoeb
+  double precision                                         , dimension(4  )                           :: massIsothermal                                                                                                  , densityIsothermal                 , &
+       &                                                                                                 densitySlopeIsothermal                                                                                          , densityMomentIsothermal           , &
+       &                                                                                                 potentialIsothermal                                                                                             , fourierTransformIsothermal        , &
+       &                                                                                                 radiusFreeFallIsothermal                                                                                        , radiusFreeFallGrowthRateIsothermal
   type            (vector                                 ), dimension(:  )             , allocatable :: axes
   
   ! Set verbosity level.
@@ -516,6 +524,89 @@ program Test_Mass_Distributions
        &      densityMomentPatejLoeb                                                                    , &
        &      [+3.765562121061061d11,+4.129007833522932d12,+5.196937885662541d13,+7.1052241045332330d14], &
        &      relTol=1.0d-6                                                                               &
+       &     )
+  deallocate(massDistribution_)
+  call Unit_Tests_End_Group()
+
+  ! Isothermal profile.
+  call Unit_Tests_Begin_Group("Isothermal profile")
+  allocate(massDistributionIsothermal  :: massDistribution_      )
+  allocate(kinematicsDistributionLocal :: kinematicsDistribution_)
+  select type (kinematicsDistribution_)
+  type is (kinematicsDistributionLocal)
+     kinematicsDistribution_=kinematicsDistributionLocal(alpha=1.0d0/sqrt(2.0d0))
+  end select
+  select type (massDistribution_)
+  type is (massDistributionIsothermal)
+     massDistribution_=massDistributionIsothermal(mass=1.0d12,lengthReference=300.0d-3)
+     call massDistribution_%setKinematicsDistribution(kinematicsDistribution_)
+  end select
+  do i=1,4
+     radius                               =300.0d-3/2.0d0**(4-i)
+     position                             =[radius,0.0d0,0.0d0]
+     time                                 =         2.0d0**(i-1)
+     massIsothermal                    (i)=massDistribution_%massEnclosedBySphere      (radius                     )
+     densityIsothermal                 (i)=massDistribution_%density                   (position                   )
+     densitySlopeIsothermal            (i)=massDistribution_%densityGradientRadial     (position,logarithmic=.true.)
+     potentialIsothermal               (i)=massDistribution_%potential                 (position                   )
+     densityMomentIsothermal           (i)=massDistribution_%densityRadialMoment       (-dble(i-1),300.0d-3/8.0d0,300.0d-3/1.0d0)
+     fourierTransformIsothermal        (i)=massDistribution_%fourierTransform          (300.0d-3,1.0d0/radius)
+     radiusFreefallIsothermal          (i)=massDistribution_%radiusFreefall            (time)
+     radiusFreefallGrowthRateIsothermal(i)=massDistribution_%radiusFreefallIncreaseRate(time)
+  end do
+  call Assert(                                                                                             &
+       &      "M(r) at r=[⅛,¼,½,1]rₗ"                                                                    , &
+       &      massIsothermal                                                                             , &
+       &      [+1.250000000000000d+11,+2.50000000000000d+11,+5.00000000000000d+11,+1.000000000000000d+12], &
+       &      relTol=1.0d-6                                                                                &
+       &     )
+  call Assert(                                                                                             &
+       &      "ρ(r) at r=[⅛,¼,½,1]rₗ"                                                                    , &
+       &      densityIsothermal                                                                          , &
+       &      [+1.886280807015056d+14,+4.71570201753764d+13,+1.17892550438441d+13,+2.947313760961025d+12], &
+       &      relTol=1.0d-6                                                                                &
+       &     )
+  call Assert(                                                                                             &
+       &      "α(r) at r=[⅛,¼,½,1]rₗ"                                                                    , &
+       &      densitySlopeIsothermal                                                                     , &
+       &      [-2.000000000000000d+00,-2.00000000000000d+00,-2.00000000000000d+00,-2.000000000000000d+00], &
+       &      relTol=1.0d-6                                                                                &
+       &     )
+  call Assert(                                                                                             &
+       &      "φ(r) at r=[⅛,¼,½,1]rₗ"                                                                    , &
+       &      potentialIsothermal                                                                        , &
+       &      [-2.981226023588325d+04,-1.98748401572555d+04,-9.93742007862775d+03,+0.000000000000000d+00], &       
+       &      relTol=1.0d-3                                                                                &
+       &     )
+  call Assert(                                                                                             &
+       &      "ℛᵢ(⅛rₗ,rₗ)"                                                                               , &
+       &      densityMomentIsothermal                                                                    , &
+       &      [+6.189358898018186d+12,+9.28403834702773d+13,+1.67341925761232d+15,+3.352569403093177d+16], &
+       &      relTol=1.0d-6                                                                                &
+       &     )
+  call Assert(                                                                                             &
+       &      "ℱ(rₗ,k) at k=[8,4,2,1]/rₗ"                                                                , &
+       &      fourierTransformIsothermal                                                                 , &
+       &      [+1.967733527133679d-01,+4.395507847372633d-01,+8.02706488401347d-01,+9.46083070367183d-01], &
+       &      relTol=1.0d-6                                                                                &
+       &     )
+  call Assert(                                                                                             &
+       &      "rᵩ(t) at t=[1,2,4,8]Gyr"                                                                  , &
+       &      radiusFreefallIsothermal                                                                   , &
+       &      [+9.769496930104140d-02,+1.953899386020827d-01,+3.907798772041654d-01,+7.8155975440833d-01], &
+       &      relTol=1.0d-3                                                                                &
+       &     )
+  call Assert(                                                                                             &
+       &      "drᵩ/dt(t) at t=[1,2,4,8]Gyr"                                                              , &
+       &      radiusFreefallGrowthRateIsothermal                                                         , &
+       &      [+9.769496930104140d-02,+9.769496930104140d-02,+9.769496930104140d-02,+9.7694969301041d-02], &
+       &      relTol=1.0d-3                                                                                &
+       &     )
+  call Assert(                                                                                             &
+       &      "E"                                                                                        , &
+       &      massDistribution_%energy(300.0d-3,massDistribution_)                                       , &
+       &      -3.58417d15                                                                                , &
+       &      relTol=1.0d-3                                                                                &
        &     )
   deallocate(massDistribution_)
   call Unit_Tests_End_Group()
