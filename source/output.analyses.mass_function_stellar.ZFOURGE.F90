@@ -223,6 +223,7 @@ contains
     double precision                                                     , parameter                   :: errorPolynomialZeroPoint                            =11.3d+0
     type            (varying_string                                     )                              :: fileName
     double precision                                                                                   :: massThreshold
+    character       (len=4                                              )                              :: redshiftLabelLow                                            , redshiftLabelHigh
     !![
     <constructorAssign variables="redshiftInterval, randomErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, sizeSourceLensing, *gravitationalLensing_"/>
     !!]
@@ -253,29 +254,45 @@ contains
     ! Determine the data file and mass threshold to use.
     select case (redshiftInterval)
     case (0)
-       fileName     ='Stellar_Mass_Function_ZFOURGE_2014_z0.20_0.50.hdf5'
-       massThreshold=10.0d0**7.00d0
+       fileName         ='Stellar_Mass_Function_ZFOURGE_2014_z0.20_0.50.hdf5'
+       massThreshold    =10.0d0**7.00d0
+       redshiftLabelLow ='0.20'
+       redshiftLabelHigh='0.50'
     case (1)
-       fileName     ='Stellar_Mass_Function_ZFOURGE_2014_z0.50_0.75.hdf5'
-       massThreshold=10.0d0**7.25d0
+       fileName         ='Stellar_Mass_Function_ZFOURGE_2014_z0.50_0.75.hdf5'
+       massThreshold    =10.0d0**7.25d0
+       redshiftLabelLow ='0.50'
+       redshiftLabelHigh='0.75'
     case (2)
-       fileName     ='Stellar_Mass_Function_ZFOURGE_2014_z0.75_1.00.hdf5'
-       massThreshold=10.0d0**7.50d0
+       fileName         ='Stellar_Mass_Function_ZFOURGE_2014_z0.75_1.00.hdf5'
+       massThreshold    =10.0d0**7.50d0
+       redshiftLabelLow ='0.75'
+       redshiftLabelHigh='1.00'
     case (3)
-       fileName     ='Stellar_Mass_Function_ZFOURGE_2014_z1.00_1.25.hdf5'
-       massThreshold=10.0d0**7.75d0
+       fileName         ='Stellar_Mass_Function_ZFOURGE_2014_z1.00_1.25.hdf5'
+       massThreshold    =10.0d0**7.75d0
+       redshiftLabelLow ='1.00'
+       redshiftLabelHigh='1.25'
     case (4)
-       fileName     ='Stellar_Mass_Function_ZFOURGE_2014_z1.25_1.50.hdf5'
-       massThreshold=10.0d0**7.75d0
+       fileName         ='Stellar_Mass_Function_ZFOURGE_2014_z1.25_1.50.hdf5'
+       massThreshold    =10.0d0**7.75d0
+       redshiftLabelLow ='1.25'
+       redshiftLabelHigh='1.50'
     case (5)
-       fileName     ='Stellar_Mass_Function_ZFOURGE_2014_z1.50_2.00.hdf5'
-       massThreshold=10.0d0**8.00d0
+       fileName         ='Stellar_Mass_Function_ZFOURGE_2014_z1.50_2.00.hdf5'
+       massThreshold    =10.0d0**8.00d0
+       redshiftLabelLow ='1.50'
+       redshiftLabelHigh='2.00'
     case (6)
-       fileName     ='Stellar_Mass_Function_ZFOURGE_2014_z2.00_2.50.hdf5'
-       massThreshold=10.0d0**8.25d0
+       fileName         ='Stellar_Mass_Function_ZFOURGE_2014_z2.00_2.50.hdf5'
+       massThreshold    =10.0d0**8.25d0
+       redshiftLabelLow ='2.00'
+       redshiftLabelHigh='2.50'
     case (7)
-       fileName     ='Stellar_Mass_Function_ZFOURGE_2014_z2.50_3.00.hdf5'
-       massThreshold=10.0d0**8.50d0
+       fileName         ='Stellar_Mass_Function_ZFOURGE_2014_z2.50_3.00.hdf5'
+       massThreshold    =10.0d0**8.50d0
+       redshiftLabelLow ='2.50'
+       redshiftLabelHigh='3.00'
     case default
        call Error_Report('0 ≤ redshiftInterval ≤ 7 is required'//{introspection:location})
     end select
@@ -338,22 +355,22 @@ contains
     </referenceConstruct>
     !!]
     ! Build the object.
-    self%outputAnalysisMassFunctionStellar=                                                                                        &
-         & outputAnalysisMassFunctionStellar(                                                                                      &
-         &                                   var_str('Tomczak2014ZFOURGEz')//redshiftInterval                                    , &
-         &                                   var_str('Stellar mass function for the Tomczak et al. (2014) ZFOURGE analysis')     , &
-         &                                   char(inputPath(pathTypeDataStatic)//'/observations/massFunctionsStellar/'//fileName), &
-         &                                   galacticFilter_                                                                     , &
-         &                                   surveyGeometry_                                                                     , &
-         &                                   cosmologyFunctions_                                                                 , &
-         &                                   cosmologyFunctionsData                                                              , &
-         &                                   outputAnalysisPropertyOperator_                                                     , &
-         &                                   outputAnalysisDistributionOperator_                                                 , &
-         &                                   outputTimes_                                                                        , &
-         &                                   galacticStructure_                                                                  , &
-         &                                   covarianceBinomialBinsPerDecade                                                     , &
-         &                                   covarianceBinomialMassHaloMinimum                                                   , &
-         &                                   covarianceBinomialMassHaloMaximum                                                     &
+    self%outputAnalysisMassFunctionStellar=                                                                                                                              &
+         & outputAnalysisMassFunctionStellar(                                                                                                                            &
+         &                                   var_str('Tomczak2014ZFOURGEz')//redshiftInterval                                                                          , &
+         &                                   var_str('$')//redshiftLabelLow//' < z < '//redshiftLabelHigh//'$ stellar mass function from ZFOURGE (Tomczak et al. 2014)', &
+         &                                   char(inputPath(pathTypeDataStatic)//'/observations/massFunctionsStellar/'//fileName)                                      , &
+         &                                   galacticFilter_                                                                                                           , &
+         &                                   surveyGeometry_                                                                                                           , &
+         &                                   cosmologyFunctions_                                                                                                       , &
+         &                                   cosmologyFunctionsData                                                                                                    , &
+         &                                   outputAnalysisPropertyOperator_                                                                                           , &
+         &                                   outputAnalysisDistributionOperator_                                                                                       , &
+         &                                   outputTimes_                                                                                                              , &
+         &                                   galacticStructure_                                                                                                        , &
+         &                                   covarianceBinomialBinsPerDecade                                                                                           , &
+         &                                   covarianceBinomialMassHaloMinimum                                                                                         , &
+         &                                   covarianceBinomialMassHaloMaximum                                                                                           &
          &                                  )
     ! Clean up.
     !![
