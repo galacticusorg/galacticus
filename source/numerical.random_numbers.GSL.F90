@@ -200,7 +200,7 @@ contains
     Internal constructor for the {\normalfont \ttfamily gsl} random number generator class.
     !!}
 #ifdef USEMPI
-    use    :: MPI    , only : MPI_Comm_Rank     , MPI_Comm_World
+    use    :: MPI_F08, only : MPI_Comm_Rank     , MPI_Comm_World
 #endif
     !$ use :: OMP_Lib, only : OMP_Get_Thread_Num
     implicit none

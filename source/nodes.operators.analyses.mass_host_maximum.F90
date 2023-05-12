@@ -160,7 +160,7 @@ contains
     Initialize the maximum host mass of this node.
     !!}
     implicit none
-    class(nodeOperatorMassHostMaximum), intent(inout)         :: self
+    class(nodeOperatorMassHostMaximum), intent(inout), target :: self
     type (treeNode                   ), intent(inout), target :: node
     
     call self%update(node,isMerging=.false.)

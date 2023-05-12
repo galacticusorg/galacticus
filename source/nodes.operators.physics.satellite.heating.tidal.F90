@@ -34,8 +34,9 @@
      A node operator class that applies tidal mass loss to orbiting satellite halos.
      !!}
      private
-     class(satelliteTidalHeatingRateClass), pointer :: satelliteTidalHeatingRate_ => null()
-     class(galacticStructureClass        ), pointer :: galacticStructure_         => null()
+     class  (satelliteTidalHeatingRateClass), pointer :: satelliteTidalHeatingRate_ => null()
+     class  (galacticStructureClass        ), pointer :: galacticStructure_         => null()
+     logical                                          :: applyPreInfall
    contains
      final     ::                          satelliteTidalHeatingRateDestructor
      procedure :: differentialEvolution => satelliteTidalHeatingRateDifferentialEvolution
@@ -57,16 +58,23 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type (nodeOperatorSatelliteTidalHeating)                :: self
-    type (inputParameters                  ), intent(inout) :: parameters
-    class(satelliteTidalHeatingRateClass   ), pointer       :: satelliteTidalHeatingRate_
-    class(galacticStructureClass           ), pointer       :: galacticStructure_
+    type   (nodeOperatorSatelliteTidalHeating)                :: self
+    type   (inputParameters                  ), intent(inout) :: parameters
+    class  (satelliteTidalHeatingRateClass   ), pointer       :: satelliteTidalHeatingRate_
+    class  (galacticStructureClass           ), pointer       :: galacticStructure_
+    logical                                                   :: applyPreInfall
 
     !![
+     <inputParameter>
+      <name>applyPreInfall</name>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, tidal heating is applied pre-infall.</description>
+      <source>parameters</source>
+    </inputParameter>
     <objectBuilder class="satelliteTidalHeatingRate" name="satelliteTidalHeatingRate_" source="parameters"/>
     <objectBuilder class="galacticStructure"         name="galacticStructure_"         source="parameters"/>
     !!]
-    self=nodeOperatorSatelliteTidalHeating(satelliteTidalHeatingRate_,galacticStructure_)
+    self=nodeOperatorSatelliteTidalHeating(applyPreInfall,satelliteTidalHeatingRate_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="satelliteTidalHeatingRate_"/>
@@ -75,16 +83,17 @@ contains
     return
   end function satelliteTidalHeatingRateConstructorParameters
 
-  function satelliteTidalHeatingRateConstructorInternal(satelliteTidalHeatingRate_,galacticStructure_) result(self)
+  function satelliteTidalHeatingRateConstructorInternal(applyPreInfall,satelliteTidalHeatingRate_,galacticStructure_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily satelliteTidalHeatingRate} node operator class.
     !!}
     implicit none
-    type (nodeOperatorSatelliteTidalHeating)                        :: self
-    class(satelliteTidalHeatingRateClass   ), intent(in   ), target :: satelliteTidalHeatingRate_
-    class(galacticStructureClass           ), intent(in   ), target :: galacticStructure_
+    type   (nodeOperatorSatelliteTidalHeating)                        :: self
+    class  (satelliteTidalHeatingRateClass   ), intent(in   ), target :: satelliteTidalHeatingRate_
+    class  (galacticStructureClass           ), intent(in   ), target :: galacticStructure_
+    logical                                   , intent(in   )         :: applyPreInfall
     !![
-    <constructorAssign variables="*satelliteTidalHeatingRate_, *galacticStructure_"/>
+    <constructorAssign variables="applyPreInfall, *satelliteTidalHeatingRate_, *galacticStructure_"/>
     !!]
 
     return
@@ -108,7 +117,7 @@ contains
     !!{
     Perform mass loss from a satellite due to tidal stripping.
     !!}
-    use :: Galacticus_Nodes                , only : nodeComponentSatellite
+    use :: Galacticus_Nodes                , only : nodeComponentSatellite, nodeComponentBasic
     use :: Numerical_Constants_Astronomical, only : gigaYear              , megaParsec
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Prefixes    , only : kilo
@@ -116,10 +125,11 @@ contains
     use :: Vectors                         , only : Vector_Magnitude      , Vector_Product
     implicit none
     class           (nodeOperatorSatelliteTidalHeating), intent(inout), target  :: self
-    type            (treeNode                         ), intent(inout)          :: node
+    type            (treeNode                         ), intent(inout), target  :: node
     logical                                            , intent(inout)          :: interrupt
     procedure       (interruptTask                    ), intent(inout), pointer :: functionInterrupt
     integer                                            , intent(in   )          :: propertyType
+    class           (nodeComponentBasic               )               , pointer :: basic             , basicHost
     class           (nodeComponentSatellite           )               , pointer :: satellite
     type            (treeNode                         )               , pointer :: nodeHost
     double precision                                   , dimension(3)           :: position          , velocity
@@ -128,9 +138,27 @@ contains
     type            (tensorRank2Dimension3Symmetric)                            :: tidalTensor       , tidalTensorPathIntegrated
     !$GLC attributes unused :: interrupt, functionInterrupt, propertyType
 
-    if (.not.node%isSatellite()) return
+    if (.not.self%applyPreInfall.and..not.node%isSatellite()) return
+    ! Find the host node.
+    if (node%isSatellite()) then
+       nodeHost => node%mergesWith()
+    else
+       ! Walk up the branch to find the node with which this node will merge.
+       nodeHost => node
+       do while (nodeHost%isPrimaryProgenitor())
+          nodeHost => nodeHost%parent
+       end do
+       ! Follow that node back through descendants until we find the node at the corresponding time.
+       basic     => node    %basic()
+       basicHost => nodeHost%basic()
+       do while (basicHost%time() > basic%time())
+          if (.not.associated(nodeHost%firstChild)) exit
+          nodeHost  => nodeHost%firstChild
+          basicHost => nodeHost%basic     ()
+       end do
+    end if
+    ! Get required quantities from satellite and host nodes.
     satellite                 => node     %satellite                (        )
-    nodeHost                  => node     %mergesWith               (        )
     position                  =  satellite%position                 (        )
     velocity                  =  satellite%velocity                 (        )
     tidalTensorPathIntegrated =  satellite%tidalTensorPathIntegrated(        )

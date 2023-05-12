@@ -109,14 +109,16 @@ contains
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite
     implicit none
-    class(nodePropertyExtractorRadiusBoundMass), intent(inout)           :: self
-    type (treeNode                            ), intent(inout), target   :: node
-    type (multiCounter                        ), intent(inout), optional :: instance
-    class(nodeComponentSatellite              )               , pointer  :: satellite
+    class           (nodePropertyExtractorRadiusBoundMass), intent(inout)           :: self
+    type            (treeNode                            ), intent(inout), target   :: node
+    type            (multiCounter                        ), intent(inout), optional :: instance
+    class           (nodeComponentSatellite              )               , pointer  :: satellite
+    double precision                                                                :: massTotal
     !$GLC attributes unused :: instance
 
     satellite              => node%satellite()
-    radiusBoundMassExtract =  self%galacticStructure_%radiusEnclosingMass(node,mass=satellite%boundMass())
+    massTotal              =  self%galacticStructure_%massEnclosed       (node                                          )
+    radiusBoundMassExtract =  self%galacticStructure_%radiusEnclosingMass(node,mass=min(satellite%boundMass(),massTotal))
     return
   end function radiusBoundMassExtract
 

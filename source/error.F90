@@ -260,7 +260,7 @@ contains
     use    :: HDF5         , only : H5Close_F
 #endif
 #ifdef USEMPI
-    use    :: MPI          , only : MPI_Comm_Rank     , MPI_Comm_World
+    use    :: MPI_F08      , only : MPI_Comm_Rank     , MPI_Comm_World
 #endif
     !$ use :: OMP_Lib      , only : OMP_Get_Thread_Num, OMP_In_Parallel
     use    :: Display      , only : displayBold       , displayRed     , displayReset
@@ -323,7 +323,7 @@ contains
     use    :: HDF5         , only : H5Close_F
 #endif
 #ifdef USEMPI
-    use    :: MPI          , only : MPI_Comm_Rank     , MPI_Comm_World
+    use    :: MPI_F08      , only : MPI_Comm_Rank     , MPI_Comm_World
 #endif
     !$ use :: OMP_Lib      , only : OMP_Get_Thread_Num, OMP_In_Parallel
     use    :: Display      , only : displayBold       , displayRed     , displayReset
@@ -386,7 +386,7 @@ contains
     use    :: HDF5         , only : H5Close_F
 #endif
 #ifdef USEMPI
-    use    :: MPI          , only : MPI_Comm_Rank     , MPI_Comm_World
+    use    :: MPI_F08      , only : MPI_Comm_Rank     , MPI_Comm_World
 #endif
     !$ use :: OMP_Lib      , only : OMP_Get_Thread_Num, OMP_In_Parallel
     use    :: Display      , only : displayBold       , displayRed     , displayReset
@@ -449,7 +449,7 @@ contains
     use    :: HDF5         , only : H5Close_F
 #endif
 #ifdef USEMPI
-    use    :: MPI          , only : MPI_Comm_Rank     , MPI_Comm_World
+    use    :: MPI_F08      , only : MPI_Comm_Rank     , MPI_Comm_World
 #endif
     !$ use :: OMP_Lib      , only : OMP_Get_Thread_Num, OMP_In_Parallel
     use    :: Display      , only : displayBold       , displayRed     , displayReset
@@ -512,7 +512,7 @@ contains
     use    :: HDF5         , only : H5Close_F
 #endif
 #ifdef USEMPI
-    use    :: MPI          , only : MPI_Comm_Rank     , MPI_Comm_World
+    use    :: MPI_F08      , only : MPI_Comm_Rank     , MPI_Comm_World
 #endif
     !$ use :: OMP_Lib      , only : OMP_Get_Thread_Num, OMP_In_Parallel
     use    :: Display      , only : displayBold       , displayRed     , displayReset
@@ -609,7 +609,7 @@ contains
     use   , intrinsic :: ISO_C_Binding     , only : c_char
     use               :: ISO_Varying_String, only : char
 #ifdef USEMPI
-    use               :: MPI               , only : MPI_Comm_Rank      , MPI_Comm_World , MPI_Initialized
+    use               :: MPI_F08           , only : MPI_Comm_Rank      , MPI_Comm_World , MPI_Initialized
 #endif
     !$ use            :: OMP_Lib           , only : OMP_Get_Thread_Num , OMP_In_Parallel
     use               :: Display           , only : displayBold        , displayRed     , displayReset

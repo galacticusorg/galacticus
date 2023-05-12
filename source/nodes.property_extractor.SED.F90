@@ -20,11 +20,12 @@
   !!{
   Contains a module which implements a property extractor class for the SED of a component.
   !!}
-  use :: Cosmology_Functions       , only : cosmologyFunctionsClass
-  use :: Galactic_Structure_Options, only : enumerationComponentTypeType
-  use :: Output_Times              , only : outputTimesClass
-  use :: Stellar_Population_Spectra, only : stellarPopulationSpectraClass
-  use :: Star_Formation_Histories  , only : starFormationHistoryClass
+  use :: Cosmology_Functions                   , only : cosmologyFunctionsClass
+  use :: Galactic_Structure_Options            , only : enumerationComponentTypeType
+  use :: Output_Times                          , only : outputTimesClass
+  use :: Stellar_Population_Spectra            , only : stellarPopulationSpectraClass
+  use :: Stellar_Population_Spectra_Postprocess, only : stellarPopulationSpectraPostprocessorClass
+  use :: Star_Formation_Histories              , only : starFormationHistoryClass
 
   type :: sedTemplate
      !!{
@@ -57,21 +58,22 @@
      A property extractor class for the SED of a component.
      !!}
      private
-     class           (stellarPopulationSpectraClass), pointer                   :: stellarPopulationSpectra_    => null()
-     class           (starFormationHistoryClass    ), pointer                   :: starFormationHistory_        => null()
-     class           (outputTimesClass             ), pointer                   :: outputTimes_                 => null()
-     class           (cosmologyFunctionsClass      ), pointer                   :: cosmologyFunctions_          => null()
-     type            (enumerationComponentTypeType )                            :: component
-     integer                                                                    :: countWavelengths
-     double precision                               , allocatable, dimension(:) :: wavelengths_                          , metallicityBoundaries
-     type            (sedTemplate                  ), allocatable, dimension(:) :: templates
-     double precision                                                           :: metallicityPopulationMinimum          , metallicityPopulationMaximum, &
-          &                                                                        wavelengthMinimum                     , wavelengthMaximum           , &
-          &                                                                        agePopulationMaximum                  , resolution                  , &
-          &                                                                        factorWavelength                      , toleranceRelative
-     integer                                                                    :: abundanceIndex
-     type            (enumerationFrameType         )                            :: frame
-     logical                                                                    :: useSEDTemplates
+     class           (stellarPopulationSpectraClass             ), pointer                   :: stellarPopulationSpectra_              => null()
+     class           (stellarPopulationSpectraPostprocessorClass), pointer                   :: stellarPopulationSpectraPostprocessor_ => null()
+     class           (starFormationHistoryClass                 ), pointer                   :: starFormationHistory_                  => null()
+     class           (outputTimesClass                          ), pointer                   :: outputTimes_                           => null()
+     class           (cosmologyFunctionsClass                   ), pointer                   :: cosmologyFunctions_                    => null()
+     type            (enumerationComponentTypeType              )                            :: component
+     integer                                                                                 :: countWavelengths
+     double precision                                            , allocatable, dimension(:) :: wavelengths_                                    , metallicityBoundaries
+     type            (sedTemplate                               ), allocatable, dimension(:) :: templates
+     double precision                                                                        :: metallicityPopulationMinimum                    , metallicityPopulationMaximum, &
+          &                                                                                     wavelengthMinimum                               , wavelengthMaximum           , &
+          &                                                                                     agePopulationMaximum                            , resolution                  , &
+          &                                                                                     factorWavelength                                , toleranceRelative
+     integer                                                                                 :: abundanceIndex
+     type            (enumerationFrameType                      )                            :: frame
+     logical                                                                                 :: useSEDTemplates
    contains
      !![
      <methods>
@@ -114,15 +116,16 @@ contains
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode
     implicit none
-    type            (nodePropertyExtractorSED     )                :: self
-    type            (inputParameters              ), intent(inout) :: parameters
-    class           (stellarPopulationSpectraClass), pointer       :: stellarPopulationSpectra_
-    class           (starFormationHistoryClass    ), pointer       :: starFormationHistory_
-    class           (outputTimesClass             ), pointer       :: outputTimes_
-    class           (cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
-    type            (varying_string               )                :: component                , frame
-    double precision                                               :: wavelengthMinimum        , wavelengthMaximum, &
-         &                                                            resolution               , toleranceRelative
+    type            (nodePropertyExtractorSED                  )                :: self
+    type            (inputParameters                           ), intent(inout) :: parameters
+    class           (stellarPopulationSpectraClass             ), pointer       :: stellarPopulationSpectra_
+    class           (stellarPopulationSpectraPostprocessorClass), pointer       :: stellarPopulationSpectraPostprocessor_
+    class           (starFormationHistoryClass                 ), pointer       :: starFormationHistory_
+    class           (outputTimesClass                          ), pointer       :: outputTimes_
+    class           (cosmologyFunctionsClass                   ), pointer       :: cosmologyFunctions_
+    type            (varying_string                            )                :: component                             , frame
+    double precision                                                            :: wavelengthMinimum                     , wavelengthMaximum, &
+         &                                                                         resolution                            , toleranceRelative
     
     !![
     <inputParameter>
@@ -160,23 +163,25 @@ contains
       <defaultValue>1.0d-3</defaultValue>
       <description>The relative tolerance used in integration over stellar population spectra.</description>
     </inputParameter>
-    <objectBuilder class="stellarPopulationSpectra" name="stellarPopulationSpectra_" source="parameters"/>
-    <objectBuilder class="starFormationHistory"     name="starFormationHistory_"     source="parameters"/>
-    <objectBuilder class="outputTimes"              name="outputTimes_"              source="parameters"/>
-    <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
+    <objectBuilder class="stellarPopulationSpectraPostprocessor" name="stellarPopulationSpectraPostprocessor_" source="parameters"/>
+    <objectBuilder class="stellarPopulationSpectra"              name="stellarPopulationSpectra_"              source="parameters"/>
+    <objectBuilder class="starFormationHistory"                  name="starFormationHistory_"                  source="parameters"/>
+    <objectBuilder class="outputTimes"                           name="outputTimes_"                           source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"                    name="cosmologyFunctions_"                    source="parameters"/>
     !!]
-    self=nodePropertyExtractorSED(enumerationComponentTypeEncode(char(component),includesPrefix=.false.),enumerationFrameEncode(char(frame),includesPrefix=.false.),wavelengthMinimum,wavelengthMaximum,resolution,toleranceRelative,stellarPopulationSpectra_,starFormationHistory_,outputTimes_,cosmologyFunctions_)
+    self=nodePropertyExtractorSED(enumerationComponentTypeEncode(char(component),includesPrefix=.false.),enumerationFrameEncode(char(frame),includesPrefix=.false.),wavelengthMinimum,wavelengthMaximum,resolution,toleranceRelative,stellarPopulationSpectra_,stellarPopulationSpectraPostprocessor_,starFormationHistory_,outputTimes_,cosmologyFunctions_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="stellarPopulationSpectra_"/>
-    <objectDestructor name="starFormationHistory_"    />
-    <objectDestructor name="outputTimes_"             />
-    <objectDestructor name="cosmologyFunctions_"      />
+    <objectDestructor name="stellarPopulationSpectra_"             />
+    <objectDestructor name="stellarPopulationSpectraPostprocessor_"/>
+    <objectDestructor name="starFormationHistory_"                 />
+    <objectDestructor name="outputTimes_"                          />
+    <objectDestructor name="cosmologyFunctions_"                   />
     !!]
     return
   end function sedConstructorParameters
 
-  function sedConstructorInternal(component,frame,wavelengthMinimum,wavelengthMaximum,resolution,toleranceRelative,stellarPopulationSpectra_,starFormationHistory_,outputTimes_,cosmologyFunctions_) result(self)
+  function sedConstructorInternal(component,frame,wavelengthMinimum,wavelengthMaximum,resolution,toleranceRelative,stellarPopulationSpectra_,stellarPopulationSpectraPostprocessor_,starFormationHistory_,outputTimes_,cosmologyFunctions_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily sed} property extractor class.
     !!}
@@ -185,19 +190,20 @@ contains
     use :: Error                           , only : Error_Report
     use :: Numerical_Constants_Astronomical, only : metallicitySolar
     implicit none
-    type            (nodePropertyExtractorSED     )                              :: self
-    type            (enumerationComponentTypeType ), intent(in   )               :: component
-    type            (enumerationFrameType         ), intent(in   )               :: frame
-    class           (stellarPopulationSpectraClass), intent(in   ), target       :: stellarPopulationSpectra_
-    class           (starFormationHistoryClass    ), intent(in   ), target       :: starFormationHistory_
-    class           (outputTimesClass             ), intent(in   ), target       :: outputTimes_
-    class           (cosmologyFunctionsClass      ), intent(in   ), target       :: cosmologyFunctions_
-    double precision                               , intent(in   )               :: wavelengthMinimum        , wavelengthMaximum, &
-         &                                                                          resolution               , toleranceRelative
-    double precision                               , allocatable  , dimension(:) :: ages                     , metallicities
-    integer                                                                      :: agesCount                , metallicitiesCount
+    type            (nodePropertyExtractorSED                  )                              :: self
+    type            (enumerationComponentTypeType              ), intent(in   )               :: component
+    type            (enumerationFrameType                      ), intent(in   )               :: frame
+    class           (stellarPopulationSpectraClass             ), intent(in   ), target       :: stellarPopulationSpectra_
+    class           (stellarPopulationSpectraPostprocessorClass), intent(in   ), target       :: stellarPopulationSpectraPostprocessor_
+    class           (starFormationHistoryClass                 ), intent(in   ), target       :: starFormationHistory_
+    class           (outputTimesClass                          ), intent(in   ), target       :: outputTimes_
+    class           (cosmologyFunctionsClass                   ), intent(in   ), target       :: cosmologyFunctions_
+    double precision                                            , intent(in   )               :: wavelengthMinimum                     , wavelengthMaximum, &
+         &                                                                                       resolution                            , toleranceRelative
+    double precision                                            , allocatable  , dimension(:) :: ages                                  , metallicities
+    integer                                                                                   :: agesCount                             , metallicitiesCount
     !![
-    <constructorAssign variables="component, frame, wavelengthMinimum, wavelengthMaximum, resolution, toleranceRelative, *stellarPopulationSpectra_, *starFormationHistory_, *outputTimes_, *cosmologyFunctions_"/>
+    <constructorAssign variables="component, frame, wavelengthMinimum, wavelengthMaximum, resolution, toleranceRelative, *stellarPopulationSpectra_, *stellarPopulationSpectraPostprocessor_, *starFormationHistory_, *outputTimes_, *cosmologyFunctions_"/>
     !!]
     
     if     (                                                                                                               &
@@ -206,13 +212,13 @@ contains
          &   component /= componentTypeSpheroid                                                                            &
          & ) call Error_Report("only 'disk' and 'spheroid' components are supported"//{introspection:location})
     call self%stellarPopulationSpectra_%wavelengths(self%countWavelengths                   ,self%wavelengths_              )
-    call self%stellarPopulationSpectra_%tabulation (     agesCount       ,metallicitiesCount,     ages        ,metallicities)
+    call self%stellarPopulationSpectra_%tabulation (     agesCount       ,metallicitiesCount,     ages        ,metallicities)    
     self%metallicityBoundaries       =self%starFormationHistory_%metallicityBoundaries()
     self%agePopulationMaximum        =ages         (agesCount         )
     self%metallicityPopulationMaximum=metallicities(metallicitiesCount)/metallicitySolar
     self%metallicityPopulationMinimum=metallicities(                 1)/metallicitySolar
     self%abundanceIndex              =Abundance_Pattern_Lookup(abundanceName="solar")
-    self%useSEDTemplates             =self%starFormationHistory_%perOutputTabualtionIsStatic()
+    self%useSEDTemplates             =self%starFormationHistory_%perOutputTabulationIsStatic()
     ! Compute the factor by which the minimum/maximum wavelength in a resolution element differ from the central wavelength.
     if (resolution > 0.0d0) self%factorWavelength=(1.0d0+sqrt(1.0d0+4.0d0*resolution**2))/2.0d0/resolution
     return
@@ -226,10 +232,11 @@ contains
     type(nodePropertyExtractorSED), intent(inout) :: self
     
     !![
-    <objectDestructor name="self%stellarPopulationSpectra_"/>
-    <objectDestructor name="self%starFormationHistory_"    />
-    <objectDestructor name="self%outputTimes_"             />
-    <objectDestructor name="self%cosmologyFunctions_"      />
+    <objectDestructor name="self%stellarPopulationSpectra_"             />
+    <objectDestructor name="self%stellarPopulationSpectraPostprocessor_"/>
+    <objectDestructor name="self%starFormationHistory_"                 />
+    <objectDestructor name="self%outputTimes_"                          />
+    <objectDestructor name="self%cosmologyFunctions_"                   />
     !!]
     return
   end subroutine sedDestructor
@@ -364,7 +371,7 @@ contains
        ! Stored templates can not be used, get the templates for this specific case, and point to them.
        sedTemplate  =  self%luminosityMean(time,starFormationHistory)
        sedTemplate_ => sedTemplate
-    end if
+    end if    
     do iWavelength=1,size(sedExtract,dim=1)
        sedExtract(iWavelength,1)=sum(sedTemplate_(iWavelength,:,:)*starFormationHistory%data(:,:))
     end do
@@ -383,7 +390,7 @@ contains
     !$GLC attributes unused :: time
 
     allocate(names(1))
-    names(1)=enumerationComponentTypeDecode(self%component,includePrefix=.false.)//"StellarSED"
+    names(1)=enumerationComponentTypeDecode(self%component,includePrefix=.false.)//"StellarSED:"//self%stellarPopulationSpectraPostprocessor_%objectType(short=.true.)
     return
   end subroutine sedNames
 
@@ -603,30 +610,33 @@ contains
     use    :: Locks                , only : ompLock
     !$ use :: OMP_Lib, only : OMP_Get_Thread_Num
     implicit none
-    double precision                               , dimension(:,:,:), allocatable :: sedLuminosityMean
-    class           (nodePropertyExtractorSED     ), intent(inout)                 :: self
-    double precision                               , intent(in   )                 :: time
-    type            (history                      ), intent(in   )                 :: starFormationHistory
-    logical                                        , intent(in   )   , optional    :: parallelize
-    class           (stellarPopulationSpectraClass), pointer         , save        :: stellarPopulationSpectra_
-    type            (integrator                   ), allocatable     , save        :: integratorTime           , integratorMetallicity, &
-         &                                                                            integratorWavelength
-    integer         (c_size_t                     ), dimension(:    ), allocatable :: jWavelength
-    double precision                               , dimension(:    ), allocatable :: wavelengthMinima         , wavelengthMaxima
-    integer         (c_size_t                     )                                :: iWavelength              , iTime                , &
-         &                                                                            iMetallicity             , kWavelength          , &
-         &                                                                            counter                  , counterMaximum       , &
-         &                                                                            iterator
-    double precision                                                               :: metallicityMinimum       , metallicityMaximum   , &
-         &                                                                            expansionFactor
-    double precision                                                 , save        :: timeMinimum              , timeMaximum          , &
-         &                                                                            wavelength               , wavelengthMinimum    , &
-         &                                                                            wavelengthMaximum        , age
-    type            (abundances                   )                  , save        :: abundancesStellar
-    character       (len=12                       )                                :: label
-    type            (multiCounter                 )                                :: state
-    type            (ompLock                      )                                :: stateLock
-    !$omp threadprivate(stellarPopulationSpectra_,integratorTime,integratorWavelength,integratorMetallicity,abundancesStellar,wavelength,wavelengthMinimum,wavelengthMaximum,timeMinimum,timeMaximum,age)
+    double precision                                            , dimension(:,:,:), allocatable :: sedLuminosityMean
+    class           (nodePropertyExtractorSED                  ), intent(inout)                 :: self
+    double precision                                            , intent(in   )                 :: time
+    type            (history                                   ), intent(in   )                 :: starFormationHistory
+    logical                                                     , intent(in   )   , optional    :: parallelize
+    class           (stellarPopulationSpectraClass             ), pointer         , save        :: stellarPopulationSpectra_
+    class           (stellarPopulationSpectraPostprocessorClass), pointer         , save        :: stellarPopulationSpectraPostprocessor_
+    class           (cosmologyFunctionsClass                   ), pointer         , save        :: cosmologyFunctions_
+    type            (integrator                                ), allocatable     , save        :: integratorTime                        , integratorMetallicity, &
+         &                                                                                         integratorWavelength
+    integer         (c_size_t                                  ), dimension(:    ), allocatable :: jWavelength
+    double precision                                            , dimension(:    ), allocatable :: wavelengthMinima                      , wavelengthMaxima
+    integer         (c_size_t                                  )                                :: iWavelength                           , iTime                , &
+         &                                                                                         iMetallicity                          , kWavelength          , &
+         &                                                                                         counter                               , counterMaximum       , &
+         &                                                                                         iterator
+    double precision                                                                            :: metallicityMinimum                    , metallicityMaximum   , &
+         &                                                                                         expansionFactor
+    double precision                                                              , save        :: timeMinimum                           , timeMaximum          , &
+         &                                                                                         wavelength                            , wavelengthMinimum    , &
+         &                                                                                         wavelengthMaximum                     , age                  , &
+         &                                                                                         redshift
+    type            (abundances                                )                  , save        :: abundancesStellar
+    character       (len=12                                    )                                :: label
+    type            (multiCounter                              )                                :: state
+    type            (ompLock                                   )                                :: stateLock
+    !$omp threadprivate(stellarPopulationSpectra_,stellarPopulationSpectraPostprocessor_,cosmologyFunctions_,integratorTime,integratorWavelength,integratorMetallicity,abundancesStellar,wavelength,wavelengthMinimum,wavelengthMaximum,timeMinimum,timeMaximum,age)
     !![
     <optionalArgument name="parallelize" defaultsTo=".false." />
     !!]
@@ -675,16 +685,20 @@ contains
     integratorMetallicity=integrator(sedIntegrandMetallicity,toleranceRelative=self%toleranceRelative)
     integratorWavelength =integrator(sedIntegrandWavelength ,toleranceRelative=self%toleranceRelative)
     if (parallelize_) then
-       allocate(stellarPopulationSpectra_,mold=self%stellarPopulationSpectra_)
+       allocate(stellarPopulationSpectra_             ,mold=self%stellarPopulationSpectra_             )
+       allocate(stellarPopulationSpectraPostprocessor_,mold=self%stellarPopulationSpectraPostprocessor_)
+       allocate(cosmologyFunctions_                   ,mold=self%cosmologyFunctions_                   )
        !$omp critical(nodePropertyExtractSEDDeepCopy)
        !![
-       <deepCopyReset variables="self%stellarPopulationSpectra_"/>
+       <deepCopyReset variables="self%stellarPopulationSpectra_ self%stellarPopulationSpectraPostprocessor_ self%cosmologyFunctions_"/>
        !!]
        !![
-       <deepCopy source="self%stellarPopulationSpectra_" destination="stellarPopulationSpectra_"/>
+       <deepCopy source="self%stellarPopulationSpectra_"              destination="stellarPopulationSpectra_"             />
+       <deepCopy source="self%stellarPopulationSpectraPostprocessor_" destination="stellarPopulationSpectraPostprocessor_"/>
+       <deepCopy source="self%cosmologyFunctions_"                    destination="cosmologyFunctions_"                   />
        !!]
        !![
-       <deepCopyFinalize variables="stellarPopulationSpectra_"/>
+       <deepCopyFinalize variables="stellarPopulationSpectra_ stellarPopulationSpectraPostprocessor_ cosmologyFunctions_"/>
        !!]
        !$omp end critical(nodePropertyExtractSEDDeepCopy)
     end if
@@ -763,7 +777,9 @@ contains
     end if
     !$omp end master
     !![
-    <objectDestructor name="stellarPopulationSpectra_"/>
+    <objectDestructor name="stellarPopulationSpectra_"             />
+    <objectDestructor name="stellarPopulationSpectraPostprocessor_"/>
+    <objectDestructor name="cosmologyFunctions_"                   />
     !!]
     deallocate(integratorTime       )
     deallocate(integratorMetallicity)
@@ -795,18 +811,26 @@ contains
       !!}
       implicit none
       double precision, intent(in   ) :: timeBirth
+      double precision                :: redshift
 
       age             =min(                            &
            &               +     time                  &
            &               -     timeBirth           , &
            &               +self%agePopulationMaximum  &
            &              )
+      if (parallelize_) then
+         redshift=     cosmologyFunctions_%redshiftFromExpansionFactor(     cosmologyFunctions_%expansionFactor(time))
+      else
+         redshift=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(time))
+      end if
       if (self%resolution < 0.0d0) then
          ! Full resolution - evaluate at the given wavelength.
-         if (parallelize) then
-            sedIntegrandTime=     stellarPopulationSpectra_%luminosity(abundancesStellar,age,wavelength)
+         if (parallelize_) then
+            sedIntegrandTime=+     stellarPopulationSpectra_             %luminosity(abundancesStellar,age,wavelength) &
+                 &           *     stellarPopulationSpectraPostprocessor_%multiplier(wavelength       ,age,redshift  )
          else
-            sedIntegrandTime=self%stellarPopulationSpectra_%luminosity(abundancesStellar,age,wavelength)
+            sedIntegrandTime=+self%stellarPopulationSpectra_             %luminosity(abundancesStellar,age,wavelength) &
+                 &           *self%stellarPopulationSpectraPostprocessor_%multiplier(wavelength       ,age,redshift  )
          end if
       else
          ! Finite resolution - integrate over wavelength.
@@ -824,7 +848,7 @@ contains
       \begin{equation}
         \langle L_\nu \rangle = \frac{\mathrm{h} \bar{\nu}}{\Delta \nu} \int_{\lambda_\mathrm{min}}^{\lambda_\mathrm{max}} \mathrm{d}\nu \frac{L_\nu}{\mathrm{h}\nu}.
       \end{equation}
-      Using the factor that $\Delta\nu = \nu_1-\nu_2 = (\mathrm{c}/\bar{\lambda})(f-f^{-1})$ this can be written as
+      Using the fact that $\Delta\nu = \nu_1-\nu_2 = (\mathrm{c}/\bar{\lambda})(f-f^{-1})$ this can be written as
       \begin{equation}
         \langle L_\nu \rangle = (f-f^{-1})^{-1} \int_{\lambda_\mathrm{min}}^{\lambda_\mathrm{max}} \frac{\mathrm{d}\lambda}{\lambda} L_\nu.
       \end{equation}
@@ -832,10 +856,12 @@ contains
       implicit none
       double precision, intent(in   ) :: wavelength
 
-      if (parallelize) then
-         sedIntegrandWavelength=     stellarPopulationSpectra_%luminosity(abundancesStellar,age,wavelength)
+      if (parallelize_) then
+         sedIntegrandWavelength=+     stellarPopulationSpectra_             %luminosity(abundancesStellar,age,wavelength) &
+                 &              *     stellarPopulationSpectraPostprocessor_%multiplier(wavelength       ,age,redshift  )
       else
-         sedIntegrandWavelength=self%stellarPopulationSpectra_%luminosity(abundancesStellar,age,wavelength)
+         sedIntegrandWavelength=+self%stellarPopulationSpectra_             %luminosity(abundancesStellar,age,wavelength) &
+                 &              *self%stellarPopulationSpectraPostprocessor_%multiplier(wavelength       ,age,redshift  )
       end if
       sedIntegrandWavelength=+sedIntegrandWavelength        &
            &                 /wavelength                    &
@@ -890,10 +916,11 @@ contains
     write (parameterLabel,'(e17.10)') self%resolution
     !$omp end critical(gfortranInternalIO)
     call descriptor%addParameter('resolution'       ,trim(adjustl(parameterLabel)))
-    call self%stellarPopulationSpectra_%descriptor(descriptor)
-    call self%starFormationHistory_    %descriptor(descriptor)
-    call self%outputTimes_             %descriptor(descriptor)
-    call self%cosmologyFunctions_      %descriptor(descriptor)
+    call self%stellarPopulationSpectra_             %descriptor(descriptor)
+    call self%stellarPopulationSpectraPostprocessor_%descriptor(descriptor)
+    call self%starFormationHistory_                 %descriptor(descriptor)
+    call self%outputTimes_                          %descriptor(descriptor)
+    call self%cosmologyFunctions_                   %descriptor(descriptor)
     values=""
     do i=1,size(self%metallicityBoundaries)
        !$omp critical(gfortranInternalIO)

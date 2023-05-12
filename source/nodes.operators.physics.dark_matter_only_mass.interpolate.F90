@@ -87,7 +87,7 @@ contains
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
-    class           (nodeOperatorDMOInterpolate), intent(inout)          :: self
+    class           (nodeOperatorDMOInterpolate), intent(inout), target  :: self
     type            (treeNode                  ), intent(inout), target  :: node
     type            (treeNode                  )               , pointer :: nodeChild          , nodeParent
     class           (nodeComponentBasic        )               , pointer :: basicChild         , basicParent     , &
