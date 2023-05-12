@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1683906889028,
+  "lastUpdate": 1683935956402,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "1aa340a7dba4eed8f69baa0b2054f9e2ed4c81ef",
-          "message": "Merge pull request #302 from galacticusorg/cambStaticFix\n\nAdd workaround for missing `pthread_mutex_destroy` for static builds of CAMB",
-          "timestamp": "2022-09-24T22:15:49-07:00",
-          "tree_id": "a730a270bf15c6434e6d4c003773c45815d81ac8",
-          "url": "https://github.com/galacticusorg/galacticus/commit/1aa340a7dba4eed8f69baa0b2054f9e2ed4c81ef"
-        },
-        "date": 1664087055404,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 57.653,
-            "unit": "seconds",
-            "range": 0.0634830686088814
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8694,6 +8664,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 24179.0559197622,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "b2b82e792403bd7f38c2a3097b550c1e5e6d3963",
+          "message": "feat: Add more informative labels in stellar mass function analysis classes",
+          "timestamp": "2023-05-12T21:09:16Z",
+          "tree_id": "a23e58cfc53d109b497605c0e5efeb3d54738a99",
+          "url": "https://github.com/galacticusorg/galacticus/commit/b2b82e792403bd7f38c2a3097b550c1e5e6d3963"
+        },
+        "date": 1683935954338,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 62.627,
+            "unit": "seconds",
+            "range": 0.374489118667049
           }
         ]
       }
