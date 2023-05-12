@@ -95,6 +95,19 @@ module Numerical_Interpolation
        real   (c_double)               :: d
      end function gsl_interp_eval_deriv_e
      
+     function gsl_interp_eval_deriv2_e(interp,xa,ya,x,acc,d2) bind(c,name='gsl_interp_eval_deriv2_e')
+       !!{
+       Template for GSL interface interpolation function.
+       !!}
+       import c_ptr, c_size_t, c_int, c_double
+       integer(c_int   )               :: gsl_interp_eval_deriv2_e
+       type   (c_ptr   ), value        :: interp
+       real   (c_double), dimension(*) :: xa                     , ya
+       real   (c_double), value        :: x
+       type   (c_ptr   ), value        :: acc
+       real   (c_double)               :: d2
+     end function gsl_interp_eval_deriv2_e
+     
      subroutine gsl_interp_free(interp) bind(c,name='gsl_interp_free')
        !!{
        Template for GSL interface interpolation free function.
@@ -172,6 +185,7 @@ module Numerical_Interpolation
      <methods>
        <method description="Interpolate in the tabulated function."                                                 method="interpolate"         />
        <method description="Interpolate the derivative in the tabulated function."                                  method="derivative"          />
+       <method description="Interpolate the second derivative in the tabulated function."                           method="secondDerivative"    />
        <method description="Locate the position in the array corresponding to the given {\normalfont \ttfamily x}." method="locate"              />
        <method description="Return factors required to perform a linear interpolation."                             method="linearFactors"       />
        <method description="Return weights required to perform a linear interpolation."                             method="linearWeights"       />
@@ -192,6 +206,10 @@ module Numerical_Interpolation
      procedure ::                         interpolatorDerivativeNoYa
      generic   :: derivative           => interpolatorDerivative            , &
           &                               interpolatorDerivativeNoYa
+     procedure ::                         interpolatorSecondDerivative
+     procedure ::                         interpolatorSecondDerivativeNoYa
+     generic   :: secondDerivative     => interpolatorSecondDerivative      , &
+          &                               interpolatorSecondDerivativeNoYa
      procedure :: linearFactors        => interpolatorLinearFactors
      procedure :: linearWeights        => interpolatorLinearWeights
      procedure :: locate               => interpolatorLocate
@@ -424,7 +442,7 @@ contains
 
   subroutine interpolatorGSLInitialize(self,ya)
     !!{
-    Initialize GSL interpoltor.
+    Initialize GSL interpolator.
     !!}
     use :: Error        , only : Error_Report
     use :: Interface_GSL, only : GSL_Success
@@ -659,7 +677,76 @@ contains
     end if
     return
   end function interpolatorDerivative
+
+  double precision function interpolatorSecondDerivativeNoYa(self,x)
+    !!{
+    Interpolate the second derivative of the function to {\normalfont \ttfamily x}.
+    !!}
+    use :: Error, only : Error_Report
+    implicit none
+    class           (interpolator  ), intent(inout) :: self
+    double precision                , intent(in   ) :: x
+
+    if (allocated(self%y)) then
+       interpolatorSecondDerivativeNoYa=self%secondDerivative(x,self%y)
+    else
+       interpolatorSecondDerivativeNoYa=0.0d0
+       call Error_Report("no y() array specified"//{introspection:location})       
+    end if
+    return
+  end function interpolatorSecondDerivativeNoYa
   
+  double precision function interpolatorSecondDerivative(self,x,ya)
+    !!{
+    Interpolate the second derivative of the function to {\normalfont \ttfamily x}.
+    !!}
+    use            :: Error             , only : Error_Report
+    use, intrinsic :: ISO_C_Binding     , only : c_size_t
+    use            :: Interface_GSL     , only : GSL_EDom
+    use            :: ISO_Varying_String, only : assignment(=)          , operator(//)                , varying_string
+    use            :: Table_Labels      , only : extrapolationTypeAbort , extrapolationTypeExtrapolate, extrapolationTypeFix, extrapolationTypeZero
+    implicit none
+    class           (interpolator                    ), intent(inout)               :: self
+    double precision                                  , intent(in   )               :: x
+    double precision                                  , intent(in   ), dimension(:) :: ya
+    type            (varying_string                  )                              :: message
+    type            (enumerationExtrapolationTypeType)                              :: extrapolationType
+    integer         (c_int                           )                              :: statusGSL
+    double precision                                                                :: x_
+
+    call self%assertInterpolatable()
+    if (.not.self%initialized) call self%GSLInitialize(ya)
+    ! If extrapolation is allowed, check if this is necessary.
+    if (x > self%x(self%countArray)) then
+       extrapolationType=self%extrapolationType(2)
+    else
+       extrapolationType=self%extrapolationType(1)
+    end if
+    x_=x
+    select case (extrapolationType%ID)
+    case (extrapolationTypeExtrapolate%ID,extrapolationTypeFix%ID)
+       if (x < self%x(1              )) x_=self%x(1              )
+       if (x > self%x(self%countArray)) x_=self%x(self%countArray)
+    end select
+    ! Do the interpolation.
+    statusGSL=gsl_interp_eval_deriv2_e(self%gsl_interp,self%x,ya,x_,self%gsl_interp_accel,interpolatorSecondDerivative)
+    if (statusGSL /= 0) then
+       select case (statusGSL)
+       case (GSL_EDom)
+          if (extrapolationType == extrapolationTypeZero) then
+             ! Return zero outside of the tabulated range.
+             interpolatorSecondDerivative=0.0d0
+             return
+          end if
+          message='requested point is outside of allowed range'
+       case default
+          message='interpolation failed for unknown reason'
+       end select
+       call Error_Report(message//{introspection:location})
+    end if
+    return
+  end function interpolatorSecondDerivative
+    
   function interpolatorLocate(self,x,closest) result(i)
     !!{
     Locate the element in the table for interpolation of {\normalfont \ttfamily x}.

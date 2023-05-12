@@ -154,18 +154,20 @@ module Tables
        <method description="Populate the {\normalfont \ttfamily table}$^\mathrm{th}$ table with elements {\normalfont \ttfamily y}. If {\normalfont \ttfamily y} is a scalar, then the index, {\normalfont \ttfamily i}, of the element to set must also be specified." method="populate" />
        <method description="Reinitialize the interpolator." method="interpolatorReinitialize" />
        <method description="Initialize the interpolator." method="interpolatorInitialize" />
+       <method description="Return the second derivative of the tabulated function." method="interpolateSecondGradient" />
      </methods>
      !!]
-     procedure :: create                   => Table_Generic_1D_Create
-     procedure :: destroy                  => Table_Generic_1D_Destroy
-     procedure :: populate_                => Table_Generic_1D_Populate
-     procedure :: populateSingle_          => Table_Generic_1D_Populate_Single
-     generic   :: populate                 => populate_                                 , &
-          &                                   populateSingle_
-     procedure :: interpolate              => Table_Generic_1D_Interpolate
-     procedure :: interpolateGradient      => Table_Generic_1D_Interpolate_Gradient
-     procedure :: interpolatorInitialize   => Table_Generic_1D_Interpolator_Initialize
-     procedure :: interpolatorReinitialize => Table_Generic_1D_Interpolator_Reinitialize
+     procedure :: create                    => Table_Generic_1D_Create
+     procedure :: destroy                   => Table_Generic_1D_Destroy
+     procedure :: populate_                 => Table_Generic_1D_Populate
+     procedure :: populateSingle_           => Table_Generic_1D_Populate_Single
+     generic   :: populate                  => populate_                                 , &
+          &                                    populateSingle_
+     procedure :: interpolate               => Table_Generic_1D_Interpolate
+     procedure :: interpolateGradient       => Table_Generic_1D_Interpolate_Gradient
+     procedure :: interpolateSecondGradient => Table_Generic_1D_Interpolate_Second_Gradient
+     procedure :: interpolatorInitialize    => Table_Generic_1D_Interpolator_Initialize
+     procedure :: interpolatorReinitialize  => Table_Generic_1D_Interpolator_Reinitialize
   end type table1DGeneric
 
   type, extends(table1D) :: table1DLinearLinear
@@ -750,6 +752,30 @@ contains
     Table_Generic_1D_Interpolate_Gradient=self%interpolator_(interpolator_)%derivative(self%xEffective(x),self%yv(:,table_))
     return
   end function Table_Generic_1D_Interpolate_Gradient
+
+  double precision function Table_Generic_1D_Interpolate_Second_Gradient(self,x,table)
+    !!{
+    Perform generic interpolation in a generic 1D table.
+    !!}
+    use :: Numerical_Interpolation, only : GSL_Interp_Linear
+    implicit none
+    class           (table1DGeneric), intent(inout)           :: self
+    double precision                , intent(in   )           :: x
+    integer                         , intent(in   ), optional :: table
+    integer                                                   :: interpolator_
+    !![
+    <optionalArgument name="table" defaultsTo="1"/>
+    !!]
+    
+    call self%interpolatorInitialize(table_)
+    if (self%interpolationType == GSL_Interp_Linear) then
+       interpolator_=1
+    else
+       interpolator_=table_
+    end if
+    Table_Generic_1D_Interpolate_Second_Gradient=self%interpolator_(interpolator_)%secondDerivative(self%xEffective(x),self%yv(:,table_))
+    return
+  end function Table_Generic_1D_Interpolate_Second_Gradient
 
   subroutine Table_Generic_1D_Interpolator_Reinitialize(self,gslFree)
     !!{
