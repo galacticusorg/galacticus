@@ -166,10 +166,10 @@ contains
 	  <referenceConstruct object="massDistribution_">
 	    <constructor>
 	      massDistributionSphericalScaler(                                              &amp;
-	      &amp;                         factorScalingLength=     1.0d0              , &amp;
-	      &amp;                         factorScalingMass  =self%darkMatterFraction , &amp;
-	      &amp;                         massDistribution_  =     massDistributionDMO  &amp;
-	      &amp;                        )
+	        &amp;                         factorScalingLength=     1.0d0              , &amp;
+	        &amp;                         factorScalingMass  =self%darkMatterFraction , &amp;
+	        &amp;                         massDistribution_  =     massDistributionDMO  &amp;
+	        &amp;                        )
 	    </constructor>
 	  </referenceConstruct>
           !!]
@@ -177,6 +177,9 @@ contains
     class default
        call Error_Report('a spherical mass distribution is required'//{introspection:location})
     end select
+    !![
+    <objectDestructor name="massDistributionDMO"/>
+    !!]
     return
   end function darkMatterOnlyGet
 
