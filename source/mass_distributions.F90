@@ -53,6 +53,21 @@ module Mass_Distributions
        call kinematicsDistributionAcquire(self,kinematicsDistribution_)
      </code>
    </method>
+   <method name="kinematicsDistribution">
+     <description>Get a pointer to the kinematics distribution for this mass distribution.</description>
+     <type>class(kinematicsDistributionClass)</type>
+     <pass>yes</pass>
+     <argument>type(enumerationComponentTypeType), intent(in   ), optional :: componentType</argument>
+     <argument>type(enumerationMassTypeType     ), intent(in   ), optional :: massType     </argument>
+     <code>
+       if (self%matches(componentType,massType) .and. associated(self%kinematicsDistribution_)) then
+          massDistributionKinematicsDistribution => self%kinematicsDistribution_
+          call kinematicsDistributionIncrement(self)
+       else
+          massDistributionKinematicsDistribution => null()
+       end if
+     </code>
+   </method>
    <method name="setTypes">
      <description>Set the component and mass types of the mass distribution.</description>
      <type>void</type>
@@ -502,6 +517,19 @@ contains
     !!]
     return
   end subroutine kinematicsDistributionAcquire
+  
+  subroutine kinematicsDistributionIncrement(self)
+    !!{
+    Increment the reference count to a kinematics distribution.
+    !!}
+    implicit none
+    class(massDistributionClass), intent(inout) :: self
+
+    !![
+    <referenceCountIncrement owner="self" object="kinematicsDistribution_"/>
+    !!]
+    return
+  end subroutine kinematicsDistributionIncrement
   
   double precision function massEnclosedRoot(radius)
     !!{
