@@ -1054,17 +1054,24 @@ contains
     Compute the fraction of material outflowing into the hot halo of {\normalfont \ttfamily node} which is susceptible to being stripped
     away.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentHotHaloStandard, treeNode
+    use :: Mass_Distributions        , only : massDistributionClass
+    use :: Galactic_Structure_Options, only : componentTypeHotHalo        , massTypeGaseous
+    use :: Galacticus_Nodes          , only : nodeComponentHotHaloStandard, treeNode
     implicit none
     type            (treeNode                    ), intent(inout), pointer :: node
+    class           (massDistributionClass       )               , pointer :: massDistribution_
     class           (nodeComponentHotHaloStandard)                         :: hotHalo
-    double precision                                                       :: massOuter  , massVirial  , &
-         &                                                                    radiusOuter, radiusVirial
+    double precision                                                       :: massOuter        , massVirial  , &
+         &                                                                    radiusOuter     , radiusVirial
 
-    radiusOuter =hotHalo                 %outerRadius (                 )
-    radiusVirial=darkMatterHaloScale_    %radiusVirial(node             )
-    massOuter   =hotHaloMassDistribution_%enclosedMass(node,radiusOuter )
-    massVirial  =hotHaloMassDistribution_%enclosedMass(node,radiusVirial)
+    massDistribution_ => node                %massDistribution    (                                                                        )
+    radiusOuter       =  hotHalo             %outerRadius         (                                                                        )
+    radiusVirial      =  darkMatterHaloScale_%radiusVirial        (node                                                                    )
+    massOuter         =  massDistribution_   %massEnclosedBySphere(radiusOuter ,componentType=componentTypeHotHalo,massType=massTypeGaseous)
+    massVirial        =  massDistribution_   %massEnclosedBySphere(radiusVirial,componentType=componentTypeHotHalo,massType=massTypeGaseous)
+    !![
+    <objectDestructor name="massDistribution_"/>
+    !!]
     if (massVirial > 0.0d0) then
        Node_Component_Hot_Halo_Standard_Outflow_Stripped_Fraction=efficiencyStrippingOutflow*(1.0d0-massOuter/massVirial)
     else
@@ -1243,24 +1250,29 @@ contains
     !!{
     Compute the hot halo node mass rate of change.
     !!}
-    use :: Abundances_Structure                 , only : abundances                           , abs
-    use :: Accretion_Halos                      , only : accretionModeHot                     , accretionModeTotal
-    use :: Galacticus_Nodes                     , only : defaultHotHaloComponent              , interruptTask                    , nodeComponentBasic, nodeComponentHotHalo, &
-          &                                              nodeComponentHotHaloStandard         , propertyInactive                 , treeNode          , nodeComponentSpin
-    use :: Node_Component_Hot_Halo_Standard_Data, only : outerRadiusOverVirialRadiusMinimum   , angularMomentumAlwaysGrows
+    use :: Abundances_Structure                 , only : abundances                        , abs
+    use :: Accretion_Halos                      , only : accretionModeHot                  , accretionModeTotal
+    use :: Galacticus_Nodes                     , only : defaultHotHaloComponent           , interruptTask             , nodeComponentBasic, nodeComponentHotHalo, &
+          &                                              nodeComponentHotHaloStandard      , propertyInactive          , treeNode          , nodeComponentSpin
+    use :: Node_Component_Hot_Halo_Standard_Data, only : outerRadiusOverVirialRadiusMinimum, angularMomentumAlwaysGrows
     use :: Numerical_Constants_Math             , only : Pi
+    use :: Mass_Distributions                   , only : massDistributionClass
+    use :: Coordinates                          , only : coordinateSpherical               , assignment(=)
+    use :: Galactic_Structure_Options           , only : componentTypeHotHalo              , massTypeGaseous
     implicit none
-    type            (treeNode            ), intent(inout)          :: node
-    logical                               , intent(inout)          :: interrupt
-    procedure       (interruptTask       ), intent(inout), pointer :: interruptProcedure
-    integer                               , intent(in   )          :: propertyType
-    class           (nodeComponentSpin   )               , pointer :: spin
-    class           (nodeComponentHotHalo)               , pointer :: hotHalo
-    class           (nodeComponentBasic  )               , pointer :: basic
-    double precision                                               :: angularMomentumAccretionRate, outerRadiusGrowthRate  , &
-         &                                                            densityAtOuterRadius        , rateAccretionMassFailed, &
-         &                                                            massLossRate                , rateAccretionMass      , &
-         &                                                            outerRadius
+    type            (treeNode             ), intent(inout)          :: node
+    logical                                , intent(inout)          :: interrupt
+    procedure       (interruptTask        ), intent(inout), pointer :: interruptProcedure
+    integer                                , intent(in   )          :: propertyType
+    class           (nodeComponentSpin    )               , pointer :: spin
+    class           (nodeComponentHotHalo )               , pointer :: hotHalo
+    class           (nodeComponentBasic   )               , pointer :: basic
+    class           (massDistributionClass)               , pointer :: massDistribution_
+    type            (coordinateSpherical  )                         :: coordinates
+    double precision                                                :: angularMomentumAccretionRate, outerRadiusGrowthRate  , &
+         &                                                             densityAtOuterRadius        , rateAccretionMassFailed, &
+         &                                                             massLossRate                , rateAccretionMass      , &
+         &                                                             outerRadius
 
     ! Return immediately if inactive variables are requested.
     if (propertyInactive(propertyType)) return
@@ -1324,7 +1336,12 @@ contains
                   &  .and.                                                                                                 &
                   &   outerRadius             > outerRadiusOverVirialRadiusMinimum*darkMatterHaloScale_%radiusVirial(node) &
                   & ) then
-                densityAtOuterRadius=hotHaloMassDistribution_%density(node,outerRadius)
+                coordinates          =  [outerRadius,0.0d0,0.0d0]
+                massDistribution_    => node             %massDistribution(                                                                       )
+                densityAtOuterRadius =  massDistribution_%density         (coordinates,componentType=componentTypeHotHalo,massType=massTypeGaseous)
+                !![
+		<objectDestructor name="massDistribution_"/>
+                !!]
                 massLossRate        =4.0d0*Pi*densityAtOuterRadius*outerRadius**2*outerRadiusGrowthRate
                 call hotHalo%outerRadiusRate(+outerRadiusGrowthRate,interrupt,interruptProcedure)
                 call hotHalo%   massSinkRate(+         massLossRate,interrupt,interruptProcedure)
@@ -1379,17 +1396,22 @@ contains
     !!{
     Return outflowed gas to the hot halo.
     !!}
-    use :: Abundances_Structure                 , only : abundances                           , max
+    use :: Abundances_Structure                 , only : abundances           , max
     use :: Chemical_Abundances_Structure        , only : chemicalAbundances
-    use :: Galacticus_Nodes                     , only : interruptTask                        , nodeComponentBasic       , nodeComponentHotHaloStandard, treeNode
-    use :: Node_Component_Hot_Halo_Standard_Data, only : starveSatellites                     , starveSatellitesOutflowed
+    use :: Galacticus_Nodes                     , only : interruptTask        , nodeComponentBasic       , nodeComponentHotHaloStandard, treeNode
+    use :: Node_Component_Hot_Halo_Standard_Data, only : starveSatellites     , starveSatellitesOutflowed
     use :: Numerical_Constants_Math             , only : Pi
+    use :: Mass_Distributions                   , only : massDistributionClass
+    use :: Galactic_Structure_Options           , only : componentTypeHotHalo , massTypeGaseous
+    use :: Coordinates                          , only : coordinateSpherical  , assignment(=)
     implicit none
     class           (nodeComponentHotHaloStandard), intent(inout)          :: self
     logical                                       , intent(inout)          :: interrupt
     procedure       (interruptTask               ), intent(inout), pointer :: interruptProcedure
     type            (treeNode                    )               , pointer :: node
     class           (nodeComponentBasic          )               , pointer :: basic
+    class           (massDistributionClass       )               , pointer :: massDistribution_
+    type            (coordinateSpherical         )                         :: coordinates
     double precision                                                       :: outflowedMass            , massReturnRate      , &
          &                                                                    angularMomentumReturnRate, densityAtOuterRadius, &
          &                                                                    radiusVirial             , outerRadius         , &
@@ -1422,8 +1444,13 @@ contains
        outerRadius =self                %outerRadius (    )
        radiusVirial=darkMatterHaloScale_%radiusVirial(node)
        if (outerRadius < radiusVirial) then
-          basic                => node                    %basic  (                )
-          densityAtOuterRadius =  hotHaloMassDistribution_%density(node,outerRadius)
+          coordinates          =  [outerRadius,0.0d0,0.0d0]
+          basic                => node             %basic           (                                                                       )
+          massDistribution_    => node             %massDistribution(                                                                       )
+          densityAtOuterRadius =  massDistribution_%density         (coordinates,componentType=componentTypeHotHalo,massType=massTypeGaseous)
+          !![
+	  <objectDestructor name="massDistribution_"/>
+          !!]
           ! If the outer radius and density are non-zero we can expand the outer radius at a rate determined by the current
           ! density profile.
           if (outerRadius > 0.0d0 .and. densityAtOuterRadius > 0.0d0) then

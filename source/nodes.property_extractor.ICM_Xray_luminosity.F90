@@ -21,11 +21,9 @@
 Contains a module which implements an intracluster medium X-ray luminosity property extractor class.
 !!}
 
-  use :: Cooling_Functions            , only : coolingFunction          , coolingFunctionClass
-  use :: Cosmology_Functions          , only : cosmologyFunctions       , cosmologyFunctionsClass
-  use :: Dark_Matter_Halo_Scales      , only : darkMatterHaloScale      , darkMatterHaloScaleClass
-  use :: Hot_Halo_Mass_Distributions  , only : hotHaloMassDistribution  , hotHaloMassDistributionClass
-  use :: Hot_Halo_Temperature_Profiles, only : hotHaloTemperatureProfile, hotHaloTemperatureProfileClass
+  use :: Cooling_Functions      , only : coolingFunction    , coolingFunctionClass
+  use :: Cosmology_Functions    , only : cosmologyFunctions , cosmologyFunctionsClass
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScale, darkMatterHaloScaleClass
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorICMXRayLuminosity">
@@ -37,11 +35,9 @@ Contains a module which implements an intracluster medium X-ray luminosity prope
      A icmXRayLuminosity property extractor class.
      !!}
      private
-     class(darkMatterHaloScaleClass      ), pointer :: darkMatterHaloScale_       => null()
-     class(hotHaloMassDistributionClass  ), pointer :: hotHaloMassDistribution_   => null()
-     class(hotHaloTemperatureProfileClass), pointer :: hotHaloTemperatureProfile_ => null()
-     class(coolingFunctionClass          ), pointer :: coolingFunction_           => null()
-     class(cosmologyFunctionsClass       ), pointer :: cosmologyFunctions_        => null()
+     class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
+     class(coolingFunctionClass    ), pointer :: coolingFunction_     => null()
+     class(cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
    contains
      final     ::                icmXRayLuminosityDestructor
      procedure :: extract     => icmXRayLuminosityExtract
@@ -69,31 +65,25 @@ contains
     type (nodePropertyExtractorICMXRayLuminosity)                :: self
     type (inputParameters                       ), intent(inout) :: parameters
     class(darkMatterHaloScaleClass              ), pointer       :: darkMatterHaloScale_
-    class(hotHaloMassDistributionClass          ), pointer       :: hotHaloMassDistribution_
-    class(hotHaloTemperatureProfileClass        ), pointer       :: hotHaloTemperatureProfile_
     class(coolingFunctionClass                  ), pointer       :: coolingFunction_
     class(cosmologyFunctionsClass               ), pointer       :: cosmologyFunctions_
 
     !![
-    <objectBuilder class="cosmologyFunctions"        name="cosmologyFunctions_"        source="parameters"/>
-    <objectBuilder class="darkMatterHaloScale"       name="darkMatterHaloScale_"       source="parameters"/>
-    <objectBuilder class="hotHaloMassDistribution"   name="hotHaloMassDistribution_"   source="parameters"/>
-    <objectBuilder class="hotHaloTemperatureProfile" name="hotHaloTemperatureProfile_" source="parameters"/>
-    <objectBuilder class="coolingFunction"           name="coolingFunction_"           source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    <objectBuilder class="coolingFunction"     name="coolingFunction_"     source="parameters"/>
     !!]
-    self=nodePropertyExtractorICMXRayLuminosity(cosmologyFunctions_,darkMatterHaloScale_,hotHaloMassDistribution_,hotHaloTemperatureProfile_,coolingFunction_)
+    self=nodePropertyExtractorICMXRayLuminosity(cosmologyFunctions_,darkMatterHaloScale_,coolingFunction_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="cosmologyFunctions_"       />
-    <objectDestructor name="darkMatterHaloScale_"      />
-    <objectDestructor name="hotHaloMassDistribution_"  />
-    <objectDestructor name="hotHaloTemperatureProfile_"/>
-    <objectDestructor name="coolingFunction_"          />
+    <objectDestructor name="cosmologyFunctions_" />
+    <objectDestructor name="darkMatterHaloScale_"/>
+    <objectDestructor name="coolingFunction_"    />
     !!]
     return
   end function icmXRayLuminosityConstructorParameters
 
-  function icmXRayLuminosityConstructorInternal(cosmologyFunctions_,darkMatterHaloScale_,hotHaloMassDistribution_,hotHaloTemperatureProfile_,coolingFunction_) result(self)
+  function icmXRayLuminosityConstructorInternal(cosmologyFunctions_,darkMatterHaloScale_,coolingFunction_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily icmXRayLuminosity} property extractor class.
     !!}
@@ -101,11 +91,9 @@ contains
     type (nodePropertyExtractorICMXRayLuminosity)                        :: self
     class(cosmologyFunctionsClass               ), intent(in   ), target :: cosmologyFunctions_
     class(darkMatterHaloScaleClass              ), intent(in   ), target :: darkMatterHaloScale_
-    class(hotHaloMassDistributionClass          ), intent(in   ), target :: hotHaloMassDistribution_
-    class(hotHaloTemperatureProfileClass        ), intent(in   ), target :: hotHaloTemperatureProfile_
     class(coolingFunctionClass                  ), intent(in   ), target :: coolingFunction_
     !![
-    <constructorAssign variables="*cosmologyFunctions_, *darkMatterHaloScale_, *hotHaloMassDistribution_, *hotHaloTemperatureProfile_, *coolingFunction_"/>
+    <constructorAssign variables="*cosmologyFunctions_, *darkMatterHaloScale_, *coolingFunction_"/>
     !!]
 
     return
@@ -119,11 +107,9 @@ contains
     type(nodePropertyExtractorICMXRayLuminosity), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%cosmologyFunctions_"       />
-    <objectDestructor name="self%darkMatterHaloScale_"      />
-    <objectDestructor name="self%hotHaloMassDistribution_"  />
-    <objectDestructor name="self%hotHaloTemperatureProfile_"/>
-    <objectDestructor name="self%coolingFunction_"          />
+    <objectDestructor name="self%cosmologyFunctions_" />
+    <objectDestructor name="self%darkMatterHaloScale_"/>
+    <objectDestructor name="self%coolingFunction_"    />
     !!]
     return
   end subroutine icmXRayLuminosityDestructor
@@ -138,11 +124,15 @@ contains
     use :: Numerical_Constants_Units   , only : electronVolt
     use :: Numerical_Integration       , only : integrator
     use :: Radiation_Fields            , only : radiationFieldCosmicMicrowaveBackground
+    use :: Mass_Distributions          , only : massDistributionClass                  , kinematicsDistributionClass
+    use :: Galactic_Structure_Options  , only : componentTypeHotHalo                   , massTypeGaseous
     implicit none
     class(nodePropertyExtractorICMXRayLuminosity ), intent(inout)           :: self
     type (treeNode                               ), intent(inout), target   :: node
     type (multiCounter                           ), intent(inout), optional :: instance
     type (radiationFieldCosmicMicrowaveBackground), pointer                 :: radiation_
+    class(massDistributionClass                  ), pointer                 :: massDistribution_
+    class(kinematicsDistributionClass            ), pointer                 :: kinematicsDistribution_
     type (integrator                             )                          :: integratorLuminosity
     !$GLC attributes unused :: self, instance
 
@@ -151,11 +141,16 @@ contains
     !![
     <referenceConstruct object="radiation_" constructor="radiationFieldCosmicMicrowaveBackground(self%cosmologyFunctions_)"/>
     !!]
+    ! Get the mass distribution.
+    massDistribution_       => node             %massDistribution      (                                                           )
+    kinematicsDistribution_ => massDistribution_%kinematicsDistribution(componentType=componentTypeHotHalo,massType=massTypeGaseous)      
     ! Compute luminosity and temperature.
     integratorLuminosity    =integrator                     (integrandLuminosityXray ,toleranceRelative                           =1.0d-3)
     icmXRayLuminosityExtract=integratorLuminosity %integrate(0.0d0                   ,self%darkMatterHaloScale_%radiusVirial(node)       )
     !![
-    <objectDestructor name="radiation_"/>
+    <objectDestructor name="radiation_"             />
+    <objectDestructor name="massDistribution_"      />
+    <objectDestructor name="kinematicsDistribution_"/>
     !!]
     return
 
@@ -172,6 +167,7 @@ contains
       use :: Numerical_Constants_Atomic       , only : massHydrogenAtom
       use :: Numerical_Constants_Math         , only : Pi
       use :: Numerical_Constants_Prefixes     , only : centi                                , hecto
+      use :: Coordinates                      , only : coordinateSpherical                  , assignment(=)
       implicit none
       double precision                      , intent(in   ) :: radius
       class           (nodeComponentHotHalo), pointer       :: hotHalo
@@ -180,11 +176,14 @@ contains
            &                                                   massToDensityConversion
       type            (abundances          )                :: abundancesICM
       type            (chemicalAbundances  )                :: massChemicalICM        , fractionChemicalICM
+      type            (coordinateSpherical )                :: coordinates
 
-      ! Get the density of the ICM.
-      density    =self%hotHaloMassDistribution_  %density    (node,radius)
+      ! Set the coordinates.
+      coordinates     =  [radius,0.0d0,0.0d0]
+       ! Get the density of the ICM.
+      density         =  massDistribution_      %density    (coordinates,componentType=componentTypeHotHalo,massType=massTypeGaseous)
       ! Get the temperature of the ICM.
-      temperature=self%hotHaloTemperatureProfile_%temperature(node,radius)
+      temperature     =  kinematicsDistribution_%temperature(coordinates                                                            )
       ! Get abundances and chemistry of the ICM.
       hotHalo         => node   %hotHalo   ()
       massICM         =  hotHalo%mass      ()

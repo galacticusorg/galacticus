@@ -21,11 +21,9 @@
 Contains a module which implements an intracluster medium cooling power in band property extractor class.
 !!}
 
-  use :: Cooling_Functions            , only : coolingFunction          , coolingFunctionClass
-  use :: Cosmology_Functions          , only : cosmologyFunctions       , cosmologyFunctionsClass
-  use :: Dark_Matter_Halo_Scales      , only : darkMatterHaloScale      , darkMatterHaloScaleClass
-  use :: Hot_Halo_Mass_Distributions  , only : hotHaloMassDistribution  , hotHaloMassDistributionClass
-  use :: Hot_Halo_Temperature_Profiles, only : hotHaloTemperatureProfile, hotHaloTemperatureProfileClass
+  use :: Cooling_Functions      , only : coolingFunction    , coolingFunctionClass
+  use :: Cosmology_Functions    , only : cosmologyFunctions , cosmologyFunctionsClass
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScale, darkMatterHaloScaleClass
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorICMCoolingPowerInBand">
@@ -37,13 +35,11 @@ Contains a module which implements an intracluster medium cooling power in band 
      A property extractor class which extracts the fraction of the ICM cooling power due to emission in a given energy band.
      !!}
      private
-     class           (darkMatterHaloScaleClass      ), pointer :: darkMatterHaloScale_       => null()
-     class           (hotHaloMassDistributionClass  ), pointer :: hotHaloMassDistribution_   => null()
-     class           (hotHaloTemperatureProfileClass), pointer :: hotHaloTemperatureProfile_ => null()
-     class           (coolingFunctionClass          ), pointer :: coolingFunction_           => null()
-     class           (cosmologyFunctionsClass       ), pointer :: cosmologyFunctions_        => null()
-     double precision                                          :: energyLow                           , energyHigh
-     type            (varying_string                )          :: label
+     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
+     class           (coolingFunctionClass    ), pointer :: coolingFunction_     => null()
+     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
+     double precision                                    :: energyLow                     , energyHigh
+     type            (varying_string          )          :: label
    contains
      final     ::                icmCoolingPowerInBandDestructor
      procedure :: extract     => icmCoolingPowerInBandExtract
@@ -71,11 +67,9 @@ contains
     type            (nodePropertyExtractorICMCoolingPowerInBand)                :: self
     type            (inputParameters                           ), intent(inout) :: parameters
     class           (darkMatterHaloScaleClass                  ), pointer       :: darkMatterHaloScale_
-    class           (hotHaloMassDistributionClass              ), pointer       :: hotHaloMassDistribution_
-    class           (hotHaloTemperatureProfileClass            ), pointer       :: hotHaloTemperatureProfile_
     class           (coolingFunctionClass                      ), pointer       :: coolingFunction_
     class           (cosmologyFunctionsClass                   ), pointer       :: cosmologyFunctions_
-    double precision                                                            :: energyLow                 , energyHigh
+    double precision                                                            :: energyLow           , energyHigh
     type            (varying_string                            )                :: label
 
 
@@ -95,39 +89,33 @@ contains
       <source>parameters</source>
       <description>A label to use as a suffix for this property.</description>
     </inputParameter>
-    <objectBuilder class="cosmologyFunctions"        name="cosmologyFunctions_"        source="parameters"/>
-    <objectBuilder class="darkMatterHaloScale"       name="darkMatterHaloScale_"       source="parameters"/>
-    <objectBuilder class="hotHaloMassDistribution"   name="hotHaloMassDistribution_"   source="parameters"/>
-    <objectBuilder class="hotHaloTemperatureProfile" name="hotHaloTemperatureProfile_" source="parameters"/>
-    <objectBuilder class="coolingFunction"           name="coolingFunction_"           source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    <objectBuilder class="coolingFunction"     name="coolingFunction_"     source="parameters"/>
     !!]
-    self=nodePropertyExtractorICMCoolingPowerInBand(energyLow,energyHigh,label,cosmologyFunctions_,darkMatterHaloScale_,hotHaloMassDistribution_,hotHaloTemperatureProfile_,coolingFunction_)
+    self=nodePropertyExtractorICMCoolingPowerInBand(energyLow,energyHigh,label,cosmologyFunctions_,darkMatterHaloScale_,coolingFunction_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="cosmologyFunctions_"       />
-    <objectDestructor name="darkMatterHaloScale_"      />
-    <objectDestructor name="hotHaloMassDistribution_"  />
-    <objectDestructor name="hotHaloTemperatureProfile_"/>
-    <objectDestructor name="coolingFunction_"          />
+    <objectDestructor name="cosmologyFunctions_" />
+    <objectDestructor name="darkMatterHaloScale_"/>
+    <objectDestructor name="coolingFunction_"    />
     !!]
     return
   end function icmCoolingPowerInBandConstructorParameters
 
-  function icmCoolingPowerInBandConstructorInternal(energyLow,energyHigh,label,cosmologyFunctions_,darkMatterHaloScale_,hotHaloMassDistribution_,hotHaloTemperatureProfile_,coolingFunction_) result(self)
+  function icmCoolingPowerInBandConstructorInternal(energyLow,energyHigh,label,cosmologyFunctions_,darkMatterHaloScale_,coolingFunction_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily icmCoolingPowerInBand} property extractor class.
     !!}
     implicit none
     type            (nodePropertyExtractorICMCoolingPowerInBand)                        :: self
-    double precision                                            , intent(in   )         :: energyLow                 , energyHigh
+    double precision                                            , intent(in   )         :: energyLow           , energyHigh
     type            (varying_string                            ), intent(in   )         :: label
     class           (cosmologyFunctionsClass                   ), intent(in   ), target :: cosmologyFunctions_
     class           (darkMatterHaloScaleClass                  ), intent(in   ), target :: darkMatterHaloScale_
-    class           (hotHaloMassDistributionClass              ), intent(in   ), target :: hotHaloMassDistribution_
-    class           (hotHaloTemperatureProfileClass            ), intent(in   ), target :: hotHaloTemperatureProfile_
     class           (coolingFunctionClass                      ), intent(in   ), target :: coolingFunction_
     !![
-    <constructorAssign variables="energyLow, energyHigh, label, *cosmologyFunctions_, *darkMatterHaloScale_, *hotHaloMassDistribution_, *hotHaloTemperatureProfile_, *coolingFunction_"/>
+    <constructorAssign variables="energyLow, energyHigh, label, *cosmologyFunctions_, *darkMatterHaloScale_, *coolingFunction_"/>
     !!]
 
     return
@@ -141,11 +129,9 @@ contains
     type(nodePropertyExtractorICMCoolingPowerInBand), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%cosmologyFunctions_"       />
-    <objectDestructor name="self%darkMatterHaloScale_"      />
-    <objectDestructor name="self%hotHaloMassDistribution_"  />
-    <objectDestructor name="self%hotHaloTemperatureProfile_"/>
-    <objectDestructor name="self%coolingFunction_"          />
+    <objectDestructor name="self%cosmologyFunctions_" />
+    <objectDestructor name="self%darkMatterHaloScale_"/>
+    <objectDestructor name="self%coolingFunction_"    />
     !!]
     return
   end subroutine icmCoolingPowerInBandDestructor
@@ -159,13 +145,17 @@ contains
     use :: Numerical_Constants_Units   , only : electronVolt
     use :: Numerical_Integration       , only : integrator
     use :: Radiation_Fields            , only : radiationFieldCosmicMicrowaveBackground
+    use :: Mass_Distributions          , only : massDistributionClass                  , kinematicsDistributionClass
+    use :: Galactic_Structure_Options  , only : componentTypeHotHalo                   , massTypeGaseous
     implicit none
-    class           (nodePropertyExtractorICMCoolingPowerInBand), intent(inout)              :: self
-    type            (treeNode                                  ), intent(inout), target      :: node
-    type            (multiCounter                              ), intent(inout), optional    :: instance
-    type            (radiationFieldCosmicMicrowaveBackground   ), pointer                    :: radiation_
-    type            (integrator                                )                             :: integratorTotal, integratorInBand
-    double precision                                                                         :: luminosityTotal, luminosityInBand
+    class           (nodePropertyExtractorICMCoolingPowerInBand), intent(inout)           :: self
+    type            (treeNode                                  ), intent(inout), target   :: node
+    type            (multiCounter                              ), intent(inout), optional :: instance
+    type            (radiationFieldCosmicMicrowaveBackground   ), pointer                 :: radiation_
+    class           (massDistributionClass                     ), pointer                 :: massDistribution_
+    class           (kinematicsDistributionClass               ), pointer                 :: kinematicsDistribution_
+    type            (integrator                                )                          :: integratorTotal        , integratorInBand
+    double precision                                                                      :: luminosityTotal        , luminosityInBand
     !$GLC attributes unused :: instance
 
     ! Initialize radiation field.
@@ -173,6 +163,9 @@ contains
     !![
     <referenceConstruct object="radiation_" constructor="radiationFieldCosmicMicrowaveBackground(self%cosmologyFunctions_)"/>
     !!]
+    ! Get the mass distribution.
+    massDistribution_       => node             %massDistribution      (                                                           )
+    kinematicsDistribution_ => massDistribution_%kinematicsDistribution(componentType=componentTypeHotHalo,massType=massTypeGaseous)      
     ! Compute luminosity and temperature.
     integratorTotal =integrator                (integrandLuminosityTotal ,toleranceRelative                           =1.0d-3)
     integratorInBand=integrator                (integrandLuminosityInBand,toleranceRelative                           =1.0d-3)
@@ -185,7 +178,9 @@ contains
        icmCoolingPowerInBandExtract=+0.0d0
     end if
     !![
-    <objectDestructor name="radiation_"/>
+    <objectDestructor name="radiation_"             />
+    <objectDestructor name="massDistribution_"      />
+    <objectDestructor name="kinematicsDistribution_"/>
     !!]
     return
 
@@ -238,6 +233,7 @@ contains
       use :: Numerical_Constants_Atomic       , only : massHydrogenAtom
       use :: Numerical_Constants_Prefixes     , only : hecto
       use :: Numerical_Constants_Astronomical , only : massSolar                            , megaParsec
+      use :: Coordinates                      , only : coordinateSpherical                  , assignment(=)
       implicit none
       double precision                      , intent(in   ) :: radius
       double precision                      , intent(  out) :: numberDensityHydrogen  , temperature
@@ -245,13 +241,16 @@ contains
       type            (chemicalAbundances  ), intent(  out) :: densityChemicalICM
       class           (nodeComponentHotHalo), pointer       :: hotHalo
       type            (chemicalAbundances  )                :: massChemicalICM
+      type            (coordinateSpherical )                :: coordinates
       double precision                                      :: density                , massICM     , &
            &                                                   massToDensityConversion
 
+      ! Set the coordinates.
+      coordinates     =  [radius,0.0d0,0.0d0]
       ! Get the density of the ICM.
-      density    =self%hotHaloMassDistribution_  %density    (node,radius)
+      density         =  massDistribution_      %density    (coordinates,componentType=componentTypeHotHalo,massType=massTypeGaseous)
       ! Get the temperature of the ICM.
-      temperature=self%hotHaloTemperatureProfile_%temperature(node,radius)
+      temperature     =  kinematicsDistribution_%temperature(coordinates                                                            )
       ! Get abundances and chemistry of the ICM.
       hotHalo         => node   %hotHalo   ()
       massICM         =  hotHalo%mass      ()

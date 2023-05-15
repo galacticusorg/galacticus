@@ -21,12 +21,11 @@
   Implementation of a time available for cooling class using the model of \cite{benson_galaxy_2010-1}.
   !!}
   
-  use :: Hot_Halo_Temperature_Profiles, only : hotHaloTemperatureProfileClass
-  use :: Radiation_Fields             , only : radiationFieldCosmicMicrowaveBackground
-  use :: Galactic_Structure           , only : galacticStructureClass
-  use :: Cooling_Functions            , only : coolingFunctionClass
-  use :: Cosmology_Functions          , only : cosmologyFunctionsClass
-  use :: Chemical_States              , only : chemicalStateClass
+  use :: Radiation_Fields   , only : radiationFieldCosmicMicrowaveBackground
+  use :: Galactic_Structure , only : galacticStructureClass
+  use :: Cooling_Functions  , only : coolingFunctionClass
+  use :: Cosmology_Functions, only : cosmologyFunctionsClass
+  use :: Chemical_States    , only : chemicalStateClass
 
   !![
   <coolingTimeAvailable name="coolingTimeAvailableBensonBower2010">
@@ -46,12 +45,11 @@
      Implementation of a time available for cooling class using the model of \cite{benson_galaxy_2010-1}.
      !!}
      private
-     class  (cosmologyFunctionsClass                ), pointer :: cosmologyFunctions_        => null()
-     class  (coolingFunctionClass                   ), pointer :: coolingFunction_           => null()
-     class  (hotHaloTemperatureProfileClass         ), pointer :: hotHaloTemperatureProfile_ => null()
-     class  (chemicalStateClass                     ), pointer :: chemicalState_             => null()
-     class  (galacticStructureClass                 ), pointer :: galacticStructure_         => null()
-     type   (radiationFieldCosmicMicrowaveBackground), pointer :: radiation                  => null()
+     class  (cosmologyFunctionsClass                ), pointer :: cosmologyFunctions_ => null()
+     class  (coolingFunctionClass                   ), pointer :: coolingFunction_    => null()
+     class  (chemicalStateClass                     ), pointer :: chemicalState_      => null()
+     class  (galacticStructureClass                 ), pointer :: galacticStructure_  => null()
+     type   (radiationFieldCosmicMicrowaveBackground), pointer :: radiation           => null()
      integer                                                   :: energyRadiatedID
 
    contains
@@ -78,32 +76,29 @@ contains
     implicit none
     type (coolingTimeAvailableBensonBower2010)                :: self
     type (inputParameters                    ), intent(inout) :: parameters
-    class(hotHaloTemperatureProfileClass     ), pointer       :: hotHaloTemperatureProfile_
     class(cosmologyFunctionsClass            ), pointer       :: cosmologyFunctions_
     class(coolingFunctionClass               ), pointer       :: coolingFunction_
     class(chemicalStateClass                 ), pointer       :: chemicalState_
     class(galacticStructureClass             ), pointer       :: galacticStructure_
 
     !![
-    <objectBuilder class="hotHaloTemperatureProfile" name="hotHaloTemperatureProfile_" source="parameters"/>
-    <objectBuilder class="coolingFunction"           name="coolingFunction_"           source="parameters"/>
-    <objectBuilder class="cosmologyFunctions"        name="cosmologyFunctions_"        source="parameters"/>
-    <objectBuilder class="chemicalState"             name="chemicalState_"             source="parameters"/>
-    <objectBuilder class="galacticStructure"         name="galacticStructure_"         source="parameters"/>
+    <objectBuilder class="coolingFunction"    name="coolingFunction_"    source="parameters"/>
+    <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    <objectBuilder class="chemicalState"      name="chemicalState_"      source="parameters"/>
+    <objectBuilder class="galacticStructure"  name="galacticStructure_"  source="parameters"/>
     !!]
-    self=coolingTimeAvailableBensonBower2010(cosmologyFunctions_,coolingFunction_,hotHaloTemperatureProfile_,chemicalState_,galacticStructure_)
+    self=coolingTimeAvailableBensonBower2010(cosmologyFunctions_,coolingFunction_,chemicalState_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="hotHaloTemperatureProfile_"/>
-    <objectDestructor name="coolingFunction_"          />
-    <objectDestructor name="cosmologyFunctions_"       />
-    <objectDestructor name="chemicalState_"            />
-    <objectDestructor name="galacticStructure_"        />
+    <objectDestructor name="coolingFunction_"   />
+    <objectDestructor name="cosmologyFunctions_"/>
+    <objectDestructor name="chemicalState_"     />
+    <objectDestructor name="galacticStructure_" />
     !!]
     return
   end function bensonBower2010ConstructorParameters
 
-  function bensonBower2010ConstructorInternal(cosmologyFunctions_,coolingFunction_,hotHaloTemperatureProfile_,chemicalState_,galacticStructure_) result(self)
+  function bensonBower2010ConstructorInternal(cosmologyFunctions_,coolingFunction_,chemicalState_,galacticStructure_) result(self)
     !!{
     Internal constructor for the \cite{benson_galaxy_2010-1} cooling rate class.
     !!}
@@ -111,11 +106,10 @@ contains
     type (coolingTimeAvailableBensonBower2010)                        :: self
     class(cosmologyFunctionsClass            ), intent(in   ), target :: cosmologyFunctions_
     class(coolingFunctionClass               ), intent(in   ), target :: coolingFunction_
-    class(hotHaloTemperatureProfileClass     ), intent(in   ), target :: hotHaloTemperatureProfile_
     class(chemicalStateClass                 ), intent(in   ), target :: chemicalState_
     class(galacticStructureClass             ), intent(in   ), target :: galacticStructure_
     !![
-    <constructorAssign variables="*cosmologyFunctions_, *coolingFunction_, *hotHaloTemperatureProfile_, *chemicalState_, *galacticStructure_"/>
+    <constructorAssign variables="*cosmologyFunctions_, *coolingFunction_, *chemicalState_, *galacticStructure_"/>
     !!]
 
     allocate(self%radiation)
@@ -134,12 +128,11 @@ contains
     type(coolingTimeAvailableBensonBower2010), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%cosmologyFunctions_"       />
-    <objectDestructor name="self%coolingFunction_"          />
-    <objectDestructor name="self%hotHaloTemperatureProfile_"/>
-    <objectDestructor name="self%chemicalState_"            />
-    <objectDestructor name="self%radiation"                 />
-    <objectDestructor name="self%galacticStructure_"        />
+    <objectDestructor name="self%cosmologyFunctions_"/>
+    <objectDestructor name="self%coolingFunction_"   />
+    <objectDestructor name="self%chemicalState_"     />
+    <objectDestructor name="self%radiation"          />
+    <objectDestructor name="self%galacticStructure_" />
     !!]
     return
   end subroutine bensonBower2010Destructor
@@ -152,8 +145,10 @@ contains
     use :: Abundances_Structure             , only : abundances
     use :: Chemical_Abundances_Structure    , only : chemicalAbundances                  , Chemicals_Property_Count
     use :: Chemical_Reaction_Rates_Utilities, only : Chemicals_Mass_To_Density_Conversion
-    use :: Galactic_Structure_Options       , only : radiusLarge                         , massTypeGalactic
-    use :: Numerical_Constants_Astronomical , only : gigaYear                            , massSolar               , megaParsec
+    use :: Mass_Distributions               , only : massDistributionClass               , kinematicsDistributionClass
+    use :: Coordinates                      , only : coordinateSpherical                 , assignment(=)
+    use :: Galactic_Structure_Options       , only : componentTypeHotHalo                , massTypeGaseous            , radiusLarge, massTypeGalactic
+    use :: Numerical_Constants_Astronomical , only : gigaYear                            , massSolar                  , megaParsec
     use :: Numerical_Constants_Atomic       , only : massHydrogenAtom
     use :: Numerical_Constants_Physical     , only : boltzmannsConstant
     use :: Numerical_Constants_Prefixes     , only : hecto                               , centi
@@ -164,6 +159,9 @@ contains
     type            (treeNode                           ), intent(inout) :: node
     class           (nodeComponentBasic                 ), pointer       :: basic
     class           (nodeComponentHotHalo               ), pointer       :: hotHalo
+    class           (massDistributionClass              ), pointer       :: massDistribution_
+    class           (kinematicsDistributionClass        ), pointer       :: kinematicsDistribution_
+    type            (coordinateSpherical                )                :: coordinates
     double precision                                                     :: density                , temperature          , &
          &                                                                  massToDensityConversion, numberDensityHydrogen, &
          &                                                                  numberDensityAllSpecies, coolingFunction      , &
@@ -180,13 +178,21 @@ contains
        bensonBower2010TimeAvailable=0.0d0
        return
     end if
+    ! Get the mass distribution.
+    massDistribution_       => node             %massDistribution      (                                                           )
+    kinematicsDistribution_ => massDistribution_%kinematicsDistribution(componentType=componentTypeHotHalo,massType=massTypeGaseous)      
     ! Compute the mean density and temperature of the hot halo.
     density    =+massNotional             &
          &      *3.0d0                    &
          &      /4.0d0                    &
          &      /Pi                       &
          &      /hotHalo%outerRadius()**3
-    temperature=self%hotHaloTemperatureProfile_%temperature(node,hotHalo%outerRadius())
+    coordinates=[hotHalo%outerRadius(),0.0d0,0.0d0]
+    temperature=+kinematicsDistribution_%temperature(coordinates)
+    !![
+    <objectDestructor name="massDistribution_"      />
+    <objectDestructor name="kinematicsDistribution_"/>
+    !!]          
     ! Get the abundances for this node.
     abundances_=hotHalo%abundances()
     call abundances_%massToMassFraction(hotHalo%mass())

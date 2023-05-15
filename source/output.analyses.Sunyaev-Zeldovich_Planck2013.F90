@@ -33,15 +33,13 @@
      A thermal Sunyaev-Zeldovich signal vs stellar mass analysis class using the results of \cite{planck_collaboration_planck_2013}.
      !!}
      private
-     double precision                                , allocatable  , dimension(:) :: systematicErrorPolynomialCoefficient          , randomErrorPolynomialCoefficient
-     class           (cosmologyParametersClass      ), pointer                     :: cosmologyParameters_                 => null()
-     class           (cosmologyFunctionsClass       ), pointer                     :: cosmologyFunctions_                  => null()
-     class           (darkMatterHaloScaleClass      ), pointer                     :: darkMatterHaloScale_                 => null()
-     class           (hotHaloMassDistributionClass  ), pointer                     :: hotHaloMassDistribution_             => null()
-     class           (hotHaloTemperatureProfileClass), pointer                     :: hotHaloTemperatureProfile_           => null()
-     class           (chemicalStateClass            ), pointer                     :: chemicalState_                       => null()
-     class           (galacticStructureClass        ), pointer                     :: galacticStructure_                   => null()
-     double precision                                                              :: randomErrorMinimum                            , randomErrorMaximum
+     double precision                          , allocatable, dimension(:) :: systematicErrorPolynomialCoefficient          , randomErrorPolynomialCoefficient
+     class           (cosmologyParametersClass), pointer                   :: cosmologyParameters_                 => null()
+     class           (cosmologyFunctionsClass ), pointer                   :: cosmologyFunctions_                  => null()
+     class           (darkMatterHaloScaleClass), pointer                   :: darkMatterHaloScale_                 => null()
+     class           (chemicalStateClass      ), pointer                   :: chemicalState_                       => null()
+     class           (galacticStructureClass  ), pointer                   :: galacticStructure_                   => null()
+     double precision                                                      :: randomErrorMinimum                            , randomErrorMaximum
    contains
      final :: sunyaevZeldovichPlanck2013Destructor
   end type outputAnalysisSunyaevZeldovichPlanck2013
@@ -69,8 +67,6 @@ contains
     class           (cosmologyParametersClass                ), pointer                     :: cosmologyParameters_
     class           (cosmologyFunctionsClass                 ), pointer                     :: cosmologyFunctions_
     class           (darkMatterHaloScaleClass                ), pointer                     :: darkMatterHaloScale_
-    class           (hotHaloMassDistributionClass            ), pointer                     :: hotHaloMassDistribution_
-    class           (hotHaloTemperatureProfileClass          ), pointer                     :: hotHaloTemperatureProfile_
     class           (chemicalStateClass                      ), pointer                     :: chemicalState_
     class           (outputTimesClass                        ), pointer                     :: outputTimes_
     class           (galacticStructureClass                  ), pointer                     :: galacticStructure_
@@ -110,29 +106,25 @@ contains
     <objectBuilder class="cosmologyParameters"       name="cosmologyParameters_"       source="parameters"/>
     <objectBuilder class="cosmologyFunctions"        name="cosmologyFunctions_"        source="parameters"/>
     <objectBuilder class="darkMatterHaloScale"       name="darkMatterHaloScale_"       source="parameters"/>
-    <objectBuilder class="hotHaloMassDistribution"   name="hotHaloMassDistribution_"   source="parameters"/>
-    <objectBuilder class="hotHaloTemperatureProfile" name="hotHaloTemperatureProfile_" source="parameters"/>
     <objectBuilder class="chemicalState"             name="chemicalState_"             source="parameters"/>
     <objectBuilder class="outputTimes"               name="outputTimes_"               source="parameters"/>
     <objectBuilder class="galacticStructure"         name="galacticStructure_"         source="parameters"/>
     !!]
     ! Build the object.
-    self=outputAnalysisSunyaevZeldovichPlanck2013(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,hotHaloMassDistribution_,hotHaloTemperatureProfile_,chemicalState_,outputTimes_,galacticStructure_)
+    self=outputAnalysisSunyaevZeldovichPlanck2013(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,chemicalState_,outputTimes_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="cosmologyParameters_"      />
-    <objectDestructor name="cosmologyFunctions_"       />
-    <objectDestructor name="darkMatterHaloScale_"      />
-    <objectDestructor name="hotHaloMassDistribution_"  />
-    <objectDestructor name="hotHaloTemperatureProfile_"/>
-    <objectDestructor name="chemicalState_"            />
-    <objectDestructor name="outputTimes_"              />
-    <objectDestructor name="galacticStructure_"        />
+    <objectDestructor name="cosmologyParameters_"/>
+    <objectDestructor name="cosmologyFunctions_" />
+    <objectDestructor name="darkMatterHaloScale_"/>
+    <objectDestructor name="chemicalState_"      />
+    <objectDestructor name="outputTimes_"        />
+    <objectDestructor name="galacticStructure_"  />
     !!]
     return
   end function sunyaevZeldovichPlanck2013ConstructorParameters
 
-  function sunyaevZeldovichPlanck2013ConstructorInternal(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,hotHaloMassDistribution_,hotHaloTemperatureProfile_,chemicalState_,outputTimes_,galacticStructure_) result (self)
+  function sunyaevZeldovichPlanck2013ConstructorInternal(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,chemicalState_,outputTimes_,galacticStructure_) result (self)
     !!{
     Constructor for the ``sunyaevZeldovichPlanck2013'' output analysis class for internal use.
     !!}
@@ -158,8 +150,6 @@ contains
     class           (cosmologyParametersClass                           ), intent(inout), target         :: cosmologyParameters_
     class           (cosmologyFunctionsClass                            ), intent(inout), target         :: cosmologyFunctions_
     class           (darkMatterHaloScaleClass                           ), intent(in   ), target         :: darkMatterHaloScale_
-    class           (hotHaloMassDistributionClass                       ), intent(in   ), target         :: hotHaloMassDistribution_
-    class           (hotHaloTemperatureProfileClass                     ), intent(in   ), target         :: hotHaloTemperatureProfile_
     class           (chemicalStateClass                                 ), intent(in   ), target         :: chemicalState_
     class           (outputTimesClass                                   ), intent(inout), target         :: outputTimes_
     class           (galacticStructureClass                             ), intent(in   ), target         :: galacticStructure_
@@ -190,7 +180,7 @@ contains
     integer         (c_size_t                                           ), parameter                     :: bufferCount                                     =10
     integer         (c_size_t                                           )                                :: iBin                                                      , binCount
     !![
-    <constructurAssign variables="systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterHaloScale_, *hotHaloMassDistribution_, *hotHaloTemperatureProfile_, *chemicalState_, *galacticStructure_"/>
+    <constructurAssign variables="systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterHaloScale_, *chemicalState_, *galacticStructure_"/>
     !!]
     
     ! Construct the target data.
@@ -325,8 +315,6 @@ contains
         &amp;                                              cosmologyParameters_       , &amp;
         &amp;                                              cosmologyFunctions_        , &amp;
         &amp;                                              darkMatterHaloScale_       , &amp;
-        &amp;                                              hotHaloMassDistribution_   , &amp;
-        &amp;                                              hotHaloTemperatureProfile_ , &amp;
         &amp;                                              chemicalState_             , &amp;
         &amp;                                              galacticStructure_         , &amp;
         &amp;                    densityContrast          =500.0d0                    , &amp;
@@ -404,14 +392,12 @@ contains
     type(outputAnalysisSunyaevZeldovichPlanck2013), intent(inout) :: self
     
     !![
-    <objectDestructor name="self%cosmologyParameters_"      />
-    <objectDestructor name="self%cosmologyFunctions_"       />
-    <objectDestructor name="self%darkMatterHaloScale_"      />
-    <objectDestructor name="self%hotHaloMassDistribution_"  />
-    <objectDestructor name="self%hotHaloTemperatureProfile_"/>
-    <objectDestructor name="self%chemicalState_"            />
-    <objectDestructor name="self%outputTimes_"              />
-    <objectDestructor name="self%galacticStructure_"        />
+    <objectDestructor name="self%cosmologyParameters_"/>
+    <objectDestructor name="self%cosmologyFunctions_" />
+    <objectDestructor name="self%darkMatterHaloScale_"/>
+    <objectDestructor name="self%chemicalState_"      />
+    <objectDestructor name="self%outputTimes_"        />
+    <objectDestructor name="self%galacticStructure_"  />
     !!]
     return
   end subroutine sunyaevZeldovichPlanck2013Destructor

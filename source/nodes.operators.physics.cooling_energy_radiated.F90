@@ -22,13 +22,12 @@
   following the model of \cite{benson_galaxy_2010-1}.
   !!}
 
-  use :: Hot_Halo_Temperature_Profiles, only : hotHaloTemperatureProfileClass
-  use :: Radiation_Fields             , only : radiationFieldCosmicMicrowaveBackground
-  use :: Galactic_Structure           , only : galacticStructureClass
-  use :: Cooling_Functions            , only : coolingFunctionClass
-  use :: Cosmology_Functions          , only : cosmologyFunctionsClass
-  use :: Chemical_States              , only : chemicalStateClass
-  use :: Dark_Matter_Halo_Scales      , only : darkMatterHaloScaleClass
+  use :: Radiation_Fields       , only : radiationFieldCosmicMicrowaveBackground
+  use :: Galactic_Structure     , only : galacticStructureClass
+  use :: Cooling_Functions      , only : coolingFunctionClass
+  use :: Cosmology_Functions    , only : cosmologyFunctionsClass
+  use :: Chemical_States        , only : chemicalStateClass
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !![
   <nodeOperator name="nodeOperatorCoolingEnergyRadiated">
@@ -46,13 +45,12 @@
      A node operator class that accumulates an estimate of the energy radiated from the hot halo due to cooling following the model of \cite{benson_galaxy_2010-1}.
      !!}
      private
-     class  (cosmologyFunctionsClass                ), pointer :: cosmologyFunctions_        => null()
-     class  (coolingFunctionClass                   ), pointer :: coolingFunction_           => null()
-     class  (hotHaloTemperatureProfileClass         ), pointer :: hotHaloTemperatureProfile_ => null()
-     class  (darkMatterHaloScaleClass               ), pointer :: darkMatterHaloScale_       => null()
-     class  (chemicalStateClass                     ), pointer :: chemicalState_             => null()
-     class  (galacticStructureClass                 ), pointer :: galacticStructure_         => null()
-     type   (radiationFieldCosmicMicrowaveBackground), pointer :: radiation                  => null()
+     class  (cosmologyFunctionsClass                ), pointer :: cosmologyFunctions_  => null()
+     class  (coolingFunctionClass                   ), pointer :: coolingFunction_     => null()
+     class  (darkMatterHaloScaleClass               ), pointer :: darkMatterHaloScale_ => null()
+     class  (chemicalStateClass                     ), pointer :: chemicalState_       => null()
+     class  (galacticStructureClass                 ), pointer :: galacticStructure_   => null()
+     type   (radiationFieldCosmicMicrowaveBackground), pointer :: radiation            => null()
      integer                                                   :: energyRadiatedID
    contains
      final     ::                                coolingEnergyRadiatedDestructor
@@ -81,7 +79,6 @@ contains
     implicit none
     type (nodeOperatorCoolingEnergyRadiated)                :: self
     type (inputParameters                  ), intent(inout) :: parameters
-    class(hotHaloTemperatureProfileClass   ), pointer       :: hotHaloTemperatureProfile_
     class(darkMatterHaloScaleClass         ), pointer       :: darkMatterHaloScale_
     class(cosmologyFunctionsClass          ), pointer       :: cosmologyFunctions_
     class(coolingFunctionClass             ), pointer       :: coolingFunction_
@@ -89,27 +86,25 @@ contains
     class(galacticStructureClass           ), pointer       :: galacticStructure_
 
     !![
-    <objectBuilder class="hotHaloTemperatureProfile" name="hotHaloTemperatureProfile_" source="parameters"/>
-    <objectBuilder class="darkMatterHaloScale"       name="darkMatterHaloScale_"       source="parameters"/>
-    <objectBuilder class="coolingFunction"           name="coolingFunction_"           source="parameters"/>
-    <objectBuilder class="cosmologyFunctions"        name="cosmologyFunctions_"        source="parameters"/>
-    <objectBuilder class="chemicalState"             name="chemicalState_"             source="parameters"/>
-    <objectBuilder class="galacticStructure"         name="galacticStructure_"         source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    <objectBuilder class="coolingFunction"     name="coolingFunction_"     source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    <objectBuilder class="chemicalState"       name="chemicalState_"       source="parameters"/>
+    <objectBuilder class="galacticStructure"   name="galacticStructure_"   source="parameters"/>
     !!]
-     self=nodeOperatorCoolingEnergyRadiated(cosmologyFunctions_,coolingFunction_,hotHaloTemperatureProfile_,chemicalState_,darkMatterHaloScale_,galacticStructure_)
+     self=nodeOperatorCoolingEnergyRadiated(cosmologyFunctions_,coolingFunction_,chemicalState_,darkMatterHaloScale_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="hotHaloTemperatureProfile_"/>
-    <objectDestructor name="darkMatterHaloScale_"      />
-    <objectDestructor name="coolingFunction_"          />
-    <objectDestructor name="cosmologyFunctions_"       />
-    <objectDestructor name="chemicalState_"            />
-    <objectDestructor name="galacticStructure_"        />
+    <objectDestructor name="darkMatterHaloScale_"/>
+    <objectDestructor name="coolingFunction_"    />
+    <objectDestructor name="cosmologyFunctions_" />
+    <objectDestructor name="chemicalState_"      />
+    <objectDestructor name="galacticStructure_"  />
     !!]
     return
   end function coolingEnergyRadiatedConstructorParameters
 
-  function coolingEnergyRadiatedConstructorInternal(cosmologyFunctions_,coolingFunction_,hotHaloTemperatureProfile_,chemicalState_,darkMatterHaloScale_,galacticStructure_) result(self)
+  function coolingEnergyRadiatedConstructorInternal(cosmologyFunctions_,coolingFunction_,chemicalState_,darkMatterHaloScale_,galacticStructure_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily coolingEnergyRadiated} node operator class.
     !!}
@@ -117,12 +112,11 @@ contains
     type (nodeOperatorCoolingEnergyRadiated)                        :: self
     class(cosmologyFunctionsClass          ), intent(in   ), target :: cosmologyFunctions_
     class(coolingFunctionClass             ), intent(in   ), target :: coolingFunction_
-    class(hotHaloTemperatureProfileClass   ), intent(in   ), target :: hotHaloTemperatureProfile_
     class(darkMatterHaloScaleClass         ), intent(in   ), target :: darkMatterHaloScale_
     class(chemicalStateClass               ), intent(in   ), target :: chemicalState_
     class(galacticStructureClass           ), intent(in   ), target :: galacticStructure_
     !![
-    <constructorAssign variables="*cosmologyFunctions_, *coolingFunction_, *hotHaloTemperatureProfile_, *chemicalState_, *darkMatterHaloScale_, *galacticStructure_"/>
+    <constructorAssign variables="*cosmologyFunctions_, *coolingFunction_, *chemicalState_, *darkMatterHaloScale_, *galacticStructure_"/>
     !!]
 
     allocate(self%radiation)
@@ -154,13 +148,12 @@ contains
     type(nodeOperatorCoolingEnergyRadiated), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%cosmologyFunctions_"       />
-    <objectDestructor name="self%coolingFunction_"          />
-    <objectDestructor name="self%hotHaloTemperatureProfile_"/>
-    <objectDestructor name="self%darkMatterHaloScale_"      />
-    <objectDestructor name="self%chemicalState_"            />
-    <objectDestructor name="self%radiation"                 />
-    <objectDestructor name="self%galacticStructure_"        />
+    <objectDestructor name="self%cosmologyFunctions_" />
+    <objectDestructor name="self%coolingFunction_"    />
+    <objectDestructor name="self%darkMatterHaloScale_"/>
+    <objectDestructor name="self%chemicalState_"      />
+    <objectDestructor name="self%radiation"           />
+    <objectDestructor name="self%galacticStructure_"  />
     !!]
     if (hotHaloMassEjectionEvent%isAttached(self,coolingEnergyRadiatedHotHaloMassEjection)) call hotHaloMassEjectionEvent%detach(self,coolingEnergyRadiatedHotHaloMassEjection)
     return
@@ -204,8 +197,10 @@ contains
     use :: Abundances_Structure             , only : abundances
     use :: Chemical_Abundances_Structure    , only : chemicalAbundances                  , Chemicals_Property_Count
     use :: Chemical_Reaction_Rates_Utilities, only : Chemicals_Mass_To_Density_Conversion
-    use :: Galactic_Structure_Options       , only : radiusLarge                         , massTypeGalactic
-    use :: Numerical_Constants_Astronomical , only : gigaYear                            , massSolar               , megaParsec
+    use :: Mass_Distributions               , only : massDistributionClass               , kinematicsDistributionClass
+    use :: Coordinates                      , only : coordinateSpherical                 , assignment(=)
+    use :: Galactic_Structure_Options       , only : componentTypeHotHalo                , massTypeGaseous            , radiusLarge, massTypeGalactic
+    use :: Numerical_Constants_Astronomical , only : gigaYear                            , massSolar                  , megaParsec
     use :: Numerical_Constants_Atomic       , only : massHydrogenAtom
     use :: Numerical_Constants_Physical     , only : boltzmannsConstant
     use :: Numerical_Constants_Prefixes     , only : hecto                               , centi
@@ -219,6 +214,9 @@ contains
     integer                                            , intent(in   )          :: propertyType
     class           (nodeComponentBasic               )               , pointer :: basic
     class           (nodeComponentHotHalo             )               , pointer :: hotHalo
+    class           (massDistributionClass            )               , pointer :: massDistribution_
+    class           (kinematicsDistributionClass      )               , pointer :: kinematicsDistribution_
+    type            (coordinateSpherical              )                         :: coordinates
     double precision                                                            :: density                , temperature          , &
          &                                                                         massToDensityConversion, numberDensityHydrogen, &
          &                                                                         numberDensityAllSpecies, coolingFunction      , &
@@ -239,12 +237,19 @@ contains
             &          +self   %galacticStructure_%massEnclosed (node,radiusLarge,massType=massTypeGalactic)
        if (massNotional <= 0.0d0) return
        ! Compute the mean density and temperature of the hot halo.
+      massDistribution_       => node             %massDistribution      (                                                           )
+       kinematicsDistribution_ => massDistribution_%kinematicsDistribution(componentType=componentTypeHotHalo,massType=massTypeGaseous)      
        density    =+massNotional             &
             &      *3.0d0                    &
             &      /4.0d0                    &
             &      /Pi                       &
             &      /hotHalo%outerRadius()**3
-       temperature=self%hotHaloTemperatureProfile_%temperature(node,hotHalo%outerRadius())
+       coordinates=[hotHalo%outerRadius(),0.0d0,0.0d0]
+       temperature=+kinematicsDistribution_%temperature(coordinates)
+       !![
+       <objectDestructor name="massDistribution_"      />
+       <objectDestructor name="kinematicsDistribution_"/>
+       !!]          
        ! Get the abundances for this node.
        abundances_=hotHalo%abundances()
        call abundances_%massToMassFraction(hotHalo%mass())

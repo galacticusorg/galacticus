@@ -33,7 +33,6 @@ module Node_Component_Black_Hole_Standard
   use :: Cooling_Radii                       , only : coolingRadiusClass
   use :: Cosmology_Parameters                , only : cosmologyParametersClass
   use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScaleClass
-  use :: Hot_Halo_Temperature_Profiles       , only : hotHaloTemperatureProfileClass
   use :: Galactic_Structure                  , only : galacticStructureClass
   implicit none
   private
@@ -121,10 +120,9 @@ module Node_Component_Black_Hole_Standard
   class(blackHoleBinaryMergerClass              ), pointer :: blackHoleBinaryMerger_
   class(blackHoleBinarySeparationGrowthRateClass), pointer :: blackHoleBinarySeparationGrowthRate_
   class(coolingRadiusClass                      ), pointer :: coolingRadius_
-  class(hotHaloTemperatureProfileClass          ), pointer :: hotHaloTemperatureProfile_
   class(darkMatterHaloScaleClass                ), pointer :: darkMatterHaloScale_
   class(galacticStructureClass                  ), pointer :: galacticStructure_
-  !$omp threadprivate(accretionDisks_,cosmologyParameters_,blackHoleBinaryRecoil_,blackHoleBinaryInitialSeparation_,blackHoleBinaryMerger_,blackHoleBinarySeparationGrowthRate_,coolingRadius_,hotHaloTemperatureProfile_,darkMatterHaloScale_,galacticStructure_)
+  !$omp threadprivate(accretionDisks_,cosmologyParameters_,blackHoleBinaryRecoil_,blackHoleBinaryInitialSeparation_,blackHoleBinaryMerger_,blackHoleBinarySeparationGrowthRate_,coolingRadius_,darkMatterHaloScale_,galacticStructure_)
 
   ! Accretion model parameters.
   ! Enhancement factors for the accretion rate.
@@ -311,7 +309,6 @@ contains
        <objectBuilder class="blackHoleBinaryMerger"               name="blackHoleBinaryMerger_"               source="subParameters"/>
        <objectBuilder class="blackHoleBinarySeparationGrowthRate" name="blackHoleBinarySeparationGrowthRate_" source="subParameters"/>
        <objectBuilder class="coolingRadius"                       name="coolingRadius_"                       source="subParameters"/>
-       <objectBuilder class="hotHaloTemperatureProfile"           name="hotHaloTemperatureProfile_"           source="subParameters"/>
        <objectBuilder class="darkMatterHaloScale"                 name="darkMatterHaloScale_"                 source="subParameters"/>
        <objectBuilder class="galacticStructure"                   name="galacticStructure_"                   source="subParameters"/>
        !!]     
@@ -342,7 +339,6 @@ contains
        <objectDestructor name="blackHoleBinaryMerger_"              />
        <objectDestructor name="blackHoleBinarySeparationGrowthRate_"/>
        <objectDestructor name="coolingRadius_"                      />
-       <objectDestructor name="hotHaloTemperatureProfile_"          />
        <objectDestructor name="darkMatterHaloScale_"                />
        <objectDestructor name="galacticStructure_"                  />
        !!]
@@ -666,6 +662,8 @@ contains
     !!}
     use :: Black_Hole_Fundamentals         , only : Black_Hole_Eddington_Accretion_Rate
     use :: Bondi_Hoyle_Lyttleton_Accretion , only : Bondi_Hoyle_Lyttleton_Accretion_Radius, Bondi_Hoyle_Lyttleton_Accretion_Rate
+    use :: Mass_Distributions              , only : massDistributionClass                 , kinematicsDistributionClass
+    use :: Coordinates                     , only : coordinateSpherical                   , assignment(=)
     use :: Galactic_Structure_Options      , only : componentTypeColdHalo                 , componentTypeHotHalo                , componentTypeSpheroid, coordinateSystemCylindrical, &
           &                                         massTypeGaseous
     use :: Galacticus_Nodes                , only : nodeComponentBlackHole                , nodeComponentHotHalo                , nodeComponentSpheroid, treeNode
@@ -673,18 +671,21 @@ contains
     use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr               , gigaYear                            , megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
-    class           (nodeComponentBlackHole), intent(inout)          :: blackHole
-    double precision                        , intent(  out)          :: accretionRateHotHalo      , accretionRateSpheroid
-    type            (treeNode              )               , pointer :: node
-    class           (nodeComponentSpheroid )               , pointer :: spheroid
-    class           (nodeComponentHotHalo  )               , pointer :: hotHalo
-    double precision                        , parameter              :: gasDensityMinimum   =1.0d0                              ! Lowest gas density to consider when computing accretion rates onto black hole (in units of M☉/Mpc³).
-    double precision                                                 :: accretionRadius           , accretionRateMaximum    , &
-         &                                                              massBlackHole             , gasDensity              , &
-         &                                                              hotHaloTemperature        , hotModeFraction         , &
-         &                                                              jeansLength               , position             (3), &
-         &                                                              radiativeEfficiency       , relativeVelocity        , &
-         &                                                              coldModeFraction
+    class           (nodeComponentBlackHole     ), intent(inout)          :: blackHole
+    double precision                             , intent(  out)          :: accretionRateHotHalo      , accretionRateSpheroid
+    type            (treeNode                   )               , pointer :: node
+    class           (nodeComponentSpheroid      )               , pointer :: spheroid
+    class           (nodeComponentHotHalo       )               , pointer :: hotHalo
+    class           (massDistributionClass      )               , pointer :: massDistribution_
+    class           (kinematicsDistributionClass)               , pointer :: kinematicsDistribution_
+    type            (coordinateSpherical        )                         :: coordinates
+    double precision                             , parameter              :: gasDensityMinimum   =1.0d0                              ! Lowest gas density to consider when computing accretion rates onto black hole (in units of M☉/Mpc³).
+    double precision                                                      :: accretionRadius           , accretionRateMaximum    , &
+         &                                                                   massBlackHole             , gasDensity              , &
+         &                                                                   hotHaloTemperature        , hotModeFraction         , &
+         &                                                                   jeansLength               , position             (3), &
+         &                                                                   radiativeEfficiency       , relativeVelocity        , &
+         &                                                                   coldModeFraction
 
     ! Get the host node.
     node => blackHole%host()
@@ -738,7 +739,14 @@ contains
        ! Get the hot halo component.
        hotHalo => node%hotHalo()
        ! Get halo gas temperature.
-       hotHaloTemperature=hotHaloTemperatureProfile_%temperature(node,radius=0.0d0)
+       massDistribution_       => node             %massDistribution      (                                                           )
+       kinematicsDistribution_ => massDistribution_%kinematicsDistribution(componentType=componentTypeHotHalo,massType=massTypeGaseous)      
+       coordinates             =  [0.0d0,0.0d0,0.0d0]
+       hotHaloTemperature      =  kinematicsDistribution_%temperature(coordinates)
+       !![
+       <objectDestructor name="massDistribution_"      />
+       <objectDestructor name="kinematicsDistribution_"/>
+       !!]          
        ! Get the accretion radius.
        accretionRadius=Bondi_Hoyle_Lyttleton_Accretion_Radius(massBlackHole,hotHaloTemperature)
        accretionRadius=min(accretionRadius,hotHalo%outerRadius())
@@ -1230,7 +1238,7 @@ contains
 
     call displayMessage('Storing state for: componentBlackHole -> standard',verbosity=verbosityLevelInfo)
     !![
-    <stateStore variables="accretionDisks_ cosmologyParameters_ blackHoleBinaryRecoil_ blackHoleBinaryInitialSeparation_ blackHoleBinaryMerger_ blackHoleBinarySeparationGrowthRate_ coolingRadius_ hotHaloTemperatureProfile_ darkMatterHaloScale_ galacticStructure_"/>
+    <stateStore variables="accretionDisks_ cosmologyParameters_ blackHoleBinaryRecoil_ blackHoleBinaryInitialSeparation_ blackHoleBinaryMerger_ blackHoleBinarySeparationGrowthRate_ coolingRadius_ darkMatterHaloScale_ galacticStructure_"/>
     !!]
     return
   end subroutine Node_Component_Black_Hole_Standard_State_Store
@@ -1253,7 +1261,7 @@ contains
 
     call displayMessage('Retrieving state for: componentBlackHole -> standard',verbosity=verbosityLevelInfo)
     !![
-    <stateRestore variables="accretionDisks_ cosmologyParameters_ blackHoleBinaryRecoil_ blackHoleBinaryInitialSeparation_ blackHoleBinaryMerger_ blackHoleBinarySeparationGrowthRate_ coolingRadius_ hotHaloTemperatureProfile_ darkMatterHaloScale_ galacticStructure_"/>
+    <stateRestore variables="accretionDisks_ cosmologyParameters_ blackHoleBinaryRecoil_ blackHoleBinaryInitialSeparation_ blackHoleBinaryMerger_ blackHoleBinarySeparationGrowthRate_ coolingRadius_ darkMatterHaloScale_ galacticStructure_"/>
     !!]
     return
   end subroutine Node_Component_Black_Hole_Standard_State_Restore

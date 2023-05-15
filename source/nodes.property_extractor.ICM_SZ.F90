@@ -20,13 +20,11 @@
 !!{
 Contains a module which implements an intracluster medium Sunyaev-Zeldovich Compton-y parameter property extractor class.
 !!}
-  use :: Chemical_States              , only : chemicalState            , chemicalStateClass
-  use :: Cosmology_Functions          , only : cosmologyFunctions       , cosmologyFunctionsClass       , enumerationDensityCosmologicalType
-  use :: Cosmology_Parameters         , only : cosmologyParameters      , cosmologyParametersClass
-  use :: Dark_Matter_Halo_Scales      , only : darkMatterHaloScale      , darkMatterHaloScaleClass
-  use :: Galactic_Structure           , only : galacticStructureClass
-  use :: Hot_Halo_Mass_Distributions  , only : hotHaloMassDistribution  , hotHaloMassDistributionClass
-  use :: Hot_Halo_Temperature_Profiles, only : hotHaloTemperatureProfile, hotHaloTemperatureProfileClass
+  use :: Chemical_States        , only : chemicalState         , chemicalStateClass
+  use :: Cosmology_Functions    , only : cosmologyFunctions    , cosmologyFunctionsClass , enumerationDensityCosmologicalType
+  use :: Cosmology_Parameters   , only : cosmologyParameters   , cosmologyParametersClass
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScale   , darkMatterHaloScaleClass
+  use :: Galactic_Structure     , only : galacticStructureClass
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorICMSZ">
@@ -60,8 +58,6 @@ Contains a module which implements an intracluster medium Sunyaev-Zeldovich Comp
      class           (cosmologyParametersClass             ), pointer :: cosmologyParameters_       => null()
      class           (cosmologyFunctionsClass              ), pointer :: cosmologyFunctions_        => null()
      class           (darkMatterHaloScaleClass             ), pointer :: darkMatterHaloScale_       => null()
-     class           (hotHaloMassDistributionClass         ), pointer :: hotHaloMassDistribution_   => null()
-     class           (hotHaloTemperatureProfileClass       ), pointer :: hotHaloTemperatureProfile_ => null()
      class           (chemicalStateClass                   ), pointer :: chemicalState_             => null()
      class           (galacticStructureClass               ), pointer :: galacticStructure_         => null()
      type            (nodePropertyExtractorDensityContrasts), pointer :: densityContrastExtractor_  => null()
@@ -94,26 +90,22 @@ contains
     use :: Input_Parameters   , only : inputParameter                      , inputParameters
     use :: Cosmology_Functions, only : enumerationDensityCosmologicalEncode
     implicit none
-    type            (nodePropertyExtractorICMSZ    )                :: self
-    type            (inputParameters               ), intent(inout) :: parameters
-    class           (cosmologyParametersClass      ), pointer       :: cosmologyParameters_
-    class           (cosmologyFunctionsClass       ), pointer       :: cosmologyFunctions_
-    class           (darkMatterHaloScaleClass      ), pointer       :: darkMatterHaloScale_
-    class           (hotHaloMassDistributionClass  ), pointer       :: hotHaloMassDistribution_
-    class           (hotHaloTemperatureProfileClass), pointer       :: hotHaloTemperatureProfile_
-    class           (chemicalStateClass            ), pointer       :: chemicalState_
-    class           (galacticStructureClass        ), pointer       :: galacticStructure_
-    double precision                                                :: densityContrast           , distanceAngular
-    type            (varying_string                )                :: densityContrastRelativeTo
+    type            (nodePropertyExtractorICMSZ)                :: self
+    type            (inputParameters           ), intent(inout) :: parameters
+    class           (cosmologyParametersClass  ), pointer       :: cosmologyParameters_
+    class           (cosmologyFunctionsClass   ), pointer       :: cosmologyFunctions_
+    class           (darkMatterHaloScaleClass  ), pointer       :: darkMatterHaloScale_
+    class           (chemicalStateClass        ), pointer       :: chemicalState_
+    class           (galacticStructureClass    ), pointer       :: galacticStructure_
+    double precision                                            :: densityContrast           , distanceAngular
+    type            (varying_string            )                :: densityContrastRelativeTo
 
     !![
-    <objectBuilder class="cosmologyParameters"       name="cosmologyParameters_"       source="parameters"/>
-    <objectBuilder class="cosmologyFunctions"        name="cosmologyFunctions_"        source="parameters"/>
-    <objectBuilder class="darkMatterHaloScale"       name="darkMatterHaloScale_"       source="parameters"/>
-    <objectBuilder class="hotHaloMassDistribution"   name="hotHaloMassDistribution_"   source="parameters"/>
-    <objectBuilder class="hotHaloTemperatureProfile" name="hotHaloTemperatureProfile_" source="parameters"/>
-    <objectBuilder class="chemicalState"             name="chemicalState_"             source="parameters"/>
-    <objectBuilder class="galacticStructure"         name="galacticStructure_"         source="parameters"/>
+    <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    <objectBuilder class="chemicalState"       name="chemicalState_"       source="parameters"/>
+    <objectBuilder class="galacticStructure"   name="galacticStructure_"   source="parameters"/>
     !!]
     if (parameters%isPresent('densityContrast')) then
        !![
@@ -141,24 +133,22 @@ contains
     end if
     !![
     <conditionalCall>
-     <call>self=nodePropertyExtractorICMSZ(cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,hotHaloMassDistribution_,hotHaloTemperatureProfile_,chemicalState_,galacticStructure_{conditions})</call>
+     <call>self=nodePropertyExtractorICMSZ(cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,chemicalState_,galacticStructure_{conditions})</call>
      <argument name="densityContrast"           value="densityContrast"                                                                              parameterPresent="parameters"                                />
      <argument name="densityContrastRelativeTo" value="enumerationDensityCosmologicalEncode(char(densityContrastRelativeTo),includesPrefix=.false.)" parameterPresent="parameters" parameterName="densityContrast"/>
      <argument name="distanceAngular"           value="distanceAngular"                                                                              parameterPresent="parameters"                                />
     </conditionalCall>
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="cosmologyParameters_"      />
-    <objectDestructor name="cosmologyFunctions_"       />
-    <objectDestructor name="darkMatterHaloScale_"      />
-    <objectDestructor name="hotHaloMassDistribution_"  />
-    <objectDestructor name="hotHaloTemperatureProfile_"/>
-    <objectDestructor name="chemicalState_"            />
-    <objectDestructor name="galacticStructure_"        />
+    <objectDestructor name="cosmologyParameters_"/>
+    <objectDestructor name="cosmologyFunctions_" />
+    <objectDestructor name="darkMatterHaloScale_"/>
+    <objectDestructor name="chemicalState_"      />
+    <objectDestructor name="galacticStructure_"  />
     !!]
     return
   end function icmSZConstructorParameters
 
-  function icmSZConstructorInternal(cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,hotHaloMassDistribution_,hotHaloTemperatureProfile_,chemicalState_,galacticStructure_,densityContrast,densityContrastRelativeTo,distanceAngular) result(self)
+  function icmSZConstructorInternal(cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,chemicalState_,galacticStructure_,densityContrast,densityContrastRelativeTo,distanceAngular) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily icmSZ} property extractor class.
     !!}
@@ -170,15 +160,13 @@ contains
     class           (cosmologyParametersClass          ), intent(in   ), target   :: cosmologyParameters_
     class           (cosmologyFunctionsClass           ), intent(in   ), target   :: cosmologyFunctions_
     class           (darkMatterHaloScaleClass          ), intent(in   ), target   :: darkMatterHaloScale_
-    class           (hotHaloMassDistributionClass      ), intent(in   ), target   :: hotHaloMassDistribution_
-    class           (hotHaloTemperatureProfileClass    ), intent(in   ), target   :: hotHaloTemperatureProfile_
     class           (chemicalStateClass                ), intent(in   ), target   :: chemicalState_
     class           (galacticStructureClass            ), intent(in   ), target   :: galacticStructure_
     double precision                                    , intent(in   ), optional :: densityContrast           , distanceAngular
     type            (enumerationDensityCosmologicalType), intent(in   ), optional :: densityContrastRelativeTo
     character       (len=8                             )                          :: label
     !![
-    <constructorAssign variables="densityContrast, densityContrastRelativeTo, distanceAngular, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterHaloScale_, *hotHaloMassDistribution_, *hotHaloTemperatureProfile_, *chemicalState_, *galacticStructure_"/>
+    <constructorAssign variables="densityContrast, densityContrastRelativeTo, distanceAngular, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterHaloScale_, *chemicalState_, *galacticStructure_"/>
     !!]
 
     self%useDensityContrast=present(densityContrast)
@@ -217,13 +205,11 @@ contains
     type(nodePropertyExtractorICMSZ), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%cosmologyParameters_"      />
-    <objectDestructor name="self%cosmologyFunctions_"       />
-    <objectDestructor name="self%darkMatterHaloScale_"      />
-    <objectDestructor name="self%hotHaloMassDistribution_"  />
-    <objectDestructor name="self%hotHaloTemperatureProfile_"/>
-    <objectDestructor name="self%chemicalState_"            />
-    <objectDestructor name="self%galacticStructure_"        />
+    <objectDestructor name="self%cosmologyParameters_"/>
+    <objectDestructor name="self%cosmologyFunctions_" />
+    <objectDestructor name="self%darkMatterHaloScale_"/>
+    <objectDestructor name="self%chemicalState_"      />
+    <objectDestructor name="self%galacticStructure_"  />
     !!]
     if (self%useDensityContrast) then
        !![
@@ -295,21 +281,35 @@ contains
       Integrand function used for computing ICM SZ properties.
       !!}
       use :: Abundances_Structure            , only : abundances
-      use :: Numerical_Constants_Astronomical, only : massSolar         , megaParsec
+      use :: Numerical_Constants_Astronomical, only : massSolar            , megaParsec
       use :: Numerical_Constants_Atomic      , only : massHydrogenAtom
-      use :: Numerical_Constants_Physical    , only : boltzmannsConstant, electronMass, speedLight, thomsonCrossSection
-      use :: Numerical_Constants_Prefixes    , only : centi             , hecto
+      use :: Numerical_Constants_Physical    , only : boltzmannsConstant   , electronMass               , speedLight, thomsonCrossSection
+      use :: Numerical_Constants_Prefixes    , only : centi                , hecto
+      use :: Mass_Distributions              , only : massDistributionClass, kinematicsDistributionClass
+      use :: Coordinates                     , only : coordinateSpherical  , assignment(=)
+      use :: Galactic_Structure_Options      , only : componentTypeHotHalo , massTypeGaseous
       implicit none
-      double precision                      , intent(in   ) :: radius
-      class           (nodeComponentHotHalo), pointer       :: hotHalo
-      double precision                                      :: density              , temperature, &
-           &                                                   numberDensityHydrogen, massICM
-      type            (abundances          )                :: abundancesICM
+      double precision                             , intent(in   ) :: radius
+      class           (nodeComponentHotHalo       ), pointer       :: hotHalo
+      class           (massDistributionClass      ), pointer       :: massDistribution_
+      class           (kinematicsDistributionClass), pointer       :: kinematicsDistribution_
+      type            (coordinateSpherical        )                :: coordinates
+      double precision                                             :: density                , temperature, &
+           &                                                          numberDensityHydrogen  , massICM
+      type            (abundances                 )                :: abundancesICM
 
+      ! Get the mass distribution.
+      coordinates             =  [radius,0.0d0,0.0d0]
+      massDistribution_       => node                   %massDistribution      (                                                                       )
+      kinematicsDistribution_ => massDistribution_      %kinematicsDistribution(            componentType=componentTypeHotHalo,massType=massTypeGaseous)      
       ! Get the density of the ICM.
-      density         =  self   %hotHaloMassDistribution_  %density    (node,radius)
+      density                 =  massDistribution_      %density               (coordinates,componentType=componentTypeHotHalo,massType=massTypeGaseous)
       ! Get the temperature of the ICM.
-      temperature     =  self   %hotHaloTemperatureProfile_%temperature(node,radius)
+      temperature             =  kinematicsDistribution_%temperature           (coordinates                                                            )
+      !![
+      <objectDestructor name="massDistribution_"      />
+      <objectDestructor name="kinematicsDistribution_"/>
+      !!]          
       ! Get abundances and chemistry of the ICM.
       hotHalo         => node   %hotHalo   ()
       massICM         =  hotHalo%mass      ()

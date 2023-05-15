@@ -31,13 +31,11 @@
      An ICM X-ray luminosity-temperature relation output analysis class.
      !!}
      private
-     double precision                                , allocatable  , dimension(:) :: systematicErrorPolynomialCoefficient          , randomErrorPolynomialCoefficient
-     class           (darkMatterHaloScaleClass      ), pointer                     :: darkMatterHaloScale_                 => null()
-     class           (hotHaloMassDistributionClass  ), pointer                     :: hotHaloMassDistribution_             => null()
-     class           (hotHaloTemperatureProfileClass), pointer                     :: hotHaloTemperatureProfile_           => null()
-     class           (coolingFunctionClass          ), pointer                     :: coolingFunction_                     => null()
-     class           (cosmologyFunctionsClass       ), pointer                     :: cosmologyFunctions_                  => null()
-     double precision                                                              :: randomErrorMinimum                            , randomErrorMaximum
+     double precision                          , allocatable  , dimension(:) :: systematicErrorPolynomialCoefficient          , randomErrorPolynomialCoefficient
+     class           (darkMatterHaloScaleClass), pointer                     :: darkMatterHaloScale_                 => null()
+     class           (coolingFunctionClass    ), pointer                     :: coolingFunction_                     => null()
+     class           (cosmologyFunctionsClass ), pointer                     :: cosmologyFunctions_                  => null()
+     double precision                                                        :: randomErrorMinimum                            , randomErrorMaximum
    contains
      final :: icmXrayLuminosityTemperatureDestructor
   end type outputAnalysisICMXrayLuminosityTemperature
@@ -56,20 +54,16 @@ contains
     !!{
     Constructor for the ``icmXrayLuminosityTemperature'' output analysis class which takes a parameter set as input.
     !!}
-    use :: Input_Parameters             , only : inputParameter                , inputParameters
-    use :: Cooling_Functions            , only : coolingFunctionClass
-    use :: Cosmology_Functions          , only : cosmologyFunctionsClass
-    use :: Dark_Matter_Halo_Scales      , only : darkMatterHaloScaleClass
-    use :: Hot_Halo_Mass_Distributions  , only : hotHaloMassDistributionClass
-    use :: Hot_Halo_Temperature_Profiles, only : hotHaloTemperatureProfileClass
+    use :: Input_Parameters       , only : inputParameter          , inputParameters
+    use :: Cooling_Functions      , only : coolingFunctionClass
+    use :: Cosmology_Functions    , only : cosmologyFunctionsClass
+    use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
     implicit none
     type            (outputAnalysisICMXrayLuminosityTemperature)                              :: self
     type            (inputParameters                           ), intent(inout)               :: parameters
     double precision                                            , allocatable  , dimension(:) :: systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient
     class           (outputTimesClass                          ), pointer                     :: outputTimes_
     class           (darkMatterHaloScaleClass                  ), pointer                     :: darkMatterHaloScale_
-    class           (hotHaloMassDistributionClass              ), pointer                     :: hotHaloMassDistribution_
-    class           (hotHaloTemperatureProfileClass            ), pointer                     :: hotHaloTemperatureProfile_
     class           (coolingFunctionClass                      ), pointer                     :: coolingFunction_
     class           (cosmologyFunctionsClass                   ), pointer                     :: cosmologyFunctions_
     double precision                                                                          :: randomErrorMinimum                  , randomErrorMaximum
@@ -106,28 +100,24 @@ contains
       <defaultValue>0.05d0</defaultValue>
       <description>The maximum random error for X-ray temperature.</description>
     </inputParameter>
-    <objectBuilder class="outputTimes"               name="outputTimes_"               source="parameters"/>
-    <objectBuilder class="cosmologyFunctions"        name="cosmologyFunctions_"        source="parameters"/>
-    <objectBuilder class="darkMatterHaloScale"       name="darkMatterHaloScale_"       source="parameters"/>
-    <objectBuilder class="hotHaloMassDistribution"   name="hotHaloMassDistribution_"   source="parameters"/>
-    <objectBuilder class="hotHaloTemperatureProfile" name="hotHaloTemperatureProfile_" source="parameters"/>
-    <objectBuilder class="coolingFunction"           name="coolingFunction_"           source="parameters"/>
+    <objectBuilder class="outputTimes"         name="outputTimes_"         source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    <objectBuilder class="coolingFunction"     name="coolingFunction_"     source="parameters"/>
     !!]
     ! Build the object.
-    self=outputAnalysisICMXrayLuminosityTemperature(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,outputTimes_,cosmologyFunctions_,darkMatterHaloScale_,hotHaloMassDistribution_,hotHaloTemperatureProfile_,coolingFunction_)
+    self=outputAnalysisICMXrayLuminosityTemperature(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,outputTimes_,cosmologyFunctions_,darkMatterHaloScale_,coolingFunction_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="outputTimes_"              />
-    <objectDestructor name="cosmologyFunctions_"       />
-    <objectDestructor name="darkMatterHaloScale_"      />
-    <objectDestructor name="hotHaloMassDistribution_"  />
-    <objectDestructor name="hotHaloTemperatureProfile_"/>
-    <objectDestructor name="coolingFunction_"          />
+    <objectDestructor name="outputTimes_"        />
+    <objectDestructor name="cosmologyFunctions_" />
+    <objectDestructor name="darkMatterHaloScale_"/>
+    <objectDestructor name="coolingFunction_"    />
     !!]
     return
   end function icmXrayLuminosityTemperatureConstructorParameters
 
-  function icmXrayLuminosityTemperatureConstructorInternal(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,outputTimes_,cosmologyFunctions_,darkMatterHaloScale_,hotHaloMassDistribution_,hotHaloTemperatureProfile_,coolingFunction_) result (self)
+  function icmXrayLuminosityTemperatureConstructorInternal(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,outputTimes_,cosmologyFunctions_,darkMatterHaloScale_,coolingFunction_) result (self)
     !!{
     Constructor for the ``icmXrayLuminosityTemperature'' output analysis class for internal use.
     !!}
@@ -151,8 +141,6 @@ contains
     class           (outputTimesClass                                   ), intent(inout), target         :: outputTimes_
     class           (cosmologyFunctionsClass                            ), intent(in   ), target         :: cosmologyFunctions_
     class           (darkMatterHaloScaleClass                           ), intent(in   ), target         :: darkMatterHaloScale_
-    class           (hotHaloMassDistributionClass                       ), intent(in   ), target         :: hotHaloMassDistribution_
-    class           (hotHaloTemperatureProfileClass                     ), intent(in   ), target         :: hotHaloTemperatureProfile_
     class           (coolingFunctionClass                               ), intent(in   ), target         :: coolingFunction_
     integer                                                              , parameter                     :: covarianceBinomialBinsPerDecade                 =10
     double precision                                                     , parameter                     :: covarianceBinomialMassHaloMinimum               = 1.0d08, covarianceBinomialMassHaloMaximum    =1.0d16
@@ -178,7 +166,7 @@ contains
          &                                                                                                  countTemperaturesPerDecade                      =5.0d0
     integer         (c_size_t                                           )                                :: iOutput                                                 , countTemperatures
     !![
-    <constructorAssign variables="systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, *cosmologyFunctions_, *darkMatterHaloScale_, *hotHaloMassDistribution_, *hotHaloTemperatureProfile_, *coolingFunction_"/>
+    <constructorAssign variables="systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, *cosmologyFunctions_, *darkMatterHaloScale_, *coolingFunction_"/>
     !!]
     
     ! Construct bins in temperature.
@@ -258,12 +246,12 @@ contains
     ! Create an X-ray temperature property extractor.
     allocate(nodePropertyExtractor_                          )
     !![
-    <referenceConstruct object="nodePropertyExtractor_"                           constructor="nodePropertyExtractorICMXRayTemperature        (cosmologyFunctions_,darkMatterHaloScale_,hotHaloMassDistribution_,hotHaloTemperatureProfile_,coolingFunction_)"/>
+    <referenceConstruct object="nodePropertyExtractor_"                           constructor="nodePropertyExtractorICMXRayTemperature        (cosmologyFunctions_,darkMatterHaloScale_,coolingFunction_                                                    )"/>
     !!]
     ! Create an X-ray luminosity property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_          )
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"           constructor="nodePropertyExtractorICMXRayLuminosity         (cosmologyFunctions_,darkMatterHaloScale_,hotHaloMassDistribution_,hotHaloTemperatureProfile_,coolingFunction_)"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"           constructor="nodePropertyExtractorICMXRayLuminosity         (cosmologyFunctions_,darkMatterHaloScale_,coolingFunction_                                                    )"/>
     !!]
     ! Build the object.
     self%outputAnalysisMeanFunction1D=outputAnalysisMeanFunction1D(                                                                              &
@@ -328,12 +316,10 @@ contains
     type(outputAnalysisICMXrayLuminosityTemperature), intent(inout) :: self
     
     !![
-    <objectDestructor name="self%outputTimes_"              />
-    <objectDestructor name="self%cosmologyFunctions_"       />
-    <objectDestructor name="self%darkMatterHaloScale_"      />
-    <objectDestructor name="self%hotHaloMassDistribution_"  />
-    <objectDestructor name="self%hotHaloTemperatureProfile_"/>
-    <objectDestructor name="self%coolingFunction_"          />
+    <objectDestructor name="self%outputTimes_"        />
+    <objectDestructor name="self%cosmologyFunctions_" />
+    <objectDestructor name="self%darkMatterHaloScale_"/>
+    <objectDestructor name="self%coolingFunction_"    />
     !!]
     return
   end subroutine icmXrayLuminosityTemperatureDestructor

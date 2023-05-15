@@ -22,13 +22,11 @@
   time scales as inverse density.
   !!}
 
-  use :: Cooling_Times                , only : coolingTimeClass
-  use :: Cooling_Times_Available      , only : coolingTimeAvailableClass
-  use :: Cosmology_Functions          , only : cosmologyFunctions            , cosmologyFunctionsClass
-  use :: Dark_Matter_Halo_Scales      , only : darkMatterHaloScaleClass
-  use :: Hot_Halo_Mass_Distributions  , only : hotHaloMassDistributionClass
-  use :: Hot_Halo_Temperature_Profiles, only : hotHaloTemperatureProfileClass
-  use :: Kind_Numbers                 , only : kind_int8
+  use :: Cooling_Times          , only : coolingTimeClass
+  use :: Cooling_Times_Available, only : coolingTimeAvailableClass
+  use :: Cosmology_Functions    , only : cosmologyFunctions       , cosmologyFunctionsClass
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
+  use :: Kind_Numbers           , only : kind_int8
 
   !![
   <coolingRadius name="coolingRadiusIsothermal">
@@ -69,8 +67,6 @@
      class           (darkMatterHaloScaleClass               ), pointer :: darkMatterHaloScale_       => null()
      class           (coolingTimeAvailableClass              ), pointer :: coolingTimeAvailable_      => null()
      class           (coolingTimeClass                       ), pointer :: coolingTime_               => null()
-     class           (hotHaloTemperatureProfileClass         ), pointer :: hotHaloTemperatureProfile_ => null()
-     class           (hotHaloMassDistributionClass           ), pointer :: hotHaloMassDistribution_   => null()
      type            (radiationFieldCosmicMicrowaveBackground), pointer :: radiation                  => null()
      integer         (kind=kind_int8                         )          :: lastUniqueID               =  -1
      integer                                                            :: abundancesCount                     , chemicalsCount
@@ -106,37 +102,31 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type (coolingRadiusIsothermal       )                :: self
-    type (inputParameters               ), intent(inout) :: parameters
-    class(coolingTimeAvailableClass     ), pointer       :: coolingTimeAvailable_
-    class(coolingTimeClass              ), pointer       :: coolingTime_
-    class(darkMatterHaloScaleClass      ), pointer       :: darkMatterHaloScale_
-    class(hotHaloTemperatureProfileClass), pointer       :: hotHaloTemperatureProfile_
-    class(hotHaloMassDistributionClass  ), pointer       :: hotHaloMassDistribution_
-    class(cosmologyFunctionsClass       ), pointer       :: cosmologyFunctions_
+    type (coolingRadiusIsothermal  )                :: self
+    type (inputParameters          ), intent(inout) :: parameters
+    class(coolingTimeAvailableClass), pointer       :: coolingTimeAvailable_
+    class(coolingTimeClass         ), pointer       :: coolingTime_
+    class(darkMatterHaloScaleClass ), pointer       :: darkMatterHaloScale_
+    class(cosmologyFunctionsClass  ), pointer       :: cosmologyFunctions_
 
     !![
-    <objectBuilder class="cosmologyFunctions"        name="cosmologyFunctions_"        source="parameters"/>
-    <objectBuilder class="darkMatterHaloScale"       name="darkMatterHaloScale_"       source="parameters"/>
-    <objectBuilder class="coolingTimeAvailable"      name="coolingTimeAvailable_"      source="parameters"/>
-    <objectBuilder class="coolingTime"               name="coolingTime_"               source="parameters"/>
-    <objectBuilder class="hotHaloTemperatureProfile" name="hotHaloTemperatureProfile_" source="parameters"/>
-    <objectBuilder class="hotHaloMassDistribution"   name="hotHaloMassDistribution_"   source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
+    <objectBuilder class="coolingTimeAvailable" name="coolingTimeAvailable_" source="parameters"/>
+    <objectBuilder class="coolingTime"          name="coolingTime_"          source="parameters"/>
     !!]
-    self=coolingRadiusIsothermal(cosmologyFunctions_,darkMatterHaloScale_,coolingTimeAvailable_,coolingTime_,hotHaloTemperatureProfile_,hotHaloMassDistribution_)
+    self=coolingRadiusIsothermal(cosmologyFunctions_,darkMatterHaloScale_,coolingTimeAvailable_,coolingTime_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="cosmologyFunctions_"       />
-    <objectDestructor name="darkMatterHaloScale_"      />
-    <objectDestructor name="coolingTimeAvailable_"     />
-    <objectDestructor name="coolingTime_"              />
-    <objectDestructor name="hotHaloTemperatureProfile_"/>
-    <objectDestructor name="hotHaloMassDistribution_"  />
+    <objectDestructor name="cosmologyFunctions_"  />
+    <objectDestructor name="darkMatterHaloScale_" />
+    <objectDestructor name="coolingTimeAvailable_"/>
+    <objectDestructor name="coolingTime_"         />
     !!]
     return
   end function isothermalConstructorParameters
 
-  function isothermalConstructorInternal(cosmologyFunctions_,darkMatterHaloScale_,coolingTimeAvailable_,coolingTime_,hotHaloTemperatureProfile_,hotHaloMassDistribution_) result(self)
+  function isothermalConstructorInternal(cosmologyFunctions_,darkMatterHaloScale_,coolingTimeAvailable_,coolingTime_) result(self)
     !!{
     Internal constructor for the isothermal cooling radius class.
     !!}
@@ -146,15 +136,13 @@ contains
     use :: Error                        , only : Component_List           , Error_Report
     use :: Galacticus_Nodes             , only : defaultHotHaloComponent
     implicit none
-    type (coolingRadiusIsothermal       )                        :: self
-    class(cosmologyFunctionsClass       ), intent(in   ), target :: cosmologyFunctions_
-    class(darkMatterHaloScaleClass      ), intent(in   ), target :: darkMatterHaloScale_
-    class(coolingTimeAvailableClass     ), intent(in   ), target :: coolingTimeAvailable_
-    class(coolingTimeClass              ), intent(in   ), target :: coolingTime_
-    class(hotHaloTemperatureProfileClass), intent(in   ), target :: hotHaloTemperatureProfile_
-    class(hotHaloMassDistributionClass  ), intent(in   ), target :: hotHaloMassDistribution_
+    type (coolingRadiusIsothermal  )                        :: self
+    class(cosmologyFunctionsClass  ), intent(in   ), target :: cosmologyFunctions_
+    class(darkMatterHaloScaleClass ), intent(in   ), target :: darkMatterHaloScale_
+    class(coolingTimeAvailableClass), intent(in   ), target :: coolingTimeAvailable_
+    class(coolingTimeClass         ), intent(in   ), target :: coolingTime_
     !![
-    <constructorAssign variables="*cosmologyFunctions_, *darkMatterHaloScale_, *coolingTimeAvailable_, *coolingTime_, *hotHaloTemperatureProfile_, *hotHaloMassDistribution_"/>
+    <constructorAssign variables="*cosmologyFunctions_, *darkMatterHaloScale_, *coolingTimeAvailable_, *coolingTime_"/>
     !!]
 
     ! Initial state of stored solutions.
@@ -216,13 +204,11 @@ contains
     type(coolingRadiusIsothermal), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%darkMatterHaloScale_"      />
-    <objectDestructor name="self%coolingTimeAvailable_"     />
-    <objectDestructor name="self%coolingTime_"              />
-    <objectDestructor name="self%hotHaloTemperatureProfile_"/>
-    <objectDestructor name="self%cosmologyFunctions_"       />
-    <objectDestructor name="self%hotHaloMassDistribution_"  />
-    <objectDestructor name="self%radiation"                 />
+    <objectDestructor name="self%darkMatterHaloScale_" />
+    <objectDestructor name="self%coolingTimeAvailable_"/>
+    <objectDestructor name="self%coolingTime_"         />
+    <objectDestructor name="self%cosmologyFunctions_"  />
+    <objectDestructor name="self%radiation"            />
     !!]
     if (calculationResetEvent%isAttached(self,isothermalCalculationReset)) call calculationResetEvent%detach(self,isothermalCalculationReset)
     return
@@ -285,17 +271,23 @@ contains
     use :: Abundances_Structure             , only : abundances
     use :: Chemical_Abundances_Structure    , only : chemicalAbundances
     use :: Chemical_Reaction_Rates_Utilities, only : Chemicals_Mass_To_Fraction_Conversion
-    use :: Galacticus_Nodes                 , only : nodeComponentBasic                   , nodeComponentHotHalo, treeNode
+    use :: Galacticus_Nodes                 , only : nodeComponentBasic                   , nodeComponentHotHalo       , treeNode
+    use :: Mass_Distributions               , only : massDistributionClass                , kinematicsDistributionClass
+    use :: Coordinates                      , only : coordinateSpherical                  , assignment(=)
+    use :: Galactic_Structure_Options       , only : componentTypeHotHalo                 , massTypeGaseous
     implicit none
-    class           (coolingRadiusIsothermal), intent(inout), target  :: self
-    type            (treeNode               ), intent(inout), target  :: node
-    class           (nodeComponentBasic     )               , pointer :: basic
-    class           (nodeComponentHotHalo   )               , pointer :: hotHalo
-    double precision                                                  :: coolingTime      , timeAvailable          , &
-         &                                                               density          , massToDensityConversion, &
-         &                                                               temperature      , radiusVirial
-    type            (abundances             )                         :: hotAbundances
-    type            (chemicalAbundances     )                         :: chemicalFractions, chemicalMasses
+    class           (coolingRadiusIsothermal    ), intent(inout), target  :: self
+    type            (treeNode                   ), intent(inout), target  :: node
+    class           (nodeComponentBasic         )               , pointer :: basic
+    class           (nodeComponentHotHalo       )               , pointer :: hotHalo
+    class           (massDistributionClass      )               , pointer :: massDistribution_
+    class           (kinematicsDistributionClass)               , pointer :: kinematicsDistribution_
+    type            (coordinateSpherical        )                         :: coordinates
+    double precision                                                      :: coolingTime            , timeAvailable          , &
+         &                                                                   density                , massToDensityConversion, &
+         &                                                                   temperature            , radiusVirial
+    type            (abundances                 )                         :: hotAbundances
+    type            (chemicalAbundances         )                         :: chemicalFractions      , chemicalMasses
 
     ! Check if node differs from previous one for which we performed calculations.
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
@@ -325,11 +317,19 @@ contains
        call self%radiation%timeSet(basic%time())
        ! Get the virial radius.
        radiusVirial=self%darkMatterHaloScale_%radiusVirial(node)
+       ! Get the mass distribution.
+       massDistribution_       => node             %massDistribution      (                                                           )
+       kinematicsDistribution_ => massDistribution_%kinematicsDistribution(componentType=componentTypeHotHalo,massType=massTypeGaseous)      
        ! Compute density, temperature and abundances.
-       density     =self%hotHaloMassDistribution_  %density    (node,radiusVirial)
-       temperature =self%hotHaloTemperatureProfile_%temperature(node,radiusVirial)
+       coordinates=[radiusVirial,0.0d0,0.0d0]
+       density    =massDistribution_                   %density    (coordinates,componentType=componentTypeHotHalo,massType=massTypeGaseous        )
+       temperature=kinematicsDistribution_             %temperature(coordinates                                                                    )
+       !![
+       <objectDestructor name="massDistribution_"      />
+       <objectDestructor name="kinematicsDistribution_"/>
+       !!]          
        ! Compute the cooling time at the virial radius.
-       coolingTime =self%coolingTime_              %time       (node,temperature,density,hotAbundances,chemicalFractions*density,self%radiation)
+       coolingTime =self                  %coolingTime_%time       (node,temperature,density,hotAbundances,chemicalFractions*density,self%radiation)
        if (coolingTime < timeAvailable) then
           ! Cooling time available exceeds cooling time at virial radius, return virial radius.
           self%radiusStored=radiusVirial
