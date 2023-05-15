@@ -58,7 +58,7 @@ contains
     return
   end function Bondi_Hoyle_Lyttleton_Accretion_Rate
 
-  double precision function Bondi_Hoyle_Lyttleton_Accretion_Radius(mass,temperature)
+  double precision function Bondi_Hoyle_Lyttleton_Accretion_Radius(mass,temperature) result(radiusAccretion)
     !!{
     Computes the Bondi-Hoyle-Lyttleton accretion radius (in Mpc; \citealt{edgar_review_2004}).
     !!}
@@ -68,11 +68,12 @@ contains
     double precision, intent(in   ) :: mass      , temperature
     double precision                :: soundSpeed
 
-    ! Compute the sound speed.
-    soundSpeed=Ideal_Gas_Sound_Speed(temperature)
-
-    ! Compute the accretion radius
-    Bondi_Hoyle_Lyttleton_Accretion_Radius=gravitationalConstantGalacticus*mass/soundSpeed**2
+    if (temperature > 0.0d0) then
+       soundSpeed     =Ideal_Gas_Sound_Speed(temperature)
+       radiusAccretion=gravitationalConstantGalacticus*mass/soundSpeed**2
+    else
+       radiusAccretion=huge(0.0d0)
+    end if
     return
   end function Bondi_Hoyle_Lyttleton_Accretion_Radius
 
