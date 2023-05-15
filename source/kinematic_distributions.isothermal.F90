@@ -32,9 +32,10 @@
      !!}
      double precision :: temperature_, massAtomicMean
    contains
-     procedure :: isCollisional        => isothermalIsCollisional
-     procedure :: temperature          => isothermalTemperature
-     procedure :: velocityDispersion1D => isothermalVelocityDispersion1D
+     procedure :: isCollisional                  => isothermalIsCollisional
+     procedure :: temperature                    => isothermalTemperature
+     procedure :: temperatureGradientLogarithmic => isothermalTemperatureGradientLogarithmic
+     procedure :: velocityDispersion1D           => isothermalVelocityDispersion1D
   end type kinematicsDistributionIsothermal
 
   interface kinematicsDistributionIsothermal
@@ -109,11 +110,24 @@ contains
     implicit none
     class(kinematicsDistributionIsothermal), intent(inout) :: self
     class(coordinate                      ), intent(in   ) :: coordinates
-    !$GLC attributes unused :: coordinates,
+    !$GLC attributes unused :: coordinates
 
     isothermalTemperature=self%temperature_
     return
   end function isothermalTemperature
+
+  double precision function isothermalTemperatureGradientLogarithmic(self,coordinates)
+    !!{
+    Return the logarithmic gradient of temperature at the specified {\normalfont \ttfamily coordinates} in an isothermal kinematic distribution.
+    !!}
+    implicit none
+    class(kinematicsDistributionIsothermal), intent(inout) :: self
+    class(coordinate                      ), intent(in   ) :: coordinates
+    !$GLC attributes unused :: coordinates, self
+
+    isothermalTemperatureGradientLogarithmic=0.0d0
+    return
+  end function isothermalTemperatureGradientLogarithmic
 
   double precision function isothermalVelocityDispersion1D(self,coordinates,massDistributionEmbedding)
     !!{
