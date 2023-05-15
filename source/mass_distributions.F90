@@ -455,12 +455,20 @@ module Mass_Distributions
     <type>double precision</type>
     <pass>yes</pass>
     <argument>class(coordinate), intent(in   ) :: coordinates</argument>
+    <code>
+      !$GLC attributes unused :: self, coordinates
+      kinematicsDistributionTemperature=0.0d0
+    </code>
    </method>
    <method name="temperatureGradientLogarithmic" >
     <description>Return the logarithmic gradient of the temperature of the distribution at the given coordinates.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>class(coordinate), intent(in   ) :: coordinates</argument>
+    <code>
+      !$GLC attributes unused :: self, coordinates
+      kinematicsDistributionTemperatureGradientLogarithmic=0.0d0
+    </code>
    </method>
    <method name="velocityDispersion1D" >
     <description>Return the 1D velocity dispersion at the given coordinate.</description>
@@ -468,6 +476,10 @@ module Mass_Distributions
     <pass>yes</pass>
     <argument>class(coordinate           ), intent(in   ) :: coordinates              </argument>
     <argument>class(massDistributionClass), intent(inout) :: massDistributionEmbedding</argument>
+    <code>
+      !$GLC attributes unused :: self, coordinates, massDistributionEmbedding
+      kinematicsDistributionVelocityDispersion1D=0.0d0
+    </code>
    </method>
   </functionClass>
   !!]
