@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <!-- Schema used to validate objectDestructor directives -->
+
+  <xs:element name="objectDestructor" type="xs:string">
+    <xs:attribute name="name" use="required"/>
+  </xs:element>
+  
+</xs:schema>
