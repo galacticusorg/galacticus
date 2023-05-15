@@ -49,6 +49,7 @@
      final     ::                            compositeDestructor
      procedure :: initialize              => compositeInitialize
      procedure :: matches                 => compositeMatches
+     procedure :: kinematicsDistribution  => compositeKinematicsDistribution
      procedure :: symmetry                => compositeSymmetry
      procedure :: isDimensionless         => compositeIsDimensionless
      procedure :: massTotal               => compositeMassTotal
@@ -203,6 +204,29 @@ contains
     symmetry=self%symmetry_
     return
   end function compositeSymmetry
+
+  function compositeKinematicsDistribution(self,componentType,massType) result(kinematicsDistribution_)
+    !!{
+    Return the kinematics distribution from a composite mass distribution.
+    !!}
+    implicit none
+    class(kinematicsDistributionClass ), pointer                 :: kinematicsDistribution_
+    class(massDistributionComposite   ), intent(inout)           :: self
+    type (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    type (massDistributionList        ), pointer                 :: massDistribution_
+
+    kinematicsDistribution_ => null()
+    massDistribution_ => self%massDistributions
+    do while (associated(massDistribution_))
+       if (massDistribution_%massDistribution_%matches(componentType,massType)) then
+          if (associated(kinematicsDistribution_)) call Error_Report('multiple matching kinematic distributions - not currently supported'//{introspection:location}) 
+          kinematicsDistribution_ => massDistribution_%massDistribution_%kinematicsDistribution(componentType,massType)
+       end if
+       massDistribution_ => massDistribution_%next
+    end do
+    return
+  end function compositeKinematicsDistribution
 
   logical function compositeIsDimensionless(self)
     !!{
