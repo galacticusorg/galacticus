@@ -34,12 +34,13 @@
      double precision :: densityNormalization, mass, &
           &              scaleLength
    contains
-     procedure :: massTotal            => hernquistMassTotal
-     procedure :: density              => hernquistDensity
-     procedure :: densityRadialMoment  => hernquistDensityRadialMoment
-     procedure :: massEnclosedBySphere => hernquistMassEnclosedBySphere
-     procedure :: potential            => hernquistPotential
-     procedure :: radiusHalfMass       => hernquistRadiusHalfMass
+     procedure :: massTotal             => hernquistMassTotal
+     procedure :: density               => hernquistDensity
+     procedure :: densityGradientRadial => hernquistDensityGradientRadial
+     procedure :: densityRadialMoment   => hernquistDensityRadialMoment
+     procedure :: massEnclosedBySphere  => hernquistMassEnclosedBySphere
+     procedure :: potential             => hernquistPotential
+     procedure :: radiusHalfMass        => hernquistRadiusHalfMass
   end type massDistributionHernquist
 
   interface massDistributionHernquist
@@ -193,30 +194,61 @@ contains
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in a Hernquist mass distribution.
     !!}
-    use :: Coordinates, only : assignment(=), coordinateSpherical
     implicit none
     class           (massDistributionHernquist   ), intent(inout)           :: self
     class           (coordinate                  ), intent(in   )           :: coordinates
     type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
     type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    type            (coordinateSpherical         )                          :: position
     double precision                                                        :: r
 
     if (.not.self%matches(componentType,massType)) then
        hernquistDensity=0.0d0
        return
     end if
-    ! Get position in spherical coordinate system.
-    position        = coordinates
     ! Compute the density at this position.
-    r               =+position%r                   () &
-         &           /self    %scaleLength
-    hernquistDensity=+self    %densityNormalization   &
-         &           /        r                       &
+    r               =+coordinates%rSpherical          () &
+         &           /self       %scaleLength
+    hernquistDensity=+self       %densityNormalization   &
+         &           /        r                          &
          &           /(+1.0d0+r)**3
     return
   end function hernquistDensity
 
+  double precision function hernquistDensityGradientRadial(self,coordinates,logarithmic,componentType,massType)
+    !!{
+    Return the density gradient in the radial direction in a scaled spherical mass distribution.
+    !!}
+    implicit none
+    class           (massDistributionHernquist   ), intent(inout)              :: self
+    class           (coordinate                  ), intent(in   )              :: coordinates
+    logical                                       , intent(in   ), optional    :: logarithmic
+    type            (enumerationComponentTypeType), intent(in   ), optional    :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ), optional    :: massType
+    double precision                                                           :: r
+    !![
+    <optionalArgument name="logarithmic" defaultsTo=".false."/>
+    !!]
+    
+    if (.not.self%matches(componentType,massType)) then
+       hernquistDensityGradientRadial=0.0d0
+       return
+    end if
+    ! Compute the density at this position.
+    r       =+coordinates%rSpherical () &
+         &   /self       %scaleLength
+    if (logarithmic_) then
+       hernquistDensityGradientRadial=-(+1.0d0+4.0d0*r) &
+            &                         /(+1.0d0+      r)
+    else
+       hernquistDensityGradientRadial=-self    %densityNormalization   &
+            &                         /self    %scaleLength            &
+            &                         *(+1.0d0+4.0d0*r)                &
+            &                         /              r **2             &
+            &                         /(+1.0d0+      r)**4
+    end if
+    return
+  end function hernquistDensityGradientRadial
+  
   double precision function hernquistDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite,componentType,massType)
     !!{
     Returns a radial density moment for the Hernquist mass distribution.
