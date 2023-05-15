@@ -74,6 +74,7 @@
      procedure :: besselFactorPotential             => exponentialDiskBesselFactorPotential
      procedure :: massTotal                         => exponentialDiskMassTotal
      procedure :: density                           => exponentialDiskDensity
+     procedure :: densityGradientRadial             => exponentialDensityGradientRadial
      procedure :: densitySphericalAverage           => exponentialDiskDensitySphericalAverage
      procedure :: surfaceDensity                    => exponentialDiskSurfaceDensity
      procedure :: massEnclosedBySphere              => exponentialDiskMassEnclosedBySphere
@@ -372,6 +373,50 @@ contains
     return
   end function exponentialDiskDensity
 
+  double precision function exponentialDensityGradientRadial(self,coordinates,logarithmic,componentType,massType)
+    !!{
+    Return the density gradient in the radial direction in a scaled spherical mass distribution.
+    !!}
+    use :: Coordinates, only : assignment(=), coordinateCylindrical
+    use :: Error      , only : Error_Report
+    implicit none
+    class           (massDistributionExponentialDisk), intent(inout)           :: self
+    class           (coordinate                     ), intent(in   )           :: coordinates
+    logical                                          , intent(in   ), optional :: logarithmic
+    type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType        ), intent(in   ), optional :: massType
+    double precision                                 , parameter               :: coshArgumentMaximum=50.0d0
+    type            (coordinateCylindrical          )                          :: position
+    double precision                                                           :: r                         , z, &
+         &                                                                        coshTerm
+    !![
+    <optionalArgument name="logarithmic" defaultsTo=".false."/>
+    !!]
+    
+    if (.not.self%matches(componentType,massType)) then
+       exponentialDensityGradientRadial=0.0d0
+       return
+    end if
+    ! If disk is razor thin, density is undefined.
+    if (self%scaleHeight <= 0.0d0) call Error_Report('density undefined for razor-thin disk'//{introspection:location})
+    ! Get position in cylindrical coordinate system.
+    position=coordinates
+    ! Compute density.
+    r=    position%r() /self%scaleRadius
+    z=abs(position%z())/self%scaleHeight
+    if (z > coshArgumentMaximum) then
+       coshTerm=(2.0d0*exp(-z)/(1.0d0+exp(-2.0d0*z)))**2
+    else
+       coshTerm=1.0d0/cosh(z)**2
+    end if
+    exponentialDensityGradientRadial=-(r+2.0d0*z*tanh(z))
+    if (.not.logarithmic_)                                                                                                 &
+         & exponentialDensityGradientRadial=+         exponentialDensityGradientRadial                                     &
+         &                                  *self    %density                         (coordinates,componentType,massType) &
+         &                                  /position%rSpherical                      (                                  )
+    return
+  end function exponentialDensityGradientRadial
+  
   double precision function exponentialDiskDensitySphericalAverage(self,radius,componentType,massType)
     !!{
     Return the spherically-averaged density at the specified {\normalfont \ttfamily coordinates} in an exponential disk mass

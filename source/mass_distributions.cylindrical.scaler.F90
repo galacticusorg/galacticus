@@ -46,6 +46,7 @@
      procedure :: massTotal                         => cylindricalScalerMassTotal
      procedure :: density                           => cylindricalScalerDensity
      procedure :: densitySphericalAverage           => cylindricalScalerDensitySphericalAverage
+     procedure :: densityGradientRadial             => cylindricalScalerDensityGradientRadial
      procedure :: surfaceDensity                    => cylindricalScalerSurfaceDensity
      procedure :: radiusHalfMass                    => cylindricalScalerRadiusHalfMass
      procedure :: massEnclosedBySphere              => cylindricalScalerMassEnclosedBySphere
@@ -187,6 +188,35 @@ contains
          &                   /self                  %factorScalingLength**3
     return
   end function cylindricalScalerDensity
+
+  double precision function cylindricalScalerDensityGradientRadial(self,coordinates,logarithmic,componentType,massType)
+    !!{
+    Return the density gradient in the radial direction in a scaled cylindrical mass distribution.
+    !!}
+    implicit none
+    class  (massDistributionCylindricalScaler), intent(inout)              :: self
+    class  (coordinate                       ), intent(in   )              :: coordinates
+    logical                                   , intent(in   ), optional    :: logarithmic
+    type   (enumerationComponentTypeType     ), intent(in   ), optional    :: componentType
+    type   (enumerationMassTypeType          ), intent(in   ), optional    :: massType
+    class  (coordinate                       )               , allocatable :: coordinatesScaled
+    !![
+    <optionalArgument name="logarithmic" defaultsTo=".false."/>
+    !!]
+    
+    call coordinates%scale(1.0d0/self%factorScalingLength,coordinatesScaled)
+    cylindricalScalerDensityGradientRadial=+self%massDistribution_%densityGradientRadial(                   &
+         &                                                                               coordinatesScaled, &
+         &                                                                               logarithmic      , &
+         &                                                                               componentType    , &
+         &                                                                               massType           &
+         &                                                                              )
+    if (.not.logarithmic)                                                                 &
+         & cylindricalScalerDensityGradientRadial=+cylindricalScalerDensityGradientRadial &
+         &                                        *self%factorScalingMass                 &
+         &                                        /self%factorScalingLength**4
+    return
+  end function cylindricalScalerDensityGradientRadial
 
   double precision function cylindricalScalerDensitySphericalAverage(self,radius,componentType,massType)
     !!{
