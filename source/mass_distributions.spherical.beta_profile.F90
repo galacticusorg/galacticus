@@ -320,7 +320,7 @@ contains
             & *self%beta                                  &
             & *self%densityNormalization                  &
             & /self%coreRadius                            &
-            & * radius**2                                 &
+            & * radius                                    &
             & /(radius**2+1.0d0)**(1.5d0*self%beta+1.0d0)
     end if
     return

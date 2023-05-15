@@ -181,6 +181,19 @@ program Test_Mass_Distributions
           &      +1.793209546954886d0                                        , &
           &      absTol=1.0d-6                                                 &
           &     )
+     call Assert(                                                              &
+          &      "Density gradient (logarithmic)"                            , &
+          &      +massDistribution_%densityGradientRadial(position,.true.  ) , &
+          &      -1.000000000000000d0                                        , &
+          &      absTol=1.0d-6                                                 &
+          &     )
+     call Assert(                                                              &
+          &      "Density gradient (non-logarithmic)"                        , &
+          &      +massDistribution_%densityGradientRadial(position,.false. ) , &
+          &      +massDistribution_%densityGradientRadial(position,.true.  )   &
+          &      *massDistribution_%density              (position         ) , &
+          &      absTol=1.0d-6                                                 &
+          &     )
   end select
   ! Ensure that a dimensionful profile produces the correct mass inside of its outer radius.
   deallocate(massDistribution_)
