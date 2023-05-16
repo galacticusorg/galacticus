@@ -46,47 +46,6 @@ module Hot_Halo_Mass_Distributions
     <argument>type   (enumerationWeightByType), intent(in   ), optional :: weightBy   </argument>
     <argument>integer                         , intent(in   ), optional :: weightIndex</argument>
    </method>
-   <method name="density" >
-    <description>Return the density of the hot halo at the given {\normalfont \ttfamily radius}.</description>
-    <type>double precision</type>
-    <pass>yes</pass>
-    <argument>type            (treeNode), intent(inout) :: node</argument>
-    <argument>double precision          , intent(in   ) :: radius</argument>
-   </method>
-   <method name="densityLogSlope" >
-    <description>Return the logarithmic slope of the density of the hot halo at the given {\normalfont \ttfamily radius}.</description>
-    <type>double precision</type>
-    <pass>yes</pass>
-    <argument>type            (treeNode), intent(inout) :: node</argument>
-    <argument>double precision          , intent(in   )          :: radius</argument>
-   </method>
-   <method name="enclosedMass" >
-    <description>Return the mass enclosed in the hot halo at the given {\normalfont \ttfamily radius}.</description>
-    <type>double precision</type>
-    <pass>yes</pass>
-    <argument>type            (treeNode), intent(inout), target :: node</argument>
-    <argument>double precision          , intent(in   )         :: radius</argument>
-   </method>
-   <method name="radialMoment" >
-    <description>Return the specified radial{\normalfont \ttfamily moment} of the density of the hot halo at the given {\normalfont \ttfamily radius}.</description>
-    <type>double precision</type>
-    <pass>yes</pass>
-    <argument>type            (treeNode), intent(inout) :: node</argument>
-    <argument>double precision          , intent(in   ) :: moment, radius</argument>
-   </method>
-   <method name="densitySquaredIntegral" >
-    <description>Return the integral of the square of the density of the hot halo from zero to the given {\normalfont \ttfamily radius}.</description>
-    <type>double precision</type>
-    <pass>yes</pass>
-    <argument>type            (treeNode), intent(inout) :: node</argument>
-    <argument>double precision          , intent(in   ) :: radius</argument>
-   </method>
-   <method name="rotationNormalization" >
-    <description>Returns the relation between specific angular momentum and rotation velocity (assuming a rotation velocity that is constant in radius) for {\normalfont \ttfamily node}. Specifically, the normalization, $A$, returned is such that $V_\mathrm{rot} = A J/M$.</description>
-    <type>double precision</type>
-    <pass>yes</pass>
-    <argument>type(treeNode), intent(inout) :: node</argument>
-   </method>
   </functionClass>
   !!]
 

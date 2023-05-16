@@ -48,9 +48,8 @@ An implementation of the hot halo mass distribution class which uses the model o
      class(darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
      class(darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_  => null()
    contains
-     final     ::               ricotti2000Destructor
-     procedure :: initialize => ricotti2000Initialize
-     procedure :: get        => ricotti2000Get
+     final     ::        ricotti2000Destructor
+     procedure :: get => ricotti2000Get
   end type hotHaloMassDistributionRicotti2000
 
   interface hotHaloMassDistributionRicotti2000
@@ -161,65 +160,6 @@ contains
     !!]
     return
   end subroutine ricotti2000Destructor
-
-  subroutine ricotti2000Initialize(self,node)
-    !!{
-    Initialize the {\normalfont \ttfamily ricotti2000} hot halo density profile for the given {\normalfont \ttfamily
-    node}. Parameterizations of $\beta$ and core radius are taken from section 2.1 of \cite{ricotti_feedback_2000}.
-    !!}
-    use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, nodeComponentHotHalo, treeNode
-    implicit none
-    class           (hotHaloMassDistributionRicotti2000    ), intent(inout) :: self
-    type            (treeNode                              ), intent(inout) :: node
-    class           (nodeComponentHotHalo                  ), pointer       :: hotHalo
-    class           (nodeComponentDarkMatterProfile        ), pointer       :: darkMatterProfile
-    double precision                                        , parameter     :: virialToGasTemperatureRatio=1.0d0
-    double precision                                                        :: mass                             , radiusOuter  , &
-         &                                                                     radiusScale                      , radiusVirial , &
-         &                                                                     radiusCore                       , concentration, &
-         &                                                                     b                                , beta
-
-    ! Compute parameters of the profile.
-    hotHalo           =>  node                        %hotHalo          (    )
-    darkMatterProfile =>  node                        %darkMatterProfile(    )
-    radiusOuter       =   hotHalo                     %outerRadius      (    )
-    mass              =   hotHalo                     %mass             (    )
-    radiusScale       =           darkMatterProfile   %scale            (    )
-    radiusVirial      =   self   %darkMatterHaloScale_%radiusVirial     (node)
-    concentration     =  +radiusVirial              &
-         &               /radiusScale
-    b                 =  +(                             &
-         &                 +2.0d0                       &
-         &                 *concentration               &
-         &                 /9.0d0                       &
-         &                 /virialToGasTemperatureRatio &
-         &                )                             &
-         &               /(                             &
-         &                 +log(1.0d0+concentration)    &
-         &                 -          concentration     &
-         &                 /(                           &
-         &                   +1.0d0                     &
-         &                   +concentration             &
-         &                  )                           &
-         &                )
-    beta              =  +0.90d0      &
-         &               *b
-    radiusCore        =  +0.22d0      &
-         &               *radiusScale
-    ! Construct the mass distribution.
-    if (radiusOuter <= 0.0d0) then
-       ! If outer radius is non-positive, set mass to zero and outer radius to an arbitrary value.
-       mass=0.0d0
-       radiusOuter=1.0d0
-    end if
-     self%distribution=massDistributionBetaProfile(                         &
-         &                                         beta       =beta       , &
-         &                                         coreRadius =radiusCore , &
-         &                                         mass       =mass       , &
-         &                                         outerRadius=radiusOuter  &
-         &                                        )
-    return
-  end subroutine ricotti2000Initialize
 
   function ricotti2000Get(self,node,weightBy,weightIndex) result(massDistribution_)
     !!{

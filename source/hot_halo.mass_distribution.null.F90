@@ -35,12 +35,7 @@ A null implementation of the hot halo mass distribution class.
      !!}
      private
    contains
-     procedure :: get                   => nullGet
-     procedure :: density               => nullDensity
-     procedure :: densityLogSlope       => nullDensityLogSlope
-     procedure :: enclosedMass          => nullEnclosedMass
-     procedure :: radialMoment          => nullRadialMoment
-     procedure :: rotationNormalization => nullRotationNormalization
+     procedure :: get => nullGet
   end type hotHaloMassDistributionNull
 
   interface hotHaloMassDistributionNull
@@ -82,75 +77,3 @@ contains
     massDistribution_ => null()
     return
   end function nullGet
-
-  double precision function nullDensity(self,node,radius)
-    !!{
-    Return the density in a null hot halo mass distribution.
-    !!}
-    implicit none
-    class           (hotHaloMassDistributionNull), intent(inout) :: self
-    type            (treeNode                   ), intent(inout) :: node
-    double precision                             , intent(in   ) :: radius
-    !$GLC attributes unused :: self, node, radius
-
-    nullDensity=0.0d0
-    return
-  end function nullDensity
-
-  double precision function nullDensityLogSlope(self,node,radius)
-    !!{
-    Return the logarithmic slope of the density of the hot halo at the given {\normalfont \ttfamily radius}.
-    !!}
-    implicit none
-    class           (hotHaloMassDistributionNull), intent(inout) :: self
-    type            (treeNode                   ), intent(inout) :: node
-    double precision                             , intent(in   ) :: radius
-    !$GLC attributes unused :: self, node, radius
-
-    nullDensityLogSlope=0.0d0
-    return
-  end function nullDensityLogSlope
-
-  double precision function nullEnclosedMass(self,node,radius)
-    !!{
-    Return the mass enclosed in the hot halo at the given {\normalfont \ttfamily radius}.
-    !!}
-    implicit none
-    class           (hotHaloMassDistributionNull), intent(inout)         :: self
-    type            (treeNode                   ), intent(inout), target :: node
-    double precision                             , intent(in   )         :: radius
-    !$GLC attributes unused :: self, node, radius
-
-    nullEnclosedMass=0.0d0
-    return
-  end function nullEnclosedMass
-
-  double precision function nullRadialMoment(self,node,moment,radius)
-    !!{
-    Return the density of the hot halo at the given {\normalfont \ttfamily radius}.
-    !!}
-    implicit none
-    class           (hotHaloMassDistributionNull), intent(inout) :: self
-    type            (treeNode                   ), intent(inout) :: node
-    double precision                             , intent(in   ) :: moment, radius
-    !$GLC attributes unused :: self, node, radius, moment
-
-    nullRadialMoment=0.0d0
-    return
-  end function nullRadialMoment
-
-  double precision function nullRotationNormalization(self,node)
-    !!{
-    Returns the relation between specific angular momentum and rotation velocity (assuming a rotation velocity that is constant
-    in radius) for {\normalfont \ttfamily node}. Specifically, the normalization, $A$, returned is such that $V_\mathrm{rot} =
-    A J/M$.
-    !!}
-    implicit none
-    class(hotHaloMassDistributionNull), intent(inout) :: self
-    type (treeNode                   ), intent(inout) :: node
-    !$GLC attributes unused :: self, node
-
-    nullRotationNormalization=0.0d0
-  return
-  end function nullRotationNormalization
-
