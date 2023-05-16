@@ -60,6 +60,7 @@
      procedure :: densityGradientRadial   => compositeDensityGradientRadial
      procedure :: densityRadialMoment     => compositeDensityRadialMoment
      procedure :: densitySphericalAverage => compositeDensitySphericalAverage
+     procedure :: densitySquareIntegral   => compositeDensitySquareIntegral
      procedure :: potential               => compositePotential
      procedure :: massEnclosedBySphere    => compositeMassEnclosedBySphere
      procedure :: rotationCurve           => compositeRotationCurve
@@ -337,6 +338,33 @@ contains
     end if
     return
   end function compositeDensitySphericalAverage
+
+  double precision function compositeDensitySquareIntegral(self,radiusMinimum,radiusMaximum,componentType,massType,isInfinite)
+    !!{
+    Return the integral of the square of the density within the given radial interval.
+    !!}
+    use :: Error, only : Error_Report
+    implicit none
+    class           (massDistributionComposite   ), intent(inout)           :: self
+    double precision                              , intent(in   ), optional :: radiusMinimum    , radiusMaximum
+    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    logical                                       , intent(  out), optional :: isInfinite
+    type            (massDistributionList        ), pointer                 :: massDistribution_
+
+    compositeDensitySquareIntegral=0.0d0
+    if (associated(self%massDistributions)) then
+       massDistribution_ => self%massDistributions
+       do while (associated(massDistribution_))
+          if (massDistribution_%massDistribution_%matches(componentType,massType)) then
+             if (compositeDensitySquareIntegral /= 0.0d0) call Error_Report('support for ∫ dr ρ²(r) of multiple components is not implemented'//{introspection:location})
+             compositeDensitySquareIntegral=massDistribution_%massDistribution_%densitySquareIntegral(radiusMinimum,radiusMaximum,componentType,massType)          
+       end if
+       massDistribution_ => massDistribution_%next
+       end do
+    end if
+    return
+  end function compositeDensitySquareIntegral
 
   double precision function compositeSurfaceDensity(self,coordinates,componentType,massType)
     !!{
