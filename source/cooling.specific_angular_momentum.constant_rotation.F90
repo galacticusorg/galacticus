@@ -22,9 +22,8 @@
   radius.
   !!}
 
-  use :: Dark_Matter_Profiles_DMO   , only : darkMatterProfileDMOClass
-  use :: Hot_Halo_Mass_Distributions, only : hotHaloMassDistributionClass
-  use :: Kind_Numbers               , only : kind_int8
+  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+  use :: Kind_Numbers            , only : kind_int8
 
   ! Enumeration for angular momentum source.
   !![
@@ -71,7 +70,6 @@
      !!}
      private
      class           (darkMatterProfileDMOClass           ), pointer :: darkMatterProfileDMO_             => null()
-     class           (hotHaloMassDistributionClass        ), pointer :: hotHaloMassDistribution_          => null()
      integer         (kind=kind_int8                      )          :: lastUniqueID
      logical                                                         :: angularMomentumSpecificComputed
      double precision                                                :: angularMomentumSpecificPrevious
@@ -108,7 +106,6 @@ contains
     type   (coolingSpecificAngularMomentumConstantRotation)                :: self
     type   (inputParameters                               ), intent(inout) :: parameters
     class  (darkMatterProfileDMOClass                     ), pointer       :: darkMatterProfileDMO_
-    class  (hotHaloMassDistributionClass                  ), pointer       :: hotHaloMassDistribution_
     logical                                                                :: useInteriorMean
     type   (varying_string                                )                :: sourceAngularMomentumSpecificMean, sourceNormalizationRotation
 
@@ -137,36 +134,32 @@ contains
       <description>Specifies whether to use the specific angular momentum at the cooling radius, or the mean specific angular momentum interior to that radius.</description>
       <source>parameters</source>
     </inputParameter>
-    <objectBuilder class="darkMatterProfileDMO"    name="darkMatterProfileDMO_"    source="parameters"/>
-    <objectBuilder class="hotHaloMassDistribution" name="hotHaloMassDistribution_" source="parameters"/>
+    <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
     !!]
     self=coolingSpecificAngularMomentumConstantRotation(                                                                                                        &
          &                                              darkMatterProfileDMO_                                                                                 , &
-         &                                              hotHaloMassDistribution_                                                                              , &
          &                                              enumerationAngularMomentumSourceEncode(char(sourceAngularMomentumSpecificMean),includesPrefix=.false.), &
          &                                              enumerationAngularMomentumSourceEncode(char(sourceNormalizationRotation      ),includesPrefix=.false.), &
          &                                              useInteriorMean                                                                                         &
          &                                             )
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="darkMatterProfileDMO_"   />
-    <objectDestructor name="hotHaloMassDistribution_"/>
+    <objectDestructor name="darkMatterProfileDMO_"/>
     !!]
     return
   end function constantRotationConstructorParameters
 
-  function constantRotationConstructorInternal(darkMatterProfileDMO_,hotHaloMassDistribution_,sourceAngularMomentumSpecificMean,sourceNormalizationRotation,useInteriorMean) result(self)
+  function constantRotationConstructorInternal(darkMatterProfileDMO_,sourceAngularMomentumSpecificMean,sourceNormalizationRotation,useInteriorMean) result(self)
     !!{
     Internal constructor for the darkMatterHalo freefall radius class.
     !!}
     implicit none
     type   (coolingSpecificAngularMomentumConstantRotation)                        :: self
     class  (darkMatterProfileDMOClass                     ), intent(in   ), target :: darkMatterProfileDMO_
-    class  (hotHaloMassDistributionClass                  ), intent(in   ), target :: hotHaloMassDistribution_
     type   (enumerationAngularMomentumSourceType          ), intent(in   )         :: sourceAngularMomentumSpecificMean, sourceNormalizationRotation
     logical                                                , intent(in   )         :: useInteriorMean
     !![
-    <constructorAssign variables="*darkMatterProfileDMO_, *hotHaloMassDistribution_, sourceAngularMomentumSpecificMean, sourceNormalizationRotation, useInteriorMean"/>
+    <constructorAssign variables="*darkMatterProfileDMO_, sourceAngularMomentumSpecificMean, sourceNormalizationRotation, useInteriorMean"/>
     !!]
 
     self%lastUniqueID                   =-1_kind_int8
@@ -194,8 +187,7 @@ contains
     type(coolingSpecificAngularMomentumConstantRotation), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%darkMatterProfileDMO_"   />
-    <objectDestructor name="self%hotHaloMassDistribution_"/>
+    <objectDestructor name="self%darkMatterProfileDMO_"/>
     !!]
     if (calculationResetEvent%isAttached(self,constantRotationCalculationReset)) call calculationResetEvent%detach(self,constantRotationCalculationReset)
     return
@@ -208,6 +200,8 @@ contains
     use :: Error                           , only : Error_Report
     use :: Galacticus_Nodes                , only : nodeComponentBasic             , nodeComponentHotHalo, nodeComponentSpin, treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Mass_Distributions              , only : massDistributionClass
+    use :: Galactic_Structure_Options      , only : componentTypeHotHalo           , massTypeGaseous
     implicit none
     class           (coolingSpecificAngularMomentumConstantRotation), intent(inout) :: self
     type            (treeNode                                      ), intent(inout) :: node
@@ -215,6 +209,7 @@ contains
     class           (nodeComponentBasic                            ), pointer       :: basic
     class           (nodeComponentSpin                             ), pointer       :: spin
     class           (nodeComponentHotHalo                          ), pointer       :: hotHalo
+    class           (massDistributionClass                         ), pointer       :: massDistribution_
     double precision                                                                :: angularMomentumSpecificMean, normalizationRotation
 
     ! Check if node differs from previous one for which we performed calculations.
@@ -243,9 +238,15 @@ contains
        ! Compute the rotation normalization.
        select case (self%sourceNormalizationRotation      %ID)
        case (angularMomentumSourceDarkMatter%ID)
-          normalizationRotation=self%darkMatterProfileDMO_   %rotationNormalization(node)
+          normalizationRotation =   self             %darkMatterProfileDMO_%rotationNormalization(node                                                                                                        )
        case (angularMomentumSourceHotGas    %ID)
-          normalizationRotation=self%hotHaloMassDistribution_%rotationNormalization(node)
+          hotHalo               =>  node                                   %hotHalo              (                                                                                                            )
+          massDistribution_     =>  node                                   %massDistribution     (                                                                                                            )
+          normalizationRotation =  +massDistribution_                      %densityRadialMoment  (moment=2.0d0,radiusMaximum=hotHalo%outerRadius(),componentType=componentTypeHotHalo,massType=massTypeGaseous) &
+               &                   /massDistribution_                      %densityRadialMoment  (moment=3.0d0,radiusMaximum=hotHalo%outerRadius(),componentType=componentTypeHotHalo,massType=massTypeGaseous)
+          !![
+	  <objectDestructor name="massDistribution_"/>
+          !!]          
        case default
           normalizationRotation=0.0d0
           call Error_Report('unknown profile type'//{introspection:location})
@@ -259,13 +260,17 @@ contains
        ! Return the computed value.
        if (self%useInteriorMean) then
           ! Find the specific angular momentum interior to the specified radius.
-          constantRotationAngularMomentumSpecific=+self                         %angularMomentumSpecificPrevious                    &
-               &                                  *self%hotHaloMassDistribution_%radialMoment                   (node,3.0d0,radius) &
-               &                                  /self%hotHaloMassDistribution_%radialMoment                   (node,2.0d0,radius)
+          massDistribution_                       =>  node             %massDistribution               (                                                                        )
+          constantRotationAngularMomentumSpecific =  +self             %angularMomentumSpecificPrevious                                                                           &
+               &                                     *massDistribution_%densityRadialMoment            (3.0d0,radius,componentType=componentTypeHotHalo,massType=massTypeGaseous) &
+               &                                     /massDistribution_%densityRadialMoment            (2.0d0,radius,componentType=componentTypeHotHalo,massType=massTypeGaseous)
+          !![
+	  <objectDestructor name="massDistribution_"/>
+          !!]          
        else
           ! Find the specific angular momentum at the specified radius.
-          constantRotationAngularMomentumSpecific=+self                         %angularMomentumSpecificPrevious                    &
-               &                                  *                                                                         radius
+          constantRotationAngularMomentumSpecific =  +self             %angularMomentumSpecificPrevious               &
+               &                                     *                                                        radius
        end if
     else
        ! Radius is non-positive - return zero.

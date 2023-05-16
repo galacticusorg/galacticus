@@ -38,10 +38,8 @@ An implementation of the hot halo temperature class which uses an isothermal vir
      private
      class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
    contains
-     final     ::                        virialDestructor
-     procedure :: get                 => virialGet
-     procedure :: temperature         => virialTemperature
-     procedure :: temperatureLogSlope => virialTemperatureLogSlope
+     final     ::        virialDestructor
+     procedure :: get => virialGet
   end type hotHaloTemperatureProfileVirial
 
   interface hotHaloTemperatureProfileVirial
@@ -130,33 +128,3 @@ contains
     end select
     return
   end function virialGet
-
-  double precision function virialTemperature(self,node,radius)
-    !!{
-    Return the density in a {\normalfont \ttfamily virial} hot halo mass distribution.
-    !!}
-    implicit none
-    class           (hotHaloTemperatureProfileVirial), intent(inout) :: self
-    type            (treeNode                       ), intent(inout) :: node
-    double precision                                 , intent(in   ) :: radius
-    !$GLC attributes unused :: radius
-
-    virialTemperature=self%darkMatterHaloScale_%temperatureVirial(node)
-    return
-  end function virialTemperature
-
-  double precision function virialTemperatureLogSlope(self,node,radius)
-    !!{
-    Return the logarithmic slope of the density profile in a {\normalfont \ttfamily virial} hot halo mass
-    distribution.
-    !!}
-    implicit none
-    class           (hotHaloTemperatureProfileVirial), intent(inout) :: self
-    type            (treeNode                       ), intent(inout) :: node
-    double precision                                 , intent(in   ) :: radius
-    !$GLC attributes unused :: self, node, radius
-
-    virialTemperatureLogSlope=0.0d0
-    return
-  end function virialTemperatureLogSlope
-

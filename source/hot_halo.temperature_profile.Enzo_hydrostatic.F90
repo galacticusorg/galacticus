@@ -43,10 +43,8 @@ An implementation of the hot halo temperature class which uses the ``hydrostatic
      private
      class(darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
    contains
-     final     ::                        enzoHydrostaticDestructor
-     procedure :: get                 => enzoHydrostaticGet
-     procedure :: temperature         => enzoHydrostaticTemperature
-     procedure :: temperatureLogSlope => enzoHydrostaticTemperatureLogSlope
+     final     ::        enzoHydrostaticDestructor
+     procedure :: get => enzoHydrostaticGet
   end type hotHaloTemperatureProfileEnzoHydrostatic
 
   interface hotHaloTemperatureProfileEnzoHydrostatic
@@ -136,73 +134,3 @@ contains
     end select
     return
   end function enzoHydrostaticGet
-
-  double precision function enzoHydrostaticTemperature(self,node,radius)
-    !!{
-    Return the density in a {\normalfont \ttfamily enzoHydrostatic} hot halo mass distribution.
-    !!}
-    use :: Numerical_Constants_Astronomical, only : meanAtomicMassPrimordial, gravitationalConstantGalacticus
-    use :: Numerical_Constants_Atomic      , only : massHydrogenAtom
-    use :: Numerical_Constants_Physical    , only : boltzmannsConstant
-    use :: Numerical_Constants_Prefixes    , only : kilo
-    implicit none
-    class           (hotHaloTemperatureProfileEnzoHydrostatic), intent(inout) :: self
-    type            (treeNode                                ), intent(inout) :: node
-    double precision                                          , intent(in   ) :: radius
-    double precision                                                          :: massEnclosed
-
-    if (radius == 0.0d0) then
-       enzoHydrostaticTemperature=temperatureMinimum
-    else
-       massEnclosed              =self%darkMatterProfileDMO_%enclosedMass(        &
-            &                                                             node  , &
-            &                                                             radius  &
-            &                                                            )
-       enzoHydrostaticTemperature=max(                                     &
-            &                         +kilo                           **2  &
-            &                         *gravitationalConstantGalacticus     &
-            &                         *massEnclosed                        &
-            &                         *meanAtomicMassPrimordial            &
-            &                         *massHydrogenAtom                    &
-            &                         /3.0d0                               &
-            &                         /boltzmannsConstant                  &
-            &                         /radius                            , &
-            &                         temperatureMinimum                   &
-            &                        )
-    end if
-    return
-  end function enzoHydrostaticTemperature
-
-  double precision function enzoHydrostaticTemperatureLogSlope(self,node,radius)
-    !!{
-    Return the logarithmic slope of the density profile in a {\normalfont \ttfamily enzoHydrostatic} hot halo mass
-    distribution.
-    !!}
-    use :: Numerical_Constants_Math, only : Pi
-    implicit none
-    class           (hotHaloTemperatureProfileEnzoHydrostatic), intent(inout) :: self
-    type            (treeNode                                ), intent(inout) :: node
-    double precision                                          , intent(in   ) :: radius
-    double precision                                                          :: enclosedMass, density
-
-    if (self%temperature(node,radius) <= temperatureMinimum) then
-       enzoHydrostaticTemperatureLogSlope=0.0d0
-    else
-       enclosedMass                      =  self%darkMatterProfileDMO_%enclosedMass(        &
-            &                                                                       node  , &
-            &                                                                       radius  &
-            &                                                                      )
-       density                           =  self%darkMatterProfileDMO_%density     (        &
-            &                                                                       node  , &
-            &                                                                       radius  &
-            &                                                                      )
-       enzoHydrostaticTemperatureLogSlope=+4.0d0           &
-            &                             *Pi              &
-            &                             *radius      **3 &
-            &                             *density         &
-            &                             /enclosedMass    &
-            &                             -1.0d0
-    end if
-    return
-  end function enzoHydrostaticTemperatureLogSlope
-

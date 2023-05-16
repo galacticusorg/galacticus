@@ -43,20 +43,6 @@ module Hot_Halo_Temperature_Profiles
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>
    </method>
-   <method name="temperature" >
-    <description>Return the temperature of the hot halo at the given {\normalfont \ttfamily radius}.</description>
-    <type>double precision</type>
-    <pass>yes</pass>
-    <argument>type            (treeNode), intent(inout) :: node</argument>
-    <argument>double precision          , intent(in   ) :: radius</argument>
-   </method>
-   <method name="temperatureLogSlope" >
-    <description>Return the logarithmic slope of the temperature of the hot halo at the given {\normalfont \ttfamily radius}.</description>
-    <type>double precision</type>
-    <pass>yes</pass>
-    <argument>type            (treeNode), intent(inout) :: node</argument>
-    <argument>double precision          , intent(in   ) :: radius</argument>
-   </method>
   </functionClass>
   !!]
 

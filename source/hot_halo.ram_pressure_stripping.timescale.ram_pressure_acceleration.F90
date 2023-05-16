@@ -23,7 +23,6 @@
   !!}
 
   use :: Dark_Matter_Halo_Scales     , only : darkMatterHaloScaleClass
-  use :: Hot_Halo_Mass_Distributions , only : hotHaloMassDistributionClass
   use :: Hot_Halo_Ram_Pressure_Forces, only : hotHaloRamPressureForceClass
 
   !![
@@ -49,8 +48,7 @@
      acceleration.
      !!}
      private
-     class(darkMatterHaloScaleClass    ), pointer :: darkMatterHaloScale_ => null()
-     class(hotHaloMassDistributionClass), pointer :: hotHaloMassDistribution_ => null()
+     class(darkMatterHaloScaleClass    ), pointer :: darkMatterHaloScale_     => null()
      class(hotHaloRamPressureForceClass), pointer :: hotHaloRamPressureForce_ => null()
    contains
      final     ::              ramPressureAccelerationDestructor
@@ -76,35 +74,31 @@ contains
     type (hotHaloRamPressureTimescaleRamPressureAcceleration)                :: self
     type (inputParameters                                   ), intent(inout) :: parameters
     class(darkMatterHaloScaleClass                          ), pointer       :: darkMatterHaloScale_
-    class(hotHaloMassDistributionClass                      ), pointer       :: hotHaloMassDistribution_
     class(hotHaloRamPressureForceClass                      ), pointer       :: hotHaloRamPressureForce_
 
     !![
     <objectBuilder class="darkMatterHaloScale"     name="darkMatterHaloScale_"     source="parameters"/>
-    <objectBuilder class="hotHaloMassDistribution" name="hotHaloMassDistribution_" source="parameters"/>
     <objectBuilder class="hotHaloRamPressureForce" name="hotHaloRamPressureForce_" source="parameters"/>
     !!]
-    self=hotHaloRamPressureTimescaleRamPressureAcceleration(darkMatterHaloScale_,hotHaloMassDistribution_,hotHaloRamPressureForce_)
+    self=hotHaloRamPressureTimescaleRamPressureAcceleration(darkMatterHaloScale_,hotHaloRamPressureForce_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterHaloScale_"    />
-    <objectDestructor name="hotHaloMassDistribution_"/>
     <objectDestructor name="hotHaloRamPressureForce_"/>
     !!]
     return
   end function ramPressureAccelerationConstructorParameters
 
-  function ramPressureAccelerationConstructorInternal(darkMatterHaloScale_,hotHaloMassDistribution_,hotHaloRamPressureForce_) result(self)
+  function ramPressureAccelerationConstructorInternal(darkMatterHaloScale_,hotHaloRamPressureForce_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily ramPressureAcceleration} hot halo ram pressure timescale class.
     !!}
     implicit none
     type (hotHaloRamPressureTimescaleRamPressureAcceleration)                        :: self
     class(darkMatterHaloScaleClass                          ), intent(in   ), target :: darkMatterHaloScale_
-    class(hotHaloMassDistributionClass                      ), intent(in   ), target :: hotHaloMassDistribution_
     class(hotHaloRamPressureForceClass                      ), intent(in   ), target :: hotHaloRamPressureForce_
     !![
-    <constructorAssign variables="*darkMatterHaloScale_, *hotHaloMassDistribution_, *hotHaloRamPressureForce_"/>
+    <constructorAssign variables="*darkMatterHaloScale_, *hotHaloRamPressureForce_"/>
     !!]
 
     return
@@ -119,7 +113,6 @@ contains
 
     !![
     <objectDestructor name="self%darkMatterHaloScale_"    />
-    <objectDestructor name="self%hotHaloMassDistribution_"/>
     <objectDestructor name="self%hotHaloRamPressureForce_"/>
     !!]
     return
@@ -133,9 +126,12 @@ contains
     that radius, and $P_\mathrm{ram}$ is the ram pressure force (per unit area). The surface density is approximated as
     $\Sigma_\mathrm{outer} \approx r_\mathrm{outer} \rho_\mathrm{outer}$, where $\rho_\mathrm{outer}$ is the density at the outer radius.
     !!}
-    use :: Galacticus_Nodes                , only : nodeComponentHotHalo, treeNode
-    use :: Numerical_Constants_Astronomical, only : gigaYear            , megaParsec
+    use :: Galacticus_Nodes                , only : nodeComponentHotHalo , treeNode
+    use :: Numerical_Constants_Astronomical, only : gigaYear             , megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
+    use :: Mass_Distributions              , only : massDistributionClass
+    use :: Coordinates                     , only : coordinateSpherical  , assignment(=)
+    use :: Galactic_Structure_Options      , only : componentTypeHotHalo , massTypeGaseous
     implicit none
     class           (hotHaloRamPressureTimescaleRamPressureAcceleration), intent(inout) :: self
     type            (treeNode                                          ), intent(inout) :: node
@@ -143,16 +139,23 @@ contains
     type            (treeNode                                          ), pointer       :: nodeHost
     double precision                                                    , parameter     :: timescaleInfinite       =huge(1.0d0)
     double precision                                                    , parameter     :: velocityStrippingMaximum=     1.0d1
+    class           (massDistributionClass                             ), pointer       :: massDistribution_
+    type            (coordinateSpherical                               )                :: coordinates
     double precision                                                                    :: radiusOuter                         , densityOuter       , &
          &                                                                                 forceRamPressure                    , surfaceDensityOuter
 
     ! Evaluate surface density and ram pressure force.
-    hotHalo             =>  node                            %hotHalo    (                )
-    radiusOuter         =   hotHalo                         %outerRadius(                )
-    densityOuter        =   self   %hotHaloMassDistribution_%density    (node,radiusOuter)
-    forceRamPressure    =   self   %hotHaloRamPressureForce_%force      (node            )
+    massDistribution_   =>  node                                      %massDistribution(                                                                       )
+    hotHalo             =>  node                                      %hotHalo         (                                                                       )
+    radiusOuter         =   hotHalo                                   %outerRadius     (                                                                       )
+    coordinates         =  [radiusOuter,0.0d0,0.0d0]
+    densityOuter        =   massDistribution_                         %density         (coordinates,componentType=componentTypeHotHalo,massType=massTypeGaseous)
+    forceRamPressure    =   self             %hotHaloRamPressureForce_%force           (node                                                                   )
     surfaceDensityOuter =  +radiusOuter  &
          &                 *densityOuter
+    !![
+    <objectDestructor name="massDistribution_"/>
+    !!]          
     ! Exit with infinite timescale for zero ram pressure force.
     if (forceRamPressure <= 0.0d0) then
        ramPressureAccelerationTimescale=timescaleInfinite
