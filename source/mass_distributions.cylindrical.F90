@@ -39,6 +39,7 @@
      !!]
      procedure                                      :: symmetry              => cylindricalSymmetry
      procedure                                      :: chandrasekharIntegral => cylindricalChandrasekharIntegral
+     procedure                                      :: densityRadialMoment   => cylindricalDensityRadialMoment
      procedure(cylindricalRadiusHalfMass), deferred :: radiusHalfMass
   end type massDistributionCylindrical
 
@@ -227,3 +228,22 @@ contains
          &                           *factorSuppressionExtendedMass
     return
   end function cylindricalChandrasekharIntegral
+
+  
+  double precision function cylindricalDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite,componentType,massType)
+    !!{
+    Computes radial moments of the density in cylindrical mass distributions.
+    !!}
+    use :: Error, only : Error_Report
+    implicit none
+    class           (massDistributionCylindrical ), intent(inout)           :: self
+    double precision                              , intent(in   )           :: moment
+    double precision                              , intent(in   ), optional :: radiusMinimum, radiusMaximum
+    logical                                       , intent(  out), optional :: isInfinite
+    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+
+    cylindricalDensityRadialMoment=0.0d0
+    if (self%matches(componentType,massType)) call Error_Report('radial density moments are not defined in cylindrical mass distributions'//{introspection:location})
+    return
+  end function cylindricalDensityRadialMoment
