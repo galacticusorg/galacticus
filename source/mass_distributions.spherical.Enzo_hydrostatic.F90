@@ -137,10 +137,10 @@ contains
     type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
     type            (enumerationMassTypeType        ), intent(in   ), optional :: massType
     !![
-    <constructorAssign variables="componentType, massType"/>
+    <constructorAssign variables="radiusScale, radiusOuter, mass, truncateAtOuterRadius, componentType, massType"/>
     !!]
 
-    ! Thisd distribution profile is never dimensionless.
+    ! This distribution profile is never dimensionless.
     self%dimensionless               =.false.
     self%normalizationDensityComputed=.false.
     return
