@@ -380,8 +380,10 @@ module Mass_Distributions
     <description>Return the integral over the square of the density of the distribution.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>double precision, intent(in   ), optional :: radiusMinimum, radiusMaximum</argument>
-    <argument>logical         , intent(  out), optional :: isInfinite                  </argument>
+    <argument>double precision                              , intent(in   ), optional :: radiusMinimum, radiusMaximum</argument>
+    <argument>type            (enumerationComponentTypeType), intent(in   ), optional :: componentType               </argument>
+    <argument>type            (enumerationMassTypeType     ), intent(in   ), optional :: massType                    </argument>
+    <argument>logical                                       , intent(  out), optional :: isInfinite                  </argument>
    </method>
    <method name="chandrasekharIntegral" >
     <description>Return the Chandresekhar integral of the distribution.</description>

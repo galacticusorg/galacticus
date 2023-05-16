@@ -578,7 +578,7 @@ contains
     else
        fractionalRadiusMinimum=0.0d0
     end if
-    if (specialCaseMoment /= 0) then
+    if (specialCaseMoment /= -huge(0)) then
        ! Special case for 0ᵗʰ, 1ˢᵗ, 2ⁿᵈ, and 3ʳᵈ moments of a β=2/3 distribution.
        betaProfileDensityRadialMoment=                                          &
             & +betaProfileDensityRadialMoment                                   &
@@ -668,7 +668,7 @@ contains
 
   end function betaProfileDensityRadialMoment
 
-  double precision function betaProfileDensitySquareIntegral(self,radiusMinimum,radiusMaximum,isInfinite)
+  double precision function betaProfileDensitySquareIntegral(self,radiusMinimum,radiusMaximum,componentType,massType,isInfinite)
     !!{
     Computes the integral of the square of the density in a $\beta$-profile mass distribution.
     !!}
@@ -676,15 +676,18 @@ contains
     use :: Hypergeometric_Functions, only : Hypergeometric_2F1
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    class           (massDistributionBetaProfile), intent(inout)           :: self
-    double precision                             , intent(in   ), optional :: radiusMinimum          , radiusMaximum
-    logical                                      , intent(  out), optional :: isInfinite
-    logical                                                                :: haveRadiusMinimum      , haveRadiusMaximum
-    double precision                                                       :: radiusMinimum_         , radiusMaximum_         , &
-         &                                                                    fractionalRadiusMinimum, fractionalRadiusMaximum
+    class           (massDistributionBetaProfile ), intent(inout)           :: self
+    double precision                              , intent(in   ), optional :: radiusMinimum          , radiusMaximum
+    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    logical                                       , intent(  out), optional :: isInfinite
+    logical                                                                 :: haveRadiusMinimum      , haveRadiusMaximum
+    double precision                                                        :: radiusMinimum_         , radiusMaximum_         , &
+         &                                                                     fractionalRadiusMinimum, fractionalRadiusMaximum
 
     if (present(isInfinite)) isInfinite=.false.
     betaProfileDensitySquareIntegral=0.0d0
+    if (.not.self%matches(componentType,massType)) return
     ! Determine effective radii.
     haveRadiusMinimum=present(radiusMinimum)
     haveRadiusMaximum=present(radiusMaximum)
