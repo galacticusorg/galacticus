@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1684358562982,
+  "lastUpdate": 1684358571007,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "7c7afada104bb6692a6570ebc994ae858631bca6",
-          "message": "Merge pull request #297 from galacticusorg/dev\n\nUse thredprivate interpolators for molecular hydrogen cross-sections",
-          "timestamp": "2022-09-14T20:16:12-07:00",
-          "tree_id": "16aed21b912fa88c796a711a1e01a67558a0dbed",
-          "url": "https://github.com/galacticusorg/galacticus/commit/7c7afada104bb6692a6570ebc994ae858631bca6"
-        },
-        "date": 1663225436221,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 357.181,
-            "unit": "seconds",
-            "range": 2.64033083154411
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10586,6 +10556,60 @@ window.BENCHMARK_DATA = {
             "value": 209.285,
             "unit": "seconds",
             "range": 0.0629483915639545
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "8d96a6fc15b56091328735ffbd2150ce2e65edd3",
+          "message": "fix(style): Formatting only",
+          "timestamp": "2023-05-17T10:14:41-07:00",
+          "tree_id": "e091de5a36524d7187f56da6f98ba8b6f1e8fc7a",
+          "url": "https://github.com/galacticusorg/galacticus/commit/8d96a6fc15b56091328735ffbd2150ce2e65edd3"
+        },
+        "date": 1684358569996,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassMetallicityRelation",
+            "value": 3.8742310654479,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassSizeRelation",
+            "value": 5.06094083141281,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassVelocityDispersionRelation",
+            "value": 0.995451347241398,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupOccupationFraction",
+            "value": 23.756989650466,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassFunction",
+            "value": 193.847396048984,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
+            "value": 5.87884747329162,
+            "unit": "-logℒ"
           }
         ]
       }
