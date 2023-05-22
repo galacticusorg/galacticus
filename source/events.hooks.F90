@@ -28,7 +28,7 @@ module Events_Hooks
   use :: Regular_Expressions, only : regEx
   use :: Locks              , only : ompLock, ompReadWriteLock
   private
-  public :: hook, hookUnspecified, dependencyExact, dependencyRegEx, eventsHooksInitialize
+  public :: hook, hookUnspecified, dependencyExact, dependencyRegEx, eventsHooksInitialize, eventsHooksFutureThread, eventsHooksAtLevelToAllLevels
 
   !![
   <enumeration>
@@ -141,7 +141,8 @@ module Events_Hooks
 #ifdef OMPPROFILE
      !$ double precision                                                      :: waitTimeRead=0.0d0  , waitTimeWrite=0.0d0
 #endif
-     integer                                                                  :: count_=0
+     character          (len=128         )                                    :: label
+     integer                                                                  :: count_      =0
      type               (hookList        ), allocatable, dimension(:), public :: hooks_
    contains
      !![
@@ -190,13 +191,48 @@ module Events_Hooks
   type   (ompLock) :: copyLock
 
   ! Globally-unique ID for events.
-  integer          :: eventID =0
+  integer          :: eventID           = 0
+
+  ! Future-thread number, used for setting up events that attach to yet-to-be-created threads.
+  integer          :: futureThread_      =-1
+  !$omp threadprivate(futureThread_)
+
+  ! State controlling whether "atLevel" attachment should be promoted to "allLevels" attachment. This is needed for objects
+  ! created in the master thread. Once all objects are deepCopied from the master thred this should no longer be needed.
+  logical          :: atLevelToAllLevels_=.false.
+  !$omp threadprivate(atLevelToAllLevels_)
   
   !![
   <eventHookManager/>
   !!]
 
 contains
+
+  subroutine eventsHooksFutureThread(futureThread)
+    !!{
+    Set the future thread to which events will attach. If no argument is given, future threads are disabled.
+    !!}
+    implicit none
+    integer, intent(in   ), optional :: futureThread
+
+    if (present(futureThread)) then
+       futureThread_=futureThread
+    else
+       futureThread_=-1
+    end if
+    return
+  end subroutine eventsHooksFutureThread
+
+  subroutine eventsHooksAtLevelToAllLevels(atLevelToAllLevels)
+    !!{
+    Set the promotion state for events attching ``at-level''.
+    !!}
+    implicit none
+    logical, intent(in   ) :: atLevelToAllLevels
+
+    atLevelToAllLevels_=atLevelToAllLevels
+    return
+  end subroutine eventsHooksAtLevelToAllLevels
 
   subroutine eventHookUnspecifiedAttach(self,object_,function_,openMPThreadBinding,label,dependencies)
     !!{
@@ -217,6 +253,7 @@ contains
     type      (hookList                          )               , allocatable, dimension(:) :: hooksTmp
     type      (hookUnspecified                   )                            , pointer      :: hook_
     type      (varying_string                    )                                           :: threadLabel
+    integer                                                                                  :: ompLevelEffective
     !$ integer                                                                               :: i
     !![
     <optionalArgument name="openMPThreadBinding" defaultsTo="openMPThreadBindingNone" />
@@ -228,6 +265,9 @@ contains
     else
        if (openMPThreadBinding_ == openMPThreadBindingNone) call Error_Report("threadprivate event hooks do not permit 'openMPThreadBindingNone'"//{introspection:location})
     end if
+    ! Check if atLevel attachment should be promoted.
+    if (atLevelToAllLevels_ .and. openMPThreadBinding_ == openMPThreadBindingAtLevel) &
+         openMPThreadBinding_=openMPThreadBindingAllLevels
     ! Lock the object.
     !$ if (self%isGlobal) call self%lock()
     ! Resize the array of hooks.
@@ -254,10 +294,16 @@ contains
     hook_      %eventID=eventID
     threadLabel        =""
     !$ threadLabel=" from thread "
-    !$ hook_%openMPLevel=OMP_Get_Level()
+    !$ ompLevelEffective=OMP_Get_Level()
+    !$ if (futureThread_ /= -1) ompLevelEffective=ompLevelEffective+1
+    !$ hook_%openMPLevel=ompLevelEffective
     !$ allocate(hook_%openMPThread(0:hook_%openMPLevel))
     !$ do i=0,hook_%openMPLevel
-    !$    hook_%openMPThread(i)=OMP_Get_Ancestor_Thread_Num(i)
+    !$    if (i == hook_%openMPLevel .and. futureThread_ /= -1) then
+    !$      hook_%openMPThread(i)=futureThread_
+    !$    else
+    !$      hook_%openMPThread(i)=OMP_Get_Ancestor_Thread_Num(i)
+    !$    end if
     !$    if (i > 0) threadLabel=threadLabel//" -> "
     !$    threadLabel=threadLabel//hook_%openMPThread(i)
     !$ end do
@@ -267,7 +313,7 @@ contains
     self%count_=self%count_+1
     call self%resolveDependencies(hook_,dependencies)
     ! Report
-    call displayMessage(var_str("attaching '")//trim(hook_%label)//"' ["//hook_%eventID//"] to event"//threadLabel//" [count="//self%count_//"]",verbosityLevelInfo)
+    call displayMessage(var_str("attaching '")//trim(hook_%label)//"' ["//hook_%eventID//"] to event "//trim(self%label)//threadLabel//" [count="//self%count_//"]",verbosityLevelInfo)
     !$ if (self%isGlobal) call self%unlock()
     return
   end subroutine eventHookUnspecifiedAttach
@@ -419,7 +465,7 @@ contains
                 !$    if (j > 0) threadLabel=threadLabel//" -> "
                 !$    threadLabel=threadLabel//OMP_Get_Ancestor_Thread_Num(j)
                 !$ end do
-                call displayMessage(var_str("detaching '")//trim(self%hooks_(i)%hook_%label)//"' ["//self%hooks_(i)%hook_%eventID//"] from event"//threadLabel//" [count="//self%count_//"]",verbosityLevelInfo)
+                call displayMessage(var_str("detaching '")//trim(self%hooks_(i)%hook_%label)//"' ["//self%hooks_(i)%hook_%eventID//"] from event"//trim(self%label)//threadLabel//" [count="//self%count_//"]",verbosityLevelInfo)
                 deallocate(self%hooks_(i)%hook_)
                 if (self%count_ > 1) then
                    call move_alloc(self%hooks_,hooksTmp)
@@ -520,7 +566,7 @@ contains
     !$ if (count(functionActive_) > 0) then
     !$    allocate(hooksTmp(count(functionActive_)))
     !$    j=0
-    !$    do i=1,size(hooksTmp)
+    !$    do i=1,self%count_
     !$       if (functionActive_(i)) then
     !$          j=j+1
     !$          hooksTmp(j)=self%hooks_(i)
