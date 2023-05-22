@@ -45,10 +45,8 @@
      ! Parameters controlling tree suspension.
      logical                                                :: suspendToRAM
      type            (varying_string             )          :: suspendPath
-     ! Parameters controlling how threads process forests.
-     logical                                                :: evolveSingleForest                      , evolveForestsInParallel
-     integer                                                :: evolveSingleForestSections
-     double precision                                       :: evolveSingleForestMassMinimum
+     ! Parameter controlling how threads process forests.
+     logical                                                :: evolveForestsInParallel
      ! Tree universes used while processing all trees.
      type            (universe                   )          :: universeWaiting                         , universeProcessed
      ! Objects used in tree processing.
@@ -86,13 +84,6 @@
      module procedure evolveForestsConstructorInternal
   end interface taskEvolveForests
 
-  ! Class used to build lists of tree branches which get processed independently.
-  type :: evolveForestsBranchList
-     type(treeNode               ), pointer :: nodeParent => null()
-     type(mergerTree             ), pointer :: branch     => null()
-     type(evolveForestsBranchList), pointer :: next       => null()
-  end type evolveForestsBranchList
-
   ! Copies of objects used by each thread.
   class(mergerTreeOutputterClass  ), pointer :: mergerTreeOutputter_   => null()
   class(mergerTreeInitializorClass), pointer :: mergerTreeInitializor_ => null()
@@ -123,10 +114,7 @@ contains
     class           (mergerTreeOutputterClass   ), pointer               :: mergerTreeOutputter_
     class           (mergerTreeInitializorClass ), pointer               :: mergerTreeInitializor_
     type            (inputParameters            ), pointer               :: parametersRoot
-    logical                                                              :: evolveSingleForest           , suspendToRAM, &
-         &                                                                  evolveForestsInParallel
-    integer                                                              :: evolveSingleForestSections
-    double precision                                                     :: evolveSingleForestMassMinimum
+    logical                                                              :: evolveForestsInParallel, suspendToRAM
     integer         (kind_int8                  )                        :: walltimeMaximum
     type            (varying_string             )                        :: suspendPath
 
@@ -157,24 +145,6 @@ contains
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
-      <name>evolveSingleForest</name>
-      <defaultValue>.false.</defaultValue>
-      <description>If true then each forest is processed sequentially, with multiple parallel threads (if available) working on the same forest. If false, multiple forests are processed simultaneously, with a single parallel thread (if available) working on each.</description>
-      <source>parameters</source>
-    </inputParameter>
-    <inputParameter>
-      <name>evolveSingleForestSections</name>
-      <defaultValue>100</defaultValue>
-      <description>The number of timesteps into which forests should be split when processing single forests in parallel.</description>
-      <source>parameters</source>
-    </inputParameter>
-    <inputParameter>
-      <name>evolveSingleForestMassMinimum</name>
-      <defaultValue>0.0d0</defaultValue>
-      <description>The minimum tree mass for which forests should be processed in parallel.</description>
-      <source>parameters</source>
-    </inputParameter>
-    <inputParameter>
       <name>suspendToRAM</name>
       <defaultValue>.true.</defaultValue>
       <description>Specifies whether trees should be suspended to RAM (otherwise they are suspend to file).</description>
@@ -202,9 +172,9 @@ contains
     <objectBuilder class="mergerTreeInitializor"  name="mergerTreeInitializor_"  source="parameters"/>
     !!]
     if (associated(parametersRoot)) then
-       self=taskEvolveForests(evolveForestsInParallel,evolveSingleForest,evolveSingleForestSections,evolveSingleForestMassMinimum,walltimeMaximum,suspendToRAM,suspendPath,mergerTreeConstructor_,mergerTreeOperator_,nodeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,mergerTreeInitializor_,parametersRoot)
+       self=taskEvolveForests(evolveForestsInParallel,walltimeMaximum,suspendToRAM,suspendPath,mergerTreeConstructor_,mergerTreeOperator_,nodeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,mergerTreeInitializor_,parametersRoot)
     else
-       self=taskEvolveForests(evolveForestsInParallel,evolveSingleForest,evolveSingleForestSections,evolveSingleForestMassMinimum,walltimeMaximum,suspendToRAM,suspendPath,mergerTreeConstructor_,mergerTreeOperator_,nodeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,mergerTreeInitializor_,parameters    )
+       self=taskEvolveForests(evolveForestsInParallel,walltimeMaximum,suspendToRAM,suspendPath,mergerTreeConstructor_,mergerTreeOperator_,nodeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,mergerTreeInitializor_,parameters    )
     end if
     self%nodeComponentsInitialized=.true.
     !![
@@ -222,16 +192,13 @@ contains
     return
   end function evolveForestsConstructorParameters
 
-  function evolveForestsConstructorInternal(evolveForestsInParallel,evolveSingleForest,evolveSingleForestSections,evolveSingleForestMassMinimum,walltimeMaximum,suspendToRAM,suspendPath,mergerTreeConstructor_,mergerTreeOperator_,nodeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,mergerTreeInitializor_,parameters) result(self)
+  function evolveForestsConstructorInternal(evolveForestsInParallel,walltimeMaximum,suspendToRAM,suspendPath,mergerTreeConstructor_,mergerTreeOperator_,nodeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,mergerTreeInitializor_,parameters) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily evolveForests} task class.
     !!}
     implicit none
     type            (taskEvolveForests          )                        :: self
-    logical                                      , intent(in   )         :: evolveSingleForest           , suspendToRAM, &
-         &                                                                  evolveForestsInParallel
-    integer                                      , intent(in   )         :: evolveSingleForestSections
-    double precision                             , intent(in   )         :: evolveSingleForestMassMinimum
+    logical                                      , intent(in   )         :: evolveForestsInParallel, suspendToRAM
     integer         (kind_int8                  ), intent(in   )         :: walltimeMaximum
     type            (varying_string             ), intent(in   )         :: suspendPath
     class           (mergerTreeConstructorClass ), intent(in   ), target :: mergerTreeConstructor_
@@ -245,7 +212,7 @@ contains
     class           (mergerTreeInitializorClass ), intent(in   ), target :: mergerTreeInitializor_
     type            (inputParameters            ), intent(in   ), target :: parameters
     !![
-    <constructorAssign variables="evolveForestsInParallel, evolveSingleForest, evolveSingleForestSections, evolveSingleForestMassMinimum, walltimeMaximum, suspendToRAM, suspendPath, *mergerTreeConstructor_, *mergerTreeOperator_, *nodeOperator_, *evolveForestsWorkShare_, *outputTimes_, *universeOperator_, *mergerTreeEvolver_, *mergerTreeOutputter_, *mergerTreeInitializor_"/>
+    <constructorAssign variables="evolveForestsInParallel, walltimeMaximum, suspendToRAM, suspendPath, *mergerTreeConstructor_, *mergerTreeOperator_, *nodeOperator_, *evolveForestsWorkShare_, *outputTimes_, *universeOperator_, *mergerTreeEvolver_, *mergerTreeOutputter_, *mergerTreeInitializor_"/>
     !!]
 
     self%parameters  => parameters
@@ -349,7 +316,7 @@ contains
           &                                             universeEvent
     use   , intrinsic :: ISO_C_Binding         , only : c_size_t
     use               :: Memory_Reporting      , only : reportMemoryUsage
-    use               :: Merger_Tree_Walkers   , only : mergerTreeWalkerAllNodes         , mergerTreeWalkerIsolatedNodes
+    use               :: Merger_Tree_Walkers   , only : mergerTreeWalkerAllNodes
     use               :: Node_Components       , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
     use               :: Node_Events_Inter_Tree, only : Inter_Tree_Event_Post_Evolve
     !$ use            :: OMP_Lib               , only : OMP_Destroy_Lock                 , OMP_Get_Thread_Num                 , OMP_Init_Lock  , omp_lock_kind
@@ -382,7 +349,6 @@ contains
          &                                                                              deadlockReport
     type            (mergerTree                   ), pointer                  , save :: currentTree                               , previousTree                , &
          &                                                                              nextTree
-    type            (mergerTreeWalkerIsolatedNodes)                                  :: treeWalkerIsolated
     type            (mergerTreeWalkerAllNodes     )                           , save :: treeWalkerAll
     !$omp threadprivate(currentTree,previousTree,treeWalkerAll)
     type            (treeNode                     ), pointer                  , save :: satelliteNode
@@ -390,28 +356,15 @@ contains
     !$omp threadprivate(satelliteNode,basicNodeBase,treeIsFinished,evolutionIsEventLimited,success,removeTree,suspendTree,treeDidEvolve)
     type            (universeEvent                ), pointer                  , save :: event_
     !$omp threadprivate(event_)
-    ! Variables used in processing individual forests in parallel.
-    double precision                                                          , save :: timeBranchSplit
     type            (treeNode                     ), pointer                  , save :: node
-    class           (nodeComponentBasic           ), pointer                  , save :: basic                                     , basicChild
-    type            (evolveForestsBranchList      ), pointer                  , save :: branchList_                               , branchNew                   , &
-         &                                                                              branchNext
-    logical                                                                   , save :: branchAccept                              , treesFinished
-    integer         (c_size_t                     )                           , save :: iBranch                                   , i                           , &
-         &                                                                              countBranch                               , treeNumber
-    integer         (c_size_t                     ), allocatable, dimension(:), save :: rankBranch
-    double precision                               , allocatable, dimension(:), save :: massBranch
-    integer                                                                   , save :: forestSection
-    double precision                                                          , save :: timeSectionForestBegin
-    type            (inputParameters              ) , allocatable             , save :: parameters
-    logical                                                                          :: triggerExit                               , triggerFinishUniverse       , &
-         &                                                                              disableSingleForestEvolution              , triggerFinishFinal          , &
-         &                                                                              triggerFinish
-    integer         (c_size_t                     )                                  :: iBranchAcceptedLast                       , treeCount
+    class           (nodeComponentBasic           ), pointer                  , save :: basic
+    logical                                                                   , save :: treesFinished
+    integer         (c_size_t                     )                           , save :: treeNumber
+    type            (inputParameters              ), allocatable              , save :: parameters
+    integer         (c_size_t                     )                                  :: treeCount
     integer         (omp_lock_kind                )                                  :: initializationLock
     integer         (kind_int8                    )                                  :: systemClockRate                           , systemClockMaximum
-    double precision                                                                 :: evolveToTimeForest
-    !$omp threadprivate(node,basic,basicChild,timeBranchSplit,branchNew,branchNext,i,iBranch,branchAccept,massBranch,timeSectionForestBegin,forestSection,treeNumber,treesFinished,parameters)
+    !$omp threadprivate(node,basic,treeNumber,treesFinished,parameters)
 
     ! The following processes merger trees, one at a time, to each successive output time, then dumps their contents to file. It
     ! allows for the possibility of "universal events" - events which require all merger trees to reach the same cosmic time. If
@@ -430,10 +383,6 @@ contains
     ! Initialize tree counter and record that we are not finished processing trees.
     deadlockReport              =.false.
     finished                    =.false.
-    triggerFinish               =.false.
-    triggerFinishFinal          =.false.
-    triggerFinishUniverse       =.false.
-    disableSingleForestEvolution=.false.
     ! Initialize universes which will act as tree stacks. We use two stacks: one for trees waiting to be processed, one for trees
     ! that have already been processed.
     self%universeWaiting  =universe()
@@ -492,498 +441,278 @@ contains
     treeProcess : do while (.not.finished)
        ! Report on memory utilization.
        call reportMemoryUsage()
-       ! For single forest evolution, only the master thread should retrieve a merger tree.
-       singleForestTreeFetch : if (OMP_Get_Thread_Num() == 0 .or. .not.self%evolveSingleForest) then
-          ! Attempt to get a new tree to process. We first try to get a new tree. If no new trees exist, we will look for a tree on
-          ! the stack waiting to be processed.
-          ! Perform any pre-tree construction tasks.
-          call mergerTreeOperator_%operatePreConstruction()
-          ! Get a tree.
-          treesFinished =  .false.
-          tree          => null()
-          do while (.not.associated(tree).and..not.treesFinished)
-             ! Get the number of the next tree to process.
-             treeNumber =  self                  %evolveForestsWorkShare_%forestNumber(utilizeOpenMPThreads=self%evolveForestsInParallel)
-             tree       => mergerTreeConstructor_                        %construct   (treeNumber,treesFinished)
-          end do
-          if (associated(tree)) tree%hostUniverse => self%universeWaiting
-          finished                                =  finished.or..not.associated(tree)
-          treeIsNew                               =  .not.finished
-          ! If no new tree was available, attempt to pop one off the universe stack.
-          if (finished) then
-             call self%resumeTree(tree)
-             treeIsNew=.false.
-             finished =.not.associated(tree)
-          end if
-          if (self%evolveSingleForest .and. finished) triggerFinish=.true.
-       end if singleForestTreeFetch
-       ! For single forest evolution, block threads until master has retrieved a merger tree.
-       if (self%evolveSingleForest) then
-          !$omp barrier
-          finished=triggerFinish
-          !$omp barrier
+       ! Attempt to get a new tree to process. We first try to get a new tree. If no new trees exist, we will look for a tree on
+       ! the stack waiting to be processed.
+       ! Perform any pre-tree construction tasks.
+       call mergerTreeOperator_%operatePreConstruction()
+       ! Get a tree.
+       treesFinished =  .false.
+       tree          => null()
+       do while (.not.associated(tree).and..not.treesFinished)
+          ! Get the number of the next tree to process.
+          treeNumber =  self                  %evolveForestsWorkShare_%forestNumber(utilizeOpenMPThreads=self%evolveForestsInParallel)
+          tree       => mergerTreeConstructor_                        %construct   (treeNumber,treesFinished)
+       end do
+       if (associated(tree)) tree%hostUniverse => self%universeWaiting
+       finished                                =  finished.or..not.associated(tree)
+       treeIsNew                               =  .not.finished
+       ! If no new tree was available, attempt to pop one off the universe stack.
+       if (finished) then
+          call self%resumeTree(tree)
+          treeIsNew=.false.
+          finished =.not.associated(tree)
        end if
        ! If we got a tree (i.e. we are not "finished") process it.
        if (.not.finished) then
           treeIsFinished=.false.
-          ! For single forest evolution, only the master thread should determine evolution time.
-          singleForestEvolveTime : if (OMP_Get_Thread_Num() == 0 .or. .not.self%evolveSingleForest) then
-             ! If this is a new tree, perform any initialization and pre-evolution tasks on it.
-             if (treeIsNew) then
-                ! Walk over all nodes and perform "node tree" initialization. This typically includes initialization related to
-                ! the static structure of the tree (e.g. assign scale radii, merging orbits, etc.). Initialization related to
-                ! evolution of the tree (e.g. growth rates of scale radii, baryonic component initialization) are typically handled
-                ! by the mergerTreeInitializor class which is called later.
-                call    mergerTreeOperator_%operatePreInitialization(tree)
-                treeWalkerAll=mergerTreeWalkerAllNodes(tree,spanForest=.true.)
-                do while (treeWalkerAll%next(node))
-                   call nodeOperator_      %nodeTreeInitialize (node)
-                end do
-                call    mergerTreeOperator_%operatePreEvolution(tree)
-                message="Evolving tree number "
-             else
-                message="Resuming tree number "
-             end if
-             ! Display a message.
-             message=message//tree%index//" {"//tree%nodeBase%index()//"}"
-             call displayIndent(message)
-             ! Determine if this will be the final forest evolved by multiple threads.
-             if (self%evolveSingleForest) then
-                basic =>tree%nodeBase%basic()
-                if (basic%mass() < self%evolveSingleForestMassMinimum) disableSingleForestEvolution=.true.
-             end if
-             ! Get the next time to which the tree should be evolved.
-             treeTimeEarliest=tree%earliestTime()
-             outputTimeNext  =self%outputTimes_%timeNext(treeTimeEarliest,indexOutput=iOutput)
-             ! For new trees, if the earliest time in the tree exactly coincides with an output
-             ! time, then process the tree to that output. This ensures that we include all
-             ! halos from this time in the output, even though they will be devoid of any
-             ! galaxies.
-             if (treeIsNew .and. iOutput > 1) then
-                if (treeTimeEarliest == self%outputTimes_%time(iOutput-1)) iOutput=iOutput-1
-             end if
-             ! Resumed trees must always be allowed to evolve - since they by definition were not finished (otherwise they would
-             ! not have been suspended).
-             if (.not.treeIsNew .and. iOutput > self%outputTimes_%count()) iOutput=self%outputTimes_%count()
-             ! Catch cases where there is no next output time.
-             if (outputTimeNext > 0.0d0) then
-                treeIsFinished=.false.
-             else
-                iOutput      =self%outputTimes_%count()+1
-                treeIsFinished=.true.
-             end if
-          end if singleForestEvolveTime
-          ! For single forest evolution, block threads until master thread has determined evolution time.
-          if (self%evolveSingleForest) then
-             if (OMP_Get_Thread_Num() == 0) triggerExit=.false.
-             !$omp barrier
+          ! If this is a new tree, perform any initialization and pre-evolution tasks on it.
+          if (treeIsNew) then
+             ! Walk over all nodes and perform "node tree" initialization. This typically includes initialization related to
+             ! the static structure of the tree (e.g. assign scale radii, merging orbits, etc.). Initialization related to
+             ! evolution of the tree (e.g. growth rates of scale radii, baryonic component initialization) are typically handled
+             ! by the mergerTreeInitializor class which is called later.
+             call    mergerTreeOperator_%operatePreInitialization(tree)
+             treeWalkerAll=mergerTreeWalkerAllNodes(tree,spanForest=.true.)
+             do while (treeWalkerAll%next(node))
+                call nodeOperator_      %nodeTreeInitialize (node)
+             end do
+             call    mergerTreeOperator_%operatePreEvolution(tree)
+             message="Evolving tree number "
+          else
+             message="Resuming tree number "
+          end if
+          ! Display a message.
+          message=message//tree%index//" {"//tree%nodeBase%index()//"}"
+          call displayIndent(message)
+          ! Get the next time to which the tree should be evolved.
+          treeTimeEarliest=tree%earliestTime()
+          outputTimeNext  =self%outputTimes_%timeNext(treeTimeEarliest,indexOutput=iOutput)
+          ! For new trees, if the earliest time in the tree exactly coincides with an output
+          ! time, then process the tree to that output. This ensures that we include all
+          ! halos from this time in the output, even though they will be devoid of any
+          ! galaxies.
+          if (treeIsNew .and. iOutput > 1) then
+             if (treeTimeEarliest == self%outputTimes_%time(iOutput-1)) iOutput=iOutput-1
+          end if
+          ! Resumed trees must always be allowed to evolve - since they by definition were not finished (otherwise they would
+          ! not have been suspended).
+          if (.not.treeIsNew .and. iOutput > self%outputTimes_%count()) iOutput=self%outputTimes_%count()
+          ! Catch cases where there is no next output time.
+          if (outputTimeNext > 0.0d0) then
+             treeIsFinished=.false.
+          else
+             iOutput      =self%outputTimes_%count()+1
+             treeIsFinished=.true.
           end if
           ! Iterate evolving the tree until no more outputs are required.
           treeEvolveLoop : do while (iOutput <= self%outputTimes_%count())
-             ! For single forest evolution, maximum evolution time is determined by the master thread only.
-             singleForestMaximumTime : if (OMP_Get_Thread_Num() == 0 .or. .not.self%evolveSingleForest) then
-                ! We want to find the maximum time to which we can evolve this tree. This will be the minimum of the next output
-                ! time (at which we must stop and output the tree) and the next universal event time (at which we must stop and
-                ! perform the event task). Find the next output time.
-                evolveToTime=self%outputTimes_%time(iOutput)
-                ! Find the earliest universe event.
-                !$omp critical(universeTransform)
-                event_                  => self%universeWaiting%event
-                evolutionIsEventLimited =  .false.
-                do while (associated(event_))
-                   if (event_%time < evolveToTime) then
-                      evolveToTime           =event_%time
-                      evolutionIsEventLimited=.true.
-                      universalEvolveToTime  =evolveToTime
-                   end if
-                   event_ => event_%next
-                end do
-                !$omp end critical(universeTransform)
-                if (tree%earliestTime() <= evolveToTime) treesCouldEvolve=.true.
-             end if singleForestMaximumTime
-             ! For single forest evolution, block all threads until master thread has determined the maximum evolution time.
-             if (self%evolveSingleForest) then
-                !$omp barrier
-             end if
-             ! If single trees are to be broken between multiple threads and processed in parallel, then do that here. Begin by
-             ! finding evolvable branches at some earlier time.
-             if (self%evolveSingleForest) then
-                timeSectionForestBegin=tree%earliestTimeEvolving()
-                do forestSection=1,self%evolveSingleForestSections
-                   ! Master thread alone performs the splitting of the tree into branches.
-                   singleForestTreeSplit : if (OMP_Get_Thread_Num() == 0) then
-                      timeBranchSplit    =  timeSectionForestBegin+(evolveToTime-timeSectionForestBegin)*dble(forestSection)/dble(self%evolveSingleForestSections)
-                      countBranch        =  0
-                      evolveToTimeForest =  evolveToTime
-                      treeWalkerIsolated=mergerTreeWalkerIsolatedNodes(tree,spanForest=.true.)
-                      do while (treeWalkerIsolated%next(node))
-                         if (associated(node%firstChild).and.associated(node%parent)) then
-                            basic      => node           %basic()
-                            basicChild => node%firstChild%basic()
-                            if (basic%time() >= timeBranchSplit .and. basicChild%time() < timeBranchSplit) then
-                               countBranch=countBranch+1
-                               allocate(branchNew      )
-                               allocate(branchNew%branch)
-                               ! Build the new branch. Ensure that our node, which forms the base node of the new branch, has
-                               ! its hostTree pointer set to point to the new branch so that merger tree walkers can correctly
-                               ! navigate the branch without straying into a neighboring branch.
-                               branchNew%branch            =  node%hostTree
-                               !![
-                               <referenceCountIncrement owner="branchNew%branch" object="randomNumberGenerator_"/>
-                               !!]
-                               branchNew%branch%nodeBase   => node
-                               branchNew       %nodeParent => node%parent
-                               node            %hostTree   => branchNew%branch
-                               if (associated(branchList_)) then
-                                  branchNew%next => branchList_
-                               else
-                                  branchNew%next => null()
-                               end if
-                               branchList_ => branchNew
-                            end if
-                         end if
-                      end do
-                      ! If no more branches were found to process, exit.
-                      if (countBranch > 0) then
-                         ! Rank trees by mass.
-                         allocate(massBranch(countBranch))
-                         allocate(rankBranch(countBranch))
-                         branchNew    => branchList_
-                         countBranch =  0
-                         do while (associated(branchNew))
-                            countBranch             =  countBranch                        +1
-                            basic                   => branchNew  %branch%nodeBase%basic()
-                            massBranch(countBranch) =  basic                      %mass ()
-                            branchNew               => branchNew                  %next
-                         end do
-                         rankBranch=sortIndex(massBranch)
-                         ! Process trees.
-                         currentTree => tree
-                         if (associated(currentTree%nodeBase)) then
-                            do while (associated(currentTree))
-                               basic => currentTree%nodeBase%basic()
-                               call mergerTreeInitializor_%initialize(currentTree,basic%time())
-                               currentTree => currentTree%nextTree
-                            end do
-                         end if
-                         iBranchAcceptedLast=0
-                      end if
-                   end if singleForestTreeSplit
-                   ! Block threads until master thread has completed splitting forest into branches.
-                   !$omp barrier
-                   ! Threads now process branches of the forest.
-                   iBranch=0
-                   do while (iBranch < countBranch)
-                      iBranch     =iBranch+1
-                      branchAccept=.false.
-                      !$omp critical (branchList_Share)
-                      if (iBranch > iBranchAcceptedLast) then
-                         branchAccept       =.true.
-                         iBranchAcceptedLast=iBranch
-                      end if
-                      !$omp end critical (branchList_Share)
-                      if (branchAccept) then
-                         branchNew => branchList_
-                         do i=1,rankBranch(countBranch+1-iBranch)-1
-                            branchNew => branchNew%next
-                         end do
-                         branchNew%branch%nodeBase%parent =>                           null ()
-                         basic                            => branchNew%branch%nodeBase%basic()
-                         call mergerTreeEvolver_%evolve(                                        &
-                              &                                          branchNew    %branch              , &
-                              &                                      min(                                    &
-                              &                                          basic        %time              (), &
-                              &                                                        evolveToTimeForest    &
-                              &                                         )                                  , &
-                              &                                          treeDidEvolve                     , &
-                              &                                          suspendTree                       , &
-                              &                                          deadlockReport                    , &
-                              &                                          systemClockMaximum                  &
-                           !$ &                                         ,initializationLock                  &
-                              &                        )
-                         !$omp critical (universeStatus)
-                         if (treeDidEvolve) treesDidEvolve         =.true.
-                         if (suspendTree  ) evolutionIsEventLimited=.true.
-                         !$omp end critical (universeStatus)
-                      end if
-                   end do
-                   ! Block all threads until all branches are finished processing.
-                   !$omp barrier
-                   ! Only the master thread performs clean-up of the branches, and re-linking into the forest.
-                   singleForestTreeMerge : if (OMP_Get_Thread_Num() == 0 .and. countBranch > 0) then
-                      ! Clean up.
-                      branchNew => branchList_
-                      do while (associated(branchNew))
-                         branchNew%branch%nodeBase%hostTree => branchNew%nodeParent%hostTree
-                         branchNew%branch%nodeBase%parent   => branchNew%nodeParent
-                         branchNew%branch%nodeBase          => null()
-                         call branchNew%branch%destroy()
-                         branchNext => branchNew%next
-                         deallocate(branchNew)
-                         branchNew => branchNext
-                      end do
-                      nullify   (branchList_)
-                      deallocate(massBranch )
-                      deallocate(rankBranch )
-                   end if singleForestTreeMerge
-                   ! Block all threads until branches have been re-merged into the forest by the master thread.
-                   !$omp barrier
-                end do
-             end if
-             ! For single forest evolution, only the master thread should finalize evolution of the merger tree.
-             singleForestFinalizeEvolution : if (OMP_Get_Thread_Num() == 0 .or. .not.self%evolveSingleForest) then
-                ! Evolve the tree to the computed time.
-                call mergerTreeEvolver_%evolve(tree,evolveToTime,treeDidEvolve,suspendTree,deadlockReport,systemClockMaximum,status=status)
-                if (present(status)) then
-                   if (status /= errorStatusSuccess) then
-                      ! Tree evolution failed - abort further evolution and return the failure code.
-                      treeIsFinished=.true.
-                      finished      =.true.
-                      exit
-                   end if
-                end if
-                !$omp critical (universeStatus)
-                ! Record that evolution of the universe of trees occurred if this tree evolved and was not suspended.
-                if (treeDidEvolve) treesDidEvolve=.true.
-                !$omp end critical (universeStatus)
-                ! If tree was marked to be suspended, record that evolution is limited by this suspension event.
-                if (suspendTree) evolutionIsEventLimited=.true.
-                ! Locate trees which consist of only a base node with no progenitors. These have reached
-                ! the end of their evolution, and can be removed from the forest of trees.
-                previousTree => null()
-                currentTree  => tree
-                do while (associated(currentTree))
-                   ! Skip empty trees.
-                   if (associated(currentTree%nodeBase)) then
-                      basicNodeBase => currentTree%nodeBase%basic()
-                      removeTree    =   .not.associated(currentTree%nodeBase%firstChild) &
-                           &           .and.                                             &
-                           &            (basicNodeBase%time() < evolveToTime)
-                      if (removeTree) then
-                         ! Does the node have attached satellites which are about to merge?
-                         satelliteNode => currentTree%nodeBase%firstSatellite
-                         do while (associated(satelliteNode))
-                            if (associated(satelliteNode%mergeTarget)) then
-                               removeTree=.false.
-                               exit
-                            end if
-                            satelliteNode => satelliteNode%sibling
-                         end do
-                         ! Does the node have attached events?
-                         if (associated(currentTree%nodeBase%event)) removeTree=.false.
-                      end if
-                   else
-                      ! No need to remove already empty trees.
-                      removeTree=.false.
-                   end if
-                   if (removeTree) then
-                      message="Removing remnant tree "
-                      message=message//currentTree%index//" {"//currentTree%nodeBase%index()//"}"
-                      call displayMessage(message,verbosityLevelInfo)
-                      if (.not.associated(previousTree)) then
-                         nextTree    => currentTree%nextTree
-                         call currentTree%destroy()
-                         currentTree => nextTree
-                      else
-                         previousTree%nextTree => currentTree%nextTree
-                         call currentTree%destroy()
-                         deallocate(currentTree)
-                         currentTree => previousTree%nextTree
-                      end if
-                   else
-                      previousTree => currentTree
-                      currentTree  => currentTree%nextTree
-                   end if
-                end do
-                ! Check that tree reached required time. If it did not, we can evolve it no further.
-                treeTimeEarliest=tree%earliestTimeEvolving()
-                treeTimeLatest  =tree%  latestTime        ()
-                if     (                                 &
-                     &   treeTimeLatest   > evolveToTime &
-                     &  .and.                            &
-                     &   treeTimeEarliest < evolveToTime &
-                     &  .and.                            &
-                     &   .not.evolutionIsEventLimited    &
-                     & ) then
-                   if (deadlockReport) exit
-                   message='failed to evolve tree to required time'//char(10)
-                   write (label,'(f7.2)') evolveToTime
-                   message=message//"            target time = "//trim(label)//" Gyr"//char(10)
-                   write (label,'(f7.2)') treeTimeEarliest
-                   message=message//"  earliest time in tree = "//trim(label)//" Gyr"//char(10)
-                   write (label,'(f7.2)') treeTimeLatest
-                   message=message//"    latest time in tree = "//trim(label)//" Gyr"
-                   call Error_Report(message//{introspection:location})
-                end if
-                ! Determine what limited evolution.
-                if (evolutionIsEventLimited) then
-                   ! Tree evolution was limited by a universal event. Therefore it can evolve no further
-                   ! until that event's task is performed.
-                   exit
-                else
-                   ! Tree reached an output time, so output it. We can then continue evolving.
-                   write (label,'(f7.2)') evolveToTime
-                   message="Output tree data at t="//trim(label)//" Gyr"
-                   call displayMessage(message)
-                   call mergerTreeOutputter_%outputTree(tree,iOutput,evolveToTime)
-                   ! Perform any extra output and post-output processing on nodes.
-                   treeWalkerAll=mergerTreeWalkerAllNodes(tree,spanForest=.true.)
-                   do while (treeWalkerAll%next(node))
-                      basic => node%basic()
-                      if (basic%time() == evolveToTime) call node%postOutput(evolveToTime)
-                   end do
-                   iOutput=iOutput+1
-                   ! If all output times have been reached, we're finished.
-                   if (iOutput > self%outputTimes_%count()) then
-                      treeIsFinished=.true.
-                      ! For single forest evolution, record that we are exiting the evolution loop. This will be used to inform
-                      ! all non-master threads to exit also.  Note that this barrier corresponds with the one labeled
-                      ! "singleForestExitEvolutionOther" below (which will be seen by all non-master threads).
-                      singleForestExitEvolutionMaster : if (self%evolveSingleForest) then
-                         triggerExit=.true.
-                         !$omp barrier
-                      end if singleForestExitEvolutionMaster
-                      exit
-                   end if
-                end if
-             end if singleForestFinalizeEvolution
-             ! For single forest evolution, block until the master thread has finished finalizing evolution and, if no more
-             ! evolution is required, exit the evolution loop. Note that this barrier corresponds with the one labeled
-             ! "evolveSingleForest" above (which will be seen by the master thread alone).
-             singleForestExitEvolutionOther : if (self%evolveSingleForest) then
-                !$omp barrier
-                if (triggerExit) exit
-             end if singleForestExitEvolutionOther
-          end do treeEvolveLoop
-          ! For single forest evolution, block threads until all have completed evolution of the forest.
-          if (self%evolveSingleForest) then
-             !$omp barrier
-          end if
-          ! For single forest evolution, only the master thread handles suspension of the tree.
-          singleForstSuspend : if (OMP_Get_Thread_Num() == 0 .or. .not.self%evolveSingleForest) then
-             ! If tree could not evolve further, but is not finished, push it to the universe stack.
-             if (.not.treeIsFinished) then
-                ! Suspend the tree.
-                call self%suspendTree(tree)
-                ! Unindent messages.
-                call displayUnindent('Suspending tree')
-             else
-                ! Unindent messages.
-                call displayUnindent('Finished tree'  )
-             end if
-          end if singleForstSuspend
-          ! For single forest evolution, block all threads until the master thread has completed tree suspension.
-          if (self%evolveSingleForest) then
-             !$omp barrier
-          end if
-       end if
-       ! For single forest evolution, only the master thread performs tree destruction.
-       singleForestTreeDestroy : if (OMP_Get_Thread_Num() == 0 .or. .not.self%evolveSingleForest) then
-          ! Destroy the tree.
-          if (associated(tree)) then
-             currentTree => tree
-             do while (associated(currentTree))
-                previousTree => currentTree
-                currentTree  => currentTree%nextTree
-                call previousTree%destroy()
-                ! Deallocate the tree.
-                deallocate(previousTree)
-             end do
-             nullify(tree)
-          end if
-          ! Perform any post-evolution operations on the tree.
-          if (treeIsFinished) call mergerTreeOperator_%operatePostEvolution()
-       end if singleForestTreeDestroy
-       ! For single forest evolution, block all threads until tree destruction is completed by the master thread.
-       if (self%evolveSingleForest) then
-          !$omp barrier
-       end if
-       ! For single forest evolution, only the master thread handles universe events.
-       singleForestUniverseEvents : if (OMP_Get_Thread_Num() == 0 .or. .not.self%evolveSingleForest) then
-          ! If any trees were pushed onto the processed stack, then there must be an event to process.
-          if (finished) then
-             if (.not.self%evolveSingleForest) then
-                !$omp barrier
-             end if
-             ! The following section - which transfers processed trees back to the active universe - is done within an OpenMP
-             ! master section. We choose not to use an OpenMP single section here (which would be marginally more efficient) since
-             ! single sections have an implicit barrier at the end, which would desynchronize threads when multiple threads are
-             ! used to process a single tree. Using a master section avoids that implicit barrier - we instead handle the barrier
-             ! (and sharing of the "finished" status back to other threads) explicitly if needed.
-             !$omp master
-             ! Check whether any tree evolution occurred. If it did not, we have a universe-level deadlock.
-             if ((.not.treesDidEvolve.and.treesCouldEvolve).or.deadlockReport) then
-                ! If we already did the deadlock reporting pass it's now time to finish that report and exit. Otherwise, set deadlock
-                ! reporting status to true and continue for one more pass through the universe.
-                if (deadlockReport) then
-                   message="Universe appears to be deadlocked"//char(10)
-                   !$omp critical(universeTransform)
-                   treeCount=0_c_size_t
-                   if (associated(self%universeProcessed%trees)) then
-                      do while (associated(self%universeProcessed%trees))
-                         tree => self%universeProcessed%popTree()
-                         treeCount=treeCount+1_c_size_t
-                      end do
-                      message=message//" --> There are "//treeCount//" trees pending further processing"
-                   else
-                      message=message//" --> There are no trees pending further processing"
-                   end if
-                   !$omp end critical(universeTransform)
-                   call displayMessage(message)
-                   call Inter_Tree_Event_Post_Evolve()
-                   call Error_Report('exiting'//{introspection:location})
-                else
-                   deadlockReport=.true.
-                end if
-             end if
-             treesDidEvolve=.false.
+             ! We want to find the maximum time to which we can evolve this tree. This will be the minimum of the next output
+             ! time (at which we must stop and output the tree) and the next universal event time (at which we must stop and
+             ! perform the event task). Find the next output time.
+             evolveToTime=self%outputTimes_%time(iOutput)
+             ! Find the earliest universe event.
              !$omp critical(universeTransform)
-             if (associated(self%universeProcessed%trees)) then
-                ! Transfer processed trees back to the waiting universe.
-                self%universeWaiting  %trees => self%universeProcessed%trees
-                self%universeProcessed%trees => null()
-                ! Find the event to process.
-                event_ => self%universeWaiting%event
-                do while (associated(event_))
-                   if (event_%time < universalEvolveToTime) then
-                      call Error_Report('a universal event exists in the past - this should not happen'//{introspection:location})
-                   else if (event_%time == universalEvolveToTime) then
-                      success=event_%task(self%universeWaiting)
-                      if (success) call self%universeWaiting%removeEvent(event_)
-                      exit
-                   end if
-                   event_ => event_%next
-                end do
-                ! Mark that there is more work to do.
-                triggerFinishUniverse=.true.
-                call displayMessage('Finished universe evolution pass')
-             end if
+             event_                  => self%universeWaiting%event
+             evolutionIsEventLimited =  .false.
+             do while (associated(event_))
+                if (event_%time < evolveToTime) then
+                   evolveToTime           =event_%time
+                   evolutionIsEventLimited=.true.
+                   universalEvolveToTime  =evolveToTime
+                end if
+                event_ => event_%next
+             end do
              !$omp end critical(universeTransform)
-             !$omp end master
-             if (.not.self%evolveSingleForest) then
-                !$omp barrier
+             if (tree%earliestTime() <= evolveToTime) treesCouldEvolve=.true.
+             ! Evolve the tree to the computed time.
+             call mergerTreeEvolver_%evolve(tree,evolveToTime,treeDidEvolve,suspendTree,deadlockReport,systemClockMaximum,status=status)
+             if (present(status)) then
+                if (status /= errorStatusSuccess) then
+                   ! Tree evolution failed - abort further evolution and return the failure code.
+                   treeIsFinished=.true.
+                   finished      =.true.
+                   exit
+                end if
              end if
-             if (triggerFinishUniverse) finished=.false.
-             if (.not.self%evolveSingleForest) then
-                !$omp barrier
-                !$omp master
-                triggerFinishUniverse=.false.
-                !$omp end master
+             !$omp critical (universeStatus)
+             ! Record that evolution of the universe of trees occurred if this tree evolved and was not suspended.
+             if (treeDidEvolve) treesDidEvolve=.true.
+             !$omp end critical (universeStatus)
+             ! If tree was marked to be suspended, record that evolution is limited by this suspension event.
+             if (suspendTree) evolutionIsEventLimited=.true.
+             ! Locate trees which consist of only a base node with no progenitors. These have reached
+             ! the end of their evolution, and can be removed from the forest of trees.
+             previousTree => null()
+             currentTree  => tree
+             do while (associated(currentTree))
+                ! Skip empty trees.
+                if (associated(currentTree%nodeBase)) then
+                   basicNodeBase => currentTree%nodeBase%basic()
+                   removeTree    =   .not.associated(currentTree%nodeBase%firstChild) &
+                        &           .and.                                             &
+                        &            (basicNodeBase%time() < evolveToTime)
+                   if (removeTree) then
+                      ! Does the node have attached satellites which are about to merge?
+                      satelliteNode => currentTree%nodeBase%firstSatellite
+                      do while (associated(satelliteNode))
+                         if (associated(satelliteNode%mergeTarget)) then
+                            removeTree=.false.
+                            exit
+                         end if
+                         satelliteNode => satelliteNode%sibling
+                      end do
+                      ! Does the node have attached events?
+                      if (associated(currentTree%nodeBase%event)) removeTree=.false.
+                   end if
+                else
+                   ! No need to remove already empty trees.
+                   removeTree=.false.
+                end if
+                if (removeTree) then
+                   message="Removing remnant tree "
+                   message=message//currentTree%index//" {"//currentTree%nodeBase%index()//"}"
+                   call displayMessage(message,verbosityLevelInfo)
+                   if (.not.associated(previousTree)) then
+                      nextTree    => currentTree%nextTree
+                      call currentTree%destroy()
+                      currentTree => nextTree
+                   else
+                      previousTree%nextTree => currentTree%nextTree
+                      call currentTree%destroy()
+                      deallocate(currentTree)
+                      currentTree => previousTree%nextTree
+                   end if
+                else
+                   previousTree => currentTree
+                   currentTree  => currentTree%nextTree
+                end if
+             end do
+             ! Check that tree reached required time. If it did not, we can evolve it no further.
+             treeTimeEarliest=tree%earliestTimeEvolving()
+             treeTimeLatest  =tree%  latestTime        ()
+             if     (                                 &
+                  &   treeTimeLatest   > evolveToTime &
+                  &  .and.                            &
+                  &   treeTimeEarliest < evolveToTime &
+                  &  .and.                            &
+                  &   .not.evolutionIsEventLimited    &
+                  & ) then
+                if (deadlockReport) exit
+                message='failed to evolve tree to required time'//char(10)
+                write (label,'(f7.2)') evolveToTime
+                message=message//"            target time = "//trim(label)//" Gyr"//char(10)
+                write (label,'(f7.2)') treeTimeEarliest
+                message=message//"  earliest time in tree = "//trim(label)//" Gyr"//char(10)
+                write (label,'(f7.2)') treeTimeLatest
+                message=message//"    latest time in tree = "//trim(label)//" Gyr"
+                call Error_Report(message//{introspection:location})
+             end if
+             ! Determine what limited evolution.
+             if (evolutionIsEventLimited) then
+                ! Tree evolution was limited by a universal event. Therefore it can evolve no further
+                ! until that event's task is performed.
+                exit
+             else
+                ! Tree reached an output time, so output it. We can then continue evolving.
+                write (label,'(f7.2)') evolveToTime
+                message="Output tree data at t="//trim(label)//" Gyr"
+                call displayMessage(message)
+                call mergerTreeOutputter_%outputTree(tree,iOutput,evolveToTime)
+                ! Perform any extra output and post-output processing on nodes.
+                treeWalkerAll=mergerTreeWalkerAllNodes(tree,spanForest=.true.)
+                do while (treeWalkerAll%next(node))
+                   basic => node%basic()
+                   if (basic%time() == evolveToTime) call node%postOutput(evolveToTime)
+                end do
+                iOutput=iOutput+1
+                ! If all output times have been reached, we're finished.
+                if (iOutput > self%outputTimes_%count()) then
+                   treeIsFinished=.true.
+                   exit
+                end if
+             end if
+          end do treeEvolveLoop
+          ! If tree could not evolve further, but is not finished, push it to the universe stack.
+          if (.not.treeIsFinished) then
+             ! Suspend the tree.
+             call self%suspendTree(tree)
+             ! Unindent messages.
+             call displayUnindent('Suspending tree')
+          else
+             ! Unindent messages.
+             call displayUnindent('Finished tree'  )
+          end if
+       end if
+       ! Destroy the tree.
+       if (associated(tree)) then
+          currentTree => tree
+          do while (associated(currentTree))
+             previousTree => currentTree
+             currentTree  => currentTree%nextTree
+             call previousTree%destroy()
+             ! Deallocate the tree.
+             deallocate(previousTree)
+          end do
+          nullify(tree)
+       end if
+       ! Perform any post-evolution operations on the tree.
+       if (treeIsFinished) call mergerTreeOperator_%operatePostEvolution()
+       ! If any trees were pushed onto the processed stack, then there must be an event to process.
+       if (finished) then
+          !$omp barrier
+          ! The following section - which transfers processed trees back to the active universe - is done within an OpenMP
+          ! master section. We choose not to use an OpenMP single section here (which would be marginally more efficient) since
+          ! single sections have an implicit barrier at the end, which would desynchronize threads when multiple threads are
+          ! used to process a single tree. Using a master section avoids that implicit barrier - we instead handle the barrier
+          ! (and sharing of the "finished" status back to other threads) explicitly if needed.
+          !$omp master
+          ! Check whether any tree evolution occurred. If it did not, we have a universe-level deadlock.
+          if ((.not.treesDidEvolve.and.treesCouldEvolve).or.deadlockReport) then
+             ! If we already did the deadlock reporting pass it's now time to finish that report and exit. Otherwise, set deadlock
+             ! reporting status to true and continue for one more pass through the universe.
+             if (deadlockReport) then
+                message="Universe appears to be deadlocked"//char(10)
+                !$omp critical(universeTransform)
+                treeCount=0_c_size_t
+                if (associated(self%universeProcessed%trees)) then
+                   do while (associated(self%universeProcessed%trees))
+                      tree => self%universeProcessed%popTree()
+                      treeCount=treeCount+1_c_size_t
+                   end do
+                   message=message//" --> There are "//treeCount//" trees pending further processing"
+                else
+                   message=message//" --> There are no trees pending further processing"
+                end if
+                !$omp end critical(universeTransform)
+                call displayMessage(message)
+                call Inter_Tree_Event_Post_Evolve()
+                call Error_Report('exiting'//{introspection:location})
+             else
+                deadlockReport=.true.
              end if
           end if
-       end if singleForestUniverseEvents
-       ! For single forest evolution, block all threads until universe events are processed by the master thread.
-       if (self%evolveSingleForest) then
-          !$omp barrier
-          if (OMP_Get_Thread_Num() == 0 .and. finished) triggerFinishFinal=.true.
-          !$omp barrier
-          finished=triggerFinishFinal
-       end if
-       ! Decide whether to switch off single forest evolution.
-       if (self%evolveSingleForest) then
-          !$omp barrier
-          if (OMP_Get_Thread_Num() == 0 .and. disableSingleForestEvolution) &
-               & self%evolveSingleForest=.false.
+          treesDidEvolve=.false.
+          !$omp critical(universeTransform)
+          if (associated(self%universeProcessed%trees)) then
+             ! Transfer processed trees back to the waiting universe.
+             self%universeWaiting  %trees => self%universeProcessed%trees
+             self%universeProcessed%trees => null()
+             ! Find the event to process.
+             event_ => self%universeWaiting%event
+             do while (associated(event_))
+                if (event_%time < universalEvolveToTime) then
+                   call Error_Report('a universal event exists in the past - this should not happen'//{introspection:location})
+                else if (event_%time == universalEvolveToTime) then
+                   success=event_%task(self%universeWaiting)
+                   if (success) call self%universeWaiting%removeEvent(event_)
+                   exit
+                end if
+                event_ => event_%next
+             end do
+             call displayMessage('Finished universe evolution pass')
+          end if
+          !$omp end critical(universeTransform)
+          !$omp end master
           !$omp barrier
        end if
     end do treeProcess
