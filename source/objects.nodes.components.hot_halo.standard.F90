@@ -1202,7 +1202,7 @@ contains
 
     ! Check if we are the default method.
     if (.not.defaultHotHaloComponent%standardIsActive()) return
-    ! Get the spheroid component.
+    ! Get the hot halo component.
     hotHalo => node%hotHalo()
     ! Check if a standard hot halo component exists.
     select type (hotHalo)
