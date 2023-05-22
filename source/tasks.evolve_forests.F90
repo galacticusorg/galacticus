@@ -46,11 +46,11 @@
      logical                                                :: suspendToRAM
      type            (varying_string             )          :: suspendPath
      ! Parameters controlling how threads process forests.
-     logical                                                :: evolveSingleForest
+     logical                                                :: evolveSingleForest                      , evolveForestsInParallel
      integer                                                :: evolveSingleForestSections
      double precision                                       :: evolveSingleForestMassMinimum
      ! Tree universes used while processing all trees.
-     type            (universe                   )          :: universeWaiting                        , universeProcessed
+     type            (universe                   )          :: universeWaiting                         , universeProcessed
      ! Objects used in tree processing.
      class           (mergerTreeConstructorClass ), pointer :: mergerTreeConstructor_        => null()
      class           (mergerTreeOperatorClass    ), pointer :: mergerTreeOperator_           => null()
@@ -63,7 +63,7 @@
      class           (universeOperatorClass      ), pointer :: universeOperator_             => null()
      ! Pointer to the parameters for this task.
      type            (inputParameters            ), pointer :: parameters                    => null()
-     logical                                                :: initialized                   =.false. , nodeComponentsInitialized=.false.
+     logical                                                :: initialized                   =  .false., nodeComponentsInitialized=.false.
    contains
      !![
      <methods>
@@ -123,7 +123,8 @@ contains
     class           (mergerTreeOutputterClass   ), pointer               :: mergerTreeOutputter_
     class           (mergerTreeInitializorClass ), pointer               :: mergerTreeInitializor_
     type            (inputParameters            ), pointer               :: parametersRoot
-    logical                                                              :: evolveSingleForest           , suspendToRAM
+    logical                                                              :: evolveSingleForest           , suspendToRAM, &
+         &                                                                  evolveForestsInParallel
     integer                                                              :: evolveSingleForestSections
     double precision                                                     :: evolveSingleForestMassMinimum
     integer         (kind_int8                  )                        :: walltimeMaximum
@@ -147,6 +148,12 @@ contains
       <name>walltimeMaximum</name>
       <defaultValue>-1_kind_int8</defaultValue>
       <description>If set to a positive number, this is the maximum wall time for which forest evolution is allowed to proceed before the task gives up.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>evolveForestsInParallel</name>
+      <defaultValue>.true.</defaultValue>
+      <description>If true then each forest is evolved by a separate OpenMP thread. Otherwise, a single thread evolves all forests.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -195,9 +202,9 @@ contains
     <objectBuilder class="mergerTreeInitializor"  name="mergerTreeInitializor_"  source="parameters"/>
     !!]
     if (associated(parametersRoot)) then
-       self=taskEvolveForests(evolveSingleForest,evolveSingleForestSections,evolveSingleForestMassMinimum,walltimeMaximum,suspendToRAM,suspendPath,mergerTreeConstructor_,mergerTreeOperator_,nodeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,mergerTreeInitializor_,parametersRoot)
+       self=taskEvolveForests(evolveForestsInParallel,evolveSingleForest,evolveSingleForestSections,evolveSingleForestMassMinimum,walltimeMaximum,suspendToRAM,suspendPath,mergerTreeConstructor_,mergerTreeOperator_,nodeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,mergerTreeInitializor_,parametersRoot)
     else
-       self=taskEvolveForests(evolveSingleForest,evolveSingleForestSections,evolveSingleForestMassMinimum,walltimeMaximum,suspendToRAM,suspendPath,mergerTreeConstructor_,mergerTreeOperator_,nodeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,mergerTreeInitializor_,parameters    )
+       self=taskEvolveForests(evolveForestsInParallel,evolveSingleForest,evolveSingleForestSections,evolveSingleForestMassMinimum,walltimeMaximum,suspendToRAM,suspendPath,mergerTreeConstructor_,mergerTreeOperator_,nodeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,mergerTreeInitializor_,parameters    )
     end if
     self%nodeComponentsInitialized=.true.
     !![
@@ -215,13 +222,14 @@ contains
     return
   end function evolveForestsConstructorParameters
 
-  function evolveForestsConstructorInternal(evolveSingleForest,evolveSingleForestSections,evolveSingleForestMassMinimum,walltimeMaximum,suspendToRAM,suspendPath,mergerTreeConstructor_,mergerTreeOperator_,nodeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,mergerTreeInitializor_,parameters) result(self)
+  function evolveForestsConstructorInternal(evolveForestsInParallel,evolveSingleForest,evolveSingleForestSections,evolveSingleForestMassMinimum,walltimeMaximum,suspendToRAM,suspendPath,mergerTreeConstructor_,mergerTreeOperator_,nodeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,mergerTreeInitializor_,parameters) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily evolveForests} task class.
     !!}
     implicit none
     type            (taskEvolveForests          )                        :: self
-    logical                                      , intent(in   )         :: evolveSingleForest           , suspendToRAM
+    logical                                      , intent(in   )         :: evolveSingleForest           , suspendToRAM, &
+         &                                                                  evolveForestsInParallel
     integer                                      , intent(in   )         :: evolveSingleForestSections
     double precision                             , intent(in   )         :: evolveSingleForestMassMinimum
     integer         (kind_int8                  ), intent(in   )         :: walltimeMaximum
@@ -237,7 +245,7 @@ contains
     class           (mergerTreeInitializorClass ), intent(in   ), target :: mergerTreeInitializor_
     type            (inputParameters            ), intent(in   ), target :: parameters
     !![
-    <constructorAssign variables="evolveSingleForest, evolveSingleForestSections, evolveSingleForestMassMinimum, walltimeMaximum, suspendToRAM, suspendPath, *mergerTreeConstructor_, *mergerTreeOperator_, *nodeOperator_, *evolveForestsWorkShare_, *outputTimes_, *universeOperator_, *mergerTreeEvolver_, *mergerTreeOutputter_, *mergerTreeInitializor_"/>
+    <constructorAssign variables="evolveForestsInParallel, evolveSingleForest, evolveSingleForestSections, evolveSingleForestMassMinimum, walltimeMaximum, suspendToRAM, suspendPath, *mergerTreeConstructor_, *mergerTreeOperator_, *nodeOperator_, *evolveForestsWorkShare_, *outputTimes_, *universeOperator_, *mergerTreeEvolver_, *mergerTreeOutputter_, *mergerTreeInitializor_"/>
     !!]
 
     self%parameters  => parameters
@@ -445,7 +453,7 @@ contains
     end if
 
     ! Begin parallel processing of trees until all work is done.
-    !$omp parallel copyin(finished)
+    !$omp parallel copyin(finished) if (self%evolveForestsInParallel)
     allocate(mergerTreeOutputter_  ,mold=self%mergerTreeOutputter_  )
     allocate(mergerTreeInitializor_,mold=self%mergerTreeInitializor_)
     allocate(mergerTreeEvolver_    ,mold=self%mergerTreeEvolver_    )
@@ -495,8 +503,8 @@ contains
           tree          => null()
           do while (.not.associated(tree).and..not.treesFinished)
              ! Get the number of the next tree to process.
-             treeNumber=self%evolveForestsWorkShare_%forestNumber(utilizeOpenMPThreads=.not.self%evolveSingleForest)
-             tree => mergerTreeConstructor_%construct(treeNumber,treesFinished)
+             treeNumber =  self                  %evolveForestsWorkShare_%forestNumber(utilizeOpenMPThreads=self%evolveForestsInParallel)
+             tree       => mergerTreeConstructor_                        %construct   (treeNumber,treesFinished)
           end do
           if (associated(tree)) tree%hostUniverse => self%universeWaiting
           finished                                =  finished.or..not.associated(tree)
