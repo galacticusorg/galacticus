@@ -1305,6 +1305,7 @@ CODE
 				     (grep {$_->{'type'} eq $type} &List::ExtraUtils::as_array($deepCopyActions->{'deepCopyActions'}))
 				    ) {
 					my $isAllocatable = grep {$_ eq "allocatable"} @{$declaration->{'attributes'}};
+					my $isPointer     = grep {$_ eq "pointer"    } @{$declaration->{'attributes'}};
 					my $rank = 0;
 					if ( grep {$_ =~ m/^dimension\s*\(/} @{$declaration->{'attributes'}} ) {
 					    my $dimensionDeclarator = join(",",map {/^dimension\s*\(([a-zA-Z0-9_,:\s]+)\)/} @{$declaration->{'attributes'}});
@@ -1315,6 +1316,8 @@ CODE
 					foreach my $variableName ( @{$declaration->{'variableNames'}} ) {
 					    $assignments .= "if (allocated(self%".$variableName.")) then\n"
 						if ( $isAllocatable );
+					    $assignments .= "if (associated(self%".$variableName.")) then\n"
+						if ( $isPointer     );
 					    for(my $i=1;$i<=$rank;++$i) {
 						$assignments .= (" " x $i)."do i".$i."=lbound(self%".$variableName.",dim=".$i."),ubound(self%".$variableName.",dim=".$i.")\n";
 					    }
@@ -1324,7 +1327,7 @@ CODE
 						    $assignments .= (" " x ($rank+1-$i))."end do\n";
 					    }
 					    $assignments .= "end if\n"
-						if ( $isAllocatable );
+						if ( $isAllocatable || $isPointer );
 					}
 				}
 				# Deep copy of HDF5 objects.
@@ -1541,6 +1544,7 @@ CODE
 			 (grep {$_->{'type'} eq $type} &List::ExtraUtils::as_array($deepCopyActions->{'deepCopyActions'}))
 			) {
 			    my $isAllocatable = grep {$_ eq "allocatable"} @{$declaration->{'attributes'}};
+			    my $isPointer     = grep {$_ eq "pointer"    } @{$declaration->{'attributes'}};
 			    my $rank = 0;
 			    if ( grep {$_ =~ m/^dimension\s*\(/} @{$declaration->{'attributes'}} ) {
 				my $dimensionDeclarator = join(",",map {/^dimension\s*\(([a-zA-Z0-9_,:\s]+)\)/} @{$declaration->{'attributes'}});
@@ -1551,6 +1555,8 @@ CODE
 			    foreach my $variableName ( @{$declaration->{'variableNames'}} ) {
 				$assignments .= "if (allocated(self%".$variableName.")) then\n"
 				    if ( $isAllocatable );
+				$assignments .= "if (associated(self%".$variableName.")) then\n"
+				    if ( $isPointer     );
 				for(my $i=1;$i<=$rank;++$i) {
 				    $assignments .= (" " x $i)."do i".$i."=lbound(self%".$variableName.",dim=".$i."),ubound(self%".$variableName.",dim=".$i.")\n";
 				}
@@ -1560,7 +1566,7 @@ CODE
 					$assignments .= (" " x ($rank+1-$i))."end do\n";
 				}
 				$assignments .= "end if\n"
-				    if ( $isAllocatable );
+				    if ( $isAllocatable || $isPointer );
 			    }
 		    }
 		    # Deep copy of HDF5 objects.
