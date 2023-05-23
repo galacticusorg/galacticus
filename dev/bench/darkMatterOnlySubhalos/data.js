@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1684864492186,
+  "lastUpdate": 1684864501340,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "3ec8f319d8d32d7fab27645161ac3ba7f42f3205",
-          "message": "fix: Remove unnecessary module import",
-          "timestamp": "2022-10-04T11:45:25-07:00",
-          "tree_id": "bdb375d007cfdd33503d1de3f15f093412066f58",
-          "url": "https://github.com/galacticusorg/galacticus/commit/3ec8f319d8d32d7fab27645161ac3ba7f42f3205"
-        },
-        "date": 1664931588256,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 74.576,
-            "unit": "seconds",
-            "range": 0.486537151715869
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8685,6 +8655,45 @@ window.BENCHMARK_DATA = {
             "value": 64.672,
             "unit": "seconds",
             "range": 0.388434807914992
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "4bc073b416fd78a2c5511eeeb53e37e9c28f4bc3",
+          "message": "feat: Expand range of memory reporting\n\nPreviously the largest suffix supported was GB, which lead to failure to format reported memory usage on larger memory machines. Now supports up to YB.",
+          "timestamp": "2023-05-23T07:56:50-07:00",
+          "tree_id": "8094ff323ea9aba6616cc4d8150ae0bf20fbd868",
+          "url": "https://github.com/galacticusorg/galacticus/commit/4bc073b416fd78a2c5511eeeb53e37e9c28f4bc3"
+        },
+        "date": 1684864499884,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 57.4646519971992,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 25.77177881396,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 25496.6894737413,
+            "unit": "-logℒ"
           }
         ]
       }
