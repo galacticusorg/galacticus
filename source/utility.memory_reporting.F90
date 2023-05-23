@@ -84,7 +84,7 @@ contains
     logical                                     :: issueNewReport
     type            (varying_string)            :: usageText
     integer         (c_size_t      )            :: memoryUsage                , divisor
-    character       (len =3        )            :: suffix
+    character       (len =2        )            :: suffix
     character       (len =7        )            :: label
     double precision                            :: memoryFraction
       
@@ -148,7 +148,7 @@ contains
     implicit none
     integer         (c_size_t), intent(in   ) :: memoryUsage
     integer         (c_size_t), intent(  out) :: divisor
-    character       (len =3  ), intent(  out) :: suffix
+    character       (len =2  ), intent(  out) :: suffix
     integer         (c_size_t), parameter     :: kilo       =1024
     double precision          , parameter     :: log10kilo  =log10(dble(kilo))
     integer                                   :: usageDecade
@@ -158,20 +158,35 @@ contains
        select case (usageDecade)
        case (:0)
           divisor=1
-          suffix='  b'
+          suffix=' B'
        case (1)
           divisor=kilo
-          suffix='kib'
+          suffix='KB'
        case (2)
           divisor=kilo**2
-          suffix='Mib'
-       case (3:)
+          suffix='MB'
+       case (3)
           divisor=kilo**3
-          suffix='Gib'
+          suffix='GB'
+       case (4)
+          divisor=kilo**4
+          suffix='TB'
+       case (5)
+          divisor=kilo**4
+          suffix='PB'
+       case (6)
+          divisor=kilo**4
+          suffix='EB'
+       case (7)
+          divisor=kilo**4
+          suffix='ZB'
+       case (8:)
+          divisor=kilo**4
+          suffix='YB'
        end select
     else
        divisor=1
-       suffix='  b'
+       suffix=' B'
     end if
     return
   end subroutine getSuffix
