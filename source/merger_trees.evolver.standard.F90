@@ -271,7 +271,7 @@ contains
 
   subroutine standardDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily standard}m erger tree evolver class.
+    Destructor for the {\normalfont \ttfamily standard} merger tree evolver class.
     !!}
     implicit none
     type(mergerTreeEvolverStandard), intent(inout) :: self
@@ -303,6 +303,7 @@ contains
     use    :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsDeadlocked   , deadlockStatusIsNotDeadlocked     , deadlockStatusIsReporting, deadlockStatusIsSuspendable, &
          &                                                enumerationDeadlockStatusType
     !$ use :: OMP_Lib                            , only : OMP_Set_Lock                 , OMP_Unset_Lock                    , omp_lock_kind
+    use    :: Locks                              , only : ompLockClass
     use    :: String_Handling                    , only : operator(//)
     implicit none
     class           (mergerTreeEvolverStandard    )                    , intent(inout) :: self
@@ -326,6 +327,7 @@ contains
     class           (nodeComponentBasic           )           , pointer                :: basicBase                                     , basicParent      , &
          &                                                                                basic
     type            (mergerTree                   )           , pointer                :: currentTree
+    type            (ompLockClass                 )                                    :: lockTree
     type            (mergerTreeWalkerAllNodes     )                                    :: treeWalker
     type            (enumerationDeadlockStatusType)                                    :: statusDeadlock
     integer                                                                            :: treeWalkCountPreviousOutput                    , nodesEvolvedCount, &
@@ -432,6 +434,7 @@ contains
     didEvolve                  =.true.
     treeWalkCount              =0
     treeWalkCountPreviousOutput=0
+    lockTree                   =ompLockClass()
     outerLoop: do while (didEvolve) ! Keep looping through the tree until we make a pass during which no nodes were evolved.
        ! Flag that no nodes have been evolved yet.
        didEvolve=.false.
@@ -575,7 +578,7 @@ contains
                             ! Update record of earliest time in the tree.
                             earliestTimeInTree=min(earliestTimeInTree,timeEndThisNode)
                             ! Evolve the node to the next interrupt event, or the end time.
-                            call self%mergerTreeNodeEvolver_%evolve(currentTree,node,timeEndThisNode,interrupted,interruptProcedure,self%galacticStructureSolver_,systemClockMaximum,status)
+                            call self%mergerTreeNodeEvolver_%evolve(currentTree,node,timeEndThisNode,interrupted,interruptProcedure,self%galacticStructureSolver_,lockTree,systemClockMaximum,status)
                             if (present(status)) then
                                if (status /= errorStatusSuccess) return
                             end if

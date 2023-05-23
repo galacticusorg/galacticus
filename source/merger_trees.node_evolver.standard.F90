@@ -339,7 +339,7 @@ contains
     return
   end subroutine standardDestructor
 
-  subroutine standardEvolve(self,tree,node,timeEnd,interrupted,functionInterrupt,galacticStructureSolver__,systemClockMaximum,status)
+  subroutine standardEvolve(self,tree,node,timeEnd,interrupted,functionInterrupt,galacticStructureSolver__,treeLock,systemClockMaximum,status)
     !!{
     Evolves {\normalfont \ttfamily node} to time {\normalfont \ttfamily timeEnd}, or until evolution is interrupted.
     !!}
@@ -384,6 +384,7 @@ contains
     logical                                                           , intent(  out)          :: interrupted
     procedure       (interruptTask                      )             , intent(  out), pointer :: functionInterrupt
     class           (galacticStructureSolverClass       )             , intent(in   ), target  :: galacticStructureSolver__
+    class           (ompLockClass                       )             , intent(inout)          :: treeLock
     integer         (kind_int8                          ), optional   , intent(in   )          :: systemClockMaximum
     integer                                              , optional   , intent(  out)          :: status
     procedure       (standardErrorHandler               )                            , pointer :: errorHandler
@@ -409,7 +410,8 @@ contains
        self%systemClockMaximum=-1_kind_int8
     end if
     ! Call functions to perform any pre-evolution tasks.
-    call self%nodeOperator_%differentialEvolutionPre(node)
+    call treeLock              %set                     (    )
+    call self    %nodeOperator_%differentialEvolutionPre(node)
     !![
     <include directive="preEvolveTask" type="functionCall" functionType="void">
      <functionArgs>node</functionArgs>
@@ -418,6 +420,7 @@ contains
     !![
     </include>
     !!]
+    call treeLock              %unset                   (    )
 
     ! Determine the end time for this node - either the specified end time, or the time associated with the parent node, whichever
     ! occurs first.
@@ -701,12 +704,14 @@ contains
     end if
     ! Call routines to perform any post-evolution tasks.
     if (associated(node)) then
-       call self%nodeOperator_%differentialEvolutionPost(node)
+       call treeLock              %set                      (    )
+       call self    %nodeOperator_%differentialEvolutionPost(node)
        !![
        <eventHook name="postEvolve">
         <callWith>node</callWith>
        </eventHook>
        !!]
+       call treeLock              %unset                    (    )
     end if
     return
   end subroutine standardEvolve
@@ -740,7 +745,7 @@ contains
     integer                                                        :: iTime
     ! "evaluate" array is currently not used. It indicates which integrands must be evaluated, and which can (optionally) be
     ! ignored as they have already converged to the required tolerance. It is currently not used because the potential for
-    ! significant speed up appears to be small based on profiling. This will be model-depdendant though, so this decision can be
+    ! significant speed up appears to be small based on profiling. This will be model-dependant though, so this decision can be
     ! revisited.
     !$GLC attributes unused :: evaluate
 
@@ -859,7 +864,7 @@ contains
              self_%interruptFirstFound    =  .true.
              self_%timeInterruptFirst     =  time
              self_%functionInterruptFirst => functionInterrupt
-             ! Let the ODE solver know that an interrupt occured, and when it happened.
+             ! Let the ODE solver know that an interrupt occurred, and when it happened.
              standardODEs                 =  odeSolverInterrupt
              interruptedAtX               =  time
              return
