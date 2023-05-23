@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1684358567000,
+  "lastUpdate": 1684807917925,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "c1e34f1915ba917cccac84b95e15081142ed4361",
-          "message": "feat: Add a `nodePropertyExtractor` for SIDM halo interaction radius",
-          "timestamp": "2022-09-28T09:45:02-07:00",
-          "tree_id": "d050a47e941f84ae04c787aa2537fa07c77c1b86",
-          "url": "https://github.com/galacticusorg/galacticus/commit/c1e34f1915ba917cccac84b95e15081142ed4361"
-        },
-        "date": 1664392363206,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 73.636,
-            "unit": "seconds",
-            "range": 0.158626605587545
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8694,6 +8664,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 24211.0957851519,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "f5b5769ec7ef9569ff31488ea2ec20fee5bb27b5",
+          "message": "fix: Initialize physically plausibility state\n\nAvoids warnings about use of uninitialized data.",
+          "timestamp": "2023-05-22T16:22:29-07:00",
+          "tree_id": "4d7b190aa8de61c3fba50eda1c934af25fcedad0",
+          "url": "https://github.com/galacticusorg/galacticus/commit/f5b5769ec7ef9569ff31488ea2ec20fee5bb27b5"
+        },
+        "date": 1684807916686,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 51.91,
+            "unit": "seconds",
+            "range": 0.172435495185903
           }
         ]
       }
