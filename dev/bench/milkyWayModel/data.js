@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1684864505910,
+  "lastUpdate": 1684886381835,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "3d444eccb2e80ee2cdceed04c629367ff984a2b4",
-          "message": "Merge pull request #299 from galacticusorg/optimization\n\nAvoid unnecessary constructs/destructs",
-          "timestamp": "2022-09-17T06:11:37-07:00",
-          "tree_id": "9b50da6f171c7c3eb8059ca0f41f352c0f88d62b",
-          "url": "https://github.com/galacticusorg/galacticus/commit/3d444eccb2e80ee2cdceed04c629367ff984a2b4"
-        },
-        "date": 1663437325012,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 370.912,
-            "unit": "seconds",
-            "range": 1.18320902633485
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10586,6 +10556,34 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 6.03679087034369,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "id": "9a5a5b484917ceaa6b3080ddebc0fd97d62efeb1",
+          "message": "fix: Reduce code duplication in `mergerTreeEvolver` class",
+          "timestamp": "2023-05-23T20:39:32Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/9a5a5b484917ceaa6b3080ddebc0fd97d62efeb1"
+        },
+        "date": 1684886380770,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 202.226,
+            "unit": "seconds",
+            "range": 0.187409711596133
           }
         ]
       }
