@@ -220,7 +220,7 @@ contains
     class           (nodeComponentSatellite               ), pointer               :: satellite
     double precision                                       , dimension(3  )        :: position                               , velocity                        , &
          &                                                                            tidalTensorEigenValueComponents
-    double precision                                       , dimension(3,3)        :: tidalTensorComponents                  , tidalTensorEigenVectorComponents
+    double precision                                       , dimension(3,3)        :: tidalTensorComponents
     double precision                                       , parameter             :: radiusZero                      =0.0d+0
     double precision                                       , parameter             :: radiusTidalTinyFraction         =1.0d-6
     integer                                                                        :: status
@@ -266,11 +266,12 @@ contains
          &              *kilo                                                &
          &              *gigaYear                                            &
          &              /megaParsec
-    ! Find the maximum of the tidal field over all directions in the satellite. To compute this we multiply the a unit vector by
+    ! Find the maximum of the tidal field over all directions in the satellite. To compute this we multiply a unit vector by
     ! the tidal tensor, which gives the vector tidal acceleration for displacements along that direction. We then take the dot
-    ! product with that same unit vector to get the magnitude of this acceleration in the that direction. This magnitude is
-    ! maximized for a vector coinciding with the eigenvector of the tidal tensor with the largest eigenvalue. For spherical mass
-    ! distributions this reduces to:
+    ! product with that same unit vector to get the acceleration in that direction. This acceleration is maximized for a vector
+    ! coinciding with the eigenvector of the tidal tensor with the largest eigenvalue. Since the acceleration in the direction
+    ! of the eigenvector is exactly the eigenvalue corresponding to that eigenvector, we simply take the largest eigenvalue.
+    ! For spherical mass distributions this reduces to:
     !
     ! -2GM(r)r⁻³ - 4πGρ(r)
     if (associated(nodeHost)) then
@@ -279,12 +280,11 @@ contains
        tidalTensorMatrix               = tidalTensorComponents
        call tidalTensorMatrix%eigenSystem(tidalTensorEigenVectors,tidalTensorEigenValues)
        tidalTensorEigenValueComponents = tidalTensorEigenValues
-       tidalTensorEigenVectorComponents= tidalTensorEigenVectors
-       tidalFieldRadial                =-tidalTensor%vectorProject(tidalTensorEigenVectorComponents(:,maxloc(tidalTensorEigenValueComponents,dim=1))) &
-            &                           *(                                                                                                            &
-            &                             +kilo                                                                                                       &
-            &                             *gigaYear                                                                                                   &
-            &                             /megaParsec                                                                                                 &
+       tidalFieldRadial                =-maxval(tidalTensorEigenValueComponents) &
+            &                           *(                                       &
+            &                             +kilo                                  &
+            &                             *gigaYear                              &
+            &                             /megaParsec                            &
             &                            )**2
     else
        tidalFieldRadial                =+0.0d0
