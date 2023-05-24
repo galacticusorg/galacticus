@@ -171,7 +171,7 @@ contains
     time               =  basicHost     %time       (                 )
     ! Integrate the orbit backward in time to each progenitor halo.
     allocate(solver)
-    solver         =  odeSolver(6_c_size_t,orbitalODEs,toleranceRelative=1.0d-3)
+    solver         =  odeSolver(6_c_size_t,orbitalODEs,toleranceRelative=1.0d-3,toleranceAbsolute=1.0d-6)
     self_          => self
     do while (associated(nodeProgenitor))
        basicProgenitor     => nodeProgenitor %basic             (                 )
