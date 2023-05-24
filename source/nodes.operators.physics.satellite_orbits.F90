@@ -42,6 +42,7 @@
      final     ::                          satelliteOrbitDestructor
      procedure :: nodeInitialize        => satelliteOrbitNodeInitialize
      procedure :: nodePromote           => satelliteOrbitNodePromote
+     procedure :: nodesMerge            => satelliteOrbitNodeMerge
      procedure :: differentialEvolution => satelliteOrbitDifferentialEvolution
   end type nodeOperatorSatelliteOrbit
   
@@ -171,7 +172,7 @@ contains
     time               =  basicHost     %time       (                 )
     ! Integrate the orbit backward in time to each progenitor halo.
     allocate(solver)
-    solver         =  odeSolver(6_c_size_t,orbitalODEs,toleranceRelative=1.0d-3)
+    solver         =  odeSolver(6_c_size_t,orbitalODEs,toleranceRelative=1.0d-3,toleranceAbsolute=1.0d-6)
     self_          => self
     do while (associated(nodeProgenitor))
        basicProgenitor     => nodeProgenitor %basic             (                 )
@@ -254,6 +255,7 @@ contains
     do while (nodeHost%isPrimaryProgenitor())
        nodeHost => nodeHost%parent
     end do
+    nodeHost        => nodeHost%parent%firstChild
     basicProgenitor => nodeHost%basic()
     do while (associated(nodeHost) .and. basicProgenitor%time() > time)
        nodeHost => nodeHost%firstChild
@@ -317,6 +319,33 @@ contains
          & call satellite%floatRank0MetaPropertySet(self%rateGrowthMassBoundID,satelliteParent%floatRank0MetaPropertyGet(self%rateGrowthMassBoundID))
     return
   end subroutine satelliteOrbitNodePromote
+
+  subroutine satelliteOrbitNodeMerge(self,node)
+    !!{
+    Act on a merger between nodes.
+    !!}
+    use :: Galacticus_Nodes, only : nodeComponentSatellite
+    use :: Kepler_Orbits   , only : keplerOrbit
+    use :: Coordinates     , only : assignment(=)
+    implicit none
+    class           (nodeOperatorSatelliteOrbit), intent(inout) :: self
+    type            (treeNode                  ), intent(inout) :: node
+    class           (nodeComponentSatellite    ), pointer       :: satellite
+    type            (keplerOrbit               )                :: orbit
+    double precision                            , dimension(3)  :: position , velocity
+
+    if (.not.self%trackPreInfallOrbit  ) return
+    if (     node%isOnMainBranch     ()) return
+    satellite => node     %satellite  ()
+    orbit     =  satellite%virialOrbit()
+    if (orbit%isDefined()) then
+       position=orbit%position()
+       velocity=orbit%velocity()
+       call satellite%positionSet(position)
+       call satellite%velocitySet(velocity)
+    end if
+    return
+  end subroutine satelliteOrbitNodeMerge
 
   subroutine satelliteOrbitDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
     !!{

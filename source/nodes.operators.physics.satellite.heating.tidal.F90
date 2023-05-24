@@ -148,6 +148,7 @@ contains
        do while (nodeHost%isPrimaryProgenitor())
           nodeHost => nodeHost%parent
        end do
+       nodeHost  => nodeHost%parent%firstChild
        ! Follow that node back through descendants until we find the node at the corresponding time.
        basic     => node    %basic()
        basicHost => nodeHost%basic()
