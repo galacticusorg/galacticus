@@ -290,8 +290,9 @@ contains
        tidalFieldRadial                =+0.0d0
     end if
     ! If the tidal force is stretching (not compressing), compute the tidal radius.
+    tidalPull=frequencyAngular**2-tidalFieldRadial
     if     (                                                                          &
-         &   frequencyAngular**2                                   > tidalFieldRadial &
+         &   tidalPull                                             >  0.0d0           &
          &  .and.                                                                     &
          &   massSatellite                                         >  0.0d0           &
          &  .and.                                                                     &
@@ -300,7 +301,6 @@ contains
        ! Check if node differs from previous one for which we performed calculations.
        if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
        ! Initial estimate of the tidal radius.
-       tidalPull=frequencyAngular**2-tidalFieldRadial
        if (self%radiusTidalPrevious <= 0.0d0) then
           self%radiusTidalPrevious=+sqrt(                                              &
                &                         +gravitationalConstantGalacticus              &
