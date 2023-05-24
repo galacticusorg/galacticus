@@ -1527,6 +1527,7 @@ contains
        call    hotHalo%    unaccretedAbundancesScale(unitAbundances        *massVirial                               *scaleMassRelative  )
        call    hotHalo%     outflowedAbundancesScale(unitAbundances        *massVirial                               *scaleMassRelative  )
        call    hotHalo%               chemicalsScale(unitChemicalAbundances*massVirial                               *scaleMassRelative  )
+       call    hotHalo%      outflowedChemicalsScale(unitChemicalAbundances*massVirial                               *scaleMassRelative  )
        call    hotHalo%         angularMomentumScale(                       massVirial*radiusVirial*velocityVirial   *scaleMassRelative  )
        call    hotHalo%outflowedAngularMomentumScale(                       massVirial*radiusVirial*velocityVirial   *scaleMassRelative  )
        call    hotHalo%             outerRadiusScale(                                  radiusVirial                  *scaleRadiusRelative)
