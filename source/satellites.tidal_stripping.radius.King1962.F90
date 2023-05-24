@@ -280,11 +280,11 @@ contains
        call tidalTensorMatrix%eigenSystem(tidalTensorEigenVectors,tidalTensorEigenValues)
        tidalTensorEigenValueComponents = tidalTensorEigenValues
        tidalTensorEigenVectorComponents= tidalTensorEigenVectors
-       tidalFieldRadial                =-abs(tidalTensor%vectorProject(tidalTensorEigenVectorComponents(:,maxloc(tidalTensorEigenValueComponents,dim=1)))) &
-            &                           *(                                                                                                                 &
-            &                             +kilo                                                                                                            &
-            &                             *gigaYear                                                                                                        &
-            &                             /megaParsec                                                                                                      &
+       tidalFieldRadial                =-tidalTensor%vectorProject(tidalTensorEigenVectorComponents(:,maxloc(tidalTensorEigenValueComponents,dim=1))) &
+            &                           *(                                                                                                            &
+            &                             +kilo                                                                                                       &
+            &                             *gigaYear                                                                                                   &
+            &                             /megaParsec                                                                                                 &
             &                            )**2
     else
        tidalFieldRadial                =+0.0d0
