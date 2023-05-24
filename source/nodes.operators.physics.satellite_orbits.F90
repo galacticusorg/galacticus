@@ -254,6 +254,7 @@ contains
     do while (nodeHost%isPrimaryProgenitor())
        nodeHost => nodeHost%parent
     end do
+    nodeHost        => nodeHost%parent%firstChild
     basicProgenitor => nodeHost%basic()
     do while (associated(nodeHost) .and. basicProgenitor%time() > time)
        nodeHost => nodeHost%firstChild
