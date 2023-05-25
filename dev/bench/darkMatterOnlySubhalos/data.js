@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1685044126274,
+  "lastUpdate": 1685044135786,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "af76d5c03d144df542234405a1ac271b0fcba5f1",
-          "message": "Merge pull request #309 from galacticusorg/statsInverse\n\nAdd a default, numerical implementation of the `inverse()` function for the `distributionFunction1D` class",
-          "timestamp": "2022-10-08T07:28:50-07:00",
-          "tree_id": "4a93a7e8cea82858c04744e54208494820eba2d2",
-          "url": "https://github.com/galacticusorg/galacticus/commit/af76d5c03d144df542234405a1ac271b0fcba5f1"
-        },
-        "date": 1665250447664,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 56.4862273307091,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 25.5165582430658,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 15423.3632579593,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8688,6 +8649,43 @@ window.BENCHMARK_DATA = {
             "value": 48.834,
             "unit": "seconds",
             "range": 0.0334424879477016
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "id": "8f480a1febb414ac44d775d13442a70f918a0d59",
+          "message": "feat: Allow instances of the `mergerTreeEvolveProfilerSimple` class to automatically reduce onto the object from which they were deep-copied\n\nIf they were deep-copied reduction is performed (atomically) back onto the originating object. Otherwise, results are written to file. This allows multiple deep-copied `mergerTreeEvolveProfilerSimple` objects to accumulate data independently, and to then combine those results for eventual writing to file by the ultimate originating object.",
+          "timestamp": "2023-05-25T16:34:23Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/8f480a1febb414ac44d775d13442a70f918a0d59"
+        },
+        "date": 1685044134356,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 57.7413507633629,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 26.1157669635928,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 23783.3379050868,
+            "unit": "-logℒ"
           }
         ]
       }
