@@ -1839,6 +1839,16 @@ CODE
                 if ( $rankMaximum > 0 );
 	    $methods{'deepCopy'} =
 	    {
+		description => "Perform a deep copy of the object. This is a wrapper around the actual deep-copy code.",
+		type        => "void",
+		recursive   => "yes",
+		pass        => "yes",
+		selfTarget  => "yes",
+		argument    => [ "class(".$directive->{'name'}."Class), intent(inout) :: destination" ],
+		code        => "call self%deepCopy_(destination)"
+	    };
+	    $methods{'deepCopy_'} =
+	    {
 		description => "Perform a deep copy of the object.",
 		type        => "void",
 		recursive   => "yes",
