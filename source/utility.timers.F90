@@ -33,14 +33,14 @@ module Timers
      !!{
      Type used to perform timing.
      !!}
-     real :: timeStart, timeStop
+     double precision :: timeStart, timeStop
    contains
      !![
      <methods>
-       <method description="Start the timer." method="start" />
-       <method description="Stop the timer." method="stop" />
-       <method description="Report the time recorded as a double precision value." method="report" />
-       <method description="Report the time recorded as a character value." method="reportText" />
+       <method description="Start the timer."                                      method="start"     />
+       <method description="Stop the timer."                                       method="stop"      />
+       <method description="Report the time recorded as a double precision value." method="report"    />
+       <method description="Report the time recorded as a character value."        method="reportText"/>
      </methods>
      !!]
      procedure :: start      => timerStart
@@ -64,8 +64,8 @@ contains
     !!}
     type(timer) :: self
 
-    self%timeStart=-huge(0.0)
-    self%timeStop =-huge(0.0)
+    self%timeStart=-huge(0.0d0)
+    self%timeStop =-huge(0.0d0)
     return
   end function timerConstructorInternal
 
@@ -73,10 +73,11 @@ contains
     !!{
     Start the timer.
     !!}
+    use :: OMP_Lib, only : OMP_Get_wTime
     implicit none
     class(timer), intent(inout) :: self
     
-    call CPU_Time(self%timeStart)
+    self%timeStart=OMP_Get_wTime()
     return
   end subroutine timerStart
   
@@ -84,10 +85,11 @@ contains
     !!{
     Stop the timer.
     !!}
+    use :: OMP_Lib, only : OMP_Get_wTime
     implicit none
     class(timer), intent(inout) :: self
     
-    call CPU_Time(self%timeStop)
+    self%timeStop=OMP_Get_wTime()
     return
   end subroutine timerStop
 
@@ -107,17 +109,12 @@ contains
     !!{
     Report the time recorded by the time as a text value.
     !!}
+    use :: Numerical_Constants_Prefixes, only : siFormat
     implicit none
-    character       (len=14)                :: timerReportText
-    class           (timer ), intent(inout) :: self
-    double precision                        :: time
+    character(len=16)                :: timerReportText
+    class    (timer ), intent(inout) :: self
 
-    time=self%report()
-    if (time > 1000.0d0 .or. time < 0.1d0) then
-       write (timerReportText,'(e12.6,1x,a1)') time,'s'
-    else
-       write (timerReportText,'(f12.6,1x,a1)') time,'s'
-    end if
+    write (timerReportText,'(a,a1)') trim(siFormat(self%report(),'f12.6')),'s'
     return
   end function timerReportText
 
