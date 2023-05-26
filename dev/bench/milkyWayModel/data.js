@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1685044140635,
+  "lastUpdate": 1685137971064,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "c1e34f1915ba917cccac84b95e15081142ed4361",
-          "message": "feat: Add a `nodePropertyExtractor` for SIDM halo interaction radius",
-          "timestamp": "2022-09-28T09:45:02-07:00",
-          "tree_id": "d050a47e941f84ae04c787aa2537fa07c77c1b86",
-          "url": "https://github.com/galacticusorg/galacticus/commit/c1e34f1915ba917cccac84b95e15081142ed4361"
-        },
-        "date": 1664404983739,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 525.599,
-            "unit": "seconds",
-            "range": 3.87196886609433
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10604,6 +10574,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 5.97223540104491,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d54e213504cc20609971cf7c5b4dd81f94d085a5",
+          "message": "Merge pull request #413 from galacticusorg/massPeak\n\nTrack peak bound masses of nodes",
+          "timestamp": "2023-05-26T18:26:29Z",
+          "tree_id": "485810bd2f7a69fc501186d65ae0ed3b13b9fd45",
+          "url": "https://github.com/galacticusorg/galacticus/commit/d54e213504cc20609971cf7c5b4dd81f94d085a5"
+        },
+        "date": 1685137970137,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 246.78,
+            "unit": "seconds",
+            "range": 0.658889975640739
           }
         ]
       }
