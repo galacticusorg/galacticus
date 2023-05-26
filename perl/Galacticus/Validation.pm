@@ -39,7 +39,7 @@ sub extract {
 	    @likelihoods,
 	    {
 		name  => $name." - Likelihood - ".$analysisName,
-		unit  => "-logℒ"                                                 ,
+		unit  => "-logℒ"                              ,
 		value => abs($logLikelihood->sclr())
 	    }
 	    );
@@ -71,20 +71,20 @@ sub extract {
 		if ( grep {$_ eq $dataset->{'name'}} keys(%{$attributes}) ) {
 		    (my $analysisDatasetName) = $analysisGroup->attrGet($dataset->{'name'});
 		    unless ( grep {$_ eq $analysisDatasetName} $analysisGroup->datasets() ) {
-			print "Analysis: ".$analysisName."\n";
-			print "Generic name: ".$dataset->{'name'}."\n";
-			print "Actual name: ".$analysisDatasetName."\n";
+			print "Analysis: '".$analysisName."'\n";
+			print "Generic name: '".$dataset->{'name'}."'\n";
+			print "Actual name: '".$analysisDatasetName."'\n";
 			print "Available datasets:\n";
-			print join("\n",map {"\t".$_} $analysisGroup->datasets())."\n";
+			print join("\n",map {"\t'".$_."'"} $analysisGroup->datasets())."\n";
 			die("failed to find dataset");
 		    }
 		    $data->{$dataset->{'name'}} = $analysisGroup->dataset($analysisDatasetName)->get();
 		    unless ( defined($data->{$dataset->{'name'}}) ) {
-			print "Analysis: ".$analysisName."\n";
-			print "Generic name: ".$dataset->{'name'}."\n";
-			print "Actual name: ".$analysisDatasetName."\n";
+			print "Analysis: '".$analysisName."'\n";
+			print "Generic name: '".$dataset->{'name'}."'\n";
+			print "Actual name: '".$analysisDatasetName."'\n";
 			print "Available datasets:\n";
-			print join("\n",map {"\t".$_} $analysisGroup->datasets())."\n";
+			print join("\n",map {"\t'".$_} $analysisGroup->datasets())."'\n";
 			system("h5dump -A -g analyses/".$analysisName." ".$fileName);
 			die("failed to read dataset");
 		    }
