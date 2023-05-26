@@ -57,7 +57,7 @@
      type   (worker                          ), allocatable, dimension(:) :: workers
      class  (mergerTreeEvolveConcurrencyClass), pointer                   :: mergerTreeEvolveConcurrency_ => null()
      type   (inputParameters                 ), pointer                   :: parameters                   => null()
-     logical                                                              :: workersInitialized           =  .false.
+     logical                                                              :: workersInitialized           =  .false., reportTiming
    contains
      final     ::           threadedDestructor
      procedure :: evolve => threadedEvolve
@@ -94,7 +94,7 @@ contains
     class           (mergerTreeEvolveConcurrencyClass), pointer               :: mergerTreeEvolveConcurrency_
     type            (inputParameters                 ), pointer               :: parameters_
     logical                                                                   :: allTreesExistAtFinalTime        , dumpTreeStructure   , &
-         &                                                                       profileSteps
+         &                                                                       profileSteps                    , reportTiming
     double precision                                                          :: timestepHostRelative            , timestepHostAbsolute, &
          &                                                                       fractionTimestepSatelliteMinimum
 
@@ -136,6 +136,12 @@ contains
       <description>Specifies whether or not to profile the ODE evolver.</description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter>
+      <name>reportTiming</name>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, report on timing of serial and parallel sections.</description>
+      <source>parameters</source>
+    </inputParameter>
     !!]
     ! A galacticStructureSolver is built here. Even though this is not called explicitly by this mergerTreeEvolver, the
     ! galacticStructureSolver is expected to hook itself to any events which will trigger a change in galactic structure.
@@ -153,7 +159,7 @@ contains
     else
        parameters_ => parameters
     end if
-    self=mergerTreeEvolverThreaded(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,fractionTimestepSatelliteMinimum,profileSteps,cosmologyFunctions_,mergerTreeNodeEvolver_,mergerTreeEvolveTimestep_,mergerTreeInitializor_,mergerTreeEvolveConcurrency_,galacticStructureSolver_,mergerTreeEvolveProfiler_,parameters_)
+    self=mergerTreeEvolverThreaded(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,fractionTimestepSatelliteMinimum,profileSteps,reportTiming,cosmologyFunctions_,mergerTreeNodeEvolver_,mergerTreeEvolveTimestep_,mergerTreeInitializor_,mergerTreeEvolveConcurrency_,galacticStructureSolver_,mergerTreeEvolveProfiler_,parameters_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"      />
@@ -166,7 +172,7 @@ contains
     return
   end function threadedConstructorParameters
 
-  function threadedConstructorInternal(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,fractionTimestepSatelliteMinimum,profileSteps,cosmologyFunctions_,mergerTreeNodeEvolver_,mergerTreeEvolveTimestep_,mergerTreeInitializor_,mergerTreeEvolveConcurrency_,galacticStructureSolver_,mergerTreeEvolveProfiler_,parameters) result(self)
+  function threadedConstructorInternal(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,fractionTimestepSatelliteMinimum,profileSteps,reportTiming,cosmologyFunctions_,mergerTreeNodeEvolver_,mergerTreeEvolveTimestep_,mergerTreeInitializor_,mergerTreeEvolveConcurrency_,galacticStructureSolver_,mergerTreeEvolveProfiler_,parameters) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily threaded} merger tree evolver class.
     !!}
@@ -180,12 +186,12 @@ contains
     class           (mergerTreeEvolveProfilerClass   ), intent(in   ), target :: mergerTreeEvolveProfiler_
     class           (mergerTreeEvolveConcurrencyClass), intent(in   ), target :: mergerTreeEvolveConcurrency_
     logical                                           , intent(in   )         :: allTreesExistAtFinalTime        , dumpTreeStructure   , &
-         &                                                                       profileSteps
+         &                                                                       profileSteps                    , reportTiming
     double precision                                  , intent(in   )         :: timestepHostRelative            , timestepHostAbsolute, &
          &                                                                       fractionTimestepSatelliteMinimum
     type            (inputParameters                 ), intent(in   ), target :: parameters
     !![
-    <constructorAssign variables="allTreesExistAtFinalTime, dumpTreeStructure, timestepHostRelative, timestepHostAbsolute, fractionTimestepSatelliteMinimum, profileSteps, *cosmologyFunctions_, *mergerTreeNodeEvolver_, *mergerTreeEvolveTimestep_, *mergerTreeInitializor_, *mergerTreeEvolveConcurrency_, *galacticStructureSolver_, *mergerTreeEvolveProfiler_, *parameters"/>
+    <constructorAssign variables="allTreesExistAtFinalTime, dumpTreeStructure, timestepHostRelative, timestepHostAbsolute, fractionTimestepSatelliteMinimum, profileSteps, reportTiming, *cosmologyFunctions_, *mergerTreeNodeEvolver_, *mergerTreeEvolveTimestep_, *mergerTreeInitializor_, *mergerTreeEvolveConcurrency_, *galacticStructureSolver_, *mergerTreeEvolveProfiler_, *parameters"/>
     !!]
 
     self%deadlockHeadNode   => null()
@@ -236,6 +242,8 @@ contains
     !$   &                                                OMP_Get_Thread_Num
     use    :: Locks                              , only : ompLock
     use    :: String_Handling                    , only : operator(//)
+    use    :: Timers                             , only : timer
+    use    :: Numerical_Constants_Prefixes       , only : siFormat
     implicit none
     class           (mergerTreeEvolverThreaded    )                    , intent(inout) :: self
     integer                                        , optional          , intent(  out) :: status
@@ -265,33 +273,69 @@ contains
     !$omp threadprivate(basic)
     type            (mergerTree                   ), save     , pointer                :: currentTree
     !$omp threadprivate(currentTree)
-    type            (nodeTaskList                 )           , pointer                :: evolveStackHead                               , evolveStackTip        , &
+    type            (nodeTaskList                 )           , pointer                :: evolveStackHead                               , evolveStackTip          , &
          &                                                                                postProcessStackHead                          , postProcessStackTip
     type            (nodeTaskList                 ), save     , pointer                :: stackNext
     !$omp threadprivate(stackNext)
     type            (inputParameters              ), save     , allocatable            :: parameters
     !$omp threadprivate(parameters)
-    type            (ompLock                      )                                    :: lockEvolveStack                               , lockPostProcessStack , &
+    type            (ompLock                      )                                    :: lockEvolveStack                               , lockPostProcessStack     , &
          &                                                                                lockTree
     type            (mergerTreeWalkerAllNodes     )                                    :: treeWalker
     type            (enumerationDeadlockStatusType)                                    :: statusDeadlock
-    integer                                                                            :: treeWalkCountPreviousOutput                   , nodesEvolvedCount    , &
-         &                                                                                nodesTotalCount                               , treeWalkCount        , &
+    integer                                                                            :: treeWalkCountPreviousOutput                   , nodesEvolvedCount        , &
+         &                                                                                nodesTotalCount                               , treeWalkCount            , &
          &                                                                                countWorkers                                  , status_
     double precision                                                                   :: earliestTimeInTree                            , finalTimeInTree
     character       (len=24                       )                                    :: label
     character       (len=35                       )                                    :: message
     type            (varying_string               ), save                              :: lockType       
     !$omp threadprivate(lockType)                               
-    logical                                                                            :: anyTreeExistsAtOutputTime                     , hasIntertreeEvent    , &
-         &                                                                                didEvolve                                     , evolutionFailed      , &
+    logical                                                                            :: anyTreeExistsAtOutputTime                     , hasIntertreeEvent        , &
+         &                                                                                didEvolve                                     , evolutionFailed          , &
          &                                                                                evolutionExiting
     logical                                        , save                              :: interrupted
     !$omp threadprivate(interrupted)
     integer                                        , save                              :: evolutionPhase                                , evolutionPhaseMaximum
     !$omp threadprivate(evolutionPhase)
-    
+    type            (timer                        ), save                              :: timer_
+    !$omp threadprivate(timer_)
+    double precision                                                                   :: timeBuildEvolveStack                          , timeWaitEvolve           , &
+         &                                                                                timePostProcess                               , timeEvolve               , &
+         &                                                                                timeUnaccounted                               , timeInitialize           , &
+         &                                                                                timeCopyObjects                               , timeThreadInitialize     , &
+         &                                                                                timeThreadUninitialize                        , timeEvolveStackLock      , &
+         &                                                                                timePostProcessStackLock                      , timeBuildEvolveStack__   , &
+         &                                                                                timePostProcess__                             , timeTotal
+    double precision                               , save                              :: timeWaitEvolve_                               , timeEvolve_              , &
+         &                                                                                timeThreadInitialize_                         , timeThreadUninitialize_  , &
+         &                                                                                timeEvolveStackLock_                          , timePostProcessStackLock_, &
+         &                                                                                timeBuildEvolveStack_                         , timePostProcess_
+    !$omp threadprivate(timeWaitEvolve_,timeEvolve_,timeThreadInitialize_,timeThreadUninitialize_,timeEvolveStackLock_,timePostProcessStackLock_,timeBuildEvolveStack_,timePostProcess_)
+    character       (len=5                        )                                    :: percentBuildEvolveStack                       , percentEvolve            , &
+         &                                                                                percentWaitEvolve                             , percentPostProcess       , &
+         &                                                                                percentUnaccounted                            , percentInitialize        , &
+         &                                                                                percentCopyObjects                            , percentThreadInitialize  , &
+         &                                                                                percentThreadUninitialize                     , percentEvolveStackLock   , &
+         &                                                                                percentPostProcessStackLock
+
+    ! Begin timing.
+    if (self%reportTiming) then
+       timeBuildEvolveStack    =0.0d0
+       timePostProcess         =0.0d0
+       timeCopyObjects         =0.0d0
+       timeThreadInitialize    =0.0d0
+       timeThreadUninitialize  =0.0d0
+       timeEvolve              =0.0d0
+       timeWaitEvolve          =0.0d0
+       timeEvolveStackLock     =0.0d0
+       timePostProcessStackLock=0.0d0
+    end if
     ! Initialize trees.
+    if (self%reportTiming) then
+       timer_=timer()
+       call timer_%start()
+    end if
     suspendTree               =  .false.
     anyTreeExistsAtOutputTime =  .false.
     treeDidEvolve             =  .false.
@@ -302,10 +346,15 @@ contains
        treeDidEvolve=.true.
        return
     end if
+    if (self%reportTiming) then
+       call timer_%stop()
+       timeInitialize=timer_%report()
+       call timer_%start()
+    end if
     ! Create copies of objects needed for evolution.
+    countWorkers   =1
+    !$ countWorkers=OMP_Get_Max_Threads()
     if (.not.self%workersInitialized) then
-       countWorkers   =1
-       !$ countWorkers=OMP_Get_Max_Threads()
        allocate(self%workers(0:countWorkers-1))
        self%workersInitialized=.true.
        do numberWorker=0,countWorkers-1
@@ -329,18 +378,35 @@ contains
           call eventsHooksFutureThread()
         end do
     end if
+    if (self%reportTiming) then
+       call timer_%stop()
+       timeCopyObjects=timer_%report()
+    end if
     ! Outer loop: This causes the tree to be repeatedly walked and evolved until it has been evolved all the way to the specified
     ! end time. We stop when no nodes were evolved, which indicates that no further evolution is possible. Begin a parallel region
     ! here - this allows us to retain a team of threads for the entirety of this trees' evolution. We will use OpenMP `single`
     ! sections for work that must be done in serial.
     !$omp parallel
     ! Initialize nodes for these threads.
+    if (self%reportTiming) then
+       timer_=timer()
+       call timer_%start()
+    end if
     allocate(parameters)
     parameters=inputParameters(self%parameters)
     call parameters%parametersGroupCopy(self%parameters)
     call Node_Components_Thread_Initialize(parameters)   
     ! Determine out worker number.
     numberWorker=OMP_Get_Thread_Num()
+    if (self%reportTiming) then
+       call timer_%stop()
+       timeThreadInitialize_=timer_%report()
+       !$omp atomic
+       timeThreadInitialize =max(                       &
+            &                    timeThreadInitialize , &
+            &                    timeThreadInitialize_  &
+            &                   )
+    end if
     ! Initialize evolution state and locks.
     !$omp single
     didEvolve                  =.true.
@@ -390,20 +456,23 @@ contains
                 evolutionPhaseMaximum=self%mergerTreeEvolveConcurrency_%countPhases()
                 !$omp end single
                 ! Build a stack of all evolvable nodes.
-                evolutionPhase=0
+                evolutionPhase=0                
                 concurrencyLoop : do while(evolutionPhase < evolutionPhaseMaximum)
+                   if (self%reportTiming) call timer_%start()
                    evolutionPhase=evolutionPhase+1
                    !$omp single
-                   evolveStackHead => null()
-                   evolveStackTip  => null()
-                   treeWalker      =  mergerTreeWalkerAllNodes(currentTree,spanForest=.false.)
+                   timeBuildEvolveStack__ =  0.0d0
+                   timePostProcess__      =  0.0d0
+                   evolveStackHead        => null()
+                   evolveStackTip         => null()
+                   treeWalker             =  mergerTreeWalkerAllNodes(currentTree,spanForest=.false.)
                    do while (treeWalker%next(node))
+                      ! Count nodes in the tree.
+                      if (evolutionPhase == 1) nodesTotalCount=nodesTotalCount+1
                       ! Skip nodes that are not to be evolved during this phase/
                       if (.not.self%mergerTreeEvolveConcurrency_%includeInEvolution(evolutionPhase,node)) cycle
                       ! Get the basic component of the node.
                       basic => node%basic()
-                      ! Count nodes in the tree.
-                      nodesTotalCount=nodesTotalCount+1
                       ! Determine if the node is evolvable.
                       if (self%nodeIsEvolvable(node,timeEnd,finalTimeInTree)) then                      
                          if (associated(evolveStackHead)) then
@@ -413,7 +482,7 @@ contains
                             allocate(evolveStackHead)
                             evolveStackTip => evolveStackHead
                          end if
-                         evolveStackTip%node => node
+                         evolveStackTip%node          => node
                          evolveStackTip%timestepTask_ => null()
                       else
                          if (statusDeadlock == deadlockStatusIsReporting) then
@@ -438,14 +507,25 @@ contains
                          end if
                       end if
                    end do
-                   evolveStackTip        => evolveStackHead
-                   postProcessStackHead  => null()
-                   postProcessStackTip   => null()
-                   evolutionFailed       =  .false.
-                   evolutionPhaseMaximum = self%mergerTreeEvolveConcurrency_%countPhases()
+                   evolveStackTip        =>  evolveStackHead
+                   postProcessStackHead  =>  null()
+                   postProcessStackTip   =>  null()
+                   evolutionFailed       =   .false.
+                   evolutionPhaseMaximum =   self%mergerTreeEvolveConcurrency_%countPhases()
                    !$omp end single
+                   if (self%reportTiming) then
+                      call timer_%stop()
+                      timeBuildEvolveStack_ =timer_%report()
+                      !$omp atomic
+                      timeBuildEvolveStack__=max(timeBuildEvolveStack__,timeBuildEvolveStack_)
+                      !$omp barrier
+                      !$omp single
+                      timeBuildEvolveStack=timeBuildEvolveStack+timeBuildEvolveStack__
+                      !$omp end single
+                   end if
                    ! Evolve all nodes on the stack.
                    do while (.not.evolutionFailed)
+                      if (self%reportTiming) call timer_%start()
                       call lockEvolveStack%set()
                       if (associated(evolveStackTip)) then
                          node           => evolveStackTip%node
@@ -457,6 +537,14 @@ contains
                       else
                          call lockEvolveStack%unset()
                          exit
+                      end if
+                      if (self%reportTiming) then
+                         call timer_%stop ()
+                         timeEvolveStackLock_=+timer_               %report()
+                         !$omp atomic
+                         timeEvolveStackLock = timeEvolveStackLock            &
+                              &               +timeEvolveStackLock_
+                         call timer_%start()
                       end if
                       ! Flag that a node was evolved.
                       didEvolve        =.true.
@@ -518,6 +606,14 @@ contains
                             statusDeadlock=deadlockStatusIsNotDeadlocked
                          end if
                       end do
+                      if (self%reportTiming) then
+                         call timer_%stop ()
+                         timeEvolve_=+timer_     %report()
+                         !$omp atomic
+                         timeEvolve = timeEvolve          &
+                              &      +timeEvolve_
+                         call timer_%start()
+                      end if
                       ! Push the node onto a postprocessing stack, if it still exists.
                       if (associated(node)) then
                          call lockPostProcessStack%set()
@@ -533,8 +629,24 @@ contains
                          postProcessStackTip%timestepSelf  => timestepSelf
                          call lockPostProcessStack%unset()
                       end if
+                      if (self%reportTiming) then
+                         call timer_%stop ()
+                         timePostProcessStackLock_=+timer_                   %report()
+                         !$omp atomic
+                         timePostProcessStackLock = timePostProcessStackLock          &
+                              &                    +timePostProcessStackLock_
+                      end if
                    end do
+                   if (self%reportTiming) call timer_%start()
                    !$omp barrier
+                   if (self%reportTiming) then
+                      call timer_%stop ()
+                      timeWaitEvolve_=+timer_          %report()
+                      !$omp atomic
+                      timeWaitEvolve = timeWaitEvolve            &
+                           &          +timeWaitEvolve_
+                      call timer_%start()
+                   end if
                    !$omp single
                    if (evolutionFailed) then
                       ! Evolution failed - deallocate any remaining stack and then exit and return.
@@ -598,7 +710,17 @@ contains
                          end if
                       end do
                    end if
-                   !$omp end single                
+                   !$omp end single
+                   if (self%reportTiming) then
+                      call timer_%stop()
+                      timePostProcess_ =timer_%report()
+                      !$omp atomic
+                      timePostProcess__=max(timePostProcess__,timePostProcess_)
+                      !$omp barrier
+                      !$omp single
+                      timePostProcess=timePostProcess+timePostProcess__
+                      !$omp end single
+                   end if
                    if (evolutionExiting) exit
                 end do concurrencyLoop
                 !$omp barrier
@@ -668,12 +790,61 @@ contains
        !$omp end single
     end do outerLoop
     !$omp barrier
+    if (self%reportTiming) call timer_%start()
     call Node_Components_Thread_Uninitialize()
     !$omp barrier
     !$omp critical(evolverReset)
     call parameters%reset()
     !$omp end critical(evolverReset)
     deallocate(parameters)
+    if (self%reportTiming) then
+       call timer_%stop()
+       timeThreadUninitialize_=timer_%report()
+       !$omp atomic
+       timeThreadUninitialize =max(                         &
+            &                      timeThreadUninitialize , &
+            &                      timeThreadUninitialize_  &
+            &                     )
+    end if
     !$omp end parallel
+    if (self%reportTiming) then
+       timeEvolve              =+timeEvolve              /dble(countWorkers)
+       timeEvolveStackLock     =+timeEvolveStackLock     /dble(countWorkers)
+       timePostProcessStackLock=+timePostProcessStackLock/dble(countWorkers)
+       timeWaitEvolve          =+timeWaitEvolve          /dble(countWorkers)
+       timeTotal               =+timeInitialize           &
+            &                   +timeCopyObjects          &
+            &                   +timeThreadInitialize     &
+            &                   +timeBuildEvolveStack     &
+            &                   +timeEvolveStackLock      &
+            &                   +timeEvolve               &
+            &                   +timePostProcessStackLock &
+            &                   +timeWaitEvolve           &
+            &                   +timePostProcess          &
+            &                   +timeThreadUninitialize  
+       write (percentInitialize          ,'(f5.1)') 100.0d0*timeInitialize          /timeTotal
+       write (percentCopyObjects         ,'(f5.1)') 100.0d0*timeCopyObjects         /timeTotal
+       write (percentThreadInitialize    ,'(f5.1)') 100.0d0*timeThreadInitialize    /timeTotal
+       write (percentBuildEvolveStack    ,'(f5.1)') 100.0d0*timeBuildEvolveStack    /timeTotal
+       write (percentEvolveStackLock     ,'(f5.1)') 100.0d0*timeEvolveStackLock     /timeTotal
+       write (percentEvolve              ,'(f5.1)') 100.0d0*timeEvolve              /timeTotal
+       write (percentPostProcessStackLock,'(f5.1)') 100.0d0*timePostProcessStackLock/timeTotal
+       write (percentWaitEvolve          ,'(f5.1)') 100.0d0*timeWaitEvolve          /timeTotal
+       write (percentPostProcess         ,'(f5.1)') 100.0d0*timePostProcess         /timeTotal
+       write (percentThreadUninitialize  ,'(f5.1)') 100.0d0*timeThreadUninitialize  /timeTotal
+       call displayIndent ('Timing report')
+       call displayMessage('Total                       = '//trim(siFormat(timeTotal              ,'f10.6,1x'))//'s')
+       call displayMessage('  ∦ Initialize tree        = '//trim(siFormat(timeInitialize          ,'f10.6,1x'))//'s ('//percentInitialize          //'%)')
+       call displayMessage('  ∦ Copy objects           = '//trim(siFormat(timeCopyObjects         ,'f10.6,1x'))//'s ('//percentCopyObjects         //'%)')
+       call displayMessage('  ∥ Initialize threads     = '//trim(siFormat(timeThreadInitialize    ,'f10.6,1x'))//'s ('//percentThreadInitialize    //'%)')
+       call displayMessage('  ∦ Build evolve lists     = '//trim(siFormat(timeBuildEvolveStack    ,'f10.6,1x'))//'s ('//percentBuildEvolveStack    //'%)')
+       call displayMessage('  ∦ Evolve stack lock      = '//trim(siFormat(timeEvolveStackLock     ,'f10.6,1x'))//'s ('//percentEvolveStackLock     //'%)')
+       call displayMessage('  ∥ Evolve nodes           = '//trim(siFormat(timeEvolve              ,'f10.6,1x'))//'s ('//percentEvolve              //'%)')
+       call displayMessage('  ∦ Postprocess stack lock = '//trim(siFormat(timePostProcessStackLock,'f10.6,1x'))//'s ('//percentPostProcessStackLock//'%)')
+       call displayMessage('  ∥ Wait on threads        = '//trim(siFormat(timeWaitEvolve          ,'f10.6,1x'))//'s ('//percentWaitEvolve          //'%)')
+       call displayMessage('  ∦ Postprocess nodes      = '//trim(siFormat(timePostProcess         ,'f10.6,1x'))//'s ('//percentPostProcess         //'%)')
+       call displayMessage('  ∥ Uninitialize threads   = '//trim(siFormat(timeThreadUninitialize  ,'f10.6,1x'))//'s ('//percentThreadUninitialize  //'%)')
+       call displayUnindent('done')
+    end if
     return
   end subroutine threadedEvolve
