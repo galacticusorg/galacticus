@@ -35,6 +35,7 @@
      !![
      <methods>
        <method description="Returns the radius enclosing half of the mass of the mass distribution." method="radiusHalfMass"          />
+       <method description="Compute the potential difference between two radii."                     method="potentialDifference"     />
        <method description="Compute the potential energy of mass distribution."                      method="energyPotential"         />
        <method description="Compute the kinetic energy of the mass distribution."                    method="energyKinetic"           />
        <method description="Compute (numerically) the potential energy of mass distribution."        method="energyPotentialNumerical"/>
@@ -42,9 +43,12 @@
      </methods>
      !!]
      procedure :: symmetry                   => sphericalSymmetry
+     procedure :: densityGradientRadial      => sphericalDensityGradientRadial
      procedure :: densitySphericalAverage    => sphericalDensitySphericalAverage
      procedure :: massEnclosedBySphere       => sphericalMassEnclosedBySphere
      procedure :: radiusHalfMass             => sphericalRadiusHalfMass
+     procedure :: potential                  => sphericalPotential
+     procedure :: potentialDifference        => sphericalPotentialDifference
      procedure :: acceleration               => sphericalAcceleration
      procedure :: tidalTensor                => sphericalTidalTensor
      procedure :: positionSample             => sphericalPositionSample
@@ -81,6 +85,53 @@ contains
     sphericalSymmetry=massDistributionSymmetrySpherical
     return
   end function sphericalSymmetry
+
+  double precision function sphericalDensityGradientRadial(self,coordinates,logarithmic,componentType,massType) result(densityGradient)
+    !!{
+    Return the radial density gradient at the specified {\normalfont \ttfamily coordinates} in a spherical mass distribution.
+    !!}
+    use :: Numerical_Differentiation, only : differentiator
+    implicit none
+    class           (massDistributionSpherical   ), intent(inout), target   :: self
+    class           (coordinate                  ), intent(in   )           :: coordinates
+    logical                                       , intent(in   ), optional :: logarithmic
+    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    double precision                              , parameter               :: radiusLogarithmicStep=0.1d0
+    type            (differentiator              )                          :: differentiator_
+    double precision                                                        :: radius
+    !![
+    <optionalArgument name="logarithmic" defaultsTo=".false."/>
+    !!]
+
+    if (.not.self%matches(componentType,massType)) then
+       densityGradient=0.0d0
+       return
+    end if
+    self_           =>  self
+    radius          =   coordinates    %rSpherical(                                     )
+    differentiator_ =   differentiator            (densityEvaluate                      )
+    densityGradient =  +differentiator_%derivative(log(radius)    ,radiusLogarithmicStep)
+    if (.not.logarithmic_)                                                           &
+         & densityGradient=+     densityGradient                                     &
+         &                 *self%density        (coordinates,componentType,massType) &
+         &                 /     radius
+    return
+  end function sphericalDensityGradientRadial
+
+  double precision function densityEvaluate(radiusLogarithmic) result(density)
+    !!{
+    GSL-callable function to evaluate the density of the dark matter profile.
+    !!}
+      use :: Coordinates, only : coordinateSpherical, assignment(=)
+    implicit none
+    double precision                     , intent(in   ), value :: radiusLogarithmic
+    type            (coordinateSpherical)                       :: coordinates
+
+    coordinates=[exp(radiusLogarithmic),0.0d0,0.0d0]
+    density    =log(self_%density(coordinates))
+    return
+  end function densityEvaluate
 
   double precision function sphericalMassEnclosedBySphere(self,radius,componentType,massType)
     !!{
@@ -157,7 +208,116 @@ contains
     sphericalRadiusHalfMass=self%radiusEnclosingMass(0.5d0*self%massTotal())
     return
   end function sphericalRadiusHalfMass
+
+  double precision function sphericalPotential(self,coordinates,componentType,massType,status) result(potential)
+    !!{
+    Return the potential at the specified {\normalfont \ttfamily coordinates} in a spherical mass distribution.
+    !!}
+    use :: Coordinates                     , only : assignment(=)
+    use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Integration           , only : integrator
+    use :: Numerical_Comparison            , only : Values_Agree
+    implicit none
+    class           (massDistributionSpherical        ), intent(inout), target   :: self
+    class           (coordinate                       ), intent(in   )           :: coordinates
+    type            (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType          ), intent(in   ), optional :: massType
+    type            (enumerationStructureErrorCodeType), intent(  out), optional :: status
+    double precision                                   , parameter               :: toleranceRelative  =1.0d-3
+    double precision                                   , parameter               :: radiusMaximumFactor=1.0d+1
+    type            (integrator                       ), save                    :: integrator_
+    logical                                            , save                    :: initialized        =.false.
+    !$omp threadprivate(integrator_,initialized)
+    double precision                                                             :: radiusMaximum              , potentialPrevious, &
+         &                                                                          radius
+
+    if (present(status)) status=structureErrorCodeSuccess
+    if (.not.self%matches(componentType,massType)) then
+       potential=0.0d0
+       return
+    end if
+    if (.not.initialized) then
+       integrator_=integrator(integrandPotential,toleranceRelative=toleranceRelative)
+       initialized=.true.
+    end if
+    self_             =>  self
+    potential         =  +0.0d0
+    potentialPrevious =  +1.0d0
+    radius            =  +coordinates%rSpherical()
+    radiusMaximum     =  +radius
+    do while (.not.Values_Agree(potential,potentialPrevious,relTol=toleranceRelative))
+       potentialPrevious=+potential
+       radiusMaximum    =+radiusMaximum                        &
+            &            *radiusMaximumFactor
+       potential        =+integrator_%integrate(               &
+            &                                   radius       , &
+            &                                   radiusMaximum  &
+            &                                  )
+    end do
+    ! Convert to dimensionful units.    
+    if (.not.self%isDimensionless()) potential=+gravitationalConstantGalacticus &
+         &                                     *potential
+    return
+  end function sphericalPotential
+
+  double precision function sphericalPotentialDifference(self,coordinates1,coordinates2,componentType,massType,status) result(potential)
+    !!{
+    Return the potential difference between the two specified {\normalfont \ttfamily coordinates} in a spherical mass distribution.
+    !!}
+    use :: Coordinates                     , only : assignment(=)
+    use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Integration           , only : integrator
+    use :: Numerical_Comparison            , only : Values_Agree
+    implicit none
+    class           (massDistributionSpherical        ), intent(inout), target   :: self
+    class           (coordinate                       ), intent(in   )           :: coordinates1               , coordinates2
+    type            (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType          ), intent(in   ), optional :: massType
+    type            (enumerationStructureErrorCodeType), intent(  out), optional :: status
+    double precision                                   , parameter               :: toleranceRelative  =1.0d-3
+    double precision                                   , parameter               :: radiusMaximumFactor=1.0d+1
+    type            (integrator                       ), save                    :: integrator_
+    logical                                            , save                    :: initialized        =.false.
+    !$omp threadprivate(integrator_,initialized)
+
+    if (present(status)) status=structureErrorCodeSuccess
+    if (.not.self%matches(componentType,massType)) then
+       potential=0.0d0
+       return
+    end if
+    if (.not.initialized) then
+       integrator_=integrator(integrandPotential,toleranceRelative=toleranceRelative)
+       initialized=.true.
+    end if
+    self_     => self
+    potential =  integrator_%integrate(                           &
+         &                             coordinates2%rSpherical(), &
+         &                             coordinates1%rSpherical()  &
+         &                            )
+    ! Convert to dimensionful units.    
+    if (.not.self%isDimensionless()) potential=+gravitationalConstantGalacticus &
+         &                                     *potential
+    return
+  end function sphericalPotentialDifference
   
+  double precision function integrandPotential(radius)
+    !!{
+    Integrand for gravitational potential in a spherical mass distribution.
+    !!}
+    implicit none
+    double precision, intent(in   ) :: radius
+      
+    if (radius > 0.0d0) then
+       integrandPotential=-self_%massEnclosedBySphere(radius)    &
+            &             /                           radius **2
+    else
+       integrandPotential=0.0d0
+    end if
+    return
+  end function integrandPotential
+
   function sphericalAcceleration(self,coordinates,componentType,massType)
     !!{
     Computes the gravitational acceleration at {\normalfont \ttfamily coordinates} for spherically-symmetric mass
@@ -516,8 +676,7 @@ contains
 
     coordinates        =[radius         ,0.0d0,0.0d0]
     coordinatesFreefall=[radiusFreefall_,0.0d0,0.0d0]
-    potentialDifference=+self_%potential(coordinates        ) &
-         &              -self_%potential(coordinatesFreefall)
+    potentialDifference=+self_%potentialDifference(coordinatesFreefall,coordinates)
     if (potentialDifference < 0.0d0) then
        integrandTimeFreefall=+Mpc_per_km_per_s_To_Gyr   &
             &                /sqrt(                     &
