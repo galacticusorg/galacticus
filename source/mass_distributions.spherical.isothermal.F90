@@ -39,25 +39,26 @@
      double precision :: densityNormalization, lengthReference, &
           &              velocityRotation
    contains
-     procedure :: massTotal                    => isothermalMassTotal
-     procedure :: density                      => isothermalDensity
-     procedure :: densityGradientRadial        => isothermalDensityGradientRadial
-     procedure :: densityRadialMoment          => isothermalDensityRadialMoment
-     procedure :: massEnclosedBySphere         => isothermalMassEnclosedBySphere
-     procedure :: rotationCurve                => isothermalRotationCurve
-     procedure :: rotationCurveGradient        => isothermalRotationCurveGradient
-     procedure :: velocityRotationCurveMaximum => isothermalVelocityRotationCurveMaximum
-     procedure :: radiusRotationCurveMaximum   => isothermalRadiusRotationCurveMaximum
-     procedure :: radiusEnclosingMass          => isothermalRadiusEnclosingMass
-     procedure :: radiusEnclosingDensity       => isothermalRadiusEnclosingDensity
-     procedure :: fourierTransform             => isothermalFourierTransform
-     procedure :: radiusFreefall               => isothermalRadiusFreefall
-     procedure :: radiusFreefallIncreaseRate   => isothermalRadiusFreefallIncreaseRate 
-     procedure :: energyPotential              => isothermalEnergyPotential
-     procedure :: energyKinetic                => isothermalEnergyKinetic
-     procedure :: potential                    => isothermalPotential
-     procedure :: positionSample               => isothermalPositionSample
-     procedure :: descriptor                   => isothermalDescriptor
+     procedure :: massTotal                         => isothermalMassTotal
+     procedure :: density                           => isothermalDensity
+     procedure :: densityGradientRadial             => isothermalDensityGradientRadial
+     procedure :: densityRadialMoment               => isothermalDensityRadialMoment
+     procedure :: massEnclosedBySphere              => isothermalMassEnclosedBySphere
+     procedure :: rotationCurve                     => isothermalRotationCurve
+     procedure :: rotationCurveGradient             => isothermalRotationCurveGradient
+     procedure :: velocityRotationCurveMaximum      => isothermalVelocityRotationCurveMaximum
+     procedure :: radiusRotationCurveMaximum        => isothermalRadiusRotationCurveMaximum
+     procedure :: radiusEnclosingMass               => isothermalRadiusEnclosingMass
+     procedure :: radiusEnclosingDensity            => isothermalRadiusEnclosingDensity
+     procedure :: radiusFromSpecificAngularMomentum => isothermalRadiusFromSpecificAngularMomentum
+     procedure :: fourierTransform                  => isothermalFourierTransform
+     procedure :: radiusFreefall                    => isothermalRadiusFreefall
+     procedure :: radiusFreefallIncreaseRate        => isothermalRadiusFreefallIncreaseRate 
+     procedure :: energyPotential                   => isothermalEnergyPotential
+     procedure :: energyKinetic                     => isothermalEnergyKinetic
+     procedure :: potential                         => isothermalPotential
+     procedure :: positionSample                    => isothermalPositionSample
+     procedure :: descriptor                        => isothermalDescriptor
   end type massDistributionIsothermal
 
   interface massDistributionIsothermal
@@ -245,7 +246,7 @@ contains
     Return the density at the specified {\normalfont \ttfamily coordinates} in an isothermal mass distribution.
     !!}
     implicit none
-    class           (massDistributionIsothermal  ), intent(inout)           :: self
+    class           (massDistributionIsothermal  ), intent(inout), target   :: self
     class           (coordinate                  ), intent(in   )           :: coordinates
     logical                                       , intent(in   ), optional :: logarithmic
     type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
@@ -347,11 +348,40 @@ contains
     end if
     radius=+      self%lengthReference      &
          & *sqrt(                           &
-         &       +self%densityNormalization &
+         &       +3.0d0                     &
+         &       *self%densityNormalization &
          &       /     density              &
          &      )
     return
   end function isothermalRadiusEnclosingDensity
+  
+  double precision function isothermalRadiusFromSpecificAngularMomentum(self,angularMomentumSpecific,componentType,massType) result(radius)
+    !!{
+    Computes the radius corresponding to a given specific angular momentum for isothermal mass distributions.
+    !!}
+    use :: Numerical_Constants_Math        , only : Pi
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    implicit none
+    class           (massDistributionIsothermal  ), intent(inout), target   :: self
+    double precision                              , intent(in   )           :: angularMomentumSpecific
+    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+
+    if (.not.self%matches(componentType,massType)) then
+       radius=0.0d0
+       return
+    end if
+    radius=+angularMomentumSpecific         &
+         & /sqrt(                           &
+         &       +4.0d0                     &
+         &       *Pi                        &
+         &       *self%densityNormalization &
+         &       *self%lengthReference**2   &
+         &      )
+    if (.not.self%isDimensionless()) radius=+radius                                &
+         &                                  /sqrt(gravitationalConstantGalacticus)
+    return
+  end function isothermalRadiusFromSpecificAngularMomentum
   
   double precision function isothermalDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite,componentType,massType)
     !!{
@@ -489,7 +519,7 @@ contains
     use :: Numerical_Constants_Math        , only : Pi
     use :: Error                           , only : Error_Report
     implicit none
-    class(massDistributionIsothermal       ), intent(inout)           :: self
+    class(massDistributionIsothermal       ), intent(inout), target   :: self
     class(coordinate                       ), intent(in   )           :: coordinates
     type (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
     type (enumerationMassTypeType          ), intent(in   ), optional :: massType
