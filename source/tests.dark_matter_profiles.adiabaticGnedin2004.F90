@@ -125,8 +125,7 @@ program Test_Dark_Matter_Profiles_Gnedin2004
    <constructor>
     galacticStructureStandard                                     (                                                                            &amp;
      &amp;                                                         cosmologyFunctions_                 =cosmologyFunctions_                  , &amp;
-     &amp;                                                         darkMatterHaloScale_                =darkMatterHaloScale_                 , &amp;
-     &amp;                                                         darkMatterProfile_                  =darkMatterProfileAdiabaticGnedin2004_  &amp;
+     &amp;                                                         darkMatterHaloScale_                =darkMatterHaloScale_                   &amp;
      &amp;                                                        )
    </constructor>
   </referenceConstruct>

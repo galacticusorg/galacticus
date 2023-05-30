@@ -41,7 +41,6 @@ Contains a module which implements the standard galactic structure functions.
      private
      class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_                   => null()
      class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_                  => null()
-     class           (darkMatterProfileClass  ), pointer :: darkMatterProfile_                    => null()
      type            (rootFinder              )          :: finderMass                                     , finderSurfaceDensity
      double precision                                    :: radiusEnclosingMassPrevious                    , potentialOffset     , &
           &                                                 radiusEnclosingSurfaceDensityPrevious
@@ -125,24 +124,21 @@ contains
     type (inputParameters          ), intent(inout) :: parameters
     class(cosmologyFunctionsClass  ), pointer       :: cosmologyFunctions_
     class(darkMatterHaloScaleClass ), pointer       :: darkMatterHaloScale_
-    class(darkMatterProfileClass   ), pointer       :: darkMatterProfile_
 
     !![
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
-    <objectBuilder class="darkMatterProfile"   name="darkMatterProfile_"   source="parameters"/>
     !!]
-    self=galacticStructureStandard(cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfile_)
+    self=galacticStructureStandard(cosmologyFunctions_,darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_" />
     <objectDestructor name="darkMatterHaloScale_"/>
-    <objectDestructor name="darkMatterProfile_"  />
     !!]
    return
   end function standardConstructorParameters
 
-  function standardConstructorInternal(cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfile_) result(self)
+  function standardConstructorInternal(cosmologyFunctions_,darkMatterHaloScale_) result(self)
     !!{
     Internal constructor for the ``standard'' galactic structure class.
     !!}
@@ -151,9 +147,8 @@ contains
     type(galacticStructureStandard)                        :: self
     class(cosmologyFunctionsClass ), intent(in   ), target :: cosmologyFunctions_
     class(darkMatterHaloScaleClass), intent(in   ), target :: darkMatterHaloScale_
-    class(darkMatterProfileClass  ), intent(in   ), target :: darkMatterProfile_
     !![
-    <constructorAssign variables="*cosmologyFunctions_, *darkMatterHaloScale_, *darkMatterProfile_"/>
+    <constructorAssign variables="*cosmologyFunctions_, *darkMatterHaloScale_"/>
     !!]
 
     self%potentialOffsetComputed              =.false.
@@ -206,7 +201,6 @@ contains
     !![
     <objectDestructor name="self%cosmologyFunctions_" />
     <objectDestructor name="self%darkMatterHaloScale_"/>
-    <objectDestructor name="self%darkMatterProfile_"  />
     !!]
     if (calculationResetEvent%isAttached(self,standardCalculationReset)) call calculationResetEvent%detach(self,standardCalculationReset)
     return

@@ -21,7 +21,6 @@
   Implementation of an ``equilibrium'' solver for galactic structure.
   !!}
 
-  use :: Dark_Matter_Profiles    , only : darkMatterProfileClass
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
   use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
   use :: Galactic_Structure      , only : galacticStructureClass
@@ -40,7 +39,6 @@
           &                                                  solveForInactiveProperties          , convergenceFailureIsFatal
      double precision                                     :: solutionTolerance
      class           (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_       => null()
-     class           (darkMatterProfileClass   ), pointer :: darkMatterProfile_         => null()
      class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_      => null()
      class           (galacticStructureClass   ), pointer :: galacticStructure_         => null()
    contains
@@ -78,7 +76,6 @@ contains
     type            (galacticStructureSolverEquilibrium)                :: self
     type            (inputParameters                   ), intent(inout) :: parameters
     class           (darkMatterHaloScaleClass          ), pointer       :: darkMatterHaloScale_
-    class           (darkMatterProfileClass            ), pointer       :: darkMatterProfile_
     class           (darkMatterProfileDMOClass         ), pointer       :: darkMatterProfileDMO_
     class           (galacticStructureClass            ), pointer       :: galacticStructure_
     logical                                                             :: useFormationHalo          , includeBaryonGravity     , &
@@ -117,22 +114,20 @@ contains
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
-    <objectBuilder class="darkMatterProfile"    name="darkMatterProfile_"    source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
     <objectBuilder class="galacticStructure"    name="galacticStructure_"    source="parameters"/>
     !!]
-    self=galacticStructureSolverEquilibrium(convergenceFailureIsFatal,useFormationHalo,includeBaryonGravity,solutionTolerance,solveForInactiveProperties,darkMatterHaloScale_,darkMatterProfile_,darkMatterProfileDMO_,galacticStructure_)
+    self=galacticStructureSolverEquilibrium(convergenceFailureIsFatal,useFormationHalo,includeBaryonGravity,solutionTolerance,solveForInactiveProperties,darkMatterHaloScale_,darkMatterProfileDMO_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterHaloScale_" />
-    <objectDestructor name="darkMatterProfile_"   />
     <objectDestructor name="darkMatterProfileDMO_"/>
     <objectDestructor name="galacticStructure_"   />
     !!]
     return
   end function equilibriumConstructorParameters
 
-  function equilibriumConstructorInternal(convergenceFailureIsFatal,useFormationHalo,includeBaryonGravity,solutionTolerance,solveForInactiveProperties,darkMatterHaloScale_,darkMatterProfile_,darkMatterProfileDMO_,galacticStructure_) result(self)
+  function equilibriumConstructorInternal(convergenceFailureIsFatal,useFormationHalo,includeBaryonGravity,solutionTolerance,solveForInactiveProperties,darkMatterHaloScale_,darkMatterProfileDMO_,galacticStructure_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily equilibrium} galactic structure solver class.
     !!}
@@ -142,11 +137,10 @@ contains
          &                                                                         solveForInactiveProperties, convergenceFailureIsFatal
     double precision                                    , intent(in   )         :: solutionTolerance
     class           (darkMatterHaloScaleClass          ), intent(in   ), target :: darkMatterHaloScale_
-    class           (darkMatterProfileClass            ), intent(in   ), target :: darkMatterProfile_
     class           (darkMatterProfileDMOClass         ), intent(in   ), target :: darkMatterProfileDMO_
     class           (galacticStructureClass            ), intent(in   ), target :: galacticStructure_
     !![
-    <constructorAssign variables="convergenceFailureIsFatal, useFormationHalo, includeBaryonGravity, solutionTolerance, solveForInactiveProperties, *darkMatterHaloScale_, *darkMatterProfile_, *darkMatterProfileDMO_, *galacticStructure_"/>
+    <constructorAssign variables="convergenceFailureIsFatal, useFormationHalo, includeBaryonGravity, solutionTolerance, solveForInactiveProperties, *darkMatterHaloScale_, *darkMatterProfileDMO_, *galacticStructure_"/>
     !!]
 
     return
@@ -180,7 +174,6 @@ contains
 
     !![
     <objectDestructor name="self%darkMatterHaloScale_" />
-    <objectDestructor name="self%darkMatterProfile_"   />
     <objectDestructor name="self%darkMatterProfileDMO_"/>
     <objectDestructor name="self%galacticStructure_"   />
     !!]
@@ -300,31 +293,33 @@ contains
       Solve for the equilibrium radius of the given component.
       !!}
       use :: Display                         , only : displayVerbosity               , displayVerbositySet, verbosityLevelStandard
-      use :: Galactic_Structure_Options      , only : massTypeBaryonic               , radiusLarge
+      use :: Galactic_Structure_Options      , only : massTypeBaryonic               , radiusLarge        , massTypeDark          , componentTypeDarkHalo
+      use :: Mass_Distributions              , only : massDistributionClass
       use :: Error                           , only : Error_Report
       use :: ISO_Varying_String              , only : varying_string
       use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
       use :: String_Handling                 , only : operator(//)
       implicit none
-      type            (treeNode          ), intent(inout)                     :: node
-      double precision                    , intent(in   )                     :: specificAngularMomentum
-      procedure       (solverGet         ), intent(in   ) , pointer           :: radiusGet                         , velocityGet
-      procedure       (solverSet         ), intent(in   ) , pointer           :: radiusSet                         , velocitySet
-      double precision                    , dimension(:,:), allocatable, save :: radiusHistory
+      type            (treeNode             ), intent(inout)                     :: node
+      double precision                       , intent(in   )                     :: specificAngularMomentum
+      procedure       (solverGet            ), intent(in   ) , pointer           :: radiusGet                         , velocityGet
+      procedure       (solverSet            ), intent(in   ) , pointer           :: radiusSet                         , velocitySet
+      double precision                       , dimension(:,:), allocatable, save :: radiusHistory
       !$omp threadprivate(radiusHistory)
-      double precision                    , dimension(:,:), allocatable       :: radiusHistoryTemporary
-      double precision                    , dimension(:  ), allocatable       :: radiusStoredTmp                   , velocityStoredTmp
-      integer                             , parameter                         :: storeIncrement                 =10
-      integer                             , parameter                         :: iterationsForBisectionMinimum  =10
-      integer                             , parameter                         :: activeComponentMaximumIncrement= 2
-      integer                                                                 :: activeComponentMaximumCurrent
-      character       (len=14            )                                    :: label
-      type            (varying_string    ), save                              :: message
+      double precision                       , dimension(:,:), allocatable       :: radiusHistoryTemporary
+      double precision                       , dimension(:  ), allocatable       :: radiusStoredTmp                   , velocityStoredTmp
+      class           (massDistributionClass), pointer                           :: massDistribution_
+      integer                                , parameter                         :: storeIncrement                 =10
+      integer                                , parameter                         :: iterationsForBisectionMinimum  =10
+      integer                                , parameter                         :: activeComponentMaximumIncrement= 2
+      integer                                                                    :: activeComponentMaximumCurrent
+      character       (len=14               )                                    :: label
+      type            (varying_string       ), save                              :: message
       !$omp threadprivate(message)
-      double precision                                                        :: baryonicVelocitySquared           , darkMatterMassFinal, &
-           &                                                                     darkMatterVelocitySquared         , velocity           , &
-           &                                                                     radius                            , radiusNew          , &
-           &                                                                     specificAngularMomentumMaximum
+      double precision                                                           :: baryonicVelocitySquared           , darkMatterMassFinal, &
+           &                                                                        darkMatterVelocitySquared         , velocity           , &
+           &                                                                        radius                            , radiusNew          , &
+           &                                                                        specificAngularMomentumMaximum
 
       ! Count the number of active components.
       countComponentsActive=countComponentsActive+1
@@ -382,9 +377,13 @@ contains
          ! On subsequent iterations do the full calculation providing component has non-zero specific angular momentum.
          if (specificAngularMomentum <= 0.0d0) return
          ! Get current radius of the component.
-         radius                   =radiusGet(node)
+         radius=radiusGet(node)
          ! Find the enclosed mass in the dark matter halo.
-         darkMatterMassFinal      =self%darkMatterProfile_%enclosedMass(node_,radius)
+         massDistribution_   => node             %massDistribution    (                                                                )
+         darkMatterMassFinal =  massDistribution_%massEnclosedBySphere(radius,componentType=componentTypeDarkHalo,massType=massTypeDark)
+         !![
+	 <objectDestructor name="massDistribution_"/>
+         !!]
          ! Compute dark matter contribution to rotation curve.
          darkMatterVelocitySquared=gravitationalConstantGalacticus*darkMatterMassFinal/radius
          ! Compute baryonic contribution to rotation curve.

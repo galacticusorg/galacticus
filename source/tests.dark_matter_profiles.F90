@@ -440,8 +440,7 @@ program Test_Dark_Matter_Profiles
    <constructor>
     galacticStructureStandard                         (                                                                                        &amp;
      &amp;                                             cosmologyFunctions_                 =cosmologyFunctionsPippin_                        , &amp;
-     &amp;                                             darkMatterHaloScale_                =darkMatterHaloScalePippin_                       , &amp;
-     &amp;                                             darkMatterProfile_                  =darkMatterProfileSIDMIsothermal_                   &amp;
+     &amp;                                             darkMatterHaloScale_                =darkMatterHaloScalePippin_                         &amp;
      &amp;                                            )
    </constructor>
   </referenceConstruct>

@@ -42,7 +42,6 @@ program Test_Galactic_Structure
   use :: Cosmology_Functions             , only : cosmologyFunctionsMatterLambda
   use :: Dark_Matter_Halo_Scales         , only : darkMatterHaloScaleVirialDensityContrastDefinition
   use :: Dark_Matter_Profiles_DMO        , only : darkMatterProfileDMONFW
-  use :: Dark_Matter_Profiles            , only : darkMatterProfileAdiabaticGnedin2004
   use :: Dark_Matter_Profiles_Generic    , only : nonAnalyticSolversNumerical
   use :: Bessel_Functions                , only : Bessel_Function_I0                                            , Bessel_Function_I1               , Bessel_Function_K0                 , Bessel_Function_K1
   use :: Galactic_Structure              , only : galacticStructureStandard
@@ -61,7 +60,6 @@ program Test_Galactic_Structure
   class           (nodeComponentHotHalo                                          ), pointer        :: hotHalo_
   class           (massDistributionClass                                         ), pointer        :: massDistribution_
   type            (darkMatterProfileDMONFW                                       ), pointer        :: darkMatterProfileDMO_
-  type            (darkMatterProfileAdiabaticGnedin2004                          ), pointer        :: darkMatterProfile_
   type            (galacticStructureStandard                                     ), pointer        :: galacticStructure_
   type            (cosmologyParametersSimple                                     ), pointer        :: cosmologyParameters_
   type            (cosmologyFunctionsMatterLambda                                ), pointer        :: cosmologyFunctions_
@@ -104,13 +102,12 @@ program Test_Galactic_Structure
   call Node_Components_Initialize       (parameters)
   call Node_Components_Thread_Initialize(parameters)
   ! Build required objects.
-  allocate(cosmologyParameters_                 )
-  allocate(cosmologyFunctions_                  )
-  allocate(virialDensityContrast_               )
-  allocate(galacticStructure_           )
-  allocate(darkMatterHaloScale_                 )
-  allocate(darkMatterProfileDMO_             )
-  allocate(darkMatterProfile_)
+  allocate(cosmologyParameters_  )
+  allocate(cosmologyFunctions_   )
+  allocate(virialDensityContrast_)
+  allocate(galacticStructure_    )
+  allocate(darkMatterHaloScale_  )
+  allocate(darkMatterProfileDMO_ )
   !![
   <referenceConstruct object="cosmologyParameters_"  >
    <constructor>
@@ -151,8 +148,7 @@ program Test_Galactic_Structure
    <constructor>
     galacticStructureStandard                                     (                                                                  &amp;
      &amp;                                                         cosmologyFunctions_                 =cosmologyFunctions_        , &amp;
-     &amp;                                                         darkMatterHaloScale_                =darkMatterHaloScale_       , &amp;
-     &amp;                                                         darkMatterProfile_                  =darkMatterProfile_           &amp;
+     &amp;                                                         darkMatterHaloScale_                =darkMatterHaloScale_         &amp;
      &amp;                                                        )
    </constructor>
   </referenceConstruct>
@@ -161,21 +157,6 @@ program Test_Galactic_Structure
     darkMatterProfileDMONFW                                       (                                                                  &amp;
      &amp;                                                         velocityDispersionUseSeriesExpansion=.false.                    , &amp;
      &amp;                                                         darkMatterHaloScale_                =darkMatterHaloScale_         &amp;
-     &amp;                                                        )
-   </constructor>
-  </referenceConstruct>
-  <referenceConstruct object="darkMatterProfile_"    >
-   <constructor>
-     darkMatterProfileAdiabaticGnedin2004                         (                                                                  &amp;
-     &amp;                                                         A                                   =0.85d0                     , &amp;
-     &amp;                                                         omega                               =0.80d0                     , &amp;
-     &amp;                                                         radiusFractionalPivot               =1.00d0                     , &amp;
-     &amp;                                                         toleranceRelative                   =1.0d-2                     , &amp;
-     &amp;                                                         nonAnalyticSolver                   =nonAnalyticSolversNumerical, &amp;
-     &amp;                                                         cosmologyParameters_                =cosmologyParameters_       , &amp;
-     &amp;                                                         darkMatterHaloScale_                =darkMatterHaloScale_       , &amp;
-     &amp;                                                         darkMatterProfileDMO_               =darkMatterProfileDMO_      , &amp;
-     &amp;                                                         galacticStructure_                  =galacticStructure_           &amp;
      &amp;                                                        )
    </constructor>
   </referenceConstruct>

@@ -30,13 +30,13 @@ program Test_Orbits
   use :: Cosmology_Functions       , only : cosmologyFunctionsMatterLambda
   use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScaleVirialDensityContrastDefinition
   use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMOIsothermal
-  use :: Dark_Matter_Profiles      , only : darkMatterProfileDarkMatterOnly
   use :: Galactic_Structure        , only : galacticStructureStandard
   use :: Virial_Density_Contrast   , only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
   use :: Events_Hooks              , only : eventsHooksInitialize
   use :: Functions_Global_Utilities, only : Functions_Global_Set
   use :: Display                   , only : displayVerbositySet                                           , verbosityLevelStandard
-  use :: Galacticus_Nodes          , only : nodeClassHierarchyFinalize                                    , nodeClassHierarchyInitialize     , nodeComponentBasic                 , treeNode
+  use :: Galacticus_Nodes          , only : nodeClassHierarchyFinalize                                    , nodeClassHierarchyInitialize     , nodeComponentBasic                 , treeNode                    , &
+       &                                    nodeComponentDarkMatterProfile
   use :: Input_Parameters          , only : inputParameters
   use :: Node_Components           , only : Node_Components_Initialize                                    , Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
   use :: Kepler_Orbits             , only : keplerOrbit                                                   , keplerOrbitMasses                , keplerOrbitRadius
@@ -46,10 +46,10 @@ program Test_Orbits
   implicit none
   type            (treeNode                                                      ), pointer      :: node
   class           (nodeComponentBasic                                            ), pointer      :: basic
-  double precision                                                                , parameter    :: massHost                =1.0d12, massSatellite                =0.0d0, &
+  class           (nodeComponentDarkMatterProfile                                ), pointer      :: darkMatterProfile
+  double precision                                                                , parameter    :: massHost                =1.0d12, massSatellite               =0.00d0, &
        &                                                                                            velocityFractionalRadial=0.9d00, velocityFractionalTangential=0.75d0
   type            (darkMatterProfileDMOIsothermal                                ), pointer      :: darkMatterProfileDMO_
-  type            (darkMatterProfileDarkMatterOnly                               ), pointer      :: darkMatterProfile_
   type            (galacticStructureStandard                                     ), pointer      :: galacticStructure_
   type            (cosmologyParametersSimple                                     ), pointer      :: cosmologyParameters_
   type            (cosmologyFunctionsMatterLambda                                ), pointer      :: cosmologyFunctions_
@@ -76,7 +76,6 @@ program Test_Orbits
   allocate(virialDensityContrast_)
   allocate(darkMatterHaloScale_  )
   allocate(darkMatterProfileDMO_ )
-  allocate(darkMatterProfile_    )
   allocate(galacticStructure_    )
   !![
   <referenceConstruct object="cosmologyParameters_"  >
@@ -121,29 +120,20 @@ program Test_Orbits
      &amp;                                                        )
    </constructor>
   </referenceConstruct>
-  <referenceConstruct object="darkMatterProfile_"    >
-   <constructor>
-    darkMatterProfileDarkMatterOnly                               (                                               &amp;
-    &amp;                                                          cosmologyParameters_  =cosmologyParameters_  , &amp;
-     &amp;                                                         darkMatterProfileDMO_ =darkMatterProfileDMO_ , &amp;
-     &amp;                                                         darkMatterHaloScale_  =darkMatterHaloScale_    &amp;
-     &amp;                                                        )
-   </constructor>
-  </referenceConstruct>
   <referenceConstruct object="galacticStructure_"     >
    <constructor>
     galacticStructureStandard                                     (                                               &amp;
      &amp;                                                         cosmologyFunctions_   =cosmologyFunctions_   , &amp;
-     &amp;                                                         darkMatterHaloScale_  =darkMatterHaloScale_  , &amp;
-     &amp;                                                         darkMatterProfile_    =darkMatterProfile_      &amp;
+     &amp;                                                         darkMatterHaloScale_  =darkMatterHaloScale_    &amp;
      &amp;                                                        )
    </constructor>
   </referenceConstruct>
   !!]
   ! Create a node.
-  node      => treeNode                  (                 )
+  node              => treeNode                  (                 )
   ! Create components.
-  basic     => node    %basic            (autoCreate=.true.)
+  basic             => node    %basic            (autoCreate=.true.)
+  darkMatterProfile => node    %darkmatterProfile(autoCreate=.true.)
   ! Set node properties.
   call basic%timeSet(cosmologyFunctions_%cosmicTime(1.0d0))
   call basic%massSet(massHost                           )
@@ -183,12 +173,11 @@ program Test_Orbits
   call nodeClassHierarchyFinalize         ()
   ! Clean up objects.
   !![
-  <objectDestructor name="cosmologyParameters_"           />
-  <objectDestructor name="cosmologyFunctions_"            />
-  <objectDestructor name="virialDensityContrast_"         />
-  <objectDestructor name="darkMatterHaloScale_"           />
-  <objectDestructor name="darkMatterProfileDMO_"/>
-  <objectDestructor name="darkMatterProfile_"/>
-  <objectDestructor name="galacticStructure_"     />
+  <objectDestructor name="cosmologyParameters_"  />
+  <objectDestructor name="cosmologyFunctions_"   />
+  <objectDestructor name="virialDensityContrast_"/>
+  <objectDestructor name="darkMatterHaloScale_"  />
+  <objectDestructor name="darkMatterProfileDMO_" />
+  <objectDestructor name="galacticStructure_"    />
   !!]
 end program Test_Orbits

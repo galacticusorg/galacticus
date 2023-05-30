@@ -4,7 +4,7 @@
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
   <componentBasic             value="standard"/>
-  <componentDarkMatterProfile value="null"    />
+  <componentDarkMatterProfile value="scale"   />
   <componentBlackHole         value="null"    />
   <componentDisk              value="null"    />
   <componentHotHalo           value="null"    />
