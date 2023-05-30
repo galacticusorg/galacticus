@@ -283,7 +283,7 @@ contains
     Return the density at the specified {\normalfont \ttfamily coordinates} in a $\beta$-profile mass distribution.
     !!}
     implicit none
-    class           (massDistributionBetaProfile ), intent(inout)           :: self
+    class           (massDistributionBetaProfile ), intent(inout), target   :: self
     class           (coordinate                  ), intent(in   )           :: coordinates
     logical                                       , intent(in   ), optional :: logarithmic
     type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
@@ -407,7 +407,7 @@ contains
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     use :: Numerical_Constants_Math        , only : Pi
     implicit none
-    class           (massDistributionBetaProfile      ), intent(inout)           :: self
+    class           (massDistributionBetaProfile      ), intent(inout), target   :: self
     class           (coordinate                       ), intent(in   )           :: coordinates
     type            (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
     type            (enumerationMassTypeType          ), intent(in   ), optional :: massType

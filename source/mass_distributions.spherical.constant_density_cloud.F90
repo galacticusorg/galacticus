@@ -145,7 +145,7 @@ contains
     Return the density gradient in the radial direction in a constant density cloud.
     !!}
     implicit none
-    class  (massDistributionConstantDensityCloud), intent(inout)           :: self
+    class  (massDistributionConstantDensityCloud), intent(inout), target   :: self
     class  (coordinate                          ), intent(in   )           :: coordinates
     logical                                      , intent(in   ), optional :: logarithmic
     type   (enumerationComponentTypeType        ), intent(in   ), optional :: componentType
@@ -189,7 +189,7 @@ contains
     use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    class           (massDistributionConstantDensityCloud), intent(inout)           :: self
+    class           (massDistributionConstantDensityCloud), intent(inout), target   :: self
     class           (coordinate                          ), intent(in   )           :: coordinates
     type            (enumerationComponentTypeType        ), intent(in   ), optional :: componentType
     type            (enumerationMassTypeType             ), intent(in   ), optional :: massType

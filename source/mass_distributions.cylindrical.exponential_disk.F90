@@ -380,7 +380,7 @@ contains
     use :: Coordinates, only : assignment(=), coordinateCylindrical
     use :: Error      , only : Error_Report
     implicit none
-    class           (massDistributionExponentialDisk), intent(inout)           :: self
+    class           (massDistributionExponentialDisk), intent(inout), target   :: self
     class           (coordinate                     ), intent(in   )           :: coordinates
     logical                                          , intent(in   ), optional :: logarithmic
     type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
@@ -596,7 +596,7 @@ contains
     use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    class           (massDistributionExponentialDisk  ), intent(inout)           :: self
+    class           (massDistributionExponentialDisk  ), intent(inout), target   :: self
     class           (coordinate                       ), intent(in   )           :: coordinates
     type            (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
     type            (enumerationMassTypeType          ), intent(in   ), optional :: massType

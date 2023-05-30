@@ -194,7 +194,7 @@ contains
     Return the density gradient in the radial direction in a scaled cylindrical mass distribution.
     !!}
     implicit none
-    class  (massDistributionCylindricalScaler), intent(inout)              :: self
+    class  (massDistributionCylindricalScaler), intent(inout), target      :: self
     class  (coordinate                       ), intent(in   )              :: coordinates
     logical                                   , intent(in   ), optional    :: logarithmic
     type   (enumerationComponentTypeType     ), intent(in   ), optional    :: componentType
@@ -309,17 +309,19 @@ contains
     type            (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
     type            (enumerationMassTypeType          ), intent(in   ), optional :: massType
 
-    cylindricalScalerRotationCurve=+      self%massDistribution_%rotationCurve                  (                           &
-         &                                                                                       +     radius               &
-         &                                                                                       /self%factorScalingLength, &
-         &                                                                                       componentType            , &
-         &                                                                                       massType                   &
-         &                                                                                      )                           &
-         &                         *sqrt(                                                                                   &
-         &                               +                       gravitationalConstantGalacticus                            &
-         &                               *self                  %factorScalingMass                                          &
-         &                               /self                  %factorScalingLength                                        &
+    cylindricalScalerRotationCurve=+      self%massDistribution_%rotationCurve      (                           &
+         &                                                                           +     radius               &
+         &                                                                           /self%factorScalingLength, &
+         &                                                                           componentType            , &
+         &                                                                           massType                   &
+         &                                                                          )                           &
+         &                         *sqrt(                                                                       &
+         &                               +self                  %factorScalingMass                              &
+         &                               /self                  %factorScalingLength                            &
          &                              )
+    if (self%massDistribution_%isDimensionless())                                &
+         & cylindricalScalerRotationCurve=+cylindricalScalerRotationCurve        &
+         &                                *sqrt(gravitationalConstantGalacticus)
     return
   end function cylindricalScalerRotationCurve
 
@@ -340,9 +342,11 @@ contains
          &                                                                               componentType            , &
          &                                                                               massType                   &
          &                                                                              )                           &
-         &                                 *     gravitationalConstantGalacticus                                    &
          &                                 *self%factorScalingMass                                                  &
          &                                 /self%factorScalingLength**2
+    if (self%massDistribution_%isDimensionless())                                         &
+         & cylindricalScalerRotationCurveGradient=+cylindricalScalerRotationCurveGradient &
+         &                                        *gravitationalConstantGalacticus
     return
   end function cylindricalScalerRotationCurveGradient
 
@@ -353,7 +357,7 @@ contains
     use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    class(massDistributionCylindricalScaler), intent(inout)              :: self
+    class(massDistributionCylindricalScaler), intent(inout), target      :: self
     class(coordinate                       ), intent(in   )              :: coordinates
     type (enumerationComponentTypeType     ), intent(in   ), optional    :: componentType
     type (enumerationMassTypeType          ), intent(in   ), optional    :: massType
@@ -361,15 +365,17 @@ contains
     class(coordinate                       )               , allocatable :: coordinatesScaled
 
     call coordinates%scale(1.0d0/self%factorScalingLength,coordinatesScaled)
-    cylindricalScalerPotential=+self%massDistribution_%potential                      (                   &
-         &                                                                             coordinatesScaled, &
-         &                                                                             componentType    , &
-         &                                                                             massType         , &
-         &                                                                             status             &
-         &                                                                            )                   &
-         &                     *                       gravitationalConstantGalacticus                    &
-         &                     *self                  %factorScalingMass                                  &
+    cylindricalScalerPotential=+self%massDistribution_%potential          (                   &
+         &                                                                 coordinatesScaled, &
+         &                                                                 componentType    , &
+         &                                                                 massType         , &
+         &                                                                 status             &
+         &                                                                )                   &
+         &                     *self                  %factorScalingMass                      &
          &                     /self                  %factorScalingLength
+    if (self%massDistribution_%isDimensionless())                      &
+         & cylindricalScalerPotential=+cylindricalScalerPotential      &
+         &                            *gravitationalConstantGalacticus
     return
   end function cylindricalScalerPotential
 
@@ -414,18 +420,20 @@ contains
     class           (coordinate                       )               , allocatable :: coordinatesScaled
 
     call coordinates%scale(1.0d0/self%factorScalingLength,coordinatesScaled)
-    cylindricalScalerAcceleration=+self%massDistribution_%acceleration       (                           &
-         &                                                                    coordinatesScaled        , &
-         &                                                                    componentType            , &
-         &                                                                    massType                   &
-         &                                                                   )                           &
-         &                        *self                  %factorScalingMass                              &
-         &                        /self                  %factorScalingLength**2                         &
-         &                        *                       kilo                                           &
-         &                        *                       gigaYear                                       &
-         &                        /                       megaParsec                                     &
-         &                        *                       gravitationalConstantGalacticus
-     return
+    cylindricalScalerAcceleration=+self%massDistribution_%acceleration       (                   &
+         &                                                                    coordinatesScaled, &
+         &                                                                    componentType    , &
+         &                                                                    massType           &
+         &                                                                   )                   &
+         &                        *self                  %factorScalingMass                      &
+         &                        /self                  %factorScalingLength**2
+    if (self%massDistribution_%isDimensionless())                         &
+         & cylindricalScalerAcceleration=+cylindricalScalerAcceleration   &
+         &                               *kilo                            &
+         &                               *gigaYear                        &
+         &                               /megaParsec                      &
+         &                               *gravitationalConstantGalacticus
+       return
   end function cylindricalScalerAcceleration
 
   function cylindricalScalerTidalTensor(self,coordinates,componentType,massType)
@@ -442,15 +450,17 @@ contains
     class(coordinate                       )               , allocatable :: coordinatesScaled
 
     call coordinates%scale(1.0d0/self%factorScalingLength,coordinatesScaled)
-    cylindricalScalerTidalTensor=+self%massDistribution_%tidalTensor                    (                   &
-         &                                                                               coordinatesScaled, &
-         &                                                                               componentType    , &
-         &                                                                               massType           &
-         &                                                                              )                   &
-         &                       *                       gravitationalConstantGalacticus                    &
-         &                       *self                  %factorScalingMass                                  &
+    cylindricalScalerTidalTensor=+self%massDistribution_%tidalTensor           (                   &
+         &                                                                      coordinatesScaled, &
+         &                                                                      componentType    , &
+         &                                                                      massType           &
+         &                                                                     )                   &
+         &                       *self                  %factorScalingMass                         &
          &                       /self                  %factorScalingLength**3
-    return
+    if (self%massDistribution_%isDimensionless())                        &
+         & cylindricalScalerTidalTensor=+cylindricalScalerTidalTensor    &
+         &                              *gravitationalConstantGalacticus
+     return
   end function cylindricalScalerTidalTensor
   
   function cylindricalScalerPositionSample(self,randomNumberGenerator_,componentType,massType)

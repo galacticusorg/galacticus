@@ -214,7 +214,7 @@ contains
     Return the density at the specified {\normalfont \ttfamily coordinates} in an NFW \citep{navarro_structure_1996} mass distribution.
     !!}
     implicit none
-    class           (massDistributionNFW         ), intent(inout)           :: self
+    class           (massDistributionNFW         ), intent(inout), target   :: self
     class           (coordinate                  ), intent(in   )           :: coordinates
     logical                                       , intent(in   ), optional :: logarithmic
     type            (enumerationComponentTypeType), intent(in   ), optional :: componentType

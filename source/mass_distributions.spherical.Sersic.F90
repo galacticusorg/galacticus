@@ -351,7 +351,7 @@ contains
     use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    class           (massDistributionSersic           ), intent(inout)           :: self
+    class           (massDistributionSersic           ), intent(inout), target   :: self
     class           (coordinate                       ), intent(in   )           :: coordinates
     type            (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
     type            (enumerationMassTypeType          ), intent(in   ), optional :: massType

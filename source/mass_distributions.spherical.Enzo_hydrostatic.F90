@@ -208,7 +208,7 @@ contains
     Return the density at the specified {\normalfont \ttfamily coordinates} in an EnzoHydrostatic \citep{navarro_structure_1996} mass distribution.
     !!}
     implicit none
-    class  (massDistributionEnzoHydrostatic), intent(inout)           :: self
+    class  (massDistributionEnzoHydrostatic), intent(inout), target   :: self
     class  (coordinate                     ), intent(in   )           :: coordinates
     logical                                 , intent(in   ), optional :: logarithmic
     type   (enumerationComponentTypeType   ), intent(in   ), optional :: componentType

@@ -181,6 +181,7 @@ module Mass_Distributions
     <description>Return the radial gradient of density of the distribution at the given coordinates.</description>
     <type>double precision</type>
     <pass>yes</pass>
+    <selfTarget>yes</selfTarget>
     <argument>class  (coordinate                  ), intent(in   )           :: coordinates</argument>
     <argument>logical                              , intent(in   ), optional :: logarithmic</argument>
     <argument>type   (enumerationComponentTypeType), intent(in   ), optional :: componentType</argument>
@@ -190,6 +191,7 @@ module Mass_Distributions
     <description>Return the gravitational potential of the distribution at the given coordinates.</description>
     <type>double precision</type>
     <pass>yes</pass>
+    <selfTarget>yes</selfTarget>
     <argument>class(coordinate                       ), intent(in   )           :: coordinates  </argument>
     <argument>type (enumerationComponentTypeType     ), intent(in   ), optional :: componentType</argument>
     <argument>type (enumerationMassTypeType          ), intent(in   ), optional :: massType     </argument>
@@ -284,6 +286,44 @@ module Mass_Distributions
       self_                                  =&gt; self
       densityTarget                          =     density
       massDistributionRadiusEnclosingDensity =     finder%find(rootGuess=1.0d0)
+    </code>
+   </method>
+   <method name="radiusFromSpecificAngularMomentum" >
+    <description>Return the radius corresponding to a given specific angular momentum.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <selfTarget>yes</selfTarget>
+    <argument>double precision                              , intent(in   )           :: angularMomentumSpecific</argument>
+    <argument>type            (enumerationComponentTypeType), intent(in   ), optional :: componentType          </argument>
+    <argument>type            (enumerationMassTypeType     ), intent(in   ), optional :: massType               </argument>
+    <modules>Root_Finder</modules>
+    <code>
+      type            (rootFinder), save      :: finder
+      logical                     , save      :: finderConstructed=.false.
+      !$omp threadprivate(finder,finderConstructed)
+      double precision            , parameter :: toleranceAbsolute=0.0d0  , toleranceRelative=1.0d-6
+
+      if (.not.self%matches(componentType,massType)) then
+       massDistributionRadiusFromSpecificAngularMomentum=0.0d0
+       return
+      end if
+      if (.not.finderConstructed) then
+       finder           =rootFinder(                                                             &amp;
+            &amp;                   rootFunction                 =specificAngularMomentumRoot  , &amp;
+            &amp;                   toleranceAbsolute            =toleranceAbsolute            , &amp;
+            &amp;                   toleranceRelative            =toleranceRelative            , &amp;
+            &amp;                   solverType                   =GSL_Root_fSolver_Brent       , &amp;
+            &amp;                   rangeExpandUpward            =2.0d0                        , &amp;
+            &amp;                   rangeExpandDownward          =0.5d0                        , &amp;
+            &amp;                   rangeExpandType              =rangeExpandMultiplicative    , &amp;
+            &amp;                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &amp;
+            &amp;                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive  &amp;
+            &amp;                  )
+       finderConstructed=.true.
+      end if
+      self_                                             =&gt; self
+      angularMomentumSpecificTarget                     =     angularMomentumSpecific
+      massDistributionRadiusFromSpecificAngularMomentum =     finder%find(rootGuess=1.0d0)
     </code>
    </method>
    <method name="rotationCurve" >
@@ -500,8 +540,9 @@ module Mass_Distributions
 
   ! Module-scope variables used in root finding.
   class           (massDistributionClass), pointer :: self_
-  double precision                                 :: massTarget, densityTarget
-  !$omp threadprivate(self_,massTarget,densityTarget)
+  double precision                                 :: massTarget                   , densityTarget, &
+       &                                              angularMomentumSpecificTarget
+  !$omp threadprivate(self_,massTarget,densityTarget,angularMomentumSpecificTarget)
   
 contains
   
@@ -573,6 +614,19 @@ contains
          &              -      densityTarget
     return
   end function densityEnclosedRoot
+  
+  double precision function specificAngularMomentumRoot(radius)
+    !!{
+    Root function used in finding radii corresponding to a target specific angular momentum.
+    !!}
+    implicit none
+    double precision, intent(in   ) :: radius
+
+    specificAngularMomentumRoot=+self_%rotationCurve                (radius) &
+         &                      *      radius                                &
+         &                      -      angularMomentumSpecificTarget
+    return
+  end function specificAngularMomentumRoot
   
   double precision function rotationCurveMaximumRoot(radius)
     !!{

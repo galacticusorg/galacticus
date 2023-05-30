@@ -396,7 +396,7 @@ contains
     Return the radial density gradient at the specified {\normalfont \ttfamily coordinates} in a composite mass distribution.
     !!}
     implicit none
-    class           (massDistributionComposite  ), intent(inout)           :: self
+    class           (massDistributionComposite  ), intent(inout), target   :: self
     class           (coordinate                 ), intent(in   )           :: coordinates
     logical                                      , intent(in   ), optional :: logarithmic
     type           (enumerationComponentTypeType), intent(in   ), optional :: componentType
@@ -576,7 +576,7 @@ contains
     !!}
     use :: Galactic_Structure_Options, only : structureErrorCodeSuccess
     implicit none
-    class(massDistributionComposite        ), intent(inout)           :: self
+    class(massDistributionComposite        ), intent(inout), target   :: self
     class(coordinate                       ), intent(in   )           :: coordinates
     type (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
     type (enumerationMassTypeType          ), intent(in   ), optional :: massType

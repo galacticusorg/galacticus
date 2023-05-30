@@ -664,7 +664,7 @@ contains
     use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    class           (massDistributionMiyamotoNagai    ), intent(inout)           :: self
+    class           (massDistributionMiyamotoNagai    ), intent(inout), target   :: self
     class           (coordinate                       ), intent(in   )           :: coordinates
     type            (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
     type            (enumerationMassTypeType          ), intent(in   ), optional :: massType

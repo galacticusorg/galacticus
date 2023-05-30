@@ -219,12 +219,12 @@ contains
     Return the density gradient in the radial direction in a scaled spherical mass distribution.
     !!}
     implicit none
-    class           (massDistributionHernquist   ), intent(inout)              :: self
-    class           (coordinate                  ), intent(in   )              :: coordinates
-    logical                                       , intent(in   ), optional    :: logarithmic
-    type            (enumerationComponentTypeType), intent(in   ), optional    :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional    :: massType
-    double precision                                                           :: r
+    class           (massDistributionHernquist   ), intent(inout), target   :: self
+    class           (coordinate                  ), intent(in   )           :: coordinates
+    logical                                       , intent(in   ), optional :: logarithmic
+    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    double precision                                                        :: r
     !![
     <optionalArgument name="logarithmic" defaultsTo=".false."/>
     !!]
@@ -333,7 +333,7 @@ contains
     use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    class(massDistributionHernquist        ), intent(inout)           :: self
+    class(massDistributionHernquist        ), intent(inout), target   :: self
     class(coordinate                       ), intent(in   )           :: coordinates
     type (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
     type (enumerationMassTypeType          ), intent(in   ), optional :: massType

@@ -196,7 +196,7 @@ contains
     Return the density gradient in the radial direction in a scaled spherical mass distribution.
     !!}
     implicit none
-    class  (massDistributionSphericalScaler), intent(inout)              :: self
+    class  (massDistributionSphericalScaler), intent(inout), target      :: self
     class  (coordinate                     ), intent(in   )              :: coordinates
     logical                                 , intent(in   ), optional    :: logarithmic
     type   (enumerationComponentTypeType   ), intent(in   ), optional    :: componentType
@@ -246,7 +246,7 @@ contains
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    class(massDistributionSphericalScaler  ), intent(inout)              :: self
+    class(massDistributionSphericalScaler  ), intent(inout), target      :: self
     class(coordinate                       ), intent(in   )              :: coordinates
     type (enumerationComponentTypeType     ), intent(in   ), optional    :: componentType
     type (enumerationMassTypeType          ), intent(in   ), optional    :: massType
@@ -260,9 +260,11 @@ contains
          &                                                                          massType         , &
          &                                                                          status             &
          &                                                                         )                   &
-         &                  *                       gravitationalConstantGalacticus                    &
          &                  *self                  %factorScalingMass                                  &
          &                  /self                  %factorScalingLength
+    if (self%massDistribution_%isDimensionless())                    &
+         & sphericalScalerPotential=+sphericalScalerPotential        &
+         &                          *gravitationalConstantGalacticus
     return
   end function sphericalScalerPotential
 
@@ -322,17 +324,19 @@ contains
     class           (coordinate                     )               , allocatable :: coordinatesScaled
 
     call coordinates%scale(1.0d0/self%factorScalingLength,coordinatesScaled)
-    sphericalScalerAcceleration=+self%massDistribution_%acceleration                  (                           &
-         &                                                                             coordinatesScaled        , &
-         &                                                                                   componentType      , &
-         &                                                                                   massType             &
-         &                                                                            )                           &
-         &                      *self                  %factorScalingMass                                         &
-         &                      /self                  %factorScalingLength**2                                    &
-         &                      *                       kilo                                                      &
-         &                      *                       gigaYear                                                  &
-         &                      /                       megaParsec                                                &
-         &                      *                       gravitationalConstantGalacticus
+    sphericalScalerAcceleration=+self%massDistribution_%acceleration         (                     &
+         &                                                                    coordinatesScaled  , &
+         &                                                                          componentType, &
+         &                                                                          massType       &
+         &                                                                   )                     &
+         &                      *self                  %factorScalingMass                          &
+         &                      /self                  %factorScalingLength**2
+    if (self%massDistribution_%isDimensionless())                       &
+         & sphericalScalerAcceleration=+sphericalScalerAcceleration     &
+         &                             *kilo                            &
+         &                             *gigaYear                        &
+         &                             /megaParsec                      &
+         &                             *gravitationalConstantGalacticus
     return
   end function sphericalScalerAcceleration
 
@@ -369,17 +373,19 @@ contains
     type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
     type            (enumerationMassTypeType        ), intent(in   ), optional :: massType
 
-    sphericalScalerRotationCurve=+      self%massDistribution_%rotationCurve                  (                           &
-         &                                                                                     +     radius               &
-         &                                                                                     /self%factorScalingLength, &
-         &                                                                                     componentType            , &
-         &                                                                                     massType                   &
-         &                                                                                    )                           &
-         &                       *sqrt(                                                                                   &
-         &                             +                       gravitationalConstantGalacticus                            &
-         &                             *self                  %factorScalingMass                                          &
-         &                             /self                  %factorScalingLength                                        &
+    sphericalScalerRotationCurve=+      self%massDistribution_%rotationCurve      (                           &
+         &                                                                         +     radius               &
+         &                                                                         /self%factorScalingLength, &
+         &                                                                         componentType            , &
+         &                                                                         massType                   &
+         &                                                                        )                           &
+         &                       *sqrt(                                                                       &
+         &                             +self                  %factorScalingMass                              &
+         &                             /self                  %factorScalingLength                            &
          &                            )
+    if (self%massDistribution_%isDimensionless())                              &
+         & sphericalScalerRotationCurve=+sphericalScalerRotationCurve          &
+         &                              *sqrt(gravitationalConstantGalacticus)
     return
   end function sphericalScalerRotationCurve
 
@@ -400,9 +406,11 @@ contains
          &                                                                             componentType            , &
          &                                                                             massType                   &
          &                                                                            )                           &
-         &                               *     gravitationalConstantGalacticus                                    &
          &                               *self%factorScalingMass                                                  &
          &                               /self%factorScalingLength**2
+    if (self%massDistribution_%isDimensionless())                                     &
+         & sphericalScalerRotationCurveGradient=+sphericalScalerRotationCurveGradient &
+         &                                      *gravitationalConstantGalacticus
     return
   end function sphericalScalerRotationCurveGradient
 
@@ -420,14 +428,16 @@ contains
     class(coordinate                     )               , allocatable :: coordinatesScaled
 
     call coordinates%scale(1.0d0/self%factorScalingLength,coordinatesScaled)
-    sphericalScalerTidalTensor=+self%massDistribution_%tidalTensor                    (                   &
-         &                                                                             coordinatesScaled, &
-         &                                                                             componentType    , &
-         &                                                                             massType           &
-         &                                                                            )                   &
-         &                     *                       gravitationalConstantGalacticus                    &
-         &                     *self                  %factorScalingMass                                  &
+    sphericalScalerTidalTensor=+self%massDistribution_%tidalTensor           (                   &
+         &                                                                    coordinatesScaled, &
+         &                                                                    componentType    , &
+         &                                                                    massType           &
+         &                                                                   )                   &
+         &                     *self                  %factorScalingMass                         &
          &                     /self                  %factorScalingLength**3
+    if (self%massDistribution_%isDimensionless())                      &
+         & sphericalScalerTidalTensor=+sphericalScalerTidalTensor      &
+         &                            *gravitationalConstantGalacticus
     return
   end function sphericalScalerTidalTensor
   
