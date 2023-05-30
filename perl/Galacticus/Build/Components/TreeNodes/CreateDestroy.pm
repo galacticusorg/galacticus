@@ -92,9 +92,12 @@ uniqueIDCount=uniqueIDCount+1
 if (uniqueIDCount <= 0) call Error_Report('ran out of unique ID numbers'//\{introspection:location\})
 self%uniqueIdValue=uniqueIDCount
 !$omp end critical(UniqueID_Assign)
-! Assign a timestep.
+! Assign a timestep and subsampling weight.
 self%timeStepValue         =-1.0d0
 self%subsamplingWeightValue= 1.0d0
+! Initialize physical state.
+self%isSolvable            =.true.
+self%isPhysicallyPlausible =.true.
 CODE
     # Insert a type-binding for this function.
     push(

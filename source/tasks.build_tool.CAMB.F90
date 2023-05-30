@@ -60,7 +60,7 @@ contains
     Builds the tabulation.
     !!}
     use :: Display         , only : displayIndent            , displayMessage, displayUnindent
-    use :: Error, only : errorStatusSuccess
+    use :: Error           , only : errorStatusSuccess
     use :: Interfaces_CAMB , only : Interface_CAMB_Initialize
     implicit none
     class  (taskBuildToolCAMB), intent(inout), target   :: self

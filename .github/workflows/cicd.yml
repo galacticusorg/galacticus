@@ -1025,7 +1025,7 @@ jobs:
           name: galacticus-exec
       - name: Install tools
         run: |
-          apt -y update && apt -y upgrade
+          apt -y update && apt -y upgrade && apt autoremove
           apt install -y linux-tools-$(uname -r) linux-tools-generic bzip2
       - name: Create test suite output directory
         run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
@@ -1079,7 +1079,7 @@ jobs:
           name: galacticus-exec
       - name: Install tools
         run: |
-          apt -y update && apt -y upgrade
+          apt -y update && apt -y upgrade && apt autoremove
           apt install -y linux-tools-$(uname -r) linux-tools-generic bzip2
       - name: Create test suite output directory
         run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
@@ -1147,7 +1147,7 @@ jobs:
           name: galacticus-exec
       - name: Install tools
         run: |
-          apt -y update && apt -y upgrade
+          apt -y update && apt -y upgrade && apt autoremove
           apt install -y linux-tools-$(uname -r) linux-tools-generic bzip2
       - name: Create test suite output directory
         run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
