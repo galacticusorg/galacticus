@@ -77,7 +77,7 @@ contains
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSpin
     implicit none
-    class           (nodeOperatorHaloAngularMomentumInterpolate), intent(inout)          :: self
+    class           (nodeOperatorHaloAngularMomentumInterpolate), intent(inout), target  :: self
     type            (treeNode                                  ), intent(inout), target  :: node
     class           (nodeComponentBasic                        )               , pointer :: basic                  , basicParent
     class           (nodeComponentSpin                         )               , pointer :: spin                   , spinParent

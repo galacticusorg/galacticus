@@ -70,6 +70,21 @@ program Test_ODE_Solver
   deallocate(solver)
   call Unit_Tests_End_Group()
 
+  ! Sinusoid - reverse.
+  call Unit_Tests_Begin_Group("y′=sin(x) reversed")
+  allocate(solver)
+  solver=odeSolver(1_c_size_t,ODE_Set_1,toleranceAbsolute=1.0d-9,toleranceRelative=1.0d-9,scale=[1.0d0])
+  xEnd=[1.0d0,2.0d0,3.0d0,4.0d0,5.0d0,6.0d0,7.0d0,8.0d0,9.0d0,10.0d0]
+  do i=1,size(xEnd)
+     y(1:1)=[1.0d0-cos(xEnd(i:i))]
+     xStart=xEnd(i)
+     call solver%solve(xStart,0.0d0,y(1:1))
+     write (message,'(a,f4.1,a)') "x=",xEnd(i)," to 0"
+     call Assert(trim(message),y(1:1),[0.0d0],absTol=1.0d-6,relTol=5.0d-6)
+  end do
+  deallocate(solver)
+  call Unit_Tests_End_Group()
+
   ! Harmonic oscillator.
   call Unit_Tests_Begin_Group("y″=-y; z′=1/√{1+y²}")
   xEnd=[1.0d0,2.0d0,3.0d0,4.0d0,5.0d0,6.0d0,7.0d0,8.0d0,9.0d0,10.0d0]

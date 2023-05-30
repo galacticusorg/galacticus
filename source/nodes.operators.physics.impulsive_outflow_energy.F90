@@ -211,7 +211,7 @@ contains
     use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
     implicit none
     class           (nodeOperatorImpulsiveOutflowEnergy), intent(inout), target  :: self
-    type            (treeNode                          ), intent(inout)          :: node
+    type            (treeNode                          ), intent(inout), target  :: node
     logical                                             , intent(inout)          :: interrupt
     procedure       (interruptTask                     ), intent(inout), pointer :: functionInterrupt
     integer                                             , intent(in   )          :: propertyType

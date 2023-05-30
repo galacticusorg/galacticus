@@ -909,7 +909,7 @@ jobs:
           name: galacticus-exec
       - name: Install tools
         run: |
-          apt -y update
+          apt -y update && apt -y upgrade
           apt install -y time
       - name: Create test suite output directory
         run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
@@ -962,7 +962,7 @@ jobs:
           name: galacticus-exec
       - name: Install tools
         run: |
-          apt -y update
+          apt -y update && apt -y upgrade
           apt install -y time
       - name: Mark time for cache accesses
         run: |
@@ -1025,7 +1025,7 @@ jobs:
           name: galacticus-exec
       - name: Install tools
         run: |
-          apt -y update
+          apt -y update && apt -y upgrade && apt autoremove
           apt install -y linux-tools-$(uname -r) linux-tools-generic bzip2
       - name: Create test suite output directory
         run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
@@ -1079,7 +1079,7 @@ jobs:
           name: galacticus-exec
       - name: Install tools
         run: |
-          apt -y update
+          apt -y update && apt -y upgrade && apt autoremove
           apt install -y linux-tools-$(uname -r) linux-tools-generic bzip2
       - name: Create test suite output directory
         run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
@@ -1147,7 +1147,7 @@ jobs:
           name: galacticus-exec
       - name: Install tools
         run: |
-          apt -y update
+          apt -y update && apt -y upgrade && apt autoremove
           apt install -y linux-tools-$(uname -r) linux-tools-generic bzip2
       - name: Create test suite output directory
         run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
@@ -1208,7 +1208,7 @@ jobs:
           name: galacticus-exec-instrumented
       - name: Install tools
         run: |
-          apt -y update
+          apt -y update && apt -y upgrade
           apt install -y bzip2
       - name: Create test suite output directory
         run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
@@ -1263,7 +1263,7 @@ jobs:
           name: galacticus-exec-instrumented
       - name: Install tools
         run: |
-          apt -y update
+          apt -y update && apt -y upgrade
           apt install -y bzip2
       - name: Create test suite output directory
         run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs 
@@ -1332,7 +1332,7 @@ jobs:
           name: galacticus-exec-instrumented
       - name: Install tools
         run: |
-          apt -y update
+          apt -y update && apt -y upgrade
           apt install -y bzip2
       - name: Create test suite output directory
         run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
@@ -5108,7 +5108,7 @@ jobs:
           name: test-execs
       - name: Install valgrind
         run: |
-          apt -y update
+          apt -y update && apt -y upgrade
           apt -y install valgrind
       - name: Create test suite output directory
         run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
@@ -5190,7 +5190,7 @@ jobs:
           name: test-execs
       - name: Install valgrind
         run: |
-          apt -y update
+          apt -y update && apt -y upgrade
           apt -y install valgrind
       - name: Create test suite output directory
         run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
@@ -9361,7 +9361,7 @@ jobs:
           name: galacticus-exec-non-static
       - name: Install valgrind
         run: |
-          apt -y update
+          apt -y update && apt -y upgrade
           apt -y install valgrind
       - name: Create test suite output directory
         run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
@@ -9404,7 +9404,7 @@ jobs:
           name: galacticus-exec-MPI
       - name: Install valgrind
         run: |
-          apt -y update
+          apt -y update && apt -y upgrade
           apt -y install valgrind
       - name: Create test suite output directory
         run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
@@ -9439,7 +9439,7 @@ jobs:
           echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
       - name: Install Python2
         run: |
-          apt -y update
+          apt -y update && apt -y upgrade
           apt -y install python2.7
       - name: Download library
         uses: actions/download-artifact@v3
