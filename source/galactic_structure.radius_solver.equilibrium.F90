@@ -334,18 +334,22 @@ contains
          radius=radiusGet(node)
          if (radius <= 0.0d0) then
             ! No previous radius was set, so make a simple estimate of sizes of all components ignoring equilibrium contraction and self-gravity.
+            massDistribution_ => self%darkMatterProfileDMO_%get(node)
             ! First check that there is a solution within a reasonable radius.
-            specificAngularMomentumMaximum=+self%darkMatterProfileDMO_%circularVelocity(node_,radiusLarge) & 
-                 &                         *                                                  radiusLarge
+            specificAngularMomentumMaximum=+massDistribution_%rotationCurve(radiusLarge) &
+                 &                         *                                radiusLarge
             if (specificAngularMomentumMaximum < specificAngularMomentum) then
                ! No solution exists even within a very large radius. Use a simple estimate of the virial radius.
                radius=self%darkMatterHaloScale_%radiusVirial                      (node_                        )
             else
-               ! Find the radius in the dark matter profile with the required specific angular momentum
-               radius=self%darkMatterProfileDMO_%radiusFromSpecificAngularMomentum(node_,specificAngularMomentum)
+               ! Find the radius in the dark matter profile with the required specific angular momentum.
+               radius=massDistribution_%radiusFromSpecificAngularMomentum(specificAngularMomentum)
             end if
             ! Find the velocity at this radius.
-            velocity=self%darkMatterProfileDMO_%circularVelocity                  (node_,radius                 )
+            velocity=massDistribution_%rotationCurve(radius)
+            !![
+            <objectDestructor name="massDistribution_"/>
+            !!]
          else
             ! A previous radius was set, so use it, and the previous circular velocity, as the initial guess.
             velocity=velocityGet(node)
