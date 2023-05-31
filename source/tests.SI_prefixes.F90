@@ -36,7 +36,7 @@ program Test_SI_Prefixes
   call Assert                        ("1.23d-32 →   '0.01 q'"       ,trim(adjustl(siFormat(1.23d-32,'f7.2,1x'))),  '0.01 q')
   call Assert                        ("1.23d-05 →  '12.30 μ'"       ,trim(adjustl(siFormat(1.23d-05,'f7.2,1x'))), '12.30 μ')
   call Assert                        ("1.23d-02 →  '12.30 m'"       ,trim(adjustl(siFormat(1.23d-02,'f7.2,1x'))), '12.30 m')
-  call Assert                        ("1.23d+01 →  '12.30'  "       ,trim(adjustl(siFormat(1.23d+01,'f7.2,1x'))), '12.30'  )
+  call Assert                        ("1.23d+01 →  '12.30'  "       ,trim(adjustl(siFormat(1.23d+01,'f7.2,1x'))), '12.30  '  )
   call Assert                        ("1.23d+04 →  '12.30 k'"       ,trim(adjustl(siFormat(1.23d+04,'f7.2,1x'))), '12.30 k')
   call Assert                        ("1.23d+07 →  '12.30 M'"       ,trim(adjustl(siFormat(1.23d+07,'f7.2,1x'))), '12.30 M')
   call Assert                        ("1.23d+32 → '123.00 Q'"       ,trim(adjustl(siFormat(1.23d+32,'f7.2,1x'))),'123.00 Q')
