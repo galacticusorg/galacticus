@@ -745,7 +745,7 @@ contains
     integer                                                        :: iTime
     ! "evaluate" array is currently not used. It indicates which integrands must be evaluated, and which can (optionally) be
     ! ignored as they have already converged to the required tolerance. It is currently not used because the potential for
-    ! significant speed up appears to be small based on profiling. This will be model-dependant though, so this decision can be
+    ! significant speed up appears to be small based on profiling. This will be model-dependent though, so this decision can be
     ! revisited.
     !$GLC attributes unused :: evaluate
 

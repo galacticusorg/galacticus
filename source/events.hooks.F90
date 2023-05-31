@@ -198,7 +198,7 @@ module Events_Hooks
   !$omp threadprivate(futureThread_)
 
   ! State controlling whether "atLevel" attachment should be promoted to "allLevels" attachment. This is needed for objects
-  ! created in the master thread. Once all objects are deepCopied from the master thred this should no longer be needed.
+  ! created in the master thread. Once all objects are deepCopied from the master thread this should no longer be needed.
   logical          :: atLevelToAllLevels_=.false.
   !$omp threadprivate(atLevelToAllLevels_)
   
@@ -225,7 +225,7 @@ contains
 
   subroutine eventsHooksAtLevelToAllLevels(atLevelToAllLevels)
     !!{
-    Set the promotion state for events attching ``at-level''.
+    Set the promotion state for events attaching ``at-level''.
     !!}
     implicit none
     logical, intent(in   ) :: atLevelToAllLevels

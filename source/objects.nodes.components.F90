@@ -80,7 +80,7 @@ contains
     type(inputParameters), intent(inout) :: parameters
 
     if (initializationThreadCount == 0) then
-       ! Force all events that attch during this initialization to attach at all levels. This is necessary as the master thread in
+       ! Force all events that attach during this initialization to attach at all levels. This is necessary as the master thread in
        ! an OpenMP parallel section inherits objects from before the parallel region.
        call eventsHooksAtLevelToAllLevels(.true. )
        !![
