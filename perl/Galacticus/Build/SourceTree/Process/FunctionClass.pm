@@ -3613,7 +3613,8 @@ CODE
 			}
 		    }
 		} else {
-		    $modulePostContains->{'content'} .= "      use Error\n";
+		    $modulePostContains->{'content'} .= "      use Error             , only : Error_Report\n";
+		    $modulePostContains->{'content'} .= "      use ISO_Varying_String, only : char\n";
 		}
 		$modulePostContains->{'content'} .= "      implicit none\n";
 		$modulePostContains->{'content'} .= $argumentCode;
