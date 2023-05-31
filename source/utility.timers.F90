@@ -112,9 +112,11 @@ contains
     use :: Numerical_Constants_Prefixes, only : siFormat
     implicit none
     character(len=16)                :: timerReportText
+    character(len=64)                :: timerReportText_
     class    (timer ), intent(inout) :: self
 
-    write (timerReportText,'(a,a1)') trim(siFormat(self%report(),'f12.6')),'s'
+    timerReportText_=siFormat(self%report(),'f12.6')
+    write (timerReportText,'(a,a1)') trim(timerReportText_),'s'
     return
   end function timerReportText
 
