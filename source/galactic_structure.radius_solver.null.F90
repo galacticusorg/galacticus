@@ -132,15 +132,16 @@ contains
     return
   end subroutine nullSolvePreDeriativeHook
 
-  subroutine nullSolve(self,node)
+  subroutine nullSolve(self,node,plausibilityOnly)
     !!{
     Solve for the structure of galactic components.
     !!}
     include 'galactic_structure.radius_solver.plausible.modules.inc'
     implicit none
-    class(galacticStructureSolverNull), intent(inout)         :: self
-    type (treeNode                   ), intent(inout), target :: node
-    !$GLC attributes unused :: self
+    class  (galacticStructureSolverNull), intent(inout)           :: self
+    type   (treeNode                   ), intent(inout), target   :: node
+    logical                             , intent(in   ), optional :: plausibilityOnly
+    !$GLC attributes unused :: self, plausibilityOnly
 
     node%isPhysicallyPlausible=.true.
     node%isSolvable           =.true.

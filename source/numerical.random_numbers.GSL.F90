@@ -319,8 +319,8 @@ contains
     !!}
     use :: Error, only : Error_Report
     implicit none
-    class(randomNumberGeneratorGSL  ), intent(inout) :: self
-    class(randomNumberGeneratorClass), intent(inout) :: destination
+    class(randomNumberGeneratorGSL  ), intent(inout), target :: self
+    class(randomNumberGeneratorClass), intent(inout)         :: destination
 
     call self%randomNumberGeneratorClass%deepCopy(destination)
     select type (destination)

@@ -132,13 +132,17 @@
    contains
      !![
      <methods>
-       <method description="Find the time to which a node can be evolved." method="timeEvolveTo" />
-       <method description="Add a node to the deadlock list." method="deadlockAddNode" />
-       <method description="Output a description of a deadlocked tree." method="deadlockOutputTree" />
+       <method method="initializeTree"     description="Initialize the tree(s)."                     />
+       <method method="nodeIsEvolvable"    description="Determine if a node is evolvable."            />
+       <method method="timeEvolveTo"       description="Find the time to which a node can be evolved."/>
+       <method method="deadlockAddNode"    description="Add a node to the deadlock list."             />
+       <method method="deadlockOutputTree" description="Output a description of a deadlocked tree."   />
      </methods>
      !!]
      final     ::                       standardDestructor
      procedure :: evolve             => standardEvolve
+     procedure :: initializeTree     => standardInitializeTree
+     procedure :: nodeIsEvolvable    => standardNodeIsEvolvable
      procedure :: timeEvolveTo       => standardTimeEvolveTo
      procedure :: deadlockAddNode    => standardDeadlockAddNode
      procedure :: deadlockOutputTree => standardDeadlockOutputTree
@@ -271,7 +275,7 @@ contains
 
   subroutine standardDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily standard}m erger tree evolver class.
+    Destructor for the {\normalfont \ttfamily standard} merger tree evolver class.
     !!}
     implicit none
     type(mergerTreeEvolverStandard), intent(inout) :: self
@@ -293,16 +297,16 @@ contains
     Evolves all properties of a merger tree to the specified time.
     !!}
     use    :: Display                            , only : displayIndent                , displayMessage                    , displayUnindent              , displayVerbosity           , &
-         &                                                displayGreen                 , displayReset                      , enumerationVerbosityLevelType, verbosityLevelWarn
+         &                                                enumerationVerbosityLevelType, verbosityLevelWarn
     use    :: Error                              , only : Error_Report                 , errorStatusSuccess
-    use    :: Galacticus_Nodes                   , only : interruptTask                , mergerTree                        , nodeComponentBasic           , nodeEvent                  , &
-          &                                               nodeEventBranchJumpInterTree , nodeEventSubhaloPromotionInterTree, treeNode
+    use    :: Galacticus_Nodes                   , only : interruptTask                , mergerTree                        , nodeComponentBasic
     use    :: Merger_Tree_Timesteps              , only : timestepTask
     use    :: Merger_Tree_Walkers                , only : mergerTreeWalkerAllNodes
     use    :: Merger_Trees_Dump                  , only : Merger_Tree_Dump
     use    :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsDeadlocked   , deadlockStatusIsNotDeadlocked     , deadlockStatusIsReporting, deadlockStatusIsSuspendable, &
          &                                                enumerationDeadlockStatusType
-    !$ use :: OMP_Lib                            , only : OMP_Set_Lock                 , OMP_Unset_Lock                    , omp_lock_kind
+    !$ use :: OMP_Lib                            , only : omp_lock_kind
+    use    :: Locks                              , only : ompLockClass
     use    :: String_Handling                    , only : operator(//)
     implicit none
     class           (mergerTreeEvolverStandard    )                    , intent(inout) :: self
@@ -316,16 +320,14 @@ contains
     type            (treeNode                     )           , pointer                :: nodeLock                                       , nodeNext         , &
          &                                                                                nodeParent                                     , node             , &
          &                                                                                nodeSiblingNext                                , nodeParentNext
-    class           (nodeEvent                    )           , pointer                :: event
-    double precision                               , parameter                         :: timeTolerance              =1.0d-5
     double precision                               , parameter                         :: largeTime                  =1.0d10
     procedure       (interruptTask                )           , pointer                :: interruptProcedure
     procedure       (timestepTask                 )           , pointer                :: timestepTask_
     class           (*                            )           , pointer                :: timestepSelf
     type            (enumerationVerbosityLevelType), parameter                         :: verbosityLevel             =verbosityLevelWarn
-    class           (nodeComponentBasic           )           , pointer                :: basicBase                                     , basicParent      , &
-         &                                                                                basic
+    class           (nodeComponentBasic           )           , pointer                :: basic                                          , basicParent
     type            (mergerTree                   )           , pointer                :: currentTree
+    type            (ompLockClass                 )                                    :: lockTree
     type            (mergerTreeWalkerAllNodes     )                                    :: treeWalker
     type            (enumerationDeadlockStatusType)                                    :: statusDeadlock
     integer                                                                            :: treeWalkCountPreviousOutput                    , nodesEvolvedCount, &
@@ -336,102 +338,26 @@ contains
     character       (len=35                       )                                    :: message
     type            (varying_string               )                                    :: lockType                                       , vMessage
     logical                                                                            :: anyTreeExistsAtOutputTime                      , hasIntertreeEvent, &
-         &                                                                                hasParent                                      , treeLimited      , &
          &                                                                                nodeProgressed                                 , nextNodeFound    , &
          &                                                                                didEvolve                                      , interrupted      , &
          &                                                                                nodesRemain
 
-    ! Iterate through all trees.
+    ! Initialize trees.
     suspendTree               =  .false.
     anyTreeExistsAtOutputTime =  .false.
     treeDidEvolve             =  .false.
-    currentTree               => tree
-    do while (associated(currentTree))
-       ! Skip empty trees.
-       if (associated(currentTree%nodeBase)) then
-          ! Initialize the tree if necessary.
-          !$ if (present(initializationLock)) call OMP_Set_Lock  (initializationLock)
-          call self%mergerTreeInitializor_%initialize(currentTree,timeEnd)
-          !$ if (present(initializationLock)) call OMP_Unset_Lock(initializationLock)
-          ! Check that the output time is not after the end time of this tree.
-          basicBase => currentTree%nodeBase%basic()
-          if (timeEnd > basicBase%time()) then
-             ! Final time is exceeded. Check if by a significant factor.
-             if (timeEnd > basicBase%time()*(1.0d0+timeTolerance)) then
-                ! Exceeded by a significant factor - report an error. Check if such behavior is expected.
-                if (self%allTreesExistAtFinalTime) then
-                   ! It is not, write an error and exit.
-                   vMessage='requested time exceeds the final time in the tree'//char(10)
-                   vMessage=vMessage//displayGreen()//' HELP:'//displayReset()//' If you expect that not all trees will exist at the latest requested'//char(10)
-                   vMessage=vMessage//                                         '       output time (this can happen when using trees extracted from N-body'//char(10)
-                   vMessage=vMessage//                                         '       simulations for example) set the following in your input parameter file:'//char(10)//char(10)
-                   vMessage=vMessage//                                         '         <allTreesExistAtFinalTime value="false" />'//char(10)
-                   call Error_Report(vMessage//{introspection:location})
-                end if
-             else
-                ! Not exceeded by a significant factor (can happen due to approximation errors). Unless there is an event
-                ! associated with this node at the current time, simply reset to actual time requested.
-                event => currentTree%nodeBase%event
-                do while (associated(event))
-                   if (event%time == basicBase%time()) then
-                      vMessage=          'requested time exceeds the final time in the tree by a small factor'  //char(10)
-                      vMessage=vMessage//'refusing to adjust the final time in the tree due to associated event'//char(10)
-                      write (label,'(e24.16)') timeEnd
-                      vMessage=vMessage//'  requested time: '//trim(label)//' Gyr'//char(10)
-                      write (label,'(e24.16)') basicBase%time()
-                      vMessage=vMessage//'      final time: '//trim(label)//' Gyr'//char(10)
-                      write (label,'(e24.16)') event%time
-                      vMessage=vMessage//'      event time: '//trim(label)//' Gyr'//char(10)
-                      vMessage=vMessage//'      event ID  : '//event%ID           //char(10)
-                      vMessage=vMessage//displayGreen()//' HELP:'//displayReset()//' if you are reading merger trees from file and are attempting to'//char(10)
-                      vMessage=vMessage//                                          '       output at a "snapshot time" consider setting:'                  //char(10)
-                      vMessage=vMessage//                                          '           <mergerTreeReadOutputTimeSnapTolerance value="1.0e-3"/>'    //char(10)
-                      vMessage=vMessage//                                          '       or similar in your parameter file to ensure that nodes exist'   //char(10)
-                      vMessage=vMessage//                                          '       precisely at the output times you request'
-                      call Error_Report(vMessage//{introspection:location})
-                   end if
-                   event => event%next
-                end do
-                call basicBase%timeSet(timeEnd)
-                anyTreeExistsAtOutputTime=.true.
-             end if
-          else
-             anyTreeExistsAtOutputTime=.true.
-          end if
-       end if
-       ! Move to the next tree.
-       currentTree => currentTree%nextTree
-    end do
-    ! If none of these trees exist at the output time, check if they contain any inter-tree events. If they do, we need to evolve
-    ! the tree anyway, as it interacts with another tree that may exist at the output time. Otherwise, we can ignore this tree.
-    if (.not.anyTreeExistsAtOutputTime) then
-       ! Walk over all trees in the forest.
-       treeWalker       =mergerTreeWalkerAllNodes(tree,spanForest=.true.)
-       hasInterTreeEvent=.false.
-       do while (treeWalker%next(node).and..not.hasIntertreeEvent)
-          ! Iterate over events.
-          event => node%event
-          do while (associated(event).and..not.hasIntertreeEvent)
-             select type (event)
-             type is (nodeEventSubhaloPromotionInterTree)
-                hasIntertreeEvent=.true.
-             type is (nodeEventBranchJumpInterTree      )
-                hasIntertreeEvent=.true.
-             end select
-             event => event%next
-          end do
-       end do
-       if (.not.hasInterTreeEvent) then
-          ! Mark the tree as evolved here, as the only reason that we did not evolve it was the given time target.
-          treeDidEvolve=.true.
-          return
-       end if
+    call self%initializeTree(tree,timeEnd,treeDidEvolve,anyTreeExistsAtOutputTime,hasInterTreeEvent,initializationLock)
+    if (.not.anyTreeExistsAtOutputTime.and..not.hasInterTreeEvent) then
+       ! Mark the tree as evolved here, as the only reason that we did not evolve it was the given time target.
+       treeDidEvolve=.true.
+       return
     end if
     ! Outer loop: This causes the tree to be repeatedly walked and evolved until it has been evolved all the way to the specified
     ! end time. We stop when no nodes were evolved, which indicates that no further evolution is possible.
     didEvolve                  =.true.
     treeWalkCount              =0
     treeWalkCountPreviousOutput=0
+    lockTree                   =ompLockClass()
     outerLoop: do while (didEvolve) ! Keep looping through the tree until we make a pass during which no nodes were evolved.
        ! Flag that no nodes have been evolved yet.
        didEvolve=.false.
@@ -483,58 +409,8 @@ contains
                    nodeParentNext  => node%parent
                    nodeSiblingNext => node%sibling
                    nodeNext        => null()
-                   ! Evolve this node if it has a parent (or will transfer to another tree where it will have a parent), exists
-                   ! before the output time, has no children (i.e. they've already all been processed), and either exists before
-                   ! the final time in its tree, or exists precisely at that time and has some attached event yet to occur.
-                   event       =>            node%event
-                   hasParent   =  associated(node%parent)
-                   treeLimited =  .true.
-                   do while (associated(event).and.treeLimited)
-                      ! Skip events which occur after the current evolution end time.
-                      if (event%time <= timeEnd) then
-                         ! Detect inter-tree events.
-                         select type (event)
-                         type is (nodeEventSubhaloPromotionInterTree)
-                            hasParent  =.true.
-                            treeLimited=.false.
-                         type is (nodeEventBranchJumpInterTree      )
-                            hasParent  =.true.
-                            treeLimited=.false.
-                         end select
-                      end if
-                      event => event%next
-                   end do
-                   evolveCondition: if (                                     &
-                        &                     hasParent                      &
-                        &               .and.                                &
-                        &                .not.associated(node%firstChild  )  &
-                        &               .and.                                &
-                        &                (                                   &
-                        &                  basic%time() <  timeEnd           &
-                        &                 .or.                               &
-                        &                  (                                 &
-                        &                    .not.treeLimited                & ! For nodes that are not tree limited (i.e. have a node which
-                        &                   .and.                            & ! will jump to another tree), allow them to evolve if the node
-                        &                    basic%time() == timeEnd         & ! is at the end time also, since the jump may occur at that time.
-                        &                  )                                 &
-                        &                )                                   &
-                        &               .and.                                &
-                        &                (                                   &
-                        &                   .not.treeLimited                 &
-                        &                .or.                                &
-                        &                    basic%time() <  finalTimeInTree &
-                        &                .or.                                &
-                        &                 (                                  &
-                        &                  (                                 &
-                        &                     associated(node%event      )   &
-                        &                   .or.                             &
-                        &                     associated(node%mergeTarget)   &
-                        &                  )                                 &
-                        &                  .and.                             &
-                        &                    basic%time() <= finalTimeInTree &
-                        &                 )                                  &
-                        &                )                                   &
-                        &              ) then
+                   ! Determine if the node is evolvable.
+                   evolveCondition: if (self%nodeIsEvolvable(node,timeEnd,finalTimeInTree)) then
                       ! Flag that a node was evolved.
                       didEvolve=.true.
                       ! Flag that this node has not yet progressed in time, and that we have not yet determined which node we will
@@ -558,14 +434,14 @@ contains
                             write (label,'(e12.6)') timeEnd
                             vMessage=vMessage//":"//label//")"
                             call displayIndent(vMessage)
-                            timeEndThisNode=self%timeEvolveTo(node,timeEnd,timestepTask_,timestepSelf,report=.true. ,nodeLock=nodeLock,lockType=lockType)
+                            timeEndThisNode=self%timeEvolveTo(node,timeEnd,self%cosmologyFunctions_,self%mergerTreeEvolveTimestep_,self%mergerTreeNodeEvolver_,timestepTask_,timestepSelf,report=.true. ,nodeLock=nodeLock,lockType=lockType)
                             call displayUnindent("end node")
                             call self%deadlockAddNode(node,currentTree%index,nodeLock,lockType)
                          else if (self%profileSteps) then
-                            timeEndThisNode=self%timeEvolveTo(node,timeEnd,timestepTask_,timestepSelf,report=.false.                  ,lockType=lockType)
+                            timeEndThisNode=self%timeEvolveTo(node,timeEnd,self%cosmologyFunctions_,self%mergerTreeEvolveTimestep_,self%mergerTreeNodeEvolver_,timestepTask_,timestepSelf,report=.false.                  ,lockType=lockType)
                             call self%mergerTreeEvolveProfiler_%stepDescriptor(lockType)
                          else
-                            timeEndThisNode=self%timeEvolveTo(node,timeEnd,timestepTask_,timestepSelf,report=.false.                                    )
+                            timeEndThisNode=self%timeEvolveTo(node,timeEnd,self%cosmologyFunctions_,self%mergerTreeEvolveTimestep_,self%mergerTreeNodeEvolver_,timestepTask_,timestepSelf,report=.false.                                    )
                          end if
                          ! If this node is able to evolve by a finite amount, the tree is not deadlocked.
                          if (timeEndThisNode > basic%time()) then
@@ -575,7 +451,7 @@ contains
                             ! Update record of earliest time in the tree.
                             earliestTimeInTree=min(earliestTimeInTree,timeEndThisNode)
                             ! Evolve the node to the next interrupt event, or the end time.
-                            call self%mergerTreeNodeEvolver_%evolve(currentTree,node,timeEndThisNode,interrupted,interruptProcedure,self%galacticStructureSolver_,systemClockMaximum,status)
+                            call self%mergerTreeNodeEvolver_%evolve(currentTree,node,timeEndThisNode,interrupted,interruptProcedure,self%galacticStructureSolver_,lockTree,systemClockMaximum,status)
                             if (present(status)) then
                                if (status /= errorStatusSuccess) return
                             end if
@@ -748,7 +624,181 @@ contains
     return
   end subroutine standardEvolve
 
-  recursive function standardTimeEvolveTo(self,node,timeEnd,timestepTask_,timestepSelf,report,nodeLock,lockType) result(evolveToTime)
+  subroutine standardInitializeTree(self,tree,timeEnd,treeDidEvolve,anyTreeExistsAtOutputTime,hasInterTreeEvent,initializationLock)
+    !!{
+    Initialize trees prior to evolution.
+    !!}
+    use    :: Display            , only : displayGreen            , displayReset
+    use    :: Galacticus_Nodes   , only : nodeComponentBasic      , nodeEvent     , nodeEventBranchJumpInterTree , nodeEventSubhaloPromotionInterTree
+    use    :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
+    use    :: String_Handling    , only : operator(//)
+    !$ use :: OMP_Lib            , only : OMP_Set_Lock            , OMP_Unset_Lock, omp_lock_kind
+    implicit none
+    class           (mergerTreeEvolverStandard)           , intent(inout) :: self
+    type            (mergerTree               ), target   , intent(inout) :: tree
+    double precision                                      , intent(in   ) :: timeEnd
+    logical                                               , intent(inout) :: treeDidEvolve
+    logical                                               , intent(  out) :: anyTreeExistsAtOutputTime       , hasInterTreeEvent
+    integer         (omp_lock_kind            ), optional , intent(inout) :: initializationLock
+    double precision                           , parameter                :: timeTolerance            =1.0d-5
+    type            (mergerTree               ), pointer                  :: currentTree
+    type            (treeNode                 ), pointer                  :: node
+    class           (nodeComponentBasic       ), pointer                  :: basicBase
+    class           (nodeEvent                ), pointer                  :: event
+    type            (varying_string           )                           :: vMessage
+    type            (mergerTreeWalkerAllNodes )                           :: treeWalker
+    character       (len=24                   )                           :: label
+
+    currentTree => tree
+    do while (associated(currentTree))
+       ! Skip empty trees.
+       if (associated(currentTree%nodeBase)) then
+          ! Initialize the tree if necessary.
+          !$ if (present(initializationLock)) call OMP_Set_Lock  (initializationLock)
+          call self%mergerTreeInitializor_%initialize(currentTree,timeEnd)
+          !$ if (present(initializationLock)) call OMP_Unset_Lock(initializationLock)
+          ! Check that the output time is not after the end time of this tree.
+          basicBase => currentTree%nodeBase%basic()
+          if (timeEnd > basicBase%time()) then
+             ! Final time is exceeded. Check if by a significant factor.
+             if (timeEnd > basicBase%time()*(1.0d0+timeTolerance)) then
+                ! Exceeded by a significant factor - report an error. Check if such behavior is expected.
+                if (self%allTreesExistAtFinalTime) then
+                   ! It is not, write an error and exit.
+                   vMessage='requested time exceeds the final time in the tree'//char(10)
+                   vMessage=vMessage//displayGreen()//' HELP:'//displayReset()//' If you expect that not all trees will exist at the latest requested'//char(10)
+                   vMessage=vMessage//                                         '       output time (this can happen when using trees extracted from N-body'//char(10)
+                   vMessage=vMessage//                                         '       simulations for example) set the following in your input parameter file:'//char(10)//char(10)
+                   vMessage=vMessage//                                         '         <allTreesExistAtFinalTime value="false" />'//char(10)
+                   call Error_Report(vMessage//{introspection:location})
+                end if
+             else
+                ! Not exceeded by a significant factor (can happen due to approximation errors). Unless there is an event
+                ! associated with this node at the current time, simply reset to actual time requested.
+                event => currentTree%nodeBase%event
+                do while (associated(event))
+                   if (event%time == basicBase%time()) then
+                      vMessage=          'requested time exceeds the final time in the tree by a small factor'  //char(10)
+                      vMessage=vMessage//'refusing to adjust the final time in the tree due to associated event'//char(10)
+                      write (label,'(e24.16)') timeEnd
+                      vMessage=vMessage//'  requested time: '//trim(label)//' Gyr'//char(10)
+                      write (label,'(e24.16)') basicBase%time()
+                      vMessage=vMessage//'      final time: '//trim(label)//' Gyr'//char(10)
+                      write (label,'(e24.16)') event%time
+                      vMessage=vMessage//'      event time: '//trim(label)//' Gyr'//char(10)
+                      vMessage=vMessage//'      event ID  : '//event%ID           //char(10)
+                      vMessage=vMessage//displayGreen()//' HELP:'//displayReset()//' if you are reading merger trees from file and are attempting to'//char(10)
+                      vMessage=vMessage//                                          '       output at a "snapshot time" consider setting:'                  //char(10)
+                      vMessage=vMessage//                                          '           <mergerTreeReadOutputTimeSnapTolerance value="1.0e-3"/>'    //char(10)
+                      vMessage=vMessage//                                          '       or similar in your parameter file to ensure that nodes exist'   //char(10)
+                      vMessage=vMessage//                                          '       precisely at the output times you request'
+                      call Error_Report(vMessage//{introspection:location})
+                   end if
+                   event => event%next
+                end do
+                call basicBase%timeSet(timeEnd)
+                anyTreeExistsAtOutputTime=.true.
+             end if
+          else
+             anyTreeExistsAtOutputTime=.true.
+          end if
+       end if
+       ! Move to the next tree.
+       currentTree => currentTree%nextTree
+    end do
+    ! If none of these trees exist at the output time, check if they contain any inter-tree events. If they do, we need to evolve
+    ! the tree anyway, as it interacts with another tree that may exist at the output time. Otherwise, we can ignore this tree.
+    hasInterTreeEvent=.false.
+    if (.not.anyTreeExistsAtOutputTime) then
+       ! Walk over all trees in the forest.
+       treeWalker       =mergerTreeWalkerAllNodes(tree,spanForest=.true.)
+       do while (treeWalker%next(node).and..not.hasIntertreeEvent)
+          ! Iterate over events.
+          event => node%event
+          do while (associated(event).and..not.hasIntertreeEvent)
+             select type (event)
+             type is (nodeEventSubhaloPromotionInterTree)
+                hasIntertreeEvent=.true.
+             type is (nodeEventBranchJumpInterTree      )
+                hasIntertreeEvent=.true.
+             end select
+             event => event%next
+          end do
+       end do
+       if (.not.hasInterTreeEvent) &
+            & treeDidEvolve=.true.   ! Mark the tree as evolved here, as the only reason that we did not evolve it was the given time target.
+    end if
+    return
+  end subroutine standardInitializeTree
+  
+  logical function standardNodeIsEvolvable(self,node,timeEnd,finalTimeInTree)
+    !!{
+    Return true if the given {\normalfont \ttfamily node} is evolvable.
+    !!}
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeEventBranchJumpInterTree , nodeEventSubhaloPromotionInterTree, nodeEvent
+    implicit none
+    class           (mergerTreeEvolverStandard), intent(inout)          :: self
+    type            (treeNode                 ), intent(inout)          :: node
+    double precision                           , intent(in   )          :: timeEnd  , finalTimeInTree
+    class           (nodeEvent                )               , pointer :: event
+    class           (nodeComponentBasic       )               , pointer :: basic
+    logical                                                             :: hasParent, treeLimited
+    
+    ! Evolve this node if it has a parent (or will transfer to another tree where it will have a parent), exists
+    ! before the output time, has no children (i.e. they've already all been processed), and either exists before
+    ! the final time in its tree, or exists precisely at that time and has some attached event yet to occur.
+    basic => node%basic()
+    event       =>            node%event
+    hasParent   =  associated(node%parent)
+    treeLimited =  .true.
+    do while (associated(event).and.treeLimited)
+       ! Skip events which occur after the current evolution end time.
+       if (event%time <= timeEnd) then
+          ! Detect inter-tree events.
+          select type (event)
+          type is (nodeEventSubhaloPromotionInterTree)
+             hasParent  =.true.
+             treeLimited=.false.
+          type is (nodeEventBranchJumpInterTree      )
+             hasParent  =.true.
+             treeLimited=.false.
+          end select
+       end if
+       event => event%next
+    end do    
+    standardNodeIsEvolvable= hasParent                           &
+         &                  .and.                                &
+         &                   .not.associated(node%firstChild  )  &
+         &                  .and.                                &
+         &                   (                                   &
+         &                     basic%time() <  timeEnd           &
+         &                    .or.                               &
+         &                     (                                 &
+         &                       .not.treeLimited                & ! For nodes that are not tree limited (i.e. have a node which
+         &                      .and.                            & ! will jump to another tree), allow them to evolve if the node
+         &                       basic%time() == timeEnd         & ! is at the end time also, since the jump may occur at that time.
+         &                     )                                 &
+         &                   )                                   &
+         &                  .and.                                &
+         &                   (                                   &
+         &                      .not.treeLimited                 &
+         &                   .or.                                &
+         &                       basic%time() <  finalTimeInTree &
+         &                   .or.                                &
+         &                    (                                  &
+         &                     (                                 &
+         &                        associated(node%event      )   &
+         &                      .or.                             &
+         &                        associated(node%mergeTarget)   &
+         &                     )                                 &
+         &                     .and.                             &
+         &                       basic%time() <= finalTimeInTree &
+         &                    )                                  &
+         &                  )
+    return
+  end function standardNodeIsEvolvable
+  
+  recursive function standardTimeEvolveTo(self,node,timeEnd,cosmologyFunctions_,mergerTreeEvolveTimestep_,mergerTreeNodeEvolver_,timestepTask_,timestepSelf,report,nodeLock,lockType) result(evolveToTime)
     !!{
     Determine the time to which {\normalfont \ttfamily node} should be evolved.
     !!}
@@ -764,22 +814,25 @@ contains
     double precision                                                                  :: evolveToTime
     type            (treeNode                     ), intent(inout)          , pointer :: node
     double precision                               , intent(in   )                    :: timeEnd
-    type            (treeNode                     )                         , pointer :: nodeSatellite       , nodeSibling
+    class           (cosmologyFunctionsClass      ), intent(inout)                    :: cosmologyFunctions_
+    class           (mergerTreeEvolveTimestepClass), intent(inout)                    :: mergerTreeEvolveTimestep_
+    class           (mergerTreeNodeEvolverClass   ), intent(inout)                    :: mergerTreeNodeEvolver_
+    type            (treeNode                     )                         , pointer :: nodeSatellite            , nodeSibling
     procedure       (timestepTask                 ), intent(  out)          , pointer :: timestepTask_
     class           (*                            ), intent(  out)          , pointer :: timestepSelf
     logical                                        , intent(in   )                    :: report
     type            (treeNode                     ), intent(  out), optional, pointer :: nodeLock
     type            (varying_string               ), intent(  out), optional          :: lockType
     procedure       (timestepTask                 )                         , pointer :: timestepTaskInternal
-    class           (nodeComponentBasic           )                         , pointer :: basicParent           , basicSatellite    , &
-         &                                                                               basicSibling          , basic
+    class           (nodeComponentBasic           )                         , pointer :: basicParent              , basicSatellite    , &
+         &                                                                               basicSibling             , basic
     class           (nodeComponentSatellite       )                         , pointer :: satelliteSatellite
     class           (nodeEvent                    )                         , pointer :: event
     class           (treeEvent                    )                         , pointer :: treeEvent_
-    double precision                                                                  :: expansionFactor       , expansionTimescale, &
-         &                                                                               hostTimeLimit         , time              , &
-         &                                                                               timeEarliest          , evolveToTimeStep  , &
-         &                                                                               hostTimeStep          , timeNode          , &
+    double precision                                                                  :: expansionFactor          , expansionTimescale, &
+         &                                                                               hostTimeLimit            , time              , &
+         &                                                                               timeEarliest             , evolveToTimeStep  , &
+         &                                                                               hostTimeStep             , timeNode          , &
          &                                                                               timeSatellite
     logical                                                                           :: isLimitedByTimestepper
     character       (len=9                        )                                   :: timeFormatted
@@ -846,7 +899,7 @@ contains
     if (evolveToTime == timeNode) return
     ! Also ensure that the timestep taken does not exceed the allowed timestep for this specific node.
     if (report) call displayIndent("timestepping criteria")
-    evolveToTimeStep=self%mergerTreeEvolveTimestep_%timeEvolveTo(evolveToTime,node,timestepTaskInternal,timestepSelf,report,nodeLock,lockType)
+    evolveToTimeStep=mergerTreeEvolveTimestep_%timeEvolveTo(evolveToTime,node,timestepTaskInternal,timestepSelf,report,nodeLock,lockType)
     if (evolveToTimeStep <= evolveToTime) then
        evolveToTime           =  evolveToTimeStep
        timestepTask_          => timestepTaskInternal
@@ -956,8 +1009,8 @@ contains
        case (.false.)
           ! Find current expansion timescale.
           if (self%timestepHostRelative > 0.0d0) then
-             expansionFactor   =      self%cosmologyFunctions_%expansionFactor(time           )
-             expansionTimescale=1.0d0/self%cosmologyFunctions_%expansionRate  (expansionFactor)
+             expansionFactor   =      cosmologyFunctions_%expansionFactor(time           )
+             expansionTimescale=1.0d0/cosmologyFunctions_%expansionRate  (expansionFactor)
              hostTimeStep      =min(self%timestepHostRelative*expansionTimescale,self%timestepHostAbsolute)
           else
              ! Avoid use of expansion timescale if host absolute timestep is non-positive. This allows static universe cases to be handled.
@@ -985,7 +1038,7 @@ contains
     ! If the timestepper class provided the limit, allow it to optionally refuse to evolve (e.g. if the step is too small to be
     ! efficient).
     if (isLimitedByTimestepper) then
-       if (self%mergerTreeEvolveTimestep_%refuseToEvolve(node)) evolveToTime=timeNode
+       if (mergerTreeEvolveTimestep_%refuseToEvolve(node)) evolveToTime=timeNode
     end if
     ! Check that end time exceeds current time.
     if (evolveToTime < timeNode) then
@@ -998,11 +1051,11 @@ contains
        message=message//' (time difference is '
        write (timeFormatted,'(e8.2)') timeNode-evolveToTime
        message=message//trim(timeFormatted)
-       if (.not.self%mergerTreeNodeEvolver_%isAccurate(timeNode,evolveToTime)) then
+       if (.not.mergerTreeNodeEvolver_%isAccurate(timeNode,evolveToTime)) then
           ! End time is well before current time. This is an error. Call ourself with reporting switched on to generate a report
           ! on the time limits.
           message=message//' Gyr)'
-          if (.not.report) time=self%timeEvolveTo(node,timeEnd,timestepTask_,timestepSelf,report=.true.)
+          if (.not.report) time=self%timeEvolveTo(node,timeEnd,cosmologyFunctions_,mergerTreeEvolveTimestep_,mergerTreeNodeEvolver_,timestepTask_,timestepSelf,report=.true.)
           call Error_Report(message//{introspection:location})
        else
           ! End time is before current time, but only by a small amount, simply reset the current time to the end time.

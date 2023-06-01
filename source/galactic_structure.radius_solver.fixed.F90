@@ -218,7 +218,7 @@ contains
     return
   end subroutine fixedSolvePreDeriativeHook
 
-  subroutine fixedSolve(self,node)
+  subroutine fixedSolve(self,node,plausibilityOnly)
     !!{
     Solve for the structure of galactic components assuming no self-gravity of baryons, and that size simply scales in
     proportion to specific angular momentum.
@@ -227,19 +227,23 @@ contains
     include 'galactic_structure.radius_solver.tasks.modules.inc'
     include 'galactic_structure.radius_solver.plausible.modules.inc'
     implicit none
-    class           (galacticStructureSolverFixed), intent(inout)         :: self
-    type            (treeNode                    ), intent(inout), target :: node
-    logical                                       , parameter             :: specificAngularMomentumRequired=.false.
-    procedure       (solverGet                   ), pointer               :: radiusGet                              , velocityGet
-    procedure       (solverSet                   ), pointer               :: radiusSet                              , velocitySet
-    logical                                                               :: componentActive
-    double precision                                                      :: specificAngularMomentum
+    class           (galacticStructureSolverFixed), intent(inout)           :: self
+    type            (treeNode                    ), intent(inout), target   :: node
+    logical                                       , intent(in   ), optional :: plausibilityOnly
+    logical                                       , parameter               :: specificAngularMomentumRequired=.false.
+    procedure       (solverGet                   ), pointer                 :: radiusGet                              , velocityGet
+    procedure       (solverSet                   ), pointer                 :: radiusSet                              , velocitySet
+    logical                                                                 :: componentActive
+    double precision                                                        :: specificAngularMomentum
+    !![
+    <optionalArgument name="plausibilityOnly" defaultsTo=".false."/>
+    !!]
 
     ! Check that the galaxy is physical plausible. In this fixed solver, we don't act on this.
     node%isPhysicallyPlausible=.true.
     node%isSolvable           =.true.
     include 'galactic_structure.radius_solver.plausible.inc'
-    if (.not.node%isPhysicallyPlausible) return
+    if (.not.node%isPhysicallyPlausible .or. plausibilityOnly_) return
     call Calculations_Reset(node)
     include 'galactic_structure.radius_solver.tasks.inc'
     return

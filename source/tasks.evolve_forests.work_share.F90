@@ -50,7 +50,7 @@ module Task_Evolve_Forests_Work_Shares
     <code>
      if (self%workerIDOffset_ &lt; 0) call evolveForestsWorkerIDs(self,utilizeOpenMPThreads)
      evolveForestsWorkShareWorkerID=self%workerIDOffset_
-     !$  evolveForestsWorkShareWorkerID=evolveForestsWorkShareWorkerID+OMP_Get_Thread_Num()
+     !$ if (utilizeOpenMPThreads) evolveForestsWorkShareWorkerID=evolveForestsWorkShareWorkerID+OMP_Get_Thread_Num()
     </code>
    </method>
    <method name="workerCount" >

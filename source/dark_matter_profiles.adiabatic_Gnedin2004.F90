@@ -1153,8 +1153,8 @@ contains
     use :: String_Handling   , only : operator(//)
 #endif
     implicit none
-    class(darkMatterProfileAdiabaticGnedin2004), intent(inout) :: self
-    class(darkMatterProfileClass              ), intent(inout) :: destination
+    class(darkMatterProfileAdiabaticGnedin2004), intent(inout), target :: self
+    class(darkMatterProfileClass              ), intent(inout)         :: destination
 
     call self%darkMatterProfileClass%deepCopy(destination)
     select type (destination)

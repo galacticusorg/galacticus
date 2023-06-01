@@ -27,6 +27,7 @@ module Merger_Trees_Evolve_Node
   !!}
   use :: Galactic_Structure_Solvers, only : galacticStructureSolverClass
   use :: Galacticus_Nodes          , only : interruptTask               , mergerTree, treeNode
+  use :: Locks                     , only : ompLockClass
   private
 
   !![
@@ -46,6 +47,7 @@ module Merger_Trees_Evolve_Node
     <argument>logical                                       , intent(  out)           :: interrupted              </argument>
     <argument>procedure       (interruptTask               ), intent(  out), pointer  :: functionInterrupt        </argument>
     <argument>class           (galacticStructureSolverClass), intent(in   ), target   :: galacticStructureSolver__</argument>
+    <argument>class           (ompLockClass                ), intent(inout)           :: treeLock                 </argument>
     <argument>integer         (kind_int8                   ), intent(in   ), optional :: systemClockMaximum       </argument>
     <argument>integer                                       , intent(  out), optional :: status                   </argument>
    </method>

@@ -553,8 +553,8 @@ contains
     use :: String_Handling   , only : operator(//)
 #endif
     implicit none
-    class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
-    class(darkMatterHaloScaleClass                          ), intent(inout) :: destination
+    class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout), target :: self
+    class(darkMatterHaloScaleClass                          ), intent(inout)         :: destination
 
     call self%darkMatterHaloScaleClass%deepCopy(destination)
     select type (destination)
