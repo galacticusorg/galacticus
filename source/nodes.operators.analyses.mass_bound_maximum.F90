@@ -43,6 +43,8 @@
      !!]
      procedure :: nodeInitialize            => massBoundMaximumNodeInitialize
      procedure :: update                    => massBoundMaximumUpdate
+     procedure :: nodesMerge                => massBoundMaximumNodesMerge
+     procedure :: differentialEvolutionPre  => massBoundMaximumDifferentialEvolutionPre
      procedure :: differentialEvolutionPost => massBoundMaximumDifferentialEvolutionPost
   end type nodeOperatorMassBoundMaximum
   
@@ -123,6 +125,18 @@ contains
     return
   end subroutine massBoundMaximumNodeInitialize
 
+  subroutine massBoundMaximumDifferentialEvolutionPre(self,node)
+    !!{
+    Update the maximum bound mass of this node.
+    !!}
+    implicit none
+    class(nodeOperatorMassBoundMaximum), intent(inout) :: self
+    type (treeNode                    ), intent(inout) :: node
+    
+    call self%update(node) 
+    return
+  end subroutine massBoundMaximumDifferentialEvolutionPre
+
   subroutine massBoundMaximumDifferentialEvolutionPost(self,node)
     !!{
     Update the maximum bound mass of this node.
@@ -134,3 +148,15 @@ contains
     call self%update(node) 
     return
   end subroutine massBoundMaximumDifferentialEvolutionPost
+
+  subroutine massBoundMaximumNodesMerge(self,node)
+    !!{
+    Update the maximum bound mass of this node.
+    !!}
+    implicit none
+    class(nodeOperatorMassBoundMaximum), intent(inout) :: self
+    type (treeNode                    ), intent(inout) :: node
+    
+    call self%update(node) 
+    return
+  end subroutine massBoundMaximumNodesMerge

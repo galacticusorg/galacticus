@@ -4,9 +4,7 @@
   <!-- Logging -->
   <verbosityLevel value="standard"/>
 
-  <task value="evolveForests">
-    <evolveSingleForest value="false"/>
-  </task>
+  <task value="evolveForests"/>
   <evolveForestsWorkShare value="cyclic"/>
 
   <!-- Cosmological model -->

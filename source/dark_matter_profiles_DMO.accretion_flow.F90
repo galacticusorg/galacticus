@@ -594,8 +594,8 @@ contains
     use :: Error           , only : Error_Report
     use :: Functions_Global, only : accretionFlowsDeepCopy_
     implicit none
-    class(darkMatterProfileDMOAccretionFlow), intent(inout) :: self
-    class(darkMatterProfileDMOClass        ), intent(inout) :: destination
+    class(darkMatterProfileDMOAccretionFlow), intent(inout), target :: self
+    class(darkMatterProfileDMOClass        ), intent(inout)         :: destination
 
     call self%darkMatterProfileDMOClass%deepCopy(destination)
     select type (destination)

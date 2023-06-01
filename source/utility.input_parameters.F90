@@ -75,13 +75,13 @@ module Input_Parameters
      A class to handle input parameters for \glc.
      !!}
      private
-     type   (node             ), pointer                   :: content         => null()
-     type   (inputParameter   ), pointer    , public       :: parent          => null() , firstChild => null() , &
-          &                                                   sibling         => null() , referenced => null()
-     type   (genericObjectList), allocatable, dimension(:) :: objects
-     type   (varying_string   )                            :: contentOriginal
-     logical                                               :: created         =  .false., removed    =  .false., &
-          &                                                   evaluated       =  .false.
+     type   (node             ), pointer                     :: content         => null()
+     type   (inputParameter   ), pointer    , public         :: parent          => null() , firstChild => null() , &
+          &                                                     sibling         => null() , referenced => null()
+     type   (genericObjectList), allocatable, dimension(:,:) :: objects
+     type   (varying_string   )                              :: contentOriginal
+     logical                                                 :: created         =  .false., removed    =  .false., &
+          &                                                     evaluated       =  .false.
    contains
      !![
      <methods>
@@ -788,21 +788,23 @@ contains
     !!{
     Return true if the specified instance of the object associated with this parameter has been created.
     !!}
-    !$ use :: OMP_Lib, only : OMP_Get_Ancestor_Thread_Num, OMP_In_Parallel
+    !$ use :: OMP_Lib, only : OMP_Get_Thread_Num, OMP_Get_Level, OMP_In_Parallel
     implicit none
     class  (inputParameter), intent(in   ) :: self
-    integer                                :: instance
+    integer                                :: instance, level
 
+    inputParameterObjectCreated=.false.
     !$omp critical (inputParameterObjects)
     if (allocated(self%objects)) then
        !$ if (OMP_In_Parallel()) then
-       !$    instance=OMP_Get_Ancestor_Thread_Num(1)+1
+       !$    level   =OMP_Get_Level     ()
+       !$    instance=OMP_Get_Thread_Num()+1
        !$ else
-             instance=                               0
+             level   =                     0
+             instance=                     0
        !$ end if
-       inputParameterObjectCreated=associated(self%objects(instance)%object)
-    else
-       inputParameterObjectCreated=.false.
+       if (level <= ubound(self%objects,dim=1))                                           &
+            & inputParameterObjectCreated=associated(self%objects(level,instance)%object)
     end if
     !$omp end critical (inputParameterObjects)
     return
@@ -813,20 +815,26 @@ contains
     Return a pointer to the object associated with this parameter.
     !!}
     use    :: Error  , only : Error_Report
-    !$ use :: OMP_Lib, only : OMP_Get_Ancestor_Thread_Num, OMP_In_Parallel
+    !$ use :: OMP_Lib, only : OMP_Get_Thread_Num, OMP_Get_Level, OMP_In_Parallel
     implicit none
     class  (functionClass ), pointer       :: inputParameterObjectGet
     class  (inputParameter), intent(in   ) :: self
-    integer                                :: instance
+    integer                                :: instance               , level
 
     !$omp critical (inputParameterObjects)
     if (allocated(self%objects)) then
        !$ if (OMP_In_Parallel()) then
-       !$    instance=OMP_Get_Ancestor_Thread_Num(1)+1
+       !$    level   =OMP_Get_Level     ()
+       !$    instance=OMP_Get_Thread_Num()+1
        !$ else
-             instance=                               0
+             level   =                     0
+             instance=                     0
        !$ end if
-       inputParameterObjectGet => self%objects(instance)%object
+       if (level <= ubound(self%objects,dim=1)) then
+          inputParameterObjectGet => self%objects(level,instance)%object
+       else
+          call Error_Report('object not allocated for this parameter'//{introspection:location})
+       end if
     else
        call Error_Report('object not allocated for this parameter'//{introspection:location})
     end if
@@ -838,27 +846,39 @@ contains
     !!{
     Set a pointer to the object associated with this parameter.
     !!}
-    !$ use :: OMP_Lib, only : OMP_Get_Ancestor_Thread_Num, OMP_Get_Max_Threads, OMP_In_Parallel
+    !$ use :: OMP_Lib, only : OMP_Get_Thread_Num, OMP_Get_Level, OMP_Get_Max_Threads, OMP_In_Parallel
     implicit none
-    class  (inputParameter), intent(inout)         :: self
-    class  (functionClass ), intent(in   ), target :: object
-    integer                                        :: instance
+    class  (inputParameter   ), intent(inout)               :: self
+    class  (functionClass    ), intent(in   ) , target      :: object
+    type   (genericObjectList), dimension(:,:), allocatable :: objects
+    integer                                                 :: instance, level
 
     !$omp critical (inputParameterObjects)
     !$ if (OMP_In_Parallel()) then
-    !$    instance=OMP_Get_Ancestor_Thread_Num(1)+1
+    !$    level   =OMP_Get_Level     ()
+    !$    instance=OMP_Get_Thread_Num()+1
     !$ else
-          instance=                               0
+          level   =                     0
+          instance=                     0
     !$ end if
     if (.not.allocated(self%objects)) then
-       allocate(self%objects(0:1))
+       allocate(self%objects(0,0:1))
        !$ deallocate(self%objects)
-       !$ allocate(self%objects(0:OMP_Get_Max_Threads()))
+       !$ allocate(self%objects(0:max(1,level),0:OMP_Get_Max_Threads()))
+    else
+       if (level > ubound(self%objects,dim=1)) then
+          call move_alloc(self%objects,objects)
+          allocate(self%objects(0:level,0:1))
+          !$ deallocate(self%objects)
+          !$ allocate(self%objects(0:level,0:OMP_Get_Max_Threads()))
+          self%objects(0:ubound(objects,dim=1),:)=objects
+          deallocate(objects)
+       end if
     end if
-    if (.not.associated(self%objects(instance)%object)) then      
-       self%objects(instance)%object => object
+    if (.not.associated(self%objects(level,instance)%object)) then      
+       self%objects(level,instance)%object => object
        !![
-       <referenceCountIncrement owner="self%objects(instance)" object="object"/>
+       <referenceCountIncrement owner="self%objects(level,instance)" object="object"/>
        !!]
     end if
     !$omp end critical (inputParameterObjects)
@@ -870,12 +890,12 @@ contains
     Reset objects associated with this parameter and any sub-parameters.
     !!}
     use    :: FoX_DOM, only : destroy
-    !$ use :: OMP_Lib, only : OMP_Get_Ancestor_Thread_Num, OMP_In_Parallel
+    !$ use :: OMP_Lib, only : OMP_Get_Thread_Num, OMP_Get_Level, OMP_In_Parallel
     implicit none
     class  (inputParameter), intent(inout), target   :: self
     logical                , intent(in   ), optional :: children, evaluations
     type   (inputParameter), pointer                 :: child   , childNext
-    integer                                          :: instance
+    integer                                          :: instance, level
     !![
     <optionalArgument name="children"    defaultsTo=".true." />
     <optionalArgument name="evaluations" defaultsTo=".false."/>
@@ -885,14 +905,18 @@ contains
     if (allocated(self%objects)) then
        !$omp critical (inputParameterObjects)
        !$ if (OMP_In_Parallel()) then
-       !$    instance=OMP_Get_Ancestor_Thread_Num(1)+1
+       !$    level   =OMP_Get_Level     ()
+       !$    instance=OMP_Get_Thread_Num()+1
        !$ else
-       instance=0
+             level   =                     0
+             instance=                     0
        !$ end if
-       if (associated(self%objects(instance)%object)) then
-          !![
-          <objectDestructor name="self%objects(instance)%object"/>
-          !!]
+       if (level <= ubound(self%objects,dim=1)) then
+          if (associated(self%objects(level,instance)%object)) then
+             !![
+             <objectDestructor name="self%objects(level,instance)%object"/>
+             !!]
+          end if
        end if
        !$omp end critical (inputParameterObjects)
     end if
