@@ -369,7 +369,7 @@ contains
             &                     +1.0d0/radiusInitial                                       &
             &                     -2.0d0/gravitationalConstantGalacticus/mass*energySpecific &
             &                    )
-       ! If the radius found is negative, which means the intial shell has expanded to infinity, return the largest radius.
+       ! If the radius found is negative, which means the initial shell has expanded to infinity, return the largest radius.
        if (heatedRadiusEnclosingMass < 0.0d0) heatedRadiusEnclosingMass=radiusLarge
     end if
     return
