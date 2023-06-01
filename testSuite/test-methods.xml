@@ -1482,15 +1482,6 @@
     <mergerRemnantSize value="null"/>
   </parameters>
 
-  <!-- Parallel processing of individual trees -->
-  <parameters>
-    <formatVersion>2</formatVersion>
-    <version>0.9.4</version>
-    <task value="evolveForests">
-      <evolveSingleForest value="true"/>
-    </task>
-  </parameters>
-
   <!-- Merger tree augmenting -->
   <parameters>
   <formatVersion>2</formatVersion>

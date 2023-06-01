@@ -153,7 +153,7 @@ contains
     class           (*                               )               , pointer           :: taskSelfSimple    , taskSelfSatellite    , taskSelfSatelliteDestruction
     type            (varying_string                  ), save                             :: lockTypeSimple    , lockTypeSatellite    , lockTypeSatelliteDestruction
     type            (enumerationTimeStepSmallestType )                                   :: timeStepSmallest
-    !$omp threadprivate(lockTypeSimple,lockTypeSatellite)
+    !$omp threadprivate(lockTypeSimple,lockTypeSatellite,lockTypeSatelliteDestruction)
     !$GLC attributes initialized :: lockNodeSimple, lockNodeSatellite, lockNodeSatelliteDestruction
 
     ! Find all timesteps.

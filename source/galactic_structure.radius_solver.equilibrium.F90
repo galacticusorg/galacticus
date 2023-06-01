@@ -215,14 +215,14 @@ contains
 
     select type (self)
     type is (galacticStructureSolverEquilibrium)
-       if (propertyType /= propertyTypeInactive .or. self%solveForInactiveProperties) call self%solve(node)
+       call self%solve(node,plausibilityOnly=propertyType == propertyTypeInactive .and. .not.self%solveForInactiveProperties)
     class default
        call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine equilibriumSolvePreDeriativeHook
 
-  subroutine equilibriumSolve(self,node)
+  subroutine equilibriumSolve(self,node,plausibilityOnly)
     !!{
     Solve for the structure of galactic components.
     !!}
@@ -232,20 +232,24 @@ contains
     include 'galactic_structure.radius_solver.tasks.modules.inc'
     include 'galactic_structure.radius_solver.plausible.modules.inc'
     implicit none
-    class           (galacticStructureSolverEquilibrium), intent(inout)         :: self
-    type            (treeNode                          ), intent(inout), target :: node
-    logical                                             , parameter             :: specificAngularMomentumRequired=.true.
-    integer                                             , parameter             :: iterationMaximum               =  100
-    procedure       (solverGet                         ), pointer               :: radiusGet                             , velocityGet
-    procedure       (solverSet                         ), pointer               :: radiusSet                             , velocitySet
-    logical                                                                     :: componentActive
-    double precision                                                            :: specificAngularMomentum
-
+    class           (galacticStructureSolverEquilibrium), intent(inout)           :: self
+    type            (treeNode                          ), intent(inout), target   :: node
+    logical                                             , intent(in   ), optional :: plausibilityOnly
+    logical                                             , parameter               :: specificAngularMomentumRequired=.true.
+    integer                                             , parameter               :: iterationMaximum               =  100
+    procedure       (solverGet                         ), pointer                 :: radiusGet                             , velocityGet
+    procedure       (solverSet                         ), pointer                 :: radiusSet                             , velocitySet
+    logical                                                                       :: componentActive
+    double precision                                                              :: specificAngularMomentum
+    !![
+    <optionalArgument name="plausibilityOnly" defaultsTo=".false."/>
+    !!]
+    
     ! Check that the galaxy is physical plausible. In this equilibrium solver, we don't act on this.
     node%isPhysicallyPlausible=.true.
     node%isSolvable           =.true.
     include 'galactic_structure.radius_solver.plausible.inc'
-    if (node%isPhysicallyPlausible) then
+    if (node%isPhysicallyPlausible .and. .not.plausibilityOnly_) then
        ! Initialize the solver state.
        countIterations=0
        fitMeasure    =2.0d0*self%solutionTolerance

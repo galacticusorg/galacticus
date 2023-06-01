@@ -293,8 +293,8 @@ contains
     use :: String_Handling   , only : operator(//)
 #endif
     implicit none
-    class(darkMatterProfileHeatingImpulsiveOutflow), intent(inout) :: self
-    class(darkMatterProfileHeatingClass           ), intent(inout) :: destination
+    class(darkMatterProfileHeatingImpulsiveOutflow), intent(inout), target :: self
+    class(darkMatterProfileHeatingClass           ), intent(inout)         :: destination
 
     call self%darkMatterProfileHeatingClass%deepCopy(destination)
     select type (destination)
