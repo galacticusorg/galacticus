@@ -185,10 +185,6 @@ contains
     ! If this object was deep-copied from some other object, reduce back onto that object.
     if (associated(self%deepCopiedFrom)) then
        call self%reduceLock%set()
-
-
-write (0,*) "DO REDUCE",loc(self),loc(self%deepCopiedFrom),self               %timeStepCount
-
        self%deepCopiedFrom%timeStepCount             =+self%deepCopiedFrom%timeStepCount              &
             &                                         +self               %timeStepCount
        self%deepCopiedFrom%evaluationCount           =+self%deepCopiedFrom%evaluationCount            &
@@ -222,10 +218,6 @@ write (0,*) "DO REDUCE",loc(self),loc(self%deepCopiedFrom),self               %t
        call self%reduceLock%unset()
     else
        ! Store meta-data to the output file.
-
-
-write (0,*) "NOW STORE TO FILE ",loc(self),self               %timeStepCount
-
        !$ call hdf5Access%set  ()
        metaDataGroup    =outputFile   %openGroup('metaData'       ,'Galacticus meta data.'     )
        profilerDataGroup=metaDataGroup%openGroup('evolverProfiler','Meta-data on tree evolver.')
