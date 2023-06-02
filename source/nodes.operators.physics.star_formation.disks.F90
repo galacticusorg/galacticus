@@ -223,9 +223,15 @@ contains
     
     ! Check for a realistic disk, return immediately if disk is unphysical.
     disk => node%disk()
-    if     (     disk%angularMomentum() < 0.0d0 &
-         &  .or. disk%radius         () < 0.0d0 &
-         &  .or. disk%massGas        () < 0.0d0 &
+    if     (     disk%angularMomentum() < 0.0d0      &
+         &  .or. disk%radius         () < 0.0d0      &
+         &  .or. disk%massGas        () < 0.0d0      &
+         &  .or.                                     &
+         &   (                                       &
+         &          propertyInactive(propertyType)   &
+         &    .and.                                  & 
+         &     .not.self%luminositiesStellarInactive &
+         &   )                                       &
          & ) return
     if (propertyInactive(propertyType)) then
        ! For inactive property solution make use of the "massStellarFormed" property to determine the star formation rate.

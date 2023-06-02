@@ -177,7 +177,13 @@ contains
     if     (     spheroid%angularMomentum() < angularMomentumMinimum &
          &  .or. spheroid%radius         () <          radiusMinimum &
          &  .or. spheroid%massGas        () <            massMinimum &
-         & ) return
+         &  .or.                                                     &
+         &   (                                                       &
+         &          propertyInactive(propertyType)                   &
+         &    .and.                                                  & 
+         &     .not.self%luminositiesStellarInactive                 &
+         &   )                                                       &
+        & ) return
     if (propertyInactive(propertyType)) then
        ! For inactive property solution make use of the "massStellarFormed" property to determine the star formation rate.
        rateStarFormation=spheroid%massStellarFormedRateGet()
