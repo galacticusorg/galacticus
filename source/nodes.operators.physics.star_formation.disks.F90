@@ -42,6 +42,7 @@
      double precision                                            :: fractionMassRetainedInitial           , fractionMassRetainedFinal
    contains
      final     ::                                        starFormationDisksDestructor
+     procedure :: differentialEvolutionAnalytics      => starFormationDisksDifferentialEvolutionAnalytics
      procedure :: differentialEvolutionPre            => starFormationDisksDifferentialEvolutionPre
      procedure :: differentialEvolution               => starFormationDisksDifferentialEvolution
      procedure :: differentialEvolutionStepFinalState => starFormationDisksDifferentialEvolutionStepFinalState
@@ -126,6 +127,30 @@ contains
     return
   end subroutine starFormationDisksDestructor
   
+  subroutine starFormationDisksDifferentialEvolutionAnalytics(self,node)
+    !!{
+    Initialize the mass transfer fraction.
+    !!}
+    use :: Galacticus_Nodes, only : nodeComponentDisk
+    implicit none
+    class(nodeOperatorStarFormationDisks), intent(inout) :: self
+    type (treeNode                      ), intent(inout) :: node
+    class(nodeComponentDisk             ), pointer       :: disk
+
+    ! Mark the formed stellar mass as analytically-solvable (it is always zero) if we are not solving for luminosities as inactive
+    ! properties.
+    if (.not.self%luminositiesStellarInactive) then
+       disk => node%disk()
+       select type (disk)
+       type is (nodeComponentDisk)
+          ! Disk does not yet exist.
+       class default
+          call disk%massStellarFormedAnalytic()
+       end select
+    end if
+    return
+  end subroutine starFormationDisksDifferentialEvolutionAnalytics
+
   subroutine starFormationDisksDifferentialEvolutionPre(self,node)
     !!{
     Initialize the mass transfer fraction.
@@ -210,7 +235,7 @@ contains
        ! of stars formed as a function of time. This differs from the stellar mass due to recycling, and possibly transfer of
        ! stellar mass to other components.
        rateStarFormation=self%starFormationRateDisks_%rate(node)   
-       call disk%massStellarFormedRate(rateStarFormation)
+       if (self%luminositiesStellarInactive) call disk%massStellarFormedRate(rateStarFormation)
     end if
     ! Compute abundances of star forming gas.
     massFuel      =disk%massGas      ()
