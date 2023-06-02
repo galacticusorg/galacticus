@@ -65,6 +65,7 @@ contains
     !![
     <inputParameter>
       <name>doPing</name>
+      <defaultValue>.false.</defaultValue>
       <description>
         If true, the master MPI process will attach to the {\normalfont \ttfamily calculationReset} event and ping the MPI
         counter. This can help to ensure that the counter updates regularly.
@@ -73,6 +74,7 @@ contains
     </inputParameter>
     <inputParameter>
       <name>reportWaitTime</name>
+      <defaultValue>.false.</defaultValue>
       <description>
         If true, the time spent waiting to increment the counter will be reported.
       </description>
