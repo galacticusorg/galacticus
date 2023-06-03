@@ -1,36 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1685763727926,
+  "lastUpdate": 1685775874293,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@obs.carnegiescience.edu"
-          },
-          "committer": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@obs.carnegiescience.edu"
-          },
-          "id": "81c9fcee77350b61157c6ae63025cbdfe91c40f0",
-          "message": "fix: Add define of `PYTHONPATH`",
-          "timestamp": "2022-10-11T23:03:45Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/81c9fcee77350b61157c6ae63025cbdfe91c40f0"
-        },
-        "date": 1665539587261,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 75.311,
-            "unit": "seconds",
-            "range": 0.15684674048239
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8707,6 +8679,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 23715.206261202,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "25acc8c52e00af2a5680e44e93c3f6c03134fd08",
+          "message": "Merge pull request #418 from galacticusorg/inactiveEfficiency\n\nImprove efficiency of non-inactive evolution",
+          "timestamp": "2023-06-03T04:08:31Z",
+          "tree_id": "2a3f106d0d1552fe4deb83bca0cf84e64dbfa5a2",
+          "url": "https://github.com/galacticusorg/galacticus/commit/25acc8c52e00af2a5680e44e93c3f6c03134fd08"
+        },
+        "date": 1685775872258,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 62.488,
+            "unit": "seconds",
+            "range": 0.22963797595338
           }
         ]
       }
