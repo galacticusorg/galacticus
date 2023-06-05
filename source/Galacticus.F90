@@ -36,7 +36,7 @@ program Galacticus
   use    :: ISO_Varying_String        , only : assignment(=)                    , varying_string
   use    :: Input_Parameters          , only : inputParameter                   , inputParameters
 #ifdef USEMPI
-  use    :: MPI                       , only : MPI_Comm_World                   , MPI_Thread_Multiple  , MPI_Thread_Single
+  use    :: MPI_F08                   , only : MPI_Comm_World                   , MPI_Thread_Multiple  , MPI_Thread_Single
 #endif
 #ifdef USEMPI
   use    :: MPI_Utilities             , only : mpiFinalize                      , mpiInitialize
@@ -53,6 +53,7 @@ program Galacticus
   character(len=fileNameLengthMaximum)            :: parameterFileCharacter
   type     (varying_string           )            :: parameterFile
   type     (inputParameters          )            :: parameters
+  logical                                         :: outputFileIsRequired
 
   ! Initialize MPI.
 #ifdef USEMPI
@@ -90,14 +91,15 @@ program Galacticus
   !![
   <objectBuilder class="task" name="task_" source="parameters"/>
   !!]
-  if (task_%requiresOutputFile()) call Output_HDF5_Open_File (parameters)
+  outputFileIsRequired=task_%requiresOutputFile()
+  if (outputFileIsRequired) call Output_HDF5_Open_File (parameters)
   call task_     %perform()
   call parameters%reset  ()
   call parameters%destroy()
-  if (task_%requiresOutputFile()) call Output_HDF5_Close_File(          )
   !![
   <objectDestructor name="task_"/>
   !!]
+  if (outputFileIsRequired) call Output_HDF5_Close_File()
   ! Finalize MPI.
 #ifdef USEMPI
   call MPI_Barrier(MPI_Comm_World,status)

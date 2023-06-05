@@ -176,7 +176,7 @@ contains
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
-    class(nodeOperatorNodeMajorMergerRecentCount), intent(inout)          :: self
+    class(nodeOperatorNodeMajorMergerRecentCount), intent(inout), target  :: self
     type (treeNode                              ), intent(inout), target  :: node
     class(nodeComponentBasic                    )               , pointer :: basic
 

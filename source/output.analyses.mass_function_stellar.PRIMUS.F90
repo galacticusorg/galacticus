@@ -222,6 +222,7 @@ contains
     double precision                                                     , parameter                   :: errorPolynomialZeroPoint                            =11.3d+0
     type            (varying_string                                     )                              :: fileName
     double precision                                                                                   :: massThreshold
+    character       (len=4                                              )                              :: redshiftLabelLow                                            , redshiftLabelHigh
     !![
     <constructorAssign variables="redshiftInterval, randomErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, sizeSourceLensing, *gravitationalLensing_"/>
     !!]
@@ -252,23 +253,35 @@ contains
     ! Determine the data file and mass threshold to use.
     select case (redshiftInterval)
     case (0)
-       fileName     ='Stellar_Mass_Function_PRIMUS_z0.20_0.30.hdf5'
-       massThreshold=10.0d0**7.8d0
+       fileName         ='Stellar_Mass_Function_PRIMUS_z0.20_0.30.hdf5'
+       massThreshold    =10.0d0**7.8d0
+       redshiftLabelLow ='0.20'
+       redshiftLabelHigh='0.30'
     case (1)
-       fileName     ='Stellar_Mass_Function_PRIMUS_z0.30_0.40.hdf5'
-       massThreshold=10.0d0**8.2d0
+       fileName         ='Stellar_Mass_Function_PRIMUS_z0.30_0.40.hdf5'
+       massThreshold    =10.0d0**8.2d0
+       redshiftLabelLow ='0.30'
+       redshiftLabelHigh='0.40'
     case (2)
-       fileName     ='Stellar_Mass_Function_PRIMUS_z0.40_0.50.hdf5'
-       massThreshold=10.0d0**8.6d0
+       fileName         ='Stellar_Mass_Function_PRIMUS_z0.40_0.50.hdf5'
+       massThreshold    =10.0d0**8.6d0
+       redshiftLabelLow ='0.40'
+       redshiftLabelHigh='0.50'
     case (3)
-       fileName     ='Stellar_Mass_Function_PRIMUS_z0.50_0.65.hdf5'
-       massThreshold=10.0d0**9.0d0
+       fileName         ='Stellar_Mass_Function_PRIMUS_z0.50_0.65.hdf5'
+       massThreshold    =10.0d0**9.0d0
+       redshiftLabelLow ='0.50'
+       redshiftLabelHigh='0.65'
     case (4)
-       fileName     ='Stellar_Mass_Function_PRIMUS_z0.65_0.80.hdf5'
-       massThreshold=10.0d0**9.4d0
+       fileName         ='Stellar_Mass_Function_PRIMUS_z0.65_0.80.hdf5'
+       massThreshold    =10.0d0**9.4d0
+       redshiftLabelLow ='0.65'
+       redshiftLabelHigh='0.80'
     case (5)
-       fileName     ='Stellar_Mass_Function_PRIMUS_z0.80_1.00.hdf5'
-       massThreshold=10.0d0**9.8d0
+       fileName         ='Stellar_Mass_Function_PRIMUS_z0.80_1.00.hdf5'
+       massThreshold    =10.0d0**9.8d0
+       redshiftLabelLow ='0.80'
+       redshiftLabelHigh='1.00'
     case default
        call Error_Report('0 ≤ redshiftInterval ≤ 5 is required'//{introspection:location})
     end select
@@ -331,22 +344,22 @@ contains
     </referenceConstruct>
     !!]
     ! Build the object.
-    self%outputAnalysisMassFunctionStellar=                                                                                        &
-         & outputAnalysisMassFunctionStellar(                                                                                      &
-         &                                   var_str('Moustakas2013PRIMUSz')//redshiftInterval                                   , &
-         &                                   var_str('Stellar mass function for the Moustakas et al. (2013) PRIMUS analysis')    , &
-         &                                   char(inputPath(pathTypeDataStatic)//'/observations/massFunctionsStellar/'//fileName), &
-         &                                   galacticFilter_                                                                     , &
-         &                                   surveyGeometry_                                                                     , &
-         &                                   cosmologyFunctions_                                                                 , &
-         &                                   cosmologyFunctionsData                                                              , &
-         &                                   outputAnalysisPropertyOperator_                                                     , &
-         &                                   outputAnalysisDistributionOperator_                                                 , &
-         &                                   outputTimes_                                                                        , &
-         &                                   galacticStructure_                                                                  , &
-         &                                   covarianceBinomialBinsPerDecade                                                     , &
-         &                                   covarianceBinomialMassHaloMinimum                                                   , &
-         &                                   covarianceBinomialMassHaloMaximum                                                     &
+    self%outputAnalysisMassFunctionStellar=                                                                                                                               &
+         & outputAnalysisMassFunctionStellar(                                                                                                                             &
+         &                                   var_str('Moustakas2013PRIMUSz')//redshiftInterval                                                                          , &
+         &                                   var_str('$')//redshiftLabelLow//' < z < '//redshiftLabelHigh//'$ stellar mass function from PRIMUS (Moustakas et al. 2013)', &
+         &                                   char(inputPath(pathTypeDataStatic)//'/observations/massFunctionsStellar/'//fileName)                                       , &
+         &                                   galacticFilter_                                                                                                            , &
+         &                                   surveyGeometry_                                                                                                            , &
+         &                                   cosmologyFunctions_                                                                                                        , &
+         &                                   cosmologyFunctionsData                                                                                                     , &
+         &                                   outputAnalysisPropertyOperator_                                                                                            , &
+         &                                   outputAnalysisDistributionOperator_                                                                                        , &
+         &                                   outputTimes_                                                                                                               , &
+         &                                   galacticStructure_                                                                                                         , &
+         &                                   covarianceBinomialBinsPerDecade                                                                                            , &
+         &                                   covarianceBinomialMassHaloMinimum                                                                                          , &
+         &                                   covarianceBinomialMassHaloMaximum                                                                                            &
          &                                  )
     ! Clean up.
     !![

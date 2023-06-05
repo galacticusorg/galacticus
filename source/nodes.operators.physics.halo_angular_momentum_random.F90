@@ -120,7 +120,7 @@ contains
     use :: Dark_Matter_Halo_Spins, only : Dark_Matter_Halo_Angular_Momentum_Scale
     use :: Galacticus_Nodes      , only : nodeComponentBasic                     , nodeComponentSpin
     implicit none
-    class           (nodeOperatorHaloAngularMomentumRandom), intent(inout)          :: self
+    class           (nodeOperatorHaloAngularMomentumRandom), intent(inout), target  :: self
     type            (treeNode                             ), intent(inout), target  :: node
     type            (treeNode                             )               , pointer :: nodeProgenitor
     class           (nodeComponentSpin                    )               , pointer :: spinProgenitor , spin

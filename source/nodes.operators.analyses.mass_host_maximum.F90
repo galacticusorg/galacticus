@@ -25,7 +25,7 @@
   <nodeOperator name="nodeOperatorMassHostMaximum">
     <description>
       A node operator class that tracks the maximum host halo mass which a node has occupied. Intended to be paired with the
-      \refClass{nodePropertyExtractorMassHostMaximum} class to extract those ages for output.
+      \refClass{nodePropertyExtractorMassHostMaximum} class to extract these masses for output.
     </description>
   </nodeOperator>
   !!]
@@ -160,7 +160,7 @@ contains
     Initialize the maximum host mass of this node.
     !!}
     implicit none
-    class(nodeOperatorMassHostMaximum), intent(inout)         :: self
+    class(nodeOperatorMassHostMaximum), intent(inout), target :: self
     type (treeNode                   ), intent(inout), target :: node
     
     call self%update(node,isMerging=.false.)

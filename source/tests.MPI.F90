@@ -25,22 +25,24 @@ program Test_MPI
   !!{
   Tests of MPI functions.
   !!}
-  use   , intrinsic :: ISO_C_Binding, only : c_size_t
-  use               :: Unit_Tests   , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group  , Unit_Tests_Finish
-  use               :: Display      , only : displayMessage     , displayVerbositySet   , verbosityLevelStandard
-  !$ use            :: OMP_Lib      , only : OMP_Get_Max_Threads
+  use   , intrinsic :: ISO_C_Binding     , only : c_size_t
+  use               :: Unit_Tests        , only : Assert               , Unit_Tests_Begin_Group, Unit_Tests_End_Group  , Unit_Tests_Finish
+  use               :: Display           , only : displayMessage       , displayVerbositySet   , verbosityLevelStandard
+  !$ use            :: OMP_Lib           , only : OMP_Get_Max_Threads
 #ifdef USEMPI
-  use               :: Events_Hooks , only : eventsHooksInitialize
-  use               :: MPI          , only : MPI_Thread_Multiple
-  use               :: MPI_Utilities, only : mpiBarrier         , mpiCounter            , mpiFinalize           , mpiInitialize    , &
-          &                                  mpiSelf
+  use               :: Events_Hooks      , only : eventsHooksInitialize
+  use               :: MPI_F08           , only : MPI_Thread_Multiple
+  use               :: MPI_Utilities     , only : mpiBarrier           , mpiCounter            , mpiFinalize           , mpiInitialize    , &
+       &                                          mpiSelf
+  use               :: ISO_Varying_String, only : char
 #endif
   implicit none
 #ifdef USEMPI
   type   (mpiCounter) :: counter
-  integer(c_size_t  ) :: i             , counterSum, &
-       &                 counterSumOver, counters  , &
+  integer(c_size_t  ) :: i             , counterSum   , &
+       &                 counterSumOver, counters     , &
        &                 counterMaxOver, j
+  integer             :: rankOriginal  , countOriginal
 #endif
   
   ! Set verbosity level.
@@ -49,7 +51,7 @@ program Test_MPI
 #ifdef USEMPI
   call mpiInitialize        (MPI_Thread_Multiple)
   call eventsHooksInitialize(                   )
-  if (mpiSelf%rank() == 0) call Unit_Tests_Begin_Group("MPI")
+  call Unit_Tests_Begin_Group("MPI: rank "//char(mpiSelf%rankLabel()))
   ! Test MPI/OpenMP counters.
   counters  =int(OMP_Get_Max_Threads()*mpiSelf%count(),kind=c_size_t)
   counter   =mpiCounter()
@@ -69,6 +71,7 @@ program Test_MPI
   counterMaxOver=mpiSelf%maxval(         j)
   counterSumOver=mpiSelf%sum   (counterSum)
   if (mpiSelf%rank() == 0) then
+     call Unit_Tests_Begin_Group("Counters")
      call Assert(                            &
           &      "MPI/OpenMP counter total", &
           &       counterMaxOver           , &
@@ -79,12 +82,22 @@ program Test_MPI
           &       counterSumOver           , &
           &       counters*(counters-1)/2    &
           &     )
-  end if
-  ! Finished tests.
-  if (mpiSelf%rank() == 0) then
      call Unit_Tests_End_Group()
-     call Unit_Tests_Finish()
   end if
+  ! Test communicators.
+  call Unit_Tests_Begin_Group("Communicators")
+  rankOriginal =mpiSelf%rank ()
+  countOriginal=mpiSelf%count()
+  call mpiSelf%communicatorPush(color=mpiSelf%rank())
+  call Assert("Rank updated"  ,mpiSelf%rank (),            0)
+  call Assert("Count updated" ,mpiSelf%count(),            1)
+  call mpiSelf%communicatorPop()
+  call Assert("Rank restored" ,mpiSelf%rank (), rankOriginal)
+  call Assert("Count restored",mpiSelf%count(),countOriginal)
+  call Unit_Tests_End_Group()
+  ! Finished tests.
+  call Unit_Tests_End_Group()
+  call Unit_Tests_Finish()
   call mpiFinalize()
 #else
   call displayMessage('SKIPPED: code was not compiled for MPI')

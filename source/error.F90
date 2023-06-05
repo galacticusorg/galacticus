@@ -106,12 +106,20 @@ contains
 #ifndef UNCLEANEXIT
     use    :: HDF5         , only : H5Close_F
 #endif
+#ifdef USEMPI
+    use    :: MPI          , only : MPI_Comm_Rank     , MPI_Comm_World
+#endif
     !$ use :: OMP_Lib      , only : OMP_Get_Thread_Num, OMP_In_Parallel
     use    :: Display      , only : displayBold       , displayRed     , displayReset
     use    :: System_Output, only : stdOutIsATTY
     implicit none
-    character(len=*), intent(in   ) :: message
-    integer                         :: error
+    character(len=*  ), intent(in   ) :: message
+    integer                           :: error
+#ifdef USEMPI
+    integer                           :: mpiRank
+    character(len=128)                :: hostName
+    logical                           :: flag
+#endif
 
     if (stdOutIsATTY()) then
        write (0,'(a)') displayRed()//displayBold()//'Fatal error:'//displayReset()
@@ -135,7 +143,18 @@ contains
     call           H5Close_F       (error)
     call           H5Close_C       (     )
     !$ call        hdf5Access%unset(     )
-    call           Abort           (     )
+#ifdef USEMPI
+    call MPI_Initialized(flag,error)
+    if (flag) then
+       call MPI_Comm_Rank(MPI_Comm_World,mpiRank,error)
+       call hostnm(hostName)
+       write (0,*) " => Error occurred in MPI process ",mpiRank,"; PID ",getPID(),"; host ",trim(hostName)
+       write (0,'(a,i8,a)') " => Sleeping for ",errorWaitTime,"s to allow for attachment of debugger"
+       call Flush(0)
+       call Sleep(errorWaitTime)
+    end if
+#endif
+    call  Abort()
 #endif
     return
   end subroutine Error_Report_Char
@@ -241,7 +260,7 @@ contains
     use    :: HDF5         , only : H5Close_F
 #endif
 #ifdef USEMPI
-    use    :: MPI          , only : MPI_Comm_Rank     , MPI_Comm_World
+    use    :: MPI_F08      , only : MPI_Comm_Rank     , MPI_Comm_World
 #endif
     !$ use :: OMP_Lib      , only : OMP_Get_Thread_Num, OMP_In_Parallel
     use    :: Display      , only : displayBold       , displayRed     , displayReset
@@ -304,7 +323,7 @@ contains
     use    :: HDF5         , only : H5Close_F
 #endif
 #ifdef USEMPI
-    use    :: MPI          , only : MPI_Comm_Rank     , MPI_Comm_World
+    use    :: MPI_F08      , only : MPI_Comm_Rank     , MPI_Comm_World
 #endif
     !$ use :: OMP_Lib      , only : OMP_Get_Thread_Num, OMP_In_Parallel
     use    :: Display      , only : displayBold       , displayRed     , displayReset
@@ -367,7 +386,7 @@ contains
     use    :: HDF5         , only : H5Close_F
 #endif
 #ifdef USEMPI
-    use    :: MPI          , only : MPI_Comm_Rank     , MPI_Comm_World
+    use    :: MPI_F08      , only : MPI_Comm_Rank     , MPI_Comm_World
 #endif
     !$ use :: OMP_Lib      , only : OMP_Get_Thread_Num, OMP_In_Parallel
     use    :: Display      , only : displayBold       , displayRed     , displayReset
@@ -430,7 +449,7 @@ contains
     use    :: HDF5         , only : H5Close_F
 #endif
 #ifdef USEMPI
-    use    :: MPI          , only : MPI_Comm_Rank     , MPI_Comm_World
+    use    :: MPI_F08      , only : MPI_Comm_Rank     , MPI_Comm_World
 #endif
     !$ use :: OMP_Lib      , only : OMP_Get_Thread_Num, OMP_In_Parallel
     use    :: Display      , only : displayBold       , displayRed     , displayReset
@@ -493,7 +512,7 @@ contains
     use    :: HDF5         , only : H5Close_F
 #endif
 #ifdef USEMPI
-    use    :: MPI          , only : MPI_Comm_Rank     , MPI_Comm_World
+    use    :: MPI_F08      , only : MPI_Comm_Rank     , MPI_Comm_World
 #endif
     !$ use :: OMP_Lib      , only : OMP_Get_Thread_Num, OMP_In_Parallel
     use    :: Display      , only : displayBold       , displayRed     , displayReset
@@ -590,7 +609,7 @@ contains
     use   , intrinsic :: ISO_C_Binding     , only : c_char
     use               :: ISO_Varying_String, only : char
 #ifdef USEMPI
-    use               :: MPI               , only : MPI_Comm_Rank      , MPI_Comm_World , MPI_Initialized
+    use               :: MPI_F08           , only : MPI_Comm_Rank      , MPI_Comm_World , MPI_Initialized
 #endif
     !$ use            :: OMP_Lib           , only : OMP_Get_Thread_Num , OMP_In_Parallel
     use               :: Display           , only : displayBold        , displayRed     , displayReset

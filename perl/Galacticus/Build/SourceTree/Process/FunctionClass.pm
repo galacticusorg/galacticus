@@ -877,13 +877,22 @@ CODE
 	    # Add a "objectType" method.
 	    $code::directiveName = $directive->{'name'};
 	    my $objectTypeCode = fill_in_string(<<'CODE', PACKAGE => 'code');
+logical :: short_
+short_=.false.
+if (present(short)) short_=short
 select type (self)
 CODE
 	    foreach my $nonAbstractClass ( @nonAbstractClasses ) {
-		$code::type = $nonAbstractClass->{'name'};
+		$code::type       = $nonAbstractClass->{'name'};
+		($code::typeShort = $nonAbstractClass->{'name'}) =~ s/^$directive->{'name'}//;
+		$code::typeShort  = lcfirst($code::typeShort);
 		$objectTypeCode .= fill_in_string(<<'CODE', PACKAGE => 'code');
 type is ({$type})
-{$directiveName}ObjectType='{$type}'
+if (short_) then
+ {$directiveName}ObjectType='{$typeShort}'
+else
+ {$directiveName}ObjectType='{$type}'
+end if
 CODE
 	    }
 	    $objectTypeCode .= fill_in_string(<<'CODE', PACKAGE => 'code');
@@ -895,6 +904,7 @@ CODE
 		type        => "type(varying_string)",
 		pass        => "yes",
 		modules     => "ISO_Varying_String",
+		argument    => [ "logical, intent(in   ), optional :: short" ],
 		code        => $objectTypeCode
 	    };
 	    # Add "allowedParameters" method.
@@ -1295,6 +1305,7 @@ CODE
 				     (grep {$_->{'type'} eq $type} &List::ExtraUtils::as_array($deepCopyActions->{'deepCopyActions'}))
 				    ) {
 					my $isAllocatable = grep {$_ eq "allocatable"} @{$declaration->{'attributes'}};
+					my $isPointer     = grep {$_ eq "pointer"    } @{$declaration->{'attributes'}};
 					my $rank = 0;
 					if ( grep {$_ =~ m/^dimension\s*\(/} @{$declaration->{'attributes'}} ) {
 					    my $dimensionDeclarator = join(",",map {/^dimension\s*\(([a-zA-Z0-9_,:\s]+)\)/} @{$declaration->{'attributes'}});
@@ -1305,6 +1316,8 @@ CODE
 					foreach my $variableName ( @{$declaration->{'variableNames'}} ) {
 					    $assignments .= "if (allocated(self%".$variableName.")) then\n"
 						if ( $isAllocatable );
+					    $assignments .= "if (associated(self%".$variableName.")) then\n"
+						if ( $isPointer     );
 					    for(my $i=1;$i<=$rank;++$i) {
 						$assignments .= (" " x $i)."do i".$i."=lbound(self%".$variableName.",dim=".$i."),ubound(self%".$variableName.",dim=".$i.")\n";
 					    }
@@ -1314,7 +1327,7 @@ CODE
 						    $assignments .= (" " x ($rank+1-$i))."end do\n";
 					    }
 					    $assignments .= "end if\n"
-						if ( $isAllocatable );
+						if ( $isAllocatable || $isPointer );
 					}
 				}
 				# Deep copy of HDF5 objects.
@@ -1531,6 +1544,7 @@ CODE
 			 (grep {$_->{'type'} eq $type} &List::ExtraUtils::as_array($deepCopyActions->{'deepCopyActions'}))
 			) {
 			    my $isAllocatable = grep {$_ eq "allocatable"} @{$declaration->{'attributes'}};
+			    my $isPointer     = grep {$_ eq "pointer"    } @{$declaration->{'attributes'}};
 			    my $rank = 0;
 			    if ( grep {$_ =~ m/^dimension\s*\(/} @{$declaration->{'attributes'}} ) {
 				my $dimensionDeclarator = join(",",map {/^dimension\s*\(([a-zA-Z0-9_,:\s]+)\)/} @{$declaration->{'attributes'}});
@@ -1541,6 +1555,8 @@ CODE
 			    foreach my $variableName ( @{$declaration->{'variableNames'}} ) {
 				$assignments .= "if (allocated(self%".$variableName.")) then\n"
 				    if ( $isAllocatable );
+				$assignments .= "if (associated(self%".$variableName.")) then\n"
+				    if ( $isPointer     );
 				for(my $i=1;$i<=$rank;++$i) {
 				    $assignments .= (" " x $i)."do i".$i."=lbound(self%".$variableName.",dim=".$i."),ubound(self%".$variableName.",dim=".$i.")\n";
 				}
@@ -1550,7 +1566,7 @@ CODE
 					$assignments .= (" " x ($rank+1-$i))."end do\n";
 				}
 				$assignments .= "end if\n"
-				    if ( $isAllocatable );
+				    if ( $isAllocatable || $isPointer );
 			    }
 		    }
 		    # Deep copy of HDF5 objects.
@@ -1822,6 +1838,16 @@ CODE
             $deepCopyCode = "integer :: ".join(",",map {"i".$_} 1..$rankMaximum)."\n".$deepCopyCode
                 if ( $rankMaximum > 0 );
 	    $methods{'deepCopy'} =
+	    {
+		description => "Perform a deep copy of the object. This is a wrapper around the actual deep-copy code.",
+		type        => "void",
+		recursive   => "yes",
+		pass        => "yes",
+		selfTarget  => "yes",
+		argument    => [ "class(".$directive->{'name'}."Class), intent(inout) :: destination" ],
+		code        => "call self%deepCopy_(destination)"
+	    };
+	    $methods{'deepCopy_'} =
 	    {
 		description => "Perform a deep copy of the object.",
 		type        => "void",

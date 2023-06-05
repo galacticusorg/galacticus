@@ -85,7 +85,7 @@ contains
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
-    class           (nodeOperatorMassProgenitorMaximum), intent(inout)          :: self
+    class           (nodeOperatorMassProgenitorMaximum), intent(inout), target  :: self
     type            (treeNode                         ), intent(inout), target  :: node
     type            (treeNode                         )               , pointer :: nodeProgenitor
     class           (nodeComponentBasic               )               , pointer :: basic         , basicProgenitor

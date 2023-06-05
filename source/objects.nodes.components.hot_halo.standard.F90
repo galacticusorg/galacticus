@@ -1202,7 +1202,7 @@ contains
 
     ! Check if we are the default method.
     if (.not.defaultHotHaloComponent%standardIsActive()) return
-    ! Get the spheroid component.
+    ! Get the hot halo component.
     hotHalo => node%hotHalo()
     ! Check if a standard hot halo component exists.
     select type (hotHalo)
@@ -1527,6 +1527,7 @@ contains
        call    hotHalo%    unaccretedAbundancesScale(unitAbundances        *massVirial                               *scaleMassRelative  )
        call    hotHalo%     outflowedAbundancesScale(unitAbundances        *massVirial                               *scaleMassRelative  )
        call    hotHalo%               chemicalsScale(unitChemicalAbundances*massVirial                               *scaleMassRelative  )
+       call    hotHalo%      outflowedChemicalsScale(unitChemicalAbundances*massVirial                               *scaleMassRelative  )
        call    hotHalo%         angularMomentumScale(                       massVirial*radiusVirial*velocityVirial   *scaleMassRelative  )
        call    hotHalo%outflowedAngularMomentumScale(                       massVirial*radiusVirial*velocityVirial   *scaleMassRelative  )
        call    hotHalo%             outerRadiusScale(                                  radiusVirial                  *scaleRadiusRelative)

@@ -502,8 +502,8 @@ contains
     use :: String_Handling   , only : operator(//)
 #endif
     implicit none
-    class(virialDensityContrastPercolation), intent(inout) :: self
-    class(virialDensityContrastClass      ), intent(inout) :: destination
+    class(virialDensityContrastPercolation), intent(inout), target :: self
+    class(virialDensityContrastClass      ), intent(inout)         :: destination
 
     call self%virialDensityContrastClass%deepCopy(destination)
     select type (destination)

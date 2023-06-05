@@ -41,7 +41,8 @@ module Galactic_Structure_Solvers
     <description>Solves for the structure of components in the given {\normalfont \ttfamily node}.</description>
     <type>void</type>
     <pass>yes</pass>
-    <argument>type(treeNode), intent(inout), target :: node</argument>
+    <argument>type   (treeNode), intent(inout), target   :: node            </argument>
+    <argument>logical          , intent(in   ), optional :: plausibilityOnly</argument>
    </method>
    <method name="revert" >
     <description>Revert the structure of components in the given {\normalfont \ttfamily node} (if necessary to ensure that the structure solver will give the same result when called consecutively).</description>

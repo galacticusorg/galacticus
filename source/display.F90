@@ -123,7 +123,7 @@ contains
     Initialize the module by determining the requested verbosity level.
     !!}
 #ifdef USEMPI
-    use    :: MPI          , only : MPI_Comm_Size      , MPI_Comm_Rank, MPI_Comm_World
+    use    :: MPI_F08      , only : MPI_Comm_Size      , MPI_Comm_Rank, MPI_Comm_World
 #endif
     !$ use :: OMP_Lib      , only : OMP_Get_Max_Threads
     use    :: System_Output, only : stdOutIsATTY
@@ -154,13 +154,13 @@ contains
           call MPI_Comm_Rank(MPI_Comm_World,mpiRank ,iError)
           if (iError /= 0) mpiRank =0
           mpiDigitsMaximum=int(log10(float(mpiCount  )))+1
-          write (threadHyperFormat,'(a,i1,a,i1,a)'  ) '(a,i',mpiDigitsMaximum,'.',mpiDigitsMaximum,',a,i1,a)'
-          write (masterHyperFormat,'(a,i1,a,i1,a)'  ) '(a,i',mpiDigitsMaximum,'.',mpiDigitsMaximum,',a,a ,a)'
-          write (threadFormat     ,threadHyperFormat) '("',mpiRank,':",i'        ,ompDigitsMaximum ,' ,a2,$)'
-          write (masterFormat     ,masterHyperFormat) '("',mpiRank,':',repeat("M",ompDigitsMaximum),'",a2,$)'
+          write (threadHyperFormat,'(a,i1,a,i1,a)'  ) '(a,i',mpiDigitsMaximum,'.',mpiDigitsMaximum                      ,',a,i1,a1,i1,a)'
+          write (masterHyperFormat,'(a,i1,a,i1,a)'  ) '(a,i',mpiDigitsMaximum,'.',mpiDigitsMaximum                      ,',a,a       ,a)'
+          write (threadFormat     ,threadHyperFormat) '("',mpiRank,':",i'        ,ompDigitsMaximum ,'.',ompDigitsMaximum,' ,a2,$)'
+          write (masterFormat     ,masterHyperFormat) '("',mpiRank,':',repeat("M",ompDigitsMaximum)                     ,'",a2,$)'
 #else
-          write (threadFormat     ,'(a,i1,a)'       ) '(i'           ,ompDigitsMaximum ,' ,a2,$)'
-          write (masterFormat     ,'(a,a ,a)'       ) '("',repeat("M",ompDigitsMaximum),'",a2,$)'
+          write (threadFormat     ,'(a,i1,a1,i1,a)'       ) '(i'           ,ompDigitsMaximum ,'.',ompDigitsMaximum,' ,a2,$)'
+          write (masterFormat     ,'(a,a       ,a)'       ) '("',repeat("M",ompDigitsMaximum)                     ,'",a2,$)'
 #endif
           ! Determine if stdout is connected to a file or pipe.
           stdOutIsFile=.not.stdOutIsATTY()
