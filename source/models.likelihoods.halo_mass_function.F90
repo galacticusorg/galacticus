@@ -999,7 +999,7 @@ contains
          if (varianceFractionalModelDiscrepancy <= 0.0d0) then
             ! Evaluate the Poisson likelihood (zero model discrepancy term).
             argumentMaximumRoot=+argumentMaximumRoot                                                                                                                                                 &
-                 &              +amplitudeScaling                  *dble(self%countHalos(i))*amplitudeFractionalPerturbation**(                -1.0d0)                                               &              
+                 &              +amplitudeScaling                  *dble(self%countHalos(i))*amplitudeFractionalPerturbation**(                -1.0d0)                                               &
                  &              -amplitudeScaling   *countHalosMean                         *amplitudeFractionalPerturbation**(amplitudeScaling-1.0d0)
          else
             argumentMaximumRoot=+argumentMaximumRoot                                                                                                                                                 &
