@@ -140,20 +140,25 @@ if ( exists($arguments{'labels'}) ) {
 my $xml        = new XML::Simple;
 my $parameters = $xml->XMLin($parameterFileName);
 my @properties;
-foreach my $parameter ( @{$parameters->{'posteriorSampleSimulationMethod'}->{'modelParameterMethod'}} ) {
+foreach my $parameter ( @{$parameters->{'posteriorSampleSimulation'}->{'modelParameter'}} ) {
     push(@properties,$parameter->{'name'}->{'value'})
 	 if ( $parameter->{'value'} eq "active" );
 }
 
 # Find which columns to plot.
-my $xColumn = $firstParameterColumn  ;
-my $yColumn = $firstParameterColumn+1;
+my $xColumn;
+my $yColumn;
 my $dimensions = 1;
 if ( exists($arguments{'xProperty'}) ) {
     for(my $i=0;$i<scalar(@properties);++$i) {
+	print $i."\t". $properties[$i]."\n";
 	$xColumn = $i+$firstParameterColumn
 	    if ( $properties[$i] eq $arguments{'xProperty'} );
     } 
+    die("x-parameter '".$arguments{'xProperty'}."' not found")
+	unless ( defined($xColumn) )
+} else {
+    $xColumn = $firstParameterColumn;
 }
 if ( exists($arguments{'yProperty'}) ) {
     $dimensions = 2;
@@ -161,7 +166,12 @@ if ( exists($arguments{'yProperty'}) ) {
 	$yColumn = $i+$firstParameterColumn
 	    if ( $properties[$i] eq $arguments{'yProperty'} );
     } 
+    die("y-parameter '".$arguments{'yProperty'}."' not found")
+	unless ( defined($yColumn) )
+} else {
+    $yColumn = $firstParameterColumn+1;
 }
+
 if ( exists($arguments{'range'}) ) {
     foreach my $range ( @{$arguments{'range'}} ) {
 	for(my $i=0;$i<scalar(@properties);++$i) {
@@ -372,8 +382,8 @@ foreach my $fileRoot ( @fileRoots ) {
 	    my $indexX   = $x->($selected)->qsorti();
 	    my $indexY   = $y->($selected)->qsorti()
 		if ( $dimensions == 2 );
-	    my $lowerX = $x->($selected)->($indexX)->(( 0));
-	    my $upperX = $x->($selected)->($indexX)->((-1));
+	    my $lowerX = $x->($selected)->($indexX)->(( 0))->copy();
+	    my $upperX = $x->($selected)->($indexX)->((-1))->copy();
 	    if ( $xScale eq "logarithm" ) {
 		$lowerX .= exp($lowerX);
 		$upperX .= exp($upperX);
@@ -381,8 +391,8 @@ foreach my $fileRoot ( @fileRoots ) {
 	    push(@spanLowerX,$lowerX->sclr());
 	    push(@spanUpperX,$upperX->sclr());
 	    if ( $dimensions == 2 ) {
-		my $lowerY = $y->($selected)->($indexY)->(( 0));
-		my $upperY = $y->($selected)->($indexY)->((-1));
+		my $lowerY = $y->($selected)->($indexY)->(( 0))->copy();
+		my $upperY = $y->($selected)->($indexY)->((-1))->copy();
 		if ( $yScale eq "logarithm" ) {
 		    $lowerY .= exp($lowerY);
 		    $upperY .= exp($upperY);
@@ -397,7 +407,7 @@ foreach my $fileRoot ( @fileRoots ) {
 	    push(@spanUpperY,"undef");
 	}
     }
-    
+
     # Convert axes with logarithmic scaling.
     $x = exp($x)
 	if ( $xScale eq "logarithm" );

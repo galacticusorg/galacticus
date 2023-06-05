@@ -88,7 +88,7 @@ $labelStyle = $arguments{'labelStyle'}
 my $drawLabels = "gnuplot";
 $drawLabels = $arguments{'drawLabels'}
     if ( exists($arguments{'drawLabels'}) );
-my $lineWeight = "5,3";
+my $lineWeight = "2,1";
 $lineWeight = $arguments{'lineWeight'}
     if ( exists($arguments{'lineWeight'}) );
 my $shortcut = ".";
@@ -115,7 +115,7 @@ $options .= " --useUnconverged ".$arguments{'useUnconverged'}
 my $xml        = new XML::Simple;
 my $parameters = $xml->XMLin($parameterFileName);
 my @propertyNamesAvailable;
-foreach my $parameter ( @{$parameters->{'posteriorSampleSimulationMethod'}->{'modelParameterMethod'}} ) {
+foreach my $parameter ( @{$parameters->{'posteriorSampleSimulation'}->{'modelParameter'}} ) {
     push(@propertyNamesAvailable,$parameter->{'name'}->{'value'})
 	 if ( $parameter->{'value'} eq "active" );
 }
@@ -143,7 +143,7 @@ if ( exists($arguments{'range'}) ) {
 
 # Construct property list.
 my @properties;
-foreach my $parameter ( @{$parameters->{'posteriorSampleSimulationMethod'}->{'modelParameterMethod'}} ) {
+foreach my $parameter ( @{$parameters->{'posteriorSampleSimulation'}->{'modelParameter'}} ) {
     if ( grep {$parameter->{'name'}->{'value'} eq $_} @propertyNames ) {
 	foreach my $property ( @{$arguments{'property'}} ) {
 	    if ( $property->{'name'} eq $parameter->{'name'}->{'value'} ) {
