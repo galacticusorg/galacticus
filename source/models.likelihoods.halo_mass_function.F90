@@ -755,7 +755,7 @@ contains
     !!]
     ! Determine the model discrepancy variance term.
     if (self%indexDiscrepancy > 0) then
-       varianceFractionalModelDiscrepancy=stateVector(self%indexDiscrepancy)
+       varianceFractionalModelDiscrepancy=modelParametersActive_(self%indexDiscrepancy)%modelParameter_%unmap(stateVector(self%indexDiscrepancy))
     else
        varianceFractionalModelDiscrepancy=self%varianceFractionalModelDiscrepancy
     end if
