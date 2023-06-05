@@ -890,13 +890,16 @@ contains
                            &                   -                               countHalosMean                &
                            &                   -Logarithmic_Factorial(int(self%countHalos              (i)))
                    else
-                      ! Evaluate the negative binomial likelihood (non-zero model discrepancy term).
+                      ! Evaluate the negative binomial likelihood (non-zero model discrepancy term). Here the negative binomial
+                      ! distribution (which is used in the alternative parameterization as given by, e.g.,
+                      ! https://en.wikipedia.org/wiki/Negative_binomial_distribution#Poisson_distribution) represents an
+                      ! over-dispersed Poisson distribution.
                       haloMassFunctionEvaluate=+haloMassFunctionEvaluate                                                                                                          &
                            &                   +dble(self%countHalos           (i))*log                       (                                               countHalosMean    ) &
                            &                   -                                    Logarithmic_Factorial     (                                    +int (self%countHalos    (i))) &
                            &                   +                                    Gamma_Function_Logarithmic(               stoppingTimeParameter+dble(self%countHalos    (i))) &
                            &                   -                                    Gamma_Function_Logarithmic(               stoppingTimeParameter                             ) &
-                           &                   -dble(self%countHalos           (i))*Gamma_Function_Logarithmic(               stoppingTimeParameter+          countHalosMean    ) &
+                           &                   -dble(self%countHalos           (i))*log                       (               stoppingTimeParameter+          countHalosMean    ) &
                            &                   -          stoppingTimeParameter    *log                       (countHalosMean/stoppingTimeParameter+1.0d0                       )
                    end if
                 end if
@@ -954,7 +957,7 @@ contains
                  &         -                                    Logarithmic_Factorial     (                                    +int (self%countHalos    (i))) &
                  &         +                                    Gamma_Function_Logarithmic(               stoppingTimeParameter+dble(self%countHalos    (i))) &
                  &         -                                    Gamma_Function_Logarithmic(               stoppingTimeParameter                             ) &
-                 &         -dble(self%countHalos           (i))*Gamma_Function_Logarithmic(               stoppingTimeParameter+          countHalosMean    ) &
+                 &         -dble(self%countHalos           (i))*log                       (               stoppingTimeParameter+          countHalosMean    ) &
                  &         -          stoppingTimeParameter    *log                       (countHalosMean/stoppingTimeParameter+1.0d0                       )
          end if
       end do
@@ -995,14 +998,14 @@ contains
               &           *sqrt(self                    %varianceSimulation                           )
          if (varianceFractionalModelDiscrepancy <= 0.0d0) then
             ! Evaluate the Poisson likelihood (zero model discrepancy term).
-             argumentMaximumRoot=+argumentMaximumRoot                                                                                                                                                                &
-              &                  +amplitudeScaling                  *dble(self%countHalos(i))*amplitudeFractionalPerturbation**(                -1.0d0)                                                              &              
-              &                  -amplitudeScaling   *countHalosMean                         *amplitudeFractionalPerturbation**(amplitudeScaling-1.0d0)
+            argumentMaximumRoot=+argumentMaximumRoot                                                                                                                                                 &
+                 &              +amplitudeScaling                  *dble(self%countHalos(i))*amplitudeFractionalPerturbation**(                -1.0d0)                                               &              
+                 &              -amplitudeScaling   *countHalosMean                         *amplitudeFractionalPerturbation**(amplitudeScaling-1.0d0)
          else
-             argumentMaximumRoot=+argumentMaximumRoot                                                                                                                                                                &
-                 &               +amplitudeScaling                  *dble(self%countHalos(i))*amplitudeFractionalPerturbation**(                -1.0d0)                                                              &
-                 &               -amplitudeScaling   *countHalosMean                         *amplitudeFractionalPerturbation**(                -1.0d0)/                (1.0d0+countHalosMean/stoppingTimeParameter) &
-                 &               -amplitudeScaling   *countHalosMean*dble(self%countHalos(i))*amplitudeFractionalPerturbation**(                -1.0d0)*Digamma_Function(      countHalosMean+stoppingTimeParameter)
+            argumentMaximumRoot=+argumentMaximumRoot                                                                                                                                                 &
+                 &              +amplitudeScaling                  *dble(self%countHalos(i))*amplitudeFractionalPerturbation**(                -1.0d0)                                               &
+                 &              -amplitudeScaling   *countHalosMean*dble(self%countHalos(i))*amplitudeFractionalPerturbation**(                -1.0d0)/(      +countHalosMean+stoppingTimeParameter) &
+                 &              -amplitudeScaling   *countHalosMean                         *amplitudeFractionalPerturbation**(                -1.0d0)/(+1.0d0+countHalosMean/stoppingTimeParameter)
          end if
       end do
       return
