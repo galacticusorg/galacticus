@@ -959,8 +959,11 @@ contains
          end if
       end do
       integrandLikelihoodPoisson=+exp(                            &
-           &                          +argument                   &
-           &                          -argumentOffset             &
+           &                          min(                        &
+           &                              +0.0d0         ,        &
+           &                              +argument               &
+           &                              -argumentOffset         &
+           &                             )                        &
            &                         )                            &
            &                     /amplitudeFractionalPerturbation &
            &                     /sqrt(2.0d0*Pi)
