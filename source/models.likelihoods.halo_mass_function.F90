@@ -839,7 +839,7 @@ contains
                            &         -Logarithmic_Factorial(int(self%countHalos    (i)))
                    else
                       ! Evaluate the negative binomial likelihood (non-zero model discrepancy term).
-                      argumentOffset=+argumentOffset                                     &
+                      argumentOffset=+argumentOffset                                                                                                                    &
                            &         +dble(self%countHalos           (i))*log                       (                                               countHalosMean    ) &
                            &         -                                    Logarithmic_Factorial     (                                    +int (self%countHalos    (i))) &
                            &         +                                    Gamma_Function_Logarithmic(               stoppingTimeParameter+dble(self%countHalos    (i))) &
