@@ -844,7 +844,7 @@ contains
                            &         -                                    Logarithmic_Factorial     (                                    +int (self%countHalos    (i))) &
                            &         +                                    Gamma_Function_Logarithmic(               stoppingTimeParameter+dble(self%countHalos    (i))) &
                            &         -                                    Gamma_Function_Logarithmic(               stoppingTimeParameter                             ) &
-                           &         -dble(self%countHalos           (i))*Gamma_Function_Logarithmic(               stoppingTimeParameter+          countHalosMean    ) &
+                           &         -dble(self%countHalos           (i))*log                       (               stoppingTimeParameter+          countHalosMean    ) &
                            &         -          stoppingTimeParameter    *log                       (countHalosMean/stoppingTimeParameter+1.0d0                       )
                    end if
                 end do
