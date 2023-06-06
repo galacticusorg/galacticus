@@ -161,8 +161,12 @@ contains
     class           (distributionFunction1DLogNormal), intent(inout) :: self
     double precision                                 , intent(in   ) :: x
 
-    logNormalDensity=+self%distributionFunction1DNormal%density(log(x)) &
-         &           /x
+    if (x > 0.0d0) then
+       logNormalDensity=+self%distributionFunction1DNormal%density(log(x)) &
+         &              /x
+    else
+       logNormalDensity=+0.0d0
+    end if
     return
   end function logNormalDensity
 
@@ -174,7 +178,11 @@ contains
     class           (distributionFunction1DLogNormal), intent(inout) :: self
     double precision                                 , intent(in   ) :: x
 
-    logNormalCumulative=self%distributionFunction1DNormal%cumulative(log(x))
+    if (x <= 0.0d0) then
+       logNormalCumulative=0.0d0
+    else
+       logNormalCumulative=self%distributionFunction1DNormal%cumulative(log(x))
+    end if
     return
   end function logNormalCumulative
 
