@@ -32,6 +32,7 @@ module Mass_Distributions
        &                                    enumerationStructureErrorCodeType
   use :: Numerical_Random_Numbers  , only : randomNumberGeneratorClass
   use :: Tensors                   , only : tensorRank2Dimension3Symmetric
+  use :: Numerical_Interpolation   , only : interpolator
   private
 
   !![
@@ -214,6 +215,18 @@ module Mass_Distributions
     <argument>double precision                              , intent(in   ), optional :: mass         , massFractional</argument>
     <argument>type            (enumerationComponentTypeType), intent(in   ), optional :: componentType                </argument>
     <argument>type            (enumerationMassTypeType     ), intent(in   ), optional :: massType                     </argument>
+    <code>
+    massDistributionRadiusEnclosingMass=self%radiusEnclosingMassNumerical(mass,massFractional,componentType,massType)
+    </code>
+   </method>
+   <method name="radiusEnclosingMassNumerical" >
+    <description>Return the radius enclosing a specified mass using a numerical calculation.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <selfTarget>yes</selfTarget>
+    <argument>double precision                              , intent(in   ), optional :: mass         , massFractional</argument>
+    <argument>type            (enumerationComponentTypeType), intent(in   ), optional :: componentType                </argument>
+    <argument>type            (enumerationMassTypeType     ), intent(in   ), optional :: massType                     </argument>
     <modules>Root_Finder</modules>
     <code>
       type            (rootFinder), save      :: finder
@@ -229,7 +242,7 @@ module Mass_Distributions
        call Error_Report('either "mass" or "massFractional" must be provided'//{introspection:location})
       end if
       if (massTarget &lt;= 0.0d0 .or. .not.self%matches(componentType,massType)) then
-       massDistributionRadiusEnclosingMass=0.0d0
+       massDistributionRadiusEnclosingMassNumerical=0.0d0
        return
       end if
       if (.not.finderConstructed) then
@@ -246,12 +259,24 @@ module Mass_Distributions
             &amp;                  )
        finderConstructed=.true.
     end if
-    self_                               =&gt; self
-    massDistributionRadiusEnclosingMass =     finder%find(rootGuess=1.0d0)
+    self_                                        =&gt; self
+    massDistributionRadiusEnclosingMassNumerical =     finder%find(rootGuess=1.0d0)
     </code>
    </method>
    <method name="radiusEnclosingDensity" >
     <description>Return the radius enclosing a specified density.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <selfTarget>yes</selfTarget>
+    <argument>double precision                              , intent(in   )           :: density      </argument>
+    <argument>type            (enumerationComponentTypeType), intent(in   ), optional :: componentType</argument>
+    <argument>type            (enumerationMassTypeType     ), intent(in   ), optional :: massType     </argument>
+    <code>
+      massDistributionRadiusEnclosingDensity=self%radiusEnclosingDensityNumerical(density,componentType,massType)
+    </code>
+   </method>
+   <method name="radiusEnclosingDensityNumerical" >
+    <description>Return the radius enclosing a specified density using a numerical calculation.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
@@ -266,7 +291,7 @@ module Mass_Distributions
       double precision            , parameter :: toleranceAbsolute=0.0d0  , toleranceRelative=1.0d-6
 
       if (.not.self%matches(componentType,massType)) then
-       massDistributionRadiusEnclosingDensity=0.0d0
+       massDistributionRadiusEnclosingDensityNumerical=0.0d0
        return
       end if
       if (.not.finderConstructed) then
@@ -283,13 +308,25 @@ module Mass_Distributions
             &amp;                  )
        finderConstructed=.true.
       end if
-      self_                                  =&gt; self
-      densityTarget                          =     density
-      massDistributionRadiusEnclosingDensity =     finder%find(rootGuess=1.0d0)
+      self_                                           =&gt; self
+      densityTarget                                   =     density
+      massDistributionRadiusEnclosingDensityNumerical =     finder%find(rootGuess=1.0d0)
     </code>
    </method>
    <method name="radiusFromSpecificAngularMomentum" >
     <description>Return the radius corresponding to a given specific angular momentum.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <selfTarget>yes</selfTarget>
+    <argument>double precision                              , intent(in   )           :: angularMomentumSpecific</argument>
+    <argument>type            (enumerationComponentTypeType), intent(in   ), optional :: componentType          </argument>
+    <argument>type            (enumerationMassTypeType     ), intent(in   ), optional :: massType               </argument>
+    <code>
+      massDistributionRadiusFromSpecificAngularMomentum=self%radiusFromSpecificAngularMomentumNumerical(angularMomentumSpecific,componentType,massType)
+    </code>
+   </method>
+   <method name="radiusFromSpecificAngularMomentumNumerical" >
+    <description>Return the radius corresponding to a given specific angular momentum using a numerical calculation.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
@@ -304,7 +341,7 @@ module Mass_Distributions
       double precision            , parameter :: toleranceAbsolute=0.0d0  , toleranceRelative=1.0d-6
 
       if (.not.self%matches(componentType,massType)) then
-       massDistributionRadiusFromSpecificAngularMomentum=0.0d0
+       massDistributionRadiusFromSpecificAngularMomentumNumerical=0.0d0
        return
       end if
       if (.not.finderConstructed) then
@@ -321,9 +358,9 @@ module Mass_Distributions
             &amp;                  )
        finderConstructed=.true.
       end if
-      self_                                             =&gt; self
-      angularMomentumSpecificTarget                     =     angularMomentumSpecific
-      massDistributionRadiusFromSpecificAngularMomentum =     finder%find(rootGuess=1.0d0)
+      self_                                                      =&gt; self
+      angularMomentumSpecificTarget                              =     angularMomentumSpecific
+      massDistributionRadiusFromSpecificAngularMomentumNumerical =     finder%find(rootGuess=1.0d0)
     </code>
    </method>
    <method name="rotationCurve" >
@@ -523,6 +560,120 @@ module Mass_Distributions
       kinematicsDistributionVelocityDispersion1D=0.0d0
     </code>
    </method>
+   <method name="velocityDispersion1DNumerical" >
+    <description>Return the 1D velocity dispersion at the given coordinate by numerically solving the Jeans equation.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>class(coordinate           ), intent(in   ) :: coordinates              </argument>
+    <argument>class(massDistributionClass), intent(inout) :: massDistributionEmbedding</argument>
+    <code>
+      call jeansEquationSolver(self,coordinates%rSpherical(),massDistributionEmbedding)
+      kinematicsDistributionVelocityDispersion1DNumerical=self%velocityDispersion1D__%interpolate(log(coordinates%rSpherical()))
+    </code>
+   </method>
+   <method name="jeansEquationRadius" >
+    <description>Return the radius variable used in solving the Jeans equation that corresponds to a given physical radius.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>double precision                       , intent(in   ) :: radius                   </argument>
+    <argument>class           (massDistributionClass), intent(inout) :: massDistributionEmbedding</argument>
+    <code>
+      !$GLC attributes unused :: massDistributionEmbedding
+      kinematicsDistributionJeansEquationRadius=radius
+    </code>
+   </method>
+   <method name="jeansEquationIntegrand" >
+    <description>Integrand for Jeans equation.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>double precision                       , intent(in   ) :: radius                   </argument>
+    <argument>class           (massDistributionClass), intent(inout) :: massDistributionEmbedding</argument>
+    <modules>Numerical_Constants_Astronomical Coordinates</modules>
+    <code>
+      type(coordinateSpherical) :: coordinates
+      if (radius > 0.0d0) then
+        coordinates                                 = [radius,0.0d0,0.0d0]
+        kinematicsDistributionJeansEquationIntegrand=+gravitationalConstantGalacticus                                &amp;
+             &amp;                                   *massDistributionEmbedding%massEnclosedBySphere(radius     )    &amp;
+             &amp;                                   *massDistributionEmbedding%density             (coordinates)    &amp;
+             &amp;                                   /                                               radius      **2
+      else
+        kinematicsDistributionJeansEquationIntegrand=+0.0d0
+      end if
+    </code>
+   </method>
+   <method name="solverSet" >
+    <description>Set a sub-module scope pointers on a stack to allow recursive calls to functions.</description>
+    <type>void</type>
+    <pass>yes</pass>
+    <selfTarget>yes</selfTarget>
+    <argument>class(massDistributionClass), intent(in   ), target :: massDistributionEmbedding</argument>
+    <code>
+      integer                                              :: i
+      type   (kinematicsSolver), allocatable, dimension(:) :: solvers_
+      if (allocated(solvers)) then
+         if (solversCount == size(solvers)) then
+            call move_alloc(solvers,solvers_)
+            allocate(solvers(size(solvers_)+solversIncrement))
+            solvers(1:size(solvers_))=solvers_
+            do i=1,size(solvers_)
+               nullify(solvers_(i)%self                     )
+               nullify(solvers_(i)%massDistributionEmbedding)
+            end do
+            deallocate(solvers_)
+         end if
+      else
+         allocate(solvers(solversIncrement))
+      end if
+      solversCount=solversCount+1
+      solvers(solversCount)%self                      => self
+      solvers(solversCount)%massDistributionEmbedding => massDistributionEmbedding
+    </code>
+   </method>
+   <method name="solverUnset" >
+    <description>Unset a sub-module scope pointers on the stack.</description>
+    <type>void</type>
+    <pass>yes</pass>
+    <code>
+      !$GLC attributes unused :: self
+      solvers(solversCount)%self                      => null()
+      solvers(solversCount)%massDistributionEmbedding => null()
+      solversCount=solversCount-1
+    </code>
+   </method>
+   <data>type            (interpolator), allocatable               :: velocityDispersion1D__                                                                     </data>
+   <data>double precision              , allocatable, dimension(:) :: velocityDispersionRadialVelocity__                , velocityDispersionRadialRadius__       </data>
+   <data>double precision                                          :: velocityDispersionRadialRadiusMinimum__           , velocityDispersionRadialRadiusMaximum__</data>
+   <data>double precision                                          :: velocityDispersionRadialRadiusOuter__                                                      </data>   
+   <data>double precision                                          :: toleranceRelativeVelocityDispersion       =1.0d-6                                          </data>
+   <data>double precision                                          :: toleranceRelativeVelocityDispersionMaximum=1.0d-3                                          </data>
+  </functionClass>
+  !!]
+
+  !![
+  <functionClass>
+   <name>massDistributionHeating</name>
+   <descriptiveName>Heating of Mass Distributions</descriptiveName>
+   <description>Class providing heating models for mass distributions.</description>
+   <method name="specificEnergy" >
+    <description>Return the specific energy at the given radius.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>double precision                       , intent(in   ) :: radius           </argument>
+    <argument>class           (massDistributionClass), intent(inout) :: massDistribution_</argument>
+   </method>
+   <method name="specificEnergyGradient" >
+    <description>Return the radial gradient of the specific energy at the given radius.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>double precision                       , intent(in   ) :: radius           </argument>
+    <argument>class           (massDistributionClass), intent(inout) :: massDistribution_</argument>
+   </method>
+   <method name="specificEnergyIsEverywhereZero" >
+    <description>Return true if the specific energy is zero everywhere (i.e. no heating).</description>
+    <type>logical</type>
+    <pass>yes</pass>
+   </method>
   </functionClass>
   !!]
 
@@ -538,11 +689,34 @@ module Mass_Distributions
   </enumeration>
   !!]
 
+  ! Enumeration of non-analytic solver options.
+  !![
+  <enumeration>
+   <name>nonAnalyticSolvers</name>
+   <description>Used to specify the type of solution to use when no analytic solution is available.</description>
+   <encodeFunction>yes</encodeFunction>
+   <visibility>public</visibility>
+   <validator>yes</validator>
+   <entry label="fallThrough"/>
+   <entry label="numerical"  />
+  </enumeration>
+  !!]
+
   ! Module-scope variables used in root finding.
   class           (massDistributionClass), pointer :: self_
   double precision                                 :: massTarget                   , densityTarget, &
        &                                              angularMomentumSpecificTarget
   !$omp threadprivate(self_,massTarget,densityTarget,angularMomentumSpecificTarget)
+
+  ! Module-scope pointers used in integrand functions and root finding.
+  type :: kinematicsSolver
+     class(kinematicsDistributionClass), pointer :: self                      => null()
+     class(massDistributionClass      ), pointer :: massDistributionEmbedding => null()
+  end type kinematicsSolver
+  type   (kinematicsSolver), allocatable, dimension(:) :: solvers
+  integer                  , parameter                 :: solversIncrement=10
+  integer                                              :: solversCount    = 0
+  !$omp threadprivate(solvers,solversCount)
   
 contains
   
@@ -638,5 +812,183 @@ contains
     rotationCurveMaximumRoot=self_%rotationCurveGradient(radius)
     return
   end function rotationCurveMaximumRoot
+
+  subroutine jeansEquationSolver(self,radius,massDistributionEmbedding)
+    !!{
+    Solve the Jeans equation numerically to find the 1D velocity dispersion.
+    !!}
+    use, intrinsic :: ISO_C_Binding          , only : c_size_t
+    use            :: Error                  , only : Error_Report        , errorStatusSuccess
+    use            :: Numerical_Integration  , only : integrator
+    use            :: Numerical_Ranges       , only : Make_Range          , rangeTypeLogarithmic
+    use            :: Table_Labels           , only : extrapolationTypeFix
+    use            :: Numerical_Interpolation, only : gsl_interp_linear
+    use            :: Coordinates            , only : coordinateSpherical , assignment(=)
+    implicit none
+    class           (kinematicsDistributionClass), intent(inout)              :: self
+    double precision                             , intent(in   )              :: radius
+    class           (massDistributionClass      ), intent(inout)              :: massDistributionEmbedding
+    double precision                                            , parameter   :: radiusTinyFactor         =1.0d-9 , radiusLargeFactor       =5.0d2
+    double precision                                            , parameter   :: countPointsPerOctave     =2.0d0
+    double precision                                            , parameter   :: toleranceFactor          =2.0d0
+    double precision                             , dimension(:) , allocatable :: velocityDispersions              , radii
+    double precision                                                          :: radiusMinimum                    , radiusMaximum                 , &
+         &                                                                       toleranceRelative                , density                       , &
+         &                                                                       jeansIntegral                    , radiusOuter_                  , &
+         &                                                                       radiusLower                      , radiusUpper                   , &
+         &                                                                       radiusLowerJeansEquation         , radiusUpperJeansEquation      , &
+         &                                                                       jeansIntegralPrevious
+    integer         (c_size_t                   )                             :: countRadii                       , iMinimum                      , &
+         &                                                                       iMaximum                         , i
+    integer                                                                   :: status
+    type            (coordinateSpherical        )                             :: coordinates
+    type            (integrator                 ), save                       :: integrator_
+    logical                                      , save                       :: initialized              =.false.
+    logical                                                                   :: remakeTable
+    !$omp threadprivate(integrator_,initialized)
+
+    ! Determine if the table must be rebuilt.
+    remakeTable=.false.
+    if (.not.allocated(self%velocityDispersionRadialVelocity__)) then
+       remakeTable=.true.
+    else
+       remakeTable= radius < self%velocityDispersionRadialRadiusMinimum__ &
+            &      .or.                                                   &
+            &       radius > self%velocityDispersionRadialRadiusMaximum__
+    end if
+    if (remakeTable) then
+       ! Initialize integrator if necessary.
+       if (.not.initialized) then
+          integrator_=integrator(jeansEquationIntegrand_,toleranceRelative=self%toleranceRelativeVelocityDispersion)
+          initialized=.true.
+       end if
+       ! Find the range of radii at which to compute the velocity dispersion, and construct the arrays.
+       call self%solverSet(massDistributionEmbedding)
+       !! Set an initial range of radii that brackets the requested radius.
+       radiusMinimum=0.5d0*radius
+       radiusMaximum=2.0d0*radius
+       !! Round to the nearest factor of 2.
+       radiusMinimum=2.0d0**floor  (log(radiusMinimum)/log(2.0d0))
+       radiusMaximum=2.0d0**ceiling(log(radiusMaximum)/log(2.0d0))
+       !! Expand to encompass any pre-existing range.
+       if (allocated(self%velocityDispersionRadialRadius__)) then
+          radiusMinimum=min(radiusMinimum,self%velocityDispersionRadialRadiusMinimum__)
+          radiusMaximum=max(radiusMaximum,self%velocityDispersionRadialRadiusMaximum__)
+       end if
+       !! Set a suitable outer radius for integration.
+       radiusOuter_=radiusLargeFactor*radiusMaximum
+       !! Construct arrays.
+       countRadii=nint(log(radiusMaximum/radiusMinimum)/log(2.0d0)*countPointsPerOctave+1.0d0)
+       allocate(radii              (countRadii))
+       allocate(velocityDispersions(countRadii))
+       radii=Make_Range(radiusMinimum,radiusMaximum,int(countRadii),rangeTypeLogarithmic)
+       ! Copy in any usable results from any previous solution.
+       !! Assume by default that no previous solutions are usable.
+       iMinimum=+huge(0_c_size_t)
+       iMaximum=-huge(0_c_size_t)
+       !! Check that a pre-existing solution exists.
+       if (allocated(self%velocityDispersionRadialRadius__)) then
+          !! Check that the outer radius for integration has not changed - if it has we need to recompute the full solution for
+          !! consistency.
+          if (radiusOuter_ == self%velocityDispersionRadialRadiusOuter__) then
+             iMinimum=nint(log(self%velocityDispersionRadialRadiusMinimum__/radiusMinimum)/log(2.0d0)*countPointsPerOctave)+1_c_size_t
+             iMaximum=nint(log(self%velocityDispersionRadialRadiusMaximum__/radiusMinimum)/log(2.0d0)*countPointsPerOctave)+1_c_size_t
+             velocityDispersions(iMinimum:iMaximum)=self%velocityDispersionRadialVelocity__
+          end if
+       end if
+       ! Solve for the velocity dispersion where old results were unavailable.
+       jeansIntegralPrevious=0.0d0
+       do i=countRadii,1,-1
+          ! Skip cases for which we have a pre-existing solution.
+          if (i >= iMinimum .and. i <= iMaximum) cycle
+          ! Find the limits for the integral.
+          if (i == countRadii) then
+             radiusUpper=radiusOuter_
+          else
+             radiusUpper=radii(i+1)
+          end if
+          radiusLower   =radii(i  )
+          ! Reset the accumulated Jeans integral if necessary.
+          if (i == iMinimum-1) then
+             coordinates          = [radii(iMinimum),0.0d0,0.0d0]
+             jeansIntegralPrevious=+                          velocityDispersions(iMinimum   )**2 &
+                  &                *massDistributionEmbedding%density            (coordinates)
+          end if
+          ! If the interval is wholly outside of the outer radius, the integral is zero.
+          if (radiusLower > radiusOuter_) then
+             jeansIntegral         =0.0d0
+             velocityDispersions(i)=0.0d0
+         else
+            ! Evaluate the integral.
+            coordinates             =[radiusLower,0.0d0,0.0d0]
+            density                 =massDistributionEmbedding%density            (coordinates                                                                )
+            radiusLowerJeansEquation=self                     %jeansEquationRadius(radiusLower                                      ,massDistributionEmbedding)
+            radiusUpperJeansEquation=self                     %jeansEquationRadius(radiusUpper                                      ,massDistributionEmbedding)
+            jeansIntegral           =integrator_              %integrate          (radiusLowerJeansEquation,radiusUpperJeansEquation,status                   )
+            if (status /= errorStatusSuccess) then
+               ! Integration failed.
+               toleranceRelative=+     toleranceFactor                     &
+                     &            *self%toleranceRelativeVelocityDispersion
+                do while (toleranceRelative < self%toleranceRelativeVelocityDispersionMaximum)
+                   call integrator_%toleranceSet(toleranceRelative=toleranceRelative)
+                  jeansIntegral=integrator_%integrate(radiusLowerJeansEquation,radiusUpperJeansEquation,status)
+                  if (status == errorStatusSuccess) then
+                      exit
+                   else
+                      toleranceRelative=+toleranceFactor   &
+                           &            *toleranceRelative
+                   end if
+                end do
+                if (status /= errorStatusSuccess) call Error_Report('integration of Jeans equation failed'//{introspection:location})
+                call integrator_%toleranceSet(toleranceRelative=self%toleranceRelativeVelocityDispersion)
+             end if
+             if (density <= 0.0d0) then
+                ! Density is zero - the velocity dispersion is undefined. If the Jeans integral is also zero this is acceptable - we've
+                ! been asked for the velocity dispersion in a region of zero density, so we simply return zero dispersion as it should have
+                ! no consequence. If the Jeans integral is non-zero however, then something has gone wrong.
+                velocityDispersions(i)=0.0d0
+                if (jeansIntegral+jeansIntegralPrevious > 0.0d0) call Error_Report('undefined velocity dispersion'//{introspection:location})
+             else
+                velocityDispersions(i)=sqrt(                         &
+                     &                      +(                       &
+                     &                        +jeansIntegral         &
+                     &                        +jeansIntegralPrevious &
+                     &                       )                       &
+                     &                      /density                 &
+                     &                     )
+             end if
+          end if
+          jeansIntegralPrevious=+jeansIntegralPrevious &
+               &                +jeansIntegral
+       end do
+       call self%solverUnset()
+       ! Build the interpolator.
+       if (allocated(self%velocityDispersion1D__)) deallocate(self%velocityDispersion1D__)
+       allocate(self%velocityDispersion1D__)
+       self%velocityDispersion1D__=interpolator(log(radii),velocityDispersions,interpolationType=gsl_interp_linear,extrapolationType=extrapolationTypeFix)
+       ! Store the current results for future re-use.
+       if (allocated(self%velocityDispersionRadialRadius__  )) deallocate(self%velocityDispersionRadialRadius__  )
+       if (allocated(self%velocityDispersionRadialVelocity__)) deallocate(self%velocityDispersionRadialVelocity__)
+       allocate(self%velocityDispersionRadialRadius__  (countRadii))
+       allocate(self%velocityDispersionRadialVelocity__(countRadii))
+       self%velocityDispersionRadialRadius__       =radii
+       self%velocityDispersionRadialVelocity__     =velocityDispersions
+       self%velocityDispersionRadialRadiusMinimum__=radiusMinimum
+       self%velocityDispersionRadialRadiusMaximum__=radiusMaximum
+       self%velocityDispersionRadialRadiusOuter__  =radiusOuter_
+    end if
+    return
+  end subroutine jeansEquationSolver
+
+  double precision function jeansEquationIntegrand_(radius)
+    !!{
+    Integrand for the Jeans equation.
+    !!}
+    implicit none
+    double precision, intent(in   ) :: radius
+
+    jeansEquationIntegrand_=solvers(solversCount)%self%jeansEquationIntegrand(radius,solvers(solversCount)%massDistributionEmbedding)
+    return
+  end function jeansEquationIntegrand_
   
 end module Mass_Distributions
