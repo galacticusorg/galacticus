@@ -36,7 +36,7 @@ program Test_Mass_Distributions
        &                                    massDistributionHernquist        , massDistributionSersic             , massDistributionSpherical              , massDistributionComposite           , &
        &                                    massDistributionList             , massDistributionSymmetryCylindrical, enumerationMassDistributionSymmetryType, massDistributionSphericalScaler     , &
        &                                    massDistributionCylindricalScaler, massDistributionCylindrical        , massDistributionPatejLoeb2015          , massDistributionNFW                 , &
-       &                                    massDistributionIsothermal       , kinematicsDistributionClass        , kinematicsDistributionLocal            , massDistributionSphericalTestHarness
+       &                                    massDistributionIsothermal       , kinematicsDistributionClass        , kinematicsDistributionLocal
   use :: Numerical_Constants_Math  , only : Pi
   use :: Tensors                   , only : assignment(=)
   use :: Unit_Tests                , only : Assert                           , Unit_Tests_Begin_Group             , Unit_Tests_End_Group                   , Unit_Tests_Finish
@@ -44,7 +44,6 @@ program Test_Mass_Distributions
   class           (massDistributionClass                  )                             , allocatable :: massDistribution_                                                                                               , massDistributionRotated                   , &
        &                                                                                                 massDistributionDisk                                                                                            , massDistributionSpheroid                  , &
        &                                                                                                 massDistributionDMO
-  type            (massDistributionSphericalTestHarness   )                             , allocatable :: massDistributionTest
   class           (kinematicsDistributionClass            )                             , allocatable :: kinematicsDistribution_
   type            (massDistributionList                   )                             , pointer     :: massDistributions
   integer                                                  , parameter                                :: sersicTableCount             =8
@@ -552,9 +551,8 @@ program Test_Mass_Distributions
 
   ! Isothermal profile.
   call Unit_Tests_Begin_Group("Isothermal profile")
-  allocate(massDistributionIsothermal           :: massDistribution_      )
-  allocate(kinematicsDistributionLocal          :: kinematicsDistribution_)
-  allocate(                                        massDistributionTest   )
+  allocate(massDistributionIsothermal  :: massDistribution_      )
+  allocate(kinematicsDistributionLocal :: kinematicsDistribution_)
   select type (kinematicsDistribution_)
   type is (kinematicsDistributionLocal)
      kinematicsDistribution_=kinematicsDistributionLocal(alpha=1.0d0/sqrt(2.0d0))
@@ -563,36 +561,35 @@ program Test_Mass_Distributions
   type is (massDistributionIsothermal)
      massDistribution_=massDistributionIsothermal(mass=1.0d12,lengthReference=300.0d-3)
      call massDistribution_%setKinematicsDistribution(kinematicsDistribution_)
-     massDistributionTest=massDistributionSphericalTestHarness(massDistribution_=massDistribution_)
+     do i=1,4
+        radius                                                 =300.0d-3/2.0d0**(4-i)
+        position                                               =[radius,0.0d0,0.0d0]
+        positionReference                                      =[300.0d-3,0.0d0,0.0d0]
+        time                                                   =         2.0d0**(i-1)
+        radiiIsothermal                                     (i)=radius
+        massIsothermal                                      (i)=massDistribution_%massEnclosedBySphere                      (radius                                    )
+        massIsothermalNumerical                             (i)=massDistribution_%massEnclosedBySphereNumerical             (radius                                    )
+        densityIsothermal                                   (i)=massDistribution_%density                                   (position                                  )
+        velocityCircularIsothermal                          (i)=massDistribution_%rotationCurve                             (radius                                    )
+        radiusEnclosingMassIsothermal                       (i)=massDistribution_%radiusEnclosingMass                       (      massIsothermal(i)                   )
+        radiusEnclosingMassIsothermalNumerical              (i)=massDistribution_%radiusEnclosingMassNumerical              (      massIsothermal(i)                   )
+        radiusEnclosingDensityIsothermal                    (i)=massDistribution_%radiusEnclosingDensity                    (3.0d0*massIsothermal(i)/4.0d0/Pi/radius**3)
+        radiusEnclosingDensityIsothermalNumerical           (i)=massDistribution_%radiusEnclosingDensityNumerical           (3.0d0*massIsothermal(i)/4.0d0/Pi/radius**3)
+        radiusFromSpecificAngularMomentumIsothermal         (i)=massDistribution_%radiusFromSpecificAngularMomentum         (velocityCircularIsothermal(i)*radius      )
+        radiusFromSpecificAngularMomentumIsothermalNumerical(i)=massDistribution_%radiusFromSpecificAngularMomentumNumerical(velocityCircularIsothermal(i)*radius      )
+        densitySlopeIsothermal                              (i)=massDistribution_%densityGradientRadial                     (position,logarithmic=.true.               )
+        densitySlopeIsothermalNumerical                     (i)=massDistribution_%densityGradientRadialNumerical            (position,logarithmic=.true.               )
+        potentialIsothermal                                 (i)=massDistribution_%potential                                 (position                                  )
+        potentialIsothermalDifferenceNumerical              (i)=massDistribution_%potentialDifferenceNumerical              (positionReference,position                )  
+        densityMomentIsothermal                             (i)=massDistribution_%densityRadialMoment                       (-dble(i-1),300.0d-3/8.0d0,300.0d-3/1.0d0  )
+        fourierTransformIsothermal                          (i)=massDistribution_%fourierTransform                          (300.0d-3,1.0d0/radius                     )
+        fourierTransformIsothermalNumerical                 (i)=massDistribution_%fourierTransformNumerical                 (300.0d-3,1.0d0/radius                     )
+        radiusFreefallIsothermal                            (i)=massDistribution_%radiusFreefall                            (time                                      )
+        radiusFreefallIsothermalNumerical                   (i)=massDistribution_%radiusFreefallNumerical                   (time                                      )
+        radiusFreefallGrowthRateIsothermal                  (i)=massDistribution_%radiusFreefallIncreaseRate                (time                                      )
+        radiusFreefallGrowthRateIsothermalNumerical         (i)=massDistribution_%radiusFreefallIncreaseRateNumerical       (time                                      )
+     end do
   end select
-  do i=1,4
-     radius                                                 =300.0d-3/2.0d0**(4-i)
-     position                                               =[radius,0.0d0,0.0d0]
-     positionReference                                      =[300.0d-3,0.0d0,0.0d0]
-     time                                                   =         2.0d0**(i-1)
-     radiiIsothermal                                     (i)=radius
-     massIsothermal                                      (i)=massDistribution_   %massEnclosedBySphere             (radius                                    )
-     massIsothermalNumerical                             (i)=massDistributionTest%massEnclosedBySphere             (radius                                    )
-     densityIsothermal                                   (i)=massDistribution_   %density                          (position                                  )
-     velocityCircularIsothermal                          (i)=massDistribution_   %rotationCurve                    (radius                                    )
-     radiusEnclosingMassIsothermal                       (i)=massDistribution_   %radiusEnclosingMass              (      massIsothermal(i)                   )
-     radiusEnclosingMassIsothermalNumerical              (i)=massDistributionTest%radiusEnclosingMass              (      massIsothermal(i)                   )
-     radiusEnclosingDensityIsothermal                    (i)=massDistribution_   %radiusEnclosingDensity           (3.0d0*massIsothermal(i)/4.0d0/Pi/radius**3)
-     radiusEnclosingDensityIsothermalNumerical           (i)=massDistributionTest%radiusEnclosingDensity           (3.0d0*massIsothermal(i)/4.0d0/Pi/radius**3)
-     radiusFromSpecificAngularMomentumIsothermal         (i)=massDistribution_   %radiusFromSpecificAngularMomentum(velocityCircularIsothermal(i)*radius      )
-     radiusFromSpecificAngularMomentumIsothermalNumerical(i)=massDistributionTest%radiusFromSpecificAngularMomentum(velocityCircularIsothermal(i)*radius      )
-     densitySlopeIsothermal                              (i)=massDistribution_   %densityGradientRadial            (position,logarithmic=.true.               )
-     densitySlopeIsothermalNumerical                     (i)=massDistributionTest%densityGradientRadial            (position,logarithmic=.true.               )
-     potentialIsothermal                                 (i)=massDistribution_   %potential                        (position                                  )
-     potentialIsothermalDifferenceNumerical              (i)=massDistributionTest%potentialDifference              (positionReference,position                )  
-     densityMomentIsothermal                             (i)=massDistribution_   %densityRadialMoment              (-dble(i-1),300.0d-3/8.0d0,300.0d-3/1.0d0  )
-     fourierTransformIsothermal                          (i)=massDistribution_   %fourierTransform                 (300.0d-3,1.0d0/radius                     )
-     fourierTransformIsothermalNumerical                 (i)=massDistributionTest%fourierTransform                 (300.0d-3,1.0d0/radius                     )
-     radiusFreefallIsothermal                            (i)=massDistribution_   %radiusFreefall                   (time                                      )
-     radiusFreefallIsothermalNumerical                   (i)=massDistributionTest%radiusFreefall                   (time                                      )
-     radiusFreefallGrowthRateIsothermal                  (i)=massDistribution_   %radiusFreefallIncreaseRate       (time                                      )
-     radiusFreefallGrowthRateIsothermalNumerical         (i)=massDistributionTest%radiusFreefallIncreaseRate       (time                                      )
-  end do
   call Assert(                                                                                             &
        &      "M(r) at r=[⅛,¼,½,1]rₗ"                                                                    , &
        &      massIsothermal                                                                             , &
@@ -719,7 +716,6 @@ program Test_Mass_Distributions
        &      -3.58417d15                                                                                , &
        &      relTol=1.0d-3                                                                                &
        &     )
-  deallocate(massDistributionTest)
   call Unit_Tests_End_Group()
 
   ! End unit tests.
