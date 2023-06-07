@@ -156,12 +156,14 @@ module MPI_Utilities
      <methods>
        <method description="Increment the counter and return the new value." method="increment"/>
        <method description="Decrement the counter and return the new value." method="decrement"/>
+       <method description="Get the current value of the counter."           method="get"      />
        <method description="Reset the counter."                              method="reset"    />
      </methods>
      !!]
      final     ::              counterDestructor
      procedure :: increment => counterIncrement
      procedure :: decrement => counterDecrement
+     procedure :: get       => counterGet
      procedure :: reset     => counterReset
   end type mpiCounter
 
@@ -2029,17 +2031,16 @@ contains
     !!{
     Constructor for MPI counter class.
     !!}
-    use, intrinsic :: ISO_C_Binding, only : C_Null_Ptr           , C_F_Pointer
+    use, intrinsic :: ISO_C_Binding, only : C_Null_Ptr
 #ifdef USEMPI
     use            :: Error        , only : Error_Report
-    use            :: MPI_F08      , only : MPI_Win_Create       , MPI_Address_Kind, MPI_Info_Null      , MPI_Alloc_Mem, &
+    use            :: MPI_F08      , only : MPI_Win_Allocate     , MPI_Address_Kind, MPI_Info_Null      , MPI_Alloc_Mem, &
          &                                  MPI_TypeClass_Integer, MPI_SizeOf      , MPI_Type_Match_Size
 #endif
     implicit none
-    type   (mpiCounter)          :: self
+    type   (mpiCounter) :: self
 #ifdef USEMPI
-    integer                      :: mpiSize            , iError
-    integer(c_size_t  ), pointer :: countInitialPointer
+    integer             :: mpiSize, iError
 
     call MPI_SizeOf(0_c_size_t,mpiSize,iError)
     if (iError /= 0) call Error_Report('failed to get type size'//{introspection:location})
@@ -2047,15 +2048,12 @@ contains
     if (iError /= 0) call Error_Report('failed to get type'     //{introspection:location})
     if (mpiSelf%rank() == 0) then
        ! The rank-0 process allocates space for the counter and creates its window.
-       call MPI_Alloc_Mem(int(mpiSize,kind=MPI_Address_Kind),MPI_Info_Null,self%counter,iError)
-       if (iError /= 0) call Error_Report('failed to allocate counter memory'//{introspection:location})
-       call C_F_Pointer(self%counter,countInitialPointer)
-       call MPI_Win_Create(countInitialPointer,int(mpiSize,kind=MPI_Address_Kind),mpiSize,MPI_Info_Null,mpiSelf%communicator,self%window,iError)
+       call MPI_Win_Allocate(int(mpiSize,kind=MPI_Address_Kind),1,MPI_Info_Null,mpiSelf%communicator,self%counter,self%window,iError)
        if (iError /= 0) call Error_Report('failed to create RMA window'//{introspection:location})
        call mpiBarrier()
     else
        ! Other processes create a zero-size window.
-       call MPI_Win_Create(C_Null_Ptr  ,               0_MPI_Address_Kind,mpiSize,MPI_Info_Null,mpiSelf%communicator,self%window,iError)
+       call MPI_Win_Allocate(0_MPI_Address_Kind                ,1,MPI_Info_Null,mpiSelf%communicator,self%counter,self%window,iError)
        if (iError /= 0) call Error_Report('failed to create RMA window'//{introspection:location})
        call mpiBarrier()
     end if
@@ -2218,5 +2216,38 @@ contains
 #endif
     return
   end function counterDecrement
+
+  function counterGet(self)
+    !!{
+    Return the current value of an MPI counter.
+    !!}
+#ifdef USEMPI
+    use :: Error  , only : Error_Report
+    use :: MPI_F08, only : MPI_Win_Lock    , MPI_Get, MPI_Win_Unlock, MPI_Lock_Exclusive, &
+    &                      MPI_Address_Kind
+#endif
+    implicit none
+    integer(c_size_t  )                :: counterGet
+    class  (mpiCounter), intent(inout) :: self
+#ifdef USEMPI
+    integer(c_size_t  ), dimension(1)  :: counterOut
+    integer                            :: iError
+
+    !$ call self%ompLock_%  set()
+    call MPI_Win_Lock(MPI_Lock_Exclusive,0,0,self%window,iError)
+    if (iError /= 0) call Error_Report('failed to lock RMA window'           //{introspection:location})
+    call MPI_Get(counterOut,1,self%typeClass,0,0_MPI_Address_Kind,1,self%typeClass,self%window,iError)
+    if (iError /= 0) call Error_Report('failed to get value from MPI counter'//{introspection:location})
+    call MPI_Win_Unlock(0,self%window,iError)
+    if (iError /= 0) call Error_Report('failed to unlock RMA window'         //{introspection:location})
+    !$ call self%ompLock_%unset()
+    counterGet=counterOut(1)-1_c_size_t
+#else
+    !$ call self%ompLock_%  set()
+    counterGet=self%counter-1_c_size_t
+    !$ call self%ompLock_%unset()
+#endif
+    return
+  end function counterGet
 
 end module MPI_Utilities

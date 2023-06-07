@@ -42,8 +42,9 @@
      class  (galacticDynamicsBarInstabilityClass), pointer :: galacticDynamicsBarInstability_ => null()
      logical                                               :: luminositiesStellarInactive
    contains
-     final     ::                          barInstabilityDestructor
-     procedure :: differentialEvolution => barInstabilityDifferentialEvolution
+     final     ::                                   barInstabilityDestructor
+     procedure :: differentialEvolutionAnalytics => barInstabilityDifferentialEvolutionAnalytics
+     procedure :: differentialEvolution          => barInstabilityDifferentialEvolution
   end type nodeOperatorBarInstability
 
   interface nodeOperatorBarInstability
@@ -117,6 +118,30 @@ contains
     return
   end subroutine barInstabilityDestructor
   
+  subroutine barInstabilityDifferentialEvolutionAnalytics(self,node)
+    !!{
+    Initialize the mass transfer fraction.
+    !!}
+    use :: Galacticus_Nodes, only : nodeComponentDisk
+    implicit none
+    class(nodeOperatorBarInstability), intent(inout) :: self
+    type (treeNode                  ), intent(inout) :: node
+    class(nodeComponentDisk         ), pointer       :: disk
+
+    ! Mark the retained stellar mass fraction as analytically-solvable (it is always zero) if we are not solving for luminosities
+    ! as inactive properties.
+    if (.not.self%luminositiesStellarInactive) then
+       disk => node%disk()
+       select type (disk)
+       type is (nodeComponentDisk)
+          ! Disk does not yet exist.
+       class default
+          call disk%fractionMassRetainedAnalytic()
+       end select
+    end if
+    return
+  end subroutine barInstabilityDifferentialEvolutionAnalytics
+
   subroutine barInstabilityDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
     !!{
     Implement the effects of global bar instability on the galactic disk.
@@ -167,8 +192,10 @@ contains
     call                                      disk    %massGasRate             (-                                                    transferRate                            )
     call                                      spheroid%massGasRate             (+                                                    transferRate,interrupt,functionInterrupt)
     ! Fraction of stellar mass transferred.
-    transferRate               =max(         0.0d0         ,disk    %fractionMassRetained(                         ))/barInstabilityTimescale
-    call                                      disk    %fractionMassRetainedRate(-                                                    transferRate                            )
+    if (self%luminositiesStellarInactive) then
+       transferRate            =max(         0.0d0         ,disk    %fractionMassRetained(                         ))/barInstabilityTimescale
+       call                                   disk    %fractionMassRetainedRate(-                                                    transferRate                            )
+    end if
     ! Stellar mass.
     transferRate               =max(         0.0d0         ,disk    %massStellar         (                         ))/barInstabilityTimescale
     call                                      disk    %massStellarRate         (-                                                    transferRate                            )

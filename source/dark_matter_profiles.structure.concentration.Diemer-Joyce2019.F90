@@ -320,34 +320,34 @@ contains
          &  .or.                               &
          &   basic%time() /= self%timePrevious &
          & ) then
-       peakHeight                       =+self%criticalOverdensity_     %value                               (time=basic%time(),mass=basic%mass(),node=node) &
-            &                            /self%cosmologicalMassVariance_%rootVariance                        (time=basic%time(),mass=basic%mass()          )
-       massHalo                         =+self%kappa**3                                                                                                      &
-            &                            *basic%mass()
-       powerSpectrumSlope=-6.0d0                                                                                                                             &
-            &                            *self%cosmologicalMassVariance_%rootVarianceLogarithmicGradient     (time=basic%time(),mass=massHalo              ) &
-            &                            -3.0d0
-       alphaEffective                   =+self%linearGrowth_            %logarithmicDerivativeExpansionFactor(time=basic%time())
-       A                                =+self%a0                                                                                                            &
-            &                            *(                                                                                                                  &
-            &                             +1.0d0                                                                                                             &
-            &                             +self%a1*(powerSpectrumSlope+3.0d0)                                                                                &
-            &                             )
-       B                                =+self%b0                                                                                                            &
-            &                            *(                                                                                                                  &
-            &                             +1.0d0                                                                                                             &
-            &                             +self%b1*(powerSpectrumSlope+3.0d0)                                                                                &
-            &                             )
-       C                                =+1.0d0                                                                                                              &
-            &                            -self%cAlpha*(1.0d0-alphaEffective)
+       peakHeight        =+self%criticalOverdensity_     %value                               (time=basic%time(),mass=basic%mass(),node=node) &
+            &             /self%cosmologicalMassVariance_%rootVariance                        (time=basic%time(),mass=basic%mass()          )
+       massHalo          =+self%kappa**3                                                                                                      &
+            &             *basic%mass()
+       powerSpectrumSlope=-6.0d0                                                                                                              &
+            &             *self%cosmologicalMassVariance_%rootVarianceLogarithmicGradient     (time=basic%time(),mass=massHalo              ) &
+            &             -3.0d0
+       alphaEffective    =+self%linearGrowth_            %logarithmicDerivativeExpansionFactor(time=basic%time())
+       A                 =+self%a0                                                                                                            &
+            &             *(                                                                                                                  &
+            &              +1.0d0                                                                                                             &
+            &              +self%a1*(powerSpectrumSlope+3.0d0)                                                                                &
+            &              )
+       B                 =+self%b0                                                                                                            &
+            &             *(                                                                                                                  &
+            &              +1.0d0                                                                                                             &
+            &              +self%b1*(powerSpectrumSlope+3.0d0)                                                                                &
+            &              )
+       C                 =+1.0d0                                                                                                              &
+            &             -self%cAlpha*(1.0d0-alphaEffective)
        if (self%includeUpturn) then
-          termUpturn=+1.0d0+peakHeight**2/B
+          termUpturn     =+1.0d0+peakHeight**2/B
        else
-          termUpturn=+1.0d0
+          termUpturn     =+1.0d0
        end if
-       GRoot_             =+A                                                                                                                                &
-            &                            /peakHeight                                                                                                         &
-            &                            *termUpturn
+       GRoot_            =+A                                                                                                                  &
+            &             /peakHeight                                                                                                         &
+            &             *termUpturn
        ! Initial guess of the concentration.
        if (self%GTildePrevious < 0.0d0) self%GTildePrevious=5.0d0
        ! Solve for the concentration.
