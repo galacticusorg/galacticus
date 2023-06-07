@@ -55,7 +55,7 @@ contains
 
   function localConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily iosothermal} kinematic distribution class which builds the object from a parameter
+    Constructor for the {\normalfont \ttfamily isothermal} kinematic distribution class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters, only : inputParameters
