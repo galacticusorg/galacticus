@@ -27,7 +27,6 @@ module Node_Component_Disk_Very_Simple
   !!}
   use :: Cosmology_Functions             , only : cosmologyFunctionsClass
   use :: Dark_Matter_Halo_Scales         , only : darkMatterHaloScaleClass
-  use :: Dark_Matter_Profiles_DMO        , only : darkMatterProfileDMOClass
   use :: Galacticus_Nodes                , only : treeNode
   use :: Math_Exponentiation             , only : fastExponentiator
   use :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
@@ -109,9 +108,8 @@ module Node_Component_Disk_Very_Simple
   class(darkMatterHaloScaleClass        ), pointer :: darkMatterHaloScale_
   class(stellarFeedbackOutflowsClass    ), pointer :: stellarFeedbackOutflows_
   class(starFormationRateDisksClass     ), pointer :: starFormationRateDisks_
-  class(darkMatterProfileDMOClass       ), pointer :: darkMatterProfileDMO_
   class(mergerMassMovementsClass        ), pointer :: mergerMassMovements_
-  !$omp threadprivate(cosmologyFunctions_,stellarPopulationProperties_,darkMatterHaloScale_,stellarFeedbackOutflows_,starFormationRateDisks_,darkMatterProfileDMO_,mergerMassMovements_)
+  !$omp threadprivate(cosmologyFunctions_,stellarPopulationProperties_,darkMatterHaloScale_,stellarFeedbackOutflows_,starFormationRateDisks_,mergerMassMovements_)
 
   ! Record of whether to use the simple disk analytic solver.
   logical                             :: useAnalyticSolver
@@ -217,7 +215,6 @@ contains
        <objectBuilder class="cosmologyFunctions"          name="cosmologyFunctions_"          source="subParameters"/>
        <objectBuilder class="stellarPopulationProperties" name="stellarPopulationProperties_" source="subParameters"/>
        <objectBuilder class="darkMatterHaloScale"         name="darkMatterHaloScale_"         source="subParameters"/>
-       <objectBuilder class="darkMatterProfileDMO"        name="darkMatterProfileDMO_"        source="subParameters"/>
        <objectBuilder class="stellarFeedbackOutflows"     name="stellarFeedbackOutflows_"     source="subParameters"/>
        <objectBuilder class="starFormationRateDisks"      name="starFormationRateDisks_"      source="subParameters"/>
        <objectBuilder class="mergerMassMovements"         name="mergerMassMovements_"         source="subParameters"/>
@@ -248,7 +245,6 @@ contains
        <objectDestructor name="cosmologyFunctions_"         />
        <objectDestructor name="stellarPopulationProperties_"/>
        <objectDestructor name="darkMatterHaloScale_"        />
-       <objectDestructor name="darkMatterProfileDMO_"       />
        <objectDestructor name="stellarFeedbackOutflows_"    />
        <objectDestructor name="starFormationRateDisks_"     />
        <objectDestructor name="mergerMassMovements_"        />
@@ -883,7 +879,7 @@ contains
 
     call displayMessage('Storing state for: componentDisk -> verySimple',verbosity=verbosityLevelInfo)
     !![
-    <stateStore variables="cosmologyFunctions_ stellarPopulationProperties_ darkMatterHaloScale_ stellarFeedbackOutflows_ starFormationRateDisks_ darkMatterProfileDMO_ mergerMassMovements_"/>
+    <stateStore variables="cosmologyFunctions_ stellarPopulationProperties_ darkMatterHaloScale_ stellarFeedbackOutflows_ starFormationRateDisks_ mergerMassMovements_"/>
     !!]
     return
   end subroutine Node_Component_Disk_Very_Simple_State_Store
@@ -906,7 +902,7 @@ contains
 
     call displayMessage('Retrieving state for: componentDisk -> verySimple',verbosity=verbosityLevelInfo)
     !![
-    <stateRestore variables="cosmologyFunctions_ stellarPopulationProperties_ darkMatterHaloScale_ stellarFeedbackOutflows_ starFormationRateDisks_ darkMatterProfileDMO_ mergerMassMovements_"/>
+    <stateRestore variables="cosmologyFunctions_ stellarPopulationProperties_ darkMatterHaloScale_ stellarFeedbackOutflows_ starFormationRateDisks_ mergerMassMovements_"/>
     !!]
     return
   end subroutine Node_Component_Disk_Very_Simple_State_Restore
