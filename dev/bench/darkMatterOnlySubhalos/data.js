@@ -1,45 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1686268515676,
+  "lastUpdate": 1686268524363,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@obs.carnegiescience.edu"
-          },
-          "committer": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@obs.carnegiescience.edu"
-          },
-          "id": "5320624a3134d387872f33262097c0c609286d1c",
-          "message": "fix: Remove obsoleted branch name extract steps",
-          "timestamp": "2022-10-12T16:22:52Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/5320624a3134d387872f33262097c0c609286d1c"
-        },
-        "date": 1665592712646,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 56.4862273307091,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 25.5165582430658,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 15423.3632579593,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8717,6 +8680,45 @@ window.BENCHMARK_DATA = {
             "value": 48.587,
             "unit": "seconds",
             "range": 0.0224521713859421
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "d7e8d701de321cad9797a17d560893304a79bdfb",
+          "message": "fix: Serialize deadlock reporting in threaded tree evolution",
+          "timestamp": "2023-06-08T13:50:40-07:00",
+          "tree_id": "86a1940c08b46a1edd34e0bc30a6b2c7f898f1cb",
+          "url": "https://github.com/galacticusorg/galacticus/commit/d7e8d701de321cad9797a17d560893304a79bdfb"
+        },
+        "date": 1686268523393,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 57.6748844868819,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 25.9524525639199,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 23715.206261202,
+            "unit": "-logℒ"
           }
         ]
       }
