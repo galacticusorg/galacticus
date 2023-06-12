@@ -121,15 +121,16 @@ contains
     Return the dark matter mass distribution for the given {\normalfont \ttfamily node}.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentBasic
-    use :: Galactic_Structure_Options, only : componentTypeDarkHalo     , massTypeDark, weightByMass
-    use :: Mass_Distributions        , only : massDistributionIsothermal
+    use :: Galactic_Structure_Options, only : componentTypeDarkHalo     , massTypeDark                    , weightByMass
+    use :: Mass_Distributions        , only : massDistributionIsothermal, kinematicsDistributionIsothermal
     implicit none
-    class           (massDistributionClass         ), pointer                 :: massDistribution_
-    class           (darkMatterProfileDMOIsothermal), intent(inout)           :: self
-    type            (treeNode                      ), intent(inout)           :: node
-    type            (enumerationWeightByType       ), intent(in   ), optional :: weightBy
-    integer                                         , intent(in   ), optional :: weightIndex
-    class           (nodeComponentBasic            ), pointer                 :: basic
+    class           (massDistributionClass           ), pointer                 :: massDistribution_
+    type            (kinematicsDistributionIsothermal), pointer                 :: kinematicsDistribution_
+    class           (darkMatterProfileDMOIsothermal  ), intent(inout)           :: self
+    type            (treeNode                        ), intent(inout)           :: node
+    type            (enumerationWeightByType         ), intent(in   ), optional :: weightBy
+    integer                                           , intent(in   ), optional :: weightIndex
+    class           (nodeComponentBasic              ), pointer                 :: basic
     !![
     <optionalArgument name="weightBy" defaultsTo="weightByMass" />
     !!]
@@ -156,6 +157,20 @@ contains
        </referenceConstruct>
        !!]
     end select
+    allocate(kinematicsDistribution_)
+    !![
+    <referenceConstruct object="kinematicsDistribution_">
+      <constructor>
+        kinematicsDistributionIsothermal(                                                                                &amp;
+        &amp;                            velocityDispersion_=self %darkMatterHaloScale_%velocityVirial(node)/sqrt(2.0d0) &amp;
+        &amp;                           )
+	 </constructor>
+    </referenceConstruct>
+    !!]
+    call massDistribution_%setKinematicsDistribution(kinematicsDistribution_)
+    !![
+    <objectDestructor name="kinematicsDistribution_"/>
+    !!]
     return
   end function isothermalGet
 
