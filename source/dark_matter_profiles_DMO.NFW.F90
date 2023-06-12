@@ -101,6 +101,7 @@
      final     ::                                                     nfwDestructor
      procedure :: autoHook                                         => nfwAutoHook
      procedure :: calculationReset                                 => nfwCalculationReset
+     procedure :: get                                              => nfwGet
      procedure :: density                                          => nfwDensity
      procedure :: densityLogSlope                                  => nfwDensityLogSlope
      procedure :: radialMoment                                     => nfwRadialMoment
@@ -290,6 +291,67 @@ contains
     self%lastUniqueID                           =node%uniqueID()
     return
   end subroutine nfwCalculationReset
+
+  function nfwGet(self,node,weightBy,weightIndex) result(massDistribution_)
+    !!{
+    Return the dark matter mass distribution for the given {\normalfont \ttfamily node}.
+    !!}
+    use :: Galacticus_Nodes          , only : nodeComponentBasic   , nodeComponentDarkMatterProfile
+    use :: Galactic_Structure_Options, only : componentTypeDarkHalo, massTypeDark                   , weightByMass
+    use :: Mass_Distributions        , only : massDistributionNFW  , kinematicsDistributionNFW
+    implicit none
+    class           (massDistributionClass         ), pointer                 :: massDistribution_
+    type            (kinematicsDistributionNFW     ), pointer                 :: kinematicsDistribution_
+    class           (darkMatterProfileDMONFW       ), intent(inout)           :: self
+    type            (treeNode                      ), intent(inout)           :: node
+    type            (enumerationWeightByType       ), intent(in   ), optional :: weightBy
+    integer                                         , intent(in   ), optional :: weightIndex
+    class           (nodeComponentBasic            ), pointer                 :: basic
+    class           (nodeComponentDarkMatterProfile), pointer                 :: darkMatterProfile
+    !![
+    <optionalArgument name="weightBy" defaultsTo="weightByMass" />
+    !!]
+
+    ! Assume a null distribution by default.
+    massDistribution_ => null()
+    ! If weighting is not by mass, return a null profile.
+    if (weightBy_ /= weightByMass) return
+    ! Create the mass distribution.
+    allocate(massDistributionNFW :: massDistribution_)
+    select type(massDistribution_)
+    type is (massDistributionNFW)
+       basic             => node%basic            ()
+       darkMatterProfile => node%darkMatterProfile()
+       !![
+       <referenceConstruct object="massDistribution_">
+	 <constructor>
+           massDistributionNFW(                                                                                  &amp;
+           &amp;               mass         =basic            %mass                                      (    ), &amp;
+           &amp;               virialRadius =self             %darkMatterHaloScale_%radiusVirial         (node), &amp;
+           &amp;               scaleLength  =darkMatterProfile%scale                                     (    ), &amp;
+           &amp;               componentType=                                       componentTypeDarkHalo      , &amp;
+           &amp;               massType     =                                       massTypeDark                 &amp;
+           &amp;              )
+	 </constructor>
+       </referenceConstruct>
+       !!]
+    end select
+    allocate(kinematicsDistribution_)
+    !![
+    <referenceConstruct object="kinematicsDistribution_">
+      <constructor>
+        kinematicsDistributionNFW(                                                                 &amp;
+	 &amp;                    useSeriesApproximation=self%velocityDispersionUseSeriesExpansion &amp;
+	 &amp;                   )
+      </constructor>
+    </referenceConstruct>
+    !!]
+    call massDistribution_%setKinematicsDistribution(kinematicsDistribution_)
+    !![
+    <objectDestructor name="kinematicsDistribution_"/>
+    !!]
+    return
+  end function nfwGet
 
   subroutine nfwTabulate(self,concentration)
     !!{

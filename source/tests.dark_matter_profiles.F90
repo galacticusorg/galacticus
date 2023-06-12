@@ -25,26 +25,30 @@ program Test_Dark_Matter_Profiles
   !!{
   Tests dark matter profiles.
   !!}
-  use :: Calculations_Resets         , only : Calculations_Reset
-  use :: Cosmology_Parameters        , only : cosmologyParametersSimple
-  use :: Cosmology_Functions         , only : cosmologyFunctionsMatterLambda
-  use :: Dark_Matter_Particles       , only : darkMatterParticleSelfInteractingDarkMatter                   , darkMatterParticleCDM
-  use :: Dark_Matter_Halo_Scales     , only : darkMatterHaloScaleVirialDensityContrastDefinition
-  use :: Dark_Matter_Profiles_DMO    , only : darkMatterProfileDMOBurkert                                   , darkMatterProfileDMONFW             , darkMatterProfileDMOFiniteResolution, darkMatterProfileDMOSIDMCoreNFW, &
-       &                                      darkMatterProfileDMOSIDMIsothermal
-  use :: Dark_Matter_Profiles        , only : darkMatterProfileSIDMIsothermal                               , darkMatterProfileAdiabaticGnedin2004
-  use :: Dark_Matter_Profiles_Generic, only : nonAnalyticSolversNumerical
-  use :: Galactic_Structure          , only : galacticStructureStandard
-  use :: Virial_Density_Contrast     , only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt, virialDensityContrastFixed          , fixedDensityTypeCritical
-  use :: Events_Hooks                , only : eventsHooksInitialize
-  use :: Functions_Global_Utilities  , only : Functions_Global_Set
-  use :: Display                     , only : displayVerbositySet                                           , verbosityLevelStandard
-  use :: Galacticus_Nodes            , only : nodeClassHierarchyFinalize                                    , nodeClassHierarchyInitialize        , nodeComponentBasic                   , nodeComponentDarkMatterProfile, &
-          &                                   treeNode                                                      , nodeComponentSpheroid
-  use :: Input_Parameters            , only : inputParameters
-  use :: ISO_Varying_String          , only : varying_string                                                , assignment(=)                       , var_str
-  use :: Node_Components             , only : Node_Components_Initialize                                    , Node_Components_Thread_Initialize   , Node_Components_Thread_Uninitialize  , Node_Components_Uninitialize
-  use :: Unit_Tests                  , only : Assert                                                        , Unit_Tests_Begin_Group              , Unit_Tests_End_Group                 , Unit_Tests_Finish
+  use :: Calculations_Resets             , only : Calculations_Reset
+  use :: Coordinates                     , only : coordinateSpherical                                           , assignment(=)
+  use :: Cosmology_Parameters            , only : cosmologyParametersSimple
+  use :: Cosmology_Functions             , only : cosmologyFunctionsMatterLambda
+  use :: Dark_Matter_Particles           , only : darkMatterParticleSelfInteractingDarkMatter                   , darkMatterParticleCDM
+  use :: Dark_Matter_Halo_Scales         , only : darkMatterHaloScaleVirialDensityContrastDefinition
+  use :: Dark_Matter_Profiles_DMO        , only : darkMatterProfileDMOBurkert                                   , darkMatterProfileDMONFW             , darkMatterProfileDMOFiniteResolution, darkMatterProfileDMOSIDMCoreNFW, &
+       &                                          darkMatterProfileDMOSIDMIsothermal
+  use :: Dark_Matter_Profiles            , only : darkMatterProfileSIDMIsothermal                               , darkMatterProfileAdiabaticGnedin2004
+  use :: Dark_Matter_Profiles_Generic    , only : nonAnalyticSolversNumerical
+  use :: Galactic_Structure              , only : galacticStructureStandard
+  use :: Virial_Density_Contrast         , only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt, virialDensityContrastFixed          , fixedDensityTypeCritical
+  use :: Events_Hooks                    , only : eventsHooksInitialize
+  use :: Functions_Global_Utilities      , only : Functions_Global_Set
+  use :: Display                         , only : displayVerbositySet                                           , verbosityLevelStandard
+  use :: Mass_Distributions              , only : massDistributionClass                                         , massDistributionSpherical           , kinematicsDistributionClass
+  use :: Galacticus_Nodes                , only : nodeClassHierarchyFinalize                                    , nodeClassHierarchyInitialize        , nodeComponentBasic                   , nodeComponentDarkMatterProfile, &
+          &                                       treeNode                                                      , nodeComponentSpheroid
+  use :: Numerical_Constants_Math        , only : Pi
+  use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus, Mpc_per_km_per_s_To_Gyr
+  use :: Input_Parameters                , only : inputParameters
+  use :: ISO_Varying_String              , only : varying_string                                                , assignment(=)                       , var_str
+  use :: Node_Components                 , only : Node_Components_Initialize                                    , Node_Components_Thread_Initialize   , Node_Components_Thread_Uninitialize  , Node_Components_Uninitialize
+  use :: Unit_Tests                      , only : Assert                                                        , Unit_Tests_Begin_Group              , Unit_Tests_End_Group                 , Unit_Tests_Finish
   implicit none
   type            (treeNode                                                      ), pointer      :: node                                                                                                , &
        &                                                                                            nodePippin                                                                                          , &
@@ -52,6 +56,8 @@ program Test_Dark_Matter_Profiles
   class           (nodeComponentBasic                                            ), pointer      :: basic
   class           (nodeComponentDarkMatterProfile                                ), pointer      :: dmProfile
   class           (nodeComponentSpheroid                                         ), pointer      :: spheroid
+  class           (massDistributionClass                                         ), pointer      :: massDistribution_
+  class           (kinematicsDistributionClass                                   ), pointer      :: kinematicsDistribution_
   double precision                                                                , parameter    :: concentration                       = 8.0d0                                                         , &
        &                                                                                            massVirial                          = 1.0d0                                                         , &
        ! Mass and concentration of Pippin halos (Jiang et al. 2022).
@@ -64,9 +70,15 @@ program Test_Dark_Matter_Profiles
        &                                                                                            fractionMassBaryonicJiang           =1.0d-2                                                         , &
        &                                                                                            fractionRadiusHalfMassJiang         =2.0d-2                                                         , &
        &                                                                                            radiusHalfMassDimensionlessHernquist=1.0d0/(sqrt(2.0d0)-1.0d0)
-  double precision                                                                , dimension(7) :: radius                              =[0.125d0, 0.250d0, 0.500d0, 1.000d0, 2.000d0, 4.000d0, 8.000d0]
+  double precision                                                                , dimension(7) :: radius                              =[0.125000d0,0.25000d0,0.50000d0,1.00000d0,2.00000d0,4.00000d0,8.00000d0]
+  double precision                                                                , dimension(7) :: timeFreefall                        =[0.864113d0,1.29807d0,2.04324d0,3.44421d0,6.32148d0,1.26727d1,2.74642d1]
   double precision                                                                , dimension(7) :: mass                                                                                                , &
        &                                                                                            density                                                                                             , &
+       &                                                                                            radiusRecoveredFromMass                                                                             , &
+       &                                                                                            radiusRecoveredFromDensity                                                                          , &
+       &                                                                                            radiusRecoveredFromTimeFreefall                                                                     , &
+       &                                                                                            radiusRecoveredFromSpecificAngularMomentum                                                          , &
+       &                                                                                            potential                                                                                           , &
        &                                                                                            fourier                                                                                             , &
        &                                                                                            radialVelocityDispersion                                                                            , &
        &                                                                                            radialVelocityDispersionSeriesExpansion
@@ -91,9 +103,18 @@ program Test_Dark_Matter_Profiles
        &                                                                                            darkMatterHaloScalePippin_
   type            (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt), pointer      :: virialDensityContrast_
   type            (virialDensityContrastFixed                                    ), pointer      :: virialDensityContrastPippin_
+  type            (coordinateSpherical                                           )               :: coordinates
   type            (inputParameters                                               )               :: parameters
   integer                                                                                        :: i
-  double precision                                                                               :: radiusScale
+  double precision                                                                               :: radiusScale                                                                                         , &
+       &                                                                                            timeScale                                                                                           , &
+       &                                                                                            radiusVelocityMaximum                                                                               , &
+       &                                                                                            velocityMaximum                                                                                     , &
+       &                                                                                            velocityMaximumIndirect                                                                             , &
+       &                                                                                            radiusVirial                                                                                        , &
+       &                                                                                            energy                                                                                              , &
+       &                                                                                            energyNumerical, densityNormalization
+
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -173,8 +194,15 @@ program Test_Dark_Matter_Profiles
   call basic%timeSet(cosmologyFunctions_%cosmicTime(1.0d0))
   call basic%massSet(massVirial                           )
   ! Compute scale radius.
-  radiusScale=+darkMatterHaloScale_%radiusVirial(node) &
-       &      /concentration
+  radiusScale         =+darkMatterHaloScale_%radiusVirial(node)      &
+       &               /concentration
+  densityNormalization=+massVirial                                   &
+       &               /radiusScale**3
+  timeScale            =+1.0d0/sqrt(                                 &
+         &                          +gravitationalConstantGalacticus &
+         &                          *densityNormalization            &
+         &                         )                                 &
+         &        *Mpc_per_km_per_s_To_Gyr
   call dmProfile%scaleSet(radiusScale)
   ! Build dark matter profiles.
   !![
@@ -269,57 +297,128 @@ program Test_Dark_Matter_Profiles
   call Unit_Tests_End_Group       ()
   ! Test NFW profile.
   call Unit_Tests_Begin_Group('NFW profile')
-  do i=1,7
-     mass                                   (i)=darkMatterProfileDMONFW_               %enclosedMass            (node,      radiusScale*radius(i))
-     density                                (i)=darkMatterProfileDMONFW_               %density                 (node,      radiusScale*radius(i))*radiusScale**3
-     fourier                                (i)=darkMatterProfileDMONFW_               %kSpace                  (node,1.0d0/radiusScale/radius(i))
-     radialVelocityDispersion               (i)=darkMatterProfileDMONFW_               %radialVelocityDispersion(node,      radiusScale*radius(i))
-     radialVelocityDispersionSeriesExpansion(i)=darkMatterProfileDMONFWSeriesExpansion_%radialVelocityDispersion(node,      radiusScale*radius(i))
-  end do
+  massDistribution_       => darkMatterProfileDMONFW_%get                   (node)
+  kinematicsDistribution_ => massDistribution_       %kinematicsDistribution(    )
+  radiusVirial            =  darkMatterHaloScale_    %radiusVirial          (node)
+  select type (massDistribution_)
+  class is (massDistributionSpherical)
+     do i=1,7
+        coordinates=[radiusScale*radius(i),0.0d0,0.0d0]
+        mass                                      (i)=massDistribution_      %massEnclosedBySphere             (                                                          radiusScale   *radius      (i)                      )
+        density                                   (i)=massDistribution_      %density                          (                                                                         coordinates                          )*radiusScale**3
+        radiusRecoveredFromMass                   (i)=massDistribution_      %radiusEnclosingMass              (                                                  mass(i)                                                     )/radiusScale
+        radiusRecoveredFromDensity                (i)=massDistribution_      %radiusEnclosingDensity           (                                   3.0d0/4.0d0/Pi*mass(i)/radiusScale**3/radius      (i)**3                   )/radiusScale
+        radiusRecoveredFromSpecificAngularMomentum(i)=massDistribution_      %radiusFromSpecificAngularMomentum(             sqrt(gravitationalConstantGalacticus*mass(i)*radiusScale   *radius      (i)   )                  )/radiusScale
+        radiusRecoveredFromTimeFreefall           (i)=massDistribution_      %radiusFreefall                   (                                                          timeScale     *timeFreefall(i)                      )/radiusScale
+        potential                                 (i)=massDistribution_      %potential                        (                                                                         coordinates                          )*radiusScale/gravitationalConstantGalacticus
+        fourier                                   (i)=massDistribution_      %fourierTransform                 (radiusVirial,1.0d0                                       /radiusScale   /radius      (i)                      )
+        radialVelocityDispersion                  (i)=kinematicsDistribution_%velocityDispersion1D             (                                                                         coordinates        ,massDistribution_)
+     end do
+     energy                 =massDistribution_%energy                      (radiusVirial         ,massDistribution_)
+     energyNumerical        =massDistribution_%energyNumerical             (radiusVirial         ,massDistribution_)
+     radiusVelocityMaximum  =massDistribution_%radiusRotationCurveMaximum  (                                       )
+     velocityMaximum        =massDistribution_%velocityRotationCurveMaximum(                                       )
+     velocityMaximumIndirect=massDistribution_%rotationCurve               (radiusVelocityMaximum                  )
+  end select
+  !![
+  <objectDestructor name="massDistribution_"      />
+  <objectDestructor name="kinematicsDistribution_"/>
+  !!]
   ! Radial velocity dispersion in units of virial velocity.
-  radialVelocityDispersion               =radialVelocityDispersion               /darkMatterHaloScale_%velocityVirial(node)
-  radialVelocityDispersionSeriesExpansion=radialVelocityDispersionSeriesExpansion/darkMatterHaloScale_%velocityVirial(node)
-  call Assert(                        &
-       &      'enclosed mass'       , &
-       &      mass                  , &
-       &      [                       &
-       &       5.099550982355504d-3 , &
-       &       1.768930674181593d-2 , &
-       &       5.513246746363203d-2 , &
-       &       1.476281525188409d-1 , &
-       &       3.301489257042704d-1 , &
-       &       6.186775455118112d-1 , &
-       &       1.000000000000000d+0   &
-       &      ]                     , &
-       &      relTol=1.0d-6           &
+  radialVelocityDispersion=radialVelocityDispersion/darkMatterHaloScale_%velocityVirial(node)
+  call Assert(                         &
+       &      'enclosed mass'        , &
+       &      mass                   , &
+       &      [                        &
+       &       5.099550982355504d-3  , &
+       &       1.768930674181593d-2  , &
+       &       5.513246746363203d-2  , &
+       &       1.476281525188409d-1  , &
+       &       3.301489257042704d-1  , &
+       &       6.186775455118112d-1  , &
+       &       1.000000000000000d+0    &
+       &      ]                      , &
+       &      relTol=1.0d-6            &
        &     )
-  call Assert(                        &
-       &      'density'             , &
-       &      density               , &
-       &      [                       &
-       &       3.844641857939078d-1 , &
-       &       1.557079952465327d-1 , &
-       &       5.406527612726829d-2 , &
-       &       1.520585891079421d-2 , &
-       &       3.379079757954268d-3 , &
-       &       6.082343564317684d-4 , &
-       &       9.386332660984080d-5   &
-       &      ]                     , &
-       &      relTol=1.0d-6           &
+  call Assert(                         &
+       &      'radius enclosing mass', &
+       &      radiusRecoveredFromMass, &
+       &      radius                 , &
+       &      relTol=1.0d-6            &
        &     )
-  call Assert(                        &
-       &      'fourier'             , &
-       &      fourier               , &
-       &      [                       &
-       &       1.099052711906094d-2 , &
-       &       3.746284433831412d-2 , &
-       &       1.127728075593513d-1 , &
-       &       2.619030036621630d-1 , &
-       &       5.434560723827092d-1 , &
-       &       8.448608065763800d-1 , &
-       &       9.579597044271230d-1   &
-       &      ]                     , &
-       &      relTol=1.0d-6           &
+  call Assert(                         &
+       &      'density'              , &
+       &      density                , &
+       &      [                        &
+       &       3.844641857939078d-1  , &
+       &       1.557079952465327d-1  , &
+       &       5.406527612726829d-2  , &
+       &       1.520585891079421d-2  , &
+       &       3.379079757954268d-3  , &
+       &       6.082343564317684d-4  , &
+       &       9.386332660984080d-5    &
+       &      ]                      , &
+       &      relTol=1.0d-6            &
+       &     )
+  call Assert(                            &
+       &      'radius enclosing density', &
+       &      radiusRecoveredFromDensity, &
+       &      radius                    , &
+       &      relTol=2.0d-4               &
+       &     )
+  call Assert(                                            &
+       &      'radius from specific angular momentum'   , &
+       &      radiusRecoveredFromSpecificAngularMomentum, &
+       &      radius                                    , &
+       &      relTol=2.0d-4                               &
+       &     )
+  call Assert(                                            &
+       &      'radius from freefall time'               , &
+       &      radiusRecoveredFromTimeFreefall           , &
+       &      radius                                    , &
+       &      relTol=2.0d-4                               &
+       &     )
+  call Assert(                       &
+       &      'potential'          , &
+       &      +potential             &
+       &      -potential(1)        , &
+       &      [                      &
+       &       4.412912928902085d-2, &
+       &       8.210873989889300d-2, &
+       &       1.445116765163305d-1, &
+       &       2.345367646465509d-1, &
+       &       3.444787600350539d-1, &
+       &       4.567944810866741d-1, &
+       &       5.544042971829187d-1  &
+       &      ]                      &
+       &      -4.412912928902085d-2, &
+       &      relTol=1.0d-6          &
+       &     )
+  call Assert(                         &
+       &      'fourier'              , &
+       &      fourier                , &
+       &      [                        &
+       &       1.099052711906094d-2  , &
+       &       3.746284433831412d-2  , &
+       &       1.127728075593513d-1  , &
+       &       2.619030036621630d-1  , &
+       &       5.434560723827092d-1  , &
+       &       8.448608065763800d-1  , &
+       &       9.579597044271230d-1    &
+       &      ]                      , &
+       &      relTol=1.0d-6            &
+       &     )
+  call Assert(                         &
+       &     'peak rotation velocity', &
+       &     velocityMaximum         , &
+       &     velocityMaximumIndirect , &
+       &     relTol=1.0d-6             &
+       &     )
+  call Assert(                         &
+       &     'energy'                , &
+       &     energy                  , &
+       &     energyNumerical         , &
+       &     relTol=1.0d-6             &
        &     )
   call Assert(                                                     &
        &      'radial velocity dispersion (analytic            )', &
@@ -335,6 +434,21 @@ program Test_Dark_Matter_Profiles
        &      ]                                                  , &
        &      relTol=1.0d-6                                        &
        &     )
+  massDistribution_       => darkMatterProfileDMONFWSeriesExpansion_%get                   (node)
+  kinematicsDistribution_ => massDistribution_                      %kinematicsDistribution(    )
+  select type (massDistribution_)
+  class is (massDistributionSpherical)
+     do i=1,7
+        coordinates                               =[radiusScale*radius(i),0.0d0,0.0d0]
+        radialVelocityDispersionSeriesExpansion(i)=kinematicsDistribution_%velocityDispersion1D(coordinates,massDistribution_)
+     end do
+  end select
+  !![
+  <objectDestructor name="massDistribution_"      />
+  <objectDestructor name="kinematicsDistribution_"/>
+  !!]
+  ! Radial velocity dispersion in units of virial velocity.
+  radialVelocityDispersionSeriesExpansion=radialVelocityDispersionSeriesExpansion/darkMatterHaloScale_%velocityVirial(node)
   call Assert(                                                     &
        &      'radial velocity dispersion (series approximation)', &
        &      radialVelocityDispersionSeriesExpansion            , &
@@ -446,7 +560,7 @@ program Test_Dark_Matter_Profiles
   </referenceConstruct>
   <referenceConstruct object="darkMatterParticleSelfInteractingDarkMatterJiang_">
    <!-- The cross-section is reduced here since Jiang use a halo age of 10 Gyr instead of the current age of the Universe. By
-	offsetting the cross-section by this factor we get the correct interaction radius.                                    -->
+        offsetting the cross-section by this factor we get the correct interaction radius.                                    -->
    <constructor>
     darkMatterParticleSelfInteractingDarkMatter       (                                                                                       &amp;
      &amp;                                             crossSectionSelfInteraction         =+1.0d0                                            &amp;
