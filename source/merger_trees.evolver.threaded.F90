@@ -441,7 +441,9 @@ contains
        ! Enter loop for deadlock reporting.
        deadlock : do while (statusDeadlock /= deadlockStatusIsNotDeadlocked)
           ! Post a deadlocking message.
+          !$omp single
           if (statusDeadlock == deadlockStatusIsReporting) call displayIndent("Deadlock report follows")
+          !$omp end single
           ! Iterate through all trees.
           currentTree => tree
           treesLoop: do while (associated(currentTree))
@@ -474,7 +476,7 @@ contains
                    do while (treeWalker%next(node))
                       ! Count nodes in the tree.
                       if (evolutionPhase == 1) nodesTotalCount=nodesTotalCount+1
-                      ! Skip nodes that are not to be evolved during this phase/
+                      ! Skip nodes that are not to be evolved during this phase.
                       if (.not.self%mergerTreeEvolveConcurrency_%includeInEvolution(evolutionPhase,node)) cycle
                       ! Get the basic component of the node.
                       basic => node%basic()
@@ -576,6 +578,7 @@ contains
                          interrupted=.false.
                          ! Find maximum allowed end time for this particular node.
                          if (statusDeadlock == deadlockStatusIsReporting) then
+                            !$omp critical (mergerTreeEvolverThreadNodeReport)
                             vMessage="node "
                             write (label,'(e12.6)') basic%time()
                             vMessage=vMessage//node%index()//" (current:target times = "//label
@@ -584,6 +587,7 @@ contains
                             call displayIndent(vMessage)
                             timeEndThisNode=self%timeEvolveTo(node,timeEnd,self%workers(numberWorker)%cosmologyFunctions_,self%workers(numberWorker)%mergerTreeEvolveTimestep_,self%workers(numberWorker)%mergerTreeNodeEvolver_,timestepTask_,timestepSelf,report=.true. ,nodeLock=nodeLock,lockType=lockType)
                             call displayUnindent("end node")
+                            !$omp end critical (mergerTreeEvolverThreadNodeReport)
                             call self%deadlockAddNode(node,currentTree%index,nodeLock,lockType)
                          else if (self%profileSteps) then
                             timeEndThisNode=self%timeEvolveTo(node,timeEnd,self%workers(numberWorker)%cosmologyFunctions_,self%workers(numberWorker)%mergerTreeEvolveTimestep_,self%workers(numberWorker)%mergerTreeNodeEvolver_,timestepTask_,timestepSelf,report=.false.                  ,lockType=lockType)
