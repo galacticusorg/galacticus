@@ -513,16 +513,17 @@ contains
     use :: String_Handling         , only : operator(//)
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
-    double precision                                       , intent(in   ) :: mass         , time
-    double precision                                       , intent(  out) :: rootVariance , rootVarianceLogarithmicGradient
+    double precision                                       , intent(in   ) :: mass                                            , time
+    double precision                                       , intent(  out) :: rootVariance                                    , rootVarianceLogarithmicGradient
+    double precision                                       , parameter     :: rootVarianceLogarithmicGradientTolerance=1.0d-12
     type            (hdf5Object                           ), save          :: errorFile
     type            (varying_string                       ), save          :: errorFileName
     !$omp threadprivate(errorFile,errorFileName)
     character       (len=1                                )                :: label
-    double precision                                                       :: wavenumber   , rootVarianceGradient           , &
-         &                                                                    interpolant  , h                              , &
+    double precision                                                       :: wavenumber                                      , rootVarianceGradient           , &
+         &                                                                    interpolant                                     , h                              , &
          &                                                                    linearGrowth
-    integer                                                                :: i            , j
+    integer                                                                :: i                                               , j
     
     call self%retabulate(mass,time)
     if (self%growthIsMassDependent_) then
@@ -574,6 +575,11 @@ contains
          &                                             *self%linearGrowth_%value(time)
     ! Validate the logarithmic gradient.
     if (rootVarianceLogarithmicGradient > 0.0d0) then
+       if (rootVarianceLogarithmicGradient < rootVarianceLogarithmicGradientTolerance) then
+          ! Ignore small positive gradients which can occur due to rounding errors.
+          rootVarianceLogarithmicGradient=0.0d0
+          return
+       end if
        ! Logarithmic gradient is positive, which should not happen.
        if (self%monotonicInterpolation) then
           ! Monotonic interpolation is being used - a positive logarithmic gradient should be impossible.
@@ -1180,7 +1186,7 @@ contains
 
   subroutine filteredPowerInterpolantsTime(self,time,i,h)
     !!{
-    Compute interoplants in time.
+    Compute interpolants in time.
     !!}
     use :: Error, only : Error_Report
     implicit none
