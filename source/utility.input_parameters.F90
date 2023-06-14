@@ -235,6 +235,9 @@ module Input_Parameters
      end subroutine knownParameterNames
   end interface
 
+  ! Set of globally-allowed parameter names.
+  type(varying_string), dimension(:), allocatable :: allowedParameterNamesGlobal
+
 contains
 
   function inputParametersConstructorNull() result(self)
@@ -276,7 +279,7 @@ contains
     implicit none
     type     (inputParameters)                                           :: self
     type     (varying_string    )              , intent(in   )           :: xmlString
-    character(len=*             ), dimension(:), intent(in   ), optional :: allowedParameterNames
+    type     (varying_string    ), dimension(:), intent(in   ), optional :: allowedParameterNames
     type     (hdf5Object        ), target      , intent(in   ), optional :: outputParametersGroup
     logical                                    , intent(in   ), optional :: noOutput
     type     (node              ), pointer                               :: doc                  , parameterNode
@@ -320,7 +323,7 @@ contains
     implicit none
     type     (inputParameters)                                        :: self
     character(len=*          )              , intent(in   )           :: fileName
-    character(len=*          ), dimension(:), intent(in   ), optional :: allowedParameterNames
+    type     (varying_string ), dimension(:), intent(in   ), optional :: allowedParameterNames
     type     (hdf5Object     ), target      , intent(in   ), optional :: outputParametersGroup
     logical                                 , intent(in   ), optional :: noOutput
     type     (node           ), pointer                               :: doc                  , parameterNode
@@ -393,12 +396,11 @@ contains
     implicit none
     type     (inputParameters)                                        :: self
     type     (node           ), pointer     , intent(in   )           :: parametersNode
-    character(len=*          ), dimension(:), intent(in   ), optional :: allowedParameterNames
+    type     (varying_string ), dimension(:), intent(in   ), optional :: allowedParameterNames
     type     (hdf5Object     ), target      , intent(in   ), optional :: outputParametersGroup
     logical                                 , intent(in   ), optional :: noOutput                      , noBuild
     type     (node           ), pointer                               :: versionElement
-    type     (varying_string ), dimension(:), allocatable             :: allowedParameterNamesCombined , allowedParameterNamesTmp
-    integer                                                           :: allowedParameterFromFileCount , allowedParameterCount
+    integer                                                           :: allowedParameterFromFileCount
     character(len=  10       )                                        :: versionLabel
     type     (varying_string )                                        :: message
     !![
@@ -457,29 +459,15 @@ contains
        !$ call hdf5Access%unset()
     end if
     ! Get allowed parameter names.
-    call knownParameterNames(allowedParameterNamesCombined)
-    allowedParameterFromFileCount=size(allowedParameterNamesCombined)
-    ! Add in parameter names explicitly listed.
-    if (present(allowedParameterNames)) then
-       allowedParameterCount=size(allowedParameterNames)
-       if (allocated(allowedParameterNamesCombined)) then
-          call Move_Alloc(allowedParameterNamesCombined,allowedParameterNamesTmp)
-          allocate(allowedParameterNamesCombined(size(allowedParameterNamesTmp)+size(allowedParameterNames)))
-          allowedParameterNamesCombined(                                                     &
-               &                                                      1                    : &
-               &                        allowedParameterFromFileCount                        &
-               &                       )=allowedParameterNamesTmp
-          allowedParameterNamesCombined(                                                     &
-               &                        allowedParameterFromFileCount+1                    : &
-               &                        allowedParameterFromFileCount+allowedParameterCount  &
-               &                       )=allowedParameterNames
-          deallocate(allowedParameterNamesTmp)
-       else
-          allocate(allowedParameterNamesCombined(size(allowedParameterNames)))
-          allowedParameterNamesCombined=allowedParameterNames
+    if (.not.allocated(allowedParameterNamesGlobal)) then
+       !$omp critical (knownParameterNames)
+       if (.not.allocated(allowedParameterNamesGlobal)) then
+          call knownParameterNames(allowedParameterNamesGlobal)
+          if (.not.allocated(allowedParameterNamesGlobal)) allocate(allowedParameterNamesGlobal(0))
        end if
+       !$omp end critical(knownParameterNames)
     end if
-    if (.not.allocated(allowedParameterNamesCombined)) allocate(allowedParameterNamesCombined(0))
+    allowedParameterFromFileCount=size(allowedParameterNamesGlobal)
     ! Check for version information.
     !$omp critical (FoX_DOM_Access)
     if (XML_Path_Exists(self%rootNode,"version")) then
@@ -498,7 +486,7 @@ contains
     end if
     !$omp end critical (FoX_DOM_Access)
     ! Check parameters.
-    call self%checkParameters(allowedParameterNamesCombined)
+    call self%checkParameters(allowedParameterNamesGlobal,allowedParameterNames)
     return
   end function inputParametersConstructorNode
 
@@ -972,7 +960,7 @@ contains
     return
   end function inputParameterGet
 
-  subroutine inputParametersCheckParameters(self,allowedParameterNames,allowedMultiParameterNames)
+  subroutine inputParametersCheckParameters(self,allowedParameterNames,allowedParameterNamesGlobal,allowedMultiParameterNames)
     use :: Error              , only : Error_Report
     use :: Display            , only : displayIndent              , displayMagenta  , displayMessage                 , displayReset        , &
           &                            displayUnindent            , displayVerbosity, enumerationVerbosityLevelEncode, verbosityLevelSilent
@@ -984,24 +972,24 @@ contains
     use :: String_Handling    , only : String_Levenshtein_Distance
     implicit none
     class    (inputParameters                         )              , intent(inout)           :: self
-    type     (varying_string                          ), dimension(:), intent(in   ), optional :: allowedParameterNames
+    type     (varying_string                          ), dimension(:), intent(in   ), optional :: allowedParameterNamesGlobal , allowedParameterNames
     type     (varying_string                          ), dimension(:), intent(in   ), optional :: allowedMultiParameterNames
-    type     (node                                    ), pointer                               :: node_                     , ignoreWarningsNode  , &
+    type     (node                                    ), pointer                               :: node_                       , ignoreWarningsNode   , &
          &                                                                                        node__
     type     (inputParameter                          ), pointer                               :: currentParameter
     type     (regEx                                   ), save                                  :: regEx_
     !$omp threadprivate(regEx_)
-    logical                                                                                    :: warningsFound             , parameterMatched    , &
-         &                                                                                        verbose                   , ignoreWarnings      , &
-         &                                                                                        isException               , hasAttribute_
+    logical                                                                                    :: warningsFound               , parameterMatched     , &
+         &                                                                                        verbose                     , ignoreWarnings       , &
+         &                                                                                        isException                 , hasAttribute_
     type     (enumerationInputParameterErrorStatusType)                                        :: errorStatus
-    integer                                                                                    :: allowedParametersCount    , status              , &
-         &                                                                                        distance                  , distanceMinimum     , &
-         &                                                                                        j
+    integer                                                                                    :: allowedParametersCount      , status               , &
+         &                                                                                        distance                    , distanceMinimum      , &
+         &                                                                                        allowedParametersGlobalCount, j
     character(len=1024                                )                                        :: parameterValue
-    character(len=1024                                )                                        :: unknownName               , allowedParameterName, &
-         &                                                                                        parameterNameGuess        , unknownNamePath
-    type     (varying_string                          )                                        :: message                   , verbosityLevel
+    character(len=1024                                )                                        :: unknownName                 , allowedParameterName , &
+         &                                                                                        parameterNameGuess          , unknownNamePath
+    type     (varying_string                          )                                        :: message                     , verbosityLevel
     type     (integerHash                             )                                        :: parameterNamesSeen
     type     (DOMException                            )                                        :: exception
 
@@ -1036,27 +1024,49 @@ contains
                 if (isException .or. status /= 0) &
                      & call Error_Report("unable to parse attribute 'ignoreWarnings' in parameter ["//trim(unknownName)//"]"//{introspection:location})
              end if
-             ! Check for a match with allowed parameter names.
-             allowedParametersCount=0
-             if (present(allowedParameterNames)) allowedParametersCount=size(allowedParameterNames)
-             if (allowedParametersCount > 0) then
+             ! Check for a match with allowed parameter names. 
+             allowedParametersGlobalCount=0
+             allowedParametersCount      =0
+             if (present(allowedParameterNamesGlobal)) allowedParametersGlobalCount=size(allowedParameterNamesGlobal)
+             if (present(allowedParameterNames      )) allowedParametersCount      =size(allowedParameterNames      )
+             if (allowedParametersGlobalCount > 0 .or. allowedParametersCount > 0) then
                 parameterMatched=.false.
-                j=1
-                do while (.not.parameterMatched .and. j <= allowedParametersCount)
-                   allowedParameterName=allowedParameterNames(j)
-                   if (allowedParameterName(1:6) == "regEx:") then
-                      regEx_=regEx(allowedParameterName(7:len_trim(allowedParameterName)))
-                      !$omp critical (FoX_DOM_Access)
-                      parameterMatched=regEx_%matches(getNodeName(node_))
-                      !$omp end critical (FoX_DOM_Access)
-                      call regEx_%destroy()
-                   else
-                      !$omp critical (FoX_DOM_Access)
-                      parameterMatched=(getNodeName(node_) == trim(allowedParameterName))
-                      !$omp end critical (FoX_DOM_Access)
-                   end if
-                   j=j+1
-                end do
+                if (allowedParametersGlobalCount > 0) then
+                   j=1
+                   do while (.not.parameterMatched .and. j <= allowedParametersGlobalCount)
+                      allowedParameterName=allowedParameterNamesGlobal(j)
+                      if (allowedParameterName(1:6) == "regEx:") then
+                         regEx_=regEx(allowedParameterName(7:len_trim(allowedParameterName)))
+                         !$omp critical (FoX_DOM_Access)
+                         parameterMatched=regEx_%matches(getNodeName(node_))
+                         !$omp end critical (FoX_DOM_Access)
+                         call regEx_%destroy()
+                      else
+                         !$omp critical (FoX_DOM_Access)
+                         parameterMatched=(getNodeName(node_) == trim(allowedParameterName))
+                         !$omp end critical (FoX_DOM_Access)
+                      end if
+                      j=j+1
+                   end do
+                end if
+                if (allowedParametersCount       > 0) then
+                   j=1
+                   do while (.not.parameterMatched .and. j <= allowedParametersCount      )
+                      allowedParameterName=allowedParameterNames      (j)
+                      if (allowedParameterName(1:6) == "regEx:") then
+                         regEx_=regEx(allowedParameterName(7:len_trim(allowedParameterName)))
+                         !$omp critical (FoX_DOM_Access)
+                         parameterMatched=regEx_%matches(getNodeName(node_))
+                         !$omp end critical (FoX_DOM_Access)
+                         call regEx_%destroy()
+                      else
+                         !$omp critical (FoX_DOM_Access)
+                         parameterMatched=(getNodeName(node_) == trim(allowedParameterName))
+                         !$omp end critical (FoX_DOM_Access)
+                      end if
+                      j=j+1
+                   end do
+                end if
              else
                 parameterMatched=.true.
              end if
@@ -1099,8 +1109,17 @@ contains
                 end do
                 !$omp end critical (FoX_DOM_Access)
                 distanceMinimum=-1
+                do j=1,allowedParametersGlobalCount
+                   allowedParameterName=allowedParameterNamesGlobal(j)
+                   if (allowedParameterName(1:6) == "regEx:") cycle
+                   distance=String_Levenshtein_Distance(trim(unknownName),trim(allowedParameterName))
+                   if (distance < distanceMinimum .or. 0 > distanceMinimum) then
+                      distanceMinimum   =distance
+                      parameterNameGuess=allowedParameterName
+                   end if
+                end do
                 do j=1,allowedParametersCount
-                   allowedParameterName=allowedParameterNames(j)
+                   allowedParameterName=allowedParameterNames      (j)
                    if (allowedParameterName(1:6) == "regEx:") cycle
                    distance=String_Levenshtein_Distance(trim(unknownName),trim(allowedParameterName))
                    if (distance < distanceMinimum .or. 0 > distanceMinimum) then
