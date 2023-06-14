@@ -38,7 +38,7 @@ program Test_Math_Arithmetic
   ! A simple division that will not overflow.
   call Assert("1.0/0.001",divideSafe(+     1.0d+0 ,+1.0d-3               ),+     1.0d+3 ,relTol=1.0d-12)
   ! Dividing the largest representable number, by the largest representable number less than 1 should lead to an overflow, but
-  ! should be caught by safe division and just return the largest representatable number.
+  ! should be caught by safe division and just return the largest representable number.
   call Assert("+H/(+1+ε)",divideSafe(+huge(1.0d+0),+1.0d+0-epsilon(1.0d0)),+huge(1.0d+0)               )
   ! As above, but ensuring that sign handling is correct.
   call Assert("-H/(+1+ε)",divideSafe(-huge(1.0d+0),+1.0d+0-epsilon(1.0d0)),-huge(1.0d+0)               )
