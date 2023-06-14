@@ -621,7 +621,9 @@ contains
                          ! will be handled during the post-processing phase.
                          if (interrupted) then
                             ! If an interrupt occurred call the specified procedure to handle it.
+                            call lockTree%set  ()
                             call interruptProcedure(node)
+                            call lockTree%unset()
                             ! Something happened so the tree is not deadlocked.
                             statusDeadlock=deadlockStatusIsNotDeadlocked
                          end if
