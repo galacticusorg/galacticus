@@ -26,6 +26,17 @@
   use :: Tables              , only : table1DGeneric
 
   !![
+  <enumeration>
+   <name>transferFunctionType</name>
+   <description>Enumerates the types of transfer function to read from file.</description>
+   <validator>yes</validator>
+   <encodeFunction>yes</encodeFunction>
+   <entry label="darkMatter"/>
+   <entry label="total"     />
+  </enumeration>
+  !!]
+
+  !![
   <transferFunction name="transferFunctionFile">
    <description>
   Provides a transfer function from a tabulation given in an HDF5 file with the following structure:
@@ -134,15 +145,16 @@
      A transfer function class which interpolates a transfer function given in a file.
      !!}
      private
-     class           (cosmologyFunctionsClass ), pointer                   :: cosmologyFunctions_                => null()
-     class           (transferFunctionClass   ), pointer                   :: transferFunctionReference          => null()
-     type            (varying_string          )                            :: fileName
-     type            (table1DGeneric          )                            :: transfer
-     logical                                                               :: massHalfModeAvailable                       , massQuarterModeAvailable, &
-          &                                                                   transferFunctionReferenceAvailable
-     double precision                                                      :: time                                        , redshift                , &
-          &                                                                   massHalfMode                                , massQuarterMode
-     double precision                          , allocatable, dimension(:) :: wavenumbersLocalMinima_
+     type            (enumerationTransferFunctionTypeType)                            :: transferFunctionType
+     class           (cosmologyFunctionsClass            ), pointer                   :: cosmologyFunctions_                => null()
+     class           (transferFunctionClass              ), pointer                   :: transferFunctionReference          => null()
+     type            (varying_string                     )                            :: fileName
+     type            (table1DGeneric                     )                            :: transfer
+     logical                                                                          :: massHalfModeAvailable                       , massQuarterModeAvailable, &
+          &                                                                              transferFunctionReferenceAvailable
+     double precision                                                                 :: time                                        , redshift                , &
+          &                                                                              massHalfMode                                , massQuarterMode
+     double precision                                     , allocatable, dimension(:) :: wavenumbersLocalMinima_
    contains
      !![
      <methods>
@@ -185,10 +197,16 @@ contains
     class           (cosmologyParametersClass), pointer       :: cosmologyParameters_
     class           (cosmologyFunctionsClass ), pointer       :: cosmologyFunctions_
     class           (transferFunctionClass   ), pointer       :: transferFunctionReference
-    type            (varying_string          )                :: fileName
+    type            (varying_string          )                :: fileName                 , transferFunctionType
     double precision                                          :: redshift
 
     !![
+    <inputParameter>
+      <name>transferFunctionType</name>
+      <source>parameters</source>
+      <defaultValue>var_str('darkMatter')</defaultValue>
+      <description>Specifies whether to use the {\normalfont \ttfamily darkMatter} or {\normalfont \ttfamily total} transfer function.</description>
+    </inputParameter>
     <inputParameter>
       <name>fileName</name>
       <source>parameters</source>
@@ -212,7 +230,7 @@ contains
     end if
     !![
     <conditionalCall>
-      <call>self=transferFunctionFile(char(fileName),redshift,cosmologyParameters_,cosmologyFunctions_{conditions})</call>
+      <call>self=transferFunctionFile(char(fileName),enumerationTransferFunctionTypeEncode(char(transferFunctionType),includesPrefix=.false.),redshift,cosmologyParameters_,cosmologyFunctions_{conditions})</call>
       <argument name="transferFunctionReference" value="transferFunctionReference" parameterPresent="parameters"/>
     </conditionalCall>
     <inputParametersValidate source="parameters"/>
@@ -227,20 +245,21 @@ contains
     return
   end function fileConstructorParameters
 
-  function fileConstructorInternal(fileName,redshift,cosmologyParameters_,cosmologyFunctions_,transferFunctionReference) result(self)
+  function fileConstructorInternal(fileName,transferFunctionType,redshift,cosmologyParameters_,cosmologyFunctions_,transferFunctionReference) result(self)
     !!{
     Internal constructor for the file transfer function class.
     !!}
     implicit none
-    type            (transferFunctionFile    )                                  :: self
-    character       (len=*                   ), intent(in   )                   :: fileName
-    double precision                          , intent(in   )                   :: redshift
-    class           (cosmologyParametersClass), intent(in   ), target           :: cosmologyParameters_
-    class           (cosmologyFunctionsClass ), intent(in   ), target           :: cosmologyFunctions_
-    class           (transferFunctionClass   ), intent(in   ), target, optional :: transferFunctionReference
-    integer                                                                     :: status
+    type            (transferFunctionFile               )                                  :: self
+    character       (len=*                              ), intent(in   )                   :: fileName
+    type            (enumerationTransferFunctionTypeType), intent(in   )                   :: transferFunctionType
+    double precision                                     , intent(in   )                   :: redshift
+    class           (cosmologyParametersClass           ), intent(in   ), target           :: cosmologyParameters_
+    class           (cosmologyFunctionsClass            ), intent(in   ), target           :: cosmologyFunctions_
+    class           (transferFunctionClass              ), intent(in   ), target, optional :: transferFunctionReference
+    integer                                                                                :: status
     !![
-    <constructorAssign variables="fileName, redshift, *cosmologyParameters_, *cosmologyFunctions_, *transferFunctionReference"/>
+    <constructorAssign variables="fileName, transferFunctionType, redshift, *cosmologyParameters_, *cosmologyFunctions_, *transferFunctionReference"/>
     !!]
 
     self%time=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(redshift))
@@ -261,7 +280,7 @@ contains
   subroutine fileReadFile(self,fileName)
     !!{
     Internal constructor for the file transfer function class.
-    !!}
+    !!}    
     use :: Cosmology_Parameters   , only : cosmologyParametersSimple
     use :: Display                , only : displayMessage
     use :: File_Utilities         , only : File_Name_Expand
@@ -275,7 +294,8 @@ contains
     class           (transferFunctionFile            ), intent(inout)             :: self
     character       (len=*                           ), intent(in   )             :: fileName
     double precision                                  , allocatable, dimension(:) :: transfer                       , wavenumber               , &
-         &                                                                           transferLogarithmic            , wavenumberLogarithmic
+         &                                                                           transferLogarithmic            , wavenumberLogarithmic    , &
+         &                                                                           transferDarkMatter             , transferBaryons
     class           (cosmologyParametersClass        ), pointer                   :: cosmologyParametersFile
     double precision                                  , parameter                 :: toleranceUniformity     =1.0d-6
     double precision                                                              :: HubbleConstant                 , OmegaBaryon              , &
@@ -288,7 +308,7 @@ contains
     type            (varying_string                  )                            :: limitTypeVar
     type            (hdf5Object                      )                            :: fileObject                     , parametersObject         , &
          &                                                                           extrapolationObject            , wavenumberObject         , &
-         &                                                                           darkMatterGroup
+         &                                                                           darkMatterGroup                , baryonsGroup
 
     ! Open and read the HDF5 data file.
     !$ call hdf5Access%set()
@@ -329,15 +349,36 @@ contains
     extrapolateWavenumberHigh=enumerationExtrapolationTypeEncode(char(limitTypeVar),includesPrefix=.false.)
     call wavenumberObject   %close()
     call extrapolationObject%close()
+    ! Read wavenumbers.
+    call fileObject%readDataset('wavenumber',wavenumber)
     ! Read the transfer function from file.
-    darkMatterGroup=fileObject%openGroup('darkMatter')
-    call fileObject     %readDataset('wavenumber'                                   ,wavenumber)
     write (datasetName,'(f9.4)') self%redshift
-    call darkMatterGroup%readDataset('transferFunctionZ'//trim(adjustl(datasetName)),transfer  )
-    call darkMatterGroup%close      (                                                          )
+    select case (self%transferFunctionType%ID)
+       case (transferFunctionTypeDarkMatter%ID,transferFunctionTypeTotal%ID)
+          darkMatterGroup=fileObject%openGroup('darkMatter')
+          call darkMatterGroup%readDataset('transferFunctionZ'//trim(adjustl(datasetName)),transferDarkMatter)
+          call darkMatterGroup%close      (                                                                  )
+    end select
+    select case (self%transferFunctionType%ID)
+       case (transferFunctionTypeTotal%ID)
+          baryonsGroup   =fileObject%openGroup('baryons'   )
+          call baryonsGroup   %readDataset('transferFunctionZ'//trim(adjustl(datasetName)),transferBaryons   )
+          call baryonsGroup   %close      (                                                                  )
+    end select
     ! Close the file.
     call fileObject%close()
     !$ call hdf5Access%unset()
+    ! Construct the final transfer function.
+    select case (self%transferFunctionType%ID)
+    case (transferFunctionTypeDarkMatter%ID)
+       transfer=+ transferDarkMatter
+    case (transferFunctionTypeTotal     %ID)
+       transfer=+(                                               &
+            &     +transferDarkMatter*(+OmegaMatter-OmegaBaryon) &
+            &     +transferBaryons    *             OmegaBaryon  &
+            &    )                                               &
+            &   /                       OmegaMatter
+    end select
     ! Construct the tabulated transfer function.
     call self%transfer%destroy()
     wavenumberLogarithmic=log(wavenumber)
@@ -353,7 +394,7 @@ contains
          &                     )
     call self%transfer%populate(                                                    &
          &                      transferLogarithmic                                 &
-         &                     )
+         &                     )    
     ! Determine local minima of the transfer function.
     if (size(transferLogarithmic) > 2) then
        countLocalMinima=0
