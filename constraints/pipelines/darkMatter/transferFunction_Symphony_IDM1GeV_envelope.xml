@@ -6,8 +6,9 @@
   <!-- Transfer function options -->
   <!-- Use a tabulated transfer function for IDM -->
   <transferFunction value="file">
-    <fileName value="constraints/pipelines/darkMatter/transferFunction_MilkyWay_IDM_1GeV_envelope.hdf5"/>
-    <redshift value="0.0"                                                                              />
+    <fileName             value="constraints/pipelines/darkMatter/transferFunction_MilkyWay_IDM_1GeV_envelope.hdf5"/>
+    <redshift             value="0.0"                                                                              />
+    <transferFunctionType value="total"                                                                            />
   </transferFunction>
 
 </parameters>

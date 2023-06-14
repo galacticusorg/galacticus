@@ -5,7 +5,8 @@
 
   <!-- Transfer function options -->
   <transferFunction value="CAMB">
-    <redshift value="99.0"/>
+    <redshift             value="99.0" />
+    <transferFunctionType value="total"/>
   </transferFunction>
   
 </parameters>
