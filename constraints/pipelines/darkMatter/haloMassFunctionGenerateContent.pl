@@ -415,7 +415,7 @@ foreach my $type ( @types ) {
 	$code::hires       = $type->{'label'     } =~ m/_hires$/ ? "_hires" : "";
 	$code::transfer    = $type->{'transfer'  }                              ;
 	$code::halo        = $halo;
-	$code::massMinimum = sprintf("%11.5e",3000.0*$type->{'massParticle'});
+	$code::massMinimum = sprintf("%11.5e",100.0*$type->{'massParticle'});
 	foreach my $redshift ( @{$type->{'redshifts'}} ) {
 	    $code::redshift      = sprintf("%11.5e",$redshift);
 	    $code::redshiftShort = sprintf( "%5.3f",$redshift);
@@ -460,8 +460,8 @@ foreach my $type ( @types ) {
         <baseParametersFileName value="constraints/pipelines/darkMatter/haloMassFunctionBase_{$label}_{$halo}_z{$redshiftShort}.xml"/>
         <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_{$label}_{$halo}_z{$redshiftShort}.hdf5"/>
         <redshift               value="{$redshift}"       />
-        <massRangeMinimum       value="{$massMinimum}"    /> <!-- 3000 times zoom-in {$name} particle mass -->
-        <massRangeMaximum       value="{$massMaximum}"    /> <!-- 1/10 of the target halo mass             -->
+        <massRangeMinimum       value="{$massMinimum}"    /> <!-- 100 times zoom-in {$name} particle mass -->
+        <massRangeMaximum       value="{$massMaximum}"    /> <!-- 1/10 of the target halo mass            -->
         <binCountMinimum        value="0"                 />    
         <likelihoodPoisson      value="true"              />
         <likelihoodModel        value="simulationSphere"  />

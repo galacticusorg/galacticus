@@ -641,7 +641,7 @@ my $queueConfig  = &Galacticus::Options::Config($queueManager->{'manager'     })
 my $xml = new XML::Simple();
 
 # Specify the minimum number of particles used in fitting halo mass functions.
-my $countParticlesMinimum = 3000;
+my $countParticlesMinimum = 100;
 
 # Iterate over simulations to get the model mass function.
 my @jobs;
