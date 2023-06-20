@@ -1,36 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1686763479270,
+  "lastUpdate": 1687288639500,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "committer": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "id": "40e478d09b3e26ca688a952f22dce3adfb7e97fc",
-          "message": "fix: Avoid fetch to current branch",
-          "timestamp": "2022-10-15T23:05:31Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/40e478d09b3e26ca688a952f22dce3adfb7e97fc"
-        },
-        "date": 1665894880222,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 399.512,
-            "unit": "seconds",
-            "range": 1.64248458135654
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10624,6 +10596,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 6.0851804415356,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "5f5475eb504a185be42ac2e99153f9cdfca22d9b",
+          "message": "fix: Correct equation in parameter definition",
+          "timestamp": "2023-06-20T08:07:45-07:00",
+          "tree_id": "f77da09d33f572b107ddd9451a109be09c43d388",
+          "url": "https://github.com/galacticusorg/galacticus/commit/5f5475eb504a185be42ac2e99153f9cdfca22d9b"
+        },
+        "date": 1687288638444,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 248.26,
+            "unit": "seconds",
+            "range": 0.839116201727462
           }
         ]
       }
