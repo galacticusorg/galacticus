@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1687288635575,
+  "lastUpdate": 1687288643004,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "fb96dd63391b52e801e8c1059e6ece2ca433efd6",
-          "message": "feat: Set orbital angular positions when assigning orbits for N-body subhalos",
-          "timestamp": "2022-10-21T16:38:01Z",
-          "tree_id": "f58ea1f9452fc5816a5ba4eb827bb3760b114b63",
-          "url": "https://github.com/galacticusorg/galacticus/commit/fb96dd63391b52e801e8c1059e6ece2ca433efd6"
-        },
-        "date": 1666391388323,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 50.174,
-            "unit": "seconds",
-            "range": 0.0241329650079662
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8723,6 +8693,45 @@ window.BENCHMARK_DATA = {
             "value": 49.942,
             "unit": "seconds",
             "range": 0.0246495436056456
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "5f5475eb504a185be42ac2e99153f9cdfca22d9b",
+          "message": "fix: Correct equation in parameter definition",
+          "timestamp": "2023-06-20T08:07:45-07:00",
+          "tree_id": "f77da09d33f572b107ddd9451a109be09c43d388",
+          "url": "https://github.com/galacticusorg/galacticus/commit/5f5475eb504a185be42ac2e99153f9cdfca22d9b"
+        },
+        "date": 1687288642254,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 57.6748844868819,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 25.9524525639199,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 23715.206261202,
+            "unit": "-logℒ"
           }
         ]
       }
