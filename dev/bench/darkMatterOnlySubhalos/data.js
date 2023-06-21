@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1687288643004,
+  "lastUpdate": 1687382845121,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "fb96dd63391b52e801e8c1059e6ece2ca433efd6",
-          "message": "feat: Set orbital angular positions when assigning orbits for N-body subhalos",
-          "timestamp": "2022-10-21T16:38:01Z",
-          "tree_id": "f58ea1f9452fc5816a5ba4eb827bb3760b114b63",
-          "url": "https://github.com/galacticusorg/galacticus/commit/fb96dd63391b52e801e8c1059e6ece2ca433efd6"
-        },
-        "date": 1666391396517,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 56.4519193277127,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 25.5607428584427,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 14876.4618268411,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8732,6 +8693,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 23715.206261202,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "50c07f709063ddfe99b7fd3b569745b0e29c3010",
+          "message": "feat: Add a `galacticFilter` that passes only nodes on the constrained branch",
+          "timestamp": "2023-06-21T15:52:30Z",
+          "tree_id": "9315f145782b85c53b3e476562ad4e173eac805b",
+          "url": "https://github.com/galacticusorg/galacticus/commit/50c07f709063ddfe99b7fd3b569745b0e29c3010"
+        },
+        "date": 1687382843805,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 63.845,
+            "unit": "seconds",
+            "range": 0.149219636777396
           }
         ]
       }
