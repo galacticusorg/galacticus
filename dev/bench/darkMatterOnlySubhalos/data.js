@@ -1,45 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1687382852617,
+  "lastUpdate": 1687401345296,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "committer": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "id": "24d4108614fb41085bed168070405b38f5ce936e",
-          "message": "fix: Use isotropic orbits",
-          "timestamp": "2022-10-24T04:45:14Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/24d4108614fb41085bed168070405b38f5ce936e"
-        },
-        "date": 1666603490788,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 56.4862273307091,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 25.5165582430658,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 15423.3632579593,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8734,6 +8697,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 23715.206261202,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "47ab81ae3e9a4086476941ec9dced579a87fd5a1",
+          "message": "Merge pull request #420 from galacticusorg/satelliteDestructionHelp\n\nDetect failure to destroy satellite halos",
+          "timestamp": "2023-06-21T23:31:05Z",
+          "tree_id": "0cd8f196cc3fdd8ab20782df8a7526eb4191599a",
+          "url": "https://github.com/galacticusorg/galacticus/commit/47ab81ae3e9a4086476941ec9dced579a87fd5a1"
+        },
+        "date": 1687401343623,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 49.707,
+            "unit": "seconds",
+            "range": 0.0168552662393373
           }
         ]
       }
