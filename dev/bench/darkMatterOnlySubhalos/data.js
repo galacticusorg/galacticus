@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1687556873166,
+  "lastUpdate": 1687556881141,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "f3d546548f4dd0ce941eabb865cdf3e0fa563d78",
-          "message": "fix: Add `copyprivate()` clause to ensure file names are broadcast to all threads",
-          "timestamp": "2022-11-03T17:19:27Z",
-          "tree_id": "68e3274099c7a12a825bbf793dc451d94508d312",
-          "url": "https://github.com/galacticusorg/galacticus/commit/f3d546548f4dd0ce941eabb865cdf3e0fa563d78"
-        },
-        "date": 1667513294409,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 49.935,
-            "unit": "seconds",
-            "range": 0.102822662870852
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8727,6 +8697,45 @@ window.BENCHMARK_DATA = {
             "value": 49.793,
             "unit": "seconds",
             "range": 0.0415222831753291
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": false,
+          "id": "7d940aeeeaf9329a8f1906a02e3dfcfa95caf915",
+          "message": "Merge pull request #426 from galacticusorg/metaPropertyComponentFix\n\nMake meta-property set/get functions respect the active componens list",
+          "timestamp": "2023-06-23T16:40:35Z",
+          "tree_id": "98b2947cebf7e0015c188941db9c3fb899e192ec",
+          "url": "https://github.com/galacticusorg/galacticus/commit/7d940aeeeaf9329a8f1906a02e3dfcfa95caf915"
+        },
+        "date": 1687556880094,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 57.7589536159056,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 25.9651779509004,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 23794.3123326806,
+            "unit": "-logℒ"
           }
         ]
       }
