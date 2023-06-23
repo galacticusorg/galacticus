@@ -88,7 +88,7 @@ contains
     <inputParameter>
       <name>exponent</name>
       <source>parameters</source>
-      <description>The exponent, $\alpha$, of mass in the subsampling probability, i.e. $P(M) = (M/M_0)^\alpha$ for $M &lt; M_0$.</description>
+      <description>The exponent, $\alpha$, of mass in the subsampling probability, i.e. $P(M) = P_0 (M/M_0)^\alpha$ for $M &lt; M_0$.</description>
     </inputParameter>
     <inputParameter>
       <name>factorMassGrowthConsolidate</name>

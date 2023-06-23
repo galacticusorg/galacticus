@@ -65,6 +65,7 @@ double precision function Node_Component_Disk_Standard_Enclosed_Mass(self,radius
           &                                        weightByLuminosity  , weightByMass     , enumerationComponentTypeType, enumerationMassTypeType, &
           &                                        enumerationWeightByType
   use :: Node_Component_Disk_Standard_Data, only : massDistributionDisk
+  use :: Math_Arithmetic                  , only : divideSafe
   implicit none
   class           (nodeComponentDiskStandard   ), intent(inout) :: self
   type            (enumerationComponentTypeType), intent(in   ) :: componentType
@@ -104,7 +105,7 @@ double precision function Node_Component_Disk_Standard_Enclosed_Mass(self,radius
   ! Compute the actual mass.
   radiusDisk=self%radius()
   if (radiusDisk > 0.0d0) then
-     fractionalRadius=radius/radiusDisk
+     fractionalRadius=divideSafe(radius,radiusDisk)
      Node_Component_Disk_Standard_Enclosed_Mass=                         &
           & +Node_Component_Disk_Standard_Enclosed_Mass                  &
           & *massDistributionDisk%massEnclosedBySphere(fractionalRadius)
@@ -267,6 +268,7 @@ double precision function Node_Component_Disk_Standard_Density_Spherical_Average
           &                                        massTypeGalactic    , massTypeGaseous             , massTypeStellar        , weightByLuminosity     , &
           &                                        weightByMass        , enumerationComponentTypeType, enumerationMassTypeType, enumerationWeightByType
   use :: Node_Component_Disk_Standard_Data, only : massDistributionDisk
+  use :: Math_Arithmetic                  , only : divideSafe
   implicit none
   class           (nodeComponentDiskStandard   ), intent(inout) :: self
   type            (enumerationComponentTypeType), intent(in   ) :: componentType
@@ -301,9 +303,9 @@ double precision function Node_Component_Disk_Standard_Density_Spherical_Average
   ! Skip further calculation if mass or radius is zero.
   if (Node_Component_Disk_Standard_Density_Spherical_Average > 0.0d0 .and. self%radius() > 0.0d0) then
      ! Compute the actual density.
-      Node_Component_Disk_Standard_Density_Spherical_Average=+Node_Component_Disk_Standard_Density_Spherical_Average                &
-           &                                                 /self                %radius                 (                    )**3 &
-           &                                                 *massDistributionDisk%densitySphericalAverage(radius/self%radius())
+      Node_Component_Disk_Standard_Density_Spherical_Average=+Node_Component_Disk_Standard_Density_Spherical_Average                            &
+           &                                                 /self                %radius                 (                                )**3 &
+           &                                                 *massDistributionDisk%densitySphericalAverage(divideSafe(radius,self%radius()))
    end if
    return
  end function Node_Component_Disk_Standard_Density_Spherical_Average
@@ -317,6 +319,7 @@ double precision function Node_Component_Disk_Standard_Potential(self,radius,com
           &                                        weightIndexNull                , enumerationComponentTypeType, enumerationMassTypeType, enumerationStructureErrorCodeType
   use :: Node_Component_Disk_Standard_Data, only : massDistributionDisk
   use :: Numerical_Constants_Astronomical , only : gravitationalConstantGalacticus
+  use :: Math_Arithmetic                  , only : divideSafe
   implicit none
   class           (nodeComponentDiskStandard        ), intent(inout)           :: self
   type            (enumerationComponentTypeType     ), intent(in   )           :: componentType
@@ -343,7 +346,7 @@ double precision function Node_Component_Disk_Standard_Potential(self,radius,com
           &                                 /radius
   else
      ! Compute the potential.
-     position=[radius/self%radius(),0.0d0,0.0d0]
+     position=[divideSafe(radius,self%radius()),0.0d0,0.0d0]
      Node_Component_Disk_Standard_Potential=+gravitationalConstantGalacticus          &
           &                                 *componentMass                            &
           &                                 /self%radius()                            &
@@ -360,6 +363,7 @@ double precision function Node_Component_Disk_Standard_Rotation_Curve(self,radiu
        &                                           enumerationMassTypeType
   use :: Node_Component_Disk_Standard_Data, only : massDistributionDisk
   use :: Numerical_Constants_Astronomical , only : gravitationalConstantGalacticus
+  use :: Math_Arithmetic                  , only : divideSafe
   implicit none
   class           (nodeComponentDiskStandard   ), intent(inout) :: self
   type            (enumerationComponentTypeType), intent(in   ) :: componentType
@@ -375,7 +379,7 @@ double precision function Node_Component_Disk_Standard_Rotation_Curve(self,radiu
   ! Compute the actual velocity.
   radiusDisk=self%radius()
   if (radiusDisk > 0.0d0) then
-     fractionalRadius=radius/radiusDisk
+     fractionalRadius=divideSafe(radius,radiusDisk)
      Node_Component_Disk_Standard_Rotation_Curve=+sqrt(                                                &
           &                                            +gravitationalConstantGalacticus                &
           &                                            *componentMass                                  &
@@ -394,6 +398,7 @@ double precision function Node_Component_Disk_Standard_Rotation_Curve_Gradient(s
        &                                           enumerationMassTypeType
   use :: Node_Component_Disk_Standard_Data, only : massDistributionDisk
   use :: Numerical_Constants_Astronomical , only : gravitationalConstantGalacticus
+  use :: Math_Arithmetic                  , only : divideSafe
   implicit none
   class           (nodeComponentDiskStandard   ), intent(inout) :: self
   type            (enumerationComponentTypeType), intent(in   ) :: componentType
@@ -412,7 +417,7 @@ double precision function Node_Component_Disk_Standard_Rotation_Curve_Gradient(s
   ! Compute the rotation curve gradient.
   radiusDisk=self%radius()
   if (radiusDisk > 0.0d0) then
-     fractionalRadius=radius/radiusDisk
+     fractionalRadius=divideSafe(radius,radiusDisk)
      Node_Component_Disk_Standard_Rotation_Curve_Gradient=+gravitationalConstantGalacticus                              &
           &                                               *componentMass                                                &
           &                                               /radiusDisk**2                                                &

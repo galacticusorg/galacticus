@@ -2000,21 +2000,61 @@ CODE
 					$declaration->{'type'     } =~ m/^enumeration[a-z0-9_]+type/i
 					) {
 					# Enumeration.
-					$outputCode .= " if (displayVerbosity() >= verbosityLevelWorking) then\n";
-					foreach ( @{$declaration->{'variableNames'}} ) {
-					    # <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
-					    #  <description>
-					    #   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
-					    #  </description>
-					    # </workaround>
-					    $outputCode .= "   write (label,'(i16)') 0\n";
-					    #$outputCode .= "   write (label,'(i16)') sizeof(".$_.")\n";
-					    $outputCode .= "  call displayMessage('storing \"".$_."\" with size '//trim(adjustl(label))//' bytes')\n";
+					if ( grep {$_ eq "allocatable"} @{$declaration->{'attributes'}} ) {
+					    # For allocatable variables we must first store the shape so that they can be reallocated on restore.
+					    my $dimensionDeclarator = join(",",map {/^dimension\s*\(([:,]+)\)/} @{$declaration->{'attributes'}});
+					    my $rank = ($dimensionDeclarator =~ tr/://);
+					    foreach my $variableName ( @{$declaration->{'variables'}} ) {
+						next
+						    if ( grep {lc($_) eq lc($variableName)} @excludes );
+						$allocatablesFound  = 1;
+						$dimensionalsFound  = 1;
+						$stateFileUsed      = 1;
+						$labelUsed          = 1;
+						$outputCode        .= " if (allocated(self%".$variableName.")) then\n";
+						$outputCode        .= "  if (displayVerbosity() >= verbosityLevelWorking) then\n";
+						# <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
+						#  <description>
+						#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
+						#  </description>
+						# </workaround>
+						$outputCode .= "   write (label,'(i16)') 0\n";
+						#$outputCode        .= "   write (label,'(i16)') sizeof(self%".$variableName.")\n";
+						$outputCode        .= "   call displayMessage('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
+						$outputCode        .= "  end if\n";
+						$outputCode        .= "  write (stateFile) .true.\n"
+						                    . "  write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n"
+					                            . "  write (stateFile) self%".$variableName."%ID\n";
+						$outputCode        .= " else\n";
+						$outputCode        .= "  write (stateFile) .false.\n";
+						$outputCode        .= " end if\n";
+						$inputCode         .= " read (stateFile) wasAllocated\n";
+						$inputCode         .= " if (allocated(self%".$variableName.")) deallocate(self%".$variableName.")\n";
+						$inputCode         .= " if (wasAllocated) then\n";
+						$inputCode         .= "  call displayMessage('restoring \"".$variableName."\"',verbosity=verbosityLevelWorking)\n";
+						$inputCode         .= "  allocate(storedShape(".$rank."))\n";
+						$inputCode         .= "  read (stateFile) storedShape\n";
+						$inputCode         .= "  allocate(self%".$variableName."(".join(",",map {"storedShape(".$_.")"} 1..$rank)."))\n";
+						$inputCode         .= "  deallocate(storedShape)\n";
+						$inputCode         .= "  read (stateFile) self%".$variableName."%ID\n";
+						$inputCode         .= " end if\n";
+					    }
+					} else {
+					    $outputCode .= " if (displayVerbosity() >= verbosityLevelWorking) then\n";
+					    foreach ( @{$declaration->{'variableNames'}} ) {
+						# <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
+						#  <description>
+						#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
+						#  </description>
+						# </workaround>
+						$outputCode .= "   write (label,'(i16)') 0\n";
+						#$outputCode .= "   write (label,'(i16)') sizeof(".$_.")\n";
+						$outputCode .= "  call displayMessage('storing \"".$_."\" with size '//trim(adjustl(label))//' bytes')\n";
+					    }
+					    $outputCode .= " end if\n";
+					    $outputCode .= "  write (stateFile) ".join(",",map {"self%".$_."%ID"} @{$declaration->{'variableNames'}})."\n";
+					    $inputCode  .= "  read  (stateFile) ".join(",",map {"self%".$_."%ID"} @{$declaration->{'variableNames'}})."\n";
 					}
-					$outputCode .= " end if\n";
-					$outputCode .= "  write (stateFile) ".join(",",map {"self%".$_."%ID"} @{$declaration->{'variableNames'}})."\n";
-					$inputCode  .= "  read  (stateFile) ".join(",",map {"self%".$_."%ID"} @{$declaration->{'variableNames'}})."\n";
-
 				    } elsif (
 					(  grep {$_->{'type'} eq $type    } &List::ExtraUtils::as_array($stateStorables->{'stateStorables'        }))
 					||
@@ -2034,7 +2074,7 @@ CODE
 					    next
 						unless ( (! $isPointer) || grep {lc($_) eq lc($variableName)} @explicits );
 					    my $rank = 0;
-					    if ( grep {$_ =~ m/^dimension\s*\(/} @{$declaration->{'attributes'}} ) {
+ 					    if ( grep {$_ =~ m/^dimension\s*\(/} @{$declaration->{'attributes'}} ) {
 						my $dimensionDeclarator = join(",",map {/^dimension\s*\(([a-zA-Z0-9_,:\s]+)\)/} @{$declaration->{'attributes'}});
 						$rank        = ($dimensionDeclarator =~ tr/,//)+1;
 						$rankMaximum = $rank
@@ -2274,20 +2314,61 @@ CODE
 			    $declaration->{'type'     } =~ m/^enumeration[a-z0-9_]+type/i
 			    ) {
 			    # Enumeration.
-			    $outputCode .= " if (displayVerbosity() >= verbosityLevelWorking) then\n";
-			    foreach ( @{$declaration->{'variableNames'}} ) {
-				# <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
-				#  <description>
-				#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
-				#  </description>
-				# </workaround>
-				$outputCode .= "   write (label,'(i16)') 0\n";
-				#$outputCode .= "   write (label,'(i16)') sizeof(".$_.")\n";
-				$outputCode .= "  call displayMessage('storing \"".$_."\" with size '//trim(adjustl(label))//' bytes')\n";
+			    if ( grep {$_ eq "allocatable"} @{$declaration->{'attributes'}} ) {
+				# For allocatable variables we must first store the shape so that they can be reallocated on restore.
+				my $dimensionDeclarator = join(",",map {/^dimension\s*\(([:,]+)\)/} @{$declaration->{'attributes'}});
+				my $rank = ($dimensionDeclarator =~ tr/://);
+				foreach my $variableName ( @{$declaration->{'variables'}} ) {
+				    next
+					if ( grep {lc($_) eq lc($variableName)} @excludes );
+				    $allocatablesFound  = 1;
+				    $dimensionalsFound  = 1;
+				    $stateFileUsed      = 1;
+				    $labelUsed          = 1;
+				    $outputCode        .= " if (allocated(self%".$variableName.")) then\n";
+				    $outputCode        .= "  if (displayVerbosity() >= verbosityLevelWorking) then\n";
+				    # <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
+				    #  <description>
+				    #   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
+				    #  </description>
+				    # </workaround>
+				    $outputCode .= "   write (label,'(i16)') 0\n";
+				    #$outputCode        .= "   write (label,'(i16)') sizeof(self%".$variableName.")\n";
+				    $outputCode        .= "   call displayMessage('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
+				    $outputCode        .= "  end if\n";
+				    $outputCode        .= "  write (stateFile) .true.\n"
+					. "  write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n"
+					. "  write (stateFile) self%".$variableName."%ID\n";
+				    $outputCode        .= " else\n";
+				    $outputCode        .= "  write (stateFile) .false.\n";
+				    $outputCode        .= " end if\n";
+				    $inputCode         .= " read (stateFile) wasAllocated\n";
+				    $inputCode         .= " if (allocated(self%".$variableName.")) deallocate(self%".$variableName.")\n";
+				    $inputCode         .= " if (wasAllocated) then\n";
+				    $inputCode         .= "  call displayMessage('restoring \"".$variableName."\"',verbosity=verbosityLevelWorking)\n";
+				    $inputCode         .= "  allocate(storedShape(".$rank."))\n";
+				    $inputCode         .= "  read (stateFile) storedShape\n";
+				    $inputCode         .= "  allocate(self%".$variableName."(".join(",",map {"storedShape(".$_.")"} 1..$rank)."))\n";
+				    $inputCode         .= "  deallocate(storedShape)\n";
+				    $inputCode         .= "  read (stateFile) self%".$variableName."%ID\n";
+				    $inputCode         .= " end if\n";
+				}
+			    } else {
+				$outputCode .= " if (displayVerbosity() >= verbosityLevelWorking) then\n";
+				foreach ( @{$declaration->{'variableNames'}} ) {
+				    # <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
+				    #  <description>
+				    #   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
+				    #  </description>
+				    # </workaround>
+				    $outputCode .= "   write (label,'(i16)') 0\n";
+				    #$outputCode .= "   write (label,'(i16)') sizeof(".$_.")\n";
+				    $outputCode .= "  call displayMessage('storing \"".$_."\" with size '//trim(adjustl(label))//' bytes')\n";
+				}
+				$outputCode .= " end if\n";
+				$outputCode .= "  write (stateFile) ".join(",",map {"self%".$_."%ID"} @{$declaration->{'variableNames'}})."\n";
+				$inputCode  .= "  read  (stateFile) ".join(",",map {"self%".$_."%ID"} @{$declaration->{'variableNames'}})."\n";
 			    }
-			    $outputCode .= " end if\n";
-			    $outputCode .= "  write (stateFile) ".join(",",map {"self%".$_."%ID"} @{$declaration->{'variableNames'}})."\n";
-			    $inputCode  .= "  read  (stateFile) ".join(",",map {"self%".$_."%ID"} @{$declaration->{'variableNames'}})."\n";
 			} elsif (
 			    (  grep {$_->{'type'} eq $type    } &List::ExtraUtils::as_array($stateStorables->{'stateStorables'        }))
 			    ||
@@ -2490,20 +2571,61 @@ CODE
 					$declaration->{'type'     } =~ m/^enumeration[a-z0-9_]+type/i
 					) {
 					# Enumeration.
-					$outputCode .= " if (displayVerbosity() >= verbosityLevelWorking) then\n";
-					foreach ( @{$declaration->{'variableNames'}} ) {
-					    # <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
-					    #  <description>
-					    #   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
-					    #  </description>
-					    # </workaround>
-					    $outputCode .= "   write (label,'(i16)') 0\n";
-					    #$outputCode .= "   write (label,'(i16)') sizeof(".$_.")\n";
-					    $outputCode .= "  call displayMessage('storing \"".$_."\" with size '//trim(adjustl(label))//' bytes')\n";
+					if ( grep {$_ eq "allocatable"} @{$declaration->{'attributes'}} ) {
+					    # For allocatable variables we must first store the shape so that they can be reallocated on restore.
+					    my $dimensionDeclarator = join(",",map {/^dimension\s*\(([:,]+)\)/} @{$declaration->{'attributes'}});
+					    my $rank = ($dimensionDeclarator =~ tr/://);
+					    foreach my $variableName ( @{$declaration->{'variables'}} ) {
+						next
+						    if ( grep {lc($_) eq lc($variableName)} @excludes );
+						$allocatablesFound  = 1;
+						$dimensionalsFound  = 1;
+						$stateFileUsed      = 1;
+						$labelUsed          = 1;
+						$outputCode        .= " if (allocated(self%".$variableName.")) then\n";
+						$outputCode        .= "  if (displayVerbosity() >= verbosityLevelWorking) then\n";
+						# <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
+						#  <description>
+						#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
+						#  </description>
+						# </workaround>
+						$outputCode .= "   write (label,'(i16)') 0\n";
+						#$outputCode        .= "   write (label,'(i16)') sizeof(self%".$variableName.")\n";
+						$outputCode        .= "   call displayMessage('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
+						$outputCode        .= "  end if\n";
+						$outputCode        .= "  write (stateFile) .true.\n"
+						    . "  write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n"
+						    . "  write (stateFile) self%".$variableName."%ID\n";
+						$outputCode        .= " else\n";
+						$outputCode        .= "  write (stateFile) .false.\n";
+						$outputCode        .= " end if\n";
+						$inputCode         .= " read (stateFile) wasAllocated\n";
+						$inputCode         .= " if (allocated(self%".$variableName.")) deallocate(self%".$variableName.")\n";
+						$inputCode         .= " if (wasAllocated) then\n";
+						$inputCode         .= "  call displayMessage('restoring \"".$variableName."\"',verbosity=verbosityLevelWorking)\n";
+						$inputCode         .= "  allocate(storedShape(".$rank."))\n";
+						$inputCode         .= "  read (stateFile) storedShape\n";
+						$inputCode         .= "  allocate(self%".$variableName."(".join(",",map {"storedShape(".$_.")"} 1..$rank)."))\n";
+						$inputCode         .= "  deallocate(storedShape)\n";
+						$inputCode         .= "  read (stateFile) self%".$variableName."%ID\n";
+						$inputCode         .= " end if\n";
+					    }
+					} else {
+					    $outputCode .= " if (displayVerbosity() >= verbosityLevelWorking) then\n";
+					    foreach ( @{$declaration->{'variableNames'}} ) {
+						# <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
+						#  <description>
+						#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
+						#  </description>
+						# </workaround>
+						$outputCode .= "   write (label,'(i16)') 0\n";
+						#$outputCode .= "   write (label,'(i16)') sizeof(".$_.")\n";
+						$outputCode .= "  call displayMessage('storing \"".$_."\" with size '//trim(adjustl(label))//' bytes')\n";
+					    }
+					    $outputCode .= " end if\n";
+					    $outputCode .= "  write (stateFile) ".join(",",map {"self%".$_."%ID"} @{$declaration->{'variableNames'}})."\n";
+					    $inputCode  .= "  read  (stateFile) ".join(",",map {"self%".$_."%ID"} @{$declaration->{'variableNames'}})."\n";
 					}
-					$outputCode .= " end if\n";
-					$outputCode .= "  write (stateFile) ".join(",",map {"self%".$_."%ID"} @{$declaration->{'variableNames'}})."\n";
-					$inputCode  .= "  read  (stateFile) ".join(",",map {"self%".$_."%ID"} @{$declaration->{'variableNames'}})."\n";
 				    } elsif (
 					(
 					 (  grep {$_->{'type'} eq $type    } &List::ExtraUtils::as_array($stateStorables->{'stateStorables'        }))
