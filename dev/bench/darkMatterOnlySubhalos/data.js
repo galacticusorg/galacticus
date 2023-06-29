@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1687556881141,
+  "lastUpdate": 1688014419345,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "f3d546548f4dd0ce941eabb865cdf3e0fa563d78",
-          "message": "fix: Add `copyprivate()` clause to ensure file names are broadcast to all threads",
-          "timestamp": "2022-11-03T17:19:27Z",
-          "tree_id": "68e3274099c7a12a825bbf793dc451d94508d312",
-          "url": "https://github.com/galacticusorg/galacticus/commit/f3d546548f4dd0ce941eabb865cdf3e0fa563d78"
-        },
-        "date": 1667513301830,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 56.4862273307091,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 25.5165582430658,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 15423.3632579593,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8736,6 +8697,34 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 23794.3123326806,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "id": "dc1bd8c1bf667c62e3dd4d1718caf77f48a67b72",
+          "message": "fix: Ensure that checkpointing does not interfere with running multiple trees",
+          "timestamp": "2023-06-29T00:02:29Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/dc1bd8c1bf667c62e3dd4d1718caf77f48a67b72"
+        },
+        "date": 1688014417079,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 49.718,
+            "unit": "seconds",
+            "range": 0.0196367003333407
           }
         ]
       }
