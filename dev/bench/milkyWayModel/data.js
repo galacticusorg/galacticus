@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1687556884735,
+  "lastUpdate": 1688014423558,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "f3d546548f4dd0ce941eabb865cdf3e0fa563d78",
-          "message": "fix: Add `copyprivate()` clause to ensure file names are broadcast to all threads",
-          "timestamp": "2022-11-03T17:19:27Z",
-          "tree_id": "68e3274099c7a12a825bbf793dc451d94508d312",
-          "url": "https://github.com/galacticusorg/galacticus/commit/f3d546548f4dd0ce941eabb865cdf3e0fa563d78"
-        },
-        "date": 1667513298194,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 465.019,
-            "unit": "seconds",
-            "range": 3.32938085835856
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10632,6 +10602,34 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 6.06542955244775,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "id": "dc1bd8c1bf667c62e3dd4d1718caf77f48a67b72",
+          "message": "fix: Ensure that checkpointing does not interfere with running multiple trees",
+          "timestamp": "2023-06-29T00:02:29Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/dc1bd8c1bf667c62e3dd4d1718caf77f48a67b72"
+        },
+        "date": 1688014422630,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 229.766,
+            "unit": "seconds",
+            "range": 1.49921592841006
           }
         ]
       }
