@@ -85,9 +85,15 @@ jobs:
     container: ghcr.io/galacticusorg/buildenv:latest
     steps:
       - uses: actions/checkout@v3
+      - name: Check out repository analysis-perl
+        uses: actions/checkout@v3
+        with:
+          repository: galacticusorg/analysis-perl
+          path: analysis-perl
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_ANALYSIS_PERL_PATH=$GITHUB_WORKSPACE/analysis-perl" >> $GITHUB_ENV
       - name: Mark directory safe        
         run: |
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH

@@ -747,9 +747,9 @@ contains
     ! Evolve this node if it has a parent (or will transfer to another tree where it will have a parent), exists
     ! before the output time, has no children (i.e. they've already all been processed), and either exists before
     ! the final time in its tree, or exists precisely at that time and has some attached event yet to occur.
-    basic => node%basic()
+    basic       =>            node%basic ()
     event       =>            node%event
-    hasParent   =  associated(node%parent)
+    hasParent   =  associated(node%parent  )
     treeLimited =  .true.
     do while (associated(event).and.treeLimited)
        ! Skip events which occur after the current evolution end time.

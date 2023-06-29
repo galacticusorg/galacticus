@@ -29,6 +29,7 @@ module Cosmological_Density_Field
   use :: Galacticus_Nodes   , only : treeNode
   use :: Linear_Growth      , only : linearGrowthClass
   use :: Tables             , only : table1DLinearLinear
+  use :: Root_Finder        , only : rootFinder
 
   private
 
@@ -38,21 +39,22 @@ module Cosmological_Density_Field
    <descriptiveName>Critical Overdensity</descriptiveName>
    <description>Object providing critical overdensities.</description>
    <default>sphericalCollapseClsnlssMttrCsmlgclCnstnt</default>
-   <data>integer         (kind_int8                    )          :: lastUniqueID                =  -1_kind_int8                                          </data>
-   <data>double precision                                         :: criticalOverdensityTarget                  , mass                                    </data>
-   <data>double precision                                         :: time                                       , timeNow                    =-huge(0.0d0)</data>
-   <data>double precision                                         :: timeOfCollapsePrevious      =  -huge(0.0d0), criticalOverdensityPrevious=-huge(0.0d0)</data>
-   <data>double precision                                         :: massPrevious                =  -huge(0.0d0)                                          </data>
-   <data>type            (table1DLinearLinear          )          :: collapseThreshold                                                                    </data>
-   <data>double precision                                         :: collapseThresholdMinimum                   , collapseThresholdMaximum                </data>
-   <data>logical                                                  :: collapseThresholdInitialized=.false.                                                 </data>
-   <data>type            (treeNode                     ), pointer :: node                                                                                 </data>
-   <data>logical                                                  :: massPresent                                , nodePresent                             </data>
-   <data>logical                                                  :: dependenciesInitialized     =  .false.     , isMassDependent_                        </data>
-   <data>logical                                                  :: isNodeDependent_                                                                     </data>
-   <data>class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_         => null()                                                </data>
-   <data>class           (linearGrowthClass            ), pointer :: linearGrowth_               => null()                                                </data>
-   <data>class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_   => null()                                                </data>
+   <data>integer         (kind_int8                    )              :: lastUniqueID                =  -1_kind_int8                                          </data>
+   <data>double precision                                             :: criticalOverdensityTarget                  , mass                                    </data>
+   <data>double precision                                             :: time                                       , timeNow                    =-huge(0.0d0)</data>
+   <data>double precision                                             :: timeOfCollapsePrevious      =  -huge(0.0d0), criticalOverdensityPrevious=-huge(0.0d0)</data>
+   <data>double precision                                             :: massPrevious                =  -huge(0.0d0)                                          </data>
+   <data>type            (table1DLinearLinear          )              :: collapseThreshold                                                                    </data>
+   <data>double precision                                             :: collapseThresholdMinimum                   , collapseThresholdMaximum                </data>
+   <data>logical                                                      :: collapseThresholdInitialized=.false.                                                 </data>
+   <data>type            (treeNode                     ), pointer     :: node                                                                                 </data>
+   <data>logical                                                      :: massPresent                                , nodePresent                             </data>
+   <data>logical                                                      :: dependenciesInitialized     =  .false.     , isMassDependent_                        </data>
+   <data>logical                                                      :: isNodeDependent_                                                                     </data>
+   <data>class           (cosmologyFunctionsClass      ), pointer     :: cosmologyFunctions_         => null()                                                </data>
+   <data>class           (linearGrowthClass            ), pointer     :: linearGrowth_               => null()                                                </data>
+   <data>class           (cosmologicalMassVarianceClass), pointer     :: cosmologicalMassVariance_   => null()                                                </data>
+   <data>type            (rootFinder                   ), allocatable :: finderTimeOfCollapse                                                                 </data>
    <data>
     <scope>module</scope>
     <threadprivate>yes</threadprivate>
@@ -332,15 +334,14 @@ contains
     double precision                          , intent(in   )                       :: criticalOverdensity
     double precision                          , intent(in   ), optional             :: mass
     type            (treeNode                ), intent(inout), optional    , target :: node
-    double precision                          , parameter                           :: toleranceRelative=1.0d-12, toleranceAbsolute       =0.0d0
-    integer                                   , parameter                           :: countPerUnit     =10000
+    double precision                          , parameter                           :: toleranceRelative       =1.0d-12, toleranceAbsolute       =0.0d0
+    integer                                   , parameter                           :: countPerUnit            =10000
     double precision                          , allocatable  , dimension(:)         :: threshold
-    double precision                                                                :: timeBigCrunch            , collapseThresholdMinimum      , &
+    double precision                                                                :: timeBigCrunch                   , collapseThresholdMinimum      , &
          &                                                                             collapseThresholdMaximum
-    type            (rootFinder              )                                      :: finder
-    logical                                                                         :: updateResult             , remakeTable
-    integer                                                                         :: i                        , countThresholds               , &
-         &                                                                             countNewLower            , countNewUpper
+    logical                                                                         :: updateResult                    , remakeTable
+    integer                                                                         :: i                               , countThresholds               , &
+         &                                                                             countNewLower                   , countNewUpper
 
     ! Determine dependencies.
     if (.not.self%dependenciesInitialized) then
@@ -377,7 +378,6 @@ contains
           self%lastUniqueID=-1_kind_int8
        end if
        self%criticalOverdensityPrevious=criticalOverdensity
-       finder=rootFinder(rootFunction=collapseTimeRoot,toleranceAbsolute=toleranceAbsolute,toleranceRelative=toleranceRelative)
        if (self%timeNow < 0.0d0) self%timeNow=self%cosmologyFunctions_%cosmicTime(1.0d0)
        timeBigCrunch=self%cosmologyFunctions_%timeBigCrunch()
        if (timeBigCrunch < 0.0d0) then
@@ -397,14 +397,18 @@ contains
              return
           end if
        end if
-       call finder%rangeExpand(                                                             &
-            &                  rangeExpandUpward            =2.0d0                        , &
-            &                  rangeExpandDownward          =0.5d0                        , &
-            &                  rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
-            &                  rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-            &                  rangeUpwardLimit             =timeBigCrunch                , &
-            &                  rangeExpandType              =rangeExpandMultiplicative      &
-            &                 )
+       if (.not.allocated(self%finderTimeOfCollapse)) then
+          allocate(self%finderTimeOfCollapse)
+          self%finderTimeOfCollapse=rootFinder(rootFunction=collapseTimeRoot,toleranceAbsolute=toleranceAbsolute,toleranceRelative=toleranceRelative)
+          call self%finderTimeOfCollapse%rangeExpand(                                                             &
+               &                                     rangeExpandUpward            =2.0d0                        , &
+               &                                     rangeExpandDownward          =0.5d0                        , &
+               &                                     rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+               &                                     rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+               &                                     rangeUpwardLimit             =timeBigCrunch                , &
+               &                                     rangeExpandType              =rangeExpandMultiplicative      &
+               &                                    )
+       end if
        globalSelf                      => self
        if (self%massPresent) self%mass =  mass
        if (self%nodePresent) self%node => node
@@ -452,7 +456,7 @@ contains
              ! Populate the table in regions where it was not previously populated.
              do i=1,countThresholds
                 self%criticalOverdensityTarget=self%collapseThreshold%x(i)
-                if (threshold(i) < 0.0d0) threshold(i)=finder%find(rootGuess=self%timeOfCollapsePrevious)
+                if (threshold(i) < 0.0d0) threshold(i)=self%finderTimeOfCollapse%find(rootGuess=self%timeOfCollapsePrevious)
              end do
              call self%collapseThreshold%populate(threshold)
              deallocate(threshold)
@@ -461,7 +465,7 @@ contains
           end if
           self%timeOfCollapsePrevious=self%collapseThreshold%interpolate(criticalOverdensity)
        else
-          self%timeOfCollapsePrevious=finder%find(rootGuess=self%timeOfCollapsePrevious)
+          self%timeOfCollapsePrevious=self%finderTimeOfCollapse%find(rootGuess=self%timeOfCollapsePrevious)
        end if
     end if
     ! Return the memoized value.
