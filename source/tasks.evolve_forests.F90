@@ -431,7 +431,7 @@ contains
     integer         (omp_lock_kind                )                                  :: initializationLock
     integer         (kind_int8                    )                                  :: systemClockRate                           , systemClockMaximum
     !$omp threadprivate(node,basic,treeNumber,treesFinished,parameters)
-    logical                                                                          :: checkpointRestored
+    logical                                                                          :: checkpointRestored                        , checkpointing
 
     ! The following processes merger trees, one at a time, to each successive output time, then dumps their contents to file. It
     ! allows for the possibility of "universal events" - events which require all merger trees to reach the same cosmic time. If
@@ -447,6 +447,7 @@ contains
     ! Initialize a lock used for controlling tree initialization.
     !$ call OMP_Init_Lock(initializationLock)
     ! Initialize checkpoint restoration state.
+    checkpointing               =.true.
     checkpointRestored          =.false.
     ! Initialize tree counter and record that we are not finished processing trees.
     deadlockReport              =.false.
@@ -519,7 +520,7 @@ contains
        ! Perform any pre-tree construction tasks.
        call mergerTreeOperator_%operatePreConstruction()
        ! Get a tree.
-       if (self%timeIntervalCheckpoint > 0 .and. File_Exists(self%fileNameCheckpoint)) then
+       if (checkpointing .and. self%timeIntervalCheckpoint > 0 .and. File_Exists(self%fileNameCheckpoint)) then
           ! Resume from a checkpointed tree.
           if (checkpointRestored) then
              tree => null()
@@ -529,6 +530,7 @@ contains
              checkpointRestored=.true.
           end if
        else
+          checkpointing =  .false.
           treesFinished =  .false.
           tree          => null()
           do while (.not.associated(tree).and..not.treesFinished)
@@ -539,8 +541,7 @@ contains
        end if
        if (associated(tree)) tree%hostUniverse => self%universeWaiting
        finished                                =  finished.or..not.associated(tree)
-       treeIsNew                               =  .not.finished.and..not.checkpointRestored
-       checkpointRestored                      =  .true.
+       treeIsNew                               =  .not.finished.and..not.checkpointRestored       
        ! If no new tree was available, attempt to pop one off the universe stack.
        if (finished) then
           call self%resumeTree(tree)
