@@ -589,11 +589,15 @@ CODE
 	    }
 	    if      ( $metaPropertyType->{'rank'} == 0 ) {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-if (allocated({$class->{'name'}.$prefix}MetaPropertyNames)) read (fileHandle) self%{$prefix}MetaProperties
+if (allocated({$class->{'name'}.$prefix}MetaPropertyNames)) then
+ allocate(self%{$prefix}MetaProperties(size({$class->{'name'}.$prefix}MetaPropertyNames)))
+ read (fileHandle) self%{$prefix}MetaProperties
+end if
 CODE
 	    } elsif ( $metaPropertyType->{'rank'} == 1 ) {
 		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated({$class->{'name'}.$prefix}MetaPropertyNames  )) then
+ allocate(self%{$prefix}MetaProperties(size({$class->{'name'}.$prefix}MetaPropertyNames)))
  do i=1,size({$class->{'name'}.$prefix}MetaPropertyNames)
   read (fileHandle) metaPropertySize
   allocate(self%{$prefix}MetaProperties(i)%values(metaPropertySize))

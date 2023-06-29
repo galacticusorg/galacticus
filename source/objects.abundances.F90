@@ -340,7 +340,12 @@ contains
     integer                , intent(in   ) :: fileHandle
 
     read (fileHandle) self%metallicityValue
-    if (elementsCount > 0) read (fileHandle) self%elementalValue
+    ! If no individual elements are tracked, our work is done.
+    if (elementsCount == 0) return
+    ! Ensure elemental values array exists.
+    call Abundances_Allocate_Elemental_Values(self)
+    ! Read values from file.
+    read (fileHandle) self%elementalValue    
     return
   end subroutine Abundances_Read_Raw
 
