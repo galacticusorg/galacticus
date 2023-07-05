@@ -761,14 +761,14 @@ contains
 
     fourierTransform=0.0d0
     if (.not.self%matches(componentType,massType)) return
-    waveNumberScaleFree=waveNumber*self%scaleLength
-    radiusOuterScaleFree=radiusOuter/self%scaleLength
-    fourierTransform=+(                                                                                                                                                        &
-         &             +sin(+                     waveNumberScaleFree)*(Sine_Integral  ((1.0d0+radiusOuterScaleFree)*waveNumberScaleFree)-Sine_Integral  (waveNumberScaleFree)) &
-         &             -sin(+radiusOuterScaleFree*waveNumberScaleFree)/(1.0d0+radiusOuterScaleFree)/waveNumberScaleFree                                                         &
-         &             +cos(+                     waveNumberScaleFree)*(Cosine_Integral((1.0d0+radiusOuterScaleFree)*waveNumberScaleFree)-Cosine_Integral(waveNumberScaleFree)) &
-         &            )                                                                                                                                                        &
-         &           /(log(1.0d0+radiusOuterScaleFree)-radiusOuterScaleFree/(1.0d0+radiusOuterScaleFree))
+    waveNumberScaleFree =+waveNumber *self%scaleLength
+    radiusOuterScaleFree=+radiusOuter/self%scaleLength
+    fourierTransform    =+(                                                                                                                                                         &
+         &                 +sin(+                     waveNumberScaleFree)*(Sine_Integral  ((1.0d0+radiusOuterScaleFree)*waveNumberScaleFree)-Sine_Integral  (waveNumberScaleFree)) &
+         &                 -sin(+radiusOuterScaleFree*waveNumberScaleFree)/                 (1.0d0+radiusOuterScaleFree)/waveNumberScaleFree                                        &
+         &                 +cos(+                     waveNumberScaleFree)*(Cosine_Integral((1.0d0+radiusOuterScaleFree)*waveNumberScaleFree)-Cosine_Integral(waveNumberScaleFree)) &
+         &                )                                                                                                                                                         &
+         &               /(log(1.0d0+radiusOuterScaleFree)-radiusOuterScaleFree/(1.0d0+radiusOuterScaleFree))
     return
   end function nfwFourierTransform
   
@@ -934,8 +934,10 @@ contains
     radiusOuterScaleFree=+     radiusOuter                                                                                   &
          &               /self%scaleLength
     energy=-gravitationalConstantGalacticus                                                                                  &
-         & *self%scaleLength               **5                                                                               &
-         & *self%densityNormalization      **2                                                                               &
+         & *self%scaleLength                           **5                                                                   &
+         & *self%densityNormalization                  **2                                                                   &
+         & *8.0d0                                                                                                            &
+         & *Pi**2                                                                                                            &
          & *(                                                                                                                &
          &                                       +radiusOuterScaleFree/(1.0d0+radiusOuterScaleFree)                          &
          &   - log(1.0d0+radiusOuterScaleFree)**2                                                      /radiusOuterScaleFree &
@@ -969,23 +971,46 @@ contains
        select type (kinematicsDistribution_ => massDistributionEmbedding%kinematicsDistribution_)
        class is (kinematicsDistributionNFW)
           analytic   =.true.
-          radiusOuterScaleFree=+     radiusOuter                                                                                               &
+          radiusOuterScaleFree=+     radiusOuter                                                                      &
                &               /self%scaleLength          
-          energy              =+gravitationalConstantGalacticus                                                                                &
-               &               *self%scaleLength                **5                                                                            &
-               &               *self%densityNormalization       **2                                                                            &
-               &               *Pi                                                                                                             &
-               &               *(                                                                                                              &
-               &                 +3.0d0                          /           (        +1.0d0+      radiusOuterScaleFree                      ) &
-               &                 +        radiusOuterScaleFree   *           (+5.0d0+(-7.0d0+Pi**2*radiusOuterScaleFree)*radiusOuterScaleFree) &
-               &                 -        radiusOuterScaleFree**3*log        (                     radiusOuterScaleFree                      ) &
-               &                 +                                log        (        +1.0d0+      radiusOuterScaleFree                      ) &
-               &                 *(                                                                                                            &
-               &                   -2.0d0+radiusOuterScaleFree   *           (+3.0d0+(-6.0d0+      radiusOuterScaleFree)*radiusOuterScaleFree) &
-               &                   +3.0d0*radiusOuterScaleFree**3*log        (        +1.0d0+      radiusOuterScaleFree                      ) &
-               &                 )                                                                                                             &
-               &                 +  6.0d0*radiusOuterScaleFree**3*Dilogarithm(              -      radiusOuterScaleFree                      ) &
-               &                )
+          energy              =+gravitationalConstantGalacticus                                                       &
+               &               *self%scaleLength                **5                                                   &
+               &               *self%densityNormalization       **2                                                   &
+               &               *4.0d0                                                                                 &
+               &               *Pi**2                                                                                 &
+               &               *(                                                                                     &
+               &                 +(                                                                                   &
+               &                   +2.0d0                                                                             &
+               &                   +            radiusOuterScaleFree                                                  &
+               &                   *(                                                                                 &
+               &                     -2.0d0                                                                           &
+               &                     +          radiusOuterScaleFree                                                  &
+               &                     *(                                                                               &
+               &                       -7.0d0                                                                         &
+               &                       +Pi**2                                                                         &
+               &                       *(1.0d0+radiusOuterScaleFree)                                                  &
+               &                      )                                                                               &
+               &                    )                                                                                 &         
+               &                  )                                                                                   &
+               &                 *                                                              radiusOuterScaleFree  &
+               &                 +        radiusOuterScaleFree**4     *log        (+1.0d0+1.0d0/radiusOuterScaleFree) &
+               &                 -        radiusOuterScaleFree**3     *log        (+            radiusOuterScaleFree) &
+               &                 +(                                                                                   &
+               &                   -    2.0d0                                                                         &
+               &                   +          radiusOuterScaleFree                                                    &
+               &                   -    3.0d0*radiusOuterScaleFree**2                                                 &
+               &                   -    5.0d0*radiusOuterScaleFree**3                                                 &
+               &                   +    3.0d0*radiusOuterScaleFree**3                                                 &
+               &                   *   (1.0d0+radiusOuterScaleFree   )                                                &
+               &                   *log(1.0d0+radiusOuterScaleFree   )                                                &
+               &                  )                                                                                   &
+               &                 *                                     log        (1.0d0+radiusOuterScaleFree)        &
+               &                 +6.0d0                                                                               &
+               &                 *             radiusOuterScaleFree**3                                                &
+               &                 *     (1.0d0+radiusOuterScaleFree    )                                               &
+               &                 *                                     Dilogarithm(     -radiusOuterScaleFree)        &
+               &                )                                                                                     &
+               &               /(1.0d0+radiusOuterScaleFree)
        end select
     end select
     if (.not.analytic) energy=self%energyKineticNumerical(radiusOuter,massDistributionEmbedding)
