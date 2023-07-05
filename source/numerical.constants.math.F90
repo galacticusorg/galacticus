@@ -58,4 +58,8 @@ module Numerical_Constants_Math
   !! ζ(3) - https://oeis.org/A002117
   double precision, public, parameter :: riemannZeta3=1.20205690315959428539973816151144999076d0
   
+  ! Catalan's constant
+  !! G - https://oeis.org/A006752
+  double precision, public, parameter :: catalan     =0.91596559417721901505460351493238411077d0
+  
 end module Numerical_Constants_Math
