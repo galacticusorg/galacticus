@@ -102,9 +102,9 @@ contains
     Apply control to merger tree building.
     !!}
     implicit none
-    class(mergerTreeBuildControllerUncontrolled), intent(inout)          :: self
-    type (treeNode                             ), intent(inout), pointer :: node
-    class(mergerTreeWalkerClass                ), intent(inout)          :: treeWalker_
+    class(mergerTreeBuildControllerUncontrolled), intent(inout)           :: self
+    type (treeNode                             ), intent(inout), pointer  :: node
+    class(mergerTreeWalkerClass                ), intent(inout), optional :: treeWalker_
     !$GLC attributes unused :: self, node, treeWalker_
 
     ! Always return true as we never want to halt tree building.

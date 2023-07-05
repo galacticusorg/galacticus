@@ -245,10 +245,10 @@ contains
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
-    class(mergerTreeBuildControllerConstrained), intent(inout)          :: self
-    type (treeNode                            ), intent(inout), pointer :: node
-    class(mergerTreeWalkerClass               ), intent(inout)          :: treeWalker_
-    class(nodeComponentBasic                  )               , pointer :: basic
+    class(mergerTreeBuildControllerConstrained), intent(inout)           :: self
+    type (treeNode                            ), intent(inout), pointer  :: node
+    class(mergerTreeWalkerClass               ), intent(inout), optional :: treeWalker_
+    class(nodeComponentBasic                  )               , pointer  :: basic
 
     ! Always return true as we never want to halt tree building.
     constrainedControl=.true.
@@ -271,13 +271,21 @@ contains
     case (constructionOptionConstrainedBranchOnly       %ID)
        basic => node%basic()
        do while (constrainedControl.and.associated(node%parent).and. basic%integerRank0MetaPropertyGet(self%isConstrainedID) == 0                                 )
-          constrainedControl=treeWalker_%next(node)
+          if (present(treeWalker_)) then
+             constrainedControl=treeWalker_%next(node)
+          else
+             constrainedControl=.false.
+          end if
           if (constrainedControl) basic => node%basic()
        end do
     case (constructionOptionConstrainedAndMainBranchOnly%ID)
        basic => node%basic()
        do while (constrainedControl.and.associated(node%parent).and.(basic%integerRank0MetaPropertyGet(self%isConstrainedID) == 0 .and. .not.node%isOnMainBranch()))
-          constrainedControl=treeWalker_%next(node)
+          if (present(treeWalker_)) then
+             constrainedControl=treeWalker_%next(node)
+          else
+             constrainedControl=.false.
+          end if
           if (constrainedControl) basic => node%basic()
        end do
     case (constructionOptionAllBranches                 %ID)

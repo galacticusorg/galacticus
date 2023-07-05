@@ -40,8 +40,8 @@ module Merger_Tree_Build_Controllers
     <description>Control the behavior of a tree build.</description>
     <type>logical</type>
     <pass>yes</pass>
-    <argument>type (treeNode             ), intent(inout), pointer :: node       </argument>
-    <argument>class(mergerTreeWalkerClass), intent(inout)          :: treeWalker_</argument>
+    <argument>type (treeNode             ), intent(inout), pointer  :: node       </argument>
+    <argument>class(mergerTreeWalkerClass), intent(inout), optional :: treeWalker_</argument>
    </method>
    <method name="timeMaximum" >
     <description>Return the maximum ``time'' (using the usual $w$ variable for merger tree building) allowed for this node.</description>
