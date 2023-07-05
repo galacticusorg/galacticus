@@ -178,16 +178,18 @@ contains
     !!{
     Compute the density of the accretion flow at the given radius.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic
+    use :: Mass_Distributions, only : massDistributionClass
+    use :: Galacticus_Nodes  , only : nodeComponentBasic
     implicit none
     class           (accretionFlowsDiemerKravtsov2014), intent(inout) :: self
     type            (treeNode                        ), intent(inout) :: node
     double precision                                  , intent(in   ) :: radius
     class           (nodeComponentBasic              ), pointer       :: basic
-    double precision                                                  :: time         , mass       , &
-         &                                                               radius200Mean, densityMean, &
-         &                                                               nu           , redshift   , &
-         &                                                               b            , s
+    class           (massDistributionClass           ), pointer       :: massDistribution_
+    double precision                                                  :: time             , mass       , &
+         &                                                               radius200Mean    , densityMean, &
+         &                                                               nu               , redshift   , &
+         &                                                               b                , s
     
     ! Extract basic quantities for the halo.
     basic => node %basic()
@@ -205,8 +207,12 @@ contains
     b=+self%b0*(1.0+redshift)**self%bz*nu**self%bnu
     s=+self%s0*(1.0+redshift)**self%sz*nu**self%snu
     ! Find the radius enclosing 200 times the mean density.
-    densityMean  =self%cosmologyFunctions_  %matterDensityEpochal  (time                     )
-    radius200Mean=self%darkMatterProfileDMO_%radiusEnclosingDensity(node,+200.0d0*densityMean)
+    massDistribution_ => self             %darkMatterProfileDMO_%get                   (node                )
+    densityMean       =  self             %cosmologyFunctions_  %matterDensityEpochal  (time                )
+    radius200Mean     =  massDistribution_                      %radiusEnclosingDensity(+200.0d0*densityMean)
+    !![
+    <objectDestructor name="massDistribution_"/>
+    !!]
     ! Evaluate equation (4) from Diemer & Kravtsov (2014).
     diemerKravtsov2014Density=+densityMean       &
          &                    *(                 &

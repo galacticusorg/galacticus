@@ -769,38 +769,43 @@ contains
     \end{equation}
     which we can then take the derivative of numerically to obtain the distribution function.
     !!}
+    use :: Coordinates          , only : coordinateSpherical  , assignment(=)
     use :: Error                , only : Error_Report
     use :: Galacticus_Nodes     , only : nodeComponentBasic
+    use :: Mass_Distributions   , only : massDistributionClass
     use :: Numerical_Integration, only : integrator
     use :: Table_Labels         , only : extrapolationTypeFix
     implicit none
-    double precision                    , intent(in   ) :: radius
-    double precision                    , intent(in   ) :: energyDistributionPointsPerDecade
-    class           (nodeComponentBasic), pointer       :: basic
-    double precision                    , parameter     :: toleranceTabulation                      =1.0d-6
-    double precision                    , parameter     :: toleranceGradient                        =1.0d-6
+    double precision                       , intent(in   ) :: radius
+    double precision                       , intent(in   ) :: energyDistributionPointsPerDecade
+    class           (nodeComponentBasic   ), pointer       :: basic
+    class           (massDistributionClass), pointer       :: massDistribution_
+    double precision                       , parameter     :: toleranceTabulation                      =1.0d-6
+    double precision                       , parameter     :: toleranceGradient                        =1.0d-6
     ! The largest (absolute) logarithmic gradient dlog(Φ)/dlog(r) at which it is acceptable to have a non-monotonic distribution
     ! function. This allows for numerical inaccuracies that arise in cored density profiles where the central potential has the
     ! form Φ(r) = Φ₀ + k r², such that the potential is very weakly dependent on r at small radii.
-    double precision                    , parameter     :: derivativeLogarithmicPotentialTolerance  =1.0d-5
-    double precision                                    :: radiusMinimum                                   , energyPotentialTruncate                  , &
-         &                                                 particulateSmoothingIntegrationRangeLower       , particulateSmoothingIntegrationRangeUpper, &
-         &                                                 radiusFactorAsymptote                           , integralAsymptotic                       , &
-         &                                                 gradientDensityPotentialLower                   , gradientDensityPotentialUpper            , &
-         &                                                 densitySmoothedIntegralLower                    , densitySmoothedIntegralUpper             , &
-         &                                                 derivativeLogarithmicPotential
-    logical                                             :: tableRebuild
-    integer                                             :: i                                               , j
-    integer                                             :: radiusCount
-    type            (integrator        )                :: intergatorSmoothingZ                            , integratorMass                           , &
-         &                                                 integratorPotential                             , integratorEddington
+    double precision                       , parameter     :: derivativeLogarithmicPotentialTolerance  =1.0d-5
+    double precision                                       :: radiusMinimum                                   , energyPotentialTruncate                  , &
+         &                                                    particulateSmoothingIntegrationRangeLower       , particulateSmoothingIntegrationRangeUpper, &
+         &                                                    radiusFactorAsymptote                           , integralAsymptotic                       , &
+         &                                                    gradientDensityPotentialLower                   , gradientDensityPotentialUpper            , &
+         &                                                    densitySmoothedIntegralLower                    , densitySmoothedIntegralUpper             , &
+         &                                                    derivativeLogarithmicPotential
+    logical                                                :: tableRebuild
+    integer                                                :: i                                               , j
+    integer                                                :: radiusCount
+    type            (coordinateSpherical  )                :: coordinates
+    type            (integrator           )                :: intergatorSmoothingZ                            , integratorMass                           , &
+         &                                                    integratorPotential                             , integratorEddington
 
     ! Determine the minimum of the given radius and some small fraction of the virial radius.
-    basic         =>                                                            node_%basic()
-    radiusMinimum =  min(                                                                                          &
-         &               +0.5d0*                            radius                                               , &
-         &               +      self_%darkMatterProfileDMO_%radiusEnclosingMass(node_        ,self_%massParticle)  &
-         &              )
+    basic             =>                                                      node_%basic       ()
+    massDistribution_ => self_     %darkMatterProfileDMO_%get                (node_               )
+    radiusMinimum     =  min(                                                                        &
+         &                   +0.5d0*                      radius                                   , &
+         &                   +      massDistribution_    %radiusEnclosingMass(self_%massParticle  )  &
+         &                  )
     ! Rebuild the density vs. potential table to have sufficient range if necessary.
     if (energyDistributionInitialized) then
        tableRebuild=(radiusMinimum < (1.0d0-toleranceTabulation)*energyDistribution%x(1))
@@ -821,43 +826,36 @@ contains
             &                        )
        select case (softeningKernel%ID)
        case (particulateKernelDelta%ID)
-          energyPotentialTruncate=+self_%darkMatterProfileDMO_%potential(                            &
-               &                                                                    node_          , &
-               &                                                                   +radiusTruncate_  &
-               &                                                                  )
+          coordinates            =[radiusTruncate_,0.0d0,0.0d0]
+          energyPotentialTruncate=+massDistribution_%potential(coordinates)
        case default
           ! Potential will be computed directly from the smoothed density profile in these cases.
           energyPotentialTruncate=0.0d0
        end select
        do i=1,radiusCount
-          radius_=energyDistribution%x(i)
+          radius_    =energyDistribution%x(i)
+          coordinates=[radius_,0.0d0,0.0d0]
           call energyDistribution%populate(                                                                              &
-               &                                         +self_%darkMatterProfileDMO_%density  (                         &
-               &                                                                                node_                  , &
-               &                                                                                energyDistribution%x(i)  &
-               &                                                                               )                       , &
-               &                                                                                                     i , &
+               &                                         +massDistribution_%density  (coordinates)                     , &
+               &                                         i                                                             , &
                &                           table        =energyDistributionTableDensity                                , &
                &                           computeSpline=i==radiusCount                                                  &
                &                          )
           select case (softeningKernel%ID)
           case (particulateKernelDelta%ID)
              ! No softening is applied, so use the actual density and potential.
-             call energyDistribution%populate(                                                                              &
-                  &                                         energyDistribution%y(i,table=energyDistributionTableDensity)  , &
-                  &                                                                                                     i , &
-                  &                           table        =energyDistributionTableDensitySmoothed                        , &
-                  &                           computeSpline=i==radiusCount                                                  &
+             call energyDistribution%populate(                                                                            &
+                  &                                         energyDistribution%y(i,table=energyDistributionTableDensity), &
+                  &                                                              i                                      , &
+                  &                           table        =energyDistributionTableDensitySmoothed                      , &
+                  &                           computeSpline=i==radiusCount                                                &
                   &                          )
-             call energyDistribution%populate(                                                                              &
-                  &                                         -self_%darkMatterProfileDMO_%potential(                         &
-                  &                                                                                node_                  , &
-                  &                                                                                energyDistribution%x(i)  &
-                  &                                                                               )                         &
-                  &                                         +energyPotentialTruncate                                      , &
-                  &                                                                                                     i , &
-                  &                           table        =energyDistributionTablePotential                              , &
-                  &                           computeSpline=i==radiusCount                                                  &
+             call energyDistribution%populate(                                                                            &
+                  &                                         -massDistribution_%potential(coordinates)                     &
+                  &                                         +energyPotentialTruncate                                    , &
+                  &                                         i                                                           , &
+                  &                           table        =energyDistributionTablePotential                            , &
+                  &                           computeSpline=i==radiusCount                                                &
                   &                          )
           case default
              ! Compute potential from a density field smoothed by the density distribution corresponding to the softened
@@ -903,6 +901,9 @@ contains
                   &                          )
           end select
        end do
+       !![
+       <objectDestructor name="massDistribution_"/>
+       !!]
        ! If necessary, compute the potential from the smoothed density profile.
        if (softeningKernel /= particulateKernelDelta) then
           integratorMass=integrator(particulateMassIntegrand,toleranceRelative=self_%toleranceMass)
@@ -1075,21 +1076,31 @@ contains
     The integrand over cylindrical coordinate $R$ used in finding the smoothed density profile defined by
     \cite{barnes_gravitational_2012} to account for gravitational softening.
     !!}
+    use :: Coordinates       , only : coordinateSpherical  , assignment(=)
+    use :: Mass_Distributions, only : massDistributionClass
     implicit none
-    double precision, intent(in   ) :: radiusCylindrical
-    double precision                :: radiusSplineKernel, lengthSplineKernel
-
-    particulateSmoothingIntegrandR=+radiusCylindrical                                               &
-         &                         *self_%darkMatterProfileDMO_%density(                            &
-         &                                                              node_                     , &
-         &                                                              sqrt(                       &
-         &                                                                   +radiusCylindrical**2  &
-         &                                                                   +(                     &
-         &                                                                     +height_             &
-         &                                                                     -radius_             &
-         &                                                                    )                **2  &
-         &                                                                  )                       &
-         &                                                             )
+    double precision                       , intent(in   ) :: radiusCylindrical
+    class           (massDistributionClass), pointer       :: massDistribution_
+    double precision                                       :: radiusSplineKernel, lengthSplineKernel
+    type            (coordinateSpherical  )                :: coordinates
+    
+    massDistribution_ => self_%darkMatterProfileDMO_%get(node_)
+    coordinates       =  [                             &
+         &                +sqrt(                       &
+         &                      +radiusCylindrical**2  &
+         &                      +(                     &
+         &                        +height_             &
+         &                        -radius_             &
+         &                       )                **2  &
+         &                     )                     , &
+         &                +0.0d0                     , &
+         &                +0.0d0                       &
+         &               ]
+    particulateSmoothingIntegrandR=+                  radiusCylindrical              &
+         &                         *massDistribution_%density          (coordinates)
+    !![
+    <objectDestructor name="massDistribution_"/>
+    !!]
     ! Apply the softening kernel density distribution.
     select case (softeningKernel%ID)
     case (particulateKernelPlummer%ID)

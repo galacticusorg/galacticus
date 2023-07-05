@@ -174,7 +174,8 @@ contains
     use :: Kepler_Orbits                   , only : keplerOrbit
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     use :: Beta_Functions                  , only : Beta_Function                  , Beta_Function_Incomplete_Normalized
-    use :: Hypergeometric_Functions
+    use :: Hypergeometric_Functions        , only : Hypergeometric_2F1
+    use :: Mass_Distributions              , only : massDistributionClass
     implicit none
     class           (darkMatterProfileScaleRadiusJohnson2021), intent(inout), target    :: self
     type            (treeNode                               ), intent(inout), target    :: node
@@ -185,6 +186,7 @@ contains
     class           (nodeComponentDarkMatterProfile         )               , pointer   :: darkMatterProfile                              , darkMatterProfileSibling         , &
          &                                                                                 darkMatterProfileChild                         , darkMatterProfileUnresolved
     class           (nodeComponentSatellite                 )               , pointer   :: satelliteSibling
+    class           (massDistributionClass                  )               , pointer   :: massDistribution_
     double precision                                                        , parameter :: massFunctionSlopeLogarithmic            =1.90d0
     double precision                                                        , parameter :: energyInternalFormFactorSlopeLogarithmic=0.03d0
     double precision                                                                    :: energyOrbital                                  , massRatio                        , &
@@ -193,7 +195,8 @@ contains
          &                                                                                 radiusScaleUnresolved                          , massResolution                   , &
          &                                                                                 energyPotentialSubresolutionFactor             , energyKineticSubresolutionFactor , &
          &                                                                                 a                                              , b                                , &
-         &                                                                                 energyPotential                                , energyKinetic
+         &                                                                                 energyPotential                                , energyKinetic                    , &
+         &                                                                                 radiusVirial
     type            (rootFinder                             )                           :: finder
     type            (keplerOrbit                            )                           :: orbit
     
@@ -224,42 +227,52 @@ contains
        massUnresolved          =  +basic                 %mass             () &
             &                     -basicChild            %mass             ()
        ! Iterate over progenitors and sum their energies.
-       nodeSibling =>                                   nodeChild
-       energyTotal =  self%darkMatterProfileDMO_%energy(nodeSibling)
+       nodeSibling       =>                                                      nodeChild
+       massDistribution_ => self             %darkMatterProfileDMO_%get         (nodeSibling                   )
+       radiusVirial      =  self             %darkMatterHaloScale_ %radiusVirial(nodeSibling                   )
+       energyTotal       =  massDistribution_%energy                            (radiusVirial,massDistribution_)
+       !![
+       <objectDestructor name="massDistribution_"/>
+       !!]
        do while (associated(nodeSibling%sibling))
           nodeSibling              =>  nodeSibling       %sibling
-          basicSibling             =>  nodeSibling       %basic            (                      )
-          darkMatterProfileSibling =>  nodeSibling       %darkMatterProfile(                      )
-          satelliteSibling         =>  nodeSibling       %satellite        (autoCreate=.true.     )
-          orbit                    =   satelliteSibling  %virialOrbit      (                      )
-          massRatio                =  +basicSibling      %mass             (                      ) &
-               &                      /basicChild        %mass             (                      )
-          energyOrbital            =  +orbit             %energy           (                      ) &
-               &                      *basicSibling      %mass             (                      ) &
-               &                      /(                                                            &
-               &                        +1.0d0                                                      &
-               &                        +massRatio                                                  &
+          basicSibling             =>  nodeSibling       %basic                             (                              )
+          darkMatterProfileSibling =>  nodeSibling       %darkMatterProfile                 (                              )
+          satelliteSibling         =>  nodeSibling       %satellite                         (autoCreate=.true.             )
+          massDistribution_        =>  self              %darkMatterProfileDMO_%get         (nodeSibling                   )
+          radiusVirial             =   self              %darkMatterHaloScale_ %radiusVirial(nodeSibling                   )
+          orbit                    =   satelliteSibling  %virialOrbit                       (                              )
+          massRatio                =  +basicSibling      %mass                              (                              ) &
+               &                      /basicChild        %mass                              (                              )
+          energyOrbital            =  +orbit             %energy                            (                              ) &
+               &                      *basicSibling      %mass                              (                              ) &
+               &                      /(                                                                                     &
+               &                        +1.0d0                                                                               &
+               &                        +massRatio                                                                           &
                &                       )**self%massExponent
-          massUnresolved           =  +massUnresolved                                               &
-               &                      -basicSibling      %mass             (                      )
+          massUnresolved           =  +massUnresolved                                                                        &
+               &                      -basicSibling      %mass                              (                              )
           ! Add orbital energy of this sibling.
-          energyTotal              = +energyTotal                                                   &
-               &                     +energyOrbital                                                 &
-               &                     *(                                                             &
-               &                       +1.0d0                                                       &
-               &                       +self%energyBoost                                            &
+          energyTotal              = +energyTotal                                                                            &
+               &                     +energyOrbital                                                                          &
+               &                     *(                                                                                      &
+               &                       +1.0d0                                                                                &
+               &                       +self%energyBoost                                                                     &
                &                      )
           ! Add the internal energy of the sibling.
-          energyTotal              =  +energyTotal                                                  &
-               &                      +self%darkMatterProfileDMO_%energy   (           nodeSibling) &
-               &                      /(                                                            &
-               &                        +1.0d0                                                      &
-               &                        +massRatio                                                  &
-               &                       )**self%massExponent                                         &
-               &                      *(                                                            &
-               &                        +1.0d0                                                      &
-               &                        +self%energyBoost                                           &
+          energyTotal              =  +energyTotal                                                                           &
+               &                      +massDistribution_ %energy                            (radiusVirial,massDistribution_) &
+               &                      /(                                                                                     &
+               &                        +1.0d0                                                                               &
+               &                        +massRatio                                                                           &
+               &                       )**self%massExponent                                                                  &
+               &                      *(                                                                                     &
+               &                        +1.0d0                                                                               &
+               &                        +self%energyBoost                                                                    &
                &                       )
+          !![
+	  <objectDestructor name="massDistribution_"/>
+          !!]
        end do
        ! Account for unresolved accretion. We assume that unresolved halos are accreted with the mean orbital energy of
        ! the virial orbital parameter distribution, plus an internal energy corresponding to that of a halo with mass
@@ -314,28 +327,33 @@ contains
             &                                                                    8.0d0/3.0d0-(massFunctionSlopeLogarithmic+energyInternalFormFactorSlopeLogarithmic)   &
             &                              )
        ! Determine the orbital and internal energies.
-       energyKinetic  =+0.5d0                                                                       &
-            &          *self%virialOrbit_%velocityTotalRootMeanSquared(nodeUnresolved,nodeChild)**2 &
-            &          /(1.0d0+massRatio)
-       energyPotential=+self%virialOrbit_%energyMean                  (nodeUnresolved,nodeChild)    &
-            &          -                  energyKinetic
-       energyOrbital  =+energyPotential                                     &
-            &          *energyPotentialSubresolutionFactor                  &
-            &          +energyKinetic                                       &
-            &          *energyKineticSubresolutionFactor
-       energyTotal    =+energyTotal                                         &
-            &          +massUnresolved                                      &
-            &          *self%unresolvedEnergy                               &
-            &          *(                                                   &
-            &            +energyOrbital                                     &
-            &            +energyInternalSubresolutionFactor                 &
-            &            *self%darkMatterProfileDMO_%energy(nodeUnresolved) &
-            &            /massResolution                                    &
-            &           )                                                   &
-            &          *(                                                   &
-            &            +1.0d0                                             &
-            &            +self%energyBoost                                  &
-            &           )
+       massDistribution_ => self%darkMatterProfileDMO_%get         (nodeUnresolved)
+       radiusVirial      =  self%darkMatterHaloScale_ %radiusVirial(nodeUnresolved)
+       energyKinetic     =  +0.5d0                                                                       &
+            &               *self%virialOrbit_%velocityTotalRootMeanSquared(nodeUnresolved,nodeChild)**2 &
+            &               /(1.0d0+massRatio)
+       energyPotential   =  +self%virialOrbit_%energyMean                  (nodeUnresolved,nodeChild)    &
+            &               -                  energyKinetic
+       energyOrbital     =  +energyPotential                                            &
+            &               *energyPotentialSubresolutionFactor                         &
+            &               +energyKinetic                                              &
+            &               *energyKineticSubresolutionFactor
+       energyTotal       =  +energyTotal                                                &
+            &               +massUnresolved                                             &
+            &               *self%unresolvedEnergy                                      &
+            &               *(                                                          &
+            &                 +energyOrbital                                            &
+            &                 +energyInternalSubresolutionFactor                        &
+            &                 *massDistribution_%energy(radiusVirial,massDistribution_) &
+            &                 /massResolution                                           &
+            &                )                                                          &
+            &               *(                                                          &
+            &                 +1.0d0                                                    &
+            &                 +self%energyBoost                                         &
+            &                )
+       !![
+       <objectDestructor name="massDistribution_"/>
+       !!]
        ! Add mutual gravitational binding energy of any sibling halo and any unresolved mass.
        if (associated(nodeChild%sibling))                                      &
             & energyTotal=+energyTotal                                         &
@@ -368,12 +386,18 @@ contains
     Function used in root-finding to compute the scale radius of a dark matter profile as a given energy.
     !!}
     use :: Calculations_Resets, only : Calculations_Reset
+    use :: Mass_Distributions , only : massDistributionClass
     implicit none
-    double precision, intent(in   ) :: radiusScale
+    double precision                       , intent(in   ) :: radiusScale
+    class           (massDistributionClass), pointer       :: massDistribution_
 
     call darkMatterProfile_%scaleSet(radiusScale)
     call Calculations_Reset(node_)
-    radiusScaleRoot=+                            energyTotal        &
-         &          -self_%darkMatterProfileDMO_%energy     (node_)
-    return
+    massDistribution_ =>  self_            %darkMatterProfileDMO_%get(                                        node_                   )
+   radiusScaleRoot    =  +                  energyTotal                                                                                 &
+        &                -massDistribution_%energy                   (self_%darkMatterHaloScale_%radiusVirial(node_),massDistribution_)
+   !![
+   <objectDestructor name="massDistribution_"/>
+   !!]
+   return
   end function radiusScaleRoot

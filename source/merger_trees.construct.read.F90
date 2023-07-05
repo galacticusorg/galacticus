@@ -2120,15 +2120,17 @@ contains
     use :: Error                     , only : Error_Report
     use :: Galacticus_Nodes          , only : nodeComponentBasic, nodeComponentSpin, treeNodeList
     use :: Merger_Tree_Read_Importers, only : nodeData
-    implicit none
+    use :: Mass_Distributions        , only : massDistributionClass
+  implicit none
     class           (mergerTreeConstructorRead)                       , intent(inout) :: self
     class           (nodeData                 )         , dimension(:), intent(inout) :: nodes
     type            (treeNodeList             )         , dimension(:), intent(inout) :: nodeList
     class           (nodeComponentBasic       ), pointer                              :: basic
     class           (nodeComponentSpin        ), pointer                              :: spin
+    class           (massDistributionClass    ), pointer                              :: massDistribution_
     integer                                                                           :: iNode
     integer         (c_size_t                 )                                       :: iIsolatedNode
-    double precision                                                                  :: angularMomentum
+    double precision                                                                  :: angularMomentum  , radiusVirial
     double precision                                    , dimension(3)                :: angularMomentum3D
 
     do iNode=1,size(nodes)
@@ -2136,8 +2138,10 @@ contains
        if (nodes(iNode)%isolatedNodeIndex /= nodeReachabilityUnreachable%ID) then
           iIsolatedNode=nodes(iNode)%isolatedNodeIndex
           ! Get basic and spin components.
-          basic => nodeList(iIsolatedNode)%node%basic(                 )
-          spin  => nodeList(iIsolatedNode)%node%spin (autoCreate=.true.)
+          basic             =>                                         nodeList(iIsolatedNode)%node%basic(                 )
+          spin              =>                                         nodeList(iIsolatedNode)%node%spin (autoCreate=.true.)
+          radiusVirial      =  self%darkMatterHaloScale_ %radiusVirial(nodeList(iIsolatedNode)%node                         )
+          massDistribution_ => self%darkMatterProfileDMO_%get         (nodeList(iIsolatedNode)%node                         )
           if (self%presetAngularMomenta  ) then
              if      (self%mergerTreeImporter_%angularMomentaAvailable()) then
                 ! If angular momenta are available directly, use them.
@@ -2164,6 +2168,9 @@ contains
                 call Error_Report('no method exists to set vector angular momenta'//{introspection:location})
              end if
           end if
+          !![
+	  <objectDestructor name="massDistribution_"/>
+	  !!]
        end if
     end do
     return
@@ -2176,9 +2183,9 @@ contains
       !!}
       use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
       implicit none
-      spinNormalization=+gravitationalConstantGalacticus                                            &
-           &            *basic%mass()**2.5d0                                                        &
-           &            /sqrt(abs(self%darkMatterProfileDMO_%energy(nodeList(iIsolatedNode)%node)))
+      spinNormalization=+gravitationalConstantGalacticus                                     &
+           &            *basic%mass()**2.5d0                                                 &
+           &            /sqrt(abs(massDistribution_%energy(radiusVirial,massDistribution_)))
       return
     end function spinNormalization
 
@@ -2223,13 +2230,21 @@ contains
     !!{
     Function used to find scale radius of dark matter halos given their half-mass radius.
     !!}
+    use :: Calculations_Resets, only : Calculations_Reset
+    use :: Mass_Distributions , only : massDistributionClass
     implicit none
-    double precision, intent(in   ) :: radius
+    double precision                       , intent(in   ) :: radius
+    class           (massDistributionClass), pointer       :: massDistribution_
 
     ! Set scale radius to current guess.
     call darkMatterProfile_%scaleSet(radius)
+    call Calculations_Reset(node_)
     ! Compute difference between mass fraction enclosed at half mass radius and one half.
-    readRadiusHalfMassRoot=self_%darkMatterProfileDMO_%enclosedMass(node_,radiusHalfMass_)/basic_%mass()-0.50d0
+    massDistribution_      => self_            %darkMatterProfileDMO_%get(node_          )
+    readRadiusHalfMassRoot =  massDistribution_%massEnclosedBySphere     (radiusHalfMass_)/basic_%mass()-0.5d0
+    !![
+    <objectDestructor name="massDistribution_"/>
+    !!]
     return
   end function readRadiusHalfMassRoot
 

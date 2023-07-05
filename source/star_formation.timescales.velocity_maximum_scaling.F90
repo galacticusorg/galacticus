@@ -78,11 +78,11 @@ contains
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (starFormationTimescaleVelocityMaxScaling)                :: self
-    type            (inputParameters                              ), intent(inout) :: parameters
-    class           (cosmologyFunctionsClass                      ), pointer       :: cosmologyFunctions_
-    class           (darkMatterProfileDMOClass                    ), pointer       :: darkMatterProfileDMO_
-    double precision                                                               :: timescale            , exponentVelocity, &
-         &                                                                            exponentRedshift
+    type            (inputParameters                         ), intent(inout) :: parameters
+    class           (cosmologyFunctionsClass                 ), pointer       :: cosmologyFunctions_
+    class           (darkMatterProfileDMOClass               ), pointer       :: darkMatterProfileDMO_
+    double precision                                                          :: timescale            , exponentVelocity, &
+         &                                                                       exponentRedshift
 
     ! Get parameters of for the timescale calculation.
     !![
@@ -192,11 +192,13 @@ contains
     !!{
     Returns the timescale (in Gyr) for star formation in the {\normalfont \ttfamily component} in the velocity maximum scaling timescale model.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic
-    implicit none
+    use :: Galacticus_Nodes  , only : nodeComponentBasic
+    use :: Mass_Distributions, only : massDistributionClass
+   implicit none
     class           (starFormationTimescaleVelocityMaxScaling), intent(inout) :: self
     class           (nodeComponent                           ), intent(inout) :: component
     class           (nodeComponentBasic                      ), pointer       :: basic
+    class           (massDistributionClass                   ), pointer       :: massDistribution_
     double precision                                                          :: expansionFactor, velocityMaximum
 
     ! Check if node differs from previous one for which we performed calculations.
@@ -204,9 +206,13 @@ contains
     ! Compute the timescale if necessary.
     if (.not.self%timescaleComputed) then
        ! Get virial velocity and expansion factor.
-       basic           => component%hostNode%basic                                        (                    )
-       velocityMaximum =  self              %darkMatterProfileDMO_%circularVelocityMaximum(component%hostNode  )
-       expansionFactor =  self              %cosmologyFunctions_  %expansionFactor        (basic    %time    ())
+       massDistribution_ => self              %darkMatterProfileDMO_%get                         (component%hostNode  )
+       basic             => component%hostNode%basic                                             (                    )
+       velocityMaximum   =  massDistribution_                       %velocityRotationCurveMaximum(                    )
+       expansionFactor   =  self              %cosmologyFunctions_  %expansionFactor             (basic    %time    ())
+       !![
+       <objectDestructor name="massDistribution_"/>
+       !!]
        ! Compute the velocity factor.
        if (velocityMaximum /= self%velocityMaximumPrevious) then
            self%velocityMaximumPrevious=velocityMaximum

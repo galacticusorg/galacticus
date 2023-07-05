@@ -256,33 +256,39 @@ contains
       !!}
       use :: Dark_Matter_Halo_Spins, only : Dark_Matter_Halo_Angular_Momentum_Scale
       use :: Galacticus_Nodes      , only : nodeComponentBasic                     , nodeComponentSpin, treeNode
+      use :: Mass_Distributions    , only : massDistributionClass
       implicit none
-      type            (treeNode          ), intent(inout)          :: node
-      double precision                    , intent(in   )          :: specificAngularMomentum
-      procedure       (solverGet         ), intent(in   ), pointer :: radiusGet              , velocityGet
-      procedure       (solverSet         ), intent(in   ), pointer :: radiusSet              , velocitySet
-      class           (nodeComponentSpin )               , pointer :: spin
-      class           (nodeComponentBasic)               , pointer :: basic
-      double precision                                             :: radius                 , velocity
+      type            (treeNode             ), intent(inout)          :: node
+      double precision                       , intent(in   )          :: specificAngularMomentum
+      procedure       (solverGet            ), intent(in   ), pointer :: radiusGet              , velocityGet
+      procedure       (solverSet            ), intent(in   ), pointer :: radiusSet              , velocitySet
+      class           (nodeComponentSpin    )               , pointer :: spin
+      class           (nodeComponentBasic   )               , pointer :: basic
+      class           (massDistributionClass)               , pointer :: massDistribution_
+      double precision                                                :: radius                 , velocity
       !$GLC attributes unused :: radiusGet, velocityGet, specificAngularMomentum
 
       ! Find the radius of the component, assuming radius is a fixed fraction of radius times spin parameter.
       spin => node%spin()
       select case (self%radiusFixed%ID)
       case (radiusFixedVirial    %ID)
-         velocity             =  +self %darkMatterHaloScale_ %velocityVirial                (node                                           )
-         radius               =  +self %darkMatterHaloScale_ %radiusVirial             (     node                                           ) &
-              &                  *self                       %factor                                                                          &
-              &                  *spin                       %angularMomentum          (                                                    ) &
-              &                  /Dark_Matter_Halo_Angular_Momentum_Scale              (     node         ,     self %darkMatterProfileDMO_ )
+         velocity          =  +self             %darkMatterHaloScale_  %velocityVirial                   (node                                           )
+         radius            =  +self             %darkMatterHaloScale_  %radiusVirial                (     node                                           ) &
+              &               *self                                    %factor                                                                             &
+              &               *spin                                    %angularMomentum             (                                                    ) &
+              &               /Dark_Matter_Halo_Angular_Momentum_Scale                              (     node         ,     self %darkMatterProfileDMO_ )
       case (radiusFixedTurnaround%ID)
-         basic                =>  node                       %basic                    (                                                    )
-         velocity             =  +self%darkMatterProfileDMO_ %circularVelocityMaximum  (     node                                           )
-         radius               =  +self%darkMatterHaloScale_  %radiusVirial             (     node                                           ) &
-              &                  *self%virialDensityContrast_%turnAroundOverVirialRadii(mass=basic%mass(),time=basic%timeLastIsolated     ()) &
-              &                  *self                       %factor                                                                          &
-              &                  *spin                       %angularMomentum          (                                                    ) &
-              &                  /Dark_Matter_Halo_Angular_Momentum_Scale              (     node        ,     self %darkMatterProfileDMO_  )
+         massDistribution_ =>  self             %darkMatterProfileDMO_ %get                         (     node                                           )
+         basic             =>  node                                    %basic                       (                                                    )
+         velocity          =  +massDistribution_                       %velocityRotationCurveMaximum(                                                    )
+         radius            =  +self             %darkMatterHaloScale_  %radiusVirial                (     node                                           ) &
+              &               *self             %virialDensityContrast_%turnAroundOverVirialRadii   (mass=basic%mass(),time=basic%timeLastIsolated     ()) &
+              &               *self                                    %factor                                                                             &
+              &               *spin                                    %angularMomentum             (                                                    ) &
+              &               /Dark_Matter_Halo_Angular_Momentum_Scale                              (     node        ,     self %darkMatterProfileDMO_  )
+         !![
+	 <objectDestructor name="massDistribution_"/>
+         !!]
       end select
       ! Set the component size to new radius and velocity.
       call radiusSet  (node,radius  )

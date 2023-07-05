@@ -113,7 +113,8 @@ contains
     !!{
     Determine if sub-sub-halos should be promoted.
     !!}
-    use :: Galacticus_Nodes, only : propertyInactive, nodeComponentSatellite
+    use :: Galacticus_Nodes  , only : propertyInactive     , nodeComponentSatellite
+    use :: Mass_Distributions, only : massDistributionClass
     implicit none
     class           (nodeOperatorSubsubhaloPromotion), intent(inout), target  :: self
     type            (treeNode                       ), intent(inout), target  :: node
@@ -121,6 +122,7 @@ contains
     procedure       (interruptTask                  ), intent(inout), pointer :: functionInterrupt
     integer                                          , intent(in   )          :: propertyType
     class           (nodeComponentSatellite         )               , pointer :: satellite        , satelliteHost
+    class           (massDistributionClass          )               , pointer :: massDistribution_
     double precision                                 , dimension(3)           :: positionSatellite
     double precision                                                          :: radiusSatellite  , massBoundHost, &
          &                                                                       massEnclosedHost
@@ -136,9 +138,13 @@ contains
     positionSatellite =  satellite%position ()
     radiusSatellite   =  sqrt(sum(positionSatellite**2))
     ! Determine the mass enclosed by this orbit and the bound mass of the host.
-    satelliteHost    => node         %parent               %satellite   (                           )
-    massBoundHost    =  satelliteHost                      %boundMass   (                           )
-    massEnclosedHost =  self         %darkMatterProfileDMO_%enclosedMass(node%parent,radiusSatellite)
+    massDistribution_ => self             %darkMatterProfileDMO_%get                 (node%parent    )
+    satelliteHost     => node             %parent               %satellite           (               )
+    massBoundHost     =  satelliteHost                          %boundMass           (               )
+    massEnclosedHost  =  massDistribution_                      %massEnclosedBySphere(radiusSatellite)
+    !![
+    <objectDestructor name="massDistribution_"/>
+    !!]
     ! If the satellite is within the radius enclosing the total bound mass of the host it will not be promoted.
     if (massEnclosedHost <= massBoundHost) return
     ! The satellite is outside the current bound radius of the host, so should be promoted. Trigger an interrupt.

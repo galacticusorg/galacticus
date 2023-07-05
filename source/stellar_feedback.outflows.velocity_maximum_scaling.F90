@@ -151,21 +151,27 @@ contains
     !!{
     Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the given {\normalfont \ttfamily component}.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes  , only : nodeComponentBasic
+    use :: Mass_Distributions, only : massDistributionClass
     implicit none
     class           (stellarFeedbackOutflowsVlctyMxSclng), intent(inout) :: self
     class           (nodeComponent                      ), intent(inout) :: component
     double precision                                     , intent(in   ) :: rateEnergyInput    , rateStarFormation
     double precision                                     , intent(  out) :: rateOutflowEjective, rateOutflowExpulsive
     class           (nodeComponentBasic                 ), pointer       :: basic
+    class           (massDistributionClass              ), pointer       :: massDistribution_
     double precision                                                     :: expansionFactor    , velocityMaximum
     !$GLC attributes unused :: rateStarFormation
 
     ! Get the basic component.
     basic => component%hostNode%basic()
     ! Get virial velocity and expansion factor.
-    velocityMaximum=self%darkMatterProfileDMO_%circularVelocityMaximum(component%hostNode  )
-    expansionFactor=self%cosmologyFunctions_  %expansionFactor        (basic    %time    ())
+    massDistribution_ => self             %darkMatterProfileDMO_%get                         (component%hostNode  )
+    velocityMaximum   =  massDistribution_                      %velocityRotationCurveMaximum(                    )
+    expansionFactor   =  self             %cosmologyFunctions_  %expansionFactor             (basic    %time    ())
+    !![
+    <objectDestructor name="massDistribution_"/>
+    !!]
     ! Compute the velocity factor.
     if (velocityMaximum /= self%velocityPrevious) then
        self%velocityPrevious       =                                                     velocityMaximum

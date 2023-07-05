@@ -118,14 +118,16 @@ contains
     !!{
     Analyze the maximum velocity tidal track.
     !!}
-    use    :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSatellite
-    !$ use :: OMP_Lib         , only : OMP_Set_Lock      , OMP_Unset_Lock
+    use    :: Galacticus_Nodes  , only : nodeComponentBasic   , nodeComponentSatellite
+    use    :: Mass_Distributions, only : massDistributionClass
+    !$ use :: OMP_Lib           , only : OMP_Set_Lock         , OMP_Unset_Lock
     implicit none
     class           (outputAnalysisTidalTracksVelocityMaximum), intent(inout)             :: self
     type            (treeNode                                ), intent(inout)             :: node
     integer         (c_size_t                                ), intent(in   )             :: iOutput
     class           (nodeComponentBasic                      ), pointer                   :: basic
     class           (nodeComponentSatellite                  ), pointer                   :: satellite
+    class           (massDistributionClass                   ), pointer                   :: massDistribution_             , massDistributionUnheated
     double precision                                          , dimension(:), allocatable :: fractionMassBound_            , fractionVelocityMaximum_             , &
          &                                                                                   fractionVelocityMaximumTarget_
     double precision                                                                      :: mu                            , eta                                  , &
@@ -135,10 +137,16 @@ contains
     ! Skip non-satellites.
     if (.not.node%isSatellite()) return
     ! Extract the bound mass and maximum velocity fractions.
-    basic                   => node%basic()
-    satellite               => node%satellite()
-    fractionMassBound       =  satellite                      %boundMass              (    )/basic                             %mass                   (    )
-    fractionVelocityMaximum =  self     %darkMatterProfileDMO_%circularVelocityMaximum(node)/self %darkMatterProfileDMOUnheated%circularVelocityMaximum(node)
+    basic                    => node             %basic                           (    )
+    satellite                => node             %satellite                       (    )
+    massDistribution_        => self             %darkMatterProfileDMO_       %get(node)
+    massDistributionUnheated => self             %darkMatterProfileDMOUnheated%get(node)
+    fractionMassBound        =  satellite        %boundMass                       (    )/basic                   %mass                        ()
+    fractionVelocityMaximum  =  massDistribution_%velocityRotationCurveMaximum    (    )/massDistributionUnheated%velocityRotationCurveMaximum()
+    !![
+    <objectDestructor name="massDistribution_"       />
+    <objectDestructor name="massDistributionUnheated"/>
+    !!]
     ! Evaluate the target value. Uses the Penarrubia et al. (2010) results for now - replace with something more up to date.
     mu                                   =0.4d0
     eta                                  =0.3d0

@@ -218,20 +218,22 @@ contains
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentBasic
     use :: Interface_GSL                   , only : GSL_Success
-    use :: Numerical_Constants_Astronomical, only : gigaYear          , megaParsec, gravitationalConstantGalacticus, Mpc_per_km_per_s_To_Gyr  
+    use :: Numerical_Constants_Astronomical, only : gigaYear             , megaParsec, gravitationalConstantGalacticus, Mpc_per_km_per_s_To_Gyr  
     use :: Numerical_Constants_Prefixes    , only : kilo
+    use :: Mass_Distributions              , only : massDistributionClass
     use :: Vectors                         , only : Vector_Magnitude
     implicit none
-    double precision                                  , intent(in   ) :: time
-    double precision                    , dimension(:), intent(in   ) :: phaseSpaceCoordinates
-    double precision                    , dimension(:), intent(  out) :: phaseSpaceCoordinatesRateOfChange
-    double precision                    , dimension(3)                :: position                         , velocity       , &
-         &                                                               acceleration
-    type            (treeNode          ), pointer                     :: nodeHost                         , nodeDescendent
-    class           (nodeComponentBasic), pointer                     :: basicProgenitor                  , basicDescendent
-    double precision                                                  :: massSatellite                    , massHost       , &
-         &                                                               factorInterpolate                , radius         , &
-         &                                                               massRatio
+    double precision                                     , intent(in   ) :: time
+    double precision                       , dimension(:), intent(in   ) :: phaseSpaceCoordinates
+    double precision                       , dimension(:), intent(  out) :: phaseSpaceCoordinatesRateOfChange
+    double precision                       , dimension(3)                :: position                         , velocity            , &
+         &                                                                  acceleration
+    type            (treeNode             ), pointer                     :: nodeHost                         , nodeDescendent
+    class           (nodeComponentBasic   ), pointer                     :: basicProgenitor                  , basicDescendent
+    class           (massDistributionClass), pointer                     :: massDistributionDescendent       , massDistributionHost
+    double precision                                                     :: massSatellite                    , massHost            , &
+         &                                                                  factorInterpolate                , radius              , &
+         &                                                                  massRatio
 
     ! Extract orbital position and velocity.
     orbitalODEs =GSL_Success
@@ -262,26 +264,32 @@ contains
        if (associated(nodeHost)) basicProgenitor => nodeHost%basic()
     end do
     if (associated(nodeHost)) then
-       nodeDescendent    => nodeHost      %parent
-       basicDescendent   => nodeDescendent%basic ()
-       radius            =  Vector_Magnitude(position)
-       factorInterpolate =  +(+                time  -basicProgenitor%time()) &
-            &               /(+basicDescendent%time()-basicProgenitor%time())
-       massHost          =  +self_%darkMatterProfileDMO_%enclosedMass(nodeDescendent,radius)*       factorInterpolate  &
-            &               +self_%darkMatterProfileDMO_%enclosedMass(nodeHost      ,radius)*(1.0d0-factorInterpolate)
-       massRatio         =min(                       &
-            &                     +massRatioMaximum, &
-            &                 max(                   &
-            &                     +massRatioMinimum, &
-            &                     +massSatellite     &
-            &                     /massHost          &
-            &                    )                   &
-            &                )
-       acceleration      =-gravitationalConstantGalacticus    &
-            &             *massHost                           &
-            &             *position                           &
-            &             /radius                         **3 &
-            &             /Mpc_per_km_per_s_To_Gyr
+       nodeDescendent             => nodeHost                            %parent
+       basicDescendent            => nodeDescendent                      %basic (              )
+       massDistributionHost       => self_         %darkMatterProfileDMO_%get   (nodeHost      )
+       massDistributionDescendent => self_         %darkMatterProfileDMO_%get   (nodeDescendent)
+       radius                     =  Vector_Magnitude(position)
+       factorInterpolate          =  +(+                time  -basicProgenitor%time()) &
+            &                        /(+basicDescendent%time()-basicProgenitor%time())
+       massHost                   =  +massDistributionDescendent%massEnclosedBySphere(radius)*       factorInterpolate  &
+            &                        +massDistributionHost      %massEnclosedBySphere(radius)*(1.0d0-factorInterpolate)
+       massRatio                  =  min(                       &
+            &                                +massRatioMaximum, &
+            &                            max(                   &
+            &                                +massRatioMinimum, &
+            &                                +massSatellite     &
+            &                                /massHost          &
+            &                               )                   &
+            &                           )
+       acceleration               =  -gravitationalConstantGalacticus    &
+            &                        *massHost                           &
+            &                        *position                           &
+            &                        /radius                         **3 &
+            &                        /Mpc_per_km_per_s_To_Gyr
+       !![
+       <objectDestructor name="massDistributionHost"      />
+       <objectDestructor name="massDistributionDescendent"/>
+       !!]
     else
        ! No host exists at this time, assume zero acceleration.
        acceleration=0.0d0

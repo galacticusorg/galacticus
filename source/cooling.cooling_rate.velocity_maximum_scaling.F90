@@ -238,21 +238,27 @@ contains
     !!{
     Returns the cooling rate (in $M_\odot$ Gyr$^{-1}$) in the hot atmosphere for a model in which this rate scales with the maximum circular velocity of the halo.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentHotHalo, treeNode
+    use :: Galacticus_Nodes  , only : nodeComponentBasic   , nodeComponentHotHalo, treeNode
+    use :: Mass_Distributions, only : massDistributionClass
     implicit none
     class           (coolingRateVelocityMaximumScaling), intent(inout) :: self
     type            (treeNode                         ), intent(inout) :: node
     double precision                                   , parameter     :: expArgumentMaximum=100.0d0
     class           (nodeComponentBasic               ), pointer       :: basic
     class           (nodeComponentHotHalo             ), pointer       :: hotHalo
+    class           (massDistributionClass            ), pointer       :: massDistribution_
     double precision                                                   :: expFactor                 , expansionFactor, &
          &                                                                expArgument               , velocityMaximum
 
     ! Compute expansion factor and maximum velocity.
-    basic               => node                      %basic                  (            )
-    hotHalo             => node                      %hotHalo                (            )
-    expansionFactor     =  self%cosmologyFunctions_  %expansionFactor        (basic%time())
-    velocityMaximum     =  self%darkMatterProfileDMO_%circularVelocityMaximum(node        )
+    massDistribution_ => self                    %darkMatterProfileDMO_%get                         (node        )
+    basic             => node                                          %basic                       (            )
+    hotHalo           => node                                          %hotHalo                     (            )
+    expansionFactor   =  self%cosmologyFunctions_                      %expansionFactor             (basic%time())
+    velocityMaximum   =  massDistribution_                             %velocityRotationCurveMaximum(            )
+    !![
+    <objectDestructor name="massDistribution_"/>
+    !!]
     if (expansionFactor /= self%expansionFactorPrevious .or. velocityMaximum /= self%velocityMaximumPrevious) then
        expArgument=log10(                                                                       &
             &            +velocityMaximum                                                       &

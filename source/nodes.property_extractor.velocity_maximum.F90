@@ -114,15 +114,21 @@ contains
     !!{
     Implement a last isolated redshift output analysis.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
+    use :: Galacticus_Nodes  , only : nodeComponentBasic
+    use :: Mass_Distributions, only : massDistributionClass
     implicit none
     class(nodePropertyExtractorVelocityMaximum), intent(inout)           :: self
     type (treeNode                            ), intent(inout), target   :: node
     type (multiCounter                        ), intent(inout), optional :: instance
+    class(massDistributionClass               )               , pointer  :: massDistribution_
     !$GLC attributes unused :: instance
 
-    velocityMaximumExtract=self%darkMatterProfileDMO_%circularVelocityMaximum(node)
-    return
+    massDistribution_      => self             %darkMatterProfileDMO_%get                         (node)
+    velocityMaximumExtract =  massDistribution_                      %velocityRotationCurveMaximum(    )
+    !![
+    <objectDestructor name="massDistribution_"/>
+    !!]
+   return
   end function velocityMaximumExtract
 
   function velocityMaximumName(self)

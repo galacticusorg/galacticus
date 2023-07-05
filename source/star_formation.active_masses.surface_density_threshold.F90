@@ -134,19 +134,25 @@ contains
     !!}
     use :: Error                     , only : Error_Report
     use :: Galacticus_Nodes          , only : nodeComponentDisk
-    use :: Galactic_Structure_Options, only : componentTypeDisk, coordinateSystemCartesian, coordinateSystemCylindrical, massTypeGaseous, &
-          &                                   weightByMass     , weightIndexNull
+    use :: Galactic_Structure_Options, only : componentTypeDisk    , coordinateSystemCartesian, coordinateSystemCylindrical, massTypeGaseous, &
+          &                                   weightByMass         , weightIndexNull
+    use :: Mass_Distributions        , only : massDistributionClass
     implicit none
     class           (starFormationActiveMassSurfaceDensityThreshold), intent(inout) :: self
     class           (nodeComponent                                 ), intent(inout) :: component
+    class           (massDistributionClass                         ), pointer       :: massDistribution_
     double precision                                                                :: surfaceDensityThreshold, radiusBounding, &
          &                                                                             densitySurfaceCentral
     
     select type (component)
     class is (nodeComponentDisk)
        ! Compute the surface density threshold for this node.
-       surfaceDensityThreshold=+self%surfaceDensityNormalization                                                                                       &
-            &                  *self%velocityExponentiator      %exponentiate(self%darkMatterProfileDMO_ %circularVelocityMaximum(component%hostNode))
+       massDistribution_       =>  self%darkMatterProfileDMO_  %   get          (component        %hostNode                     )
+       surfaceDensityThreshold =  +self%surfaceDensityNormalization                                                                &
+            &                     *self%velocityExponentiator      %exponentiate(massDistribution_%velocityRotationCurveMaximum())
+       !![
+       <objectDestructor name="massDistribution_"/>
+       !!]
        ! We assume a monotonically decreasing surface density. So, if the central density is below threshold then the active mass
        ! is zero.
        densitySurfaceCentral               =self%galacticStructure_%surfaceDensity              (component%hostNode,[0.0d0,0.0d0,0.0d0]    ,coordinateSystemCylindrical,componentTypeDisk,massTypeGaseous,weightByMass,weightIndexNull)

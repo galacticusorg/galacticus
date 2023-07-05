@@ -305,10 +305,13 @@ contains
       !!}
       use :: Conditional_Mass_Functions, only : haloModelGalaxyTypeCentral, haloModelGalaxyTypeSatellite
       use :: Calculations_Resets       , only : Calculations_Reset
-      implicit none
-      double precision, intent(in   ) :: massHalo
-      double precision                :: darkMatterProfileKSpace, numberCentrals   , &
-           &                             numberSatellites       , wavenumberMaximum
+      use :: Mass_Distributions        , only : massDistributionClass
+     implicit none
+      double precision                       , intent(in   ) :: massHalo
+      class           (massDistributionClass), pointer       :: massDistribution_
+      double precision                                       :: darkMatterProfileKSpace, numberCentrals   , &
+           &                                                    numberSatellites       , wavenumberMaximum, &
+           &                                                    radiusVirial
 
       call Calculations_Reset(node)
       call basic                % massSet(massHalo                                  )
@@ -320,17 +323,22 @@ contains
       if (waveNumber(iWavenumber) > wavenumberMaximum) then
          powerSpectrumOneHaloIntegrand=0.0d0
       else
-         darkMatterProfileKSpace=darkMatterProfileDMO_%kSpace(node,waveNumber(iWavenumber)/expansionFactor)
-         numberCentrals         =max(                                                                                                                       &
-              &                      +0.0d0                                                                                                               , &
-              &                      +conditionalMassFunction_%massFunction(massHalo,projectedCorrelationFunctionMassMinimum,haloModelGalaxyTypeCentral  )  &
-              &                      -conditionalMassFunction_%massFunction(massHalo,projectedCorrelationFunctionMassMaximum,haloModelGalaxyTypeCentral  )  &
-              &                     )
-         numberSatellites       =max(                                                                                                                       &
-              &                      +0.0d0                                                                                                               , &
-              &                      +conditionalMassFunction_%massFunction(massHalo,projectedCorrelationFunctionMassMinimum,haloModelGalaxyTypeSatellite)  &
-              &                      -conditionalMassFunction_%massFunction(massHalo,projectedCorrelationFunctionMassMaximum,haloModelGalaxyTypeSatellite)  &
-              &                     )
+         massDistribution_       => darkMatterProfileDMO_%get             (node                                                )
+         radiusVirial            =  darkMatterHaloScale_ %radiusVirial    (node                                                )
+         darkMatterProfileKSpace =  massDistribution_    %fourierTransform(radiusVirial,waveNumber(iWavenumber)/expansionFactor)
+         numberCentrals          =  max(                                                                                                                       &
+              &                         +0.0d0                                                                                                               , &
+              &                         +conditionalMassFunction_%massFunction(massHalo,projectedCorrelationFunctionMassMinimum,haloModelGalaxyTypeCentral  )  &
+              &                         -conditionalMassFunction_%massFunction(massHalo,projectedCorrelationFunctionMassMaximum,haloModelGalaxyTypeCentral  )  &
+              &                        )
+         numberSatellites        =  max(                                                                                                                       &
+              &                         +0.0d0                                                                                                               , &
+              &                         +conditionalMassFunction_%massFunction(massHalo,projectedCorrelationFunctionMassMinimum,haloModelGalaxyTypeSatellite)  &
+              &                         -conditionalMassFunction_%massFunction(massHalo,projectedCorrelationFunctionMassMaximum,haloModelGalaxyTypeSatellite)  &
+              &                        )
+         !![
+	 <objectDestructor name="massDistribution_"/>
+         !!]
          ! Note that we include 2 times the central-satellite term since we want to count each pair twice (i.e. central-satellite and
          ! then satellite-central). This is consistent with the N(N-1) counting for the satellite-satellite term, and with the
          ! counting in the two-halo term.
@@ -352,8 +360,8 @@ contains
       !!{
       Time integrand for the two-halo term in the power spectrum.
       !!}
-      use :: Display         , only : displayMessage    , verbosityLevelWarn, displayMagenta, displayReset
-      use :: Error, only : errorStatusSuccess
+      use :: Display, only : displayMessage    , verbosityLevelWarn, displayMagenta, displayReset
+      use :: Error  , only : errorStatusSuccess
       implicit none
       double precision            , intent(in   ) :: timePrime
       type            (integrator)                :: integratorTime
@@ -387,9 +395,11 @@ contains
       Integrand for the two-halo term in the power spectrum.
       !!}
       use :: Calculations_Resets, only : Calculations_Reset
-      implicit none
-      double precision, intent(in   ) :: massHalo
-      double precision                :: wavenumberMaximum
+      use :: Mass_Distributions , only : massDistributionClass
+     implicit none
+      double precision                       , intent(in   ) :: massHalo
+      class           (massDistributionClass), pointer       :: massDistribution_
+      double precision                                       :: wavenumberMaximum, radiusVirial
 
       call Calculations_Reset(node)
       call basic                % massSet(massHalo                                  )
@@ -401,15 +411,19 @@ contains
       if (waveNumber(iWavenumber) > wavenumberMaximum) then
          powerSpectrumTwoHaloIntegrand=0.0d0
       else
-         powerSpectrumTwoHaloIntegrand=                                                                        &
-              & +haloMassFunction_    %differential(time,massHalo                               )              &
-              & *darkMatterHaloBias_  %bias        (node                                        )              &
-              & *darkMatterProfileDMO_%kSpace      (node,waveNumber(iWavenumber)/expansionFactor)              &
-              & *max(                                                                                          &
-              &      +0.0d0                                                                                  , &
-              &      +conditionalMassFunction_%massFunction(massHalo,projectedCorrelationFunctionMassMinimum)  &
-              &      -conditionalMassFunction_%massFunction(massHalo,projectedCorrelationFunctionMassMaximum)  &
-              &     )
+         massDistribution_             =>  darkMatterProfileDMO_%get             (node                                   )
+         radiusVirial                  =   darkMatterHaloScale_ %radiusVirial    (node                                   )
+         powerSpectrumTwoHaloIntegrand =  +haloMassFunction_    %differential    (time,massHalo                          )               &
+              &                           *darkMatterHaloBias_  %bias            (node                                   )               &
+              &                           *massDistribution_    %fourierTransform(radiusVirial,waveNumber(iWavenumber)/expansionFactor)               &
+              &                           *max(                                                                                          &
+              &                                +0.0d0                                                                                  , &
+              &                                +conditionalMassFunction_%massFunction(massHalo,projectedCorrelationFunctionMassMinimum)  &
+              &                                -conditionalMassFunction_%massFunction(massHalo,projectedCorrelationFunctionMassMaximum)  &
+              &                               )
+         !![
+	 <objectDestructor name="massDistribution_"/>
+         !!]
       end if
       return
     end function powerSpectrumTwoHaloIntegrand

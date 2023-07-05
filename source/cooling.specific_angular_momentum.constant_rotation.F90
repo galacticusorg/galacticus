@@ -23,6 +23,7 @@
   !!}
 
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+  use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
   use :: Kind_Numbers            , only : kind_int8
 
   ! Enumeration for angular momentum source.
@@ -69,6 +70,7 @@
      Implementation of the specific angular momentum of cooling gas class which assumes a constant rotation velocity as a function of radius.
      !!}
      private
+     class           (darkMatterHaloScaleClass            ), pointer :: darkMatterHaloScale_              => null()
      class           (darkMatterProfileDMOClass           ), pointer :: darkMatterProfileDMO_             => null()
      integer         (kind=kind_int8                      )          :: lastUniqueID
      logical                                                         :: angularMomentumSpecificComputed
@@ -106,6 +108,7 @@ contains
     type   (coolingSpecificAngularMomentumConstantRotation)                :: self
     type   (inputParameters                               ), intent(inout) :: parameters
     class  (darkMatterProfileDMOClass                     ), pointer       :: darkMatterProfileDMO_
+    class  (darkMatterHaloScaleClass                      ), pointer       :: darkMatterHaloScale_
     logical                                                                :: useInteriorMean
     type   (varying_string                                )                :: sourceAngularMomentumSpecificMean, sourceNormalizationRotation
 
@@ -134,9 +137,11 @@ contains
       <description>Specifies whether to use the specific angular momentum at the cooling radius, or the mean specific angular momentum interior to that radius.</description>
       <source>parameters</source>
     </inputParameter>
+    <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
     !!]
     self=coolingSpecificAngularMomentumConstantRotation(                                                                                                        &
+         &                                              darkMatterHaloScale_                                                                                  , &
          &                                              darkMatterProfileDMO_                                                                                 , &
          &                                              enumerationAngularMomentumSourceEncode(char(sourceAngularMomentumSpecificMean),includesPrefix=.false.), &
          &                                              enumerationAngularMomentumSourceEncode(char(sourceNormalizationRotation      ),includesPrefix=.false.), &
@@ -144,22 +149,24 @@ contains
          &                                             )
     !![
     <inputParametersValidate source="parameters"/>
+    <objectDestructor name="darkMatterHaloScale_" />
     <objectDestructor name="darkMatterProfileDMO_"/>
     !!]
     return
   end function constantRotationConstructorParameters
 
-  function constantRotationConstructorInternal(darkMatterProfileDMO_,sourceAngularMomentumSpecificMean,sourceNormalizationRotation,useInteriorMean) result(self)
+  function constantRotationConstructorInternal(darkMatterHaloScale_,darkMatterProfileDMO_,sourceAngularMomentumSpecificMean,sourceNormalizationRotation,useInteriorMean) result(self)
     !!{
     Internal constructor for the darkMatterHalo freefall radius class.
     !!}
     implicit none
     type   (coolingSpecificAngularMomentumConstantRotation)                        :: self
+    class  (darkMatterHaloScaleClass                      ), intent(in   ), target :: darkMatterHaloScale_
     class  (darkMatterProfileDMOClass                     ), intent(in   ), target :: darkMatterProfileDMO_
     type   (enumerationAngularMomentumSourceType          ), intent(in   )         :: sourceAngularMomentumSpecificMean, sourceNormalizationRotation
     logical                                                , intent(in   )         :: useInteriorMean
     !![
-    <constructorAssign variables="*darkMatterProfileDMO_, sourceAngularMomentumSpecificMean, sourceNormalizationRotation, useInteriorMean"/>
+    <constructorAssign variables="*darkMatterHaloScale_, *darkMatterProfileDMO_, sourceAngularMomentumSpecificMean, sourceNormalizationRotation, useInteriorMean"/>
     !!]
 
     self%lastUniqueID                   =-1_kind_int8
@@ -187,6 +194,7 @@ contains
     type(coolingSpecificAngularMomentumConstantRotation), intent(inout) :: self
 
     !![
+    <objectDestructor name="self%darkMatterHaloScale_" />
     <objectDestructor name="self%darkMatterProfileDMO_"/>
     !!]
     if (calculationResetEvent%isAttached(self,constantRotationCalculationReset)) call calculationResetEvent%detach(self,constantRotationCalculationReset)
@@ -238,12 +246,17 @@ contains
        ! Compute the rotation normalization.
        select case (self%sourceNormalizationRotation      %ID)
        case (angularMomentumSourceDarkMatter%ID)
-          normalizationRotation =   self             %darkMatterProfileDMO_%rotationNormalization(node                                                                                                        )
+          massDistribution_     =>  self             %darkMatterProfileDMO_%get                (node                                                                                                                               )
+          normalizationRotation =  +massDistribution_                      %densityRadialMoment(moment=2.0d0,radiusMaximum=self%darkMatterHaloScale_%radiusVirial(node)                                                            ) &
+               &                   /massDistribution_                      %densityRadialMoment(moment=3.0d0,radiusMaximum=self%darkMatterHaloScale_%radiusVirial(node)                                                            )
+          !![
+	  <objectDestructor name="massDistribution_"/>
+          !!]          
        case (angularMomentumSourceHotGas    %ID)
-          hotHalo               =>  node                                   %hotHalo              (                                                                                                            )
-          massDistribution_     =>  node                                   %massDistribution     (                                                                                                            )
-          normalizationRotation =  +massDistribution_                      %densityRadialMoment  (moment=2.0d0,radiusMaximum=hotHalo%outerRadius(),componentType=componentTypeHotHalo,massType=massTypeGaseous) &
-               &                   /massDistribution_                      %densityRadialMoment  (moment=3.0d0,radiusMaximum=hotHalo%outerRadius(),componentType=componentTypeHotHalo,massType=massTypeGaseous)
+          hotHalo               =>  node                                   %hotHalo            (                                                                                                                                   )
+          massDistribution_     =>  node                                   %massDistribution   (                                                                                                                                   )
+          normalizationRotation =  +massDistribution_                      %densityRadialMoment(moment=2.0d0,radiusMaximum=hotHalo                  %outerRadius (    ),componentType=componentTypeHotHalo,massType=massTypeGaseous) &
+               &                   /massDistribution_                      %densityRadialMoment(moment=3.0d0,radiusMaximum=hotHalo                  %outerRadius (    ),componentType=componentTypeHotHalo,massType=massTypeGaseous)
           !![
 	  <objectDestructor name="massDistribution_"/>
           !!]          

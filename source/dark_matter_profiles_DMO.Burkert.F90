@@ -118,6 +118,7 @@
      final     ::                                      burkertDestructor
      procedure :: autoHook                          => burkertAutoHook
      procedure :: calculationReset                  => burkertCalculationReset
+     procedure :: get                               => burkertGet
      procedure :: density                           => burkertDensity
      procedure :: densityLogSlope                   => burkertDensityLogSlope
      procedure :: enclosedMass                      => burkertEnclosedMass
@@ -301,6 +302,66 @@ contains
     self%lastUniqueID                           =node%uniqueID()
     return
   end subroutine burkertCalculationReset
+
+  function burkertGet(self,node,weightBy,weightIndex) result(massDistribution_)
+    !!{
+    Return the dark matter mass distribution for the given {\normalfont \ttfamily node}.
+    !!}
+    use :: Galacticus_Nodes          , only : nodeComponentBasic     , nodeComponentDarkMatterProfile
+    use :: Galactic_Structure_Options, only : componentTypeDarkHalo  , massTypeDark                   , weightByMass
+    use :: Mass_Distributions        , only : massDistributionBurkert, kinematicsDistributionBurkert
+    implicit none
+    class           (massDistributionClass         ), pointer                 :: massDistribution_
+    type            (kinematicsDistributionBurkert ), pointer                 :: kinematicsDistribution_
+    class           (darkMatterProfileDMOBurkert   ), intent(inout)           :: self
+    type            (treeNode                      ), intent(inout)           :: node
+    type            (enumerationWeightByType       ), intent(in   ), optional :: weightBy
+    integer                                         , intent(in   ), optional :: weightIndex
+    class           (nodeComponentBasic            ), pointer                 :: basic
+    class           (nodeComponentDarkMatterProfile), pointer                 :: darkMatterProfile
+    !![
+    <optionalArgument name="weightBy" defaultsTo="weightByMass" />
+    !!]
+
+    ! Assume a null distribution by default.
+    massDistribution_ => null()
+    ! If weighting is not by mass, return a null profile.
+    if (weightBy_ /= weightByMass) return
+    ! Create the mass distribution.
+    allocate(massDistributionBurkert :: massDistribution_)
+    select type(massDistribution_)
+    type is (massDistributionBurkert)
+       basic             => node%basic            ()
+       darkMatterProfile => node%darkMatterProfile()
+       !![
+       <referenceConstruct object="massDistribution_">
+	 <constructor>
+           massDistributionBurkert(                                                                                  &amp;
+           &amp;                   mass         =basic            %mass                                      (    ), &amp;
+           &amp;                   radiusOuter  =self             %darkMatterHaloScale_%radiusVirial         (node), &amp;
+           &amp;                   scaleLength  =darkMatterProfile%scale                                     (    ), &amp;
+           &amp;                   componentType=                                       componentTypeDarkHalo      , &amp;
+           &amp;                   massType     =                                       massTypeDark                 &amp;
+           &amp;                  )
+	 </constructor>
+       </referenceConstruct>
+       !!]
+    end select
+    allocate(kinematicsDistribution_)
+    !![
+    <referenceConstruct object="kinematicsDistribution_">
+      <constructor>
+        kinematicsDistributionBurkert( &amp;
+	 &amp;                       )
+      </constructor>
+    </referenceConstruct>
+    !!]
+    call massDistribution_%setKinematicsDistribution(kinematicsDistribution_)
+    !![
+    <objectDestructor name="kinematicsDistribution_"/>
+    !!]
+    return
+  end function burkertGet
 
   subroutine burkertTabulate(self,concentration)
     !!{

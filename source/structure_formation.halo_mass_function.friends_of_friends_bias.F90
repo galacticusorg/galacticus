@@ -164,8 +164,10 @@ contains
     !!{
     Return the differential halo mass function at the given time and mass.
     !!}
+    use :: Coordinates             , only : coordinateSpherical  , assignment(=)
     use :: Error                   , only : Error_Report
-    use :: Galacticus_Nodes        , only : nodeComponentBasic, treeNode
+    use :: Galacticus_Nodes        , only : nodeComponentBasic   , treeNode
+    use :: Mass_Distributions      , only : massDistributionClass
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (haloMassFunctionFofBias), intent(inout), target   :: self
@@ -180,6 +182,8 @@ contains
     integer                                  , parameter               :: iterationCountMaximum                                 =1000
     type            (treeNode               ), pointer                 :: nodeWork
     class           (nodeComponentBasic     ), pointer                 :: basic
+    class           (massDistributionClass  ), pointer                 :: massDistribution_
+    type            (coordinateSpherical    )                          :: coordinates
     integer                                                            :: iterationCount
     double precision                                                   :: fractionalAccuracyParameter                                         , &
          &                                                                densityProfileLogarithmicSlope                                      , &
@@ -234,7 +238,12 @@ contains
             &                                  *gradientRadiusHaloMass &
             &                                  /linkingLength
        ! Compute negative a logarithmic slope of the density profile at the outer edge of the halo.
-       densityProfileLogarithmicSlope=+self%darkMatterProfileDMO_%densityLogSlope(nodeWork,radiusHalo)
+       coordinates                    =  [radiusHalo,0.0d0,0.0d0]
+       massDistribution_              =>  self             %darkMatterProfileDMO_%get                  (nodeWork                      )
+       densityProfileLogarithmicSlope =  +massDistribution_                      %densityGradientRadial(coordinates,logarithmic=.true.)
+       !![
+       <objectDestructor name="massDistribution_"/>
+       !!]
        ! Compute absolute value of the rate of change of logarithmic mass at halo outer edge as the
        ! percolation critical probability changes.
        numberDensityCritical                                 =+numberDensityPercolation          &

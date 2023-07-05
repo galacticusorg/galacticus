@@ -21,19 +21,20 @@
 Contains a module which implements a generic two-point correlation function output analysis class.
 !!}
 
-  use               :: Cosmology_Functions                   , only : cosmologyFunctions                , cosmologyFunctionsClass
-  use               :: Dark_Matter_Halo_Biases               , only : darkMatterHaloBias                , darkMatterHaloBiasClass
-  use               :: Dark_Matter_Profiles_DMO              , only : darkMatterProfileDMO              , darkMatterProfileDMOClass
-  use               :: Galactic_Filters                      , only : galacticFilter                    , galacticFilterClass
-  use               :: Geometry_Surveys                      , only : surveyGeometry                    , surveyGeometryClass
-  use               :: Halo_Model_Power_Spectrum_Modifiers   , only : haloModelPowerSpectrumModifier    , haloModelPowerSpectrumModifierClass
+  use               :: Cosmology_Functions                   , only : cosmologyFunctionsClass
+  use               :: Dark_Matter_Halo_Biases               , only : darkMatterHaloBiasClass
+  use               :: Dark_Matter_Halo_Scales               , only : darkMatterHaloScaleClass
+  use               :: Dark_Matter_Profiles_DMO              , only : darkMatterProfileDMOClass
+  use               :: Galactic_Filters                      , only : galacticFilterClass
+  use               :: Geometry_Surveys                      , only : surveyGeometryClass
+  use               :: Halo_Model_Power_Spectrum_Modifiers   , only : haloModelPowerSpectrumModifierClass
   use   , intrinsic :: ISO_C_Binding                         , only : c_size_t
-  use               :: Node_Property_Extractors              , only : nodePropertyExtractor             , nodePropertyExtractorClass
+  use               :: Node_Property_Extractors              , only : nodePropertyExtractorClass
   !$ use            :: OMP_Lib                               , only : omp_lock_kind
-  use               :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperator, outputAnalysisDistributionOperatorClass
-  use               :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperator    , outputAnalysisPropertyOperatorClass
-  use               :: Output_Times                          , only : outputTimes                       , outputTimesClass
-  use               :: Power_Spectra                         , only : powerSpectrum                     , powerSpectrumClass
+  use               :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorClass
+  use               :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorClass
+  use               :: Output_Times                          , only : outputTimesClass
+  use               :: Power_Spectra                         , only : powerSpectrumClass
 
   !![
   <outputAnalysis name="outputAnalysisCorrelationFunction">
@@ -79,6 +80,7 @@ Contains a module which implements a generic two-point correlation function outp
      class           (nodePropertyExtractorClass             ), pointer                       :: massPropertyExtractor_                      => null()
      class           (darkMatterProfileDMOClass              ), pointer                       :: darkMatterProfileDMO_                       => null()
      class           (darkMatterHaloBiasClass                ), pointer                       :: darkMatterHaloBias_                         => null()
+     class           (darkMatterHaloScaleClass               ), pointer                       :: darkMatterHaloScale_                        => null()
      class           (haloModelPowerSpectrumModifierClass    ), pointer                       :: haloModelPowerSpectrumModifier_             => null()
      class           (powerSpectrumClass                     ), pointer                       :: powerSpectrum_                              => null()
      double precision                                         , allocatable, dimension(:    ) :: separations                                          , wavenumber                                  , &
@@ -150,6 +152,7 @@ contains
     class           (nodePropertyExtractorClass             ), pointer                       :: massPropertyExtractor_
     class           (darkMatterProfileDMOClass              ), pointer                       :: darkMatterProfileDMO_
     class           (darkMatterHaloBiasClass                ), pointer                       :: darkMatterHaloBias_
+    class           (darkMatterHaloScaleClass               ), pointer                       :: darkMatterHaloScale_
     class           (haloModelPowerSpectrumModifierClass    ), pointer                       :: haloModelPowerSpectrumModifier_
     class           (powerSpectrumClass                     ), pointer                       :: powerSpectrum_
     double precision                                         , allocatable  , dimension(:  ) :: separations                       , massMinima                                  , &
@@ -287,6 +290,7 @@ contains
     <objectBuilder class="cosmologyFunctions"                 name="cosmologyFunctions_"                                                        source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO"               name="darkMatterProfileDMO_"                                                      source="parameters"/>
     <objectBuilder class="darkMatterHaloBias"                 name="darkMatterHaloBias_"                                                        source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale"                name="darkMatterHaloScale_"                                                       source="parameters"/>
     <objectBuilder class="haloModelPowerSpectrumModifier"     name="haloModelPowerSpectrumModifier_"                                            source="parameters"/>
     <objectBuilder class="powerSpectrum"                      name="powerSpectrum_"                                                             source="parameters"/>
     <objectBuilder class="outputAnalysisDistributionOperator" name="massDistributionOperator_"       parameterName="massDistributionOperator"   source="parameters"/>
@@ -316,6 +320,7 @@ contains
            &amp;                            outputTimes_                                                    , &amp;
            &amp;                            darkMatterProfileDMO_                                           , &amp;
            &amp;                            darkMatterHaloBias_                                             , &amp;
+           &amp;                            darkMatterHaloScale_                                            , &amp;
            &amp;                            haloModelPowerSpectrumModifier_                                 , &amp;
            &amp;                            powerSpectrum_                                                  , &amp;
            &amp;                            massDistributionOperator_                                       , &amp;
@@ -332,6 +337,7 @@ contains
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterProfileDMO_"          />
     <objectDestructor name="darkMatterHaloBias_"            />
+    <objectDestructor name="darkMatterHaloScale_"           />
     <objectDestructor name="haloModelPowerSpectrumModifier_"/>
     <objectDestructor name="powerSpectrum_"                 />
     <objectDestructor name="galacticFilter_"                />
@@ -346,7 +352,7 @@ contains
     return
   end function correlationFunctionConstructorParameters
 
-  function correlationFunctionConstructorFile(label,comment,fileName,massHaloBinsPerDecade,massHaloMinimum,massHaloMaximum,wavenumberCount,wavenumberMinimum,wavenumberMaximum,halfIntegral,galacticFilter_,surveyGeometry_,cosmologyFunctions_,outputTimes_,darkMatterProfileDMO_,darkMatterHaloBias_,haloModelPowerSpectrumModifier_,powerSpectrum_,massDistributionOperator_,massPropertyOperator_,separationPropertyOperator_,massPropertyExtractor_) result (self)
+  function correlationFunctionConstructorFile(label,comment,fileName,massHaloBinsPerDecade,massHaloMinimum,massHaloMaximum,wavenumberCount,wavenumberMinimum,wavenumberMaximum,halfIntegral,galacticFilter_,surveyGeometry_,cosmologyFunctions_,outputTimes_,darkMatterProfileDMO_,darkMatterHaloBias_,darkMatterHaloScale_,haloModelPowerSpectrumModifier_,powerSpectrum_,massDistributionOperator_,massPropertyOperator_,separationPropertyOperator_,massPropertyExtractor_) result (self)
     !!{
     Constructor for the ``correlation'' output analysis class which reads bin information from a standard format file.
     !!}
@@ -372,6 +378,7 @@ contains
     class           (nodePropertyExtractorClass             ), intent(in   ), target         :: massPropertyExtractor_
     class           (darkMatterProfileDMOClass              ), intent(in   ), target         :: darkMatterProfileDMO_
     class           (darkMatterHaloBiasClass                ), intent(in   ), target         :: darkMatterHaloBias_
+    class           (darkMatterHaloScaleClass               ), intent(in   ), target         :: darkMatterHaloScale_
     class           (haloModelPowerSpectrumModifierClass    ), intent(in   ), target         :: haloModelPowerSpectrumModifier_
     class           (powerSpectrumClass                     ), intent(in   ), target         :: powerSpectrum_
     double precision                                         , allocatable  , dimension(:  ) :: separations                               , massMinima                      , &
@@ -406,11 +413,11 @@ contains
     ! Finish reading data file.
     call dataFile%close      (                                       )
     !$ call hdf5Access%unset()
-    self=outputAnalysisCorrelationFunction(label,comment,separations,massMinima,massMaxima,massHaloBinsPerDecade,massHaloMinimum,massHaloMaximum,integralConstraint,wavenumberCount,wavenumberMinimum,wavenumberMaximum,depthLineOfSight,halfIntegral,galacticFilter_,surveyGeometry_,cosmologyFunctions_,outputTimes_,darkMatterProfileDMO_,darkMatterHaloBias_,haloModelPowerSpectrumModifier_,powerSpectrum_,massDistributionOperator_,massPropertyOperator_,separationPropertyOperator_,massPropertyExtractor_,targetLabel,binnedProjectedCorrelationTarget,binnedProjectedCorrelationCovarianceTarget)
+    self=outputAnalysisCorrelationFunction(label,comment,separations,massMinima,massMaxima,massHaloBinsPerDecade,massHaloMinimum,massHaloMaximum,integralConstraint,wavenumberCount,wavenumberMinimum,wavenumberMaximum,depthLineOfSight,halfIntegral,galacticFilter_,surveyGeometry_,cosmologyFunctions_,outputTimes_,darkMatterProfileDMO_,darkMatterHaloBias_,darkMatterHaloScale_,haloModelPowerSpectrumModifier_,powerSpectrum_,massDistributionOperator_,massPropertyOperator_,separationPropertyOperator_,massPropertyExtractor_,targetLabel,binnedProjectedCorrelationTarget,binnedProjectedCorrelationCovarianceTarget)
    return
   end function correlationFunctionConstructorFile
 
-  function correlationFunctionConstructorInternal(label,comment,separations,massMinima,massMaxima,massHaloBinsPerDecade,massHaloMinimum,massHaloMaximum,integralConstraint,wavenumberCount,wavenumberMinimum,wavenumberMaximum,depthLineOfSight,halfIntegral,galacticFilter_,surveyGeometry_,cosmologyFunctions_,outputTimes_,darkMatterProfileDMO_,darkMatterHaloBias_,haloModelPowerSpectrumModifier_,powerSpectrum_,massDistributionOperator_,massPropertyOperator_,separationPropertyOperator_,massPropertyExtractor_,targetLabel,binnedProjectedCorrelationTarget,binnedProjectedCorrelationCovarianceTarget) result (self)
+  function correlationFunctionConstructorInternal(label,comment,separations,massMinima,massMaxima,massHaloBinsPerDecade,massHaloMinimum,massHaloMaximum,integralConstraint,wavenumberCount,wavenumberMinimum,wavenumberMaximum,depthLineOfSight,halfIntegral,galacticFilter_,surveyGeometry_,cosmologyFunctions_,outputTimes_,darkMatterProfileDMO_,darkMatterHaloBias_,darkMatterHaloScale_,haloModelPowerSpectrumModifier_,powerSpectrum_,massDistributionOperator_,massPropertyOperator_,separationPropertyOperator_,massPropertyExtractor_,targetLabel,binnedProjectedCorrelationTarget,binnedProjectedCorrelationCovarianceTarget) result (self)
     !!{
     Constructor for the ``correlationFunction'' output analysis class for internal use.
     !!}
@@ -438,13 +445,14 @@ contains
     class           (nodePropertyExtractorClass             ), intent(in   ), target                   :: massPropertyExtractor_
     class           (darkMatterProfileDMOClass              ), intent(in   ), target                   :: darkMatterProfileDMO_
     class           (darkMatterHaloBiasClass                ), intent(in   ), target                   :: darkMatterHaloBias_
+    class           (darkMatterHaloScaleClass               ), intent(in   ), target                   :: darkMatterHaloScale_
     class           (haloModelPowerSpectrumModifierClass    ), intent(in   ), target                   :: haloModelPowerSpectrumModifier_
     class           (powerSpectrumClass                     ), intent(in   ), target                   :: powerSpectrum_
     type            (varying_string                         ), intent(in   )                , optional :: targetLabel
     double precision                                         , intent(in   ), dimension(:,:), optional :: binnedProjectedCorrelationTarget  , binnedProjectedCorrelationCovarianceTarget
     integer         (c_size_t                               )                                          :: i
     !![
-    <constructorAssign variables="label, comment, separations, massMinima, massMaxima, massHaloBinsPerDecade, massHaloMinimum, massHaloMaximum, integralConstraint, wavenumberCount, wavenumberMinimum, wavenumberMaximum, depthLineOfSight, halfIntegral, *galacticFilter_, *outputTimes_, *darkMatterProfileDMO_, *darkMatterHaloBias_, *haloModelPowerSpectrumModifier_, *surveyGeometry_, *cosmologyFunctions_, *powerSpectrum_, *massDistributionOperator_, *massPropertyOperator_, *separationPropertyOperator_, *massPropertyExtractor_, targetLabel, binnedProjectedCorrelationTarget, binnedProjectedCorrelationCovarianceTarget"/>
+    <constructorAssign variables="label, comment, separations, massMinima, massMaxima, massHaloBinsPerDecade, massHaloMinimum, massHaloMaximum, integralConstraint, wavenumberCount, wavenumberMinimum, wavenumberMaximum, depthLineOfSight, halfIntegral, *galacticFilter_, *outputTimes_, *darkMatterProfileDMO_, *darkMatterHaloBias_, *darkMatterHaloScale_, *haloModelPowerSpectrumModifier_, *surveyGeometry_, *cosmologyFunctions_, *powerSpectrum_, *massDistributionOperator_, *massPropertyOperator_, *separationPropertyOperator_, *massPropertyExtractor_, targetLabel, binnedProjectedCorrelationTarget, binnedProjectedCorrelationCovarianceTarget"/>
     !!]
 
     ! Assign 1D versions of target for use in descriptor.
@@ -507,6 +515,7 @@ contains
     !![
     <objectDestructor name="self%darkMatterProfileDMO_"          />
     <objectDestructor name="self%darkMatterHaloBias_"            />
+    <objectDestructor name="self%darkMatterHaloScale_"           />
     <objectDestructor name="self%haloModelPowerSpectrumModifier_"/>
     <objectDestructor name="self%galacticFilter_"                />
     <objectDestructor name="self%outputTimes_"                   />
@@ -612,15 +621,17 @@ contains
     !!}
     use :: Galacticus_Nodes                   , only : nodeComponentBasic                , treeNode
     use :: Halo_Model_Power_Spectrum_Modifiers, only : haloModelTermOneHalo              , haloModelTermTwoHalo
+    use :: Mass_Distributions                 , only : massDistributionClass
     use :: Math_Distributions_Poisson_Binomial, only : Poisson_Binomial_Distribution_Mean, Poisson_Binomial_Distribution_Mean_Pairs , Poisson_Binomial_Distribution_Mean_Pairs_Jacobian
     use :: Output_Analyses_Options            , only : outputAnalysisPropertyTypeLinear  , enumerationOutputAnalysisPropertyTypeType
     use :: Vectors                            , only : Vector_Outer_Product
-    use :: Linear_Algebra                     , only : assignment(=)                     , matrix                                  , operator(*)
+    use :: Linear_Algebra                     , only : assignment(=)                     , matrix                                   , operator(*)
     implicit none
     class           (outputAnalysisCorrelationFunction        ), intent(inout)                                                 :: self
     integer         (c_size_t                                 ), intent(in   )                                                 :: indexOutput
     type            (treeNode                                 ), intent(inout)                                                 :: node
     class           (nodeComponentBasic                       ), pointer                                                       :: basic                   , basicRoot
+    class           (massDistributionClass                    ), pointer                                                       :: massDistribution_
     double precision                                                          , dimension(self%wavenumberCount,self%massCount) :: oneHaloTerm             , twoHaloTerm
     double precision                                                          , dimension(                     self%massCount) :: galaxyDensity
     logical                                                                   , dimension(                     self%massCount) :: oneHaloTermActive       , twoHaloTermActive
@@ -630,7 +641,8 @@ contains
          &                                                                                                                        fourierProfile          , wavenumber
     double precision                                                                                                           :: countSatellitePairsMean , countSatellitesMean       , &
          &                                                                                                                        haloWeightOutput        , expansionFactor           , &
-         &                                                                                                                        biasHalo                , massHalo
+         &                                                                                                                        biasHalo                , massHalo                  , &
+         &                                                                                                                        radiusVirial
     integer         (c_size_t                                 )                                                                :: i                       , j                         , &
          &                                                                                                                        indexOneHalo            , indexTwoHalo              , &
          &                                                                                                                        indexDensity
@@ -642,7 +654,9 @@ contains
     ! Return immediately if no nodes have been accumulated.
     if (all(self%probabilityCentral == 0.0d0) .and. self%countSatellites == 0) return
     ! Construct the Fourier profile of the host halo. We include the weighting by the square-root of the power spectrum here.
-    expansionFactor=self%cosmologyFunctions_%expansionFactor(self%outputTimes_%time(indexOutput))
+    massDistribution_ => self%darkMatterProfileDMO_%get            (                       node        )
+    radiusVirial      =  self%darkMatterHaloScale_ %radiusVirial   (                       node        )
+    expansionFactor   =  self%cosmologyFunctions_  %expansionFactor(self%outputTimes_%time(indexOutput))
     allocate(wavenumber    (self%wavenumberCount))
     allocate(fourierProfile(self%wavenumberCount))
     do i=1,self%wavenumberCount
@@ -650,14 +664,17 @@ contains
        scaleType        =outputAnalysisPropertyTypeLinear
        wavenumber    (i)=+1.0d0                                                                                         &
             &            /self%separationPropertyOperator_%operate(1.0d0/self%waveNumber(i),node,scaleType,indexOutput)
-       fourierProfile(i)=+      self%darkMatterProfileDMO_%kSpace(                                                          &
-            &                                                     node                         ,                            &
-            &                                                     wavenumber(i)/expansionFactor                             &
-            &                                                    )                                                          &
-            &            *sqrt(                                                                                             &
-            &                  +self%powerSpectrum_%power        (self%wavenumber(i  ),self%outputTimes_%time(indexOutput)) &
+       fourierProfile(i)=+      massDistribution_%fourierTransform(                                                           &
+            &                                                           radiusVirial                                        , &
+            &                                                           wavenumber  (i)/expansionFactor                       &
+            &                                                     )                                                           &
+            &            *sqrt(                                                                                               &
+            &                  +self%powerSpectrum_%power         (self%wavenumber  (i),self%outputTimes_%time(indexOutput))  &
             &                 )
     end do
+    !![
+    <objectDestructor name="massDistribution_"/>
+    !!]
     ! Get the mass of this halo.
     basic    => node %basic()
     massHalo =  basic%mass ()

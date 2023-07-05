@@ -189,15 +189,18 @@ contains
     !!{
     Return an acceleration for satellites due to dynamical friction using the core-stalling model of \cite{kaur_stalling_2018}.
     !!}
-    use :: Galacticus_Nodes            , only : nodeComponentSatellite
-    use :: Galactic_Structure_Options  , only : coordinateSystemCartesian
-    use :: Root_Finder                 , only : rangeExpandMultiplicative , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
+    use :: Coordinates               , only : coordinateSpherical      , assignment(=)
+    use :: Galacticus_Nodes          , only : nodeComponentSatellite
+    use :: Galactic_Structure_Options, only : coordinateSystemCartesian
+    use :: Mass_Distributions        , only : massDistributionClass
+    use :: Root_Finder               , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
     double precision                                    , dimension(3)          :: kaur2018Acceleration
     class           (satelliteDynamicalFrictionKaur2018), intent(inout), target :: self
     type            (treeNode                          ), intent(inout)         :: node
     class           (nodeComponentSatellite            ), pointer               :: satellite
     type            (treeNode                          ), pointer               :: nodeHost
+    class           (massDistributionClass             ), pointer               :: massDistribution_
     double precision                                    , dimension(3)          :: position
     double precision                                    , parameter             :: toleranceAbsolute   =0.0d+0, toleranceRelative                   =1.0d-3
     double precision                                                            :: massSatellite              , densityHostCentral                         , &
@@ -205,7 +208,7 @@ contains
          &                                                                         radiusOrbital              , radiusStalling                             , &
          &                                                                         radiusDimensionless
     type            (rootFinder                        )                        :: finder
-    
+    type            (coordinateSpherical               )                        :: coordinates    
     ! Compute the base acceleration.    
     kaur2018Acceleration=+self%satelliteDynamicalFriction_%acceleration(node)
     ! Get host node and satellite component.
@@ -218,7 +221,12 @@ contains
     if (massSatellite <= 0.0d0) return
     ! Check if the density profile has a finite density at the center. We do this by considering the logarithmic slope of the
     ! density profile. For cusped density profiles, we assume no stalling.
-    logSlopeDensityProfileDarkMatterHost=self%darkMatterProfileDMO_%densityLogSlope(nodeHost,radius=0.0d0)
+    coordinates                          =  [0.0d0,0.0d0,0.0d0]
+    massDistribution_                    => self             %darkMatterProfileDMO_%get                  (nodeHost                      )
+    logSlopeDensityProfileDarkMatterHost =  massDistribution_                      %densityGradientRadial(coordinates,logarithmic=.true.)
+    !![
+    <objectDestructor name="massDistribution_"/>
+    !!]
     if (logSlopeDensityProfileDarkMatterHost < 0.0d0) return
     ! Find the stalling radius.
     self_ => self

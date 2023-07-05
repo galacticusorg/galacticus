@@ -119,15 +119,17 @@ contains
     return
   end function Satellite_Orbit_Equivalent_Circular_Orbit_Radius
 
-  double precision function Equivalent_Circular_Orbit_Solver(radius)
+  double precision function Equivalent_Circular_Orbit_Solver(radius) result(radiusCircular)
     !!{
     Root function used in finding equivalent circular orbits.
     !!}
     use :: Galactic_Structure_Options, only : enumerationStructureErrorCodeType, structureErrorCodeInfinite, structureErrorCodeSuccess
     use :: Error                     , only : Error_Report
+    use :: Mass_Distributions        , only : massDistributionClass
     implicit none
     double precision                                   , intent(in   ) :: radius
     double precision                                   , parameter     :: potentialInfinite=huge(1.0d0)
+    class           (massDistributionClass            ), pointer       :: massDistribution_
     double precision                                                   :: potential
     type            (enumerationStructureErrorCodeType)                :: status
 
@@ -135,13 +137,17 @@ contains
     potential=galacticStructure__%potential(activeNode,radius,status=status)
     select case (status%ID)
     case (structureErrorCodeSuccess %ID)
-       Equivalent_Circular_Orbit_Solver=potential+0.5d0*darkMatterProfileDMO__%circularVelocity(activeNode,radius)**2-orbitalEnergyInternal
+       massDistribution_ => darkMatterProfileDMO__%get(activeNode)
+       radiusCircular    =  potential+0.5d0*massDistribution_%rotationCurve(radius)**2-orbitalEnergyInternal
+       !![
+       <objectDestructor name="massDistribution_"/>
+       !!]
     case (structureErrorCodeInfinite%ID)
        ! The gravitational potential is negative infinity at this radius (most likely zero radius). Since all we care about in
        ! this root-finding function is the sign of the function, return a large negative value.
-       Equivalent_Circular_Orbit_Solver=-potentialInfinite
+       radiusCircular=-potentialInfinite
     case default
-       Equivalent_Circular_Orbit_Solver=0.0d0
+       radiusCircular=+0.0d0
        call Error_Report('dark matter potential evaluation failed'//{introspection:location})
     end select
     return

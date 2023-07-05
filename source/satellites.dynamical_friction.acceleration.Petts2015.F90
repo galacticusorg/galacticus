@@ -128,8 +128,10 @@ contains
     !!{
     Evaluate the Coulomb logarithm for the \cite{petts_semi-analytic_2015} dynamical friction model.
     !!}
+    use :: Coordinates                     , only : coordinateSpherical            , assignment(=)
     use :: Galacticus_Nodes                , only : nodeComponentBasic             , nodeComponentSatellite, treeNode
     use :: Galactic_Structure_Options      , only : componentTypeAll               , massTypeDark
+    use :: Mass_Distributions              , only : massDistributionClass
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     use :: Vectors                         , only : Vector_Magnitude
     implicit none
@@ -138,12 +140,14 @@ contains
     class           (nodeComponentSatellite             ), pointer       :: satellite
     class           (nodeComponentBasic                 ), pointer       :: basic
     type            (treeNode                           ), pointer       :: nodeHost
-    double precision                                     , dimension(3)  :: position               , velocity
+    class           (massDistributionClass              ), pointer       :: massDistribution_
+    double precision                                     , dimension(3)  :: position               , velocity    
     double precision                                                     :: speedOrbital           , radiusOrbital          , &
          &                                                                  impactParameterMinimum , impactParameterMaximum , &
          &                                                                  massSatellite          , densitySlopeLogarithmic, &
          &                                                                  radiusHalfMassSatellite, fractionDarkMatter     , &
          &                                                                  massHalfSatellite
+    type            (coordinateSpherical                )                :: coordinates
 
     nodeHost                =>  node     %mergesWith(        )
     satellite               =>  node     %satellite (        )
@@ -170,7 +174,12 @@ contains
          &                                                                 componentType=componentTypeAll , &
          &                                                                 massType     =massTypeDark       &
          &                                                                )
-    densitySlopeLogarithmic =  abs(self%darkMatterProfileDMO_%densityLogSlope(nodeHost,radiusOrbital))
+    coordinates             =  [radiusOrbital,0.0d0,0.0d0]
+    massDistribution_       =>     self             %darkMatterProfileDMO_%get                  (nodeHost                      )
+    densitySlopeLogarithmic =  abs(massDistribution_                      %densityGradientRadial(coordinates,logarithmic=.true.))
+    !![
+    <objectDestructor name="massDistribution_"/>
+    !!]
     ! Evaluate the minimum and maximum impact parameters.
     if (densitySlopeLogarithmic > 1.0d0) then
        impactParameterMaximum=radiusOrbital/densitySlopeLogarithmic

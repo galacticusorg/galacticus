@@ -194,6 +194,7 @@ contains
     use :: Display                             , only : displayGreen                       , displayReset
     use :: Error                               , only : Error_Report                       , errorStatusSuccess
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , nodeComponentDarkMatterProfile, treeNode
+    use :: Mass_Distributions                  , only : massDistributionClass
     use :: Merger_Tree_Walkers                 , only : mergerTreeWalkerIsolatedNodesBranch
     use :: Numerical_Comparison                , only : Values_Agree
     use :: Numerical_Constants_Math            , only : Pi
@@ -204,6 +205,7 @@ contains
     type            (treeNode                              )               , pointer      :: nodeBranch
     class           (nodeComponentBasic                    )               , pointer      :: basic                     , basicBranch
     class           (nodeComponentDarkMatterProfile        )               , pointer      :: darkMatterProfile_        , darkMatterProfileChild_
+    class           (massDistributionClass                 ), pointer                     :: massDistribution_
     integer                                                 , parameter                   :: iterationCountMaximum =100
     type            (ludlow2016State                       ), allocatable  , dimension(:) :: statesTmp
     type            (mergerTreeWalkerIsolatedNodesBranch   )                              :: treeWalker
@@ -264,14 +266,18 @@ contains
           iterationCount=iterationCount+1
           ! Compute the characteristic halo mass, M₋₂.
           if (iterationCount == 1) then
-             basic                                     =>  node                      %basic                 (                               )
+             basic                                     =>  node                    %basic                     (                          )
              states(stateCount)%self                   =>  self
              states(stateCount)%node                   =>  node
-             states(stateCount)%hubbleParameterPresent =   self%cosmologyFunctions_  %hubbleParameterEpochal(expansionFactor=1.0d0          )
+             states(stateCount)%hubbleParameterPresent =   self%cosmologyFunctions_%hubbleParameterEpochal    (expansionFactor=1.0d0     )
              states(stateCount)%timePrevious           =  -1.0d0
              states(stateCount)%densityContrast        =  -huge(0.0d0)
           end if
-          massHaloCharacteristic                       =  +self%darkMatterProfileDMO_%enclosedMass          (node,darkMatterProfile_%scale())
+          massDistribution_                            =>  self                    %darkMatterProfileDMO_ %get(node                      )
+          massHaloCharacteristic                       =  +massDistribution_       %massEnclosedBySphere      (darkMatterProfile_%scale())
+          !![
+	  <objectDestructor name="massDistribution_"/>
+	  !!]
           states(stateCount)%massHaloCharacteristic    =   massHaloCharacteristic
           states(stateCount)%massLimit                 =  +self%f                                                                                                                                     &
                &                                                              *Dark_Matter_Profile_Mass_Definition(                                                                                   &

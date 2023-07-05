@@ -482,6 +482,7 @@ contains
     use            :: Galacticus_Nodes                    , only : mergerTree                         , nodeComponentBasic                 , nodeComponentDarkMatterProfile, treeNode
     use            :: IO_HDF5                             , only : hdf5Object
     use, intrinsic :: ISO_C_Binding                       , only : c_size_t
+    use            :: Mass_Distributions                  , only : massDistributionClass
     use            :: Node_Components                     , only : Node_Components_Thread_Initialize  , Node_Components_Thread_Uninitialize
     use            :: Numerical_Constants_Astronomical    , only : gigaYear                           , massSolar                          , megaParsec
     use            :: Numerical_Constants_Math            , only : Pi
@@ -531,6 +532,7 @@ contains
     class           (darkMatterHaloMassAccretionHistoryClass), pointer                               :: darkMatterHaloMassAccretionHistory_           => null()
     class           (virialDensityContrastClass             ), pointer                               :: virialDensityContrast_                        => null()
     !$omp threadprivate(haloEnvironment_,cosmologyFunctions_,cosmologyParameters_,cosmologicalMassVariance_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileDMO_,unevolvedSubhaloMassFunction_,darkMatterHaloBias_,darkMatterProfileScaleRadius_,darkMatterProfileShape_,darkMatterHaloMassAccretionHistory_,virialDensityContrast_,criticalOverdensity_)
+    class           (massDistributionClass                  ), pointer                               :: massDistribution_                             => null()
     type            (virialDensityContrastList              ), allocatable   , dimension(:   )       :: virialDensityContrasts
     type            (mergerTree                             ), allocatable   , target         , save :: tree
     !$omp threadprivate(tree)
@@ -754,6 +756,8 @@ contains
           if (scaleIsSettable) call darkMatterProfileHalo%scaleSet(darkMatterProfileScaleRadius_%radius(tree%nodeBase))
           ! Set the node shape parameter.
           if (shapeIsSettable) call darkMatterProfileHalo%shapeSet(darkMatterProfileShape_      %shape (tree%nodeBase))
+          ! Get the mass distribution.
+          massDistribution_ => self%darkMatterProfileDMO_%get(tree%nodeBase)
           ! Compute bin interval.
           massHaloBinMinimum=massHalo(iMass)*exp(-0.5*massHaloLogarithmicInterval)
           massHaloBinMaximum=massHalo(iMass)*exp(+0.5*massHaloLogarithmicInterval)
@@ -788,7 +792,7 @@ contains
           velocityVirial                                (iMass,iOutput)=darkMatterHaloScale_               %velocityVirial                 (                                                                                               node=tree%nodeBase)
           temperatureVirial                             (iMass,iOutput)=darkMatterHaloScale_               %temperatureVirial              (                                                                                               node=tree%nodeBase)
           radiusVirial                                  (iMass,iOutput)=darkMatterHaloScale_               %radiusVirial                   (                                                                                               node=tree%nodeBase)
-          velocityMaximum                               (iMass,iOutput)=darkMatterProfileDMO_              %circularVelocityMaximum        (                                                                                               node=tree%nodeBase)
+          velocityMaximum                               (iMass,iOutput)=massDistribution_                  %velocityRotationCurveMaximum   (                                                                                                                 )
           darkMatterProfileRadiusScale                  (iMass,iOutput)=darkMatterProfileHalo              %scale                          (                                                                                                                 )
           if (self%includeMassAccretionRate) &
                & massAccretionRate                      (iMass,iOutput)=darkMatterHaloMassAccretionHistory_%massAccretionRate              (                                                                     time=outputTimes(iOutput),node=tree%nodeBase)
@@ -802,6 +806,9 @@ contains
                &                                                                              log(massHalo(1)/subhaloMassMaximum       ), &
                &                                                                              log(            haloMassEffectiveInfinity)  &
                &                                                                             )
+          !![
+	  <objectDestructor name="massDistribution_"/>
+          !!]
        end do
        !$omp end do
        !$omp single

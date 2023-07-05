@@ -128,16 +128,18 @@ contains
     !!{
     Return the timescale for merging satellites using the \cite{boylan-kolchin_dynamical_2008} method.
     !!}
-    use :: Error           , only : Error_Report
-    use :: Galacticus_Nodes, only : nodeComponentBasic                              , treeNode
-    use :: Kepler_Orbits   , only : keplerOrbit
-    use :: Satellite_Orbits, only : Satellite_Orbit_Equivalent_Circular_Orbit_Radius, errorCodeNoEquivalentOrbit, errorCodeOrbitUnbound, errorCodeSuccess
+    use :: Error             , only : Error_Report
+    use :: Galacticus_Nodes  , only : nodeComponentBasic                              , treeNode
+    use :: Mass_Distributions, only : massDistributionClass
+    use :: Kepler_Orbits     , only : keplerOrbit
+    use :: Satellite_Orbits  , only : Satellite_Orbit_Equivalent_Circular_Orbit_Radius, errorCodeNoEquivalentOrbit, errorCodeOrbitUnbound, errorCodeSuccess
     implicit none
     class           (satelliteMergingTimescalesBoylanKolchin2008), intent(inout) :: self
     type            (treeNode                                   ), intent(inout) :: node
     type            (keplerOrbit                                ), intent(inout) :: orbit
     type            (treeNode                                   ), pointer       :: nodeHost
     class           (nodeComponentBasic                         ), pointer       :: basicHost                            , basic
+    class           (massDistributionClass                      ), pointer       :: massDistribution_
     logical                                                      , parameter     :: acceptUnboundOrbits          =.false.
     double precision                                             , parameter     :: expArgumentMaximum           =100.0d0
     double precision                                             , parameter     :: A                            =0.216d0, b                 =1.3d0, &  !   Fitting parameters from eqn. (6) of Boylan-Kolchin et al.
@@ -172,10 +174,13 @@ contains
        return
     case (errorCodeSuccess          )
        ! Compute orbital circularity.
-       orbitalCircularity                                                                          &
-            & =orbit%angularMomentum()                                                             &
-            & /equivalentCircularOrbitRadius                                                       &
-            & /self%darkMatterProfileDMO_%circularVelocity(nodeHost,equivalentCircularOrbitRadius)
+       massDistribution_  =>  self             %darkMatterProfileDMO_%get            (nodeHost                     )
+       orbitalCircularity =  +orbit                                  %angularMomentum(                             ) &
+            &                /massDistribution_                      %rotationCurve  (equivalentCircularOrbitRadius) &
+            &                /equivalentCircularOrbitRadius
+       !![
+       <objectDestructor name="massDistribution_"/>
+       !!]
     case default
        orbitalCircularity=0.0d0
        call Error_Report('unrecognized error code'//{introspection:location})

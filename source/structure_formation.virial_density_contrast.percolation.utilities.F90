@@ -485,11 +485,15 @@ contains
     Root function used to find the radius of a halo giving the correct bounding density.
     !!}
     use :: Calculations_Resets     , only : Calculations_Reset
+    use :: Coordinates             , only : coordinateSpherical  , assignment(=)
+    use :: Mass_Distributions      , only : massDistributionClass
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    double precision, intent(in   ) :: haloRadiusTrial
-    double precision                :: scaleRadius    , densityHaloRadius
-
+    double precision                       , intent(in   ) :: haloRadiusTrial
+    class           (massDistributionClass), pointer       :: massDistribution_
+    double precision                                       :: scaleRadius      , densityHaloRadius
+    type            (coordinateSpherical  )                :: coordinates
+    
     ! Construct the current density contrast.
     state(stateCount)%densityContrast=+3.0d0                                  &
          &                            *state(stateCount)%massHalo             &
@@ -505,7 +509,12 @@ contains
     end if
     call Calculations_Reset(state(stateCount)%workNode)
     ! Compute density at the halo radius.
-    densityHaloRadius=state(stateCount)%darkMatterProfileDMO_%density(state(stateCount)%workNode,haloRadiusTrial)
+    coordinates       =  [haloRadiusTrial,0.0d0,0.0d0]
+    massDistribution_ => state            (stateCount)%darkMatterProfileDMO_%get    (state(stateCount)%workNode   )
+    densityHaloRadius =  massDistribution_                                  %density(                  coordinates)
+    !![
+    <objectDestructor name="massDistribution_"/>
+    !!]
     ! Find difference from target density.
     haloRadiusRootFunction=state(stateCount)%boundingDensity-densityHaloRadius
     return

@@ -196,14 +196,15 @@ contains
     use :: Display                   , only : displayIndent                    , displayMessage                     , displayUnindent
     use :: Galactic_Structure_Options, only : massTypeDark
     use :: Calculations_Resets       , only : Calculations_Reset
-    use :: Error          , only : errorStatusSuccess
+    use :: Error                     , only : errorStatusSuccess
     use :: Galacticus_Nodes          , only : nodeComponentBasic               , nodeComponentDarkMatterProfile     , treeNode
     use :: IO_IRATE                  , only : irate
     use :: ISO_Varying_String        , only : varying_string
+    use :: Mass_Distributions        , only : massDistributionClass
     use :: Node_Components           , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
     use :: Numerical_Constants_Math  , only : Pi
     use :: Root_Finder               , only : rangeExpandMultiplicative        , rootFinder
-    use :: String_Handling                   , only : operator(//)
+    use :: String_Handling           , only : operator(//)
     implicit none
     class           (taskHaloModelGenerate         ), intent(inout), target         :: self
     integer                                         , intent(  out), optional       :: status
@@ -215,6 +216,7 @@ contains
     type            (treeNode                      ), pointer                       :: node
     class           (nodeComponentBasic            ), pointer                       :: basic
     class           (nodeComponentDarkMatterProfile), pointer                       :: profile
+    class           (massDistributionClass         ), pointer                       :: massDistribution_
     integer                                                                         :: iHalo                , galaxyCount              , &
          &                                                                             numberSatelliteActual, iSatellite               , &
          &                                                                             iAxis
@@ -292,15 +294,16 @@ contains
           call Calculations_Reset(                                          node  )
           call profile%scaleSet  (self%darkMatterProfileScaleRadius_%radius(node ))
           call Calculations_Reset(                                          node  )
+          massDistribution_ => self%darkMatterProfileDMO_%get(node)
           do iSatellite=1,numberSatelliteActual
              ! Sample satellite galaxy mass.
-             xSatellite               =self%randomNumberGenerator_%uniformSample()*numberSatelliteMean
-             massGalaxy_              =finderSatellite%find(rootGuess=self%massMinimum)
+             xSatellite                =  self%randomNumberGenerator_%uniformSample()*numberSatelliteMean
+             massGalaxy_               =  finderSatellite%find(rootGuess=self%massMinimum)
              ! Sample galaxy radial position.
-             xSatellite               =self%randomNumberGenerator_%uniformSample      (                                                         )
-             radiusSatellite          =self%galacticStructure_    %radiusEnclosingMass(node,massFractional=xSatellite     ,massType=massTypeDark)
+             xSatellite                =  self%randomNumberGenerator_%uniformSample      (                                                         )
+             radiusSatellite           =  self%galacticStructure_    %radiusEnclosingMass(node,massFractional=xSatellite     ,massType=massTypeDark)
              ! Get circular velocity at this radius.
-             velocitySatelliteCircular=self%darkMatterProfileDMO_ %circularVelocity   (node,               radiusSatellite                      )
+             velocitySatelliteCircular =  massDistribution_%rotationCurve(radiusSatellite)
              ! Convert radial position to comoving coordinates.
              radiusSatellite          =radiusSatellite*(1.0d0+redshift)
              ! Sample galaxy angular position.
@@ -335,6 +338,9 @@ contains
              ! Store the satellite.
              call galaxyAdd(massGalaxy_,positionSatellite,velocitySatellite)
           end do
+          !![
+	  <objectDestructor name="massDistribution_"/>
+          !!]
        end if
     end do
     message="Created "

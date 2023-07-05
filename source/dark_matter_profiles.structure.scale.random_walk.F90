@@ -152,34 +152,41 @@ contains
     use :: Galacticus_Nodes                , only : nodeComponentBasic
     use :: Root_Finder                     , only : rootFinder                     , rangeExpandMultiplicative, rangeExpandSignExpectPositive, rangeExpandSignExpectNegative    
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Mass_Distributions              , only : massDistributionClass
     implicit none
     class           (darkMatterProfileScaleRadiusRandomWalk), intent(inout), target  :: self
     type            (treeNode                              ), intent(inout), target  :: node
     class           (nodeComponentDarkMatterProfile        )               , pointer :: darkMatterProfileChild
     class           (nodeComponentBasic                    )               , pointer :: basic                 , basicChild
+    class           (massDistributionClass                 )               , pointer :: massDistribution_     , massDistributionChild_
     type            (rootFinder                            )                         :: finder
-    double precision                                                                 :: energyPerturbation    , radiusScaleOriginal, &
-         &                                                                              energyScaleChild      , energyScale
+    double precision                                                                 :: energyPerturbation    , radiusScaleOriginal   , &
+         &                                                                              energyScaleChild      , energyScale           , &
+         &                                                                              radiusVirial          , radiusVirialChild
 
     ! Set the scale radius to that given by the lower level scale radius class.
     radiusScale=self%darkMatterProfileScaleRadius_%radius(node)
     ! For nodes with a child, evaluate the perturbation to this radius.
     if (associated(node%firstChild)) then
-       basic                  =>  node                                        %basic            (               )
-       basicChild             =>  node                  %firstChild           %basic            (               )
-       darkMatterProfileChild =>  node                  %firstChild           %darkMatterProfile(               )
-       energyScale            =  +gravitationalConstantGalacticus                                                    &
-            &                    *basic                                       %mass             (               )**2 &
-            &                    /self                  %darkMatterHaloScale_ %radiusVirial     (node           )
-       energyScaleChild       =  +gravitationalConstantGalacticus                                                    &
-            &                    *basicChild                                  %mass             (               )**2 &
-            &                    /self                  %darkMatterHaloScale_ %radiusVirial     (node%firstChild)
-       energyPerturbation     =  +self                  %darkMatterProfileDMO_%energy           (node%firstChild)
-       radiusScaleOriginal    =  +darkMatterProfileChild                      %scale            (               )
-       call darkMatterProfileChild%scaleSet(self%darkMatterProfileScaleRadius_%radius           (node%firstChild))
-       energyPerturbation     =  +energyPerturbation                                                                 &
-            &                    -self                  %darkMatterProfileDMO_%energy           (node%firstChild)
-       call darkMatterProfileChild%scaleSet(                                   radiusScaleOriginal               )
+       massDistribution_      =>  self                  %darkMatterProfileDMO_%get              (node                                    )
+       massDistributionChild_ =>  self                  %darkMatterProfileDMO_%get              (node%firstChild                         )
+       basic                  =>  node                                        %basic            (                                        )
+       basicChild             =>  node                  %firstChild           %basic            (                                        )
+       darkMatterProfileChild =>  node                  %firstChild           %darkMatterProfile(                                        )
+       radiusVirial           =   self                  %darkMatterHaloScale_ %radiusVirial     (node                                    )
+       radiusVirialChild      =   self                  %darkMatterHaloScale_ %radiusVirial     (node%firstChild                         )
+       energyScale            =  +gravitationalConstantGalacticus                                                                             &
+            &                    *basic                                       %mass             (                                        )**2 &
+            &                    /self                  %darkMatterHaloScale_ %radiusVirial     (node                                    )
+       energyScaleChild       =  +gravitationalConstantGalacticus                                                                             &
+            &                    *basicChild                                  %mass             (                                        )**2 &
+            &                    /radiusVirialChild       
+       energyPerturbation     =  +massDistributionChild_                      %energy           (radiusVirialChild,massDistributionChild_)
+       radiusScaleOriginal    =  +darkMatterProfileChild                      %scale            (                                        )
+       call darkMatterProfileChild%scaleSet(self%darkMatterProfileScaleRadius_%radius           (node%firstChild                         ))
+       energyPerturbation     =  +energyPerturbation                                                                                          &
+            &                    -massDistributionChild_                      %energy           (radiusVirialChild,massDistributionChild_)
+       call darkMatterProfileChild%scaleSet(                                   radiusScaleOriginal                                        )
        if (energyScale > energyScaleChild) then
           energyPerturbation =+energyPerturbation                                          &
                &              +sqrt(                                                       &
@@ -207,10 +214,14 @@ contains
        darkMatterProfile_  =>  node                        %darkMatterProfile (autoCreate=.true.                    )
        radiusScaleOriginal =   darkMatterProfile_          %scale             (                                     )
        call darkMatterProfile_%scaleSet(radiusScale        )
-       energyTarget_       =  +self  %darkMatterProfileDMO_%energy            (           node                      ) &
-            &                 +                             energyPerturbation
-       radiusScale         =   finder                      %find              (rootGuess =darkMatterProfile_%scale())
-       call darkMatterProfile_%scaleSet(radiusScaleOriginal)       
+       energyTarget_       =  +massDistribution_%energy            (radiusVirial,massDistribution_) &
+            &                 +                  energyPerturbation
+       radiusScale         =   finder           %find              (rootGuess =darkMatterProfile_%scale())
+       call darkMatterProfile_%scaleSet(radiusScaleOriginal)
+       !![
+       <objectDestructor name="massDistribution_"     />
+       <objectDestructor name="massDistributionChild_"/>
+       !!]
     end if
     return
   end function darkMatterProfileScaleRandomWalkRadius

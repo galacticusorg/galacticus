@@ -147,8 +147,10 @@ contains
     !!{
     Return a deceleration for satellites due to dark matter self-interactions using the formulation of \cite{kummer_effective_2018}.
     !!}
+    use :: Coordinates                     , only : coordinateSpherical            , assignment(=)
     use :: Galactic_Structure_Options      , only : coordinateSystemCartesian      , radiusLarge
     use :: Galacticus_Nodes                , only : nodeComponentSatellite         , nodeComponentBasic
+    use :: Mass_Distributions              , only : massDistributionClass          , kinematicsDistributionClass
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     use :: Vectors                         , only : Vector_Magnitude
     implicit none
@@ -158,6 +160,8 @@ contains
     class           (nodeComponentSatellite             ), pointer       :: satellite
     class           (nodeComponentBasic                 ), pointer       :: basic
     type            (treeNode                           ), pointer       :: nodeHost
+    class           (massDistributionClass              ), pointer       :: massDistribution_     , massDistributionHost_
+    class           (kinematicsDistributionClass        ), pointer       :: kinematics_           , kinematicsHost_
     double precision                                     , dimension(3)  :: position              , velocity
     double precision                                                     :: radiusOrbital         , speedOrbital               , &
          &                                                                  densityHost           , rateScattering             , &
@@ -168,7 +172,8 @@ contains
          &                                                                  x                     , radiusHalfMass             , &
          &                                                                  velocityDispersion    , dispersionFactor           , &
          &                                                                  potentialEscape
-
+    type            (coordinateSpherical                )                :: coordinates           , coordinatesHost
+    
     ! Set zero acceleration by default.
     kummer2018Acceleration=0.0d0
     ! If the scattering cross section is zero, we can return immediately.
@@ -225,20 +230,32 @@ contains
        if (x > self%xMaximum) call self%tabulate(x+1.0d0)
        ! Find the combined velocity dispersion of satellite and host, and evaluate the correction factor given in Appendix A of
        ! Kummer et al. (2018).
-       velocityDispersionHost     =+self%darkMatterProfileDMO_%radialVelocityDispersion(nodeHost,radiusOrbital )
-       velocityDispersionSatellite=+self%darkMatterProfileDMO_%radialVelocityDispersion(node    ,radiusHalfMass)
-       velocityDispersion         =+sqrt(                                &
-            &                            +velocityDispersionHost     **2 &
-            &                            +velocityDispersionSatellite**2 &
-            &                           )
-       dispersionFactor           =+1.0d0                  &
-            &                      /(                      &
-            &                        +1.0d0                &
-            &                        +(                    &
-            &                          +velocityDispersion &
-            &                          /speedHalfMass      &
-            &                         )**3                 &
-            &                       )
+       massDistribution_           =>  self                 %darkMatterProfileDMO_%get                   (node           )
+       massDistributionHost_       =>  self                 %darkMatterProfileDMO_%get                   (nodeHost       )       
+       kinematics_                 =>  massDistribution_                          %kinematicsDistribution(               )
+       kinematicsHost_             =>  massDistributionHost_                      %kinematicsDistribution(               )
+       coordinates                 =  [radiusHalfMass,0.0d0,0.0d0]
+       coordinatesHost             =  [radiusOrbital ,0.0d0,0.0d0]
+       velocityDispersionHost      =  +kinematicsHost_                            %velocityDispersion1D  (coordinatesHost,massDistributionHost_)
+       velocityDispersionSatellite =  +kinematics_                                %velocityDispersion1D  (coordinates    ,massDistribution_    )
+       velocityDispersion          =  +sqrt(                                &
+            &                               +velocityDispersionHost     **2 &
+            &                               +velocityDispersionSatellite**2 &
+            &                              )
+       dispersionFactor            =  +1.0d0                  &
+            &                         /(                      &
+            &                           +1.0d0                &
+            &                           +(                    &
+            &                             +velocityDispersion &
+            &                             /speedHalfMass      &
+            &                            )**3                 &
+            &                          )
+       !![
+       <objectDestructor name="massDistribution_"    />
+       <objectDestructor name="massDistributionHost_"/>
+       <objectDestructor name="kinematics_"          />
+       <objectDestructor name="kinematicsHost_"      />
+       !!]
        ! Evaluate the scattering rate and acceleration.
        rateScattering               =  +     speedOrbital                               &
             &                          *     densityHost                                &

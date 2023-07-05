@@ -147,25 +147,30 @@ contains
     !!{
     Return a evaporation for satellites due to dark matter self-interactions using the formulation of \cite{kummer_effective_2018}.
     !!}
-    use :: Galactic_Structure_Options      , only : coordinateSystemCartesian                , radiusLarge
-    use :: Galacticus_Nodes                , only : nodeComponentSatellite,nodeComponentBasic
+    use :: Coordinates                     , only : coordinateSpherical            , assignment(=)
+    use :: Galactic_Structure_Options      , only : coordinateSystemCartesian      , radiusLarge
+    use :: Galacticus_Nodes                , only : nodeComponentSatellite         , nodeComponentBasic
+    use :: Mass_Distributions              , only : massDistributionClass          , kinematicsDistributionClass
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     use :: Vectors                         , only : Vector_Magnitude
     implicit none
     class           (satelliteEvaporationSIDMKummer2018), intent(inout) :: self
-    type            (treeNode                           ), intent(inout) :: node
-    class           (nodeComponentSatellite             ), pointer       :: satellite
-    class           (nodeComponentBasic                 ), pointer       :: basic
-    type            (treeNode                           ), pointer       :: nodeHost
-    double precision                                     , dimension(3)  :: position              , velocity
-    double precision                                                     :: radiusOrbital         , speedOrbital               , &
-         &                                                                  densityHost           , rateScattering             , &
-         &                                                                  potentialHalfMass     , potentialBoundary          , &
-         &                                                                  massBoundary          , radiusBoundary             , &
-         &                                                                  velocityEscape        , speedHalfMass              , &
-         &                                                                  velocityDispersionHost, velocityDispersionSatellite, &
-         &                                                                  x                     , radiusHalfMass             , &
-         &                                                                  velocityDispersion    , potentialEscape
+    type            (treeNode                          ), intent(inout) :: node
+    class           (nodeComponentSatellite            ), pointer       :: satellite
+    class           (nodeComponentBasic                ), pointer       :: basic
+    type            (treeNode                          ), pointer       :: nodeHost
+    class           (massDistributionClass             ), pointer       :: massDistribution_     , massDistributionHost_
+    class           (kinematicsDistributionClass       ), pointer       :: kinematics_           , kinematicsHost_
+    double precision                                    , dimension(3)  :: position              , velocity
+    double precision                                                    :: radiusOrbital         , speedOrbital               , &
+         &                                                                 densityHost           , rateScattering             , &
+         &                                                                 potentialHalfMass     , potentialBoundary          , &
+         &                                                                 massBoundary          , radiusBoundary             , &
+         &                                                                 velocityEscape        , speedHalfMass              , &
+         &                                                                 velocityDispersionHost, velocityDispersionSatellite, &
+         &                                                                 x                     , radiusHalfMass             , &
+         &                                                                 velocityDispersion    , potentialEscape
+    type            (coordinateSpherical                )                :: coordinates           , coordinatesHost
     
     ! Set zero mass loss rate by default.
     kummer2018MassLossRate=0.0d0
@@ -212,12 +217,24 @@ contains
           velocityEscape=0.0d0
        end if
        ! Find the combined velocity dispersion of satellite and host.
-       velocityDispersionHost     =+self%darkMatterProfileDMO_%radialVelocityDispersion(nodeHost,radiusOrbital )
-       velocityDispersionSatellite=+self%darkMatterProfileDMO_%radialVelocityDispersion(node    ,radiusHalfMass)
-       velocityDispersion         =+sqrt(                                &
-            &                            +velocityDispersionHost     **2 &
-            &                            +velocityDispersionSatellite**2 &
-            &                           )
+       massDistribution_           =>  self                 %darkMatterProfileDMO_%get                   (node           )
+       massDistributionHost_       =>  self                 %darkMatterProfileDMO_%get                   (nodeHost       )       
+       kinematics_                 =>  massDistribution_                          %kinematicsDistribution(               )
+       kinematicsHost_             =>  massDistributionHost_                      %kinematicsDistribution(               )
+       coordinates                 =  [radiusHalfMass,0.0d0,0.0d0]
+       coordinatesHost             =  [radiusOrbital ,0.0d0,0.0d0]
+       velocityDispersionHost      =  +kinematicsHost_                            %velocityDispersion1D  (coordinatesHost,massDistributionHost_)
+       velocityDispersionSatellite =  +kinematics_                                %velocityDispersion1D  (coordinates    ,massDistribution_    )
+       velocityDispersion          =  +sqrt(                                &
+            &                               +velocityDispersionHost     **2 &
+            &                               +velocityDispersionSatellite**2 &
+            &                              )
+       !![
+       <objectDestructor name="massDistribution_"    />
+       <objectDestructor name="massDistributionHost_"/>
+       <objectDestructor name="kinematics_"          />
+       <objectDestructor name="kinematicsHost_"      />
+       !!]
        ! Get the speed of a host particle at the half-mass radius of the subhalo - this is the sum of the kinetic energy or host
        ! particles in the rest-frame of the subhalo, plus the energy they gain by falling in to the half-mass radius of the
        ! subhalo. We include the correction factor of the velocity dispersion as suggested in equation (A4) of Kummer et
