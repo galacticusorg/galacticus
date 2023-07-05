@@ -71,7 +71,7 @@ program Test_Dark_Matter_Profiles
        &                                                                                            fractionRadiusHalfMassJiang         =2.0d-2                                                         , &
        &                                                                                            radiusHalfMassDimensionlessHernquist=1.0d0/(sqrt(2.0d0)-1.0d0)
   double precision                                                                , dimension(7) :: radius                              =[0.125000d0,0.25000d0,0.50000d0,1.00000d0,2.00000d0,4.00000d0,8.00000d0]
-  double precision                                                                , dimension(7) :: timeFreefall                        =[0.864113d0,1.29807d0,2.04324d0,3.44421d0,6.32148d0,1.26727d1,2.74642d1]
+  double precision                                                                , dimension(7) :: timeFreefall
   double precision                                                                , dimension(7) :: mass                                                                                                , &
        &                                                                                            density                                                                                             , &
        &                                                                                            radiusRecoveredFromMass                                                                             , &
@@ -112,8 +112,11 @@ program Test_Dark_Matter_Profiles
        &                                                                                            velocityMaximum                                                                                     , &
        &                                                                                            velocityMaximumIndirect                                                                             , &
        &                                                                                            radiusVirial                                                                                        , &
-       &                                                                                            energy                                                                                              , &
-       &                                                                                            energyNumerical, densityNormalization
+       &                                                                                            energyPotential                                                                                     , &
+       &                                                                                            energyKinetic                                                                                       , &
+       &                                                                                            energyPotentialNumerical                                                                            , &
+       &                                                                                            energyKineticNumerical                                                                              , &
+       &                                                                                            densityNormalization
 
 
   ! Set verbosity level.
@@ -247,11 +250,31 @@ program Test_Dark_Matter_Profiles
   call Unit_Tests_Begin_Group('Dark matter profiles')
   ! Test Burkert profile.
   call Unit_Tests_Begin_Group('Burkert profile')
-  do i=1,7
-     mass   (i)=darkMatterProfileDMOBurkert_%enclosedMass(node,      radiusScale*radius(i))
-     density(i)=darkMatterProfileDMOBurkert_%density     (node,      radiusScale*radius(i))*radiusScale**3
-     fourier(i)=darkMatterProfileDMOBurkert_%kSpace      (node,1.0d0/radiusScale/radius(i))
-  end do
+  massDistribution_       => darkMatterProfileDMOBurkert_%get                   (node)
+  radiusVirial            =  darkMatterHaloScale_    %radiusVirial          (node)
+  timeFreefall            =  [3.378196272398096d0,3.533466912782305d0,3.901024113095533d0,4.840727096354573d0,7.260451446070998d0,1.323150559822296d1,2.774028478732573d1]
+  select type (massDistribution_)
+  class is (massDistributionSpherical)
+     do i=1,7
+        coordinates=[radiusScale*radius(i),0.0d0,0.0d0]
+        mass                                      (i)=massDistribution_      %massEnclosedBySphere             (                                                          radiusScale   *radius      (i)                      )
+        density                                   (i)=massDistribution_      %density                          (                                                                         coordinates                          )*radiusScale**3
+        radiusRecoveredFromMass                   (i)=massDistribution_      %radiusEnclosingMass              (                                                  mass(i)                                                     )/radiusScale
+        radiusRecoveredFromDensity                (i)=massDistribution_      %radiusEnclosingDensity           (                                   3.0d0/4.0d0/Pi*mass(i)/radiusScale**3/radius      (i)**3                   )/radiusScale
+        radiusRecoveredFromSpecificAngularMomentum(i)=massDistribution_      %radiusFromSpecificAngularMomentum(             sqrt(gravitationalConstantGalacticus*mass(i)*radiusScale   *radius      (i)   )                  )/radiusScale
+        radiusRecoveredFromTimeFreefall           (i)=massDistribution_      %radiusFreefall                   (                                                          timeScale     *timeFreefall(i)                      )/radiusScale
+        potential                                 (i)=massDistribution_      %potential                        (                                                                         coordinates                          )*radiusScale/gravitationalConstantGalacticus
+        fourier                                   (i)=massDistribution_      %fourierTransform                 (radiusVirial,1.0d0                                       /radiusScale   /radius      (i)                      )
+     end do
+     radiusVelocityMaximum   =massDistribution_%radiusRotationCurveMaximum  (                     )
+     velocityMaximum         =massDistribution_%velocityRotationCurveMaximum(                     )
+     velocityMaximumIndirect =massDistribution_%rotationCurve               (radiusVelocityMaximum)
+     energyPotential         =massDistribution_%energyPotential             (radiusVirial         )
+     energyPotentialNumerical=massDistribution_%energyPotentialNumerical    (radiusVirial         )
+  end select
+  !![
+  <objectDestructor name="massDistribution_"      />
+  !!]
   call Assert(                        &
        &      'enclosed mass'       , &
        &      mass                  , &
@@ -266,6 +289,12 @@ program Test_Dark_Matter_Profiles
        &      ]                     , &
        &      relTol=1.0d-6           &
        &     )
+  call Assert(                         &
+       &      'radius enclosing mass', &
+       &      radiusRecoveredFromMass, &
+       &      radius                 , &
+       &      relTol=1.0d-6            &
+       &     )
   call Assert(                        &
        &      'density'             , &
        &      density               , &
@@ -278,6 +307,46 @@ program Test_Dark_Matter_Profiles
        &       6.5976967901693440d-4, &
        &       9.5863970455452000d-5  &
        &      ]                     , &
+       &      relTol=1.0d-6           &
+       &     )
+  call Assert(                            &
+       &      'radius enclosing density', &
+       &      radiusRecoveredFromDensity, &
+       &      radius                    , &
+       &      relTol=2.0d-4               &
+       &     )
+  call Assert(                                            &
+       &      'radius from specific angular momentum'   , &
+       &      radiusRecoveredFromSpecificAngularMomentum, &
+       &      radius                                    , &
+       &      relTol=2.0d-4                               &
+       &     )
+  call Assert(                                            &
+       &      'radius from freefall time'               , &
+       &      radiusRecoveredFromTimeFreefall           , &
+       &      radius                                    , &
+       &      relTol=2.0d-4                               &
+       &     )
+  call Assert(                         &
+       &     'peak rotation velocity', &
+       &     velocityMaximum         , &
+       &     velocityMaximumIndirect , &
+       &     relTol=1.0d-6             &
+       &     )
+  call Assert(                        &
+       &      'potential'          ,  &
+       &      +potential              &
+       &      -potential(1)        ,  &
+       &      [                       &
+       &       -5.517710030243666d-1, &
+       &       -5.470649572158022d-1, &
+       &       -5.313012274275472d-1, &
+       &       -4.884797937826585d-1, &
+       &       -4.072028257618435d-1, &
+       &       -3.040428693416573d-1, &
+       &       -2.075890931613922d-1  &
+       &      ]                       &
+       &       +5.517710030243666d-1, &
        &      relTol=1.0d-6           &
        &     )
   call Assert(                        &
@@ -294,12 +363,19 @@ program Test_Dark_Matter_Profiles
        &      ]                     , &
        &      relTol=1.0d-6           &
        &     )
+  call Assert(                         &
+       &     'potential energy'      , &
+       &     energyPotential         , &
+       &     energyPotentialNumerical, &
+       &     relTol=1.0d-6             &
+       &     )
   call Unit_Tests_End_Group       ()
   ! Test NFW profile.
   call Unit_Tests_Begin_Group('NFW profile')
   massDistribution_       => darkMatterProfileDMONFW_%get                   (node)
   kinematicsDistribution_ => massDistribution_       %kinematicsDistribution(    )
   radiusVirial            =  darkMatterHaloScale_    %radiusVirial          (node)
+  timeFreefall            =  [0.864113d0,1.29807d0,2.04324d0,3.44421d0,6.32148d0,1.26727d1,2.74642d1]
   select type (massDistribution_)
   class is (massDistributionSpherical)
      do i=1,7
@@ -314,11 +390,13 @@ program Test_Dark_Matter_Profiles
         fourier                                   (i)=massDistribution_      %fourierTransform                 (radiusVirial,1.0d0                                       /radiusScale   /radius      (i)                      )
         radialVelocityDispersion                  (i)=kinematicsDistribution_%velocityDispersion1D             (                                                                         coordinates        ,massDistribution_)
      end do
-     energy                 =massDistribution_%energy                      (radiusVirial         ,massDistribution_)
-     energyNumerical        =massDistribution_%energyNumerical             (radiusVirial         ,massDistribution_)
-     radiusVelocityMaximum  =massDistribution_%radiusRotationCurveMaximum  (                                       )
-     velocityMaximum        =massDistribution_%velocityRotationCurveMaximum(                                       )
-     velocityMaximumIndirect=massDistribution_%rotationCurve               (radiusVelocityMaximum                  )
+     energyPotential         =massDistribution_%energyPotential             (radiusVirial                           )
+     energyPotentialNumerical=massDistribution_%energyPotentialNumerical    (radiusVirial                           )
+     energyKinetic           =massDistribution_%energyKinetic               (radiusVirial         ,massDistribution_)
+     energyKineticNumerical  =massDistribution_%energyKineticNumerical      (radiusVirial         ,massDistribution_)
+     radiusVelocityMaximum   =massDistribution_%radiusRotationCurveMaximum  (                                       )
+     velocityMaximum         =massDistribution_%velocityRotationCurveMaximum(                                       )
+     velocityMaximumIndirect =massDistribution_%rotationCurve               (radiusVelocityMaximum                  )
   end select
   !![
   <objectDestructor name="massDistribution_"      />
@@ -415,9 +493,15 @@ program Test_Dark_Matter_Profiles
        &     relTol=1.0d-6             &
        &     )
   call Assert(                         &
-       &     'energy'                , &
-       &     energy                  , &
-       &     energyNumerical         , &
+       &     'potential energy'      , &
+       &     energyPotential         , &
+       &     energyPotentialNumerical, &
+       &     relTol=1.0d-6             &
+       &     )
+  call Assert(                         &
+       &     'kinetic energy'        , &
+       &     energyKinetic           , &
+       &     energyKineticNumerical  , &
        &     relTol=1.0d-6             &
        &     )
   call Assert(                                                     &
