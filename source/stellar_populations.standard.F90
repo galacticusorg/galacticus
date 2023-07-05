@@ -107,25 +107,25 @@
   end interface stellarPopulationStandard
 
   ! Module-scope variables used in integrations.
-  class           (stellarPopulationStandard), pointer     :: self_
-  double precision                                         :: lifetime_                     , metallicity_
-  integer                                                  :: indexElement_
-  class           (stellarAstrophysicsClass ), allocatable :: stellarAstrophysics_
-  class           (initialMassFunctionClass ), allocatable :: initialMassFunction_
-  class           (stellarFeedbackClass     ), allocatable :: stellarFeedback_
-  class           (supernovaeTypeIaClass    ), allocatable :: supernovaeTypeIa_
+  class           (stellarPopulationStandard), pointer   :: self_
+  double precision                                       :: lifetime_                     , metallicity_
+  integer                                                :: indexElement_
+  class           (stellarAstrophysicsClass ), pointer   :: stellarAstrophysics_
+  class           (initialMassFunctionClass ), pointer   :: initialMassFunction_
+  class           (stellarFeedbackClass     ), pointer   :: stellarFeedback_
+  class           (supernovaeTypeIaClass    ), pointer   :: supernovaeTypeIa_
   !$omp threadprivate(indexElement_,self_,lifetime_,metallicity_,stellarAstrophysics_,initialMassFunction_,stellarFeedback_,supernovaeTypeIa_)
 
   ! Tabulation resolution.
-  integer                                    , parameter   :: tableMetallicityCount  =10
-  integer                                    , parameter   :: tableAgeCount          =50
-  double precision                           , parameter   :: tableMetallicityMinimum=1.0d-4
-  double precision                           , parameter   :: tableMetallicityMaximum=0.6d-1
-  double precision                           , parameter   :: tableAgeMinimum        =1.0d-3
-  double precision                           , parameter   :: tableAgeMaximum        =1.0d+2
+  integer                                    , parameter :: tableMetallicityCount  =10
+  integer                                    , parameter :: tableAgeCount          =50
+  double precision                           , parameter :: tableMetallicityMinimum=1.0d-4
+  double precision                           , parameter :: tableMetallicityMaximum=0.6d-1
+  double precision                           , parameter :: tableAgeMinimum        =1.0d-3
+  double precision                           , parameter :: tableAgeMaximum        =1.0d+2
 
   ! File format version.
-  integer                                    , parameter   :: fileFormatCurrent      =1
+  integer                                    , parameter :: fileFormatCurrent      =1
 
 contains
 
@@ -494,10 +494,12 @@ contains
                   &             )
           end do
           !$omp end do
-          deallocate(stellarAstrophysics_)
-          deallocate(initialMassFunction_)
-          deallocate(stellarFeedback_    )
-          deallocate(supernovaeTypeIa_   )
+          !![
+          <objectDestructor name="stellarAstrophysics_"/>
+          <objectDestructor name="initialMassFunction_"/>
+          <objectDestructor name="stellarFeedback_"    />
+	  <objectDestructor name="supernovaeTypeIa_"   />
+	  !!]
           !$omp end parallel
           do iAge=1,tableAgeCount
              do iMetallicity=1,tableMetallicityCount
