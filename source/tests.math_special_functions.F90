@@ -29,6 +29,7 @@ program Test_Math_Special_Functions
           &                               Bessel_Function_J1               , Bessel_Function_J1_Zero                        , Bessel_Function_Jn                     , Bessel_Function_Jn_Zero       , &
           &                               Bessel_Function_K0               , Bessel_Function_K1                             , Bessel_Function_In
   use :: Binomial_Coefficients   , only : Binomial_Coefficient
+  use :: Dilogarithms            , only : Dilogarithm
   use :: Display                 , only : displayVerbositySet              , verbosityLevelStandard
   use :: Error_Functions         , only : Error_Function
   use :: Exponential_Integrals   , only : Cosine_Integral                  , Sine_Integral
@@ -37,6 +38,7 @@ program Test_Math_Special_Functions
           &                               Inverse_Gamma_Function_Incomplete, Inverse_Gamma_Function_Incomplete_Complementary
   use :: Hypergeometric_Functions, only : Hypergeometric_1F1               , Hypergeometric_2F1                             , Hypergeometric_pFq                     , Hypergeometric_pFq_Regularized
   use :: Polylogarithms          , only : Polylogarithm_2                  , Polylogarithm_3
+  use :: Numerical_Constants_Math, only : Pi
   use :: Unit_Tests              , only : Assert                           , Unit_Tests_Begin_Group                         , Unit_Tests_End_Group                   , Unit_Tests_Finish
   implicit none
   double precision, dimension(10) :: argument                            =[1.0d0,2.0d0,3.0d0,4.0d0,5.0d0,6.0d0,7.0d0,8.0d0,9.0d0,10.0d0]
@@ -58,7 +60,7 @@ program Test_Math_Special_Functions
        &                             hypergeometric3F2NegativeArgument                                                                                                                                                           , hypergeometric3F2Accelerated               , &
        &                             polylogarithm2                                                                                                                                                                              , polylogarithm3                             , &
        &                             hypergeometric1F2Regularized                                                                                                                                                                , BesselI2                                   , &
-       &                             BesselIHalf
+       &                             BesselIHalf                                                                                                                                                                                 , dilogarithm_
   double complex  , dimension(17) :: errorFunctionComplex
   integer                         :: i
 
@@ -103,6 +105,7 @@ program Test_Math_Special_Functions
      hypergeometric1F2Regularized               (i)=Hypergeometric_pFq_Regularized                 ([1.5d0            ],[1.5d0,0.5d0],        argument(i)                                      )
      polylogarithm2                             (i)=Polylogarithm_2                                (                                  -1.0d0/ argument(i)                                      )
      polylogarithm3                             (i)=Polylogarithm_3                                (                                  -1.0d0/ argument(i)                                      )
+     dilogarithm_                               (i)=Dilogarithm                                    (                                  -1.0d0/ argument(i)                                      )
   end do
 
   ! Test Bessel function results.
@@ -626,7 +629,7 @@ program Test_Math_Special_Functions
        &       ],                                                              &
        &       relTol=1.0d-6                                                   &
        &     )
-
+  
   ! Test polylogarithm functions.
   call Assert("polylogarithm, Li₂(x)" , &
        &       polylogarithm2         , &
@@ -644,7 +647,7 @@ program Test_Math_Special_Functions
        &       ],                       &
        &       relTol=1.0d-6            &
        &     )
-    call Assert("polylogarithm, Li₃(x)", &
+  call Assert("polylogarithm, Li₃(x)"  , &
        &       polylogarithm3          , &
        &       [                         &
        &        -0.90154267736969570d0 , &
@@ -659,6 +662,29 @@ program Test_Math_Special_Functions
        &        -0.09878555018070007d0   &
        &       ],                        &
        &       relTol=1.0d-6             &
+       &     )
+    
+  ! Test dilogarithm functions.
+  call Assert("dilogarithm, Li₂(x)"   , &
+       &       dilogarithm_           , &
+       &       [                        &
+       &        -0.82246703342411320d0, &
+       &        -0.44841420692364620d0, &
+       &        -0.30903312648780850d0, &
+       &        -0.23590029768626350d0, &
+       &        -0.19080013777753560d0, &
+       &        -0.16019301354439550d0, &
+       &        -0.13805517651807560d0, &
+       &        -0.12129662872272650d0, &
+       &        -0.10816821022923270d0, &
+       &        -0.09760523522932158d0  &
+       &       ],                       &
+       &       relTol=1.0d-6            &
+       &     )
+  call Assert("dilogarithm, Li₂(2) (complex)" , &
+       &       [real(Dilogarithm(dcmplx(2.0d0,0.0d0))),imag(Dilogarithm(dcmplx(2.0d0,0.0d0)))], &
+       &       [Pi**2/4.0d0                           ,-Pi*log(2.0d0)]                        , &
+       &       relTol=1.0d-6                                                                    &
        &     )
   
   ! Test error function with complex argument.
