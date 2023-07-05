@@ -38,6 +38,7 @@ module Merger_Trees_Builders
     <description>Builds and returns a merger tree given the root {\normalfont \ttfamily node}.</description>
     <type>void</type>
     <pass>yes</pass>
+    <selfTarget>yes</selfTarget>
     <argument>type(mergerTree), intent(inout), target :: tree</argument>
    </method>
    <method name="timeEarliestSet">
