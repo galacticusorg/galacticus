@@ -1479,7 +1479,7 @@ contains
 
     double precision function burkertJeansEquationIntegrand(radius)
       !!{
-      Integrand for Burkert drak matter profile Jeans equation.
+      Integrand for Burkert dark matter profile Jeans equation.
       !!}
       implicit none
       double precision, intent(in   ) :: radius
