@@ -28,7 +28,7 @@ die("FAILED: failed to run model resuming from checkpoint")
 
 # Read model data.
 my $data;
-foreach my $modelName ( "chechkpointingNoCheckpoints", "chechkpointingCheckpoints" ) {
+foreach my $modelName ( "checkpointingNoCheckpoints", "checkpointingCheckpoints" ) {
     my $model = new PDL::IO::HDF5("outputs/".$modelName.".hdf5");
     my $nodes = $model->group("Outputs/Output1/nodeData");
     $data->{$modelName}->{$_} = $nodes->dataset($_)->get()
@@ -37,12 +37,12 @@ foreach my $modelName ( "chechkpointingNoCheckpoints", "chechkpointingCheckpoint
 
 # Compare results.
 my $status = "SUCCESS";
-for(my $i=0;$i<nelem($data->{'chechkpointingNoCheckpoints'}->{'nodeIndex'});++$i) {
-    my $match = which($data->{'chechkpointingCheckpoints'}->{'nodeIndex'} == $data->{'chechkpointingNoCheckpoints'}->{'nodeIndex'}->(($i)));
+for(my $i=0;$i<nelem($data->{'checkpointingNoCheckpoints'}->{'nodeIndex'});++$i) {
+    my $match = which($data->{'checkpointingCheckpoints'}->{'nodeIndex'} == $data->{'checkpointingNoCheckpoints'}->{'nodeIndex'}->(($i)));
     next
 	unless ( nelem($match) == 1 );
-    my $massNoCheckpoints = $data->{'chechkpointingNoCheckpoints'}->{'basicMass'}          ->(($i));
-    my $massCheckpoints   = $data->{'chechkpointingCheckpoints'  }->{'basicMass'}->($match)->(( 0));
+    my $massNoCheckpoints = $data->{'checkpointingNoCheckpoints'}->{'basicMass'}          ->(($i));
+    my $massCheckpoints   = $data->{'checkpointingCheckpoints'  }->{'basicMass'}->($match)->(( 0));
     $status = "FAIL"
 	unless ( $massNoCheckpoints == $massCheckpoints );
 }
