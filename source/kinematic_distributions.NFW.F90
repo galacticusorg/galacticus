@@ -240,7 +240,6 @@ contains
           else
              velocityDispersionSquare=0.0d0
           end if
-
        end if
        velocityDispersion=+sqrt(                                                &
             &                   +4.0d0                                          &
