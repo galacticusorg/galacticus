@@ -37,15 +37,20 @@ foreach my $modelName ( "checkpointingNoCheckpoints", "checkpointingCheckpoints"
 
 # Compare results.
 my $status = "SUCCESS";
-for(my $i=0;$i<nelem($data->{'checkpointingNoCheckpoints'}->{'nodeIndex'});++$i) {
-    my $match = which($data->{'checkpointingCheckpoints'}->{'nodeIndex'} == $data->{'checkpointingNoCheckpoints'}->{'nodeIndex'}->(($i)));
-    next
-	unless ( nelem($match) == 1 );
-    my $massNoCheckpoints = $data->{'checkpointingNoCheckpoints'}->{'basicMass'}          ->(($i));
-    my $massCheckpoints   = $data->{'checkpointingCheckpoints'  }->{'basicMass'}->($match)->(( 0));
-    $status = "FAIL"
-	unless ( $massNoCheckpoints == $massCheckpoints );
+for(my $pass=0;$pass<2;++$pass) {
+    for(my $i=0;$i<nelem($data->{'checkpointingNoCheckpoints'}->{'nodeIndex'});++$i) {
+	my $match = which($data->{'checkpointingCheckpoints'}->{'nodeIndex'} == $data->{'checkpointingNoCheckpoints'}->{'nodeIndex'}->(($i)));
+	next
+	    unless ( nelem($match) == 1 );
+	my $massNoCheckpoints = $data->{'checkpointingNoCheckpoints'}->{'basicMass'}          ->(($i));
+	my $massCheckpoints   = $data->{'checkpointingCheckpoints'  }->{'basicMass'}->($match)->(( 0));
+	my $agrees            = $massNoCheckpoints == $massCheckpoints ;
+	$status = "FAIL"
+	    unless ( $agrees );
+	print "\t(".$i.") ".$massNoCheckpoints." == ".$massCheckpoints." ? : ".($agrees ? "success" : "FAILURE")."\n"
+	    if ( $status eq "FAIL" && $pass == 1 );
+    }
 }
-print $status.": resume from chekpoint file\n";
+print $status.": resume from checkpoint file\n";
 
 exit;
