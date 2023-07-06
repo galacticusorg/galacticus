@@ -1399,6 +1399,21 @@ CODE
 					}
 				    }
 				}
+				# Perform any sets.
+				if ( exists($class->{'deepCopy'}->{'setTo'}) ) {
+				    my @setTos = map {{variable => $_}} split(/\s*,\s*/,$class->{'deepCopy'}->{'setTo'}->{'variables'});
+				    foreach ( @setTos ) {
+					($_->{'host'} = $_->{'variable'}) =~ s/^([^%]+)%.+/$1/;
+				    }
+				    foreach my $object ( @{$declaration->{'variables'}} ) {
+					(my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
+					foreach my $setTo ( @setTos ) {
+					    if ( lc($setTo->{'host'}) eq lc($name) ) {
+						$assignments .= "destination\%".$setTo->{'variable'}."=".$class->{'deepCopy'}->{'setTo'}->{'value'}."\n";
+					    }
+					}
+				    }
+				}
                                 # Perform any explicit deep copies.
 				if ( exists($class->{'deepCopy'}->{'deepCopy'}) ) {
 				    my @deepCopies = split(/\s*,\s*/,$class->{'deepCopy'}->{'deepCopy'}->{'variables'});
@@ -1634,6 +1649,21 @@ CODE
 				    $assignments .= "!\$omp atomic\n"
 					if ( exists($class->{'deepCopy'}->{'increment'}->{'atomic'}) && $class->{'deepCopy'}->{'increment'}->{'atomic'} eq "yes" );
 				    $assignments .= "destination\%".$increment->{'variable'}."=destination\%".$increment->{'variable'}."+1\n";
+				}
+			    }
+			}
+		    }
+		    # Perform any sets.
+		    if ( exists($class->{'deepCopy'}->{'setTo'}) ) {
+			my @setTos = map {{variable => $_}} split(/\s*,\s*/,$class->{'deepCopy'}->{'setTo'}->{'variables'});
+			foreach ( @setTos ) {
+			    ($_->{'host'} = $_->{'variable'}) =~ s/^([^%]+)%.+/$1/;
+			}
+			foreach my $object ( @{$declaration->{'variables'}} ) {
+			    (my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
+			    foreach my $setTo ( @setTos ) {
+				if ( lc($setTo->{'host'}) eq lc($name) ) {
+				    $assignments .= "destination\%".$setTo->{'variable'}."=".$class->{'deepCopy'}->{'setTo'}->{'value'}."\n";
 				}
 			    }
 			}
