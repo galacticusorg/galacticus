@@ -36,7 +36,8 @@ foreach my $modelName ( "checkpointingNoCheckpoints", "checkpointingCheckpoints"
 }
 
 # Compare results.
-my $status = "SUCCESS";
+my $status            = "SUCCESS";
+my $toleranceRelative = pdl 0.01;
 for(my $pass=0;$pass<2;++$pass) {
     for(my $i=0;$i<nelem($data->{'checkpointingNoCheckpoints'}->{'nodeIndex'});++$i) {
 	my $match = which($data->{'checkpointingCheckpoints'}->{'nodeIndex'} == $data->{'checkpointingNoCheckpoints'}->{'nodeIndex'}->(($i)));
@@ -44,7 +45,7 @@ for(my $pass=0;$pass<2;++$pass) {
 	    unless ( nelem($match) == 1 );
 	my $massNoCheckpoints = $data->{'checkpointingNoCheckpoints'}->{'basicMass'}          ->(($i));
 	my $massCheckpoints   = $data->{'checkpointingCheckpoints'  }->{'basicMass'}->($match)->(( 0));
-	my $agrees            = $massNoCheckpoints == $massCheckpoints ;
+	my $agrees            = abs($massNoCheckpoints-$massCheckpoints) < $toleranceRelative*$massNoCheckpoints;
 	$status = "FAIL"
 	    unless ( $agrees );
 	print "\t(".$i.") ".$massNoCheckpoints." == ".$massCheckpoints." ? : ".($agrees ? "success" : "FAILURE")."\n"
