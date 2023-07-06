@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1688014428037,
+  "lastUpdate": 1688608358840,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "e3b52c1932cd16b7dd903ca40c9fc93d7fa42ec8",
-          "message": "Merge pull request #317 from galacticusorg/lineNumberingFix\n\nCorrect numbering of lines in preprocessed source files",
-          "timestamp": "2022-11-04T06:13:56-07:00",
-          "tree_id": "2f68a54c4af79a54d6e9e8b89f332bf6185f2864",
-          "url": "https://github.com/galacticusorg/galacticus/commit/e3b52c1932cd16b7dd903ca40c9fc93d7fa42ec8"
-        },
-        "date": 1667590688851,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 56.3309328806202,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 25.5649806186116,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 15567.3185226667,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8732,6 +8693,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 23715.206261202,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": false,
+          "id": "d726a1c8686d37595881f2e118acb01a85942103",
+          "message": "Merge pull request #427 from galacticusorg/desrializationFix\n\nDeserialization fix",
+          "timestamp": "2023-06-29T14:29:07Z",
+          "tree_id": "cb156267cb8650852e0bc944ea2e0187182799b0",
+          "url": "https://github.com/galacticusorg/galacticus/commit/d726a1c8686d37595881f2e118acb01a85942103"
+        },
+        "date": 1688608357045,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 49.85,
+            "unit": "seconds",
+            "range": 0.0224499443206618
           }
         ]
       }
