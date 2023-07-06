@@ -5713,7 +5713,7 @@ jobs:
           cd testSuite
           chmod u=wrx ./test-parallelTreeBuild.pl
           set -o pipefail
-          ./test-parallelTreeBuild 2>&1 | tee test.log
+          ./test-parallelTreeBuild.pl 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Test-Merger-Tree-Builder-04:
