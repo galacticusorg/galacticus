@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1688608358840,
+  "lastUpdate": 1688608367303,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "aaf31cb5501332d33be1a2245b0b56427189a567",
-          "message": "Merge pull request #323 from galacticusorg/equilibriumChemistry\n\nEquilibrium atomic chemistry and self-shielding",
-          "timestamp": "2022-11-05T14:46:48-07:00",
-          "tree_id": "87b41e9330972e09338dec87d158028e8b449854",
-          "url": "https://github.com/galacticusorg/galacticus/commit/aaf31cb5501332d33be1a2245b0b56427189a567"
-        },
-        "date": 1667704492801,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 51.102,
-            "unit": "seconds",
-            "range": 0.0299599732970849
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8723,6 +8693,45 @@ window.BENCHMARK_DATA = {
             "value": 49.85,
             "unit": "seconds",
             "range": 0.0224499443206618
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": false,
+          "id": "d726a1c8686d37595881f2e118acb01a85942103",
+          "message": "Merge pull request #427 from galacticusorg/desrializationFix\n\nDeserialization fix",
+          "timestamp": "2023-06-29T14:29:07Z",
+          "tree_id": "cb156267cb8650852e0bc944ea2e0187182799b0",
+          "url": "https://github.com/galacticusorg/galacticus/commit/d726a1c8686d37595881f2e118acb01a85942103"
+        },
+        "date": 1688608366365,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 57.6748844868819,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 25.9524525639199,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 23715.206261202,
+            "unit": "-logℒ"
           }
         ]
       }
