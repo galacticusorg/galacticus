@@ -47,6 +47,19 @@
      module procedure cole2000ParallelConstructorParameters
      module procedure cole2000ParallelConstructorInternal
   end interface mergerTreeBuilderCole2000Parallel
+
+  ! Sub-module scope variables used in tree building.
+  !![
+  <workaround type="gfortran" PR="110547" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=110547">
+    <description>
+      We use a pointer to self here rather than have self be passed to various methods (which are defined as "nopass" in the
+      parent class) because otherwise gfortran calls the destructor of self on exit from these functions when using OpenMP
+      task-based parallelism. This may be a compiler bug. Note that we use a separate pointer here that is not threadprivate as
+      threadprivate variables can not be passed as arguments in untied OpenMP tasks.
+    </description>
+  </workaround>
+  !!]  
+  class(mergerTreeBuilderCole2000Parallel), pointer :: self__
   
 contains
 
@@ -202,7 +215,7 @@ contains
     integer                                                                     :: countWorkers
     
     ! Begin construction.
-    self_     => self
+    self__ => self
     nodeIndex =  1               ! Initialize the node index counter to unity.
     node      => tree%nodeBase   ! Point to the base node.
     basic     => node%basic   () ! Get the basic component of the node.
@@ -261,11 +274,13 @@ contains
           !$omp end critical(mergerTreeBuilderCole2000ParallelDeepCopy)
           call eventsHooksFutureThread()
        end do
-    end if    
+    end if
     ! Begin parallel tree build.
     !$omp parallel
+    ! Set pointer to self from all threads.
+    self_        => self
     ! Determine our worker number.
-    numberWorker=OMP_Get_Thread_Num()
+    numberWorker =  OMP_Get_Thread_Num()
     ! Copy the random number generator from the tree.
     allocate(self%workers(numberWorker)%randomNumberGenerator_,mold=tree%randomNumberGenerator_)
     !$omp critical(mergerTreeConstructBuilderCole2000DeepCopyReset)
@@ -357,7 +372,7 @@ contains
     type            (treeNode  ), intent(inout), pointer :: node
     
     !$omp task untied
-    call self_%buildBranch(tree,massResolution,nodeIndex,node)
+    call self__%buildBranch(tree,massResolution,nodeIndex,node)
     !$omp end task
     return
   end subroutine cole2000ParallelOnBranch
