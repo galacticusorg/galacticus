@@ -29,15 +29,16 @@
   use :: Merger_Tree_Build_Controllers     , only : mergerTreeBuildControllerClass
   use :: Merger_Tree_Walkers               , only : mergerTreeWalkerTreeConstruction
   use :: Numerical_Random_Numbers          , only : randomNumberGeneratorClass
+
   ! Structure used to hold worker copies of objects.
-  type :: worker
+  type :: mergerTreeBuilderCole2000Worker
      class(cosmologyFunctionsClass                 ), pointer :: cosmologyFunctions_           => null()
      class(criticalOverdensityClass                ), pointer :: criticalOverdensity_          => null()
      class(cosmologicalMassVarianceClass           ), pointer :: cosmologicalMassVariance_     => null()
      class(mergerTreeBuildControllerClass          ), pointer :: mergerTreeBuildController_    => null()
      class(randomNumberGeneratorClass              ), pointer :: randomNumberGenerator_        => null()
      type(distributionFunction1DNegativeExponential), pointer :: branchingIntervalDistribution => null()
-  end type worker
+  end type mergerTreeBuilderCole2000Worker
   
   !![
   <mergerTreeBuilder name="mergerTreeBuilderCole2000">
@@ -87,7 +88,7 @@
    </description>
    <deepCopy>
      <ignore variables="workers"/>
-     <setTo variables="workersInitialized" value=".false."/>
+     <setTo    variables="workersInitialized" value=".false."/>
    </deepCopy>
   </mergerTreeBuilder>
   !!]
@@ -102,7 +103,7 @@
      class           (mergerTreeBranchingProbabilityClass      ), pointer                   :: mergerTreeBranchingProbability_          => null()
      class           (cosmologicalMassVarianceClass            ), pointer                   :: cosmologicalMassVariance_                => null()
      class           (mergerTreeBuildControllerClass           ), pointer                   :: mergerTreeBuildController_               => null()
-     type            (worker                                   ), allocatable, dimension(:) :: workers
+     type            (mergerTreeBuilderCole2000Worker          ), allocatable, dimension(:) :: workers
      logical                                                                                :: timeParameterIsMassDependent
      ! Variables controlling merger tree accuracy.
      double precision                                                                       :: accretionLimit                                    , timeEarliest                    , &
@@ -119,10 +120,10 @@
      !![
      <methods>
        <method description="Build a branch of the merger tree."                    method="buildBranch"              />
-       <method description="Set the critical overdensity object."                  method="criticalOverdensitySet"   />
        <method description="Set the critical overdensity object."                  method="criticalOverdensityUpdate"/>
        <method description="Convert from critical overdensity to time for a node." method="convertTimeNode"          />
        <method description="Check well-ordering in time for a node."               method="checkOrderNode"           />
+       <method description="Perform any required actions on branching."            method="onBranch"                 />
      </methods>
      !!]
      final             ::                              cole2000Destructor
@@ -133,6 +134,8 @@
      procedure, nopass :: criticalOverdensityUpdate => cole2000CriticalOverdensityUpdate
      procedure, nopass :: convertTimeNode           => cole2000ConvertTimeNode
      procedure, nopass :: checkOrderNode            => cole2000CheckOrderNode
+     procedure         :: stateStore                => cole2000StateStore
+     procedure         :: stateRestore              => cole2000StateRestore
   end type mergerTreeBuilderCole2000
 
   interface mergerTreeBuilderCole2000
@@ -452,6 +455,10 @@ contains
     do while (treeWalkerIsolated%next(node))
        call self%checkOrderNode(tree,massResolution,node)
     end do
+    ! Clean up.
+    !![
+    <objectDestructor name="self%workers(numberWorker)%randomNumberGenerator_"/>
+    !!]
     return
   end subroutine cole2000Build
   
@@ -979,3 +986,81 @@ contains
     end if
     return
   end subroutine cole2000CheckOrderNode
+
+  subroutine cole2000StateStore(self,stateFile,gslStateFile,stateOperationID)
+    !!{
+    Custom state store function.
+    !!}
+    implicit none
+    class  (mergerTreeBuilderCole2000), intent(inout) :: self
+    integer                           , intent(in   ) :: stateFile
+    type   (c_ptr                    ), intent(in   ) :: gslStateFile
+    integer(c_size_t                 ), intent(in   ) :: stateOperationID
+    integer                                           :: i
+    
+    call self%stateStore_(stateFile,gslStateFile,stateOperationID)
+    if (self%workersInitialized) then
+       write (stateFile) lbound(self%workers,dim=1),ubound(self%workers,dim=1)
+       do i=lbound(self%workers,dim=1),ubound(self%workers,dim=1)
+          call        self%workers(i)%cosmologyFunctions_          %stateStore(stateFile,gslStateFile,stateOperationID)
+          call        self%workers(i)%criticalOverdensity_         %stateStore(stateFile,gslStateFile,stateOperationID)
+          call        self%workers(i)%cosmologicalMassVariance_    %stateStore(stateFile,gslStateFile,stateOperationID)
+          call        self%workers(i)%mergerTreeBuildController_   %stateStore(stateFile,gslStateFile,stateOperationID)
+          if (self%branchIntervalStep) &
+               & call self%workers(i)%branchingIntervalDistribution%stateStore(stateFile,gslStateFile,stateOperationID)
+       end do
+    end if
+    return
+  end subroutine cole2000StateStore
+
+  subroutine cole2000StateRestore(self,stateFile,gslStateFile,stateOperationID)
+    !!{
+    Custom state restore function.
+    !!}
+    use :: Events_Hooks, only : eventsHooksFutureThread
+    implicit none
+    class  (mergerTreeBuilderCole2000), intent(inout) :: self
+    integer                           , intent(in   ) :: stateFile
+    type   (c_ptr                    ), intent(in   ) :: gslStateFile
+    integer(c_size_t                 ), intent(in   ) :: stateOperationID
+    integer                                           :: boundLower      , boundUpper, &
+         &                                               i
+
+    call self%stateRestore_(stateFile,gslStateFile,stateOperationID)
+    if (self%workersInitialized) then
+       read (stateFile) boundLower,boundUpper
+       allocate(self%workers(boundLower:boundUpper))
+       do i=boundLower,boundUpper
+          call eventsHooksFutureThread(i)
+          allocate(self%workers(i)%cosmologyFunctions_       ,mold=self%cosmologyFunctions_       )
+          allocate(self%workers(i)%criticalOverdensity_      ,mold=self%criticalOverdensity_      )
+          allocate(self%workers(i)%cosmologicalMassVariance_ ,mold=self%cosmologicalMassVariance_ )
+          allocate(self%workers(i)%mergerTreeBuildController_,mold=self%mergerTreeBuildController_)
+          if (self%branchIntervalStep) then
+             allocate(self%workers(i)%branchingIntervalDistribution)
+             !![
+	     <referenceConstruct object="self%workers(i)%branchingIntervalDistribution" constructor="distributionFunction1DNegativeExponential(1.0d0)"/>
+             !!]
+          end if
+          !$omp critical(mergerTreeBuilderCole2000ParallelDeepCopy)
+          !![
+	  <deepCopyReset variables="self%cosmologyFunctions_ self%criticalOverdensity_ self%cosmologicalMassVariance_ self%mergerTreeBuildController_"/>
+	  <deepCopy source="self%cosmologyFunctions_"        destination="self%workers(i)%cosmologyFunctions_"       />
+	  <deepCopy source="self%criticalOverdensity_"       destination="self%workers(i)%criticalOverdensity_"      />
+	  <deepCopy source="self%cosmologicalMassVariance_"  destination="self%workers(i)%cosmologicalMassVariance_" />
+	  <deepCopy source="self%mergerTreeBuildController_" destination="self%workers(i)%mergerTreeBuildController_"/>
+	  <deepCopyFinalize variables="self%workers(i)%cosmologyFunctions_ self%workers(i)%criticalOverdensity_ self%workers(i)%cosmologicalMassVariance_ self%workers(i)%mergerTreeBuildController_"/>
+          !!]
+          !$omp end critical(mergerTreeBuilderCole2000ParallelDeepCopy)
+          call eventsHooksFutureThread()
+          call        self%workers(i)%cosmologyFunctions_          %stateRestore(stateFile,gslStateFile,stateOperationID)
+          call        self%workers(i)%criticalOverdensity_         %stateRestore(stateFile,gslStateFile,stateOperationID)
+          call        self%workers(i)%cosmologicalMassVariance_    %stateRestore(stateFile,gslStateFile,stateOperationID)
+          call        self%workers(i)%mergerTreeBuildController_   %stateRestore(stateFile,gslStateFile,stateOperationID)
+          if (self%branchIntervalStep) &
+               & call self%workers(i)%branchingIntervalDistribution%stateRestore(stateFile,gslStateFile,stateOperationID)
+       end do
+    end if
+    return
+  end subroutine cole2000StateRestore
+  
