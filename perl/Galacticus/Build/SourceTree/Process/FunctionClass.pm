@@ -2929,9 +2929,27 @@ CODE
 		pass        => "yes",
 		modules     => join(" ",keys(%stateStoreModules)),
 		argument    => [ "integer, intent(in   ) :: stateFile", "type(c_ptr), intent(in   ) :: gslStateFile", "integer(c_size_t), intent(in   ) :: stateOperationID"  ],
+		code        => "call self%stateStore_(stateFile,gslStateFile,stateOperationID)"
+	    };
+	    $methods{'stateStore_'} =
+	    {
+		description => "Store the state of this object to file.",
+		type        => "void",
+		pass        => "yes",
+		modules     => join(" ",keys(%stateStoreModules)),
+		argument    => [ "integer, intent(in   ) :: stateFile", "type(c_ptr), intent(in   ) :: gslStateFile", "integer(c_size_t), intent(in   ) :: stateOperationID"  ],
 		code        => $stateStoreCode
 	    };
 	    $methods{'stateRestore'} =
+	    {
+		description => "Restore the state of this object from file.",
+		type        => "void",
+		pass        => "yes",
+		modules     => join(" ",keys(%stateRestoreModules)),
+		argument    => [ "integer, intent(in   ) :: stateFile", "type(c_ptr), intent(in   ) :: gslStateFile", "integer(c_size_t), intent(in   ) :: stateOperationID"  ],
+		code        => "call self%stateRestore_(stateFile,gslStateFile,stateOperationID)"
+	    };
+	    $methods{'stateRestore_'} =
 	    {
 		description => "Restore the state of this object from file.",
 		type        => "void",
