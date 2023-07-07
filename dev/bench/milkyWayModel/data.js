@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1688608371284,
+  "lastUpdate": 1688772305312,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "aaf31cb5501332d33be1a2245b0b56427189a567",
-          "message": "Merge pull request #323 from galacticusorg/equilibriumChemistry\n\nEquilibrium atomic chemistry and self-shielding",
-          "timestamp": "2022-11-05T14:46:48-07:00",
-          "tree_id": "87b41e9330972e09338dec87d158028e8b449854",
-          "url": "https://github.com/galacticusorg/galacticus/commit/aaf31cb5501332d33be1a2245b0b56427189a567"
-        },
-        "date": 1667704497338,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 12.192,
-            "unit": "seconds",
-            "range": 0.00275680975054628
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10628,6 +10598,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 5.90987743828344,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": false,
+          "id": "212e634c8a6c24f5dc09ae49ad4c9004fcc76053",
+          "message": "Merge pull request #428 from galacticusorg/checkpointing\n\nImplement (limited) checkpointing",
+          "timestamp": "2023-07-07T15:58:53Z",
+          "tree_id": "fe32efe68225e92bc677a4091a8f1b2cdabdea51",
+          "url": "https://github.com/galacticusorg/galacticus/commit/212e634c8a6c24f5dc09ae49ad4c9004fcc76053"
+        },
+        "date": 1688772304355,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 235.051,
+            "unit": "seconds",
+            "range": 0.901518108525551
           }
         ]
       }
