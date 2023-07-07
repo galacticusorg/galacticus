@@ -701,6 +701,7 @@ contains
     use :: Factorials                       , only : Logarithmic_Factorial
     use :: Gamma_Functions                  , only : Gamma_Function_Logarithmic
     use :: Root_Finder                      , only : rootFinder                      , rangeExpandMultiplicative , rangeExpandSignExpectPositive , rangeExpandSignExpectNegative
+    use :: Galacticus_Nodes                 , only : treeNode                        , nodeComponentBasic
     implicit none
     class           (posteriorSampleLikelihoodHaloMassFunction), intent(inout)               :: self
     class           (posteriorSampleStateClass                ), intent(inout)               :: simulationState
@@ -718,6 +719,8 @@ contains
     type            (vector                                   )                              :: difference
     type            (integrator                               ), allocatable                 :: integrator_
     type            (rootFinder                               ), allocatable                 :: finder_
+    type            (treeNode                                 ), pointer                     :: node
+    class           (nodeComponentBasic                       ), pointer                     :: basic
     logical                                                                                  :: evaluationFailed
     integer                                                                                  :: i                                            , status
     double precision                                                                         :: countHalosMean                               , likelihood                                   , &
@@ -764,6 +767,10 @@ contains
     else
        stoppingTimeParameter=0.0d0
     end if
+    ! Create a node.
+    node  => treeNode      (                 )
+    basic => node    %basic(autoCreate=.true.)
+    call basic%timeSet(self%time)
     ! Compute the mass function.
     allocate(massFunction(size(self%mass)))
     evaluationFailed=.false.
@@ -772,6 +779,7 @@ contains
             &                                               self%time          , &
             &                                               self%massMinimum(i), &
             &                                               self%massMaximum(i), &
+            &                                        node  =     node          , &
             &                                        status=     status          &
             &                                       )                            &
             &          /log(                                                     &
@@ -784,6 +792,8 @@ contains
           exit
        end if
     end do
+    call node%destroy()
+    deallocate(node)
     ! Evaluate the log-likelihood.
     if (.not.evaluationFailed) then
        if (self%likelihoodPoisson) then
