@@ -447,11 +447,14 @@ foreach my $type ( @types ) {
 		    # Make the XML for the config file.
 		    my $config = fill_in_string(<<'CODE', PACKAGE => 'code');
     <!-- Zoom-in: {$name} {$halo} -->
-    <parameterMap value="haloMassFunctionParameters::a             haloMassFunctionParameters::p
-                         haloMassFunctionParameters::normalization haloMassFunctionParameters::q
+    <parameterMap value="haloMassFunctionParameters::a                        haloMassFunctionParameters::p
+                         haloMassFunctionParameters::normalization            haloMassFunctionParameters::q
                          haloMassFunctionParameters::b
-                         haloMassFunctionParameters::cW            haloMassFunctionParameters::beta
-                         haloMassFunctionParameters::alpha         varianceFractionalModelDiscrepancy"/>
+                         haloMassFunctionParameters::normalizationPseudoHalos haloMassFunctionParameters::exponentMassParticlePseudoHalos
+                         haloMassFunctionParameters::exponentMassPseudoHalos  haloMassFunctionParameters::exponentRedshiftPseudoHalos
+                                                                              haloMassFunctionParameters::exponentOverdensityPseudoHalos
+                         haloMassFunctionParameters::cW                       haloMassFunctionParameters::beta
+                         haloMassFunctionParameters::alpha                    varianceFractionalModelDiscrepancy"/>
     <parameterInactiveMap value="" ignoreWarnings="true"/>
     <posteriorSampleLikelihood value="heated">
       <temperature value="{$temperature}"/>
