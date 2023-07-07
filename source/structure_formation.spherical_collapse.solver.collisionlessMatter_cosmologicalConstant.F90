@@ -37,7 +37,7 @@
      class(cosmologyFunctionsClass), pointer :: cosmologyFunctions_         => null()
      class(linearGrowthClass      ), pointer :: linearGrowth_               => null()
      type (varying_string         )          :: fileNameCriticalOverdensity          , fileNameVirialDensityContrast, &
-          &                                     fileNameRadiusTurnaround
+          &                                     fileNameRadiusTurnaround             , fileNameNonLinearMap
    contains
      !![
      <methods>
@@ -142,6 +142,12 @@ contains
          &                             'largeScaleStructure/'                           // &
          &                             self%objectType      (                          )// &
          &                             'TurnaroundRadius_'                              // &
+         &                             self%hashedDescriptor(includeSourceDigest=.true.)// &
+         &                             '.hdf5'
+    self%fileNameNonLinearMap         =inputPath(pathTypeDataDynamic)                   // &
+         &                             'largeScaleStructure/'                           // &
+         &                             self%objectType      (                          )// &
+         &                             'NonLinearMap_'                                  // &
          &                             self%hashedDescriptor(includeSourceDigest=.true.)// &
          &                             '.hdf5'
     return
@@ -545,224 +551,270 @@ contains
     use :: Array_Utilities      , only : Array_Reverse
     use :: Arrays_Search        , only : searchArray
     use :: Error                , only : Error_Report
+    use :: File_Utilities       , only : File_Exists              , File_Lock                    , File_Unlock                  , lockDescriptor
+    use :: HDF5_Access          , only : hdf5Access
+    use :: IO_HDF5              , only : hdf5Object
     use :: Linear_Growth        , only : normalizeMatterDominated
     use :: Numerical_Integration, only : integrator
     use :: Numerical_Ranges     , only : Make_Range               , rangeTypeLinear              , rangeTypeLogarithmic
     use :: Root_Finder          , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
-    class           (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt), intent(inout)              :: self
-    double precision                                                  , intent(in   )              :: time
-    class           (table2DLinLinLin                                ), intent(inout)              :: linearNonlinearMap_
-    integer                                                           , parameter                  :: tableIncrement               =100
-    integer                                                           , parameter                  :: timesPerDecade               = 10
-    integer                                                           , parameter                  :: overdensityLinearCount       =500
-    double precision                                                  , parameter                  :: numericalLimitEpsilon        =  1.0d-4
-    double precision                                                  , parameter                  :: toleranceAbsolute            =  0.0d+0, toleranceRelative         =1.0d-9
-    double precision                                                  , parameter                  :: expansionFactorMinimum       =  1.0d-2, expansionFactorMaximum    =1.0d+0
-    double precision                                                  , parameter                  :: overdensityLinearMinimum     = -5.0d+0, overdensityLinearMaximum  =2.0d+0
-    double precision                                                  , allocatable, dimension(:)  :: overdensityLinear                     , overdensityNonlinear              , &
-         &                                                                                            overdensityLinearTmp                  , overdensityNonLinearTmp           , &
-         &                                                                                            times                                 , overdensitiesLinear
-    double precision                                                                               :: expansionFactor                       , epsilonPerturbationMaximum        , &
-         &                                                                                            epsilonPerturbationCollapsed          , radiusNow                         , &
-         &                                                                                            epsilonPerturbation                   , epsilonPerturbationMinimum        , &
-         &                                                                                            timeMaximum                           , radiusUpperLimit                  , &
-         &                                                                                            normalization                         , overdensityNonlinear_             , &
-         &                                                                                            timesMinimum                          , timesMaximum
-    logical                                                                                        :: finderPerturbationConstructed         , finderRadiusConstructed
-    type            (integrator                                      )                             :: integrator_
-    type            (rootFinder                                      )                             :: finderPerturbation                    , finderRadius
-    integer                                                                                        :: i                                     , timeCount                         , &
-         &                                                                                            iOverdensityLinear                    , iOverdensity                      , &
-         &                                                                                            iTime
+    class           (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt), intent(inout)               :: self
+    double precision                                                  , intent(in   )               :: time
+    class           (table2DLinLinLin                                ), intent(inout)               :: linearNonlinearMap_
+    integer                                                           , parameter                   :: tableIncrement               =100
+    integer                                                           , parameter                   :: timesPerDecade               = 10
+    integer                                                           , parameter                   :: overdensityLinearCount       =500
+    double precision                                                  , parameter                   :: numericalLimitEpsilon        =  1.0d-4
+    double precision                                                  , parameter                   :: toleranceAbsolute            =  0.0d+0, toleranceRelative         =1.0d-9
+    double precision                                                  , parameter                   :: expansionFactorMinimum       =  1.0d-2, expansionFactorMaximum    =1.0d+0
+    double precision                                                  , parameter                   :: overdensityLinearMinimum     = -5.0d+0, overdensityLinearMaximum  =2.0d+0
+    double precision                                                  , allocatable, dimension(:  ) :: overdensityLinear                     , overdensityNonlinear              , &
+         &                                                                                             overdensityLinearTmp                  , overdensityNonLinearTmp           , &
+         &                                                                                             times                                 , overdensitiesLinear
+    double precision                                                  , allocatable, dimension(:,:) :: linearNonlinearMap__
+    double precision                                                                                :: expansionFactor                       , epsilonPerturbationMaximum        , &
+         &                                                                                             epsilonPerturbationCollapsed          , radiusNow                         , &
+         &                                                                                             epsilonPerturbation                   , epsilonPerturbationMinimum        , &
+         &                                                                                             timeMaximum                           , radiusUpperLimit                  , &
+         &                                                                                             normalization                         , overdensityNonlinear_             , &
+         &                                                                                             timesMinimum                          , timesMaximum
+    logical                                                                                         :: finderPerturbationConstructed         , finderRadiusConstructed
+    type            (integrator                                      )                              :: integrator_
+    type            (rootFinder                                      )                              :: finderPerturbation                    , finderRadius
+    integer                                                                                         :: i                                     , timeCount                         , &
+         &                                                                                             iOverdensityLinear                    , iOverdensity                      , &
+         &                                                                                             iTime
+    type            (lockDescriptor                                  )                              :: fileLock
+    type            (hdf5Object                                      )                              :: file
 
     ! Check that we have a linear growth object.
     if (.not.associated(self%linearGrowth_)) call Error_Report('no linearGrowth object was supplied'//{introspection:location})
-    ! Set initial state of root finder objects.
-    finderPerturbationConstructed=.false. 
-    finderRadiusConstructed      =.false.
-    ! Find a suitable range of times to tabulate, and generate an array of times.
-    timesMinimum      =min(0.5d0*time,self%cosmologyFunctions_%cosmicTime(expansionFactorMinimum))
-    timesMaximum      =max(2.0d0*time,self%cosmologyFunctions_%cosmicTime(expansionFactorMaximum))
-    timeCount         =int(log10(timesMaximum/timesMinimum)*dble(timesPerDecade))+1
-    times             =Make_Range(timesMinimum,timesMaximum,timeCount,rangeTypeLogarithmic)
-    ! Generate a range of linear overdensities.
-    overdensitiesLinear=Make_Range(overdensityLinearMinimum,overdensityLinearMaximum,overdensityLinearCount,rangeTypeLinear)
-    ! Create the table.
-    call linearNonlinearMap_%create(overdensitiesLinear,times)
-    ! Iterate over times.
-    do iTime=1,timeCount
-       ! Get the current expansion factor.
-       time_           =times(iTime)
-       expansionFactor=self%cosmologyFunctions_%expansionFactor(time_)
-       ! Determine the largest (i.e. least negative) value of ε for which a perturbation can collapse.
-       if (self%cosmologyFunctions_%omegaDarkEnergyEpochal(expansionFactor=expansionFactor) > 0.0d0) then
-          epsilonPerturbationMaximum=-(                                                                                     &
-               &                       +27.0d0                                                                              &
-               &                       / 4.0d0                                                                              &
-               &                       *self%cosmologyFunctions_%omegaDarkEnergyEpochal(expansionFactor=expansionFactor)    &
-               &                       *self%cosmologyFunctions_%omegaMatterEpochal    (expansionFactor=expansionFactor)**2 &
-               &                      )**(1.0d0/3.0d0)
-       else
-          epsilonPerturbationMaximum=-1.0d-6
+    ! Read map from file if available.
+    if (File_Exists(self%fileNameNonLinearMap)) then
+       ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
+       call File_Lock(char(self%fileNameNonLinearMap),fileLock,lockIsShared=.true.)
+       !$ call hdf5Access%set()
+       call file%openFile(char(self%fileNameNonLinearMap))
+       call file%readDataset('time'               ,times               )
+       call file%readDataset('overdensitiesLinear',overdensitiesLinear )
+       call file%readDataset('linearNonlinearMap' ,linearNonlinearMap__)
+       call file%close      (                                          )
+       !$ call hdf5Access%unset()
+       call File_Unlock(fileLock)       
+       ! Test if map has sufficient extent.
+       if     (                           &
+            &   time < times(         1 ) &
+            &  .or.                       &
+            &   time > times(size(times)) &
+            & ) then
+          ! It does not, so destroy the table.
+          deallocate(times               )
+          deallocate(overdensitiesLinear )
+          deallocate(linearNonlinearMap__)
        end if
-       ! Estimate a suitably negative minimum value for ε.
-       epsilonPerturbationMinimum=-10.0d0
-       ! Compute cosmological parameters at this epoch.
-       OmegaMatterEpochal    =self%cosmologyFunctions_%omegaMatterEpochal    (expansionFactor=expansionFactor)
-       OmegaDarkEnergyEpochal=self%cosmologyFunctions_%omegaDarkEnergyEpochal(expansionFactor=expansionFactor)
-       hubbleTimeEpochal     =self%cosmologyFunctions_%expansionRate         (                expansionFactor)
-       ! Find the value of ε for which the perturbation just collapses at this time.
-       if (.not.finderPerturbationConstructed) then
-          finderPerturbation=rootFinder(                                                                                &
-               &                        rootFunction                 =cllsnlssMttCsmlgclCnstntPerturbationCollapseRoot, &
-               &                        toleranceAbsolute            =toleranceAbsolute                               , &
-               &                        toleranceRelative            =toleranceRelative                               , &
-               &                        rangeExpandUpward            =0.5d0                                           , &
-               &                        rangeExpandDownward          =2.0d0                                           , &
-               &                        rangeExpandType              =rangeExpandMultiplicative                       , &
-               &                        rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive                   , &
-               &                        rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative                     &
-               &                       )
-          finderPerturbationConstructed=.true.
-       end if
-       epsilonPerturbationCollapsed=finderPerturbation%find(rootRange=[epsilonPerturbationMinimum,epsilonPerturbationMaximum])
-       ! For non-collapsed regions, ε will be greater then that for a collapsed perturbation. Step through values until
-       ! sufficiently low non-linear overdensity is reached.
-       integrator_        =integrator(cllsnlssMttCsmlgclCnstntPerturbationIntegrand,toleranceRelative=1.0d-6,hasSingularities =.true.)
-       epsilonPerturbation=epsilonPerturbationCollapsed
-       i=0
-       do while (.true.)
-          i                  =i                  +1
-          epsilonPerturbation=epsilonPerturbation+1.0d-2*abs(epsilonPerturbationCollapsed)
-          ! Share the ε parameter.
-          amplitudePerturbation=epsilonPerturbation
-          ! For collapsing perturbations, find the time of maximum radius.
-          if (epsilonPerturbation > epsilonPerturbationMaximum) then
-             ! This perturbation will not collapse. Maximum radius is reached at infinite time.
-             radiusMaximum=huge(1.0d0)
-             timeTarget   =     time_
+    end if
+    if (.not.allocated(linearNonlinearMap__)) then
+       ! Set initial state of root finder objects.
+       finderPerturbationConstructed=.false. 
+       finderRadiusConstructed      =.false.
+       ! Find a suitable range of times to tabulate, and generate an array of times.
+       timesMinimum      =min(0.5d0*time,self%cosmologyFunctions_%cosmicTime(expansionFactorMinimum))
+       timesMaximum      =max(2.0d0*time,self%cosmologyFunctions_%cosmicTime(expansionFactorMaximum))
+       timeCount         =int(log10(timesMaximum/timesMinimum)*dble(timesPerDecade))+1
+       times             =Make_Range(timesMinimum,timesMaximum,timeCount,rangeTypeLogarithmic)
+       ! Generate a range of linear overdensities.
+       overdensitiesLinear=Make_Range(overdensityLinearMinimum,overdensityLinearMaximum,overdensityLinearCount,rangeTypeLinear)
+       ! Create the table.
+       allocate(linearNonlinearMap__(overdensityLinearCount,timeCount))
+       ! Iterate over times.
+       do iTime=1,timeCount
+          ! Get the current expansion factor.
+          time_           =times(iTime)
+          expansionFactor=self%cosmologyFunctions_%expansionFactor(time_)
+          ! Determine the largest (i.e. least negative) value of ε for which a perturbation can collapse.
+          if (self%cosmologyFunctions_%omegaDarkEnergyEpochal(expansionFactor=expansionFactor) > 0.0d0) then
+             epsilonPerturbationMaximum=-(                                                                                     &
+                  &                       +27.0d0                                                                              &
+                  &                       / 4.0d0                                                                              &
+                  &                       *self%cosmologyFunctions_%omegaDarkEnergyEpochal(expansionFactor=expansionFactor)    &
+                  &                       *self%cosmologyFunctions_%omegaMatterEpochal    (expansionFactor=expansionFactor)**2 &
+                  &                      )**(1.0d0/3.0d0)
           else
-             ! This perturbation will collapse. Find the maximum radius.
-             radiusMaximum=cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximum(epsilonPerturbation)
-             ! Compute maximum value of a for numerical integration.
-             radiusUpperLimit=(1.0d0-numericalLimitEpsilon)*radiusMaximum
-             ! Integrate the perturbation equation from size zero to maximum size to get the time to maximum expansion, adding on the
-             ! analytic correction for the region close to maximum expansion.
-             timeMaximum     =+integrator_%integrate(0.0d0,radiusUpperLimit) &
-                  &           /hubbleTimeEpochal                             &
-                  &           -2.0d0                                         &
-                  &           *sqrt(                                         &
-                  &                 +OmegaMatterEpochal                      &
-                  &                 /radiusUpperLimit                        &
-                  &                 +epsilonPerturbation                     &
-                  &                 +OmegaDarkEnergyEpochal                  &
-                  &                 *radiusUpperLimit      **2               &
-                  &                )                                         &
-                  &           /(                                             &
-                  &             +2.0d0                                       &
-                  &             *OmegaDarkEnergyEpochal                      &
-                  &             *radiusUpperLimit                            &
-                  &             -OmegaMatterEpochal                          &
-                  &             /radiusUpperLimit          **2               &
-                  &            )                                             &
-                  &           /hubbleTimeEpochal
-             ! Set the target time
-             if (timeMaximum > time_) then
-                ! Expanding phase.
-                timeTarget=+      time_
+             epsilonPerturbationMaximum=-1.0d-6
+          end if
+          ! Estimate a suitably negative minimum value for ε.
+          epsilonPerturbationMinimum=-10.0d0
+          ! Compute cosmological parameters at this epoch.
+          OmegaMatterEpochal    =self%cosmologyFunctions_%omegaMatterEpochal    (expansionFactor=expansionFactor)
+          OmegaDarkEnergyEpochal=self%cosmologyFunctions_%omegaDarkEnergyEpochal(expansionFactor=expansionFactor)
+          hubbleTimeEpochal     =self%cosmologyFunctions_%expansionRate         (                expansionFactor)
+          ! Find the value of ε for which the perturbation just collapses at this time.
+          if (.not.finderPerturbationConstructed) then
+             finderPerturbation=rootFinder(                                                                                &
+                  &                        rootFunction                 =cllsnlssMttCsmlgclCnstntPerturbationCollapseRoot, &
+                  &                        toleranceAbsolute            =toleranceAbsolute                               , &
+                  &                        toleranceRelative            =toleranceRelative                               , &
+                  &                        rangeExpandUpward            =0.5d0                                           , &
+                  &                        rangeExpandDownward          =2.0d0                                           , &
+                  &                        rangeExpandType              =rangeExpandMultiplicative                       , &
+                  &                        rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive                   , &
+                  &                        rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative                     &
+                  &                       )
+             finderPerturbationConstructed=.true.
+          end if
+          epsilonPerturbationCollapsed=finderPerturbation%find(rootRange=[epsilonPerturbationMinimum,epsilonPerturbationMaximum])
+          ! For non-collapsed regions, ε will be greater then that for a collapsed perturbation. Step through values until
+          ! sufficiently low non-linear overdensity is reached.
+          integrator_        =integrator(cllsnlssMttCsmlgclCnstntPerturbationIntegrand,toleranceRelative=1.0d-6,hasSingularities =.true.)
+          epsilonPerturbation=epsilonPerturbationCollapsed
+          i=0
+          do while (.true.)
+             i                  =i                  +1
+             epsilonPerturbation=epsilonPerturbation+1.0d-2*abs(epsilonPerturbationCollapsed)
+             ! Share the ε parameter.
+             amplitudePerturbation=epsilonPerturbation
+             ! For collapsing perturbations, find the time of maximum radius.
+             if (epsilonPerturbation > epsilonPerturbationMaximum) then
+                ! This perturbation will not collapse. Maximum radius is reached at infinite time.
+                radiusMaximum=huge(1.0d0)
+                timeTarget   =     time_
              else
-                ! Collapsing phase.
-                timeTarget=+2.0d0*timeMaximum      &
-                     &                 -      time_
+                ! This perturbation will collapse. Find the maximum radius.
+                radiusMaximum=cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximum(epsilonPerturbation)
+                ! Compute maximum value of a for numerical integration.
+                radiusUpperLimit=(1.0d0-numericalLimitEpsilon)*radiusMaximum
+                ! Integrate the perturbation equation from size zero to maximum size to get the time to maximum expansion, adding on the
+                ! analytic correction for the region close to maximum expansion.
+                timeMaximum     =+integrator_%integrate(0.0d0,radiusUpperLimit) &
+                     &           /hubbleTimeEpochal                             &
+                     &           -2.0d0                                         &
+                     &           *sqrt(                                         &
+                     &                 +OmegaMatterEpochal                      &
+                     &                 /radiusUpperLimit                        &
+                     &                 +epsilonPerturbation                     &
+                     &                 +OmegaDarkEnergyEpochal                  &
+                     &                 *radiusUpperLimit      **2               &
+                     &                )                                         &
+                     &           /(                                             &
+                     &             +2.0d0                                       &
+                     &             *OmegaDarkEnergyEpochal                      &
+                     &             *radiusUpperLimit                            &
+                     &             -OmegaMatterEpochal                          &
+                     &             /radiusUpperLimit          **2               &
+                     &            )                                             &
+                     &           /hubbleTimeEpochal
+                ! Set the target time
+                if (timeMaximum > time_) then
+                   ! Expanding phase.
+                   timeTarget=+      time_
+                else
+                   ! Collapsing phase.
+                   timeTarget=+2.0d0*timeMaximum      &
+                        &                 -      time_
+                end if
              end if
-          end if
-          ! Solve for the radius at the present time.
-          if (.not.finderRadiusConstructed) then
-             finderRadius=rootFinder(                                                                  &
-                  &                  rootFunction                 =cllsnlssMttCsmlgclCnstntRadiusRoot, &
-                  &                  toleranceAbsolute            =toleranceAbsolute                 , &
-                  &                  toleranceRelative            =toleranceRelative                 , &
-                  &                  rangeExpandDownward          =0.5d0                             , &
-                  &                  rangeExpandUpward            =2.0d0                             , &
-                  &                  rangeExpandType              =rangeExpandMultiplicative         , &
-                  &                  rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative     , &
-                  &                  rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive       &
-                  &                 )
-             finderRadiusConstructed=.true.
-          end if
-          if (epsilonPerturbation <= epsilonPerturbationMaximum .and. cllsnlssMttCsmlgclCnstntRadiusRoot(radiusMaximum) < 0.0d0) then
-             ! Perturbation is close to maximum radius. Adopt this as the solution.
-             radiusNow=radiusMaximum
-          else
-             ! Find the current radius.
-             radiusNow=finderRadius%find(rootGuess=1.0d0)
-          end if
-          normalization=+self%linearGrowth_%value(time_,normalize=normalizeMatterDominated) &
-               &        /                         expansionFactor
-          if (.not.allocated(overdensityLinear)) then
-             allocate(overdensityLinear   (tableIncrement))
-             allocate(overdensityNonLinear(tableIncrement))
-          else if (i > size(overdensityLinear)) then
-             call move_alloc(overdensityLinear   ,overdensityLinearTmp   )
-             call move_alloc(overdensityNonLinear,overdensityNonLinearTmp)
-             allocate(overdensityLinear   (size(overdensityLinearTmp   )+tableIncrement))
-             allocate(overdensityNonLinear(size(overdensityNonLinearTmp)+tableIncrement))
-             overdensityLinear   (1:size(overdensityLinearTmp   ))=overdensityLinearTmp
-             overdensityNonLinear(1:size(overdensityNonLinearTmp))=overdensityNonLinearTmp
-          end if
-          overdensityLinear   (i)=+normalization            &
-               &                  *0.6d0                    &
-               &                  *(                        &
-               &                    +1.0d0                  &
-               &                    -OmegaMatterEpochal     &
-               &                    -OmegaDarkEnergyEpochal &
-               &                    -epsilonPerturbation    &
-               &                   )                        &
-               &                  /OmegaMatterEpochal
-          overdensityNonLinear(i)=+1.0d0                    &
-               &                  /radiusNow**3             &
-               &                  -1.0d0
-          if (overdensityNonLinear(i) <= -0.99d0) exit
+             ! Solve for the radius at the present time.
+             if (.not.finderRadiusConstructed) then
+                finderRadius=rootFinder(                                                                  &
+                     &                  rootFunction                 =cllsnlssMttCsmlgclCnstntRadiusRoot, &
+                     &                  toleranceAbsolute            =toleranceAbsolute                 , &
+                     &                  toleranceRelative            =toleranceRelative                 , &
+                     &                  rangeExpandDownward          =0.5d0                             , &
+                     &                  rangeExpandUpward            =2.0d0                             , &
+                     &                  rangeExpandType              =rangeExpandMultiplicative         , &
+                     &                  rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative     , &
+                     &                  rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive       &
+                     &                 )
+                finderRadiusConstructed=.true.
+             end if
+             if (epsilonPerturbation <= epsilonPerturbationMaximum .and. cllsnlssMttCsmlgclCnstntRadiusRoot(radiusMaximum) < 0.0d0) then
+                ! Perturbation is close to maximum radius. Adopt this as the solution.
+                radiusNow=radiusMaximum
+             else
+                ! Find the current radius.
+                radiusNow=finderRadius%find(rootGuess=1.0d0)
+             end if
+             normalization=+self%linearGrowth_%value(time_,normalize=normalizeMatterDominated) &
+                  &        /                         expansionFactor
+             if (.not.allocated(overdensityLinear)) then
+                allocate(overdensityLinear   (tableIncrement))
+                allocate(overdensityNonLinear(tableIncrement))
+             else if (i > size(overdensityLinear)) then
+                call move_alloc(overdensityLinear   ,overdensityLinearTmp   )
+                call move_alloc(overdensityNonLinear,overdensityNonLinearTmp)
+                allocate(overdensityLinear   (size(overdensityLinearTmp   )+tableIncrement))
+                allocate(overdensityNonLinear(size(overdensityNonLinearTmp)+tableIncrement))
+                overdensityLinear   (1:size(overdensityLinearTmp   ))=overdensityLinearTmp
+                overdensityNonLinear(1:size(overdensityNonLinearTmp))=overdensityNonLinearTmp
+             end if
+             overdensityLinear   (i)=+normalization            &
+                  &                  *0.6d0                    &
+                  &                  *(                        &
+                  &                    +1.0d0                  &
+                  &                    -OmegaMatterEpochal     &
+                  &                    -OmegaDarkEnergyEpochal &
+                  &                    -epsilonPerturbation    &
+                  &                   )                        &
+                  &                  /OmegaMatterEpochal
+             overdensityNonLinear(i)=+1.0d0                    &
+                  &                  /radiusNow**3             &
+                  &                  -1.0d0
+             if (overdensityNonLinear(i) <= -0.99d0) exit
+          end do
+          ! Reverse the arrays such that we have overdensity increasing.
+          overdensityLinearTmp   =Array_Reverse(overdensityLinear   (1:i))
+          overdensityNonLinearTmp=Array_Reverse(overdensityNonLinear(1:i))
+          deallocate(overdensityLinear   )
+          deallocate(overdensityNonLinear)
+          call move_alloc(overdensityLinearTmp   ,overdensityLinear   )
+          call move_alloc(overdensityNonLinearTmp,overdensityNonLinear)
+          ! Populate the table.
+          do iOverdensity=1,overdensityLinearCount
+             ! Test for out of range overdensity.
+             if      (overdensitiesLinear(iOverdensity) < overdensityLinear(1)) then
+                ! Tabulated overdensity is lower than any we've computed. Use the lowest nonlinear overdensity.
+                overdensityNonLinear_=overdensityNonLinear(1)
+             else if (overdensitiesLinear(iOverdensity) > overdensityLinear(i)) then
+                ! Tabulated overdensity exceeds any we've computed, so this overdensity is already collapsed. Use highest nonlinear
+                ! overdensity.
+                overdensityNonLinear_=overdensityNonLinear(i)
+             else
+                ! Find the tabulated in those computed and interpolate.
+                iOverdensityLinear   =int(searchArray(overdensityLinear,overdensitiesLinear(iOverdensity)))
+                overdensityNonLinear_=+  overdensityNonLinear(iOverdensityLinear  ) &
+                     &                +(                                            &
+                     &                  +overdensityNonLinear(iOverdensityLinear+1) &
+                     &                  -overdensityNonLinear(iOverdensityLinear  ) &
+                     &                 )                                            &
+                     &                *(                                            &
+                     &                  +overdensitiesLinear (iOverdensity        ) &
+                     &                  -overdensityLinear   (iOverdensityLinear  ) &
+                     &                 )                                            &
+                     &                /(                                            &
+                     &                  +overdensityLinear   (iOverdensityLinear+1) &
+                     &                  -overdensityLinear   (iOverdensityLinear  ) &
+                     &                 )
+             end if
+             ! Populate this point in the table.
+             linearNonlinearMap__(iOverdensity,iTime)=overdensityNonLinear_
+          end do
        end do
-       ! Reverse the arrays such that we have overdensity increasing.
-       overdensityLinearTmp   =Array_Reverse(overdensityLinear   (1:i))
-       overdensityNonLinearTmp=Array_Reverse(overdensityNonLinear(1:i))
-       deallocate(overdensityLinear   )
-       deallocate(overdensityNonLinear)
-       call move_alloc(overdensityLinearTmp   ,overdensityLinear   )
-       call move_alloc(overdensityNonLinearTmp,overdensityNonLinear)
-       ! Populate the table.
-       do iOverdensity=1,overdensityLinearCount
-          ! Test for out of range overdensity.
-          if      (overdensitiesLinear(iOverdensity) < overdensityLinear(1)) then
-             ! Tabulated overdensity is lower than any we've computed. Use the lowest nonlinear overdensity.
-             overdensityNonLinear_=overdensityNonLinear(1)
-          else if (overdensitiesLinear(iOverdensity) > overdensityLinear(i)) then
-             ! Tabulated overdensity exceeds any we've computed, so this overdensity is already collapsed. Use highest nonlinear
-             ! overdensity.
-             overdensityNonLinear_=overdensityNonLinear(i)
-          else
-             ! Find the tabulated in those computed and interpolate.
-             iOverdensityLinear   =int(searchArray(overdensityLinear,overdensitiesLinear(iOverdensity)))
-             overdensityNonLinear_=+  overdensityNonLinear(iOverdensityLinear  ) &
-                  &                +(                                            &
-                  &                  +overdensityNonLinear(iOverdensityLinear+1) &
-                  &                  -overdensityNonLinear(iOverdensityLinear  ) &
-                  &                 )                                            &
-                  &                *(                                            &
-                  &                  +overdensitiesLinear (iOverdensity        ) &
-                  &                  -overdensityLinear   (iOverdensityLinear  ) &
-                  &                 )                                            &
-                  &                /(                                            &
-                  &                  +overdensityLinear   (iOverdensityLinear+1) &
-                  &                  -overdensityLinear   (iOverdensityLinear  ) &
-                  &                 )
-          end if
-          ! Populate this point in the table.
-          call linearNonlinearMap_%populate(overdensityNonLinear_,iOverdensity,iTime)
-       end do
-    end do
+       ! Store the map to file.
+       ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
+       call File_Lock(char(self%fileNameNonLinearMap),fileLock,lockIsShared=.false.)
+       !$ call hdf5Access%set()
+       call file%openFile(char(self%fileNameNonLinearMap),overWrite=.true.,readOnly=.false.)
+       call file%writeDataset(times               ,'time'               )
+       call file%writeDataset(overdensitiesLinear ,'overdensitiesLinear')
+       call file%writeDataset(linearNonlinearMap__,'linearNonlinearMap' )
+       call file%close       (                                          )
+       !$ call hdf5Access%unset()
+       call File_Unlock(fileLock)       
+    end if
+    ! Populate the table.
+    call linearNonlinearMap_%create  (overdensitiesLinear ,times)
+    call linearNonlinearMap_%populate(linearNonlinearMap__      )
     return
   end subroutine cllsnlssMttCsmlgclCnstntLinearNonlinearMap
 
