@@ -63,11 +63,13 @@ sub Class_Meta_Property_Get {
     $code::classTypeName  = "nodeComponent".ucfirst($code::class->{'name'});
     # Iterate over meta-property types.
     foreach my $metaPropertyType ( @metaPropertyTypes ) {
-	my $content;
-	$content              = "if (.not.".$code::class->{'name'}.ucfirst($metaPropertyType->{'label'})."Rank".$metaPropertyType->{'rank'}."MetaPropertyCreator(metaPropertyID)) call metaPropertyNoCreator('".$code::class->{'name'}."',char(".$code::class->{'name'}.ucfirst($metaPropertyType->{'label'})."Rank".$metaPropertyType->{'rank'}."MetaPropertyLabels(metaPropertyID)),'".$metaPropertyType->{'label'}."',".$metaPropertyType->{'rank'}.")\n";
-	$content             .= "allocate(value_(".join(",",map {"size(self%".$metaPropertyType->{'label'}."Rank".$metaPropertyType->{'rank'}."MetaProperties(metaPropertyID)%values,dim=".$_.")"} 1..$metaPropertyType->{'rank'})."))\n"
-	    if ($metaPropertyType->{'rank'} > 0);
-	$content             .= "value_=self%".$metaPropertyType->{'label'}."Rank".$metaPropertyType->{'rank'}."MetaProperties(metaPropertyID)".($metaPropertyType->{'rank'} > 0 ? "%values" : "")."\n";
+	my $content = "";
+	if ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
+	    $content              = "if (.not.".$code::class->{'name'}.ucfirst($metaPropertyType->{'label'})."Rank".$metaPropertyType->{'rank'}."MetaPropertyCreator(metaPropertyID)) call metaPropertyNoCreator('".$code::class->{'name'}."',char(".$code::class->{'name'}.ucfirst($metaPropertyType->{'label'})."Rank".$metaPropertyType->{'rank'}."MetaPropertyLabels(metaPropertyID)),'".$metaPropertyType->{'label'}."',".$metaPropertyType->{'rank'}.")\n";
+	    $content             .= "allocate(value_(".join(",",map {"size(self%".$metaPropertyType->{'label'}."Rank".$metaPropertyType->{'rank'}."MetaProperties(metaPropertyID)%values,dim=".$_.")"} 1..$metaPropertyType->{'rank'})."))\n"
+		if ($metaPropertyType->{'rank'} > 0);
+	    $content             .= "value_=self%".$metaPropertyType->{'label'}."Rank".$metaPropertyType->{'rank'}."MetaProperties(metaPropertyID)".($metaPropertyType->{'rank'} > 0 ? "%values" : "")."\n";
+	}
 	my $function =
 	{
 	    type        => $metaPropertyType->{'intrinsic'}.(exists($metaPropertyType->{'type'}) ? "(".$metaPropertyType->{'type'}.")" : "").($metaPropertyType->{'rank'} > 0 ? ", allocatable, dimension(".join(",",":" x $metaPropertyType->{'rank'}).")" : "")." => value_",
@@ -112,9 +114,11 @@ sub Class_Meta_Property_Set {
     $code::classTypeName  = "nodeComponent".ucfirst($code::class->{'name'});
     # Iterate over meta-property types.
     foreach my $metaPropertyType ( @metaPropertyTypes ) {
-	my $content;
-	$content              = "if (.not.".$code::class->{'name'}.ucfirst($metaPropertyType->{'label'})."Rank".$metaPropertyType->{'rank'}."MetaPropertyCreator(metaPropertyID)) call metaPropertyNoCreator('".$code::class->{'name'}."',char(".$code::class->{'name'}.ucfirst($metaPropertyType->{'label'})."Rank".$metaPropertyType->{'rank'}."MetaPropertyLabels(metaPropertyID)),'".$metaPropertyType->{'label'}."',".$metaPropertyType->{'rank'}.")\n";
-	$content             .= "self%".$metaPropertyType->{'label'}."Rank".$metaPropertyType->{'rank'}."MetaProperties(metaPropertyID)".($metaPropertyType->{'rank'} > 0 ? "%values" : "")."=metaPropertyValue\n";
+	my $content = "";
+	if ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
+	    $content              = "if (.not.".$code::class->{'name'}.ucfirst($metaPropertyType->{'label'})."Rank".$metaPropertyType->{'rank'}."MetaPropertyCreator(metaPropertyID)) call metaPropertyNoCreator('".$code::class->{'name'}."',char(".$code::class->{'name'}.ucfirst($metaPropertyType->{'label'})."Rank".$metaPropertyType->{'rank'}."MetaPropertyLabels(metaPropertyID)),'".$metaPropertyType->{'label'}."',".$metaPropertyType->{'rank'}.")\n";
+	    $content             .= "self%".$metaPropertyType->{'label'}."Rank".$metaPropertyType->{'rank'}."MetaProperties(metaPropertyID)".($metaPropertyType->{'rank'} > 0 ? "%values" : "")."=metaPropertyValue\n";
+	}
 	my @attributes = ( "intent(in   )" );
 	push(@attributes,"dimension(".join(",",":" x $metaPropertyType->{'rank'}).")")
 	    if ( $metaPropertyType->{'rank'} > 0 );

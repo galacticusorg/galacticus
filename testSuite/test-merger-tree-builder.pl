@@ -55,31 +55,31 @@ my @models =
      	 toleranceFractional => 1.0e-3
      },
      {
-     	 type                => 'Cole et al. (2000); intervalStep=false'                                 ,
-     	 fileName            => 'outputs/mergerTreeBuilderCole2000_intervalStepFalse.hdf5'               ,
-     	 parameterFile       => 'parameters/mergerTreeBuilderCole2000_intervalStepFalse.xml'             ,
-     	 color               => 'mediumSeaGreen'                                                         ,
-     	 reference           => 'reference'                                                              ,
-     	 toleranceSigma      => 9.0                                                                      ,
-     	 toleranceFractional => 1.0e-3
+	 type                => 'Cole et al. (2000); intervalStep=false'                                 ,
+	 fileName            => 'outputs/mergerTreeBuilderCole2000_intervalStepFalse.hdf5'               ,
+	 parameterFile       => 'parameters/mergerTreeBuilderCole2000_intervalStepFalse.xml'             ,
+	 color               => 'mediumSeaGreen'                                                         ,
+	 reference           => 'reference'                                                              ,
+	 toleranceSigma      => 9.0                                                                      ,
+	 toleranceFractional => 1.0e-3
      },
      {
-     	 type                => 'genericLinearBarrier'                                                   ,
-     	 fileName            => 'outputs/mergerTreeBuilderGenericLinearBarrier.hdf5'                     ,
-     	 parameterFile       => 'parameters/mergerTreeBuilderGenericLinearBarrier.xml'                   ,
-     	 color               => 'peachPuff'                                                              ,
-     	 reference           => 'referenceGeneric'                                                       ,
-     	 toleranceSigma      => 6.0                                                                      ,
-     	 toleranceFractional => 1.0e-3
+	 type                => 'genericLinearBarrier'                                                   ,
+	 fileName            => 'outputs/mergerTreeBuilderGenericLinearBarrier.hdf5'                     ,
+	 parameterFile       => 'parameters/mergerTreeBuilderGenericLinearBarrier.xml'                   ,
+	 color               => 'peachPuff'                                                              ,
+	 reference           => 'referenceGeneric'                                                       ,
+	 toleranceSigma      => 6.0                                                                      ,
+	 toleranceFractional => 1.0e-3
      },
      {
-     	 type                => 'genericSolver'                                                          ,
-     	 fileName            => 'outputs/mergerTreeBuilderGenericSolver.hdf5'                            ,
-     	 parameterFile       => 'parameters/mergerTreeBuilderGenericSolver.xml'                          ,
-     	 color               => 'orange'                                                                 ,
-     	 reference           => 'referenceGeneric'                                                       ,
-     	 toleranceSigma      => 9.0                                                                      ,
-     	 toleranceFractional => 1.0e-3
+	 type                => 'genericSolver'                                                          ,
+	 fileName            => 'outputs/mergerTreeBuilderGenericSolver.hdf5'                            ,
+	 parameterFile       => 'parameters/mergerTreeBuilderGenericSolver.xml'                          ,
+	 color               => 'orange'                                                                 ,
+	 reference           => 'referenceGeneric'                                                       ,
+	 toleranceSigma      => 9.0                                                                      ,
+	 toleranceFractional => 1.0e-3
      }
     );
 
@@ -104,7 +104,7 @@ foreach my $model ( @models ) {
     if ( exists($model->{'parameterFile'}) ) {
 	$document .= slurp($model->{'parameterFile'});
 	++$i;
-	$model->{'tmpName'} = "galacticus_".$i.":1";
+	$model->{'tmpName'} = "outputs/test-merger-tree-builder/galacticus_".$i.":1/galacticus.hdf5";
     }
 }
 $document .= "</parameterGrid>\n";
