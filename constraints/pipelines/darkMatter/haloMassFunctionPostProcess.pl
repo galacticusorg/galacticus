@@ -1407,7 +1407,8 @@ sub zoomInsPlotModify {
 	$plotOptions->{'title'   } = "\\\\tiny ".$plotOptions->{'title'}.sprintf("; ".$realization."; \$z = ".$redshiftLabel."; \\\\log_{10}(M_\\\\mathrm{env}/\\\\mathrm{M}_\\\\odot)=%5.2f; \\\\delta_\\\\mathrm{env}=%+6.3f",log10($massEnvironment),$overdensityEnvironment);
     }
     # Set plotting limits.
-    $plotOptions->{'xMinimum'} = 8.0e+06;
+    my $countParticlesMinimum = 100;
+    $plotOptions->{'xMinimum'} = $simulation->{'massParticle'}*$countParticlesMinimum/2.0;
     $plotOptions->{'xMaximum'} = 3.0e+12;
     $plotOptions->{'yMinimum'} = 3.0e-04;
     $plotOptions->{'yMaximum'} = 1.0e+02;
