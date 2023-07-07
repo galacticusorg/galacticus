@@ -158,6 +158,7 @@ contains
     else
        call Error_Report('one of radiusEnvironment and massEnvironment must be specified'//{introspection:location})
     end if
+    self%linearToNonLinearInitialized=.false.
     return
   end function fixedHEConstructorInternal
 
@@ -193,7 +194,7 @@ contains
     fixedHEOverdensityLinear=self%overdensity
     if (.not.presentDay_) then
        basic                  =>  node                               %basic(                 )
-       fixedHEOverdensityLinear = +fixedHEOverdensityLinear                                        &
+       fixedHEOverdensityLinear = +fixedHEOverdensityLinear                                    &
             &                    *self                 %linearGrowth_%value(time=basic%time())
     end if
     return
@@ -209,12 +210,12 @@ contains
     type (treeNode            ), intent(inout) :: node
     class(nodeComponentBasic  ), pointer       :: basic
 
-    basic                              =>  node%basic()
+    basic                                =>  node%basic()
     fixedHEOverdensityLinearGradientTime =  +self%overdensityLinear(node)                                                      &
-         &                                *self%linearGrowth_      %logarithmicDerivativeExpansionFactor( time=basic%time()) &
-         &                                *self%cosmologyFunctions_%expansionRate                       (                    &
-         &                                 self%cosmologyFunctions_%expansionFactor                      (     basic%time()) &
-         &                                                                                              )
+         &                                  *self%linearGrowth_      %logarithmicDerivativeExpansionFactor( time=basic%time()) &
+         &                                  *self%cosmologyFunctions_%expansionRate                       (                    &
+         &                                   self%cosmologyFunctions_%expansionFactor                      (     basic%time()) &
+         &                                                                                                )
     return
   end function fixedHEOverdensityLinearGradientTime
 
@@ -234,7 +235,7 @@ contains
        self%linearToNonLinearInitialized=.true.
     end if
     ! Find the nonlinear overdensity.
-    basic                     => node                  %basic      (                                         )
+    basic                       => node                  %basic      (                                         )
     fixedHEOverdensityNonLinear =  self%linearToNonLinear%interpolate(self%overdensityLinear(node),basic%time())
     return
   end function fixedHEOverdensityNonLinear
