@@ -33,7 +33,9 @@ Contains a module which implements a merger tree filter which passes if any node
      A merger tree filter class which passes if any node in the tree passes the given galactic filter.
      !!}
      private
-     class(galacticFilterClass), pointer :: galacticFilter_ => null()
+     class  (galacticFilterClass), pointer :: galacticFilter_ => null()
+     type   (varying_string     )          :: label                    , labelDescription
+     integer                               :: labelID
    contains
      final     ::           anyNodeDestructor
      procedure :: passes => anyNodePasses
@@ -58,11 +60,30 @@ contains
     type (mergerTreeFilterAnyNode)                :: self
     type (inputParameters        ), intent(inout) :: parameters
     class(galacticFilterClass    ), pointer       :: galacticFilter_
+    type (varying_string         )                :: label          , labelDescription
 
+    !![
+    <inputParameter>
+      <name>label</name>
+      <source>parameters</source>
+      <defaultValue>var_str(' ')</defaultValue>
+      <description>A label to apply to nodes that pass the filter.</description>
+    </inputParameter>
+    !!]
+    if (label == '') label=' '
+    if (trim(label) /= '') then
+       !![
+       <inputParameter>
+         <name>labelDescription</name>
+         <source>parameters</source>
+         <description>A description of the label.</description>
+       </inputParameter>
+       !!]
+    end if
     !![
     <objectBuilder class="galacticFilter" name="galacticFilter_" source="parameters"/>
     !!]
-    self=mergerTreeFilterAnyNode(galacticFilter_)
+    self=mergerTreeFilterAnyNode(label,labelDescription,galacticFilter_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="galacticFilter_"/>
@@ -70,17 +91,24 @@ contains
     return
   end function anyNodeConstructorParameters
 
-  function anyNodeConstructorInternal(galacticFilter_) result(self)
+  function anyNodeConstructorInternal(label,labelDescription,galacticFilter_) result(self)
     !!{
     Internal constructor for the ``anyNode'' merger tree filter class.
     !!}
+    use :: Nodes_Labels, only : nodeLabelRegister
     implicit none
     type (mergerTreeFilterAnyNode)                        :: self
+    type (varying_string         ), intent(in   )         :: label          , labelDescription
     class(galacticFilterClass    ), intent(in   ), target :: galacticFilter_
     !![
-    <constructorAssign variables="*galacticFilter_"/>
+    <constructorAssign variables="label, labelDescription, *galacticFilter_"/>
     !!]
 
+    if (trim(label) /= '') then
+       self%labelID=nodeLabelRegister(char(label),char(labelDescription))
+    else
+       self%labelID=-1
+    end if
     return
   end function anyNodeConstructorInternal
 
@@ -103,6 +131,7 @@ contains
     !!}
     use :: Galacticus_Nodes   , only : treeNode
     use :: Merger_Tree_Walkers, only : mergerTreeWalkerIsolatedNodes
+    use :: Nodes_Labels       , only : nodeLabelSet
     implicit none
     class(mergerTreeFilterAnyNode      ), intent(inout) :: self
     type (mergerTree                   ), intent(in   ) :: tree
@@ -114,7 +143,11 @@ contains
     do while (treeWalker%next(node))
        if (self%galacticFilter_%passes(node)) then
           anyNodePasses=.true.
-          exit
+          if (self%labelID > 0) then
+             call nodeLabelSet(self%labelID,node)
+          else
+             exit
+          end if
        end if
     end do
     return
