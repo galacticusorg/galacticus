@@ -1,36 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1688772309752,
+  "lastUpdate": 1688803548598,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@obs.carnegiescience.edu"
-          },
-          "committer": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@obs.carnegiescience.edu"
-          },
-          "id": "e7f31302c256ee2947918223e0d079f1c539c7ba",
-          "message": "fix: Make validation a separate job in CI/CD workflow\n\nAllows it to be run on PR branches",
-          "timestamp": "2022-11-07T15:34:29Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/e7f31302c256ee2947918223e0d079f1c539c7ba"
-        },
-        "date": 1667844823998,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 60.475,
-            "unit": "seconds",
-            "range": 0.121517488453667
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8736,6 +8708,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 23691.6828998057,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": false,
+          "id": "c7f57b8bb906b62bbb314f01962b1be69cd65ea1",
+          "message": "Merge pull request #430 from galacticusorg/nodeLabels\n\nImplement adding arbitrary labels to nodes",
+          "timestamp": "2023-07-08T05:07:56Z",
+          "tree_id": "6b3a98ab1ece20368604d970019b7965ed4fa606",
+          "url": "https://github.com/galacticusorg/galacticus/commit/c7f57b8bb906b62bbb314f01962b1be69cd65ea1"
+        },
+        "date": 1688803547106,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 48.616,
+            "unit": "seconds",
+            "range": 0.541516758743409
           }
         ]
       }
