@@ -1,36 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1688803552386,
+  "lastUpdate": 1688803560140,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@obs.carnegiescience.edu"
-          },
-          "committer": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@obs.carnegiescience.edu"
-          },
-          "id": "e7f31302c256ee2947918223e0d079f1c539c7ba",
-          "message": "fix: Make validation a separate job in CI/CD workflow\n\nAllows it to be run on PR branches",
-          "timestamp": "2022-11-07T15:34:29Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/e7f31302c256ee2947918223e0d079f1c539c7ba"
-        },
-        "date": 1667844828916,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 12.958,
-            "unit": "seconds",
-            "range": 0.0575465029345398
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10632,6 +10604,60 @@ window.BENCHMARK_DATA = {
             "value": 198.02,
             "unit": "seconds",
             "range": 0.203612376829696
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": false,
+          "id": "c7f57b8bb906b62bbb314f01962b1be69cd65ea1",
+          "message": "Merge pull request #430 from galacticusorg/nodeLabels\n\nImplement adding arbitrary labels to nodes",
+          "timestamp": "2023-07-08T05:07:56Z",
+          "tree_id": "6b3a98ab1ece20368604d970019b7965ed4fa606",
+          "url": "https://github.com/galacticusorg/galacticus/commit/c7f57b8bb906b62bbb314f01962b1be69cd65ea1"
+        },
+        "date": 1688803559105,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassMetallicityRelation",
+            "value": 3.66366645570138,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassSizeRelation",
+            "value": 5.3945807106886,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassVelocityDispersionRelation",
+            "value": 1.34484984684749,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupOccupationFraction",
+            "value": 23.6420163611984,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassFunction",
+            "value": 192.797481179007,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
+            "value": 6.04556142629178,
+            "unit": "-logℒ"
           }
         ]
       }
