@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1688803556116,
+  "lastUpdate": 1689017067688,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "0fcc3254def64d8df1dc43271abc200124c48d7d",
-          "message": "Merge pull request #324 from galacticusorg/dev\n\nEnable auto-descriptors in all remaining cases",
-          "timestamp": "2022-11-07T22:04:23-08:00",
-          "tree_id": "3603d32317f318f0f2d63cfd1f08a7c61d6c7843",
-          "url": "https://github.com/galacticusorg/galacticus/commit/0fcc3254def64d8df1dc43271abc200124c48d7d"
-        },
-        "date": 1667900105164,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 52.369,
-            "unit": "seconds",
-            "range": 0.0450876923348894
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8740,6 +8710,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 23715.206261202,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "f3c02aa2df60000d3b8f0240deb27124e8d9323a",
+          "message": "fix: Update the `Merge_Models.pl` script to handle multi-dimensional datasets",
+          "timestamp": "2023-07-10T09:15:26-07:00",
+          "tree_id": "f5412ce4a4a2d468bc4e6f6c7d46a581d9b13a24",
+          "url": "https://github.com/galacticusorg/galacticus/commit/f3c02aa2df60000d3b8f0240deb27124e8d9323a"
+        },
+        "date": 1689017066137,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 48.845,
+            "unit": "seconds",
+            "range": 0.0285043856271913
           }
         ]
       }
