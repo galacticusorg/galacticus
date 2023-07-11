@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1689106726270,
+  "lastUpdate": 1689106735086,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "5450ea618b824e3826e22815cefeccabc8d8d010",
-          "message": "Merge pull request #325 from galacticusorg/dev\n\nFailure to create auto-descriptors is now fatal at build time",
-          "timestamp": "2022-11-08T15:51:39-08:00",
-          "tree_id": "10fa7addea042b23d7beff232f11bc7669591479",
-          "url": "https://github.com/galacticusorg/galacticus/commit/5450ea618b824e3826e22815cefeccabc8d8d010"
-        },
-        "date": 1667960978131,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 12.361,
-            "unit": "seconds",
-            "range": 0.148387667951216
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10636,6 +10606,60 @@ window.BENCHMARK_DATA = {
             "value": 185.673,
             "unit": "seconds",
             "range": 0.107889295119519
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": false,
+          "id": "82b8b6cff4bd312afea560b08232aca6148a1177",
+          "message": "Merge pull request #429 from galacticusorg/parallelTreeBuild\n\nImplement parallel tree builds",
+          "timestamp": "2023-07-11T14:37:11Z",
+          "tree_id": "53965748a6f7c2e2b05f7df5b9889971900049a1",
+          "url": "https://github.com/galacticusorg/galacticus/commit/82b8b6cff4bd312afea560b08232aca6148a1177"
+        },
+        "date": 1689106733693,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassMetallicityRelation",
+            "value": 3.7347365361624,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassSizeRelation",
+            "value": 9.59737490251823,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassVelocityDispersionRelation",
+            "value": 0.826032170943457,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupOccupationFraction",
+            "value": 23.9391299921939,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassFunction",
+            "value": 62.4722673081793,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
+            "value": 1.34492160456599,
+            "unit": "-logℒ"
           }
         ]
       }
