@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1689106721523,
+  "lastUpdate": 1689106730309,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "5450ea618b824e3826e22815cefeccabc8d8d010",
-          "message": "Merge pull request #325 from galacticusorg/dev\n\nFailure to create auto-descriptors is now fatal at build time",
-          "timestamp": "2022-11-08T15:51:39-08:00",
-          "tree_id": "10fa7addea042b23d7beff232f11bc7669591479",
-          "url": "https://github.com/galacticusorg/galacticus/commit/5450ea618b824e3826e22815cefeccabc8d8d010"
-        },
-        "date": 1667960981877,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 57.5305851477275,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 26.0114041360516,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 26848.3588069895,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8740,6 +8701,45 @@ window.BENCHMARK_DATA = {
             "value": 49.343,
             "unit": "seconds",
             "range": 0.0281797799846736
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": false,
+          "id": "82b8b6cff4bd312afea560b08232aca6148a1177",
+          "message": "Merge pull request #429 from galacticusorg/parallelTreeBuild\n\nImplement parallel tree builds",
+          "timestamp": "2023-07-11T14:37:11Z",
+          "tree_id": "53965748a6f7c2e2b05f7df5b9889971900049a1",
+          "url": "https://github.com/galacticusorg/galacticus/commit/82b8b6cff4bd312afea560b08232aca6148a1177"
+        },
+        "date": 1689106729298,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 58.5242080709765,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 26.4439006068673,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 25257.8908941139,
+            "unit": "-logℒ"
           }
         ]
       }
