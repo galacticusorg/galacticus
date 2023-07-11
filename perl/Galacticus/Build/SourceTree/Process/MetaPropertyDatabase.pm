@@ -57,8 +57,6 @@ sub Process_MetaPropertyDatabase {
 			last;
 		    }
 		}
-		die("Galacticus::Build::SourceTree::Process::MetaPropertyDatabase::Process_MetaPropertyDatabase(): unable to determine functionClass implementation")
-		    unless ( defined($functionClassName) && defined($implementationName) );
 		foreach my $addMetaProperty ( @addMetaProperties ) {
 		    $addMetaProperty->{'functionClass'     } = $functionClassName;
 		    $addMetaProperty->{'implementationName'} = $implementationName;
