@@ -196,7 +196,7 @@
         use :: Kind_Numbers       , only : kind_int8
         use :: Merger_Tree_Walkers, only : mergerTreeWalkerTreeConstruction
         implicit none
-        class           (mergerTreeBuilderExcursionSetSimulator), intent(inout)          :: self
+        class           (mergerTreeBuilderExcursionSetSimulator), intent(inout), target  :: self
         type            (mergerTree                            ), intent(inout), target  :: tree
         type            (treeNode                              )               , pointer :: node                   , nodeNew              , &
              &                                                                              nodePrior              , nodeProgenitorPrimary

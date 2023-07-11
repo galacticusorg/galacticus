@@ -1399,6 +1399,21 @@ CODE
 					}
 				    }
 				}
+				# Perform any sets.
+				if ( exists($class->{'deepCopy'}->{'setTo'}) ) {
+				    my @setTos = map {{variable => $_}} split(/\s*,\s*/,$class->{'deepCopy'}->{'setTo'}->{'variables'});
+				    foreach ( @setTos ) {
+					($_->{'host'} = $_->{'variable'}) =~ s/^([^%]+)%.+/$1/;
+				    }
+				    foreach my $object ( @{$declaration->{'variables'}} ) {
+					(my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
+					foreach my $setTo ( @setTos ) {
+					    if ( lc($setTo->{'host'}) eq lc($name) ) {
+						$assignments .= "destination\%".$setTo->{'variable'}."=".$class->{'deepCopy'}->{'setTo'}->{'value'}."\n";
+					    }
+					}
+				    }
+				}
                                 # Perform any explicit deep copies.
 				if ( exists($class->{'deepCopy'}->{'deepCopy'}) ) {
 				    my @deepCopies = split(/\s*,\s*/,$class->{'deepCopy'}->{'deepCopy'}->{'variables'});
@@ -1634,6 +1649,21 @@ CODE
 				    $assignments .= "!\$omp atomic\n"
 					if ( exists($class->{'deepCopy'}->{'increment'}->{'atomic'}) && $class->{'deepCopy'}->{'increment'}->{'atomic'} eq "yes" );
 				    $assignments .= "destination\%".$increment->{'variable'}."=destination\%".$increment->{'variable'}."+1\n";
+				}
+			    }
+			}
+		    }
+		    # Perform any sets.
+		    if ( exists($class->{'deepCopy'}->{'setTo'}) ) {
+			my @setTos = map {{variable => $_}} split(/\s*,\s*/,$class->{'deepCopy'}->{'setTo'}->{'variables'});
+			foreach ( @setTos ) {
+			    ($_->{'host'} = $_->{'variable'}) =~ s/^([^%]+)%.+/$1/;
+			}
+			foreach my $object ( @{$declaration->{'variables'}} ) {
+			    (my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
+			    foreach my $setTo ( @setTos ) {
+				if ( lc($setTo->{'host'}) eq lc($name) ) {
+				    $assignments .= "destination\%".$setTo->{'variable'}."=".$class->{'deepCopy'}->{'setTo'}->{'value'}."\n";
 				}
 			    }
 			}
@@ -2899,9 +2929,27 @@ CODE
 		pass        => "yes",
 		modules     => join(" ",keys(%stateStoreModules)),
 		argument    => [ "integer, intent(in   ) :: stateFile", "type(c_ptr), intent(in   ) :: gslStateFile", "integer(c_size_t), intent(in   ) :: stateOperationID"  ],
+		code        => "call self%stateStore_(stateFile,gslStateFile,stateOperationID)"
+	    };
+	    $methods{'stateStore_'} =
+	    {
+		description => "Store the state of this object to file.",
+		type        => "void",
+		pass        => "yes",
+		modules     => join(" ",keys(%stateStoreModules)),
+		argument    => [ "integer, intent(in   ) :: stateFile", "type(c_ptr), intent(in   ) :: gslStateFile", "integer(c_size_t), intent(in   ) :: stateOperationID"  ],
 		code        => $stateStoreCode
 	    };
 	    $methods{'stateRestore'} =
+	    {
+		description => "Restore the state of this object from file.",
+		type        => "void",
+		pass        => "yes",
+		modules     => join(" ",keys(%stateRestoreModules)),
+		argument    => [ "integer, intent(in   ) :: stateFile", "type(c_ptr), intent(in   ) :: gslStateFile", "integer(c_size_t), intent(in   ) :: stateOperationID"  ],
+		code        => "call self%stateRestore_(stateFile,gslStateFile,stateOperationID)"
+	    };
+	    $methods{'stateRestore_'} =
 	    {
 		description => "Restore the state of this object from file.",
 		type        => "void",

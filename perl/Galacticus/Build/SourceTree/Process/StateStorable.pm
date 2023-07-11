@@ -105,7 +105,6 @@ subroutine {$className}StateStore(self,stateFile,gslStateFile,storeIdentifier)
  integer                , intent(in   )              :: stateFile
  type     (c_ptr       ), intent(in   )              :: gslStateFile
  logical                , intent(in   ), optional    :: storeIdentifier
- character(len=16      )                             :: label
 CODE
 	my $inputCodeOpener  = fill_in_string(<<'CODE', PACKAGE => 'code');
 subroutine {$className}StateRestore(self,stateFile,gslStateFile)
@@ -145,7 +144,7 @@ CODE
 	my @outputUnusedVariables;
 	my @inputUnusedVariables;
 	my $gslStateFileUsed = 0;
-	my $labelUsed        = 0;
+	my $labelRequired    = 0;
 	my $transferUsed     = 0;
 	my $rankMaximum      = 0;
 	# Scan all known classes, finding all which derive from the base class.
@@ -197,7 +196,7 @@ CODE
 					    (my $variableName = $_) =~ s/\s*=.*$//;
 					    next
 						if ( grep {lc($_) eq lc($variableName)} @excludes );
-					    $labelUsed   = 1;
+					    $labelRequired   = 1;
 					    if ( $allocatable ) {
 						$outputCode .= "  if (allocated(self%".$variableName.")) then\n";
 						$outputCode .= "   write (stateFile) .true.\n"
@@ -279,7 +278,7 @@ CODE
 						if ( grep {lc($_) eq lc($variableName)} @excludes );
 					    $storedShapeRequired  = 1;
 					    $wasAllocatedRequired = 1;
-					    $labelUsed            = 1;
+					    $labelRequired            = 1;
 					    $outputCode .= "  if (allocated(self%".$variableName.")) then\n";
 					    $outputCode .= "   if (displayVerbosity() >= verbosityLevelWorking) then\n";
 					    $outputCode .= "    write (label,'(i16)') sizeof(self%".$variableName.")\n";
@@ -336,7 +335,7 @@ CODE
 		    $parentClassName = $classes{$parentClassName}->{'extends'};
 		}
 		foreach ( @staticVariables ) {
-		    $labelUsed   = 1;
+		    $labelRequired   = 1;
 		    $outputCode .= " if (displayVerbosity() >= verbosityLevelWorking) then\n";
 		    $outputCode .= "  write (label,'(i16)') sizeof(self%".$_.")\n";
 		    $outputCode .= "  call displayMessage('storing \"".$_."\" with size '//trim(adjustl(label))//' bytes')\n";
@@ -373,8 +372,13 @@ CODE
 	push(@inputUnusedVariables ,"gslStateFile"                    )
 	    unless ( $gslStateFileUsed );
 	push(@outputUnusedVariables,"label"                           )
-	    unless ( $labelUsed        );
+	    unless ( $labelRequired        );
 
+	if ( $labelRequired ) {
+	    $outputCodeOpener .= fill_in_string(<<'CODE', PACKAGE => 'code');
+ character(len=16      )                             :: label
+CODE
+	}
 	if ( $storedShapeRequired ) {
 	    $inputCodeOpener .= fill_in_string(<<'CODE', PACKAGE => 'code');
  integer(c_size_t    ), allocatable  , dimension(:) :: storedShape
