@@ -1,62 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1689017078567,
+  "lastUpdate": 1689106726270,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "0fcc3254def64d8df1dc43271abc200124c48d7d",
-          "message": "Merge pull request #324 from galacticusorg/dev\n\nEnable auto-descriptors in all remaining cases",
-          "timestamp": "2022-11-07T22:04:23-08:00",
-          "tree_id": "3603d32317f318f0f2d63cfd1f08a7c61d6c7843",
-          "url": "https://github.com/galacticusorg/galacticus/commit/0fcc3254def64d8df1dc43271abc200124c48d7d"
-        },
-        "date": 1667900123561,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Likelihood - localGroupMassMetallicityRelation",
-            "value": 13.9869038125078,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupMassSizeRelation",
-            "value": 6.82401265494749,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupMassVelocityDispersionRelation",
-            "value": 2.00945135790873,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupOccupationFraction",
-            "value": 36.925475846754,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupStellarMassFunction",
-            "value": 285.882969066517,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
-            "value": 10.444629763155,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10660,6 +10606,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 6.30119565041707,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": false,
+          "id": "82b8b6cff4bd312afea560b08232aca6148a1177",
+          "message": "Merge pull request #429 from galacticusorg/parallelTreeBuild\n\nImplement parallel tree builds",
+          "timestamp": "2023-07-11T14:37:11Z",
+          "tree_id": "53965748a6f7c2e2b05f7df5b9889971900049a1",
+          "url": "https://github.com/galacticusorg/galacticus/commit/82b8b6cff4bd312afea560b08232aca6148a1177"
+        },
+        "date": 1689106724832,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 185.673,
+            "unit": "seconds",
+            "range": 0.107889295119519
           }
         ]
       }
