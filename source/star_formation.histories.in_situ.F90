@@ -185,6 +185,7 @@ contains
     !!}
     use :: Arrays_Search   , only : searchArray
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
+    use :: Error           , only : Error_Report
     implicit none
     class           (starFormationHistoryInSitu), intent(inout) :: self
     type            (treeNode                  ), intent(inout) :: node
@@ -195,13 +196,19 @@ contains
     integer                                                     :: historyCount
     integer         (c_size_t                  )                :: iHistory
     double precision                                            :: timeNode
-    !$GLC attributes unused :: self, historyStarFormation, abundancesFuel
+    !$GLC attributes unused :: self, abundancesFuel
 
-    basic                                 =>              node                %basic()
-    timeNode                              =               basic               %time ()
-    historyCount                          =          size(historyStarFormation%time            )
-    iHistory                              =  searchArray(historyStarFormation%time   ,timeNode)+1
-    historyStarFormation%data(iHistory,:) =  rateStarFormation
+    ! Check if history exists.
+    if (historyStarFormation%exists()) then
+       basic                                 =>             node                %basic()
+       timeNode                              =              basic               %time ()
+       historyCount                          =         size(historyStarFormation%time            )
+       iHistory                              =  searchArray(historyStarFormation%time   ,timeNode)+1
+       historyStarFormation%data(iHistory,:) =  rateStarFormation
+    else
+       ! No history exists - this is acceptable only if the star formation rate is zero.
+       if (rateStarFormation > 0.0d0) call Error_Report('non-zero star formation rate, but star formation history is uninitialized'//{introspection:location})
+    end if
     return
   end subroutine inSituRate
 

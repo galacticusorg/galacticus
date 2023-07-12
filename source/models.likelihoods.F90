@@ -40,7 +40,7 @@ module Models_Likelihoods
     <type>double precision</type>
     <pass>yes</pass>
     <argument>class           (posteriorSampleStateClass      ), intent(inout)               :: simulationState</argument>
-    <argument>type            (modelParameterList             ), intent(in   ), dimension(:) :: modelParametersActive_, modelParametersInactive_</argument>
+    <argument>type            (modelParameterList             ), intent(inout), dimension(:) :: modelParametersActive_, modelParametersInactive_</argument>
     <argument>class           (posteriorSampleConvergenceClass), intent(inout)               :: simulationConvergence</argument>
     <argument>double precision                                 , intent(in   )               :: temperature, logLikelihoodCurrent, logPriorCurrent, logPriorProposed</argument>
     <argument>real                                             , intent(inout)               :: timeEvaluate</argument>

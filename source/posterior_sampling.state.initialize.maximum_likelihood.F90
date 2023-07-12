@@ -105,7 +105,7 @@ contains
     class           (posteriorSampleStateInitializeMaximumLikelihood), intent(inout)               :: self
     class           (posteriorSampleStateClass                      ), intent(inout)               :: simulationState
     class           (posteriorSampleLikelihoodClass                 ), intent(inout)               :: modelLikelihood
-    type            (modelParameterList                             ), intent(in   ), dimension(:) :: modelParameters_
+    type            (modelParameterList                             ), intent(inout), dimension(:) :: modelParameters_
     double precision                                                 , intent(  out)               :: timeEvaluatePrevious, logLikelihood    , &
          &                                                                                            logPosterior
     double precision                                                 , allocatable  , dimension(:) :: stateVector         , stateVectorMapped

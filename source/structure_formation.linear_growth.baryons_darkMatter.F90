@@ -653,6 +653,7 @@ contains
     call dataFile%writeAttribute(        self%tableWavenumberMaximum                                                                                         ,          'wavenumberMaximum'                            )
     call dataFile%writeAttribute(        self%tableTimeMinimum                                                                                               ,          'timeMinimum'                                  )
     call dataFile%writeAttribute(        self%tableTimeMaximum                                                                                               ,          'timeMaximum'                                  )
+    call dataFile%close         (                                                                                                                                                                                      )
     !$ call hdf5Access%unset()
     return
   end subroutine baryonsDarkMatterFileWrite

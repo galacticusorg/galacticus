@@ -716,6 +716,7 @@ sub Process_ObjectBuilder {
 	if ( $node->{'type'} eq "deepCopy" && ! $node->{'directive'}->{'processed'} ) {
 	    # Generate source code for the deep copy.
 	    my $deepCopyCode  = "call ".$node->{'directive'}->{'source'}."%deepCopy(".$node->{'directive'}->{'destination'}.")\n";
+	    $deepCopyCode    .= $node->{'directive'}->{'source'}."\%copiedSelf => ".$node->{'directive'}->{'destination'}."\n";
 	    $deepCopyCode    .= "call ".$node->{'directive'}->{'destination'}."%autoHook()\n";
  	    # If including debugging information push the target location to the debug stack.
 	    if ( $debugging ) {

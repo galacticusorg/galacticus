@@ -112,7 +112,7 @@
   integer                                           , parameter   :: energyDistributionTableMass           =5
 
   ! Tables used in construction of distribution functions.
-  class           (mergerTreeOperatorParticulate   ), allocatable :: self_
+  class           (mergerTreeOperatorParticulate   ), pointer     :: self_
   type            (treeNode                        ), pointer     :: node_
   logical                                                         :: energyDistributionInitialized
   class           (table1D                         ), allocatable :: radiusDistribution
@@ -692,7 +692,9 @@ contains
           end do
           !$omp end do
           call Node_Components_Thread_Uninitialize()
-          deallocate(self_)
+          !![
+          <objectDestructor name="self_"/>
+          !!]
           !$omp end parallel
           call displayCounterClear(verbosity=verbosityLevelWorking)
           ! Subtract random offsets of the center-of-mass position and velocity.
