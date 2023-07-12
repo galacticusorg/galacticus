@@ -54,8 +54,7 @@ contains
     implicit none
     type   (kinematicsDistributionBurkert)                :: self
     type   (inputParameters              ), intent(inout) :: parameters
-    logical                                               :: useSeriesApproximation
-
+    
     self=kinematicsDistributionBurkert()
     !![
     <inputParametersValidate source="parameters"/>
@@ -88,11 +87,79 @@ contains
     !!{
     Return the 1D velocity dispersion at the specified {\normalfont \ttfamily coordinates} in an Burkert kinematic distribution.
     !!}
+    use :: Dilogarithms                    , only : Dilogarithm
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (kinematicsDistributionBurkert), intent(inout)                      :: self
-    class           (coordinate               ), intent(in   )                      :: coordinates
-    class           (massDistributionClass    ), intent(inout)                      :: massDistributionEmbedding
+    class           (coordinate                   ), intent(in   )                      :: coordinates
+    class           (massDistributionClass        ), intent(inout)                      :: massDistributionEmbedding
+    double precision :: radius
 
-!! AJB TODO
+    select type (massDistributionEmbedding)
+    class is (massDistributionBurkert)
+       radius            =+coordinates              %rSpherical ()                                                                                                                                               &
+            &             /massDistributionEmbedding%scaleLength
+       velocityDispersion=real(                                                                                                                                                                                  &
+            &                  +(                                                                                                                                                                                &
+            &                    +sqrt(                                                                                                                                                                          &
+            &                          +Pi                                                                                                                                                                       &
+            &                          /3.0d0                                                                                                                                                                    &
+            &                         )                                                                                                                                                                          &
+            &                    *sqrt(                                                                                                                                                                          &
+            &                          +(                                                                                                                                                                        &
+            &                            +(+1.0d0+radius   )                                                                                                                                                     &
+            &                            *(+1.0d0+radius**2)                                                                                                                                                     &
+            &                            *(                                                                                                                                                                      &
+            &                                      +48.0d0         *Pi   *radius                                                                                                                                 &
+            &                                      -11.0d0         *Pi**2*radius                                                                                                                                 &
+            &                                      -96.0d0                      *atan(radius)                                                                                                                    &
+            &                                      -96.0d0               *radius*atan(radius)                                                                                                                    &
+            &                                      +12.0d0               *radius*log(             +2.0d0         )**2                                                                                            &
+            &                                      - 4.0d0         *Pi   *radius*log(             +8.0d0         )                                                                                               &
+            &                              +dcmplx(+ 6.0d0,- 6.0d0)      *radius*log(dcmplx(0.0d0,-1.0d0)- radius)**2                                                                                            &
+            &                              +dcmplx(+ 6.0d0,+ 6.0d0)      *radius*log(dcmplx(0.0d0,+1.0d0)- radius)**2                                                                                            &
+            &                              +dcmplx(+12.0d0,-12.0d0)      *radius*log(dcmplx(0.0d0,-1.0d0)- radius)   *log((+1.0d0+dcmplx(0.0d0,1.0d0)*radius)/2.0d0)                                             &
+            &                              -dcmplx(+24.0d0,+24.0d0)      *radius*atan(radius)*log(dcmplx(0.0d0,-2.0d0)/(dcmplx(0.0d0,-1.0d0)+radius))                                                            &
+            &                              -dcmplx(+24.0d0,-24.0d0)      *radius*atan(radius)*log(dcmplx(0.0d0,+2.0d0)/(dcmplx(0.0d0,+1.0d0)+radius))                                                            &
+            &                              +dcmplx(+12.0d0,+12.0d0)      *radius*log(                       dcmplx(+0.0d0,+1.0d0)-radius)           *log(dcmplx(+0.0d0,-0.5d0)*(dcmplx(+0.0d0,+1.0d0)+radius  )) &
+            &                              -dcmplx(+ 0.0d0,+24.0d0)      *radius*log(              +1.0d0 + dcmplx(+0.0d0,+1.0d0)*radius)           *log(dcmplx(+0.5d0,-0.5d0)*(              +1.0d0 +radius  )) &
+            &                              +dcmplx(+ 0.0d0,+24.0d0)      *radius*log(              +1.0d0 - dcmplx(+0.0d0,+1.0d0)*radius)           *log(dcmplx(+0.5d0,+0.5d0)*(              +1.0d0 +radius  )) &
+            &                                      +96.0d0                      *log(                                     +1.0d0 +radius )                                                                       &
+            &                                      +96.0d0               *radius*log(                                     +1.0d0 +radius )                                                                       &
+            &                              -dcmplx(+ 0.0d0,+24.0d0)      *radius*log(dcmplx(-0.5d0,+0.5d0)*(dcmplx(+0.0d0,-1.0d0)+radius))          *log(                                     +1.0d0+radius    ) &
+            &                              +dcmplx(+ 0.0d0,+24.0d0)      *radius*log(dcmplx(-0.5d0,-0.5d0)*(dcmplx(+0.0d0,+1.0d0)+radius))          *log(                                     +1.0d0+radius    ) &
+            &                                      -24.0d0               *radius*log(                                     +1.0d0 +radius )**2+48.0d0*log(                                     +1.0d0+radius**2 ) &
+            &                                              -48.0d0       *radius                                                                    *log(                                     +1.0d0+radius**2 ) &
+            &                              -dcmplx(+12.0d0,-12.0d0)      *radius*log(                       dcmplx(+0.0d0,-1.0d0)-radius )   *       log(                                     +1.0d0+radius**2 ) &
+            &                              -dcmplx(+12.0d0,+12.0d0)      *radius*log(                       dcmplx(+0.0d0,+1.0d0)-radius )   *       log(                                     +1.0d0+radius**2 ) &
+            &                                      -24.0d0               *radius*log(                                     +1.0d0 +radius )   *       log(                                     +1.0d0+radius**2 ) &
+            &                              +dcmplx(+12.0d0,+12.0d0)*radius*Dilogarithm(        +0.5d0                + dcmplx(0.0d0,+0.5d0)*        radius    )                                                  &
+            &                                      -96.0d0         *radius*Dilogarithm(                                                            -radius    )                                                  &
+            &                              -dcmplx(+ 0.0d0,+48.0d0)*radius*Dilogarithm( dcmplx(+0.0d0,-1.0d0)                              *        radius    )                                                  &
+            &                              +dcmplx(+ 0.0d0,+48.0d0)*radius*Dilogarithm( dcmplx(+0.0d0,+1.0d0)                              *        radius    )                                                  &
+            &                                     -24.0d0          *radius*Dilogarithm(                                                            -radius**2 )                                                  &
+            &                              -dcmplx(+ 0.0d0,+24.0d0)*radius*Dilogarithm( dcmplx(-0.5d0,+0.5d0)        *(dcmplx(0.0d0,-1.0d0)        +radius   ))                                                  &
+            &                              +dcmplx(+12.0d0,+12.0d0)*radius*Dilogarithm((dcmplx(+0.0d0,-1.0d0)+radius)/(dcmplx(0.0d0,+1.0d0)        +radius   ))                                                  &
+            &                              +dcmplx(+ 0.0d0,+24.0d0)*radius*Dilogarithm( dcmplx(-0.5d0,-0.5d0)        *(dcmplx(0.0d0,+1.0d0)        +radius   ))                                                  &
+            &                              +dcmplx(+12.0d0,-12.0d0)*radius*Dilogarithm( dcmplx(+0.0d0,-0.5d0)        *(dcmplx(0.0d0,+1.0d0)        +radius   ))                                                  &
+            &                              +dcmplx(+12.0d0,-12.0d0)*radius*Dilogarithm((dcmplx(+0.0d0,+1.0d0)+radius)/(dcmplx(0.0d0,-1.0d0)        +radius   ))                                                  &
+            &                              -dcmplx(+ 0.0d0,+24.0d0)*radius*Dilogarithm( dcmplx(+0.5d0,-0.5d0)                              *(+1.0d0+radius   ))                                                  &
+            &                              +dcmplx(+ 0.0d0,+24.0d0)*radius*Dilogarithm( dcmplx(+0.5d0,+0.5d0)                              *(+1.0d0+radius   ))                                                  &
+            &                             )                                                                                                                                                                      &
+            &                           )                                                                                                                                                                        &
+            &                          /radius                                                                                                                                                                   &
+            &                         )                                                                                                                                                                          &
+            &                       )                                                                                                                                                                            &
+            &                      /4.0d0                                                                                                                                                                        &
+            &                     )                                                                                                                                                                              &
+            &                    *sqrt(                                                                                                                                                                          &
+            &                          +gravitationalConstantGalacticus                                                                                                                                          &
+            &                          *massDistributionEmbedding%densityNormalization                                                                                                                           &
+            &                         )                                                                                                                                                                          &
+            &                    *      massDistributionEmbedding%scaleLength
+    class default
+       velocityDispersion=0.0d0
+       call Error_Report('expecting a Burkert mass distribution'//{introspection:location})
+    end select
     return
   end function burkertVelocityDispersion1D
