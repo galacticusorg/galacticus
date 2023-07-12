@@ -67,6 +67,8 @@ contains
           call move_alloc(descriptions_,descriptionsTmp)
           allocate(labels_      (size(labelsTmp      )+1))
           allocate(descriptions_(size(descriptionsTmp)+1))
+          labels_      (1:size(labelsTmp      ))=labelsTmp
+          descriptions_(1:size(descriptionsTmp))=descriptionsTmp
        else
           allocate(labels_      (                      1))
           allocate(descriptions_(                      1))
