@@ -28,8 +28,8 @@ module Nodes_Labels
   use :: ISO_Varying_String, only : varying_string
   use :: Kind_Numbers      , only : kind_int8
   private
-  public :: nodeLabelRegister    , nodeLabelSet  , nodeLabelNames, nodeLabelList, &
-       &    nodeLabelDescriptions, nodeLabelCount
+  public :: nodeLabelRegister    , nodeLabelSet  , nodeLabelNames    , nodeLabelList, &
+       &    nodeLabelDescriptions, nodeLabelCount, nodeLabelIsPresent
 
   integer                                            :: nodeLabelsID=-1
   type   (varying_string), allocatable, dimension(:) :: labels_        , descriptions_
@@ -148,6 +148,28 @@ contains
          &                                    )
     return
   end subroutine nodeLabelSet
+  
+  logical function nodeLabelIsPresent(labelID,node)
+    !!{
+    Return true if the specified label is present in the node.
+    !!}
+    use :: Error           , only : Error_Report
+    use :: Galacticus_Nodes, only : treeNode    , nodeComponentBasic
+    implicit none
+    integer                    , intent(in   ) :: labelID
+    type   (treeNode          ), intent(inout) :: node
+    class  (nodeComponentBasic), pointer       :: basic
+    integer                    , parameter     :: bitTrue=ibset(0,0)
+    integer(kind_int8         )                :: label_ 
+
+    !$omp critical(lockNodeLabels)
+    if (.not.allocated(labels_) .or. labelID > size(labels_)) call Error_Report('label ID is out of range'//{introspection:location})
+    !$omp end critical(lockNodeLabels)
+    basic              => node %basic                          (autoCreate=.true.      )
+    label_             =  basic%longIntegerRank0MetaPropertyGet(           nodeLabelsID)
+    nodeLabelIsPresent =  ibits(label_,labelID-1,1) == bitTrue
+    return
+  end function nodeLabelIsPresent
 
   subroutine nodeLabelNames(labels)
     !!{
