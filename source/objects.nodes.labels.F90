@@ -104,16 +104,12 @@ contains
     class  (nodeComponentBasic), pointer       :: basic, basicParent
     !$GLC attributes unused :: ID
 
-    basic       => node%basic()
-    basicParent => node%parent%basic()
-    label=basic%longIntegerRank0MetaPropertyGet(nodeLabelsID)
-    labelParent=basicParent%longIntegerRank0MetaPropertyGet(nodeLabelsID)
-labelCombined=ior(label,labelParent)
-    call basic%longIntegerRank0MetaPropertySet(                                                                     &
-         &                                                                                 nodeLabelsID           , &
-         &                                     labelCombined &
-         &                                    )
-
+    basic         => node              %basic                          (            )
+    basicParent   => node       %parent%basic                          (            )
+    label         =  basic             %longIntegerRank0MetaPropertyGet(nodeLabelsID)
+    labelParent   =  basicParent       %longIntegerRank0MetaPropertyGet(nodeLabelsID)
+    labelCombined =  ior(label,labelParent)
+    call basic%longIntegerRank0MetaPropertySet(nodeLabelsID,labelCombined)
     return
   end subroutine mergeLabels
 
