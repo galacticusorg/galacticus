@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1689106730309,
+  "lastUpdate": 1689129316053,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "527be490681c9a0aa7611b748a7112a73ab09124",
-          "message": "fix: Formatting only",
-          "timestamp": "2022-11-10T17:12:22Z",
-          "tree_id": "151e73e10116fc9457ea6ae26c1264181db66f47",
-          "url": "https://github.com/galacticusorg/galacticus/commit/527be490681c9a0aa7611b748a7112a73ab09124"
-        },
-        "date": 1668114213914,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 51.812,
-            "unit": "seconds",
-            "range": 0.0600299925040992
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8740,6 +8710,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 25257.8908941139,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "286b169fcc84637043f8092810cafef367fbbf09",
+          "message": "fix: Add missing `close()` of HDF5 file",
+          "timestamp": "2023-07-11T16:28:24-07:00",
+          "tree_id": "7c0d242e9743bf848fbada41e92e8866e57a34f6",
+          "url": "https://github.com/galacticusorg/galacticus/commit/286b169fcc84637043f8092810cafef367fbbf09"
+        },
+        "date": 1689129314745,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 56.017,
+            "unit": "seconds",
+            "range": 0.0405475030043149
           }
         ]
       }
