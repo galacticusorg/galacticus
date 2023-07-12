@@ -311,7 +311,7 @@
   <starFormationRateSurfaceDensityDisks value="blitz2006">
     <assumeMonotonicSurfaceDensity value="true"/>
     <assumeExponentialDisk         value="true"/>
-    <useTabulation                 value="true"/>
+    <useTabulation                 value="false"/>
   </starFormationRateSurfaceDensityDisks>
   <starFormationRateSpheroids value="timescale">
     <starFormationTimescale value="dynamicalTime">
