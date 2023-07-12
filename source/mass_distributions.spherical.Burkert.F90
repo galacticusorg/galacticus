@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Implementation of an Burkert \citep{navarro_structure_1996} mass distribution class.
+  Implementation of a Burkert \citep{burkert_structure_1995} mass distribution class.
   !!}
 
   use :: Numerical_Interpolation , only : interpolator
