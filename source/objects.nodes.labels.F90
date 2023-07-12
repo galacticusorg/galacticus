@@ -55,6 +55,8 @@ contains
        do i=1,size(labels_)
           if (labels_(i) == label) then
              labelID=i
+             if (descriptions_(i) == '' .and. present(description)) &
+                  & descriptions_(i)=description
              exit
           end if
        end do
