@@ -103,7 +103,7 @@ contains
     !!}
     use :: Dilogarithms                    , only : Dilogarithm
     use :: Numerical_Constants_Math        , only : Pi
-    use :: NUmerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (kinematicsDistributionNFW), intent(inout)                      :: self
     class           (coordinate               ), intent(in   )                      :: coordinates
