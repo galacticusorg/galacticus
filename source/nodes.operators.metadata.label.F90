@@ -18,19 +18,19 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Implements a node operator class that applies labels to nodes during tree initialization based on a \refClass{galacticFilter}.
+Implements a node operator class that applies labels to nodes during tree initialization based on a \refClass{galacticFilterClass}.
 !!}
 
   use :: Galactic_Filters, only : galacticFilterClass
 
   !![
   <nodeOperator name="nodeOperatorLabel">
-   <description>A node operator class that applies labels to nodes during tree initialization based on a \refClass{galacticFilter}.</description>
+   <description>A node operator class that applies labels to nodes during tree initialization based on a \refClass{galacticFilterClass}.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorLabel
      !!{
-     A node operator class that applies labels to nodes during tree initialization based on a \refClass{galacticFilter}.
+     A node operator class that applies labels to nodes during tree initialization based on a \refClass{galacticFilterClass}.
      !!}
      private
      type   (varying_string     )          :: label
