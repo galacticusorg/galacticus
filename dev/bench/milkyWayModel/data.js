@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1689270182407,
+  "lastUpdate": 1689270190813,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "6eab8997cd73cb0a474228ade542d133890ad138",
-          "message": "fix: Avoid out-of-range error when integrating Vega spectrum\n\nThe interpolation of the Vega spectrum used for computing AB-Vega offsets previously had no `extrapolationType` defined, causing it to fail if integration extended outside of the tabulated range (e.g. for some ionizing luminosity filters). The `extrapolationType` is now set to `zero` so that zero flux is assumed outside of the tabulated range.",
-          "timestamp": "2022-11-15T08:28:30-08:00",
-          "tree_id": "f719a6b9bcd1a3c271446d6abae1156039d42e13",
-          "url": "https://github.com/galacticusorg/galacticus/commit/6eab8997cd73cb0a474228ade542d133890ad138"
-        },
-        "date": 1668539620630,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 173.808,
-            "unit": "seconds",
-            "range": 0.153966230065361
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10636,6 +10606,60 @@ window.BENCHMARK_DATA = {
             "value": 309.241,
             "unit": "seconds",
             "range": 0.701655827311403
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "9874ca3b4ade45f41c7c185abe202378dd152829",
+          "message": "fix: Correct class reference",
+          "timestamp": "2023-07-13T07:18:43-07:00",
+          "tree_id": "8ea083cf4817a7613663bff91c3156ba9c7a195e",
+          "url": "https://github.com/galacticusorg/galacticus/commit/9874ca3b4ade45f41c7c185abe202378dd152829"
+        },
+        "date": 1689270189761,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassMetallicityRelation",
+            "value": 3.7347365361624,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassSizeRelation",
+            "value": 9.59737490251823,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassVelocityDispersionRelation",
+            "value": 0.826032170943457,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupOccupationFraction",
+            "value": 23.9391299921939,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassFunction",
+            "value": 62.4722673081793,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
+            "value": 1.34492160456599,
+            "unit": "-logℒ"
           }
         ]
       }
