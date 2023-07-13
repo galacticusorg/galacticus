@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1689270178181,
+  "lastUpdate": 1689270186587,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "6eab8997cd73cb0a474228ade542d133890ad138",
-          "message": "fix: Avoid out-of-range error when integrating Vega spectrum\n\nThe interpolation of the Vega spectrum used for computing AB-Vega offsets previously had no `extrapolationType` defined, causing it to fail if integration extended outside of the tabulated range (e.g. for some ionizing luminosity filters). The `extrapolationType` is now set to `zero` so that zero flux is assumed outside of the tabulated range.",
-          "timestamp": "2022-11-15T08:28:30-08:00",
-          "tree_id": "f719a6b9bcd1a3c271446d6abae1156039d42e13",
-          "url": "https://github.com/galacticusorg/galacticus/commit/6eab8997cd73cb0a474228ade542d133890ad138"
-        },
-        "date": 1668539625629,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 57.4771891211537,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 26.0053889680488,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 26391.8664916722,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8740,6 +8701,45 @@ window.BENCHMARK_DATA = {
             "value": 48.076,
             "unit": "seconds",
             "range": 0.0308285581882312
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "9874ca3b4ade45f41c7c185abe202378dd152829",
+          "message": "fix: Correct class reference",
+          "timestamp": "2023-07-13T07:18:43-07:00",
+          "tree_id": "8ea083cf4817a7613663bff91c3156ba9c7a195e",
+          "url": "https://github.com/galacticusorg/galacticus/commit/9874ca3b4ade45f41c7c185abe202378dd152829"
+        },
+        "date": 1689270185536,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 58.5242080709765,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 26.4439006068673,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 25257.8908941139,
+            "unit": "-logℒ"
           }
         ]
       }
