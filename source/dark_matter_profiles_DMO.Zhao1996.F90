@@ -218,12 +218,14 @@ contains
     !!{
     Destructor for the {\normalfont \ttfamily zhao1996} dark matter halo profile class.
     !!}
+    use :: Events_Hooks, only : calculationResetEvent
     implicit none
     type(darkMatterProfileDMOZhao1996), intent(inout) :: self
 
     !![
     <objectDestructor name="self%darkMatterHaloScale_" />
     !!]
+    if (calculationResetEvent%isAttached(self,zhao1996CalculationReset)) call calculationResetEvent%detach(self,zhao1996CalculationReset)
     return
   end subroutine zhao1996Destructor
 
