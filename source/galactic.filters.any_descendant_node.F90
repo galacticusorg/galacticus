@@ -17,12 +17,11 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which implements a galactic filter which applies another filter to all descendant nodes of the given node and passes if any descendant passes.
-!!}
+  !!{
+  Contains a module which implements a galactic filter which applies another filter to all descendant nodes of the given node and
+  passes if any descendant passes.
+  !!}
   
-  use :: Cosmology_Functions, only : cosmologyFunctionsClass
-
   !![
   <galacticFilter name="galacticFilterAnyDescendantNode">
    <description>Applies a filter to all descendant nodes of the given node and passes if any descendant passes.</description>
