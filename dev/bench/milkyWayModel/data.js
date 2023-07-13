@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1689226033647,
+  "lastUpdate": 1689226042801,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "d961f9f4b89ee922ef58bb7ef8b97b5b4b01cf22",
-          "message": "Merge pull request #328 from galacticusorg/chandraIntegrals\n\nPass a half-mass radius to Chandrasekhar integral functions",
-          "timestamp": "2022-11-14T22:19:06-08:00",
-          "tree_id": "9e04dfbaec9029b954effe6798c60e4646535466",
-          "url": "https://github.com/galacticusorg/galacticus/commit/d961f9f4b89ee922ef58bb7ef8b97b5b4b01cf22"
-        },
-        "date": 1668514018645,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 17.584,
-            "unit": "seconds",
-            "range": 0.227214436161093
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10636,6 +10606,60 @@ window.BENCHMARK_DATA = {
             "value": 208.792,
             "unit": "seconds",
             "range": 0.139869939582979
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": false,
+          "id": "abbd5fd84eeb1f6ab3f6e3a790125849d7c05548",
+          "message": "Merge pull request #435 from galacticusorg/labelingImprovements\n\nAdd further node labeling functionality",
+          "timestamp": "2023-07-13T02:14:50Z",
+          "tree_id": "a0ffa0dbe4b437ee455f25e8232ef280a5262dcf",
+          "url": "https://github.com/galacticusorg/galacticus/commit/abbd5fd84eeb1f6ab3f6e3a790125849d7c05548"
+        },
+        "date": 1689226041572,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassMetallicityRelation",
+            "value": 3.35731384777102,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassSizeRelation",
+            "value": 10.2372091657514,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassVelocityDispersionRelation",
+            "value": 0.829918672072195,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupOccupationFraction",
+            "value": 24.0522420518317,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassFunction",
+            "value": 69.9114796424333,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
+            "value": 1.26406860997775,
+            "unit": "-logℒ"
           }
         ]
       }
