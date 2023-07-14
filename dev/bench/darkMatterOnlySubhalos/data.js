@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1689270186587,
+  "lastUpdate": 1689298896279,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "5707e0484802f86d2aa519dc4bbec27faa438fdf",
-          "message": "fix: Correct parameters in reference models",
-          "timestamp": "2022-11-15T21:34:00Z",
-          "tree_id": "61be8a4fed82fa482177de47efa5eb0e8fed9488",
-          "url": "https://github.com/galacticusorg/galacticus/commit/5707e0484802f86d2aa519dc4bbec27faa438fdf"
-        },
-        "date": 1668557708288,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 53.887,
-            "unit": "seconds",
-            "range": 0.424068508616203
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8740,6 +8710,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 25257.8908941139,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "809b5fdee7af91c64cab0345398e001e14d51639",
+          "message": "fix: Add missing event detach",
+          "timestamp": "2023-07-13T15:26:55-07:00",
+          "tree_id": "f9ad8b632b32d90bddc26703c8edfcf5afe3a520",
+          "url": "https://github.com/galacticusorg/galacticus/commit/809b5fdee7af91c64cab0345398e001e14d51639"
+        },
+        "date": 1689298894436,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 50.443,
+            "unit": "seconds",
+            "range": 0.0442052033137701
           }
         ]
       }
