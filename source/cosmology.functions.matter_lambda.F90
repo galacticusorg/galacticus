@@ -1116,16 +1116,66 @@ contains
     return
   end function matterLambdaDistanceLuminosity
 
-  double precision function matterLambdaDistanceAngular(self,time)
+  double precision function matterLambdaDistanceAngular(self,time,timeOrigin) result(distance)
     !!{
     Returns the angular diameter distance to cosmological time {\normalfont \ttfamily time}.
     !!}
+    use :: Cosmology_Parameters            , only : hubbleUnitsTime
+    use :: Error                           , only : Error_Report
+    use :: Numerical_Constants_Astronomical, only : megaParsec     , gigaYear
+    use :: Numerical_Constants_Physical    , only : speedLight
     implicit none
-    class           (cosmologyFunctionsMatterLambda), intent(inout) :: self
-    double precision                                , intent(in   ) :: time
+    class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
+    double precision                                , intent(in   )           :: time
+    double precision                                , intent(in   ), optional :: timeOrigin
+    double precision                                                          :: distanceComoving, distanceComovingOrigin, &
+         &                                                                       distanceHubble  , OmegaCurvature
 
-    ! Compute the angular diameter distance.
-    matterLambdaDistanceAngular=self%distanceComoving(time)*self%expansionFactor(time)
+    if (present(timeOrigin)) then
+       ! Case with the origin of the distance at some z>0.
+       if (timeOrigin < time) call Error_Report('expected timeOrigin ≥ time'//{introspection:location})
+       ! Use the solution from (Peebles, 1993, "Principles of Physical Cosmology", pp 336–33; see also Hogg 1999; equation 19;
+       ! arXiv:astro-ph/9905116; https://ui.adsabs.harvard.edu/abs/1999astro.ph..5116H).
+       distanceComoving      =+self%distanceComoving(time      )
+       distanceComovingOrigin=+self%distanceComoving(timeOrigin)
+       distanceHubble        =+speedLight                                                &
+            &                 /self%cosmologyParameters_%HubbleConstant(hubbleUnitsTime) &
+            &                 *gigaYear                                                  &
+            &                 /megaParsec
+       OmegaCurvature        =+self%cosmologyParameters_%OmegaCurvature()
+       if (OmegaCurvature >= 0.0d0) then
+          distance=+(                                &
+               &     +distanceComoving               &
+               &     *sqrt(                          &
+               &           +1.0d0                    &
+               &           +OmegaCurvature           &
+               &           *(                        &
+               &             +distanceComovingOrigin &
+               &             /distanceHubble         &
+               &            )**2                     &
+               &          )                          &
+               &     -distanceComovingOrigin         &
+               &     *sqrt(                          &
+               &           +1.0d0                    &
+               &           +OmegaCurvature           &
+               &           *(                        &
+               &             +distanceComoving       &
+               &             /distanceHubble         &
+               &            )**2                     &
+               &          )                          &
+               &    )                                &
+               &   *self%expansionFactor(time)
+       else
+          ! For negative curvature cosmologies the above equation is not valid - see, for example, Hogg (1999;
+          ! arXiv:astro-ph/9905116; https://ui.adsabs.harvard.edu/abs/1999astro.ph..5116H).
+          distance=+0.0d0
+          call Error_Report('angular diameter distance between two times not implemented for Ωₖ < 0'//{introspection:location})
+       end if
+    else
+       ! Standard case with the origin of the distance at z=0.
+       distance=+self%distanceComoving(time) &
+            &   *self%expansionFactor (time)
+    end if
     return
   end function matterLambdaDistanceAngular
 
