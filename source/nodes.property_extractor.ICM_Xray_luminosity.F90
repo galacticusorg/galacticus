@@ -139,7 +139,7 @@ contains
     use :: Numerical_Integration       , only : integrator
     use :: Radiation_Fields            , only : radiationFieldCosmicMicrowaveBackground
     implicit none
-    class(nodePropertyExtractorICMXRayLuminosity ), intent(inout)           :: self
+    class(nodePropertyExtractorICMXRayLuminosity ), intent(inout), target   :: self
     type (treeNode                               ), intent(inout), target   :: node
     type (multiCounter                           ), intent(inout), optional :: instance
     type (radiationFieldCosmicMicrowaveBackground), pointer                 :: radiation_

@@ -106,7 +106,7 @@ contains
     use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOSIDM
     use :: Galacticus_Nodes        , only : nodeComponentBasic
     implicit none
-    class(nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM), intent(inout)           :: self
+    class(nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM), intent(inout), target   :: self
     type (treeNode                                                   ), intent(inout), target   :: node
     type (multiCounter                                               ), intent(inout), optional :: instance
     class(nodeComponentBasic                                         ), pointer                 :: basic

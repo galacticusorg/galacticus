@@ -108,7 +108,7 @@ contains
     !!}
     use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid, massTypeGaseous, radiusLarge
     implicit none
-    class(nodePropertyExtractorMassISM), intent(inout)           :: self
+    class(nodePropertyExtractorMassISM), intent(inout), target   :: self
     type (treeNode                    ), intent(inout), target   :: node
     type (multiCounter                ), intent(inout), optional :: instance
     !$GLC attributes unused :: self, instance
