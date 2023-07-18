@@ -22,7 +22,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorIntegerScalar" abstract="yes">
-   <description>An abstract output analysis property extractor class which provieds a scalar integer property.</description>
+   <description>An abstract output analysis property extractor class which provides a scalar integer property.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorClass), abstract :: nodePropertyExtractorIntegerScalar
