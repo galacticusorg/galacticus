@@ -127,7 +127,7 @@ contains
     use :: Mass_Distributions          , only : massDistributionClass                  , kinematicsDistributionClass
     use :: Galactic_Structure_Options  , only : componentTypeHotHalo                   , massTypeGaseous
     implicit none
-    class(nodePropertyExtractorICMXRayLuminosity ), intent(inout)           :: self
+    class(nodePropertyExtractorICMXRayLuminosity ), intent(inout), target   :: self
     type (treeNode                               ), intent(inout), target   :: node
     type (multiCounter                           ), intent(inout), optional :: instance
     type (radiationFieldCosmicMicrowaveBackground), pointer                 :: radiation_

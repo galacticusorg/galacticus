@@ -102,7 +102,7 @@ contains
     use :: Abundances_Structure, only : abundances
     use :: Galacticus_Nodes    , only : nodeComponentDisk, nodeComponentSpheroid, treeNode
     implicit none
-    class           (nodePropertyExtractorMetallicityISM), intent(inout)               :: self
+    class           (nodePropertyExtractorMetallicityISM), intent(inout), target       :: self
     type            (treeNode                           ), intent(inout), target       :: node
     type            (multiCounter                       ), intent(inout), optional     :: instance
     class           (nodeComponentDisk                  ), pointer                     :: disk

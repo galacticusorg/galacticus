@@ -105,7 +105,7 @@ contains
     Implement extraction of the bar instability timescale.
     !!}
     implicit none
-    class           (nodePropertyExtractorTimescaleBarInstability), intent(inout)           :: self
+    class           (nodePropertyExtractorTimescaleBarInstability), intent(inout), target   :: self
     type            (treeNode                                    ), intent(inout), target   :: node
     type            (multiCounter                                ), intent(inout), optional :: instance
     double precision                                                                        :: torqueSpecificExternal, fractionAngularMomentumRetained

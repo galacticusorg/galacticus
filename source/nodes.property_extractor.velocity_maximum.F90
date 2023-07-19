@@ -117,7 +117,7 @@ contains
     use :: Galacticus_Nodes  , only : nodeComponentBasic
     use :: Mass_Distributions, only : massDistributionClass
     implicit none
-    class(nodePropertyExtractorVelocityMaximum), intent(inout)           :: self
+    class(nodePropertyExtractorVelocityMaximum), intent(inout), target   :: self
     type (treeNode                            ), intent(inout), target   :: node
     type (multiCounter                        ), intent(inout), optional :: instance
     class(massDistributionClass               )               , pointer  :: massDistribution_

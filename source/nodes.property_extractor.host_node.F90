@@ -109,7 +109,7 @@ contains
     Implement a hostNode output analysis.
     !!}
     implicit none
-    class(nodePropertyExtractorHostNode), intent(inout)           :: self
+    class(nodePropertyExtractorHostNode), intent(inout), target   :: self
     type (treeNode                     ), intent(inout), target   :: node
     type (multiCounter                 ), intent(inout), optional :: instance
     type (treeNode                     ), pointer                 :: nodeHost

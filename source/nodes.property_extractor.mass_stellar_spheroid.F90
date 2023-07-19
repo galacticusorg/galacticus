@@ -107,7 +107,7 @@ contains
     !!}
     use :: Galactic_Structure_Options, only : componentTypeSpheroid, massTypeStellar, radiusLarge
     implicit none
-    class           (nodePropertyExtractorMassStellarSpheroid), intent(inout)           :: self
+    class           (nodePropertyExtractorMassStellarSpheroid), intent(inout), target   :: self
     type            (treeNode                                ), intent(inout), target   :: node
     type            (multiCounter                            ), intent(inout), optional :: instance
     !$GLC attributes unused :: self, instance

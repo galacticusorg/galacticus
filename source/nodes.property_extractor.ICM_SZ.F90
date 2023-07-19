@@ -230,7 +230,7 @@ contains
     use :: Numerical_Constants_Math        , only : Pi
     use :: Radiation_Fields                , only : radiationFieldCosmicMicrowaveBackground
     implicit none
-    class           (nodePropertyExtractorICMSZ             ), intent(inout)           :: self
+    class           (nodePropertyExtractorICMSZ             ), intent(inout), target   :: self
     type            (treeNode                               ), intent(inout), target   :: node
     type            (multiCounter                           ), intent(inout), optional :: instance
     type            (radiationFieldCosmicMicrowaveBackground), pointer                 :: radiation_

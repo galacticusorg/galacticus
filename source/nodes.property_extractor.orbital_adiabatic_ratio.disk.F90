@@ -117,7 +117,7 @@ contains
     use :: Satellite_Orbits        , only : Satellite_Orbit_Extremum_Phase_Space_Coordinates, extremumPericenter
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    class           (nodePropertyExtractorAdiabaticRatioOrbitalDisk), intent(inout)           :: self
+    class           (nodePropertyExtractorAdiabaticRatioOrbitalDisk), intent(inout), target   :: self
     type            (treeNode                                      ), intent(inout), target   :: node
     type            (multiCounter                                  ), intent(inout), optional :: instance
     class           (nodeComponentDisk                             )               , pointer  :: disk

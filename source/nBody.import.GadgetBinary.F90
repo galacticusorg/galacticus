@@ -205,6 +205,8 @@ contains
     fileNumber             =     0
     numberParticleTotalRead=     0
     numberParticleTotal    =     0
+    massesDiffer           =.false.
+    readMasses             =.false.
     if (self%isCosmological) then
        hubbleConstantLittleH=self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)
     else

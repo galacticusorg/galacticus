@@ -106,7 +106,7 @@ contains
     !!}
     use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid, massTypeStellar, radiusLarge
     implicit none
-    class           (nodePropertyExtractorMassStellarMorphology), intent(inout)           :: self
+    class           (nodePropertyExtractorMassStellarMorphology), intent(inout), target   :: self
     type            (treeNode                                  ), intent(inout), target   :: node
     type            (multiCounter                              ), intent(inout), optional :: instance
     double precision                                                                      :: massStellarDisk, massStellarSpheroid

@@ -271,6 +271,28 @@
       <massDestructionMassInfallFraction value="0.0"/>
       <massDestructionMassTreeFraction   value="0.0"/>
     </nodeOperator>
+    <!-- Labels -->
+    <nodeOperator value="label">
+      <label value="memberLMC"/>
+      <galacticFilter value="anyDescendantNode">
+        <allowSelf value="false"/>
+        <galacticFilter value="labelled">
+          <label value="LMC"/>
+        </galacticFilter>
+      </galacticFilter>
+    </nodeOperator>
+    <nodeOperator value="label">
+      <label value="lateMerger"/>
+      <galacticFilter value="all">
+        <galacticFilter value="highPass">
+          <threshold value="11.8"/>
+          <nodePropertyExtractor value="time"/>
+        </galacticFilter>
+        <galacticFilter value="parentNode">
+          <galacticFilter value="mainBranch"/>
+        </galacticFilter>
+      </galacticFilter>
+    </nodeOperator>
   </nodeOperator>
   
   <!-- Numerical tolerances -->

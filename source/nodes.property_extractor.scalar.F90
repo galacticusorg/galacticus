@@ -21,7 +21,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorScalar" abstract="yes">
-   <description>An abstract output analysis property extractor class which provieds a scalar floating point property.</description>
+   <description>An abstract output analysis property extractor class which provides a scalar floating point property.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorClass), abstract :: nodePropertyExtractorScalar
@@ -52,7 +52,7 @@
        Interface for scalar property extraction.
        !!}
        import nodePropertyExtractorScalar, treeNode, multiCounter
-       class(nodePropertyExtractorScalar), intent(inout)           :: self
+       class(nodePropertyExtractorScalar), intent(inout), target   :: self
        type (treeNode                   ), intent(inout), target   :: node
        type (multiCounter               ), intent(inout), optional :: instance
      end function scalarExtract

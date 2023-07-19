@@ -95,7 +95,8 @@ contains
     !!{
     Return the names of the {\normalfont \ttfamily labels} properties.
     !!}
-    use :: Nodes_Labels, only : nodeLabelNames
+    use :: Nodes_Labels   , only : nodeLabelNames
+    use :: String_Handling, only : String_Upper_Case_First
     implicit none
     class           (nodePropertyExtractorLabels), intent(inout)                             :: self
     double precision                             , intent(in   )                             :: time
@@ -105,7 +106,7 @@ contains
 
     call nodeLabelNames(names)
     do i=1,size(names)
-       names(i)="nodeLabel"//names(i)
+       names(i)="nodeLabel"//String_Upper_Case_First(char(names(i)))
     end do
     return
   end subroutine labelsNames
