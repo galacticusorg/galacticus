@@ -868,7 +868,7 @@ contains
 
   double precision function sphericalEnergyNumerical(self,radiusOuter,massDistributionEmbedding,componentType,massType) result(energy)
     !!{
-    Compute the energy within a given {\normalfont \ttfamily radius} in a spherical mass distribution using a numerical calcualtion.
+    Compute the energy within a given {\normalfont \ttfamily radius} in a spherical mass distribution using a numerical calculation.
     !!}
     implicit none
     class           (massDistributionSpherical   ), intent(inout)           :: self
