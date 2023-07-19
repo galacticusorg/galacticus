@@ -158,7 +158,7 @@ contains
     Implement a star formation rate output analysis property extractor.
     !!}
     implicit none
-    class(nodePropertyExtractorStarFormationRate), intent(inout)           :: self
+    class(nodePropertyExtractorStarFormationRate), intent(inout), target   :: self
     type (treeNode                              ), intent(inout), target   :: node
     type (multiCounter                          ), intent(inout), optional :: instance
     !$GLC attributes unused :: instance

@@ -307,7 +307,7 @@ contains
     use            :: Numerical_Constants_Prefixes    , only : centi              , hecto                , mega
     use            :: Stellar_Luminosities_Structure  , only : max                , stellarLuminosities
     implicit none
-    class           (nodePropertyExtractorLmnstyEmssnLine), intent(inout)           :: self
+    class           (nodePropertyExtractorLmnstyEmssnLine), intent(inout), target   :: self
     type            (treeNode                            ), intent(inout), target   :: node
     type            (multiCounter                        ), intent(inout), optional :: instance
     class           (nodeComponentBasic                  ), pointer                 :: basic

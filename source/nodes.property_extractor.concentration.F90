@@ -144,7 +144,7 @@ contains
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , nodeComponentDarkMatterProfile, treeNode
     implicit none
-    class           (nodePropertyExtractorConcentration), intent(inout)           :: self
+    class           (nodePropertyExtractorConcentration), intent(inout), target   :: self
     type            (treeNode                          ), intent(inout), target   :: node
     type            (multiCounter                      ), intent(inout), optional :: instance
     class           (nodeComponentBasic                ), pointer                 :: basic

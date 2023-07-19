@@ -107,7 +107,7 @@ contains
     Implement a tidal radius property extractor.
     !!}
     implicit none
-    class(nodePropertyExtractorRadiusTidal), intent(inout)           :: self
+    class(nodePropertyExtractorRadiusTidal), intent(inout), target   :: self
     type (treeNode                        ), intent(inout), target   :: node
     type (multiCounter                    ), intent(inout), optional :: instance
     !$GLC attributes unused :: instance

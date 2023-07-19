@@ -107,7 +107,7 @@ contains
     Implement a cooling radius property extractor.
     !!}
     implicit none
-    class(nodePropertyExtractorRadiusCooling), intent(inout)           :: self
+    class(nodePropertyExtractorRadiusCooling), intent(inout), target   :: self
     type (treeNode                          ), intent(inout), target   :: node
     type (multiCounter                      ), intent(inout), optional :: instance
     !$GLC attributes unused :: instance

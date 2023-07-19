@@ -160,12 +160,12 @@ contains
     use :: Numerical_Integration       , only : integrator
     use :: Radiation_Fields            , only : radiationFieldCosmicMicrowaveBackground
     implicit none
-    class           (nodePropertyExtractorICMCoolingPowerInBand), intent(inout)              :: self
-    type            (treeNode                                  ), intent(inout), target      :: node
-    type            (multiCounter                              ), intent(inout), optional    :: instance
-    type            (radiationFieldCosmicMicrowaveBackground   ), pointer                    :: radiation_
-    type            (integrator                                )                             :: integratorTotal, integratorInBand
-    double precision                                                                         :: luminosityTotal, luminosityInBand
+    class           (nodePropertyExtractorICMCoolingPowerInBand), intent(inout), target   :: self
+    type            (treeNode                                  ), intent(inout), target   :: node
+    type            (multiCounter                              ), intent(inout), optional :: instance
+    type            (radiationFieldCosmicMicrowaveBackground   ), pointer                 :: radiation_
+    type            (integrator                                )                          :: integratorTotal, integratorInBand
+    double precision                                                                      :: luminosityTotal, luminosityInBand
     !$GLC attributes unused :: instance
 
     ! Initialize radiation field.
