@@ -700,7 +700,7 @@ contains
               &                    *Pi                        &
               &                    *               radius **2 &
               &                    *sin(wavenumber*radius)    &
-              &                    /   (waveNumber*radius)    &
+              &                    /   (wavenumber*radius)    &
               &                    *self%density(coordinates)
       else
          integrandFourierTransform=0.0d0
