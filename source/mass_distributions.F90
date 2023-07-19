@@ -398,13 +398,25 @@ module Mass_Distributions
     <argument>type(enumerationMassTypeType     ), intent(in   ), optional :: massType     </argument>
     <modules>Root_Finder</modules>
     <code>
+      massDistributionRadiusRotationCurveMaximum=self%radiusRotationCurveMaximumNumerical(componentType,massType)
+    </code>
+   </method>
+   <method name="radiusRotationCurveMaximumNumerical" >
+    <description>Return the radius of the maximum velocity in the rotation curve.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <selfTarget>yes</selfTarget>
+    <argument>type(enumerationComponentTypeType), intent(in   ), optional :: componentType</argument>
+    <argument>type(enumerationMassTypeType     ), intent(in   ), optional :: massType     </argument>
+    <modules>Root_Finder</modules>
+    <code>
       type            (rootFinder), save      :: finder
       logical                     , save      :: finderConstructed=.false.
       !$omp threadprivate(finder,finderConstructed)
       double precision            , parameter :: toleranceAbsolute=0.0d0  , toleranceRelative=1.0d-6
 
       if (.not.self%matches(componentType,massType)) then
-       massDistributionRadiusRotationCurveMaximum=0.0d0
+       massDistributionRadiusRotationCurveMaximumNumerical=0.0d0
        return
       end if
       if (.not.finderConstructed) then
@@ -421,8 +433,8 @@ module Mass_Distributions
             &amp;                  )
        finderConstructed=.true.
       end if
-      self_                                      =&gt; self
-      massDistributionRadiusRotationCurveMaximum =     finder%find(rootGuess=1.0d0)
+      self_                                               =&gt; self
+      massDistributionRadiusRotationCurveMaximumNumerical =     finder%find(rootGuess=1.0d0)
     </code>
    </method>
    <method name="surfaceDensity" >
