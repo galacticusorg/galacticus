@@ -308,17 +308,17 @@ contains
     Return the dark matter mass distribution for the given {\normalfont \ttfamily node}.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentBasic     , nodeComponentDarkMatterProfile
-    use :: Galactic_Structure_Options, only : componentTypeDarkHalo  , massTypeDark                   , weightByMass
+    use :: Galactic_Structure_Options, only : componentTypeDarkHalo  , massTypeDark                  , weightByMass
     use :: Mass_Distributions        , only : massDistributionBurkert, kinematicsDistributionBurkert
     implicit none
-    class           (massDistributionClass         ), pointer                 :: massDistribution_
-    type            (kinematicsDistributionBurkert ), pointer                 :: kinematicsDistribution_
-    class           (darkMatterProfileDMOBurkert   ), intent(inout)           :: self
-    type            (treeNode                      ), intent(inout)           :: node
-    type            (enumerationWeightByType       ), intent(in   ), optional :: weightBy
-    integer                                         , intent(in   ), optional :: weightIndex
-    class           (nodeComponentBasic            ), pointer                 :: basic
-    class           (nodeComponentDarkMatterProfile), pointer                 :: darkMatterProfile
+    class  (massDistributionClass         ), pointer                 :: massDistribution_
+    type   (kinematicsDistributionBurkert ), pointer                 :: kinematicsDistribution_
+    class  (darkMatterProfileDMOBurkert   ), intent(inout)           :: self
+    type   (treeNode                      ), intent(inout)           :: node
+    type   (enumerationWeightByType       ), intent(in   ), optional :: weightBy
+    integer                                , intent(in   ), optional :: weightIndex
+    class  (nodeComponentBasic            ), pointer                 :: basic
+    class  (nodeComponentDarkMatterProfile), pointer                 :: darkMatterProfile
     !![
     <optionalArgument name="weightBy" defaultsTo="weightByMass" />
     !!]
