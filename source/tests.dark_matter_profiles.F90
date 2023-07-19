@@ -32,7 +32,7 @@ program Test_Dark_Matter_Profiles
   use :: Dark_Matter_Particles           , only : darkMatterParticleSelfInteractingDarkMatter                   , darkMatterParticleCDM
   use :: Dark_Matter_Halo_Scales         , only : darkMatterHaloScaleVirialDensityContrastDefinition
   use :: Dark_Matter_Profiles_DMO        , only : darkMatterProfileDMOBurkert                                   , darkMatterProfileDMONFW             , darkMatterProfileDMOFiniteResolution, darkMatterProfileDMOSIDMCoreNFW, &
-       &                                          darkMatterProfileDMOSIDMIsothermal
+       &                                          darkMatterProfileDMOSIDMIsothermal                            , darkMatterProfileDMOZhao1996
   use :: Dark_Matter_Profiles            , only : darkMatterProfileSIDMIsothermal                               , darkMatterProfileAdiabaticGnedin2004
   use :: Dark_Matter_Profiles_Generic    , only : nonAnalyticSolversNumerical
   use :: Galactic_Structure              , only : galacticStructureStandard
@@ -86,6 +86,7 @@ program Test_Dark_Matter_Profiles
   type            (darkMatterParticleSelfInteractingDarkMatter                   ), pointer      :: darkMatterParticleSelfInteractingDarkMatter_                                                        , &
        &                                                                                            darkMatterParticleSelfInteractingDarkMatterJiang_
   type            (darkMatterProfileDMOBurkert                                   ), pointer      :: darkMatterProfileDMOBurkert_
+  type            (darkMatterProfileDMOZhao1996                                  ), pointer      :: darkMatterProfileDMOZhao1996_
   type            (darkMatterProfileDMONFW                                       ), pointer      :: darkMatterProfileDMONFW_                                                                            , &
        &                                                                                            darkMatterProfileDMONFWPippin_
   type            (darkMatterProfileDMONFW                                       ), pointer      :: darkMatterProfileDMONFWSeriesExpansion_
@@ -135,6 +136,7 @@ program Test_Dark_Matter_Profiles
   allocate(virialDensityContrast_                           )
   allocate(darkMatterHaloScale_                             )
   allocate(darkMatterProfileDMOBurkert_                     )
+  allocate(darkMatterProfileDMOZhao1996_                    )
   allocate(darkMatterProfileDMONFW_                         )
   allocate(darkMatterProfileDMONFWPippin_                   )
   allocate(darkMatterProfileDMONFWSeriesExpansion_          )
@@ -248,10 +250,818 @@ program Test_Dark_Matter_Profiles
   !!]
   ! Begin unit tests.
   call Unit_Tests_Begin_Group('Dark matter profiles')
+  ! Test Zhao1996 profile.
+  call Unit_Tests_Begin_Group('Zhao1996 profile')
+  !! Special case: NFW: (α,β,γ) = (1,3,1).
+  call Unit_Tests_Begin_Group('(α,β,γ) = (1,3,1)')
+  !![
+  <referenceConstruct object="darkMatterProfileDMOZhao1996_">
+   <constructor>
+    darkMatterProfileDMOZhao1996 (                                          &amp;
+     &amp;                       alpha               =1.0d0               , &amp;
+     &amp;                       beta                =3.0d0               , &amp;
+     &amp;                       gamma               =1.0d0               , &amp;
+     &amp;                       darkMatterHaloScale_=darkMatterHaloScale_  &amp;
+     &amp;                      )
+   </constructor>
+  </referenceConstruct>
+  !!]
+  massDistribution_       => darkMatterProfileDMOZhao1996_%get                   (node)
+  kinematicsDistribution_ => massDistribution_            %kinematicsDistribution(    )
+  radiusVirial            =  darkMatterHaloScale_         %radiusVirial          (node)
+  timeFreefall            =  [0.864113d0,1.29807d0,2.04324d0,3.44421d0,6.32148d0,1.26727d1,2.74642d1]
+  select type (massDistribution_)
+  class is (massDistributionSpherical)
+     do i=1,7
+        coordinates=[radiusScale*radius(i),0.0d0,0.0d0]
+        mass                                      (i)=massDistribution_      %massEnclosedBySphere             (                                                          radiusScale   *radius      (i)                      )
+        density                                   (i)=massDistribution_      %density                          (                                                                         coordinates                          )*radiusScale**3
+        radiusRecoveredFromMass                   (i)=massDistribution_      %radiusEnclosingMass              (                                                  mass(i)                                                     )/radiusScale
+        radiusRecoveredFromDensity                (i)=massDistribution_      %radiusEnclosingDensity           (                                   3.0d0/4.0d0/Pi*mass(i)/radiusScale**3/radius      (i)**3                   )/radiusScale
+        radiusRecoveredFromSpecificAngularMomentum(i)=massDistribution_      %radiusFromSpecificAngularMomentum(             sqrt(gravitationalConstantGalacticus*mass(i)*radiusScale   *radius      (i)   )                  )/radiusScale
+        radiusRecoveredFromTimeFreefall           (i)=massDistribution_      %radiusFreefall                   (                                                          timeScale     *timeFreefall(i)                      )/radiusScale
+        potential                                 (i)=massDistribution_      %potential                        (                                                                         coordinates                          )*radiusScale/gravitationalConstantGalacticus
+        fourier                                   (i)=massDistribution_      %fourierTransform                 (radiusVirial,1.0d0                                       /radiusScale   /radius      (i)                      )
+        radialVelocityDispersion                  (i)=kinematicsDistribution_%velocityDispersion1D             (                                                                         coordinates        ,massDistribution_)
+     end do
+     radiusVelocityMaximum   =massDistribution_%radiusRotationCurveMaximum  (                     )
+     velocityMaximum         =massDistribution_%velocityRotationCurveMaximum(                     )
+     velocityMaximumIndirect =massDistribution_%rotationCurve               (radiusVelocityMaximum)
+     energyPotential         =massDistribution_%energyPotential             (radiusVirial         )
+     energyPotentialNumerical=massDistribution_%energyPotentialNumerical    (radiusVirial         )
+  end select
+  !![
+  <objectDestructor name="massDistribution_"            />
+  <objectDestructor name="kinematicsDistribution_"      />
+  <objectDestructor name="darkMatterProfileDMOZhao1996_"/>
+  !!]
+  ! Radial velocity dispersion in units of virial velocity.
+  radialVelocityDispersion=radialVelocityDispersion/darkMatterHaloScale_%velocityVirial(node)
+  call Assert(                         &
+       &      'enclosed mass'        , &
+       &      mass                   , &
+       &      [                        &
+       &       5.099550982355504d-3  , &
+       &       1.768930674181593d-2  , &
+       &       5.513246746363203d-2  , &
+       &       1.476281525188409d-1  , &
+       &       3.301489257042704d-1  , &
+       &       6.186775455118112d-1  , &
+       &       1.000000000000000d+0    &
+       &      ]                      , &
+       &      relTol=1.0d-6            &
+       &     )
+  call Assert(                         &
+       &      'radius enclosing mass', &
+       &      radiusRecoveredFromMass, &
+       &      radius                 , &
+       &      relTol=1.0d-6            &
+       &     )
+  call Assert(                         &
+       &      'density'              , &
+       &      density                , &
+       &      [                        &
+       &       3.844641857939078d-1  , &
+       &       1.557079952465327d-1  , &
+       &       5.406527612726829d-2  , &
+       &       1.520585891079421d-2  , &
+       &       3.379079757954268d-3  , &
+       &       6.082343564317684d-4  , &
+       &       9.386332660984080d-5    &
+       &      ]                      , &
+       &      relTol=1.0d-6            &
+       &     )
+  call Assert(                            &
+       &      'radius enclosing density', &
+       &      radiusRecoveredFromDensity, &
+       &      radius                    , &
+       &      relTol=2.0d-4               &
+       &     )
+  call Assert(                                            &
+       &      'radius from specific angular momentum'   , &
+       &      radiusRecoveredFromSpecificAngularMomentum, &
+       &      radius                                    , &
+       &      relTol=2.0d-4                               &
+       &     )
+  call Assert(                                            &
+       &      'radius from freefall time'               , &
+       &      radiusRecoveredFromTimeFreefall           , &
+       &      radius                                    , &
+       &      relTol=2.0d-4                               &
+       &     )
+  call Assert(                       &
+       &      'potential'          , &
+       &      +potential             &
+       &      -potential(1)        , &
+       &      [                      &
+       &       4.412912928902085d-2, &
+       &       8.210873989889300d-2, &
+       &       1.445116765163305d-1, &
+       &       2.345367646465509d-1, &
+       &       3.444787600350539d-1, &
+       &       4.567944810866741d-1, &
+       &       5.544042971829187d-1  &
+       &      ]                      &
+       &      -4.412912928902085d-2, &
+       &      relTol=1.0d-6          &
+       &     )
+  call Assert(                         &
+       &      'fourier'              , &
+       &      fourier                , &
+       &      [                        &
+       &       1.099052711906094d-2  , &
+       &       3.746284433831412d-2  , &
+       &       1.127728075593513d-1  , &
+       &       2.619030036621630d-1  , &
+       &       5.434560723827092d-1  , &
+       &       8.448608065763800d-1  , &
+       &       9.579597044271230d-1    &
+       &      ]                      , &
+       &      relTol=1.0d-6            &
+       &     )
+  call Assert(                         &
+       &     'peak rotation velocity', &
+       &     velocityMaximum         , &
+       &     velocityMaximumIndirect , &
+       &     relTol=1.0d-6             &
+       &     )
+  call Assert(                         &
+       &     'potential energy'      , &
+       &     energyPotential         , &
+       &     energyPotentialNumerical, &
+       &     relTol=1.0d-6             &
+       &     )
+  call Assert(                         &
+       &     'kinetic energy'        , &
+       &     energyKinetic           , &
+       &     energyKineticNumerical  , &
+       &     relTol=1.0d-6             &
+       &     )
+  call Assert(                              &
+       &      'radial velocity dispersion', &
+       &      radialVelocityDispersion    , &
+       &      [                             &
+       &       6.285734096346791d-1       , &
+       &       7.048421272327700d-1       , &
+       &       7.510776824829392d-1       , &
+       &       7.558757679348769d-1       , &
+       &       7.172187600402157d-1       , &
+       &       6.441447075213688d-1       , &
+       &       5.520559866965048d-1         &
+       &      ]                           , &
+       &      relTol=1.0d-6                 &
+       &     )
+  call Unit_Tests_End_Group()  
+  !! Special case: cored NFW: (α,β,γ) = (1,3,0).
+  call Unit_Tests_Begin_Group('(α,β,γ) = (1,3,0)')
+  allocate(darkMatterProfileDMOZhao1996_)
+  !![
+   <referenceConstruct object="darkMatterProfileDMOZhao1996_">
+   <constructor>
+    darkMatterProfileDMOZhao1996 (                                          &amp;
+     &amp;                       alpha               =1.0d0               , &amp;
+     &amp;                       beta                =3.0d0               , &amp;
+     &amp;                       gamma               =0.0d0               , &amp;
+     &amp;                       darkMatterHaloScale_=darkMatterHaloScale_  &amp;
+     &amp;                      )
+   </constructor>
+  </referenceConstruct>
+  !!]
+  massDistribution_       => darkMatterProfileDMOZhao1996_%get                   (node)
+  kinematicsDistribution_ => massDistribution_            %kinematicsDistribution(    )
+  radiusVirial            =  darkMatterHaloScale_         %radiusVirial          (node)
+  timeFreefall            =  [2.912172466390932d0,3.227873348829691d0,3.870044363719088d0,5.196579302974257d0,8.00677623636939d0,1.417018715413697d1,2.823093711816523d1]
+  select type (massDistribution_)
+  class is (massDistributionSpherical)
+     do i=1,7
+        coordinates=[radiusScale*radius(i),0.0d0,0.0d0]
+        mass                                      (i)=massDistribution_      %massEnclosedBySphere             (                                                          radiusScale   *radius      (i)                      )
+        density                                   (i)=massDistribution_      %density                          (                                                                         coordinates                          )*radiusScale**3
+        radiusRecoveredFromMass                   (i)=massDistribution_      %radiusEnclosingMass              (                                                  mass(i)                                                     )/radiusScale
+        radiusRecoveredFromDensity                (i)=massDistribution_      %radiusEnclosingDensity           (                                   3.0d0/4.0d0/Pi*mass(i)/radiusScale**3/radius      (i)**3                   )/radiusScale
+        radiusRecoveredFromSpecificAngularMomentum(i)=massDistribution_      %radiusFromSpecificAngularMomentum(             sqrt(gravitationalConstantGalacticus*mass(i)*radiusScale   *radius      (i)   )                  )/radiusScale
+        radiusRecoveredFromTimeFreefall           (i)=massDistribution_      %radiusFreefall                   (                                                          timeScale     *timeFreefall(i)                      )/radiusScale
+        potential                                 (i)=massDistribution_      %potential                        (                                                                         coordinates                          )*radiusScale/gravitationalConstantGalacticus
+        fourier                                   (i)=massDistribution_      %fourierTransform                 (radiusVirial,1.0d0                                       /radiusScale   /radius      (i)                      )
+        radialVelocityDispersion                  (i)=kinematicsDistribution_%velocityDispersion1D             (                                                                         coordinates        ,massDistribution_)
+     end do
+     radiusVelocityMaximum   =massDistribution_%radiusRotationCurveMaximum  (                     )
+     velocityMaximum         =massDistribution_%velocityRotationCurveMaximum(                     )
+     velocityMaximumIndirect =massDistribution_%rotationCurve               (radiusVelocityMaximum)
+     energyPotential         =massDistribution_%energyPotential             (radiusVirial         )
+     energyPotentialNumerical=massDistribution_%energyPotentialNumerical    (radiusVirial         )
+  end select
+  !![
+  <objectDestructor name="massDistribution_"            />
+  <objectDestructor name="kinematicsDistribution_"      />
+  <objectDestructor name="darkMatterProfileDMOZhao1996_"/>
+  !!]
+  ! Radial velocity dispersion in units of virial velocity.
+  radialVelocityDispersion=radialVelocityDispersion/darkMatterHaloScale_%velocityVirial(node)
+  call Assert(                         &
+       &      'enclosed mass'        , &
+       &      mass                   , &
+       &      [                        &
+       &       5.464789985591522d-4  , &
+       &       3.442068263974007d-3  , &
+       &       1.815032503316619d-2  , &
+       &       7.461855208928223d-2  , &
+       &       2.296390885460238d-1  , &
+       &       5.359157644285496d-1  , &
+       &       1.000000000000000d+0    &
+       &      ]                      , &
+       &      relTol=1.0d-6            &
+       &     )
+  call Assert(                         &
+       &      'radius enclosing mass', &
+       &      radiusRecoveredFromMass, &
+       &      radius                 , &
+       &      relTol=1.0d-6            &
+       &     )
+  call Assert(                         &
+       &      'density'              , &
+       &      density                , &
+       &      [                        &
+       &       6.119719178912785d-2  , &
+       &       4.461275281427421d-2  , &
+       &       2.581756528603831d-2  , &
+       &       1.089178535504741d-2  , &
+       &       3.227195660754789d-3  , &
+       &       6.970742627230344d-4  , &
+       &       1.195257652131403d-4    &
+       &      ]                      , &
+       &      relTol=1.0d-6            &
+       &     )
+  call Assert(                            &
+       &      'radius enclosing density', &
+       &      radiusRecoveredFromDensity, &
+       &      radius                    , &
+       &      relTol=2.0d-4               &
+       &     )
+  call Assert(                                            &
+       &      'radius from specific angular momentum'   , &
+       &      radiusRecoveredFromSpecificAngularMomentum, &
+       &      radius                                    , &
+       &      relTol=2.0d-4                               &
+       &     )
+  call Assert(                                            &
+       &      'radius from freefall time'               , &
+       &      radiusRecoveredFromTimeFreefall           , &
+       &      radius                                    , &
+       &      relTol=2.0d-4                               &
+       &     )
+  call Assert(                       &
+       &      'potential'          , &
+       &      +potential             &
+       &      -potential(1)        , &
+       &      [                      &
+       &       2.387190797876185d-3, &
+       &       8.130960771876030d-3, &
+       &       2.453055501081222d-2, &
+       &       6.225165933429317d-2, &
+       &       1.285052760355665d-1, &
+       &       2.164088001372156d-1, &
+       &       3.075774583263617d-1  &
+       &      ]                      &
+       &      -2.387190797876185d-3, &
+       &      relTol=1.0d-6          &
+       &     )
+  call Assert(                         &
+       &      'fourier'              , &
+       &      fourier                , &
+       &      [                        &
+       &       9.697536800190850d-4  , &
+       &       8.183597728241470d-3  , &
+       &       5.062326038988727d-2  , &
+       &       1.681631870688479d-1  , &
+       &       4.620457662739311d-1  , &
+       &       8.150847326475010d-1  , &
+       &       9.497559618451080d-1    &
+       &      ]                      , &
+       &      relTol=1.0d-6            &
+       &     )
+  call Assert(                         &
+       &     'peak rotation velocity', &
+       &     velocityMaximum         , &
+       &     velocityMaximumIndirect , &
+       &     relTol=1.0d-6             &
+       &     )
+  call Assert(                         &
+       &     'potential energy'      , &
+       &     energyPotential         , &
+       &     energyPotentialNumerical, &
+       &     relTol=1.0d-6             &
+       &     )
+  call Assert(                         &
+       &     'kinetic energy'        , &
+       &     energyKinetic           , &
+       &     energyKineticNumerical  , &
+       &     relTol=1.0d-6             &
+       &     )
+  call Assert(                              &
+       &      'radial velocity dispersion', &
+       &      radialVelocityDispersion    , &
+       &      [                             &
+       &       5.214290018440262d-1       , &
+       &       5.654096128890455d-1       , &
+       &       6.175226284000780d-1       , &
+       &       6.597522036704852d-1       , &
+       &       6.699313413583514d-1       , &
+       &       6.379354590281848d-1       , &
+       &       5.714635036404890d-1         &
+       &      ]                           , &
+       &      relTol=1.0d-6                 &
+       &     )
+  call Unit_Tests_End_Group()
+  !! Special case: cored NFW: (α,β,γ) = (1,3,½).
+  call Unit_Tests_Begin_Group('(α,β,γ) = (1,3,½)')
+  allocate(darkMatterProfileDMOZhao1996_)
+  !![
+   <referenceConstruct object="darkMatterProfileDMOZhao1996_">
+   <constructor>
+    darkMatterProfileDMOZhao1996 (                                          &amp;
+     &amp;                       alpha               =1.0d0               , &amp;
+     &amp;                       beta                =3.0d0               , &amp;
+     &amp;                       gamma               =0.5d0               , &amp;
+     &amp;                       darkMatterHaloScale_=darkMatterHaloScale_  &amp;
+     &amp;                      )
+   </constructor>
+  </referenceConstruct>
+  !!]
+  massDistribution_       => darkMatterProfileDMOZhao1996_%get                   (node)
+  kinematicsDistribution_ => massDistribution_            %kinematicsDistribution(    )
+  radiusVirial            =  darkMatterHaloScale_         %radiusVirial          (node)
+  timeFreefall            =  [1.596420780360787d0,2.059037739059005d0,2.826539348071723d0,4.248077776277237d0,7.134952215026308d0,1.342236886351155d1,2.785866097530184d1]
+  select type (massDistribution_)
+  class is (massDistributionSpherical)
+     do i=1,7
+        coordinates=[radiusScale*radius(i),0.0d0,0.0d0]
+        mass                                      (i)=massDistribution_      %massEnclosedBySphere             (                                                          radiusScale   *radius      (i)                      )
+        density                                   (i)=massDistribution_      %density                          (                                                                         coordinates                          )*radiusScale**3
+        radiusRecoveredFromMass                   (i)=massDistribution_      %radiusEnclosingMass              (                                                  mass(i)                                                     )/radiusScale
+        radiusRecoveredFromDensity                (i)=massDistribution_      %radiusEnclosingDensity           (                                   3.0d0/4.0d0/Pi*mass(i)/radiusScale**3/radius      (i)**3                   )/radiusScale
+        radiusRecoveredFromSpecificAngularMomentum(i)=massDistribution_      %radiusFromSpecificAngularMomentum(             sqrt(gravitationalConstantGalacticus*mass(i)*radiusScale   *radius      (i)   )                  )/radiusScale
+        radiusRecoveredFromTimeFreefall           (i)=massDistribution_      %radiusFreefall                   (                                                          timeScale     *timeFreefall(i)                      )/radiusScale
+        potential                                 (i)=massDistribution_      %potential                        (                                                                         coordinates                          )*radiusScale/gravitationalConstantGalacticus
+        fourier                                   (i)=massDistribution_      %fourierTransform                 (radiusVirial,1.0d0                                       /radiusScale   /radius      (i)                      )
+        radialVelocityDispersion                  (i)=kinematicsDistribution_%velocityDispersion1D             (                                                                         coordinates        ,massDistribution_)
+     end do
+     radiusVelocityMaximum   =massDistribution_%radiusRotationCurveMaximum  (                     )
+     velocityMaximum         =massDistribution_%velocityRotationCurveMaximum(                     )
+     velocityMaximumIndirect =massDistribution_%rotationCurve               (radiusVelocityMaximum)
+     energyPotential         =massDistribution_%energyPotential             (radiusVirial         )
+     energyPotentialNumerical=massDistribution_%energyPotentialNumerical    (radiusVirial         )
+  end select
+  !![
+  <objectDestructor name="massDistribution_"            />
+  <objectDestructor name="kinematicsDistribution_"      />
+  <objectDestructor name="darkMatterProfileDMOZhao1996_"/>
+  !!]
+  ! Radial velocity dispersion in units of virial velocity.
+  radialVelocityDispersion=radialVelocityDispersion/darkMatterHaloScale_%velocityVirial(node)
+  call Assert(                         &
+       &      'enclosed mass'        , &
+       &      mass                   , &
+       &      [                        &
+       &1.654826011427427d-3,&
+       &7.739711640396846d-3,&
+       &3.140778408165459d-2,&
+       &1.043599712384584d-1,&
+       &2.742860732070792d-1,&
+       &5.747348550741195d-1,&
+       &1.d0&
+       &      ]                      , &
+       &      relTol=1.0d-6            &
+       &     )
+  call Assert(                         &
+       &      'radius enclosing mass', &
+       &      radiusRecoveredFromMass, &
+       &      radius                 , &
+       &      relTol=1.0d-6            &
+       &     )
+  call Assert(                         &
+       &      'density'              , &
+       &      density                , &
+       &      [                        &
+       &1.550807828980169d-1,&
+       &       8.42653949330162d-2,&
+       &       3.777297120800491d-2,&
+       &       1.301125858993861d-2,&
+       &       3.338690510843061d-3,&
+       &       6.583233979141888d-4,&
+       &       1.070885480653384d-4&
+       &      ]                      , &
+       &      relTol=1.0d-6            &
+       &     )
+  call Assert(                            &
+       &      'radius enclosing density', &
+       &      radiusRecoveredFromDensity, &
+       &      radius                    , &
+       &      relTol=2.0d-4               &
+       &     )
+  call Assert(                                            &
+       &      'radius from specific angular momentum'   , &
+       &      radiusRecoveredFromSpecificAngularMomentum, &
+       &      radius                                    , &
+       &      relTol=2.0d-4                               &
+       &     )
+  call Assert(                                            &
+       &      'radius from freefall time'               , &
+       &      radiusRecoveredFromTimeFreefall           , &
+       &      radius                                    , &
+       &      relTol=2.0d-4                               &
+       &     )
+  call Assert(                       &
+       &      'potential'          , &
+       &      +potential             &
+       &      -potential(1)        , &
+       &      [                      &
+       &9.59892229601949d-3,&
+       &       2.419272545370556d-2,&
+       &       5.585172068801785d-2,&
+       &       1.136457588954521d-1,&
+       &       1.98498742003645d-1,&
+       &       2.975288623538137d-1,&
+       &       3.917543232803806d-1&
+       &      ]                      &
+       &      -9.59892229601949d-3, &
+       &      relTol=1.0d-6          &
+       &     )
+  call Assert(                         &
+       &      'fourier'              , &
+       &      fourier                , &
+       &      [                        &
+       &3.707401665292136d-3,&
+       &       1.826316873546129d-2,&
+       &       7.540534190396314d-2,&
+       &       2.092215103402299d-1,&
+       &       4.994927051818294d-1,&
+       &       8.28909754178526d-1,&
+       &       9.53572760138475d-1&
+       &      ]                      , &
+       &      relTol=1.0d-6            &
+       &     )
+  call Assert(                         &
+       &     'peak rotation velocity', &
+       &     velocityMaximum         , &
+       &     velocityMaximumIndirect , &
+       &     relTol=1.0d-6             &
+       &     )
+  call Assert(                         &
+       &     'potential energy'      , &
+       &     energyPotential         , &
+       &     energyPotentialNumerical, &
+       &     relTol=1.0d-6             &
+       &     )
+  call Assert(                         &
+       &     'kinetic energy'        , &
+       &     energyKinetic           , &
+       &     energyKineticNumerical  , &
+       &     relTol=1.0d-6             &
+       &     )
+  call Assert(                              &
+       &      'radial velocity dispersion', &
+       &      radialVelocityDispersion    , &
+       &      [                             &
+       &5.347095696836751d-1,&
+       &       6.083588653620841d-1,&
+       &       6.691204678148943d-1,&
+       &       7.007128495278605d-1,&
+       &       6.909164992407667d-1,&
+       &       6.403334146398749d-1,&
+       &       5.617664344971543d-1&
+       &      ]                           , &
+       &      relTol=1.0d-6                 &
+       &     )
+  call Unit_Tests_End_Group()
+  !! Special case: cored NFW: (α,β,γ) = (1,3,1½).
+  call Unit_Tests_Begin_Group('(α,β,γ) = (1,3,1½)')
+  allocate(darkMatterProfileDMOZhao1996_)
+  !![
+   <referenceConstruct object="darkMatterProfileDMOZhao1996_">
+   <constructor>
+    darkMatterProfileDMOZhao1996 (                                          &amp;
+     &amp;                       alpha               =1.0d0               , &amp;
+     &amp;                       beta                =3.0d0               , &amp;
+     &amp;                       gamma               =1.5d0               , &amp;
+     &amp;                       darkMatterHaloScale_=darkMatterHaloScale_  &amp;
+     &amp;                      )
+   </constructor>
+  </referenceConstruct>
+  !!]
+  massDistribution_       => darkMatterProfileDMOZhao1996_%get                   (node)
+  kinematicsDistribution_ => massDistribution_            %kinematicsDistribution(    )
+  radiusVirial            =  darkMatterHaloScale_         %radiusVirial          (node)
+  timeFreefall            =  [4.596100900700435d-1,8.05108081560643d-1,1.455969425989372d0,2.760391236512836d0,5.555351793104961d0,1.191020177556312d1,2.703975097809943d1]
+  select type (massDistribution_)
+  class is (massDistributionSpherical)
+     do i=1,7
+        coordinates=[radiusScale*radius(i),0.0d0,0.0d0]
+        mass                                      (i)=massDistribution_      %massEnclosedBySphere             (                                                          radiusScale   *radius      (i)                      )
+        density                                   (i)=massDistribution_      %density                          (                                                                         coordinates                          )*radiusScale**3
+        radiusRecoveredFromMass                   (i)=massDistribution_      %radiusEnclosingMass              (                                                  mass(i)                                                     )/radiusScale
+        radiusRecoveredFromDensity                (i)=massDistribution_      %radiusEnclosingDensity           (                                   3.0d0/4.0d0/Pi*mass(i)/radiusScale**3/radius      (i)**3                   )/radiusScale
+        radiusRecoveredFromSpecificAngularMomentum(i)=massDistribution_      %radiusFromSpecificAngularMomentum(             sqrt(gravitationalConstantGalacticus*mass(i)*radiusScale   *radius      (i)   )                  )/radiusScale
+        radiusRecoveredFromTimeFreefall           (i)=massDistribution_      %radiusFreefall                   (                                                          timeScale     *timeFreefall(i)                      )/radiusScale
+        potential                                 (i)=massDistribution_      %potential                        (                                                                         coordinates                          )*radiusScale/gravitationalConstantGalacticus
+        fourier                                   (i)=massDistribution_      %fourierTransform                 (radiusVirial,1.0d0                                       /radiusScale   /radius      (i)                      )
+        radialVelocityDispersion                  (i)=kinematicsDistribution_%velocityDispersion1D             (                                                                         coordinates        ,massDistribution_)
+     end do
+     radiusVelocityMaximum   =massDistribution_%radiusRotationCurveMaximum  (                     )
+     velocityMaximum         =massDistribution_%velocityRotationCurveMaximum(                     )
+     velocityMaximumIndirect =massDistribution_%rotationCurve               (radiusVelocityMaximum)
+     energyPotential         =massDistribution_%energyPotential             (radiusVirial         )
+     energyPotentialNumerical=massDistribution_%energyPotentialNumerical    (radiusVirial         )
+  end select
+  !![
+  <objectDestructor name="massDistribution_"            />
+  <objectDestructor name="kinematicsDistribution_"      />
+  <objectDestructor name="darkMatterProfileDMOZhao1996_"/>
+  !!]
+  ! Radial velocity dispersion in units of virial velocity.
+  radialVelocityDispersion=radialVelocityDispersion/darkMatterHaloScale_%velocityVirial(node)
+  call Assert(                         &
+       &      'enclosed mass'        , &
+       &      mass                   , &
+       &      [                        &
+       &       1.614787314131082d-2  , &
+       &       4.146438397463787d-2  , &
+       &       9.894487896260260d-2  , &
+       &       2.125365304218604d-1  , &
+       &       4.021269908070108d-1  , &
+       &       6.698167367007793d-1  , &
+       &       1.000000000000000d+0    &
+       &      ]                      , &
+       &      relTol=1.0d-6            &
+       &     )
+  call Assert(                         &
+       &      'radius enclosing mass', &
+       &      radiusRecoveredFromMass, &
+       &      radius                 , &
+       &      relTol=1.0d-6            &
+       &     )
+  call Assert(                         &
+       &      'density'              , &
+       &      density                , &
+       &      [                        &
+       &       9.202064069700650d-1  , &
+       &       2.777819507076467d-1  , &
+       &       7.471144923386984d-2  , &
+       &       1.715671205314034d-2  , &
+       &       3.301810774096491d-3  , &
+       &       5.425428724758725d-4  , &
+       &       7.942922246824230d-5    &
+       &      ]                      , &
+       &      relTol=1.0d-6            &
+       &     )
+  call Assert(                            &
+       &      'radius enclosing density', &
+       &      radiusRecoveredFromDensity, &
+       &      radius                    , &
+       &      relTol=2.0d-4               &
+       &     )
+  call Assert(                                            &
+       &      'radius from specific angular momentum'   , &
+       &      radiusRecoveredFromSpecificAngularMomentum, &
+       &      radius                                    , &
+       &      relTol=2.0d-4                               &
+       &     )
+  call Assert(                                            &
+       &      'radius from freefall time'               , &
+       &      radiusRecoveredFromTimeFreefall           , &
+       &      radius                                    , &
+       &      relTol=2.0d-4                               &
+       &     )
+  call Assert(                       &
+       &      'potential'          , &
+       &      +potential             &
+       &      -potential(1)        , &
+       &      [                      &
+       &       2.773517522337437d-1, &
+       &       3.795660488783141d-1, &
+       &       5.062490622313113d-1, &
+       &       6.498538783125577d-1, &
+       &       7.947391738552302d-1, &
+       &       9.233929853785370d-1, &
+       &       1.024853878312558d+0  &
+       &      ]                      &
+       &      -2.773517522337437d-1, &
+       &      relTol=1.0d-6          &
+       &     )
+  call Assert(                         &
+       &      'fourier'              , &
+       &      fourier                , &
+       &      [                        &
+       &       3.012898538414511d-2  , &
+       &       7.490502708109203d-2  , &
+       &       1.710991422211459d-1  , &
+       &       3.320442821775421d-1  , &
+       &       5.969264990169439d-1  , &
+       &       8.639011197411600d-1  , &
+       &       9.631744296899940d-1    &
+       &      ]                      , &
+       &      relTol=1.0d-5            &
+       &     )
+  call Assert(                         &
+       &     'peak rotation velocity', &
+       &     velocityMaximum         , &
+       &     velocityMaximumIndirect , &
+       &     relTol=1.0d-6             &
+       &     )
+  call Assert(                         &
+       &     'potential energy'      , &
+       &     energyPotential         , &
+       &     energyPotentialNumerical, &
+       &     relTol=1.0d-6             &
+       &     )
+  call Assert(                         &
+       &     'kinetic energy'        , &
+       &     energyKinetic           , &
+       &     energyKineticNumerical  , &
+       &     relTol=1.0d-6             &
+       &     )
+  call Assert(                              &
+       &      'radial velocity dispersion', &
+       &      radialVelocityDispersion    , &
+       &      [                             &
+       &       8.363292318000940d-1       , &
+       &       8.746095866642690d-1       , &
+       &       8.733596657690690d-1       , &
+       &       8.296377525840130d-1       , &
+       &       7.505291252896317d-1       , &
+       &       6.497937689634748d-1       , &
+       &       5.421632188128948d-1         &
+       &      ]                           , &
+       &      relTol=1.0d-6                 &
+       &     )
+  call Unit_Tests_End_Group()    
+  !! General case: (α,β,γ) = (1,2,1).
+  call Unit_Tests_Begin_Group('(α,β,γ) = (1,2,1)')
+  allocate(darkMatterProfileDMOZhao1996_)
+  !![
+   <referenceConstruct object="darkMatterProfileDMOZhao1996_">
+   <constructor>
+    darkMatterProfileDMOZhao1996 (                                          &amp;
+     &amp;                       alpha               =1.0d0               , &amp;
+     &amp;                       beta                =2.0d0               , &amp;
+     &amp;                       gamma               =1.0d0               , &amp;
+     &amp;                       darkMatterHaloScale_=darkMatterHaloScale_  &amp;
+     &amp;                      )
+   </constructor>
+  </referenceConstruct>
+  !!]
+  massDistribution_       => darkMatterProfileDMOZhao1996_%get                   (node)
+  kinematicsDistribution_ => massDistribution_            %kinematicsDistribution(    )
+  radiusVirial            =  darkMatterHaloScale_         %radiusVirial          (node)
+  timeFreefall            =  [1.760884513374176d0,2.56756519338419d0,3.83552259760776d0,5.9420179316033d0,9.64631439102321d0,1.646977873143257d1,2.944555422801916d1]
+  select type (massDistribution_)
+  class is (massDistributionSpherical)
+     do i=1,7
+        coordinates=[radiusScale*radius(i),0.0d0,0.0d0]
+        mass                                      (i)=massDistribution_      %massEnclosedBySphere             (                                                          radiusScale   *radius      (i)                      )
+        density                                   (i)=massDistribution_      %density                          (                                                                         coordinates                          )*radiusScale**3
+        radiusRecoveredFromMass                   (i)=massDistribution_      %radiusEnclosingMass              (                                                  mass(i)                                                     )/radiusScale
+        radiusRecoveredFromDensity                (i)=massDistribution_      %radiusEnclosingDensity           (                                   3.0d0/4.0d0/Pi*mass(i)/radiusScale**3/radius      (i)**3                   )/radiusScale
+        radiusRecoveredFromSpecificAngularMomentum(i)=massDistribution_      %radiusFromSpecificAngularMomentum(             sqrt(gravitationalConstantGalacticus*mass(i)*radiusScale   *radius      (i)   )                  )/radiusScale
+        radiusRecoveredFromTimeFreefall           (i)=massDistribution_      %radiusFreefall                   (                                                          timeScale     *timeFreefall(i)                      )/radiusScale
+        potential                                 (i)=massDistribution_      %potential                        (                                                                         coordinates                          )*radiusScale/gravitationalConstantGalacticus
+        fourier                                   (i)=massDistribution_      %fourierTransform                 (radiusVirial,1.0d0                                       /radiusScale   /radius      (i)                      )
+        radialVelocityDispersion                  (i)=kinematicsDistribution_%velocityDispersion1D             (                                                                         coordinates        ,massDistribution_)
+     end do
+     radiusVelocityMaximum   =massDistribution_%radiusRotationCurveMaximum  (                     )
+     velocityMaximum         =massDistribution_%velocityRotationCurveMaximum(                     )
+     velocityMaximumIndirect =massDistribution_%rotationCurve               (radiusVelocityMaximum)
+     energyPotential         =massDistribution_%energyPotential             (radiusVirial         )
+     energyPotentialNumerical=massDistribution_%energyPotentialNumerical    (radiusVirial         )
+  end select
+  !![
+  <objectDestructor name="massDistribution_"            />
+  <objectDestructor name="kinematicsDistribution_"      />
+  <objectDestructor name="darkMatterProfileDMOZhao1996_"/>
+  !!]
+  ! Radial velocity dispersion in units of virial velocity.
+  radialVelocityDispersion=radialVelocityDispersion/darkMatterHaloScale_%velocityVirial(node)
+  call Assert(                         &
+       &      'enclosed mass'        , &
+       &      mass                   , &
+       &      [                        &
+       &       1.243709056088815d-3  , &
+       &       4.628207492038648d-3  , &
+       &       1.629132354883366d-2  , &
+       &       5.288035415632079d-2  , &
+       &       1.553373421641236d-1  , &
+       &       4.119687414110722d-1  , &
+       &       1.000000000000000d+0    &
+       &      ]                      , &
+       &      relTol=1.0d-6            &
+       &     )
+  call Assert(                         &
+       &      'radius enclosing mass', &
+       &      radiusRecoveredFromMass, &
+       &      radius                 , &
+       &      relTol=1.0d-6            &
+       &     )
+  call Assert(                         &
+       &      'density'              , &
+       &      density                , &
+       &      [                        &
+       &       9.751958345559170d-2  , &
+       &       4.388381255501626d-2  , &
+       &       1.828492189792344d-2  , &
+       &       6.856845711721292d-3  , &
+       &       2.285615237240430d-3  , &
+       &       6.856845711721292d-4  , &
+       &       1.904679364367025d-4    &
+       &      ]                      , &
+       &      relTol=1.0d-6            &
+       &     )
+  call Assert(                            &
+       &      'radius enclosing density', &
+       &      radiusRecoveredFromDensity, &
+       &      radius                    , &
+       &      relTol=2.0d-4               &
+       &     )
+  call Assert(                                            &
+       &      'radius from specific angular momentum'   , &
+       &      radiusRecoveredFromSpecificAngularMomentum, &
+       &      radius                                    , &
+       &      relTol=2.0d-4                               &
+       &     )
+  call Assert(                                            &
+       &      'radius from freefall time'               , &
+       &      radiusRecoveredFromTimeFreefall           , &
+       &      radius                                    , &
+       &      relTol=2.0d-4                               &
+       &     )
+  call Assert(                       &
+       &      'potential'          , &
+       &      +potential             &
+       &      -potential(1)        , &
+       &      [                      &
+       &       1.034803460994295d-2, &
+       &       1.994179476929133d-2, &
+       &       3.729169381246816d-2, &
+       &       6.657062060529668d-2, &
+       &       1.116566445896912d-1, &
+       &       1.743643889079128d-1, &
+       &       2.536506313435059d-1  &
+       &      ]                      &
+       &      -1.034803460994295d-2, &
+       &      relTol=1.0d-6          &
+       &     )
+  call Assert(                         &
+       &      'fourier'              , &
+       &      fourier                , &
+       &      [                        &
+       &       2.498947569002664d-3  , &
+       &       8.859191321495360d-3  , &
+       &       3.901409916856754d-2  , &
+       &       1.078443248271426d-1  , &
+       &       3.537730117747184d-1  , &
+       &       7.703987792232572d-1  , &
+       &       9.371207041223680d-1    &
+       &      ]                      , &
+       &      relTol=1.0d-5            &
+       &     )
+  call Assert(                         &
+       &     'peak rotation velocity', &
+       &     velocityMaximum         , &
+       &     velocityMaximumIndirect , &
+       &     relTol=1.0d-6             &
+       &     )
+  call Assert(                         &
+       &     'potential energy'      , &
+       &     energyPotential         , &
+       &     energyPotentialNumerical, &
+       &     relTol=1.0d-6             &
+       &     )
+  call Assert(                         &
+       &     'kinetic energy'        , &
+       &     energyKinetic           , &
+       &     energyKineticNumerical  , &
+       &     relTol=1.0d-6             &
+       &     )
+  call Assert(                              &
+       &      'radial velocity dispersion', &
+       &      radialVelocityDispersion    , &
+       &      [                             &
+       &       3.790874753794872d-1       , &
+       &       4.539034405088716d-1       , &
+       &       5.289441877216294d-1       , &
+       &       5.997499368748768d-1       , &
+       &       6.624381831647858d-1       , &
+       &       7.141526014953340d-1       , &
+       &       7.536975187158942d-1         &
+       &      ]                           , &
+       &      relTol=1.0d-3                 &
+       &     )
+  call Unit_Tests_End_Group()  
+  call Unit_Tests_End_Group()
   ! Test Burkert profile.
   call Unit_Tests_Begin_Group('Burkert profile')
   massDistribution_       => darkMatterProfileDMOBurkert_%get                   (node)
-  radiusVirial            =  darkMatterHaloScale_    %radiusVirial          (node)
+  kinematicsDistribution_ => massDistribution_           %kinematicsDistribution(    )
+  radiusVirial            =  darkMatterHaloScale_        %radiusVirial          (node)
   timeFreefall            =  [3.378196272398096d0,3.533466912782305d0,3.901024113095533d0,4.840727096354573d0,7.260451446070998d0,1.323150559822296d1,2.774028478732573d1]
   select type (massDistribution_)
   class is (massDistributionSpherical)
@@ -265,6 +1075,7 @@ program Test_Dark_Matter_Profiles
         radiusRecoveredFromTimeFreefall           (i)=massDistribution_      %radiusFreefall                   (                                                          timeScale     *timeFreefall(i)                      )/radiusScale
         potential                                 (i)=massDistribution_      %potential                        (                                                                         coordinates                          )*radiusScale/gravitationalConstantGalacticus
         fourier                                   (i)=massDistribution_      %fourierTransform                 (radiusVirial,1.0d0                                       /radiusScale   /radius      (i)                      )
+        radialVelocityDispersion                  (i)=kinematicsDistribution_%velocityDispersion1D             (                                                                         coordinates        ,massDistribution_)
      end do
      radiusVelocityMaximum   =massDistribution_%radiusRotationCurveMaximum  (                     )
      velocityMaximum         =massDistribution_%velocityRotationCurveMaximum(                     )
@@ -274,7 +1085,10 @@ program Test_Dark_Matter_Profiles
   end select
   !![
   <objectDestructor name="massDistribution_"      />
+  <objectDestructor name="kinematicsDistribution_"/>
   !!]
+  ! Radial velocity dispersion in units of virial velocity.
+  radialVelocityDispersion=radialVelocityDispersion/darkMatterHaloScale_%velocityVirial(node)
   call Assert(                        &
        &      'enclosed mass'       , &
        &      mass                  , &
@@ -368,6 +1182,20 @@ program Test_Dark_Matter_Profiles
        &     energyPotential         , &
        &     energyPotentialNumerical, &
        &     relTol=1.0d-6             &
+       &     )
+  call Assert(                                         &
+       &      'radial velocity dispersion (analytic)', &
+       &      radialVelocityDispersion               , &
+       &      [                                        &
+       &       6.395640553962476d-1                  , &
+       &       6.595971570604928d-1                  , &
+       &       6.818328396903716d-1                  , &
+       &       6.957079957624708d-1                  , &
+       &       6.836738566635967d-1                  , &
+       &       6.307711855060676d-1                  , &
+       &       5.466303194157120d-1                    &
+       &      ]                                      , &
+       &      relTol=1.0d-6                            &
        &     )
   call Unit_Tests_End_Group       ()
   ! Test NFW profile.

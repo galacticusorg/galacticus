@@ -67,6 +67,7 @@
      final     ::                                      zhao1996Destructor
      procedure :: autoHook                          => zhao1996AutoHook
      procedure :: calculationReset                  => zhao1996CalculationReset
+     procedure :: get                               => zhao1996Get
      procedure :: exponents                         => zhao1996Exponents
      procedure :: scaleRadius                       => zhao1996ScaleRadius
      procedure :: normalization                     => zhao1996Normalization
@@ -213,6 +214,72 @@ contains
     call calculationResetEvent%attach(self,zhao1996CalculationReset,openMPThreadBindingAllLevels,label='darkMatterProfileDMOZhao1996')
     return
   end subroutine zhao1996AutoHook
+
+  function zhao1996Get(self,node,weightBy,weightIndex) result(massDistribution_)
+    !!{
+    Return the dark matter mass distribution for the given {\normalfont \ttfamily node}.
+    !!}
+    use :: Galacticus_Nodes          , only : nodeComponentBasic      , nodeComponentDarkMatterProfile
+    use :: Galactic_Structure_Options, only : componentTypeDarkHalo   , massTypeDark                  , weightByMass
+    use :: Mass_Distributions        , only : massDistributionZhao1996, kinematicsDistributionZhao1996
+    implicit none
+    class           (massDistributionClass          ), pointer                 :: massDistribution_
+    type            (kinematicsDistributionZhao1996 ), pointer                 :: kinematicsDistribution_
+    class           (darkMatterProfileDMOZhao1996   ), intent(inout)           :: self
+    type            (treeNode                       ), intent(inout)           :: node
+    type            (enumerationWeightByType        ), intent(in   ), optional :: weightBy
+    integer                                          , intent(in   ), optional :: weightIndex
+    class           (nodeComponentBasic             ), pointer                 :: basic
+    class           (nodeComponentDarkMatterProfile ), pointer                 :: darkMatterProfile
+    double precision                                                           :: alpha                  , beta, &
+         &                                                                        gamma
+    !![
+    <optionalArgument name="weightBy" defaultsTo="weightByMass" />
+    !!]
+
+    ! Assume a null distribution by default.
+    massDistribution_ => null()
+    ! If weighting is not by mass, return a null profile.
+    if (weightBy_ /= weightByMass) return
+    ! Create the mass distribution.
+    allocate(massDistributionZhao1996 :: massDistribution_)
+    select type(massDistribution_)
+    type is (massDistributionZhao1996)
+       basic             => node%basic            ()
+       darkMatterProfile => node%darkMatterProfile()
+       call self%exponents(node,alpha,beta,gamma)
+       !![
+       <referenceConstruct object="massDistribution_">
+	 <constructor>
+           massDistributionZhao1996(                                                                                  &amp;
+           &amp;                    mass         =basic            %mass                                      (    ), &amp;
+           &amp;                    radiusOuter  =self             %darkMatterHaloScale_%radiusVirial         (node), &amp;
+           &amp;                    scaleLength  =darkMatterProfile%scale                                     (    ), &amp;
+           &amp;                    alpha        =                  alpha                                           , &amp;
+           &amp;                    beta         =                  beta                                            , &amp;
+           &amp;                    gamma        =                  gamma                                           , &amp;
+           &amp;                    componentType=                                       componentTypeDarkHalo      , &amp;
+           &amp;                    massType     =                                       massTypeDark                 &amp;
+           &amp;                   )
+	 </constructor>
+       </referenceConstruct>
+       !!]
+    end select
+    allocate(kinematicsDistribution_)
+    !![
+    <referenceConstruct object="kinematicsDistribution_">
+      <constructor>
+        kinematicsDistributionZhao1996( &amp;
+	 &amp;                       )
+      </constructor>
+    </referenceConstruct>
+    !!]
+    call massDistribution_%setKinematicsDistribution(kinematicsDistribution_)
+    !![
+    <objectDestructor name="kinematicsDistribution_"/>
+    !!]
+    return
+  end function zhao1996Get
 
   subroutine zhao1996Destructor(self)
     !!{
