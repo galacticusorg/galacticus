@@ -219,7 +219,7 @@ contains
     !!{
     Return the dark matter mass distribution for the given {\normalfont \ttfamily node}.
     !!}
-    use :: Galacticus_Nodes          , only : nodeComponentBasic      , nodeComponentDarkMatterProfile
+    use :: Galacticus_Nodes          , only : nodeComponentBasic
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo   , massTypeDark                  , weightByMass
     use :: Mass_Distributions        , only : massDistributionZhao1996, kinematicsDistributionZhao1996
     implicit none
@@ -230,9 +230,8 @@ contains
     type            (enumerationWeightByType        ), intent(in   ), optional :: weightBy
     integer                                          , intent(in   ), optional :: weightIndex
     class           (nodeComponentBasic             ), pointer                 :: basic
-    class           (nodeComponentDarkMatterProfile ), pointer                 :: darkMatterProfile
-    double precision                                                           :: alpha                  , beta, &
-         &                                                                        gamma
+    double precision                                                           :: alpha                  , beta       , &
+         &                                                                        gamma                  , scaleRadius
     !![
     <optionalArgument name="weightBy" defaultsTo="weightByMass" />
     !!]
@@ -245,8 +244,8 @@ contains
     allocate(massDistributionZhao1996 :: massDistribution_)
     select type(massDistribution_)
     type is (massDistributionZhao1996)
-       basic             => node%basic            ()
-       darkMatterProfile => node%darkMatterProfile()
+       basic       => node%basic      (    )
+       scaleRadius =  self%scaleRadius(node)       
        call self%exponents(node,alpha,beta,gamma)
        !![
        <referenceConstruct object="massDistribution_">
@@ -254,7 +253,7 @@ contains
            massDistributionZhao1996(                                                                                  &amp;
            &amp;                    mass         =basic            %mass                                      (    ), &amp;
            &amp;                    radiusOuter  =self             %darkMatterHaloScale_%radiusVirial         (node), &amp;
-           &amp;                    scaleLength  =darkMatterProfile%scale                                     (    ), &amp;
+           &amp;                    scaleLength  =                  scaleRadius                                     , &amp;
            &amp;                    alpha        =                  alpha                                           , &amp;
            &amp;                    beta         =                  beta                                            , &amp;
            &amp;                    gamma        =                  gamma                                           , &amp;
