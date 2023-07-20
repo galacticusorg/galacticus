@@ -43,7 +43,7 @@
     </description>
   </massDistribution>
   !!]
-  type, extends(massDistributionSpherical) :: massDistributionSphericalHeated
+  type, extends(massDistributionSphericalDecorator) :: massDistributionSphericalHeated
      !!{
      Implementation of a heated spherical mass distribution.
      !!}
@@ -55,11 +55,9 @@
      </methods>
      !!]
      private
-     class           (massDistributionSpherical        ), pointer :: massDistribution_        => null()
-     class           (massDistributionHeatingClass     ), pointer :: massDistributionHeating_ => null()
-     double precision                                             :: radiusFinalPrevious               , radiusInitialPrevious
-     type            (rootFinder                       )          :: finder
-     type            (enumerationNonAnalyticSolversType)          :: nonAnalyticSolver
+     class           (massDistributionHeatingClass), pointer :: massDistributionHeating_ => null()
+     double precision                                        :: radiusFinalPrevious               , radiusInitialPrevious
+     type            (rootFinder                  )          :: finder
    contains
      !![
      <methods>
@@ -67,19 +65,11 @@
        <method method="noShellCrossingIsValid" description="Return true if the no-shell crossing assumption is locally valid."                              />
      </methods>
      !!]
-     procedure :: radiusInitial                     => sphericalHeatedRadiusInitial
-     procedure :: noShellCrossingIsValid            => sphericalHeatedNoShellCrossingIsValid
-     procedure :: density                           => sphericalHeatedDensity
-     procedure :: massEnclosedBySphere              => sphericalHeatedMassEnclosedBySphere
-     procedure :: radiusEnclosingMass               => sphericalHeatedRadiusEnclosingMass
-     procedure :: densityGradientRadial             => sphericalHeatedDensityGradientRadial
-     procedure :: densityRadialMoment               => sphericalHeatedDensityRadialMoment
-     procedure :: radiusEnclosingDensity            => sphericalHeatedRadiusEnclosingDensity
-     procedure :: radiusFromSpecificAngularMomentum => sphericalHeatedRadiusFromSpecificAngularMomentum
-     procedure :: fourierTransform                  => sphericalHeatedFourierTransform
-     procedure :: radiusFreefall                    => sphericalHeatedRadiusFreefall
-     procedure :: radiusFreefallIncreaseRate        => sphericalHeatedRadiusFreefallIncreaseRate 
-     procedure :: potential                         => sphericalHeatedPotential
+     procedure :: radiusInitial          => sphericalHeatedRadiusInitial
+     procedure :: noShellCrossingIsValid => sphericalHeatedNoShellCrossingIsValid
+     procedure :: density                => sphericalHeatedDensity
+     procedure :: radiusEnclosingMass    => sphericalHeatedRadiusEnclosingMass
+     procedure :: useUndecorated         => sphericalHeatedUseUndecorated
   end type massDistributionSphericalHeated
 
   interface massDistributionSphericalHeated
@@ -172,6 +162,17 @@ contains
     !!]
     return
   end subroutine sphericalHeatedDestructor
+
+  logical function sphericalHeatedUseUndecorated(self) result(useUndecorated)
+    !!{
+    Determines whether to use the undecorated solution.
+    !!}
+    implicit none
+    class(massDistributionSphericalHeated), intent(inout) :: self
+
+    useUndecorated=self%nonAnalyticSolver == nonAnalyticSolversFallThrough .or. self%massDistributionHeating_%specificEnergyIsEverywhereZero()
+    return
+  end function sphericalHeatedUseUndecorated
   
   double precision function sphericalHeatedDensity(self,coordinates,componentType,massType) result(density)
     !!{
@@ -240,24 +241,6 @@ contains
     end if
     return
   end function sphericalHeatedDensity
-
-  double precision function sphericalHeatedMassEnclosedBySphere(self,radius,componentType,massType) result(mass)
-    !!{
-    Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for heated mass distributions.
-    !!}
-    implicit none
-    class           (massDistributionSphericalHeated), intent(inout), target   :: self
-    double precision                                 , intent(in   )           :: radius
-    type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType        ), intent(in   ), optional :: massType
-
-    if (.not.self%matches(componentType,massType)) then
-       mass=0.0d0
-    else
-       mass=self%massDistribution_%massEnclosedBySphere(self%radiusInitial(radius))
-    end if
-    return
-  end function sphericalHeatedMassEnclosedBySphere
 
   double precision function sphericalHeatedRadiusInitial(self,radiusFinal) result(radiusInitial)
     !!{
@@ -417,172 +400,3 @@ contains
     end if
     return
   end function sphericalHeatedRadiusEnclosingMass
-  
-  double precision function sphericalHeatedDensityGradientRadial(self,coordinates,logarithmic,componentType,massType) result(densityGradient)
-    !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in a heated spherical mass distribution.
-    !!}
-    implicit none
-    class           (massDistributionSphericalHeated), intent(inout), target   :: self
-    class           (coordinate                     ), intent(in   )           :: coordinates
-    logical                                          , intent(in   ), optional :: logarithmic
-    type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType        ), intent(in   ), optional :: massType
-
-    if      (.not.self%matches(componentType,massType)) then
-       densityGradient=+0.0d0
-    else if (self%massDistributionHeating_%specificEnergyIsEverywhereZero() .or. self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
-       densityGradient=+self%massDistribution_%densityGradientRadial         (coordinates,logarithmic)
-    else
-       densityGradient=+self                  %densityGradientRadialNumerical(coordinates,logarithmic)
-    end if
-    return
-  end function sphericalHeatedDensityGradientRadial
-  
-  double precision function sphericalHeatedRadiusEnclosingDensity(self,density,componentType,massType) result(radius)
-    !!{
-    Computes the radius enclosing a given mean density for heated spherical mass distributions.
-    !!}
-    use :: Numerical_Constants_Math, only : Pi
-    implicit none
-    class           (massDistributionSphericalHeated), intent(inout), target   :: self
-    double precision                                 , intent(in   )           :: density
-    type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType        ), intent(in   ), optional :: massType
-
-    if (.not.self%matches(componentType,massType)) then
-       radius=+0.0d0
-    else if (self%massDistributionHeating_%specificEnergyIsEverywhereZero() .or. self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
-       radius=+self%massDistribution_%radiusEnclosingDensity         (density)
-    else
-       radius=+self                  %radiusEnclosingDensityNumerical(density)
-    end if
-    return
-  end function sphericalHeatedRadiusEnclosingDensity
-  
-  double precision function sphericalHeatedRadiusFromSpecificAngularMomentum(self,angularMomentumSpecific,componentType,massType) result(radius)
-    !!{
-    Computes the radius corresponding to a given specific angular momentum for heated spherical mass distributions.
-    !!}
-    implicit none
-    class           (massDistributionSphericalHeated), intent(inout), target   :: self
-    double precision                                 , intent(in   )           :: angularMomentumSpecific
-    type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType        ), intent(in   ), optional :: massType
-
-    if (.not.self%matches(componentType,massType)) then
-       radius=+0.0d0
-    else if (self%massDistributionHeating_%specificEnergyIsEverywhereZero() .or. self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
-       radius=+self%massDistribution_%radiusFromSpecificAngularMomentum         (angularMomentumSpecific)
-    else
-       radius=+self                  %radiusFromSpecificAngularMomentumNUmerical(angularMomentumSpecific)
-    end if
-    return
-  end function sphericalHeatedRadiusFromSpecificAngularMomentum
-  
-  double precision function sphericalHeatedDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite,componentType,massType) result(densityRadialMoment)
-    !!{
-    Returns a radial density moment for the heated spherical mass distribution.
-    !!}
-    implicit none
-    class           (massDistributionSphericalHeated), intent(inout)           :: self
-    double precision                                 , intent(in   )           :: moment
-    double precision                                 , intent(in   ), optional :: radiusMinimum, radiusMaximum
-    logical                                          , intent(  out), optional :: isInfinite
-    type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType        ), intent(in   ), optional :: massType
-
-    if (.not.self%matches(componentType,massType)) then
-       densityRadialMoment=+0.0d0
-    else if (self%massDistributionHeating_%specificEnergyIsEverywhereZero() .or. self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
-       densityRadialMoment=+self%massDistribution_%densityRadialMoment         (moment,radiusMinimum,radiusMaximum,isInfinite)
-    else
-       densityRadialMoment=+self                  %densityRadialMomentNumerical(moment,radiusMinimum,radiusMaximum,isInfinite)
-    end if
-    return
-  end function sphericalHeatedDensityRadialMoment
-
-  double precision function sphericalHeatedPotential(self,coordinates,componentType,massType,status) result(potential)
-    !!{
-    Return the potential at the specified {\normalfont \ttfamily coordinates} in a heated spherical mass distribution.
-    !!}
-    use :: Galactic_Structure_Options, only : structureErrorCodeSuccess
-    implicit none
-    class(massDistributionSphericalHeated  ), intent(inout), target   :: self
-    class(coordinate                       ), intent(in   )           :: coordinates
-    type (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
-    type (enumerationMassTypeType          ), intent(in   ), optional :: massType
-    type (enumerationStructureErrorCodeType), intent(  out), optional :: status
-
-    if (present(status)) status=structureErrorCodeSuccess
-    if (.not.self%matches(componentType,massType)) then
-       potential=0.0d0
-    else if (self%massDistributionHeating_%specificEnergyIsEverywhereZero() .or. self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
-       potential=+self%massDistribution_%potential         (coordinates,status=status)
-    else
-       potential=+self                  %potentialNumerical(coordinates,status=status)
-    end if
-    return
-  end function sphericalHeatedPotential
-
-  double precision function sphericalHeatedFourierTransform(self,radiusOuter,wavenumber,componentType,massType) result(fourierTransform)
-    !!{
-    Compute the Fourier transform of the density profile at the given {\normalfont \ttfamily wavenumber} in a heated spherical mass distribution.
-    !!}
-    use :: Exponential_Integrals, only : Sine_Integral
-    implicit none
-    class           (massDistributionSphericalHeated), intent(inout)           :: self
-    double precision                                 , intent(in   )           :: radiusOuter  , wavenumber
-    type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType        ), intent(in   ), optional :: massType
-    
-    if (.not.self%matches(componentType,massType)) then
-       fourierTransform=0.0d0
-    else if (self%massDistributionHeating_%specificEnergyIsEverywhereZero() .or. self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
-       fourierTransform=+self%massDistribution_%fourierTransform         (radiusOuter,wavenumber)
-    else
-       fourierTransform=+self                  %fourierTransformNumerical(radiusOuter,wavenumber)
-    end if
-    return
-  end function sphericalHeatedFourierTransform
-  
-  double precision function sphericalHeatedRadiusFreefall(self,time,componentType,massType) result(radius)
-    !!{
-    Compute the freefall radius at the given {\normalfont \ttfamily time} in a heated spherical mass distribution.
-    !!}
-    implicit none
-    class           (massDistributionSphericalHeated), intent(inout)           :: self
-    double precision                                 , intent(in   )           :: time
-    type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType        ), intent(in   ), optional :: massType
-    
-    if (.not.self%matches(componentType,massType)) then
-       radius=0.0d0
-    else if (self%massDistributionHeating_%specificEnergyIsEverywhereZero() .or. self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
-       radius=+self%massDistribution_%radiusFreefall         (time)
-    else
-       radius=+self                  %radiusFreefallNumerical(time)
-    end if
-    return
-  end function sphericalHeatedRadiusFreefall
-  
-  double precision function sphericalHeatedRadiusFreefallIncreaseRate(self,time,componentType,massType) result(radiusIncreaseRate)
-    !!{
-    Compute the rate of increase of the freefall radius at the given {\normalfont \ttfamily time} in a heated spherical mass
-    distribution.
-    !!}
-    implicit none
-    class           (massDistributionSphericalHeated), intent(inout)           :: self
-    double precision                                 , intent(in   )           :: time
-    type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType        ), intent(in   ), optional :: massType
-
-    if (.not.self%matches(componentType,massType)) then
-       radiusIncreaseRate=0.0d0
-    else if (self%massDistributionHeating_%specificEnergyIsEverywhereZero() .or. self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
-       radiusIncreaseRate=+self%massDistribution_%radiusFreefallIncreaseRate         (time)
-    else
-       radiusIncreaseRate=+self                  %radiusFreefallIncreaseRateNumerical(time)
-    end if
-    return
-  end function sphericalHeatedRadiusFreefallIncreaseRate
