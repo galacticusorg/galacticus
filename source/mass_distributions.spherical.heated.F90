@@ -92,13 +92,15 @@ contains
     Constructor for the {\normalfont \ttfamily sphericalHeated} mass distribution class which builds the object from a parameter
     set.
     !!}
-    use :: Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters          , only : inputParameters
+    use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
     implicit none
     type (massDistributionSphericalHeated)                :: self
-    type (inputParameters               ), intent(inout) :: parameters
-    class(massDistributionClass         ), pointer       :: massDistribution_
-    class(massDistributionHeatingClass  ), pointer       :: massDistributionHeating_
-    type (varying_string                )                :: nonAnalyticSolver
+    type (inputParameters                ), intent(inout) :: parameters
+    class(massDistributionClass          ), pointer       :: massDistribution_
+    class(massDistributionHeatingClass   ), pointer       :: massDistributionHeating_
+    type (varying_string                 )                :: nonAnalyticSolver       , componentType, &
+         &                                                   massType
 
     !![
     <inputParameter>
@@ -107,12 +109,24 @@ contains
       <source>parameters</source>
       <description>Selects how solutions are computed when no analytic solution is available. If set to ``{\normalfont \ttfamily fallThrough}'' then the solution ignoring heating is used, while if set to ``{\normalfont \ttfamily numerical}'' then numerical solvers are used to find solutions.</description>
     </inputParameter>
+    <inputParameter>
+      <name>componentType</name>
+      <defaultValue>var_str('unknown')</defaultValue>
+      <description>The component type that this mass distribution represents.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>massType</name>
+      <defaultValue>var_str('unknown')</defaultValue>
+      <description>The mass type that this mass distribution represents.</description>
+      <source>parameters</source>
+    </inputParameter>
     <objectBuilder class="massDistribution"        name="massDistribution_"        source="parameters"/>
     <objectBuilder class="massDistributionHeating" name="massDistributionHeating_" source="parameters"/>
     !!]
     select type (massDistribution_)
     class is (massDistributionSpherical)
-       self=massDistributionSphericalHeated(enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),massDistribution_,massDistributionHeating_)
+       self=massDistributionSphericalHeated(enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),massDistribution_,massDistributionHeating_,enumerationComponentTypeEncode(componentType,includesPrefix=.false.),enumerationMassTypeEncode(massType,includesPrefix=.false.))
     class default
        call Error_Report('a spherically-symmetric mass distribution is required'//{introspection:location})
     end select
@@ -124,18 +138,20 @@ contains
     return
   end function sphericalHeatedConstructorParameters
   
-  function sphericalHeatedConstructorInternal(nonAnalyticSolver,massDistribution_,massDistributionHeating_) result(self)
+  function sphericalHeatedConstructorInternal(nonAnalyticSolver,massDistribution_,massDistributionHeating_,componentType,massType) result(self)
     !!{
     Constructor for ``sphericalHeated'' mass distribution class.
     !!}
     implicit none
-    type            (massDistributionSphericalHeated  )                        :: self
-    class           (massDistributionSpherical        ), intent(in   ), target :: massDistribution_
-    class           (massDistributionHeatingClass     ), intent(in   ), target :: massDistributionHeating_
-    type            (enumerationNonAnalyticSolversType), intent(in   )         :: nonAnalyticSolver
-    double precision                                   , parameter             :: toleranceAbsolute       =0.0d0, toleranceRelative=1.0d-6
+    type            (massDistributionSphericalHeated  )                          :: self
+    class           (massDistributionSpherical        ), intent(in   ), target   :: massDistribution_
+    class           (massDistributionHeatingClass     ), intent(in   ), target   :: massDistributionHeating_
+    type            (enumerationNonAnalyticSolversType), intent(in   )           :: nonAnalyticSolver
+    type            (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType          ), intent(in   ), optional :: massType
+    double precision                                   , parameter               :: toleranceAbsolute       =0.0d0, toleranceRelative=1.0d-6
     !![
-    <constructorAssign variables="nonAnalyticSolver, *massDistribution_, *massDistributionHeating_"/>
+    <constructorAssign variables="nonAnalyticSolver, *massDistribution_, *massDistributionHeating_, componentType, massType"/>
     !!]
  
     self%      componentType=self%massDistribution_%componentType
@@ -146,6 +162,7 @@ contains
          &                              toleranceAbsolute=toleranceAbsolute, &
          &                              toleranceRelative=toleranceRelative  &
          &                             )
+    self%dimensionless     =.false.
     return
   end function sphericalHeatedConstructorInternal
 
