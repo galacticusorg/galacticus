@@ -123,8 +123,7 @@ contains
     double precision                                         :: mass                , scaleLength  , &
          &                                                      densityNormalization, radiusOuter
     logical                                                  :: dimensionless
-    type            (varying_string         )                :: componentType
-    type            (varying_string         )                :: massType
+    type            (varying_string         )                :: componentType       , massType
 
     !![
     <inputParameter>
