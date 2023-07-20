@@ -39,6 +39,7 @@
      class(darkMatterProfileDMOClass), pointer :: darkMatterProfileDMOHost_ => null(), darkMatterProfileDMOSatellite_ => null()
    contains
      final     ::                                      multipleDestructor
+     procedure :: get                               => multipleGet
      procedure :: density                           => multipleDensity
      procedure :: densityLogSlope                   => multipleDensityLogSlope
      procedure :: radiusEnclosingDensity            => multipleRadiusEnclosingDensity
@@ -117,6 +118,25 @@ contains
     !!]
     return
   end subroutine multipleDestructor
+
+  function multipleGet(self,node,weightBy,weightIndex) result(massDistribution_)
+    !!{
+    Return the dark matter mass distribution for the given {\normalfont \ttfamily node}.
+    !!}
+    implicit none
+    class  (massDistributionClass       ), pointer                 :: massDistribution_
+    class  (darkMatterProfileDMOMultiple), intent(inout)           :: self
+    type   (treeNode                    ), intent(inout)           :: node
+    type   (enumerationWeightByType     ), intent(in   ), optional :: weightBy
+    integer                              , intent(in   ), optional :: weightIndex
+
+    if (node%isSatellite()) then
+       massDistribution_ => self%darkMatterProfileDMOSatellite_%get(node,weightBy,weightIndex)
+    else
+       massDistribution_ => self%darkMatterProfileDMOHost_     %get(node,weightBy,weightIndex)
+    end if
+    return
+  end function multipleGet
 
   double precision function multipleDensity(self,node,radius)
     !!{
