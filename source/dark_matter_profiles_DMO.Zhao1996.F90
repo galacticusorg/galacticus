@@ -537,9 +537,8 @@ contains
     !!}
     use :: Galactic_Structure_Options      , only : enumerationStructureErrorCodeType, structureErrorCodeSuccess
     use :: Galacticus_Nodes                , only : nodeComponentBasic
-    use :: Gamma_Functions                 , only : Gamma_Function
     use :: Numerical_Constants_Math        , only : Pi
-    use :: Hypergeometric_Functions        , only : Hypergeometric_pFq_Regularized
+    use :: Hypergeometric_Functions        , only : Hypergeometric_2F1
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (darkMatterProfileDMOZhao1996     ), intent(inout)           :: self
@@ -557,19 +556,91 @@ contains
     radiusScale           =   self%scaleRadius (node)
     radiusScaleFree       =  +     radius             &
          &                   /     radiusScale
-    zhao1996Potential     =  +4.0d0                                                                                                                                                                    &
-         &                   *Pi                                                                                                                                                                       &
-         &                   *radiusScaleFree**(2.0d0      -gamma)                                                                                                                                     &
-         &                   /                 (3.0d0      -gamma)                                                                                                                                     &
-         &                   *  Gamma_Function((3.0d0+alpha-gamma)/alpha)                                                                                                                              &
-         &                   /  Gamma_Function((3.0d0      -gamma)/alpha)                                                                                                                              &
-         &                   *(                                                                                                                                                                        &
-         &                     +Gamma_Function((2.0d0      -gamma)/alpha)*Hypergeometric_pFq_Regularized([(2.0d0-gamma)/alpha,(beta-gamma)/alpha],[(2.0d0+alpha-gamma)/alpha],-radiusScaleFree**alpha) &
-         &                     -Gamma_Function((3.0d0      -gamma)/alpha)*Hypergeometric_pFq_Regularized([(3.0d0-gamma)/alpha,(beta-gamma)/alpha],[(3.0d0+alpha-gamma)/alpha],-radiusScaleFree**alpha) &
-         &                    )                                                                                                                                                                        &
-         &                   *gravitationalConstantGalacticus                                                                                                                                          &
-         &                   *self%normalization(node)                                                                                                                                                 &
-         &                   *self %scaleRadius (node)**2
+    select case (self%specialCase%ID)
+    case (specialCaseGeneral%ID)
+       zhao1996Potential  =  -4.0d0                                                                                                                              &
+            &                *Pi                                                                                                                                 &
+            &                *(                                                                                                                                  &
+            &                  +1.0                                                                                                                              &
+            &                  -radiusScaleFree**(2.0d0-gamma)                                                                                                   &
+            &                  *(                                                                                                                                &
+            &                    +Hypergeometric_2F1([(2.0d0-gamma)/alpha,(beta-gamma)/alpha],[(2.0d0+alpha-gamma)/alpha],-radiusScaleFree**alpha)/(2.0d0-gamma) &
+            &                    -Hypergeometric_2F1([(3.0d0-gamma)/alpha,(beta-gamma)/alpha],[(3.0d0+alpha-gamma)/alpha],-radiusScaleFree**alpha)/(3.0d0-gamma) &
+            &                   )                                                                                                                                &
+            &                 )                                                                                                                                  &
+            &                *gravitationalConstantGalacticus                                                                                                    &
+            &                *self%normalization(node)                                                                                                           &
+            &                *self%scaleRadius  (node)**2
+    case (specialCaseNFW%ID)
+       zhao1996Potential  =  -4.0d0                            &
+            &                *Pi                               &
+            &                *log(1.0d0+radiusScaleFree)       &
+            &                /          radiusScaleFree        &
+            &                *gravitationalConstantGalacticus  &
+            &                *self%normalization(node)         &
+            &                *self%scaleRadius  (node)**2
+    case (specialCaseCoredNFW%ID)
+       zhao1996Potential  =  -4.0d0                            &
+            &                *Pi                               &
+            &                *(                                &
+            &                  +0.5d0                          &
+            &                  *          radiusScaleFree      &
+            &                  /   (1.0d0+radiusScaleFree)     &
+            &                  +log(1.0d0+radiusScaleFree)     &
+            &                  /          radiusScaleFree      &
+            &                 )                                &
+            &                *gravitationalConstantGalacticus  &
+            &                *self%normalization(node)         &
+            &                *self%scaleRadius  (node)**2
+    case (specialCaseGamma0_5NFW%ID)
+       zhao1996Potential  =  -4.0d0                            &
+            &                *Pi                               &
+            &                *(                                &
+            &                  +1.0d0                          &
+            &                  -2.0d0                          &
+            &                  /3.0d0                          &
+            &                  *sqrt(                          &
+            &                        +       radiusScaleFree   &
+            &                        /(1.0d0+radiusScaleFree)  &
+            &                       )                          &
+            &                  -2.0d0                          &
+            &                  /sqrt(                          &
+            &                        +       radiusScaleFree   &
+            &                        *(1.0d0+radiusScaleFree)  &
+            &                       )                          &
+            &                  +2.0d0                          &
+            &                  *asinh(sqrt(  radiusScaleFree)) &
+            &                  /             radiusScaleFree   &
+            &                 )                                &
+            &                *gravitationalConstantGalacticus  &
+            &                *self%normalization(node)         &
+            &                *self%scaleRadius  (node)**2
+    case (specialCaseGamma1_5NFW%ID)
+       zhao1996Potential  =  -4.0d0                            &
+            &                *Pi                               &
+            &                *(                                &
+            &                  +1.0d0                          &
+            &                  -2.0d0                          &
+            &                  *sqrt(                          &
+            &                        +       radiusScaleFree   &
+            &                        /(1.0d0+radiusScaleFree)  &
+            &                       )                          &
+            &                  -2.0d0                          &
+            &                  /sqrt(                          &
+            &                        +       radiusScaleFree   &
+            &                        *(1.0d0+radiusScaleFree)  &
+            &                       )                          &
+            &                  +2.0d0                          &
+            &                  *asinh(sqrt(  radiusScaleFree)) &
+            &                  /             radiusScaleFree   &
+            &                 )                                &
+            &                *gravitationalConstantGalacticus  &
+            &                *self%normalization(node)         &
+            &                *self%scaleRadius  (node)**2
+    case default
+       zhao1996Potential=+0.0d0
+       call Error_Report('unknown special case'//{introspection:location})
+    end select
     return
   end function zhao1996Potential
 
