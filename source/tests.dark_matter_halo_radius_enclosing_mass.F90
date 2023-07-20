@@ -27,23 +27,23 @@ program Test_Dark_Matter_Halo_Radius_Enclosing_Mass
   !!{
   Tests the calculation of dark matter halo radius enclosing a given mass.
   !!}
-  use :: Cosmology_Parameters        , only : cosmologyParametersSimple
-  use :: Cosmology_Functions         , only : cosmologyFunctionsMatterLambda
-  use :: Dark_Matter_Halo_Scales     , only : darkMatterHaloScale                                           , darkMatterHaloScaleClass                , darkMatterHaloScaleVirialDensityContrastDefinition
-  use :: Virial_Density_Contrast     , only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
-  use :: Dark_Matter_Profiles_DMO    , only : darkMatterProfileDMOBurkert                                   , darkMatterProfileDMOClass               , darkMatterProfileDMOHeated                        , darkMatterProfileDMONFW       , &
-          &                                   darkMatterProfileDMOTruncated                                 , darkMatterProfileDMOTruncatedExponential, darkMatterProfileHeatingTidal
-  use :: Dark_Matter_Profiles_Generic, only : nonAnalyticSolversFallThrough
-  use :: Display                     , only : displayVerbositySet                                           , verbosityLevelStandard
-  use :: Events_Hooks                , only : eventsHooksInitialize
-  use :: Functions_Global_Utilities  , only : Functions_Global_Set
-  use :: Error                       , only : Error_Report
-  use :: Galacticus_Nodes            , only : nodeClassHierarchyFinalize                                    , nodeClassHierarchyInitialize            , nodeComponentBasic                                , nodeComponentDarkMatterProfile, &
-          &                                   nodeComponentSatellite                                        , treeNode
-  use :: ISO_Varying_String          , only : assignment(=)                                                 , varying_string
-  use :: Input_Parameters            , only : inputParameters
-  use :: Node_Components             , only : Node_Components_Initialize                                    , Node_Components_Thread_Initialize       , Node_Components_Thread_Uninitialize               , Node_Components_Uninitialize
-  use :: Unit_Tests                  , only : Assert                                                        , Unit_Tests_Begin_Group                  , Unit_Tests_End_Group                              , Unit_Tests_Finish
+  use :: Cosmology_Parameters      , only : cosmologyParametersSimple
+  use :: Cosmology_Functions       , only : cosmologyFunctionsMatterLambda
+  use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScale                                           , darkMatterHaloScaleClass                , darkMatterHaloScaleVirialDensityContrastDefinition
+  use :: Virial_Density_Contrast   , only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
+  use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMOBurkert                                   , darkMatterProfileDMOClass               , darkMatterProfileDMOHeated                        , darkMatterProfileDMONFW       , &
+          &                                 darkMatterProfileDMOTruncated                                 , darkMatterProfileDMOTruncatedExponential, darkMatterProfileHeatingTidal
+  use :: Mass_Distributions        , only : nonAnalyticSolversFallThrough
+  use :: Display                   , only : displayVerbositySet                                           , verbosityLevelStandard
+  use :: Events_Hooks              , only : eventsHooksInitialize
+  use :: Functions_Global_Utilities, only : Functions_Global_Set
+  use :: Error                     , only : Error_Report
+  use :: Galacticus_Nodes          , only : nodeClassHierarchyFinalize                                    , nodeClassHierarchyInitialize            , nodeComponentBasic                                , nodeComponentDarkMatterProfile, &
+          &                                 nodeComponentSatellite                                        , treeNode
+  use :: ISO_Varying_String        , only : assignment(=)                                                 , varying_string
+  use :: Input_Parameters          , only : inputParameters
+  use :: Node_Components           , only : Node_Components_Initialize                                    , Node_Components_Thread_Initialize       , Node_Components_Thread_Uninitialize               , Node_Components_Uninitialize
+  use :: Unit_Tests                , only : Assert                                                        , Unit_Tests_Begin_Group                  , Unit_Tests_End_Group                              , Unit_Tests_Finish
   implicit none
   type            (treeNode                                                      )               :: node
   class           (nodeComponentBasic                                            ), pointer      :: basic

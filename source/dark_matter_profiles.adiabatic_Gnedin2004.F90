@@ -21,14 +21,14 @@
   An implementation of adiabaticGnedin2004 dark matter halo profiles.
   !!}
 
-  use :: Cosmology_Parameters        , only : cosmologyParameters              , cosmologyParametersClass
-  use :: Dark_Matter_Halo_Scales     , only : darkMatterHaloScale              , darkMatterHaloScaleClass
-  use :: Dark_Matter_Profiles_DMO    , only : darkMatterProfileDMO             , darkMatterProfileDMOClass
-  use :: Dark_Matter_Profiles_Generic, only : enumerationNonAnalyticSolversType, enumerationNonAnalyticSolversEncode, enumerationNonAnalyticSolversIsValid, nonAnalyticSolversFallThrough
-  use :: Galactic_Structure_Options  , only : componentTypeAll                 , massTypeBaryonic                   , radiusLarge                         , weightByMass                 , &
-          &                                   weightIndexNull                  , enumerationComponentTypeType       , enumerationMassTypeType             , enumerationWeightByType
-  use :: Math_Exponentiation         , only : fastExponentiator
-  use :: Root_Finder                 , only : rootFinder
+  use :: Cosmology_Parameters      , only : cosmologyParameters              , cosmologyParametersClass
+  use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScale              , darkMatterHaloScaleClass
+  use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMO             , darkMatterProfileDMOClass
+  use :: Mass_Distributions        , only : enumerationNonAnalyticSolversType, enumerationNonAnalyticSolversEncode, enumerationNonAnalyticSolversIsValid, nonAnalyticSolversFallThrough
+  use :: Galactic_Structure_Options, only : componentTypeAll                 , massTypeBaryonic                   , radiusLarge                         , weightByMass                 , &
+          &                                 weightIndexNull                  , enumerationComponentTypeType       , enumerationMassTypeType             , enumerationWeightByType
+  use :: Math_Exponentiation       , only : fastExponentiator
+  use :: Root_Finder               , only : rootFinder
 
   ! Number of previous radius solutions to store.
   !![

@@ -34,12 +34,11 @@ program Test_Dark_Matter_Profiles
   use :: Dark_Matter_Profiles_DMO        , only : darkMatterProfileDMOBurkert                                   , darkMatterProfileDMONFW             , darkMatterProfileDMOFiniteResolution, darkMatterProfileDMOSIDMCoreNFW, &
        &                                          darkMatterProfileDMOSIDMIsothermal                            , darkMatterProfileDMOZhao1996
   use :: Dark_Matter_Profiles            , only : darkMatterProfileSIDMIsothermal                               , darkMatterProfileAdiabaticGnedin2004
-  use :: Dark_Matter_Profiles_Generic    , only : nonAnalyticSolversNumerical
   use :: Galactic_Structure              , only : galacticStructureStandard
   use :: Virial_Density_Contrast         , only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt, virialDensityContrastFixed          , fixedDensityTypeCritical
   use :: Events_Hooks                    , only : eventsHooksInitialize
   use :: Functions_Global_Utilities      , only : Functions_Global_Set
-  use :: Display                         , only : displayVerbositySet                                           , verbosityLevelStandard
+  use :: Display                         , only : displayVerbositySet                                           , verbosityLevelStandard              , nonAnalyticSolversNumerical
   use :: Mass_Distributions              , only : massDistributionClass                                         , massDistributionSpherical           , kinematicsDistributionClass
   use :: Galacticus_Nodes                , only : nodeClassHierarchyFinalize                                    , nodeClassHierarchyInitialize        , nodeComponentBasic                   , nodeComponentDarkMatterProfile, &
           &                                       treeNode                                                      , nodeComponentSpheroid

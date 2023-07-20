@@ -23,7 +23,7 @@
   An implementation of exponentially truncated dark matter halo profiles \cite{kazantzidis_2006}.
   !!}
 
-  use :: Dark_Matter_Profiles_Generic, only : enumerationNonAnalyticSolversType, enumerationNonAnalyticSolversEncode, enumerationNonAnalyticSolversIsValid, nonAnalyticSolversFallThrough
+  use :: Mass_Distributions, only : enumerationNonAnalyticSolversType, enumerationNonAnalyticSolversEncode, enumerationNonAnalyticSolversIsValid, nonAnalyticSolversFallThrough
 
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOTruncatedExponential">

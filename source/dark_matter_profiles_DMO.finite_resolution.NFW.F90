@@ -22,9 +22,9 @@
   simulations for example).
   !!}
 
-  use :: Cosmology_Functions         , only : cosmologyFunctionsClass
-  use :: Dark_Matter_Profiles_Generic, only : enumerationNonAnalyticSolversType, enumerationNonAnalyticSolversEncode, enumerationNonAnalyticSolversIsValid, nonAnalyticSolversFallThrough
-  use :: Numerical_Interpolation     , only : interpolator
+  use :: Cosmology_Functions    , only : cosmologyFunctionsClass
+  use :: Mass_Distributions     , only : enumerationNonAnalyticSolversType, enumerationNonAnalyticSolversEncode, enumerationNonAnalyticSolversIsValid, nonAnalyticSolversFallThrough
+  use :: Numerical_Interpolation, only : interpolator
 
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOFiniteResolutionNFW">

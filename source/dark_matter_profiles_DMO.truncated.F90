@@ -21,8 +21,8 @@
   An implementation of truncated dark matter halo profiles.
   !!}
 
-  use :: Dark_Matter_Profiles_Generic, only : enumerationNonAnalyticSolversType, enumerationNonAnalyticSolversEncode, enumerationNonAnalyticSolversIsValid, nonAnalyticSolversFallThrough
-
+  use :: Mass_Distributions, only : enumerationNonAnalyticSolversType, enumerationNonAnalyticSolversEncode, enumerationNonAnalyticSolversIsValid, nonAnalyticSolversFallThrough
+  
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOTruncated">
    <description>truncated dark matter halo profiles.</description>
@@ -50,6 +50,7 @@
      </methods>
      !!]
      final     ::                                      truncatedDestructor
+     procedure :: get                               => truncatedGet
      procedure :: autoHook                          => truncatedAutoHook
      procedure :: calculationReset                  => truncatedCalculationReset
      procedure :: density                           => truncatedDensity
@@ -201,6 +202,72 @@ contains
     if (allocated(self%genericEnclosedMassRadius              )) deallocate(self%genericEnclosedMassRadius              )
     return
   end subroutine truncatedCalculationReset
+
+  function truncatedGet(self,node,weightBy,weightIndex) result(massDistribution_)
+    !!{
+    Return the dark matter mass distribution for the given {\normalfont \ttfamily node}.
+    !!}
+    use :: Galactic_Structure_Options, only : componentTypeDarkHalo             , massTypeDark                   , weightByMass
+    use :: Mass_Distributions        , only : massDistributionSphericalTruncated, kinematicsDistributionTruncated, massDistributionSpherical
+    implicit none
+    class           (massDistributionClass          ), pointer                 :: massDistribution_
+    type            (kinematicsDistributionTruncated), pointer                 :: kinematicsDistribution_
+    class           (darkMatterProfileDMOTruncated  ), intent(inout)           :: self
+    type            (treeNode                       ), intent(inout)           :: node
+    type            (enumerationWeightByType        ), intent(in   ), optional :: weightBy
+    integer                                          , intent(in   ), optional :: weightIndex
+    double precision                                                           :: radiusVirial
+    class           (massDistributionClass          ), pointer                 :: massDistributionDecorated
+    !![
+    <optionalArgument name="weightBy" defaultsTo="weightByMass" />
+    !!]
+
+    ! Assume a null distribution by default.
+    massDistribution_ => null()
+    ! If weighting is not by mass, return a null profile.
+    if (weightBy_ /= weightByMass) return
+    ! Create the mass distribution.
+    allocate(massDistributionSphericalTruncated :: massDistribution_)
+    select type(massDistribution_)
+    type is (massDistributionSphericalTruncated)
+       radiusVirial              =  self%darkMatterHaloScale_ %radiusVirial(node                     )
+       massDistributionDecorated => self%darkMatterProfileDMO_%get         (node,weightBy,weightIndex)
+       select type (massDistributionDecorated)
+       class is (massDistributionSpherical)
+          !![
+	  <referenceConstruct object="massDistribution_">
+	    <constructor>
+              massDistributionSphericalTruncated(                                                                         &amp;
+	      &amp;                              radiusTruncateMinimum=self%radiusFractionalTruncateMinimum*radiusVirial, &amp;
+	      &amp;                              radiusTruncateMaximum=self%radiusFractionalTruncateMaximum*radiusVirial, &amp;
+	      &amp;                              nonAnalyticSolver    =self%nonAnalyticSolver                           , &amp;
+	      &amp;                              massDistribution_    =     massDistributionDecorated                   , &amp;
+              &amp;                              componentType        =     componentTypeDarkHalo                       , &amp;
+              &amp;                              massType             =     massTypeDark                                  &amp;
+              &amp;                             )
+	    </constructor>
+	  </referenceConstruct>
+	  <objectDestructor name="massDistribution_"/>
+          !!]
+       class default
+          call Error_Report('expected a spherical mass distribution'//{introspection:location})
+       end select
+    end select
+    allocate(kinematicsDistribution_)
+    !![
+    <referenceConstruct object="kinematicsDistribution_">
+      <constructor>
+        kinematicsDistributionTruncated( &amp;
+	 &amp;                         )
+      </constructor>
+    </referenceConstruct>
+    !!]
+    call massDistribution_%setKinematicsDistribution(kinematicsDistribution_)
+    !![
+    <objectDestructor name="kinematicsDistribution_"/>
+    !!]
+    return
+  end function truncatedGet
 
   subroutine truncatedTruncationFunction(self,node,radius,x,multiplier,multiplierGradient)
     !!{

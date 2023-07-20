@@ -37,12 +37,11 @@ program Test_Galactic_Structure
        &                                          coordinateSystemCartesian                                     , massTypeStellar                  , massTypeGaseous                    , enumerationMassTypeType     , &
        &                                          componentTypeBlackHole                                        , massTypeBlackHole                , componentTypeHotHalo
   use :: Unit_Tests                      , only : Assert                                                        , Unit_Tests_Begin_Group           , Unit_Tests_End_Group               , Unit_Tests_Finish
-  use :: Mass_Distributions              , only : massDistributionClass
+  use :: Mass_Distributions              , only : massDistributionClass                                         , nonAnalyticSolversNumerical
   use :: Cosmology_Parameters            , only : cosmologyParametersSimple
   use :: Cosmology_Functions             , only : cosmologyFunctionsMatterLambda
   use :: Dark_Matter_Halo_Scales         , only : darkMatterHaloScaleVirialDensityContrastDefinition
   use :: Dark_Matter_Profiles_DMO        , only : darkMatterProfileDMONFW
-  use :: Dark_Matter_Profiles_Generic    , only : nonAnalyticSolversNumerical
   use :: Bessel_Functions                , only : Bessel_Function_I0                                            , Bessel_Function_I1               , Bessel_Function_K0                 , Bessel_Function_K1
   use :: Galactic_Structure              , only : galacticStructureStandard
   use :: Tensors                         , only : assignment(=)

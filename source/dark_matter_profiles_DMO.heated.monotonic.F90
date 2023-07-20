@@ -49,9 +49,9 @@
   </darkMatterProfileDMO>
   !!]
 
-  use :: Dark_Matter_Profiles_Generic, only : enumerationNonAnalyticSolversType, enumerationNonAnalyticSolversEncode, enumerationNonAnalyticSolversIsValid, nonAnalyticSolversFallThrough
-  use :: Kind_Numbers                , only : kind_int8
-  use :: Numerical_Interpolation     , only : interpolator
+  use :: Mass_Distributions     , only : enumerationNonAnalyticSolversType, enumerationNonAnalyticSolversEncode, enumerationNonAnalyticSolversIsValid, nonAnalyticSolversFallThrough
+  use :: Kind_Numbers           , only : kind_int8
+  use :: Numerical_Interpolation, only : interpolator
 
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOHeatedMonotonic
      !!{

@@ -147,18 +147,6 @@ module Dark_Matter_Profiles_Generic
        &                                                                         genericShape                     , genericShapeGrowthRate
   !$omp threadprivate(solvers,solversCount,genericBasic,genericTime,genericRadiusFreefall,genericDensity,genericMass,genericSpecificAngularMomentum,genericMassGrowthRate,genericDarkMatterProfile,genericScaleGrowthRate,genericScale,genericShape,genericShapeGrowthRate)
 
-  !![
-  <enumeration>
-   <name>nonAnalyticSolvers</name>
-   <description>Used to specify the type of solution to use when no analytic solution is available.</description>
-   <encodeFunction>yes</encodeFunction>
-   <visibility>public</visibility>
-   <validator>yes</validator>
-   <entry label="fallThrough"/>
-   <entry label="numerical"  />
-  </enumeration>
-  !!]
-
 contains
 
   double precision function genericEnclosedMassNumerical(self,node,radius)

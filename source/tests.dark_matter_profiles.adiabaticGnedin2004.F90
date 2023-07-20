@@ -25,26 +25,26 @@ program Test_Dark_Matter_Profiles_Gnedin2004
   !!{
   Tests the implementation of the \cite{gnedin_response_2004} dark matter profile.
   !!}
-  use :: Calculations_Resets         , only : Calculations_Reset
-  use :: Cosmology_Parameters        , only : cosmologyParametersSimple
-  use :: Cosmology_Functions         , only : cosmologyFunctionsMatterLambda
-  use :: Dark_Matter_Halo_Scales     , only : darkMatterHaloScaleVirialDensityContrastDefinition
-  use :: Dark_Matter_Profiles_DMO    , only : darkMatterProfileDMONFW
-  use :: Dark_Matter_Profiles        , only : darkMatterProfileAdiabaticGnedin2004
-  use :: Dark_Matter_Profiles_Generic, only : nonAnalyticSolversNumerical
-  use :: File_Utilities              , only : Count_Lines_in_File
-  use :: Galactic_Structure          , only : galacticStructureStandard
-  use :: Virial_Density_Contrast     , only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
-  use :: Events_Hooks                , only : eventsHooksInitialize
-  use :: Functions_Global_Utilities  , only : Functions_Global_Set
-  use :: Display                     , only : displayVerbositySet                                           , verbosityLevelStandard
-  use :: Galacticus_Nodes            , only : nodeClassHierarchyFinalize                                    , nodeClassHierarchyInitialize     , nodeComponentBasic                 , nodeComponentDarkMatterProfile, &
-          &                                   treeNode                                                      , nodeComponentSPheroid
-  use :: Input_Parameters            , only : inputParameters
-  use :: Input_Paths                 , only : inputPath                                                     , pathTypeExec
-  use :: ISO_Varying_String          , only : varying_string                                                , assignment(=)                    , char, var_str
-  use :: Node_Components             , only : Node_Components_Initialize                                    , Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
-  use :: Unit_Tests                  , only : Assert                                                        , Unit_Tests_Begin_Group           , Unit_Tests_End_Group               , Unit_Tests_Finish
+  use :: Calculations_Resets       , only : Calculations_Reset
+  use :: Cosmology_Parameters      , only : cosmologyParametersSimple
+  use :: Cosmology_Functions       , only : cosmologyFunctionsMatterLambda
+  use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScaleVirialDensityContrastDefinition
+  use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMONFW
+  use :: Dark_Matter_Profiles      , only : darkMatterProfileAdiabaticGnedin2004
+  use :: Mass_Distributions        , only : nonAnalyticSolversNumerical
+  use :: File_Utilities            , only : Count_Lines_in_File
+  use :: Galactic_Structure        , only : galacticStructureStandard
+  use :: Virial_Density_Contrast   , only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
+  use :: Events_Hooks              , only : eventsHooksInitialize
+  use :: Functions_Global_Utilities, only : Functions_Global_Set
+  use :: Display                   , only : displayVerbositySet                                           , verbosityLevelStandard
+  use :: Galacticus_Nodes          , only : nodeClassHierarchyFinalize                                    , nodeClassHierarchyInitialize     , nodeComponentBasic                 , nodeComponentDarkMatterProfile, &
+          &                                 treeNode                                                      , nodeComponentSPheroid
+  use :: Input_Parameters          , only : inputParameters
+  use :: Input_Paths               , only : inputPath                                                     , pathTypeExec
+  use :: ISO_Varying_String        , only : varying_string                                                , assignment(=)                    , char, var_str
+  use :: Node_Components           , only : Node_Components_Initialize                                    , Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
+  use :: Unit_Tests                , only : Assert                                                        , Unit_Tests_Begin_Group           , Unit_Tests_End_Group               , Unit_Tests_Finish
   implicit none
   type            (treeNode                                                      ), pointer                   :: node
   class           (nodeComponentBasic                                            ), pointer                   :: basic

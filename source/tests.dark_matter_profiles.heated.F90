@@ -46,8 +46,6 @@ program Test_Dark_Matter_Profiles_Heated
   use :: Virial_Density_Contrast         , only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
   use :: Dark_Matter_Profiles_DMO        , only : darkMatterProfileDMOHeated                                       , darkMatterProfileDMOHeatedMonotonic, darkMatterProfileDMOIsothermal, darkMatterProfileHeatingTidal, &
        &                                          darkMatterProfileDMOClass
-  use :: Dark_Matter_Profiles_Generic    , only : nonAnalyticSolversFallThroughDMO => nonAnalyticSolversFallThrough                                                                                                    , &
-       &                                          nonAnalyticSolversNumericalDMO   => nonAnalyticSolversNumerical
   use :: Display                         , only : displayVerbositySet                                              , verbosityLevelStandard
   use :: Events_Hooks                    , only : eventsHooksInitialize
   use :: Galacticus_Nodes                , only : nodeClassHierarchyFinalize                                       , nodeClassHierarchyInitialize       , nodeComponentBasic             , nodeComponentSatellite      , &
@@ -57,7 +55,9 @@ program Test_Dark_Matter_Profiles_Heated
   use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
   use :: Numerical_Constants_Math        , only : Pi
   use :: Mass_Distributions              , only : massDistributionSphericalHeated                                  , massDistributionClass              , massDistributionSpherical      , massDistributionHeatingTidal, &
-       &                                          nonAnalyticSolversNumerical                                      , kinematicsDistributionHeated
+       &                                          nonAnalyticSolversNumerical                                      , kinematicsDistributionHeated       ,                                                                &
+       &                                          nonAnalyticSolversFallThroughDMO => nonAnalyticSolversFallThrough                                                                                                    , &
+       &                                          nonAnalyticSolversNumericalDMO   => nonAnalyticSolversNumerical
   use :: Unit_Tests                      , only : Assert                                                           , Unit_Tests_Begin_Group             , Unit_Tests_End_Group           , Unit_Tests_Finish
   implicit none
   double precision                                                                , parameter    :: time                                        =13.8d+00
