@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a program to test calculations for finite resolution dark matter profiles.
+Contains a program to test calculations for Zhao1996 dark matter profiles.
 !!}
 
 program Test_Dark_Matter_Profiles_Zhao1996
