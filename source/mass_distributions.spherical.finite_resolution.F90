@@ -42,8 +42,7 @@
      Implementation of a finite resolution spherical mass distribution.
      !!}
      private
-     class           (massDistributionHeatingClass), pointer :: massDistributionHeating_ => null()
-     double precision                                        :: lengthResolution
+     double precision :: lengthResolution
    contains
      final     ::                          sphericalFiniteResolutionDestructor
      procedure :: density               => sphericalFiniteResolutionDensity
