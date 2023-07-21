@@ -98,10 +98,11 @@ contains
     !!}
     use :: Galacticus_Nodes, only : treeNode    , nodeComponentBasic
     implicit none
-    class(*       ), intent(inout)         :: ID
-    type (treeNode), intent(inout), target :: node
-    integer(kind_int8) :: label, labelParent, labelCombined
-    class  (nodeComponentBasic), pointer       :: basic, basicParent
+    class  (*                 ), intent(inout)          :: ID
+    type   (treeNode          ), intent(inout), target  :: node
+    integer(kind_int8         )                         :: label        , labelParent, &
+         &                                                 labelCombined
+    class  (nodeComponentBasic)               , pointer :: basic        , basicParent
     !$GLC attributes unused :: ID
 
     basic         => node              %basic                          (            )

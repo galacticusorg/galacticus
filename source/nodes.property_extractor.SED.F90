@@ -681,6 +681,7 @@ contains
     !$omp parallel private (iWavelength,iTime,iMetallicity,metallicityMinimum,metallicityMaximum)
     allocate(integratorTime       )
     allocate(integratorMetallicity)
+    allocate(integratorWavelength )
     integratorTime       =integrator(sedIntegrandTime       ,toleranceRelative=self%toleranceRelative)
     integratorMetallicity=integrator(sedIntegrandMetallicity,toleranceRelative=self%toleranceRelative)
     integratorWavelength =integrator(sedIntegrandWavelength ,toleranceRelative=self%toleranceRelative)

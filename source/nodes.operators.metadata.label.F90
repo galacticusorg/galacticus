@@ -114,8 +114,8 @@ contains
     !!}
     use :: Nodes_Labels, only : nodeLabelSet
     implicit none
-    class(nodeOperatorLabel), intent(inout), target  :: self
-    type (treeNode         ), intent(inout), target  :: node
+    class(nodeOperatorLabel), intent(inout), target :: self
+    type (treeNode         ), intent(inout), target :: node
 
     if (self%galacticFilter_%passes(node)) &
          & call nodeLabelSet(self%labelID,node)
