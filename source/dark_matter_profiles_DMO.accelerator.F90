@@ -158,6 +158,69 @@ contains
     return
   end subroutine acceleratorDestructor
 
+  function acceleratorGet(self,node,weightBy,weightIndex) result(massDistribution_)
+    !!{
+    Return the dark matter mass distribution for the given {\normalfont \ttfamily node}.
+    !!}
+    use :: Galactic_Structure_Options, only : componentTypeDarkHalo               , massTypeDark                       , weightByMass
+    use :: Mass_Distributions        , only : massDistributionSphericalAccelerator, kinematicsDistributionCollisionless, massDistributionSpherical
+    implicit none
+    class           (massDistributionClass              ), pointer                 :: massDistribution_
+    type            (kinematicsDistributionCollisionless), pointer                 :: kinematicsDistribution_
+    class           (darkMatterProfileDMOAccelerator    ), intent(inout)           :: self
+    type            (treeNode                           ), intent(inout)           :: node
+    type            (enumerationWeightByType            ), intent(in   ), optional :: weightBy
+    integer                                              , intent(in   ), optional :: weightIndex
+    class           (massDistributionClass              ), pointer                 :: massDistributionDecorated
+    !![
+    <optionalArgument name="weightBy" defaultsTo="weightByMass" />
+    !!]
+
+    ! Assume a null distribution by default.
+    massDistribution_ => null()
+    ! If weighting is not by mass, return a null profile.
+    if (weightBy_ /= weightByMass) return
+    ! Create the mass distribution.
+    allocate(massDistributionSphericalAccelerator :: massDistribution_)
+    select type(massDistribution_)
+    type is (massDistributionSphericalAccelerator)
+       massDistributionDecorated => self%darkMatterProfileDMO_%get(node,weightBy,weightIndex)
+       select type (massDistributionDecorated)
+       class is (massDistributionSpherical)
+          !![
+	  <referenceConstruct object="massDistribution_">
+	    <constructor>
+              massDistributionSphericalAccelerator(                                                    &amp;
+	      &amp;                                toleranceRelative  =self%toleranceRelative        , &amp;
+	      &amp;                                factorRadiusMaximum=self%factorRadiusMaximum      , &amp;
+	      &amp;                                massDistribution_  =     massDistributionDecorated, &amp;
+              &amp;                                componentType      =     componentTypeDarkHalo    , &amp;
+              &amp;                                massType           =     massTypeDark               &amp;
+              &amp;                               )
+	    </constructor>
+	  </referenceConstruct>
+	  <objectDestructor name="massDistribution_"/>
+          !!]
+       class default
+          call Error_Report('expected a spherical mass distribution'//{introspection:location})
+       end select
+    end select
+    allocate(kinematicsDistribution_)
+    !![
+    <referenceConstruct object="kinematicsDistribution_">
+      <constructor>
+        kinematicsDistributionCollisionless( &amp;
+	 &amp;                             )
+      </constructor>
+    </referenceConstruct>
+    !!]
+    call massDistribution_%setKinematicsDistribution(kinematicsDistribution_)
+    !![
+    <objectDestructor name="kinematicsDistribution_"/>
+    !!]
+    return
+  end function acceleratorGet
+
   subroutine acceleratorCalculationReset(self,node)
     !!{
     Reset the dark matter profile calculation.
