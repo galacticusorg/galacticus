@@ -54,6 +54,7 @@
      </methods>
      !!]
      final     ::                                      truncatedExponentialDestructor
+     procedure :: get                               => truncatedExponentialGet
      procedure :: autoHook                          => truncatedExponentialAutoHook
      procedure :: calculationReset                  => truncatedExponentialCalculationReset
      procedure :: density                           => truncatedExponentialDensity
@@ -197,6 +198,72 @@ contains
     if (calculationResetEvent%isAttached(self,truncatedExponentialCalculationReset)) call calculationResetEvent%detach(self,truncatedExponentialCalculationReset)
     return
   end subroutine truncatedExponentialDestructor
+
+  function truncatedExponentialGet(self,node,weightBy,weightIndex) result(massDistribution_)
+    !!{
+    Return the dark matter mass distribution for the given {\normalfont \ttfamily node}.
+    !!}
+    use :: Galactic_Structure_Options, only : componentTypeDarkHalo                        , massTypeDark                   , weightByMass
+    use :: Mass_Distributions        , only : massDistributionSphericalTruncatedExponential, kinematicsDistributionTruncated, massDistributionSpherical
+    implicit none
+    class           (massDistributionClass                   ), pointer                 :: massDistribution_
+    type            (kinematicsDistributionTruncated         ), pointer                 :: kinematicsDistribution_
+    class           (darkMatterProfileDMOTruncatedExponential), intent(inout)           :: self
+    type            (treeNode                                ), intent(inout)           :: node
+    type            (enumerationWeightByType                 ), intent(in   ), optional :: weightBy
+    integer                                                   , intent(in   ), optional :: weightIndex
+    double precision                                                                    :: radiusVirial
+    class           (massDistributionClass                   ), pointer                 :: massDistributionDecorated
+    !![
+    <optionalArgument name="weightBy" defaultsTo="weightByMass" />
+    !!]
+
+    ! Assume a null distribution by default.
+    massDistribution_ => null()
+    ! If weighting is not by mass, return a null profile.
+    if (weightBy_ /= weightByMass) return
+    ! Create the mass distribution.
+    allocate(massDistributionSphericalTruncatedExponential :: massDistribution_)
+    select type(massDistribution_)
+    type is (massDistributionSphericalTruncatedExponential)
+       radiusVirial              =  self%darkMatterHaloScale_ %radiusVirial(node                     )
+       massDistributionDecorated => self%darkMatterProfileDMO_%get         (node,weightBy,weightIndex)
+       select type (massDistributionDecorated)
+       class is (massDistributionSpherical)
+          !![
+	  <referenceConstruct object="massDistribution_">
+	    <constructor>
+              massDistributionSphericalTruncatedExponential(                                                               &amp;
+	      &amp;                                         radiusTruncateMinimum=                           radiusVirial, &amp;
+	      &amp;                                         radiusTruncateDecay  =self%radiusFractionalDecay*radiusVirial, &amp;
+	      &amp;                                         nonAnalyticSolver    =self%nonAnalyticSolver                 , &amp;
+	      &amp;                                         massDistribution_    =     massDistributionDecorated         , &amp;
+              &amp;                                         componentType        =     componentTypeDarkHalo             , &amp;
+              &amp;                                         massType             =     massTypeDark                        &amp;
+              &amp;                                        )
+	    </constructor>
+	  </referenceConstruct>
+	  <objectDestructor name="massDistribution_"/>
+          !!]
+       class default
+          call Error_Report('expected a spherical mass distribution'//{introspection:location})
+       end select
+    end select
+    allocate(kinematicsDistribution_)
+    !![
+    <referenceConstruct object="kinematicsDistribution_">
+      <constructor>
+        kinematicsDistributionTruncated( &amp;
+	 &amp;                         )
+      </constructor>
+    </referenceConstruct>
+    !!]
+    call massDistribution_%setKinematicsDistribution(kinematicsDistribution_)
+    !![
+    <objectDestructor name="kinematicsDistribution_"/>
+    !!]
+    return
+  end function truncatedExponentialGet
 
   subroutine truncatedExponentialCalculationReset(self,node)
     !!{
