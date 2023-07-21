@@ -1,0 +1,98 @@
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019, 2020, 2021, 2022, 2023
+!!    Andrew Benson <abenson@carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+  !!{
+  Implementation of a kinematic distribution class for collisionless mass distributions.
+  !!}
+
+  !![
+  <kinematicsDistribution name="kinematicsDistributionCollisionless">
+   <description>A kinematic distribution class for collisionless mass distributions.</description>
+  </kinematicsDistribution>
+  !!]
+  type, public, extends(kinematicsDistributionClass) :: kinematicsDistributionCollisionless
+     !!{
+     A kinematics distribution for collisionless distributions.
+     !!}
+   contains
+     procedure :: isCollisional        => collisionlessIsCollisional
+     procedure :: velocityDispersion1D => collisionlessVelocityDispersion1D
+  end type kinematicsDistributionCollisionless
+
+  interface kinematicsDistributionCollisionless
+     !!{
+     Constructors for the {\normalfont \ttfamily collisionless} kinematic distribution class.
+     !!}
+     module procedure collisionlessConstructorParameters
+     module procedure collisionlessConstructorInternal
+  end interface kinematicsDistributionCollisionless
+
+contains
+
+  function collisionlessConstructorParameters(parameters) result(self)
+    !!{
+    Constructor for the {\normalfont \ttfamily collisionless} kinematic distribution class which builds the object from a parameter
+    set.
+    !!}
+    use :: Input_Parameters, only : inputParameters
+    implicit none
+    type(kinematicsDistributionCollisionless)                :: self
+    type(inputParameters                    ), intent(inout) :: parameters
+
+    self=kinematicsDistributionCollisionless()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
+    return
+  end function collisionlessConstructorParameters
+
+  function collisionlessConstructorInternal() result(self)
+    !!{
+    Internal constructor for the {\normalfont \ttfamily collisionless} kinematic distribution class.
+    !!}
+    use :: Input_Parameters, only : inputParameters
+    implicit none
+    type(kinematicsDistributionCollisionless) :: self
+
+    return
+  end function collisionlessConstructorInternal
+  
+  logical function collisionlessIsCollisional(self)
+    !!{
+    Return false indicating that the collisionless kinematic distribution represents collisionless particles.
+    !!}
+    implicit none
+    class(kinematicsDistributionCollisionless), intent(inout) :: self
+    
+    collisionlessIsCollisional=.false.
+    return
+  end function collisionlessIsCollisional
+
+  double precision function collisionlessVelocityDispersion1D(self,coordinates,massDistributionEmbedding) result(velocityDispersion)
+    !!{
+    Return the 1D velocity dispersion at the specified {\normalfont \ttfamily coordinates} in an collisionless kinematic distribution.
+    !!}
+    implicit none
+    class(kinematicsDistributionCollisionless), intent(inout) :: self
+    class(coordinate                         ), intent(in   ) :: coordinates
+    class(massDistributionClass              ), intent(inout) :: massDistributionEmbedding
+
+    velocityDispersion=self%velocityDispersion1DNumerical(coordinates,massDistributionEmbedding)
+    return
+  end function collisionlessVelocityDispersion1D
