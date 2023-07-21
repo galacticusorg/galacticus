@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1689959841046,
+  "lastUpdate": 1689959849935,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "380311c81f358602f5bfc449c3a59549db810f16",
-          "message": "Merge pull request #335 from galacticusorg/satelliteDistanceMinimum\n\nAdd a `nodeOperator` and `nodePropertyExtractor` to track the minimum distance of approach of a satellite to the center of its host halo",
-          "timestamp": "2022-11-28T21:33:33-08:00",
-          "tree_id": "7cb9bf93ba71ef9efadac4301d6ea1f0d00b8053",
-          "url": "https://github.com/galacticusorg/galacticus/commit/380311c81f358602f5bfc449c3a59549db810f16"
-        },
-        "date": 1669721039194,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 185.571,
-            "unit": "seconds",
-            "range": 0.30274229965706
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10636,6 +10606,60 @@ window.BENCHMARK_DATA = {
             "value": 171.579,
             "unit": "seconds",
             "range": 1.3141053610724
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "1f32936198271b9e5df881509f9be6aa4998aa4b",
+          "message": "fix(style): Formatting only",
+          "timestamp": "2023-07-21T14:15:16Z",
+          "tree_id": "7a5cf54ad84d157ca14192aaccd9976aa0ca66ca",
+          "url": "https://github.com/galacticusorg/galacticus/commit/1f32936198271b9e5df881509f9be6aa4998aa4b"
+        },
+        "date": 1689959848706,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassMetallicityRelation",
+            "value": 3.7347365361624,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassSizeRelation",
+            "value": 9.59737490251823,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassVelocityDispersionRelation",
+            "value": 0.826032170943457,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupOccupationFraction",
+            "value": 23.9391299921939,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassFunction",
+            "value": 62.4722673081793,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
+            "value": 1.34492160456599,
+            "unit": "-logℒ"
           }
         ]
       }
