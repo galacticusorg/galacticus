@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1689959845475,
+  "lastUpdate": 1690053637067,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "c4e8e9541952d9b1e4b05d9c3fb2155e0bf4aa99",
-          "message": "Merge pull request #336 from galacticusorg/krumholz2009Fix\n\nCatch disks with tiny gas densities",
-          "timestamp": "2022-11-30T19:59:12-08:00",
-          "tree_id": "68a6fc00f9fd673fd464341b7230db190d006249",
-          "url": "https://github.com/galacticusorg/galacticus/commit/c4e8e9541952d9b1e4b05d9c3fb2155e0bf4aa99"
-        },
-        "date": 1669876299679,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 50.39,
-            "unit": "seconds",
-            "range": 0.100399203184397
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8740,6 +8710,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 25257.8908941139,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": false,
+          "id": "59068ff19aced0d015be07d9136cf3ddb11e1333",
+          "message": "Merge pull request #438 from galacticusorg/buildRefactor\n\nAvoid code duplication in source code preprocessor",
+          "timestamp": "2023-07-22T16:09:26Z",
+          "tree_id": "e169776329598f824d40445a9a68b8e427390d36",
+          "url": "https://github.com/galacticusorg/galacticus/commit/59068ff19aced0d015be07d9136cf3ddb11e1333"
+        },
+        "date": 1690053634816,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 57.085,
+            "unit": "seconds",
+            "range": 0.0402802681226232
           }
         ]
       }
