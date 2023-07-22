@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1690053641035,
+  "lastUpdate": 1690053649192,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "c4e8e9541952d9b1e4b05d9c3fb2155e0bf4aa99",
-          "message": "Merge pull request #336 from galacticusorg/krumholz2009Fix\n\nCatch disks with tiny gas densities",
-          "timestamp": "2022-11-30T19:59:12-08:00",
-          "tree_id": "68a6fc00f9fd673fd464341b7230db190d006249",
-          "url": "https://github.com/galacticusorg/galacticus/commit/c4e8e9541952d9b1e4b05d9c3fb2155e0bf4aa99"
-        },
-        "date": 1669876303953,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 262.986,
-            "unit": "seconds",
-            "range": 0.204108794518558
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10636,6 +10606,60 @@ window.BENCHMARK_DATA = {
             "value": 159.244,
             "unit": "seconds",
             "range": 0.224549326432115
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": false,
+          "id": "59068ff19aced0d015be07d9136cf3ddb11e1333",
+          "message": "Merge pull request #438 from galacticusorg/buildRefactor\n\nAvoid code duplication in source code preprocessor",
+          "timestamp": "2023-07-22T16:09:26Z",
+          "tree_id": "e169776329598f824d40445a9a68b8e427390d36",
+          "url": "https://github.com/galacticusorg/galacticus/commit/59068ff19aced0d015be07d9136cf3ddb11e1333"
+        },
+        "date": 1690053647926,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassMetallicityRelation",
+            "value": 3.7347365361624,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassSizeRelation",
+            "value": 9.59737490251823,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassVelocityDispersionRelation",
+            "value": 0.826032170943457,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupOccupationFraction",
+            "value": 23.9391299921939,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassFunction",
+            "value": 62.4722673081793,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
+            "value": 1.34492160456599,
+            "unit": "-logℒ"
           }
         ]
       }
