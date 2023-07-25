@@ -63,7 +63,8 @@
           &                                                          cAlpha                                    , timePrevious , &
           &                                                          concentrationMeanPrevious                 , massPrevious , &
           &                                                          GTildePrevious
-     logical                                                      :: truncateConcentration                     , includeUpturn
+     logical                                                      :: truncateConcentration                     , includeUpturn, &
+          &                                                          truncateUpturn
    contains
      final     ::                                   diemerJoyce2019Destructor
      procedure :: concentration                  => diemerJoyce2019Concentration
@@ -103,7 +104,8 @@ contains
          &                                                                               a1                       , b0           , &
          &                                                                               b1                       , cAlpha       , &
          &                                                                               scatter
-    logical                                                                           :: truncateConcentration    , includeUpturn
+    logical                                                                           :: truncateConcentration    , includeUpturn, &
+         &                                                                               truncateUpturn
 
     ! Check and read parameters.
     !![
@@ -161,13 +163,19 @@ contains
       <defaultValue>.true.</defaultValue>
       <description>If true, the term modeling the upturn in the $c(M)$ relation at high masses (i.e. $[1+\nu^2/B(n)]$ in equation~(28) of \citealt{diemer_accurate_2019}) is included. Otherwise this term is set equal to $1$ so that no upturn occurs.</description>
     </inputParameter>
+    <inputParameter>
+      <name>truncateUpturn</name>
+      <source>parameters</source>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, the term modeling the upturn in the $c(M)$ relation at high masses (i.e. $[1+\nu^2/B(n)]$ in equation~(28) of \citealt{diemer_accurate_2019}) will be truncated at $\nu=\sqrt{B(n)}$ where the right-hand side of equation~(28) reaches the minimum, i.e. for any $\nu>\sqrt{B(n)}$, the right-hand side of equation~(28) will be truncated to $2 A/\sqrt{B}$.</description>
+    </inputParameter>
     <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
     <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
     <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
     <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
     !!]
-    self=darkMatterProfileConcentrationDiemerJoyce2019(kappa,a0,a1,b0,b1,cAlpha,scatter,truncateConcentration,includeUpturn,cosmologyFunctions_,cosmologyParameters_,criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_)
+    self=darkMatterProfileConcentrationDiemerJoyce2019(kappa,a0,a1,b0,b1,cAlpha,scatter,truncateConcentration,includeUpturn,truncateUpturn,cosmologyFunctions_,cosmologyParameters_,criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"      />
@@ -179,7 +187,7 @@ contains
     return
   end function diemerJoyce2019ConstructorParameters
 
-  function diemerJoyce2019ConstructorInternal(kappa,a0,a1,b0,b1,cAlpha,scatter,truncateConcentration,includeUpturn,cosmologyFunctions_,cosmologyParameters_,criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_) result(self)
+  function diemerJoyce2019ConstructorInternal(kappa,a0,a1,b0,b1,cAlpha,scatter,truncateConcentration,includeUpturn,truncateUpturn,cosmologyFunctions_,cosmologyParameters_,criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_) result(self)
     !!{
     Constructor for the {\normalfont \ttfamily diemerJoyce2019} dark matter halo profile
     concentration class.
@@ -193,7 +201,8 @@ contains
          &                                                                                          a1                             , b0           , &
          &                                                                                          b1                             , cAlpha       , &
          &                                                                                          scatter
-    logical                                                             , intent(in   )          :: truncateConcentration          , includeUpturn
+    logical                                                             , intent(in   )          :: truncateConcentration          , includeUpturn, &
+         &                                                                                          truncateUpturn
     class           (cosmologyFunctionsClass                           ), intent(in   ), target  :: cosmologyFunctions_
     class           (cosmologyParametersClass                          ), intent(in   ), target  :: cosmologyParameters_
     class           (criticalOverdensityClass                          ), intent(in   ), target  :: criticalOverdensity_
@@ -201,7 +210,7 @@ contains
     class           (linearGrowthClass                                 ), intent(in   ), target  :: linearGrowth_
     type            (darkMatterHaloScaleVirialDensityContrastDefinition)               , pointer :: darkMatterHaloScaleDefinition_
     !![
-    <constructorAssign variables="kappa, a0, a1, b0, b1, cAlpha, scatter, truncateConcentration, includeUpturn, *cosmologyFunctions_, *cosmologyParameters_, *criticalOverdensity_, *cosmologicalMassVariance_, *linearGrowth_"/>
+    <constructorAssign variables="kappa, a0, a1, b0, b1, cAlpha, scatter, truncateConcentration, includeUpturn, truncateUpturn, *cosmologyFunctions_, *cosmologyParameters_, *criticalOverdensity_, *cosmologicalMassVariance_, *linearGrowth_"/>
     !!]
 
     self%timePrevious             =-1.0d0
@@ -348,6 +357,14 @@ contains
        GRoot_            =+A                                                                                                                  &
             &             /peakHeight                                                                                                         &
             &             *termUpturn
+       if     ( self%includeUpturn            &
+            &  .and.                          &
+            &   self%truncateUpturn           &
+            &  .and.                          &
+            &   peakHeight          > sqrt(B) &
+            & ) then
+          GRoot_         =+2.0d0*A/sqrt(B)
+       end if
        ! Initial guess of the concentration.
        if (self%GTildePrevious < 0.0d0) self%GTildePrevious=5.0d0
        ! Solve for the concentration.
