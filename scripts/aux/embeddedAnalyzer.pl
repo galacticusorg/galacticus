@@ -5,6 +5,7 @@ use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use XML::Simple;
 use XML::Validator::Schema;
 use XML::SAX::ParserFactory;
+use File::Slurp qw(slurp);
 use LaTeX::SpellCheck;
 
 # Perform checks on embedded XML and LaTeX
