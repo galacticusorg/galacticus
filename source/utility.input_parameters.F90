@@ -1630,18 +1630,43 @@ contains
                    allocate(parameterNames(countNames))
                    call String_Split_Words(parameterNames,parameterName,":")
                    rootParameters => self
-                   do while (associated(rootParameters%parent))
-                      rootParameters => rootParameters%parent
-                   end do
+                   if (trim(parameterNames(1)) /= "." .and. trim(parameterNames(1)) /= "..") then
+                      ! Path is absolute - move to the root parameter.
+                      do while (associated(rootParameters%parent))
+                         rootParameters => rootParameters%parent
+                      end do
+                   end if
                    do i=1,countNames-1
-                      if (i == 1) then
-                         allocate(subParameters)
-                         subParameters    =rootParameters%subParameters(trim(parameterNames(i)),requireValue=.false.)
+                      if (trim(parameterNames(i)) == ".") then
+                         ! Self - no need to move.
+                         if (i == 1) then
+                            allocate(subParameters)
+                            subParameters=inputParameters(rootParameters)
+                         end if
+                      else if (trim(parameterNames(i)) == "..") then
+                         ! Move to the parent parameter.
+                         if (i == 1) then
+                            if (.not.associated(rootParameters%parent)) call Error_Report('no parent parameter exists'//{introspection:location})
+                            allocate(subParameters)
+                            subParameters=inputParameters(rootParameters%parent)
+                         else
+                            if (.not.associated( subParameters%parent)) call Error_Report('no parent parameter exists'//{introspection:location})
+                            allocate(subParametersNext)
+                            subParametersNext=inputParameters(subParameters%parent)
+                            deallocate(subParameters)
+                            subParameters => subParametersNext
+                         end if
                       else
-                         allocate(subParametersNext)
-                         subParametersNext=subParameters %subParameters(trim(parameterNames(i)),requireValue=.false.)
-                         deallocate(subParameters)
-                         subParameters => subParametersNext
+                         ! Move to the named parameter.
+                         if (i == 1) then
+                            allocate(subParameters)
+                            subParameters    =rootParameters%subParameters(trim(parameterNames(i)),requireValue=.false.)
+                         else
+                            allocate(subParametersNext)
+                            subParametersNext=subParameters %subParameters(trim(parameterNames(i)),requireValue=.false.)
+                            deallocate(subParameters)
+                            subParameters => subParametersNext
+                         end if
                       end if
                    end do
                    if (countNames == 1) then

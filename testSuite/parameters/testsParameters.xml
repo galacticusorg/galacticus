@@ -53,5 +53,13 @@
   <derivedValue2 value="=2.3+[fixedValue]-[derivedValue2:derivedValue3]^2">
     <derivedValue3 value="=exp([fixedValue])"/>
   </derivedValue2>
+  <wrapper1 value="" ignoreWarnings="true">
+    <derivedValue4 value="=[.::fixedValue1]"/>
+    <fixedValue1 value="33.42"/>
+    <wrapper2 value="" ignoreWarnings="true">
+      <derivedValue5 value="=[.::fixedValue2]+[..::fixedValue1]+[.::..::wrapper2::fixedValue2]"/>
+      <fixedValue2 value="42.33"/>
+    </wrapper2>
+  </wrapper1>
 
 </parameters>
