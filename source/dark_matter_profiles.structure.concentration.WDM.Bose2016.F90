@@ -97,7 +97,7 @@ contains
 
   function wdmBose2016ConstructorInternal(cdmConcentration,transferFunction_,cosmologyFunctions_) result(self)
     !!{
-    Generic constructor for the \gls{wdmBose2016} dark matter halo concentration class.
+    Generic constructor for the {\normalfont \ttfamily wdmBose2016} dark matter halo concentration class.
     !!}
     implicit none
     type (darkMatterProfileConcentrationWDMBose2016)                        :: self
