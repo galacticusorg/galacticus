@@ -505,6 +505,8 @@ jobs:
           make -j3 Galacticus.exe tests.hashes.cryptographic.exe 2>&1 | tee build.log
           ./scripts/build/staticRelinker.pl `grep '\-o Galacticus.exe' build.log`
           ./scripts/build/staticRelinker.pl `grep '\-o tests.hashes.cryptographic.exe' build.log`
+          dsymutil -o Galacticus.exe.dSYM Galacticus.exe
+          zip -r debugSymbolsMacOS.zip Galacticus.exe.dSYM
           mv Galacticus.exe Galacticus_MacOS.exe
       - name: Upload Galacticus executable
         uses: actions/upload-artifact@v3
@@ -516,6 +518,11 @@ jobs:
         with:
           name: test-execs-MacOS
           path: 'tests.*.exe'
+      - name: Upload Galacticus debug symbols
+        uses: actions/upload-artifact@v3
+        with:
+          name: galacticus-debug-MacOS
+          path: 'debugSymbolsMacOS.zip'
   ## Library
   Build-Library-MacOS:
     runs-on: macos-11
@@ -10060,6 +10067,10 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: galacticus-exec-MacOS
+      - name: Download artifacts (debug-macos)
+        uses: actions/download-artifact@v3
+        with:
+          name: galacticus-debug-MacOS
       - name: Download artifacts (library-macos)
         uses: actions/download-artifact@v3
         with:
@@ -10072,8 +10083,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload bleeding-edge ./Galacticus_MacOS.exe ./libgalacticusMacOS.zip ./toolsMacOS.zip --clobber
-          rm ./Galacticus_MacOS.exe ./libgalacticusMacOS.zip ./toolsMacOS.zip
+          gh release upload bleeding-edge ./Galacticus_MacOS.exe ./libgalacticusMacOS.zip ./toolsMacOS.zip ./debugSymbolsMacOS.zip --clobber
+          rm ./Galacticus_MacOS.exe ./libgalacticusMacOS.zip ./toolsMacOS.zip ./debugSymbolsMacOS.zip
       - name: Download artifacts (perf-darkMatterOnlySubhalos)
         uses: actions/download-artifact@v3
         with:
