@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1690312016143,
+  "lastUpdate": 1690312024106,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "7be5401636bedde25e4d0352d00fa7acf5a86c5e",
-          "message": "Merge pull request #337 from galacticusorg/constructorResultSelf\n\nUse `self` as the result object in all constructors",
-          "timestamp": "2022-12-01T21:37:10-08:00",
-          "tree_id": "81b8960e176f65948b522f2ba8650d258663116e",
-          "url": "https://github.com/galacticusorg/galacticus/commit/7be5401636bedde25e4d0352d00fa7acf5a86c5e"
-        },
-        "date": 1669969134268,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 216.312,
-            "unit": "seconds",
-            "range": 0.541636040160487
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10634,6 +10604,58 @@ window.BENCHMARK_DATA = {
             "value": 179.349,
             "unit": "seconds",
             "range": 0.400186081717066
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@obs.carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@obs.carnegiescience.edu"
+          },
+          "id": "e6747f30f80465bdf9ddb468c73a58456bb962ed",
+          "message": "feat: Add build and release of MacOS debug symbols for Galacticus",
+          "timestamp": "2023-07-25T15:47:57Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/e6747f30f80465bdf9ddb468c73a58456bb962ed"
+        },
+        "date": 1690312023053,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassMetallicityRelation",
+            "value": 3.99209345664796,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassSizeRelation",
+            "value": 8.52745976493552,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassVelocityDispersionRelation",
+            "value": 0.854963992962027,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupOccupationFraction",
+            "value": 23.9158263432811,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassFunction",
+            "value": 69.3619567160744,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
+            "value": 11.0286760150102,
+            "unit": "-logℒ"
           }
         ]
       }
