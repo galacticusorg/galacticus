@@ -61,5 +61,7 @@
       <fixedValue2 value="42.33"/>
     </wrapper2>
   </wrapper1>
+  <derivedValue6 value="=min(1.0,2.0)"/>
+  <derivedValue7 value="=max(1.0,2.0)"/>
 
 </parameters>
