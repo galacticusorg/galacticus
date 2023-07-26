@@ -374,7 +374,15 @@ jobs:
       - name: Install guile
         run: sudo port install guile18
       - name: Install libmatheval
-        run: sudo port install libmatheval
+        run: |
+          curl -L https://github.com/galacticusorg/libmatheval/releases/download/latest/libmatheval-1.1.12.tar.gz --output libmatheval-1.1.12.tar.gz
+          tar xvfz libmatheval-1.1.12.tar.gz
+          cd libmatheval-1.1.12
+          CC=gcc-11 ./configure --prefix=/usr/local
+          make -j3
+          sudo make install
+          cd ..
+          rm -rf libmatheval-1.1.12.tar.gz libmatheval-1.1.12
       - name: Install qhull
         run: |
           curl -L http://www.qhull.org/download/qhull-2020-src-8.0.2.tgz --output qhull-2020-src-8.0.2.tgz
@@ -549,7 +557,15 @@ jobs:
       - name: Install guile
         run: sudo port install guile18
       - name: Install libmatheval
-        run: sudo port install libmatheval
+        run: |
+          curl -L https://github.com/galacticusorg/libmatheval/releases/download/latest/libmatheval-1.1.12.tar.gz --output libmatheval-1.1.12.tar.gz
+          tar xvfz libmatheval-1.1.12.tar.gz
+          cd libmatheval-1.1.12
+          CC=gcc-11 ./configure --prefix=/usr/local
+          make -j3
+          sudo make install
+          cd ..
+          rm -rf libmatheval-1.1.12.tar.gz libmatheval-1.1.12
       - name: Install qhull
         run: |
           curl -L http://www.qhull.org/download/qhull-2020-src-8.0.2.tgz --output qhull-2020-src-8.0.2.tgz
@@ -726,7 +742,15 @@ jobs:
       - name: Install guile
         run: sudo port install guile18
       - name: Install libmatheval
-        run: sudo port install libmatheval
+        run: |
+          curl -L https://github.com/galacticusorg/libmatheval/releases/download/latest/libmatheval-1.1.12.tar.gz --output libmatheval-1.1.12.tar.gz
+          tar xvfz libmatheval-1.1.12.tar.gz
+          cd libmatheval-1.1.12
+          CC=gcc-11 ./configure --prefix=/usr/local
+          make -j3
+          sudo make install
+          cd ..
+          rm -rf libmatheval-1.1.12.tar.gz libmatheval-1.1.12
       - name: Install md5sum
         run: sudo port install md5sha1sum
       - name: Install GSL
@@ -9739,7 +9763,15 @@ jobs:
       - name: Install guile
         run: sudo port install guile18
       - name: Install libmatheval
-        run: sudo port install libmatheval
+        run: |
+          curl -L https://github.com/galacticusorg/libmatheval/releases/download/latest/libmatheval-1.1.12.tar.gz --output libmatheval-1.1.12.tar.gz
+          tar xvfz libmatheval-1.1.12.tar.gz
+          cd libmatheval-1.1.12
+          CC=gcc-11 ./configure --prefix=/usr/local
+          make -j3
+          sudo make install
+          cd ..
+          rm -rf libmatheval-1.1.12.tar.gz libmatheval-1.1.12
       - name: Install qhull
         run: |
           curl -L http://www.qhull.org/download/qhull-2020-src-8.0.2.tgz --output qhull-2020-src-8.0.2.tgz
