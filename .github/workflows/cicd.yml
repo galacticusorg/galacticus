@@ -378,7 +378,12 @@ jobs:
           curl -L https://github.com/galacticusorg/libmatheval/releases/download/latest/libmatheval-1.1.12.tar.gz --output libmatheval-1.1.12.tar.gz
           tar xvfz libmatheval-1.1.12.tar.gz
           cd libmatheval-1.1.12
-          CC=gcc-11 ./configure --prefix=/usr/local
+          # Patch following the approach used in MacPorts (https://github.com/macports/macports-ports/tree/master/math/libmatheval).
+          sed -E -i~ s/"#undef HAVE_SCM_T_BITS"/"#define HAVE_SCM_T_BITS 1"/ config.h.in
+          sed -E -i~ s/"-lguile"/"-lguile18"/ configure
+          sed -E -i~ s/"libguile.h"/"libguile18.h"/g configure tests/matheval.c
+          # Set guile paths following the approach used in MacPorts (https://github.com/macports/macports-ports/tree/master/math/libmatheval).
+          CC=gcc-11 GUILE=/opt/local/bin/guile18 GUILE_CONFIG=/opt/local/bin/guile18-config GUILE_TOOLS=/opt/local/bin/guile18-tools ./configure --prefix=/usr/local
           make -j3
           sudo make install
           cd ..
@@ -561,7 +566,12 @@ jobs:
           curl -L https://github.com/galacticusorg/libmatheval/releases/download/latest/libmatheval-1.1.12.tar.gz --output libmatheval-1.1.12.tar.gz
           tar xvfz libmatheval-1.1.12.tar.gz
           cd libmatheval-1.1.12
-          CC=gcc-11 ./configure --prefix=/usr/local
+          # Patch following the approach used in MacPorts (https://github.com/macports/macports-ports/tree/master/math/libmatheval).
+          sed -E -i~ s/"#undef HAVE_SCM_T_BITS"/"#define HAVE_SCM_T_BITS 1"/ config.h.in
+          sed -E -i~ s/"-lguile"/"-lguile18"/ configure
+          sed -E -i~ s/"libguile.h"/"libguile18.h"/g configure tests/matheval.c
+          # Set guile paths following the approach used in MacPorts (https://github.com/macports/macports-ports/tree/master/math/libmatheval).
+          CC=gcc-11 GUILE=/opt/local/bin/guile18 GUILE_CONFIG=/opt/local/bin/guile18-config GUILE_TOOLS=/opt/local/bin/guile18-tools ./configure --prefix=/usr/local
           make -j3
           sudo make install
           cd ..
@@ -746,7 +756,12 @@ jobs:
           curl -L https://github.com/galacticusorg/libmatheval/releases/download/latest/libmatheval-1.1.12.tar.gz --output libmatheval-1.1.12.tar.gz
           tar xvfz libmatheval-1.1.12.tar.gz
           cd libmatheval-1.1.12
-          CC=gcc-11 ./configure --prefix=/usr/local
+          # Patch following the approach used in MacPorts (https://github.com/macports/macports-ports/tree/master/math/libmatheval).
+          sed -E -i~ s/"#undef HAVE_SCM_T_BITS"/"#define HAVE_SCM_T_BITS 1"/ config.h.in
+          sed -E -i~ s/"-lguile"/"-lguile18"/ configure
+          sed -E -i~ s/"libguile.h"/"libguile18.h"/g configure tests/matheval.c
+          # Set guile paths following the approach used in MacPorts (https://github.com/macports/macports-ports/tree/master/math/libmatheval).
+          CC=gcc-11 GUILE=/opt/local/bin/guile18 GUILE_CONFIG=/opt/local/bin/guile18-config GUILE_TOOLS=/opt/local/bin/guile18-tools ./configure --prefix=/usr/local
           make -j3
           sudo make install
           cd ..
@@ -9767,7 +9782,12 @@ jobs:
           curl -L https://github.com/galacticusorg/libmatheval/releases/download/latest/libmatheval-1.1.12.tar.gz --output libmatheval-1.1.12.tar.gz
           tar xvfz libmatheval-1.1.12.tar.gz
           cd libmatheval-1.1.12
-          CC=gcc-11 ./configure --prefix=/usr/local
+          # Patch following the approach used in MacPorts (https://github.com/macports/macports-ports/tree/master/math/libmatheval).
+          sed -E -i~ s/"#undef HAVE_SCM_T_BITS"/"#define HAVE_SCM_T_BITS 1"/ config.h.in
+          sed -E -i~ s/"-lguile"/"-lguile18"/ configure
+          sed -E -i~ s/"libguile.h"/"libguile18.h"/g configure tests/matheval.c
+          # Set guile paths following the approach used in MacPorts (https://github.com/macports/macports-ports/tree/master/math/libmatheval).
+          CC=gcc-11 GUILE=/opt/local/bin/guile18 GUILE_CONFIG=/opt/local/bin/guile18-config GUILE_TOOLS=/opt/local/bin/guile18-tools ./configure --prefix=/usr/local
           make -j3
           sudo make install
           cd ..
