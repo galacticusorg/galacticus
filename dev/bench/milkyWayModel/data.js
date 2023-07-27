@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1690418870434,
+  "lastUpdate": 1690418877302,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "6f3a157d52f9d699060947b92874ecf5cfc7dae8",
-          "message": "fix: Use unicode characters in comments where possible",
-          "timestamp": "2022-12-02T15:05:58-08:00",
-          "tree_id": "29b6fcd195d92414cc44636cf69d97127f95b7ec",
-          "url": "https://github.com/galacticusorg/galacticus/commit/6f3a157d52f9d699060947b92874ecf5cfc7dae8"
-        },
-        "date": 1670032548275,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 299.663,
-            "unit": "seconds",
-            "range": 0.467103949892123
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10630,6 +10600,58 @@ window.BENCHMARK_DATA = {
             "value": 136.965,
             "unit": "seconds",
             "range": 0.278450175077243
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@obs.carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@obs.carnegiescience.edu"
+          },
+          "id": "7a5e7e98ef62bc89ffc1c4004efd57549b53b16b",
+          "message": "fix: Patch `libmatheval-1.1.12` for MacOS builds",
+          "timestamp": "2023-07-26T21:36:04Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/7a5e7e98ef62bc89ffc1c4004efd57549b53b16b"
+        },
+        "date": 1690418876550,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassMetallicityRelation",
+            "value": 3.81013956968771,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassSizeRelation",
+            "value": 9.72175777570985,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassVelocityDispersionRelation",
+            "value": 0.842397693470851,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupOccupationFraction",
+            "value": 23.8484174753897,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassFunction",
+            "value": 64.2141604748231,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
+            "value": 1.47962594839969,
+            "unit": "-logℒ"
           }
         ]
       }
