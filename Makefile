@@ -502,6 +502,9 @@ $(BUILDPATH)/openMPCriticalSections.count.inc $(BUILDPATH)/openMPCriticalSection
 $(BUILDPATH)/openMPCriticalSections.xml: ./scripts/build/enumerateOpenMPCriticalSections.pl
 	./scripts/build/enumerateOpenMPCriticalSections.pl `pwd`
 
+# Dependency on dependencies.
+$(BUILDPATH)/utility.dependencies.p.F90.up : aux/dependencies.yml
+
 # Rules for version routines.
 $(BUILDPATH)/output.version.revision.inc: $(wildcard .git/refs/heads/master)
 	@if [ -f .git/refs/heads/master ] ; then git rev-parse HEAD | awk '{print "character(len=42), parameter :: gitHash=\""$$1"\""}' > $(BUILDPATH)/output.version.revision.inc; else printf 'character(len=42), parameter :: gitHash="(unknown)"\n' > $(BUILDPATH)/output.version.revision.inc; fi
