@@ -80,10 +80,6 @@ jobs:
           set -o pipefail
           make GALACTICUS_BUILD_OPTION=compileprof -j2 all 2>&1 | tee build.log
           set +o pipefail
-          ! grep -n -C 5 Error: build.log
-          ! grep -n -C 5 Warning: build.log
-          ! grep -v 'is up to date' build.log | grep -n -C 5 make:
-          md5sum Galacticus.exe
           chmod u=wrx ./scripts/build/buildProfiler.pl
           ./scripts/build/buildProfiler.pl build.log buildProfile.html --durationMinimum 20
       - name: Upload Galacticus executable
@@ -130,10 +126,10 @@ jobs:
           export BUILDPATH=./work/build
           set -o pipefail
           make -j2 Galacticus.exe 2>&1 | tee build.log
-          grep -v -q Error: build.log
-          grep -v -q Warning: build.log
           set +o pipefail
-          grep -v 'is up to date' build.log | grep -v -q make: 
+          ! grep -n -C 5 Error: build.log
+          ! grep -n -C 5 Warning: build.log
+          ! grep -v 'is up to date' build.log | grep -n -C 5 make:
       - name: Upload Galacticus executable
         uses: actions/upload-artifact@v3
         with:
