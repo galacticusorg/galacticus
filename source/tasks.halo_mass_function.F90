@@ -619,10 +619,10 @@ contains
           massFractionMode(iMass)=self%transferFunction_%fractionModeMass(self%fractionModeMasses(iMass),statusFractionMode(iMass))
        end do
     else
-       allocate(massFractionMode      (                             0)
-       allocate(statusFractionMode    (                             0)
-       allocate(wavenumberFractionMode(                             0)
-       allocate(slopeFractionMode     (                             0)
+       allocate(massFractionMode      (                            0))
+       allocate(statusFractionMode    (                            0))
+       allocate(wavenumberFractionMode(                            0))
+       allocate(slopeFractionMode     (                            0))
     end if
     ! If a relative transfer function is provided, compute the relative logarithmic slope of the transfer function at the mode masses.
     wavenumberHalfMode   =-huge(0.0d0)
