@@ -36,7 +36,7 @@ jobs:
       - name: Validate any YAML files
         run: |
           status=0
-          for file in ${{ steps.changed-files.outputs.all_modified_files }}; do
+          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
             if yamllint $file; then
               echo "YAML $file is valid"
             else
@@ -69,7 +69,7 @@ jobs:
       - name: Validate any XML files
         run: |
           status=0
-          for file in ${{ steps.changed-files.outputs.all_modified_files }}; do
+          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
             echo "Validating XML file: $file"
             if xmllint --noout $file; then
               echo "XML $file is valid"
@@ -110,7 +110,7 @@ jobs:
       - name: Validate any Perl scripts
         run: |
           status=0
-          for file in ${{ steps.changed-scripts.outputs.all_modified_files }}; do
+          for file in ${{ steps.changed-scripts.outputs.all_changed_files }}; do
             if perl -c $file; then
               echo "Perl script $file compiles correctly"
             else
@@ -150,7 +150,7 @@ jobs:
       - name: Validate any Perl modules
         run: |
           status=0
-          for file in ${{ steps.changed-modules.outputs.all_modified_files }}; do
+          for file in ${{ steps.changed-modules.outputs.all_changed_files }}; do
             if perl -c $file; then
               echo "Perl module $file compiles correctly"
             else
@@ -180,7 +180,7 @@ jobs:
       - name: Perform static analysis on Fortran files
         run: |
           status=0
-          for file in ${{ steps.changed-files.outputs.all_modified_files }}; do
+          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
             if ./scripts/aux/staticAnalyzer.pl $file; then
               echo "Fortran file $file passes analysis"
             else
@@ -221,7 +221,7 @@ jobs:
       - name: Perform checks of embedded XML and LaTeX
         run: |
           status=0
-          for file in ${{ steps.changed-files.outputs.all_modified_files }}; do
+          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
             if ./scripts/aux/embeddedAnalyzer.pl $file warnings.md; then
               echo "Embedded XML/LaTeX in file $file passes analysis"
             else
@@ -271,7 +271,7 @@ jobs:
       - name: Perform checks of LaTeX files
         run: |
           status=0
-          for file in ${{ steps.changed-files.outputs.all_modified_files }}; do
+          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
             ./scripts/aux/spellChecker.pl $file warnings.md
           done
       - name: Check file existence
