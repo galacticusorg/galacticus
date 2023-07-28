@@ -625,7 +625,7 @@ sub Process_FunctionClass {
 			    # Handle objects built via objectBuilder directives.
 			    if ( defined($descriptorParameters->{'objects'}) ) {
 				foreach ( @{$descriptorParameters->{'objects'}} ) {
-				    $descriptorCode .= "call self%".$_->{'name'}."%descriptor(parameters)\n";
+				    $descriptorCode .= "if (associated(self%".$_->{'name'}.")) call self%".$_->{'name'}."%descriptor(parameters)\n";
 				}
 			    }
 			    # Handle linked lists.
