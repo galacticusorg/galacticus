@@ -210,6 +210,7 @@ contains
     class           (hotHaloMassDistributionClass          ), intent(in   ), target  :: hotHaloMassDistribution_
     class           (radiationFieldClass                   ), intent(in   ), pointer :: radiationIntergalacticBackground
     type            (radiationFieldList                    )               , pointer :: radiationFieldList_
+    !$GLC attributes initialized :: radiationIntergalacticBackground
     !![
     <constructorAssign variables="fractionTimescaleEquilibrium, *atomicIonizationRateCollisional_, *atomicRecombinationRateRadiative_, *atomicCrossSectionIonizationPhoto_, *chemicalReactionRate_, *darkMatterHaloScale_, *cosmologyFunctions_, *hotHaloMassDistribution_, *radiationIntergalacticBackground"/>
     !!]
