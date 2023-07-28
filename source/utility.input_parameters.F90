@@ -1533,14 +1533,15 @@ contains
     !!{
     Return the value of the specified parameter.
     !!}
-    use :: FoX_dom           , only : DOMException                     , getAttributeNode  , getNodeName   , hasAttribute      , &
-          &                           inException                      , node              , getTextContent, extractDataContent
-    use :: Error             , only : Error_Report
-    use :: ISO_Varying_String, only : assignment(=)                    , char              , operator(//)  , operator(==)      , &
-          &                           trim
-    use :: String_Handling   , only : String_Count_Words               , String_Split_Words, operator(//)
-    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists
-    use :: HDF5_Access       , only : hdf5Access
+    use, intrinsic :: ISO_C_Binding     , only : c_int64_t
+    use            :: FoX_dom           , only : DOMException                     , getAttributeNode  , getNodeName   , hasAttribute      , &
+          &                                      inException                      , node              , getTextContent, extractDataContent
+    use            :: Error             , only : Error_Report
+    use            :: ISO_Varying_String, only : assignment(=)                    , char              , operator(//)  , operator(==)      , &
+          &                                      trim
+    use            :: String_Handling   , only : String_Count_Words               , String_Split_Words, operator(//)
+    use            :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists
+    use            :: HDF5_Access       , only : hdf5Access
     implicit none
     class           (inputParameters                         ), intent(inout), target      :: self
     type            (inputParameter                          ), intent(inout), target      :: parameterNode
@@ -1548,9 +1549,9 @@ contains
     type            (enumerationInputParameterErrorStatusType), intent(  out), optional    :: errorStatus
     logical                                                   , intent(in   ), optional    :: writeOutput
 #ifdef MATHEVALAVAIL
-    integer         (kind_int8                               )                             :: evaluator
+    integer         (c_int64_t                               )                             :: evaluator
     ! Declarations of GNU libmatheval procedures used.
-    integer         (kind_int8                               ), external                   :: Evaluator_Create_
+    integer         (c_int64_t                               ), external                   :: Evaluator_Create_
     double precision                                          , external                   :: Evaluator_Evaluate_
     external                                                                               :: Evaluator_Destroy_
 #endif
@@ -1630,18 +1631,43 @@ contains
                    allocate(parameterNames(countNames))
                    call String_Split_Words(parameterNames,parameterName,":")
                    rootParameters => self
-                   do while (associated(rootParameters%parent))
-                      rootParameters => rootParameters%parent
-                   end do
+                   if (trim(parameterNames(1)) /= "." .and. trim(parameterNames(1)) /= "..") then
+                      ! Path is absolute - move to the root parameter.
+                      do while (associated(rootParameters%parent))
+                         rootParameters => rootParameters%parent
+                      end do
+                   end if
                    do i=1,countNames-1
-                      if (i == 1) then
-                         allocate(subParameters)
-                         subParameters    =rootParameters%subParameters(trim(parameterNames(i)),requireValue=.false.)
+                      if (trim(parameterNames(i)) == ".") then
+                         ! Self - no need to move.
+                         if (i == 1) then
+                            allocate(subParameters)
+                            subParameters=inputParameters(rootParameters)
+                         end if
+                      else if (trim(parameterNames(i)) == "..") then
+                         ! Move to the parent parameter.
+                         if (i == 1) then
+                            if (.not.associated(rootParameters%parent)) call Error_Report('no parent parameter exists'//{introspection:location})
+                            allocate(subParameters)
+                            subParameters=inputParameters(rootParameters%parent)
+                         else
+                            if (.not.associated( subParameters%parent)) call Error_Report('no parent parameter exists'//{introspection:location})
+                            allocate(subParametersNext)
+                            subParametersNext=inputParameters(subParameters%parent)
+                            deallocate(subParameters)
+                            subParameters => subParametersNext
+                         end if
                       else
-                         allocate(subParametersNext)
-                         subParametersNext=subParameters %subParameters(trim(parameterNames(i)),requireValue=.false.)
-                         deallocate(subParameters)
-                         subParameters => subParametersNext
+                         ! Move to the named parameter.
+                         if (i == 1) then
+                            allocate(subParameters)
+                            subParameters    =rootParameters%subParameters(trim(parameterNames(i)),requireValue=.false.)
+                         else
+                            allocate(subParametersNext)
+                            subParametersNext=subParameters %subParameters(trim(parameterNames(i)),requireValue=.false.)
+                            deallocate(subParameters)
+                            subParameters => subParametersNext
+                         end if
                       end if
                    end do
                    if (countNames == 1) then
@@ -1657,6 +1683,7 @@ contains
                 !! Evaluate the expression.
 #ifdef MATHEVALAVAIL
                 evaluator=Evaluator_Create_(trim(expression))
+                if (evaluator == 0) call Error_Report('failed to parse expression'//{introspection:location})
                 workValue=Evaluator_Evaluate_(evaluator,0,"",0.0d0)
                 call Evaluator_Destroy_(evaluator)
                 call parameterNode%set(workValue)

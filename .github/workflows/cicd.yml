@@ -79,10 +79,10 @@ jobs:
           export BUILDPATH=./work/build
           set -o pipefail
           make GALACTICUS_BUILD_OPTION=compileprof -j2 all 2>&1 | tee build.log
-          grep -v -q Error: build.log
-          grep -v -q Warning: build.log
           set +o pipefail
-          grep -v 'is up to date' build.log | grep -v -q make: 
+          ! grep -n -C 5 Error: build.log
+          ! grep -n -C 5 Warning: build.log
+          ! grep -v 'is up to date' build.log | grep -n -C 5 make:
           md5sum Galacticus.exe
           chmod u=wrx ./scripts/build/buildProfiler.pl
           ./scripts/build/buildProfiler.pl build.log buildProfile.html --durationMinimum 20
@@ -303,6 +303,11 @@ jobs:
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
+      - name: Check out repository datasets
+        uses: actions/checkout@v3      
+        with:
+          repository: galacticusorg/datasets
+          path: datasets
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
@@ -374,7 +379,20 @@ jobs:
       - name: Install guile
         run: sudo port install guile18
       - name: Install libmatheval
-        run: sudo port install libmatheval
+        run: |
+          curl -L https://github.com/galacticusorg/libmatheval/releases/download/latest/libmatheval-1.1.12.tar.gz --output libmatheval-1.1.12.tar.gz
+          tar xvfz libmatheval-1.1.12.tar.gz
+          cd libmatheval-1.1.12
+          # Patch following the approach used in MacPorts (https://github.com/macports/macports-ports/tree/master/math/libmatheval).
+          sed -E -i~ s/"#undef HAVE_SCM_T_BITS"/"#define HAVE_SCM_T_BITS 1"/ config.h.in
+          sed -E -i~ s/"-lguile"/"-lguile18"/ configure
+          sed -E -i~ s/"libguile.h"/"libguile18.h"/g configure tests/matheval.c
+          # Set guile paths following the approach used in MacPorts (https://github.com/macports/macports-ports/tree/master/math/libmatheval).
+          CC=gcc-11 GUILE=/opt/local/bin/guile18 GUILE_CONFIG=/opt/local/bin/guile18-config GUILE_TOOLS=/opt/local/bin/guile18-tools ./configure --prefix=/usr/local
+          make -j3
+          sudo make install
+          cd ..
+          rm -rf libmatheval-1.1.12.tar.gz libmatheval-1.1.12
       - name: Install qhull
         run: |
           curl -L http://www.qhull.org/download/qhull-2020-src-8.0.2.tgz --output qhull-2020-src-8.0.2.tgz
@@ -505,6 +523,8 @@ jobs:
           make -j3 Galacticus.exe tests.hashes.cryptographic.exe 2>&1 | tee build.log
           ./scripts/build/staticRelinker.pl `grep '\-o Galacticus.exe' build.log`
           ./scripts/build/staticRelinker.pl `grep '\-o tests.hashes.cryptographic.exe' build.log`
+          dsymutil -o Galacticus.exe.dSYM Galacticus.exe
+          zip -r debugSymbolsMacOS.zip Galacticus.exe.dSYM
           mv Galacticus.exe Galacticus_MacOS.exe
       - name: Upload Galacticus executable
         uses: actions/upload-artifact@v3
@@ -516,6 +536,11 @@ jobs:
         with:
           name: test-execs-MacOS
           path: 'tests.*.exe'
+      - name: Upload Galacticus debug symbols
+        uses: actions/upload-artifact@v3
+        with:
+          name: galacticus-debug-MacOS
+          path: 'debugSymbolsMacOS.zip'
   ## Library
   Build-Library-MacOS:
     runs-on: macos-11
@@ -542,7 +567,20 @@ jobs:
       - name: Install guile
         run: sudo port install guile18
       - name: Install libmatheval
-        run: sudo port install libmatheval
+        run: |
+          curl -L https://github.com/galacticusorg/libmatheval/releases/download/latest/libmatheval-1.1.12.tar.gz --output libmatheval-1.1.12.tar.gz
+          tar xvfz libmatheval-1.1.12.tar.gz
+          cd libmatheval-1.1.12
+          # Patch following the approach used in MacPorts (https://github.com/macports/macports-ports/tree/master/math/libmatheval).
+          sed -E -i~ s/"#undef HAVE_SCM_T_BITS"/"#define HAVE_SCM_T_BITS 1"/ config.h.in
+          sed -E -i~ s/"-lguile"/"-lguile18"/ configure
+          sed -E -i~ s/"libguile.h"/"libguile18.h"/g configure tests/matheval.c
+          # Set guile paths following the approach used in MacPorts (https://github.com/macports/macports-ports/tree/master/math/libmatheval).
+          CC=gcc-11 GUILE=/opt/local/bin/guile18 GUILE_CONFIG=/opt/local/bin/guile18-config GUILE_TOOLS=/opt/local/bin/guile18-tools ./configure --prefix=/usr/local
+          make -j3
+          sudo make install
+          cd ..
+          rm -rf libmatheval-1.1.12.tar.gz libmatheval-1.1.12
       - name: Install qhull
         run: |
           curl -L http://www.qhull.org/download/qhull-2020-src-8.0.2.tgz --output qhull-2020-src-8.0.2.tgz
@@ -702,6 +740,11 @@ jobs:
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
+      - name: Check out repository datasets
+        uses: actions/checkout@v3      
+        with:
+          repository: galacticusorg/datasets
+          path: datasets
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
@@ -719,7 +762,20 @@ jobs:
       - name: Install guile
         run: sudo port install guile18
       - name: Install libmatheval
-        run: sudo port install libmatheval
+        run: |
+          curl -L https://github.com/galacticusorg/libmatheval/releases/download/latest/libmatheval-1.1.12.tar.gz --output libmatheval-1.1.12.tar.gz
+          tar xvfz libmatheval-1.1.12.tar.gz
+          cd libmatheval-1.1.12
+          # Patch following the approach used in MacPorts (https://github.com/macports/macports-ports/tree/master/math/libmatheval).
+          sed -E -i~ s/"#undef HAVE_SCM_T_BITS"/"#define HAVE_SCM_T_BITS 1"/ config.h.in
+          sed -E -i~ s/"-lguile"/"-lguile18"/ configure
+          sed -E -i~ s/"libguile.h"/"libguile18.h"/g configure tests/matheval.c
+          # Set guile paths following the approach used in MacPorts (https://github.com/macports/macports-ports/tree/master/math/libmatheval).
+          CC=gcc-11 GUILE=/opt/local/bin/guile18 GUILE_CONFIG=/opt/local/bin/guile18-config GUILE_TOOLS=/opt/local/bin/guile18-tools ./configure --prefix=/usr/local
+          make -j3
+          sudo make install
+          cd ..
+          rm -rf libmatheval-1.1.12.tar.gz libmatheval-1.1.12
       - name: Install md5sum
         run: sudo port install md5sha1sum
       - name: Install GSL
@@ -9767,7 +9823,20 @@ jobs:
       - name: Install guile
         run: sudo port install guile18
       - name: Install libmatheval
-        run: sudo port install libmatheval
+        run: |
+          curl -L https://github.com/galacticusorg/libmatheval/releases/download/latest/libmatheval-1.1.12.tar.gz --output libmatheval-1.1.12.tar.gz
+          tar xvfz libmatheval-1.1.12.tar.gz
+          cd libmatheval-1.1.12
+          # Patch following the approach used in MacPorts (https://github.com/macports/macports-ports/tree/master/math/libmatheval).
+          sed -E -i~ s/"#undef HAVE_SCM_T_BITS"/"#define HAVE_SCM_T_BITS 1"/ config.h.in
+          sed -E -i~ s/"-lguile"/"-lguile18"/ configure
+          sed -E -i~ s/"libguile.h"/"libguile18.h"/g configure tests/matheval.c
+          # Set guile paths following the approach used in MacPorts (https://github.com/macports/macports-ports/tree/master/math/libmatheval).
+          CC=gcc-11 GUILE=/opt/local/bin/guile18 GUILE_CONFIG=/opt/local/bin/guile18-config GUILE_TOOLS=/opt/local/bin/guile18-tools ./configure --prefix=/usr/local
+          make -j3
+          sudo make install
+          cd ..
+          rm -rf libmatheval-1.1.12.tar.gz libmatheval-1.1.12
       - name: Install qhull
         run: |
           curl -L http://www.qhull.org/download/qhull-2020-src-8.0.2.tgz --output qhull-2020-src-8.0.2.tgz
@@ -10095,6 +10164,10 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: galacticus-exec-MacOS
+      - name: Download artifacts (debug-macos)
+        uses: actions/download-artifact@v3
+        with:
+          name: galacticus-debug-MacOS
       - name: Download artifacts (library-macos)
         uses: actions/download-artifact@v3
         with:
@@ -10107,8 +10180,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload bleeding-edge ./Galacticus_MacOS.exe ./libgalacticusMacOS.zip ./toolsMacOS.zip --clobber
-          rm ./Galacticus_MacOS.exe ./libgalacticusMacOS.zip ./toolsMacOS.zip
+          gh release upload bleeding-edge ./Galacticus_MacOS.exe ./libgalacticusMacOS.zip ./toolsMacOS.zip ./debugSymbolsMacOS.zip --clobber
+          rm ./Galacticus_MacOS.exe ./libgalacticusMacOS.zip ./toolsMacOS.zip ./debugSymbolsMacOS.zip
       - name: Download artifacts (perf-darkMatterOnlySubhalos)
         uses: actions/download-artifact@v3
         with:

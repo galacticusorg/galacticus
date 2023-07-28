@@ -32,11 +32,11 @@ sub Process_FunctionClass {
     # Initialize code directive locations.
     my $directiveLocations;
     # Initialize state storables database.
-    my $stateStorables;
+    our $stateStorables;
     # Initialize deep copy actions database.
-    my $deepCopyActions;
+    our $deepCopyActions;
     # Determine if debugging output is required.
-    my $debugging = exists($ENV{'GALACTICUS_OBJECTS_DEBUG'}) && $ENV{'GALACTICUS_OBJECTS_DEBUG'} eq "yes";
+    our $debugging = exists($ENV{'GALACTICUS_OBJECTS_DEBUG'}) && $ENV{'GALACTICUS_OBJECTS_DEBUG'} eq "yes";
     # Walk the tree, looking for code blocks.
     my $node  = $tree;
     my $depth = 0;
@@ -200,11 +200,11 @@ sub Process_FunctionClass {
 		(my $label = $nonAbstractClass->{'name'}) =~ s/^$directive->{'name'}//;
 		$label = lcfirst($label)
 		    unless ( $label =~ m/^[A-Z]{2,}/ );
-		my $hasCustomDescriptor = 0;
+		$nonAbstractClass->{'hasCustomDescriptor'} = 0;
 		my $extensionOf;
 		# Build lists of all potential parameter and object names for this class, including any from parent classes.
-		my $potentialNames;
-		my $class = $nonAbstractClass;
+		my $potentialNames = {};
+		my $class          = $nonAbstractClass;
 		while ( $class ) {
 		    my $node = $class->{'tree'}->{'firstChild'};
 		    $node = $node->{'sibling'}
@@ -218,59 +218,8 @@ sub Process_FunctionClass {
 		    # Search the node for declarations.
 		    $node = $node->{'firstChild'};
 		    while ( $node ) {
-			if ( $node->{'type'} eq "declaration" ) {
-			    foreach my $declaration ( @{$node->{'declarations'}} ) {
-				# Identify object pointers.
-				push(@{$potentialNames->{'objects'}},map {$_ =~ s/\s*([a-zA-Z0-9_]+).*/$1/; $_} @{$declaration->{'variables'}})
-				    if
-				    (
-				     $declaration->{'intrinsic'} eq "class"
-				      &&
-				      (
-				       (grep {&lctrim($declaration->{'type'}) eq lc($_)} keys                       (%{$stateStorables->{'functionClasses'       }}))
-				       ||
-				       (grep {&lctrim($declaration->{'type'}) eq lc($_)} &List::ExtraUtils::as_array(  $stateStorables->{'functionClassInstances'} ))
-				      )
-				     &&
-				     grep {$_ eq "pointer"} @{$declaration->{'attributes'}}
-				    );
-				# Identify stateful types.
-				push(@{$potentialNames->{'statefulTypes'}},$declaration)
-				    if
-				    (
-				     $declaration->{'intrinsic'} eq "type"
-				     &&
-				     $declaration->{'type'     } =~ m/^stateful(Integer|Double|Logical)\s*$/i
-				    );
-				# Identify enumerations.
-				push(@{$potentialNames->{'enumerations'}},$declaration)
-				    if
-				    (
-				     $declaration->{'intrinsic'} eq "type"
-				     &&
-				     $declaration->{'type'     } =~ m/^enumeration[a-z0-9_]+type\s*$/i
-				    );
-				# Identify regular parameters.
-				push(@{$potentialNames->{'parameters'}},$declaration)
-				    if
-				    (
-				     (grep {$_ eq $declaration->{'intrinsic'}} ( "integer", "logical", "double precision", "character" ))
-				     ||
-				     (
-				             $declaration->{'intrinsic'}  eq "type"
-				      &&
-				      trimlc($declaration->{'type'     }) eq "varying_string"
-				     )
-				    );
-				$hasCustomDescriptor = 1
-				    if
-				    (
-				     $declaration->{'intrinsic'} eq "procedure"
-				     &&
-				     $declaration->{'variables'}->[0] =~ m/^descriptor=>/
-				    );
-			    }
-			}
+			&potentialDescriptorParameters($node->{'declarations'},$nonAbstractClass,$potentialNames)
+			    if ( $node->{'type'} eq "declaration" );
 			$node = $node->{'type'} eq "contains" ? $node->{'firstChild'} : $node->{'sibling'};
 		    }
 		    # Move to the parent class.
@@ -290,95 +239,15 @@ sub Process_FunctionClass {
 		    my $declaration = &Fortran::Utils::Unformat_Variables($declarationSource);
 		    die("Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass(): unable to parse variable declaration")
 			unless ( defined($declaration) );
-		    push(@{$potentialNames->{'objects'}},map {$_ =~ s/\s*([a-zA-Z0-9_]+).*/$1/; $_} @{$declaration->{'variables'}})
-			if
-			(
-			 $declaration->{'intrinsic'} eq "class"
-			 &&
-			 $declaration->{'type'     } =~ m/Class\s*$/
-			 &&
-			 grep {$_ eq "pointer"} @{$declaration->{'attributes'}}
-			);
-		    # Identify stateful types.
-		    push(@{$potentialNames->{'statefulTypes'}},$declaration)
-			if
-			(
-			 $declaration->{'intrinsic'} eq "type"
-			 &&
-			 $declaration->{'type'     } =~ m/^stateful(Integer|Double|Logical)\s*$/i
-			);
-		    # Identify enumerations.
-		    push(@{$potentialNames->{'enumerations'}},$declaration)
-			if
-			(
-			 $declaration->{'intrinsic'} eq "type"
-			 &&
-			 $declaration->{'type'     } =~ m/^enumeration[a-z0-9_]+type\s*$/i
-			);
-		    # Identify regular parameters.
-		    push(@{$potentialNames->{'parameters'}},$declaration)
-			if
-			(
-			 (grep {$_ eq $declaration->{'intrinsic'}} ( "integer", "logical", "double precision", "character" ))
-			 ||
-			 (
-			         $declaration->{'intrinsic'}  eq "type"
-			  &&
-			  trimlc($declaration->{'type'     }) eq "varying_string"
-			 )
-			);
+		    &potentialDescriptorParameters($declaration,$nonAbstractClass,$potentialNames);
 		}
 		# Add any names declared in the functionClassType.
 		if ( defined($functionClassType) ) {
 		    # Search the node for declarations.
 		    my $node = $functionClassType->{'node'}->{'firstChild'};
 		    while ( $node ) {
-			if ( $node->{'type'} eq "declaration" ) {
-			    foreach my $declaration ( @{$node->{'declarations'}} ) {
-				# Identify object pointers.
-				push(@{$potentialNames->{'objects'}},map {$_ =~ s/\s*([a-zA-Z0-9_]+).*/$1/; $_} @{$declaration->{'variables'}})
-				    if
-				    (
-				     $declaration->{'intrinsic'} eq "class"
-				      &&
-				      (
-				       (grep {&lctrim($declaration->{'type'}) eq lc($_)} keys                       (%{$stateStorables->{'functionClasses'       }}))
-				       ||
-				       (grep {&lctrim($declaration->{'type'}) eq lc($_)} &List::ExtraUtils::as_array(  $stateStorables->{'functionClassInstances'} ))
-				      )
-				     &&
-				     grep {$_ eq "pointer"} @{$declaration->{'attributes'}}
-				    );
-				# Identify stateful types.
-				push(@{$potentialNames->{'statefulTypes'}},$declaration)
-				    if
-				    (
-				     $declaration->{'intrinsic'} eq "type"
-				     &&
-				     $declaration->{'type'     } =~ m/^stateful(Integer|Double|Logical)\s*$/i
-				    );
-				# Identify enumerations.
-				push(@{$potentialNames->{'enumerations'}},$declaration)
-				    if
-				    (
-				     $declaration->{'intrinsic'} eq "type"
-				     &&
-				     $declaration->{'type'     } =~ m/^enumeration[a-z0-9_]+type\s*$/i
-				    );
-				# Identify regular parameters.
-				push(@{$potentialNames->{'parameters'}},$declaration)
-				    if
-				    (
-				     (grep {$_ eq $declaration->{'intrinsic'}} ( "integer", "logical", "double precision", "character" ))
-				     ||
-				     (
-				             $declaration->{'intrinsic'}  eq "type"
-				      &&
-				      trimlc($declaration->{'type'     }) eq "varying_string"
-				     )
-				    );
-			    }
-			}
+			&potentialDescriptorParameters($node->{'declarations'},$nonAbstractClass,$potentialNames)
+			    if ( $node->{'type'} eq "declaration" );
 			$node = $node->{'type'} eq "contains" ? $node->{'firstChild'} : $node->{'sibling'};
 		    }
 		}
@@ -544,7 +413,7 @@ sub Process_FunctionClass {
 		}
 		# Build the code.
 		$descriptorCode .= "type is (".$nonAbstractClass->{'name'}.")\n";
-		if ( $hasCustomDescriptor ) {
+		if ( $nonAbstractClass->{'hasCustomDescriptor'} ) {
 		    # The class has its own descriptor function, so we should never arrive at this point in the code.
 		    $descriptorCode .= " call Error_Report('custom descriptor exists - this should not happen'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
 		    $descriptorModules{'Error'} = 1;
@@ -756,7 +625,7 @@ sub Process_FunctionClass {
 			    # Handle objects built via objectBuilder directives.
 			    if ( defined($descriptorParameters->{'objects'}) ) {
 				foreach ( @{$descriptorParameters->{'objects'}} ) {
-				    $descriptorCode .= "call self%".$_->{'name'}."%descriptor(parameters)\n";
+				    $descriptorCode .= "if (associated(self%".$_->{'name'}.")) call self%".$_->{'name'}."%descriptor(parameters)\n";
 				}
 			    }
 			    # Handle linked lists.
@@ -1206,37 +1075,32 @@ CODE
 		code        => $allowedParametersCode
 	    };
 	    # Add "deepCopy" method.
-            my %deepCopyModules;
-            my %deepCopyResetModules;
-            my %deepCopyFinalizeModules;
+	    my $deepCopy;
             if ( $debugging ) {
-		$deepCopyModules{'MPI_Utilities'     } = 1;
-		$deepCopyModules{'ISO_Varying_String'} = 1;
-		$deepCopyModules{'String_Handling'   } = 1;
-		$deepCopyModules{'Display'           } = 1;
+		$deepCopy->{'modules'}->{'MPI_Utilities'     } = 1;
+		$deepCopy->{'modules'}->{'ISO_Varying_String'} = 1;
+		$deepCopy->{'modules'}->{'String_Handling'   } = 1;
+		$deepCopy->{'modules'}->{'Display'           } = 1;
             }
-	    $rankMaximum = 0;
-            my $deepCopyCode;
-            my $deepCopyResetCode;
-            my $deepCopyFinalizeCode;
+	    $deepCopy->{'rankMaximum'} = 0;
             my $linkedListVariables;
             my $linkedListResetVariables;
             my $linkedListFinalizeVariables;
             @{$linkedListVariables        } = ();
             @{$linkedListResetVariables   } = ();
             @{$linkedListFinalizeVariables} = ();
-            $deepCopyResetCode    .= "self%copiedSelf => null()\n";
-            $deepCopyResetCode    .= "select type (self)\n";
-	    $deepCopyFinalizeCode .= "self%copiedSelf => null()\n";
-            $deepCopyFinalizeCode .= "select type (self)\n";
-            $deepCopyCode         .= "select type (self)\n";
+            $deepCopy->{'resetCode'   } .= "self%copiedSelf => null()\n";
+            $deepCopy->{'resetCode'   } .= "select type (self)\n";
+	    $deepCopy->{'finalizeCode'} .= "self%copiedSelf => null()\n";
+            $deepCopy->{'finalizeCode'} .= "select type (self)\n";
+            $deepCopy->{'code'        } .= "select type (self)\n";
 	    foreach my $nonAbstractClass ( @nonAbstractClasses ) {
 		# Search the tree for this class.
 		my $class = $nonAbstractClass;
-		my $assignments;
+		undef($deepCopy->{'assignments'});
 		# Add a class guard for resets.
-		$deepCopyResetCode    .= "type is (".$nonAbstractClass->{'name'}.")\n";
-		$deepCopyFinalizeCode .= "type is (".$nonAbstractClass->{'name'}.")\n";
+		$deepCopy->{'resetCode'   } .= "type is (".$nonAbstractClass->{'name'}.")\n";
+		$deepCopy->{'finalizeCode'} .= "type is (".$nonAbstractClass->{'name'}.")\n";
 		while ( $class ) {
 		    my $node = $class->{'tree'}->{'firstChild'};
 		    $node = $node->{'sibling'}
@@ -1245,256 +1109,15 @@ CODE
 			unless ( $node );
 		    # Handle linked lists.
 		    (my $linkedListCode, my $linkedListResetCode, my $linkedListFinalizeCode) = &deepCopyLinkedList($nonAbstractClass,$linkedListVariables,$linkedListResetVariables,$linkedListFinalizeVariables,$debugging);
-		    $assignments          .= $linkedListCode;
-		    $deepCopyResetCode    .= $linkedListResetCode;
-		    $deepCopyFinalizeCode .= $linkedListFinalizeCode;
+		    $deepCopy->{'assignments' } .= $linkedListCode;
+		    $deepCopy->{'resetCode'   } .= $linkedListResetCode;
+		    $deepCopy->{'finalizeCode'} .= $linkedListFinalizeCode;
 		    # Search the node for declarations.
 		    my @ignore = exists($class->{'deepCopy'}->{'ignore'}) ? split(/\s*,\s*/,$class->{'deepCopy'}->{'ignore'}->{'variables'}) : ();
 		    $node = $node->{'firstChild'};
 		    while ( $node ) {
-			if ( $node->{'type'} eq "declaration" ) {
-			    foreach my $declaration ( @{$node->{'declarations'}} ) {
-				# Deep copy of functionClass objects.
-				(my $type = $declaration->{'type'}) =~ s/(^\s*|\s*$)//g
-				    if ( $declaration->{'intrinsic'} eq "class" || $declaration->{'intrinsic'} eq "type" );
-				if
-				    (
-				     $declaration->{'intrinsic'} eq "class"
-				     &&
-				     (grep {$_ eq $type    } (keys(%{$stateStorables->{'functionClasses'}}),@{$stateStorables->{'functionClassInstances'}}))
-				     &&
-				     grep {$_ eq "pointer"}  @{$declaration   ->{'attributes'     }}
-				    )
-				{
-				    foreach my $object ( @{$declaration->{'variables'}} ) {
-					(my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
-					next
-					    if ( grep {lc($_) eq lc($name)} @ignore );
-					$deepCopyResetCode    .= "if (associated(self%".$name.")) call self%".$name."%deepCopyReset   ()\n";
-					$deepCopyFinalizeCode .= "if (associated(self%".$name.")) call self%".$name."%deepCopyFinalize()\n";
-					$assignments          .= "nullify(destination%".$name.")\n";
-					$assignments          .= "if (associated(self%".$name.")) then\n";
-					$assignments          .= " if (associated(self%".$name."\%copiedSelf)) then\n";
-					$assignments          .= "  select type(s => self%".$name."\%copiedSelf)\n";
-					$assignments          .= "  ".$declaration->{'intrinsic'}." is (".$declaration->{'type'}.")\n";
-					$assignments          .= "   destination%".$name." => s\n";
-					$assignments          .= "  class default\n";
-					$assignments          .= "   call Error_Report('copiedSelf has incorrect type'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
-					$assignments          .= "  end select\n";
-					$assignments          .= "  call self%".$name."\%copiedSelf\%referenceCountIncrement()\n";
-					$assignments          .= " else\n";
-					$assignments          .= "  allocate(destination%".$name.",mold=self%".$name.")\n";
-					$assignments          .= "  call self%".$name."%deepCopy(destination%".$name.")\n";
-					$assignments          .= "  self%".$name."%copiedSelf => destination%".$name."\n";
-					$assignments          .= "  call destination%".$name."%autoHook()\n";
-					$assignments          .= " end if\n";
-					$assignments          .= " if (debugReporting.and.mpiSelf\%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbosityLevelSilent)\n"
-					    if ( $debugging );
-					$assignments       .= "end if\n";
-				    }
-				};
-				# Deep copy of objects with explicit deep copy actions.
-				if
-				    (
-				     (
-				      $declaration->{'intrinsic'} eq "class"
-				      ||
-				      $declaration->{'intrinsic'} eq "type"
-				     )
-				     &&
-				     (grep {$_->{'type'} eq $type} &List::ExtraUtils::as_array($deepCopyActions->{'deepCopyActions'}))
-				    ) {
-					my $isAllocatable = grep {$_ eq "allocatable"} @{$declaration->{'attributes'}};
-					my $isPointer     = grep {$_ eq "pointer"    } @{$declaration->{'attributes'}};
-					my $rank = 0;
-					if ( grep {$_ =~ m/^dimension\s*\(/} @{$declaration->{'attributes'}} ) {
-					    my $dimensionDeclarator = join(",",map {/^dimension\s*\(([a-zA-Z0-9_,:\s]+)\)/} @{$declaration->{'attributes'}});
-					    $rank        = ($dimensionDeclarator =~ tr/,//)+1;
-					    $rankMaximum = $rank
-						if ( $rank > $rankMaximum );					    
-					}
-					foreach my $variableName ( @{$declaration->{'variableNames'}} ) {
-					    $assignments .= "if (allocated(self%".$variableName.")) then\n"
-						if ( $isAllocatable );
-					    $assignments .= "if (associated(self%".$variableName.")) then\n"
-						if ( $isPointer     );
-					    for(my $i=1;$i<=$rank;++$i) {
-						$assignments .= (" " x $i)."do i".$i."=lbound(self%".$variableName.",dim=".$i."),ubound(self%".$variableName.",dim=".$i.")\n";
-					    }
-					    my $arrayElement = $rank > 0 ? "(".join(",",map {"i".$_} 1..$rank).")" : "";
-					    $assignments .= (" " x $rank)."call destination%".$variableName.$arrayElement."%deepCopyActions()\n";
-					    for(my $i=1;$i<=$rank;++$i) {
-						    $assignments .= (" " x ($rank+1-$i))."end do\n";
-					    }
-					    $assignments .= "end if\n"
-						if ( $isAllocatable || $isPointer );
-					}
-				}
-				# Deep copy of HDF5 objects.
-				if
-				    (
-				     $declaration->{'intrinsic'} eq "type"
-				     &&
-				     $declaration->{'type'     } =~ m/^\s*hdf5object\s*$/i
-				    ) {
-					$deepCopyModules{'HDF5_Access'} = 1;
-					$assignments .= "!\$ call hdf5Access%set  ()\n";
-					$assignments .= "call self%".$_."%deepCopy(destination%".$_.")\n"
-					    foreach ( @{$declaration->{'variables'}} );
-					$assignments .= "!\$ call hdf5Access%unset()\n";
-				}
-				# Deep copy of non-(class,pointer) functionClass objects.
-				if ( exists($class->{'deepCopy'}->{'functionClass'}) ) {
-				    foreach my $object ( @{$declaration->{'variables'}} ) {
-					(my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
-					if ( grep {lc($_) eq lc($name)} split(/\s*,\s*/,$class->{'deepCopy'}->{'functionClass'}->{'variables'}) ) {
-					    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
-						$assignments          .= "nullify(destination%".$name.")\n";
-						$assignments          .= "if (associated(self%".$name.")) then\n";
-						$deepCopyResetCode    .= "if (associated(self%".$name.")) then\n";
-						$deepCopyFinalizeCode .= "if (associated(self%".$name.")) then\n";
-						$assignments          .= "if (associated(self%".$name."\%copiedSelf)) then\n";
-						$assignments          .= "  select type(s => self%".$name."\%copiedSelf)\n";
-						$assignments          .= "  ".$declaration->{'intrinsic'}." is (".$declaration->{'type'}.")\n";
-						$assignments          .= "   destination%".$name." => s\n";
-						$assignments          .= "  class default\n";
-						$assignments          .= "   call Error_Report('copiedSelf has incorrect type'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
-						$assignments          .= "  end select\n";
-						$assignments          .= "  call self%".$name."\%copiedSelf\%referenceCountIncrement()\n";
-						$assignments          .= "else\n";
-						$assignments          .= " allocate(destination%".$name.",mold=self%".$name.")\n";
-					    }
-					    $deepCopyResetCode    .= "call self%".$name."%deepCopyReset   ()\n";
-					    $deepCopyFinalizeCode .= "call self%".$name."%deepCopyFinalize()\n";
-					    $assignments          .= "call self%".$name."%deepCopy(destination%".$name.")\n";
-					    $assignments          .= "self%".$name."%copiedSelf => destination%".$name."\n";
-					    $assignments          .= "call destination%".$name."%autoHook()\n";
-					    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
-						$assignments       .= "end if\n";
-					    }
-					    $assignments       .= "if (debugReporting.and.mpiSelf\%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbosityLevelSilent)\n"
-						if ( $debugging );
-					    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
-						$assignments          .= "end if\n";
-						$deepCopyResetCode    .= "end if\n";
-						$deepCopyFinalizeCode .= "end if\n";
-					    }
-					}
-				    }
-				}
-				# Perform any increments.
-				if ( exists($class->{'deepCopy'}->{'increment'}) ) {
-				    my @increments = map {{variable => $_}} split(/\s*,\s*/,$class->{'deepCopy'}->{'increment'}->{'variables'});
-				    foreach ( @increments ) {
-					($_->{'host'} = $_->{'variable'}) =~ s/^([^%]+)%.+/$1/;
-				    }
-				    foreach my $object ( @{$declaration->{'variables'}} ) {
-					(my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
-					foreach my $increment ( @increments ) {
-					    if ( lc($increment->{'host'}) eq lc($name) ) {
-						$assignments .= "!\$omp atomic\n"
-						    if ( exists($class->{'deepCopy'}->{'increment'}->{'atomic'}) && $class->{'deepCopy'}->{'increment'}->{'atomic'} eq "yes" );
-						$assignments .= "destination\%".$increment->{'variable'}."=destination\%".$increment->{'variable'}."+1\n";
-					    }
-					}
-				    }
-				}
-				# Perform any sets.
-				if ( exists($class->{'deepCopy'}->{'setTo'}) ) {
-				    my @setTos = map {{variable => $_}} split(/\s*,\s*/,$class->{'deepCopy'}->{'setTo'}->{'variables'});
-				    foreach ( @setTos ) {
-					($_->{'host'} = $_->{'variable'}) =~ s/^([^%]+)%.+/$1/;
-				    }
-				    foreach my $object ( @{$declaration->{'variables'}} ) {
-					(my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
-					foreach my $setTo ( @setTos ) {
-					    if ( lc($setTo->{'host'}) eq lc($name) ) {
-						$assignments .= "destination\%".$setTo->{'variable'}."=".$class->{'deepCopy'}->{'setTo'}->{'value'}."\n";
-					    }
-					}
-				    }
-				}
-                                # Perform any explicit deep copies.
-				if ( exists($class->{'deepCopy'}->{'deepCopy'}) ) {
-				    my @deepCopies = split(/\s*,\s*/,$class->{'deepCopy'}->{'deepCopy'}->{'variables'});
-				    foreach my $object ( @{$declaration->{'variableNames'}} ) {
-					foreach my $deepCopy ( @deepCopies ) {
-					    if ( lc($object) eq lc($deepCopy) ) {
-						$assignments .= "nullify(destination\%".$object.")\n";
-						$assignments .= "allocate(destination\%".$object.",mold=self\%".$object.")\n";
-						if ( exists($class->{'deepCopy'}->{'deepCopy'}->{'copy'}) ) {
-						    $deepCopyModules{$class->{'deepCopy'}->{'deepCopy'}->{'module'}} = 1
-							if ( exists($class->{'deepCopy'}->{'deepCopy'}->{'module'}) );
-						    $assignments .= "if (associated(self\%".$object.")) call ".$class->{'deepCopy'}->{'deepCopy'}->{'copy'}."(self\%".$object.",destination\%".$object.")\n";
-						} else {
-						    $assignments .= "if (associated(self\%".$object.")) call self\%".$object."\%deepCopy(destination\%".$object.")\n";
-						}
-						if ( exists($class->{'deepCopy'}->{'deepCopy'}->{'reset'}) ) {
-						    $deepCopyResetModules{$class->{'deepCopy'}->{'deepCopy'}->{'module'}} = 1
-							if ( exists($class->{'deepCopy'}->{'deepCopy'}->{'module'}) );
-						    $deepCopyResetCode .= "if (associated(self\%".$object.")) call ".$class->{'deepCopy'}->{'deepCopy'}->{'reset'}."(self\%".$object.")\n";
-						}
-						if ( exists($class->{'deepCopy'}->{'deepCopy'}->{'finalize'}) ) {
-						    $deepCopyFinalizeModules{$class->{'deepCopy'}->{'deepCopy'}->{'module'}} = 1
-							if ( exists($class->{'deepCopy'}->{'deepCopy'}->{'module'}) );
-						    $deepCopyFinalizeCode .= "if (associated(self\%".$object.")) call ".$class->{'deepCopy'}->{'deepCopy'}->{'finalize'}."(self\%".$object.")\n";
-						}
-					    }
-					}
-				    }
-				}
-				# Reinitialize OpenMP locks.
-				if
-				    (
-				     $declaration->{'intrinsic'} eq "integer"
-				     &&
-				     exists ($declaration->{'type'})
-				     &&
-				     defined($declaration->{'type'})
-				     &&
-				     $declaration->{'type'     } =~ m/^\s*omp_lock_kind\s*$/i
-				    ) {
-					$assignments .= "!\$ call OMP_Init_Lock(destination\%".$_.")\n"
-					    foreach ( @{$declaration->{'variables'}} );
-				}
-				# Reinitialize OpenMP read/write locks.
-				if
-				    (
-				     $declaration->{'intrinsic'} eq "type"
-				     &&
-				     exists ($declaration->{'type'})
-				     &&
-				     defined($declaration->{'type'})
-				     &&
-				     $declaration->{'type'     } =~ m/^\s*ompReadWriteLock\s*$/i
-				    ) {
-					foreach ( @{$declaration->{'variables'}} ) {
-					    my @dimensions =
-						exists($declaration->{'attributes'})
-						?
-						map {/^dimension\s*\(([:,]+)\)/} @{$declaration->{'attributes'}}
-					        :
-						undef();
-					    if ( @dimensions ) {
-						my @rank = split(",",$dimensions[0]);
-						# Add loop index variables.
-						$rankMaximum = scalar(@rank)
-						    if ( scalar(@rank) > $rankMaximum );
-						for(my $i=1;$i<=scalar(@rank);++$i) {
-						    $assignments .= "!\$ do i".$i."=lbound(destination\%".$_.",dim=".$i."),ubound(destination\%".$_.",dim=".$i.")\n";
-						}
-						$assignments .= "!\$    call destination\%".$_."(".join(",",map {"i".$_} 1..scalar(@rank)).")%initialize()\n";
-						for(my $i=1;$i<=scalar(@rank);++$i) {
-						    $assignments .= "!\$ end do\n";
-						}
-					    } else {
-						# Scalar lock.
-						$assignments .= "!\$ call destination\%".$_."%initialize()\n";
-					    }
-					}
-				}
-			    }
-			}
+			&deepCopyDeclarations($class,$nonAbstractClass,$node,$node->{'declarations'},\@ignore,$lineNumber,$deepCopy)
+			    if ( $node->{'type'} eq "declaration" );
 			$node = $node->{'sibling'};
 		    }
 		    # Move to the parent class.
@@ -1512,361 +1135,47 @@ CODE
 		    next
 			unless ( defined($declarationSource) );
 		    my $declaration = &Fortran::Utils::Unformat_Variables($declarationSource);
-		    (my $type = $declaration->{'type'}) =~ s/(^\s*|\s*$)//g
-			if ( $declaration->{'intrinsic'} eq "class" || $declaration->{'intrinsic'} eq "type" );
-		    if
-			(
-			 $declaration->{'intrinsic'} eq "class"
-			 &&
-			 $declaration->{'type'     } =~ m/Class\s*$/
-			 &&
-			 grep {$_ eq "pointer"} @{$declaration->{'attributes'}}
-			) {
-			    foreach my $object ( @{$declaration->{'variables'}} ) {
-				(my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
-				$deepCopyResetCode    .= "if (associated(self%".$name.")) call self%".$name."%deepCopyReset()\n";
-				$deepCopyFinalizeCode .= "if (associated(self%".$name.")) call self%".$name."%deepCopyReset()\n";
-				$assignments          .= "nullify(destination%".$name.")\n";
-				$assignments          .= "if (associated(self%".$name.")) then\n";
-				$assignments          .= " if (associated(self%".$name."\%copiedSelf)) then\n";
-				$assignments          .= "  select type(s => self%".$name."\%copiedSelf)\n";
-				$assignments          .= "  ".$declaration->{'intrinsic'}." is (".$declaration->{'type'}.")\n";
-				$assignments          .= "   destination%".$name." => s\n";
-				$assignments          .= "  class default\n";
-				$assignments          .= "   call Error_Report('copiedSelf has incorrect type'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
-				$assignments          .= "  end select\n";
-				$assignments          .= "  call self%".$name."\%copiedSelf\%referenceCountIncrement()\n";
-				$assignments          .= " else\n";
-				$assignments          .= "  allocate(destination%".$name.",mold=self%".$name.")\n";
-				$assignments          .= "  call self%".$name."%deepCopy(destination%".$name.")\n";
-				$assignments          .= "  self%".$name."%copiedSelf => destination%".$name."\n";
-				$assignments          .= "  call destination%".$name."%autoHook()\n";
-				$assignments          .= " end if\n";
-				$assignments          .= " if (debugReporting.and.mpiSelf\%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbosityLevelSilent)\n"
-				    if ( $debugging );
-				$assignments       .= "end if\n";
-			    }
-		    }
-		    # Deep copy of objects with explicit deep copy actions.
-		    if
-			(
-			 (
-			  $declaration->{'intrinsic'} eq "class"
-			  ||
-			  $declaration->{'intrinsic'} eq "type"
-			 )
-			 &&
-			 (grep {$_->{'type'} eq $type} &List::ExtraUtils::as_array($deepCopyActions->{'deepCopyActions'}))
-			) {
-			    my $isAllocatable = grep {$_ eq "allocatable"} @{$declaration->{'attributes'}};
-			    my $isPointer     = grep {$_ eq "pointer"    } @{$declaration->{'attributes'}};
-			    my $rank = 0;
-			    if ( grep {$_ =~ m/^dimension\s*\(/} @{$declaration->{'attributes'}} ) {
-				my $dimensionDeclarator = join(",",map {/^dimension\s*\(([a-zA-Z0-9_,:\s]+)\)/} @{$declaration->{'attributes'}});
-				$rank        = ($dimensionDeclarator =~ tr/,//)+1;
-				$rankMaximum = $rank
-				    if ( $rank > $rankMaximum );
-			    }
-			    foreach my $variableName ( @{$declaration->{'variableNames'}} ) {
-				$assignments .= "if (allocated(self%".$variableName.")) then\n"
-				    if ( $isAllocatable );
-				$assignments .= "if (associated(self%".$variableName.")) then\n"
-				    if ( $isPointer     );
-				for(my $i=1;$i<=$rank;++$i) {
-				    $assignments .= (" " x $i)."do i".$i."=lbound(self%".$variableName.",dim=".$i."),ubound(self%".$variableName.",dim=".$i.")\n";
-				}
-				my $arrayElement = $rank > 0 ? "(".join(",",map {"i".$_} 1..$rank).")" : "";
-				$assignments .= (" " x $rank)."call destination%".$variableName.$arrayElement."%deepCopyActions()\n";
-				for(my $i=1;$i<=$rank;++$i) {
-					$assignments .= (" " x ($rank+1-$i))."end do\n";
-				}
-				$assignments .= "end if\n"
-				    if ( $isAllocatable || $isPointer );
-			    }
-		    }
-		    # Deep copy of HDF5 objects.
-		    if
-			(
-			 $declaration->{'intrinsic'} eq "type"
-			 &&
-			 $declaration->{'type'     } =~ m/^\s*hdf5object\s*$/i
-			) {
-			    $deepCopyModules{'HDF5_Access'} = 1;
-			    $assignments .= "!\$ call hdf5Access%set  ()\n";
-			    $assignments .= "call self%".$_."%deepCopy(destination%".$_.")\n"
-				foreach ( @{$declaration->{'variables'}} );
-			    $assignments .= "!\$ call hdf5Access%unset()\n";
-		    }
-		    # Deep copy of non-(class,pointer) functionClass objects.
-		    if ( exists($class->{'deepCopy'}->{'functionClass'}) ) {
-			foreach my $object ( @{$declaration->{'variables'}} ) {
-			    (my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
-			    if ( grep {lc($_) eq lc($name)} split(/\s*,\s*/,$class->{'deepCopy'}->{'functionClass'}->{'variables'}) ) {
-				if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
-				    $assignments          .= "nullify(destination%".$name.")\n";
-				    $assignments          .= "if (associated(self%".$name.")) then\n";
-				    $deepCopyResetCode    .= "if (associated(self%".$name.")) then\n";
-				    $deepCopyFinalizeCode .= "if (associated(self%".$name.")) then\n";
-				    $assignments          .= "if (associated(self%".$name."\%copiedSelf)) then\n";
-				    $assignments          .= "  select type(s => self%".$name."\%copiedSelf)\n";
-				    $assignments          .= "  ".$declaration->{'intrinsic'}." is (".$declaration->{'type'}.")\n";
-				    $assignments          .= "   destination%".$name." => s\n";
-				    $assignments          .= "  class default\n";
-				    $assignments          .= "   call Error_Report('copiedSelf has incorrect type'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
-				    $assignments          .= "  end select\n";
-				    $assignments          .= "  call self%".$name."\%copiedSelf\%referenceCountIncrement()\n";
-				    $assignments          .= "else\n";
-				    $assignments          .= " allocate(destination%".$name.",mold=self%".$name.")\n";
-				}
-				$deepCopyResetCode    .= "call self%".$name."%deepCopyReset   ()\n";
-				$deepCopyFinalizeCode .= "call self%".$name."%deepCopyFinalize()\n";
-				$assignments          .= "call self%".$name."%deepCopy(destination%".$name.")\n";
-				$assignments          .= " self%".$name."%copiedSelf => destination%".$name."\n";
-				$assignments          .= "call destination%".$name."%autoHook()\n";
-				if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
-				    $assignments .= "end if\n";
-				}
-				$assignments       .= "if (debugReporting.and.mpiSelf\%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbosityLevelSilent)\n"
-				    if ( $debugging );
-				if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
-				    $assignments          .= "end if\n";
-				    $deepCopyResetCode    .= "end if\n";
-				    $deepCopyFinalizeCode .= "end if\n";
-				}
-			    }
-			}
-		    }
-		    # Perform any increments.
-		    if ( exists($class->{'deepCopy'}->{'increment'}) ) {
-			my @increments = map {{variable => $_}} split(/\s*,\s*/,$class->{'deepCopy'}->{'increment'}->{'variables'});
-			foreach ( @increments ) {
-			    ($_->{'host'} = $_->{'variable'}) =~ s/^([^%]+)%.+/$1/;
-			}
-			foreach my $object ( @{$declaration->{'variables'}} ) {
-			    (my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
-			    foreach my $increment ( @increments ) {
-				if ( lc($increment->{'host'}) eq lc($name) ) {
-				    $assignments .= "!\$omp atomic\n"
-					if ( exists($class->{'deepCopy'}->{'increment'}->{'atomic'}) && $class->{'deepCopy'}->{'increment'}->{'atomic'} eq "yes" );
-				    $assignments .= "destination\%".$increment->{'variable'}."=destination\%".$increment->{'variable'}."+1\n";
-				}
-			    }
-			}
-		    }
-		    # Perform any sets.
-		    if ( exists($class->{'deepCopy'}->{'setTo'}) ) {
-			my @setTos = map {{variable => $_}} split(/\s*,\s*/,$class->{'deepCopy'}->{'setTo'}->{'variables'});
-			foreach ( @setTos ) {
-			    ($_->{'host'} = $_->{'variable'}) =~ s/^([^%]+)%.+/$1/;
-			}
-			foreach my $object ( @{$declaration->{'variables'}} ) {
-			    (my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
-			    foreach my $setTo ( @setTos ) {
-				if ( lc($setTo->{'host'}) eq lc($name) ) {
-				    $assignments .= "destination\%".$setTo->{'variable'}."=".$class->{'deepCopy'}->{'setTo'}->{'value'}."\n";
-				}
-			    }
-			}
-		    }
-		    # Perform any explicit deep copies.
-		    if ( exists($class->{'deepCopy'}->{'deepCopy'}) ) {
-			my @deepCopies = split(/\s*,\s*/,$class->{'deepCopy'}->{'deepCopy'}->{'variables'});
-			foreach my $object ( @{$declaration->{'variables'}} ) {
-			    foreach my $deepCopy ( @deepCopies ) {
-				if ( lc($object) eq lc($deepCopy) ) {
-				    $assignments .= "nullify(destination\%".$object.")\n";
-				    $assignments .= "allocate(destination\%".$object.",mold=self\%".$object.")\n";
-				    if ( exists($class->{'deepCopy'}->{'deepCopy'}->{'function'}) ) {
-					$deepCopyModules{$class->{'deepCopy'}->{'deepCopy'}->{'module'}} = 1
-					    if ( exists($class->{'deepCopy'}->{'deepCopy'}->{'module'}) );
-					$assignments .= "if (associated(self\%".$object.")) call ".$class->{'deepCopy'}->{'deepCopy'}->{'function'}."(self\%".$object.",destination\%".$object.")\n";
-				    } else {
-					$assignments .= "if (associated(self\%".$object.")) call self\%".$object."\%deepCopy(destination\%".$object.")\n";
-				    }
-				}
-			    }
-			}
-		    }
+		    my @ignore      = ();
+		    &deepCopyDeclarations($class,$nonAbstractClass,$node,$declaration,\@ignore,$lineNumber,$deepCopy);
 		}
 		# Add any objects declared in the functionClassType class.
 		if ( defined($functionClassType) ) {
 		    # Search the node for declarations.
-		    my $node = $functionClassType->{'node'}->{'firstChild'};
+		    my @ignore = ();
+		    my $node   = $functionClassType->{'node'}->{'firstChild'};
 		    while ( $node ) {
-			if ( $node->{'type'} eq "declaration" ) {
-			    foreach my $declaration ( @{$node->{'declarations'}} ) {
-				# Deep copy of functionClass objects.
-				(my $type = $declaration->{'type'}) =~ s/(^\s*|\s*$)//g
-				    if ( $declaration->{'intrinsic'} eq "class" );
-				if
-				    (
-				     $declaration->{'intrinsic'} eq "class"
-				     &&
-				     (grep {$_ eq $type    } (keys(%{$stateStorables->{'functionClasses'}}),@{$stateStorables->{'functionClassInstances'}}))
-				     &&
-				     grep {$_ eq "pointer"}  @{$declaration   ->{'attributes'     }}
-				    )
-				{
-				    foreach my $object ( @{$declaration->{'variables'}} ) {
-					(my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
-					$deepCopyResetCode    .= "if (associated(self%".$name.")) call self%".$name."%deepCopyReset   ()\n";
-					$deepCopyFinalizeCode .= "if (associated(self%".$name.")) call self%".$name."%deepCopyFinalize()\n";
-					$assignments          .= "nullify(destination%".$name.")\n";
-					$assignments          .= "if (associated(self%".$name.")) then\n";
-					$assignments          .= " if (associated(self%".$name."\%copiedSelf)) then\n";
-					$assignments          .= "  select type(s => self%".$name."\%copiedSelf)\n";
-					$assignments          .= "  ".$declaration->{'intrinsic'}." is (".$declaration->{'type'}.")\n";
-					$assignments          .= "   destination%".$name." => s\n";
-					$assignments          .= "  class default\n";
-					$assignments          .= "   call Error_Report('copiedSelf has incorrect type'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
-					$assignments          .= "  end select\n";
-					$assignments          .= "  call self%".$name."\%copiedSelf\%referenceCountIncrement()\n";
-					$assignments          .= " else\n";
-					$assignments          .= "  allocate(destination%".$name.",mold=self%".$name.")\n";
-					$assignments          .= "  call self%".$name."%deepCopy(destination%".$name.")\n";
-					$assignments          .= "  self%".$name."%copiedSelf => destination%".$name."\n";
-					$assignments          .= "  call destination%".$name."%autoHook()\n";
-					$assignments          .= " end if\n";
-					$assignments          .= " if (debugReporting.and.mpiSelf\%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbosityLevelSilent)\n"
-					    if ( $debugging );
-					$assignments       .= "end if\n";
-				    }
-				};
-				# Deep copy of HDF5 objects.
-				if
-				    (
-				     $declaration->{'intrinsic'} eq "type"
-				     &&
-				     $declaration->{'type'     } =~ m/^\s*hdf5object\s*$/i
-				    ) {
-					$deepCopyModules{'HDF5_Access'} = 1;
-					$assignments .= "!\$ call hdf5Access%set  ()\n";
-					$assignments .= "call self%".$_."%deepCopy(destination%".$_.")\n"
-					    foreach ( @{$declaration->{'variables'}} );
-					$assignments .= "!\$ call hdf5Access%unset()\n";
-				}
-				# Deep copy of non-(class,pointer) functionClass objects.
-				if ( exists($class->{'deepCopy'}->{'functionClass'}) ) {
-				    foreach my $object ( @{$declaration->{'variables'}} ) {
-					(my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
-					if ( grep {lc($_) eq lc($name)} split(/\s*,\s*/,$class->{'deepCopy'}->{'functionClass'}->{'variables'}) ) {
-					    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
-						$assignments          .= "nullify(destination%".$name.")\n";
-						$assignments          .= "if (associated(self%".$name.")) then\n";
-						$deepCopyResetCode    .= "if (associated(self%".$name.")) then\n";
-						$deepCopyFinalizeCode .= "if (associated(self%".$name.")) then\n";
-						$assignments          .= "if (associated(self%".$name."\%copiedSelf)) then\n";
-						$assignments          .= "  select type(s => self%".$name."\%copiedSelf)\n";
-						$assignments          .= "  ".$declaration->{'intrinsic'}." is (".$declaration->{'type'}.")\n";
-						$assignments          .= "   destination%".$name." => s\n";
-						$assignments          .= "  class default\n";
-						$assignments          .= "   call Error_Report('copiedSelf has incorrect type'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
-						$assignments          .= "  end select\n";
-						$assignments          .= "  call self%".$name."\%copiedSelf\%referenceCountIncrement()\n";
-						$assignments          .= "else\n";
-						$assignments          .= " allocate(destination%".$name.",mold=self%".$name.")\n";
-					    }
-					    $deepCopyResetCode    .= "call self%".$name."%deepCopyReset   ()\n";
-					    $deepCopyFinalizeCode .= "call self%".$name."%deepCopyFinalize()\n";
-					    $assignments          .= "call self%".$name."%deepCopy(destination%".$name.")\n";
-					    $assignments          .= "self%".$name."%copiedSelf => destination%".$name."\n";
-					    $assignments          .= "call destination%".$name."%autoHook()\n";
-					    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
-						$assignments       .= "end if\n";
-					    }
-					    $assignments       .= "if (debugReporting.and.mpiSelf\%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbosityLevelSilent)\n"
-						if ( $debugging );
-				   	    $assignments       .= "call destination%".$name."%autoHook()\n";
-					    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
-						$assignments          .= "end if\n";
-						$deepCopyResetCode    .= "end if\n";
-						$deepCopyFinalizeCode .= "end if\n";
-					    }
-					}
-				    }
-				}
-				# Reinitialize OpenMP locks.
-				if
-				    (
-				     $declaration->{'intrinsic'} eq "integer"
-				     &&
-				     exists ($declaration->{'type'})
-				     &&
-				     defined($declaration->{'type'})
-				     &&
-				     $declaration->{'type'     } =~ m/^\s*omp_lock_kind\s*$/i
-				    ) {
-					$assignments .= "!\$ call OMP_Init_Lock(destination\%".$_.")\n"
-					    foreach ( @{$declaration->{'variables'}} );
-				}
-				# Reinitialize OpenMP read/write locks.
-				if
-				    (
-				     $declaration->{'intrinsic'} eq "type"
-				     &&
-				     exists ($declaration->{'type'})
-				     &&
-				     defined($declaration->{'type'})
-				     &&
-				     $declaration->{'type'     } =~ m/^\s*ompReadWriteLock\s*$/i
-				    ) {
-					foreach ( @{$declaration->{'variables'}} ) {
-					    my @dimensions =
-						exists($declaration->{'attributes'})
-						?
-						map {/^dimension\s*\(([:,]+)\)/} @{$declaration->{'attributes'}}
-					        :
-						undef();
-					    if ( @dimensions ) {
-						my @rank = split(",",$dimensions[0]);
-						# Add loop index variables.
-						$rankMaximum = scalar(@rank)
-						    if ( scalar(@rank) > $rankMaximum );
-						for(my $i=1;$i<=scalar(@rank);++$i) {
-						    $assignments .= "!\$ do i".$i."=lbound(destination\%".$_.",dim=".$i."),ubound(destination\%".$_.",dim=".$i.")\n";
-						}
-						$assignments .= "!\$    call destination\%".$_."(".join(",",map {"i".$_} 1..scalar(@rank)).")%initialize()\n";
-						for(my $i=1;$i<=scalar(@rank);++$i) {
-						    $assignments .= "!\$ end do\n";
-						}
-					    } else {
-						# Scalar lock.
-						$assignments .= "!\$ call destination\%".$_."%initialize()\n";
-					    }
-					}
-				}
-			    }
-			}
+			&deepCopyDeclarations($class,$nonAbstractClass,$node,$node->{'declarations'},\@ignore,$lineNumber,$deepCopy)
+			    if ( $node->{'type'} eq "declaration" );
 			$node = $node->{'sibling'};
 		    }
 		}
 		# Check that the type of the destination matches, and perform the copy. Reset the reference count to the copy.
-		$deepCopyCode .= "type is (".$nonAbstractClass->{'name'}.")\n";
-		$deepCopyCode .= "select type (destination)\n";
-		$deepCopyCode .= "type is (".$nonAbstractClass->{'name'}.")\n";
-		$deepCopyCode .= "destination=self\n";
-		$deepCopyCode .= $assignments
-		    if ( defined($assignments) );
-		$deepCopyCode .= "class default\n";
-		$deepCopyCode .= "call Error_Report('destination and source types do not match'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
-		$deepCopyCode .= "end select\n";
+		$deepCopy->{'code'} .= "type is (".$nonAbstractClass->{'name'}.")\n";
+		$deepCopy->{'code'} .= "select type (destination)\n";
+		$deepCopy->{'code'} .= "type is (".$nonAbstractClass->{'name'}.")\n";
+		$deepCopy->{'code'} .= "destination=self\n";
+		$deepCopy->{'code'} .= $deepCopy->{'assignments'}
+		    if ( defined($deepCopy->{'assignments'}) );
+		$deepCopy->{'code'} .= "class default\n";
+		$deepCopy->{'code'} .= "call Error_Report('destination and source types do not match'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
+		$deepCopy->{'code'} .= "end select\n";
 		# Specify required modules.
-		$deepCopyModules{'Error'} = 1;
+		$deepCopy->{'modules'}->{'Error'} = 1;
 	    }
-            $deepCopyCode         .= "end select\n";
-	    $deepCopyResetCode    .= "end select\n";
-	    $deepCopyFinalizeCode .= "end select\n";
+            $deepCopy->{'code'        } .= "end select\n";
+	    $deepCopy->{'resetCode'   } .= "end select\n";
+	    $deepCopy->{'finalizeCode'} .= "end select\n";
             # Reset the reference count to this newly created object.
-            $deepCopyCode .= "call destination%referenceCountReset()\n";
+            $deepCopy->{'code'} .= "call destination%referenceCountReset()\n";
             # Reset the state operation ID if necessary.
-            $deepCopyCode .= "destination%stateOperationID=0_c_size_t\n";
+            $deepCopy->{'code'} .= "destination%stateOperationID=0_c_size_t\n";
             # Insert variables declarations.
-            $deepCopyCode         = &Fortran::Utils::Format_Variable_Definitions($linkedListVariables        ).$deepCopyCode        ;
-            $deepCopyResetCode    = &Fortran::Utils::Format_Variable_Definitions($linkedListResetVariables   ).$deepCopyResetCode   ;
-            $deepCopyFinalizeCode = &Fortran::Utils::Format_Variable_Definitions($linkedListFinalizeVariables).$deepCopyFinalizeCode;
+            $deepCopy->{'code'        } = &Fortran::Utils::Format_Variable_Definitions($linkedListVariables        ).$deepCopy->{'code'}        ;
+            $deepCopy->{'resetCode'   } = &Fortran::Utils::Format_Variable_Definitions($linkedListResetVariables   ).$deepCopy->{'resetCode'}   ;
+            $deepCopy->{'finalizeCode'} = &Fortran::Utils::Format_Variable_Definitions($linkedListFinalizeVariables).$deepCopy->{'finalizeCode'};
             # Insert any iterator variables needed.
-            $deepCopyCode = "integer :: ".join(",",map {"i".$_} 1..$rankMaximum)."\n".$deepCopyCode
-                if ( $rankMaximum > 0 );
+            $deepCopy->{'code'} = "integer :: ".join(",",map {"i".$_} 1..$deepCopy->{'rankMaximum'})."\n".$deepCopy->{'code'}
+                if ( $deepCopy->{'rankMaximum'} > 0 );
 	    $methods{'deepCopy'} =
 	    {
 		description => "Perform a deep copy of the object. This is a wrapper around the actual deep-copy code.",
@@ -1883,9 +1192,9 @@ CODE
 		type        => "void",
 		recursive   => "yes",
 		pass        => "yes",
-		modules     => join(" ",keys(%deepCopyModules)),
+		modules     => join(" ",keys(%{$deepCopy->{'modules'}})),
 		argument    => [ "class(".$directive->{'name'}."Class), intent(inout) :: destination" ],
-		code        => $deepCopyCode
+		code        => $deepCopy->{'code'}
 	    };
 	    $methods{'deepCopyReset'} =
 	    {
@@ -1893,7 +1202,7 @@ CODE
 		type        => "void",
 		recursive   => "yes",
 		pass        => "yes",
-		code        => $deepCopyResetCode
+		code        => $deepCopy->{'resetCode'}
 	    };
 	    $methods{'deepCopyFinalize'} =
 	    {
@@ -1901,12 +1210,12 @@ CODE
 		type        => "void",
 		recursive   => "yes",
 		pass        => "yes",
-		code        => $deepCopyFinalizeCode
+		code        => $deepCopy->{'finalizeCode'}
 	    };
-	    $methods{'deepCopyReset'   }->{'modules'} = join(" ",keys(%deepCopyResetModules   ))
-		if ( scalar(keys(%deepCopyResetModules   )) > 0 );
-	    $methods{'deepCopyFinalize'}->{'modules'} = join(" ",keys(%deepCopyFinalizeModules))
-		if ( scalar(keys(%deepCopyFinalizeModules)) > 0 );
+	    $methods{'deepCopyReset'   }->{'modules'} = join(" ",keys(%{$deepCopy->{'resetModules'   }}))
+		if ( scalar(keys(%{$deepCopy->{'resetModules'   }})) > 0 );
+	    $methods{'deepCopyFinalize'}->{'modules'} = join(" ",keys(%{$deepCopy->{'finalizeModules'}}))
+		if ( scalar(keys(%{$deepCopy->{'finalizeModules'}})) > 0 );
 	    # Add "stateStore" and "stateRestore" method.
 	    my $stateStoreCode;
 	    my $stateRestoreCode;
@@ -4360,6 +3669,320 @@ sub stateStoreExplicitFunction {
 	}
     }
     return ($inputCode,$outputCode,%modules);
+}
+
+sub potentialDescriptorParameters {
+    # Process variable declarations for potential parameters to include in descriptors.
+    my $declarations   = shift();
+    my $class          = shift();
+    my $potentialNames = shift();
+    our $stateStorables;
+    foreach my $declaration ( &List::ExtraUtils::as_array($declarations) ) {
+	# Identify object pointers.
+	push(@{$potentialNames->{'objects'}},map {$_ =~ s/\s*([a-zA-Z0-9_]+).*/$1/; $_} @{$declaration->{'variables'}})
+	    if
+	    (
+	     $declaration->{'intrinsic'} eq "class"
+	     &&
+	     (
+	      (grep {&lctrim($declaration->{'type'}) eq lc($_)} keys                       (%{$stateStorables->{'functionClasses'       }}))
+	      ||
+	      (grep {&lctrim($declaration->{'type'}) eq lc($_)} &List::ExtraUtils::as_array(  $stateStorables->{'functionClassInstances'} ))
+	     )
+	     &&
+	     grep {$_ eq "pointer"} @{$declaration->{'attributes'}}
+	    );
+	# Identify stateful types.
+	push(@{$potentialNames->{'statefulTypes'}},$declaration)
+	    if
+	    (
+	     $declaration->{'intrinsic'} eq "type"
+	     &&
+	     $declaration->{'type'     } =~ m/^stateful(Integer|Double|Logical)\s*$/i
+	    );
+	# Identify enumerations.
+	push(@{$potentialNames->{'enumerations'}},$declaration)
+	    if
+	    (
+	     $declaration->{'intrinsic'} eq "type"
+	     &&
+	     $declaration->{'type'     } =~ m/^enumeration[a-z0-9_]+type\s*$/i
+	    );
+	# Identify regular parameters.
+	push(@{$potentialNames->{'parameters'}},$declaration)
+	    if
+	    (
+	     (grep {$_ eq $declaration->{'intrinsic'}} ( "integer", "logical", "double precision", "character" ))
+	     ||
+	     (
+	      $declaration->{'intrinsic'}  eq "type"
+	      &&
+	      trimlc($declaration->{'type'     }) eq "varying_string"
+	     )
+	    );
+	$class->{'hasCustomDescriptor'} = 1
+	    if
+	    (
+	     $declaration->{'intrinsic'} eq "procedure"
+	     &&
+	     $declaration->{'variables'}->[0] =~ m/^descriptor=>/
+	    );
+    }
+}
+    
+sub deepCopyDeclarations {
+    # Process variable declarations from a node for deep copy.
+    my $class            =   shift() ;
+    my $nonAbstractClass =   shift() ;
+    my $node             =   shift() ;
+    my $declarations     =   shift() ;
+    my @ignore           = @{shift()};
+    my $lineNumber       =   shift() ;
+    my $deepCopy         =   shift() ;
+    our $stateStorables;
+    our $debugging;
+    our $deepCopyActions;
+    foreach my $declaration ( &List::ExtraUtils::as_array($declarations) ) {
+	# Deep copy of functionClass objects.
+	(my $type = $declaration->{'type'}) =~ s/(^\s*|\s*$)//g
+	    if ( $declaration->{'intrinsic'} eq "class" || $declaration->{'intrinsic'} eq "type" );
+	if
+	    (
+	     $declaration->{'intrinsic'} eq "class"
+	     &&
+	     (grep {$_ eq $type    } (keys(%{$stateStorables->{'functionClasses'}}),@{$stateStorables->{'functionClassInstances'}}))
+	     &&
+	     grep {$_ eq "pointer"}  @{$declaration   ->{'attributes'     }}
+	    )
+	{
+	    foreach my $object ( @{$declaration->{'variables'}} ) {
+		(my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
+		next
+		    if ( grep {lc($_) eq lc($name)} @ignore );
+		$deepCopy->{'resetCode'   } .= "if (associated(self%".$name.")) call self%".$name."%deepCopyReset   ()\n";
+		$deepCopy->{'finalizeCode'} .= "if (associated(self%".$name.")) call self%".$name."%deepCopyFinalize()\n";
+		$deepCopy->{'assignments' } .= "nullify(destination%".$name.")\n";
+		$deepCopy->{'assignments' } .= "if (associated(self%".$name.")) then\n";
+		$deepCopy->{'assignments' } .= " if (associated(self%".$name."\%copiedSelf)) then\n";
+		$deepCopy->{'assignments' } .= "  select type(s => self%".$name."\%copiedSelf)\n";
+		$deepCopy->{'assignments' } .= "  ".$declaration->{'intrinsic'}." is (".$declaration->{'type'}.")\n";
+		$deepCopy->{'assignments' } .= "   destination%".$name." => s\n";
+		$deepCopy->{'assignments' } .= "  class default\n";
+		$deepCopy->{'assignments' } .= "   call Error_Report('copiedSelf has incorrect type'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
+		$deepCopy->{'assignments' } .= "  end select\n";
+		$deepCopy->{'assignments' } .= "  call self%".$name."\%copiedSelf\%referenceCountIncrement()\n";
+		$deepCopy->{'assignments' } .= " else\n";
+		$deepCopy->{'assignments' } .= "  allocate(destination%".$name.",mold=self%".$name.")\n";
+		$deepCopy->{'assignments' } .= "  call self%".$name."%deepCopy(destination%".$name.")\n";
+		$deepCopy->{'assignments' } .= "  self%".$name."%copiedSelf => destination%".$name."\n";
+		$deepCopy->{'assignments' } .= "  call destination%".$name."%autoHook()\n";
+		$deepCopy->{'assignments' } .= " end if\n";
+		$deepCopy->{'assignments' } .= " if (debugReporting.and.mpiSelf\%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbosityLevelSilent)\n"
+		    if ( $debugging );
+		$deepCopy->{'assignments' } .= "end if\n";
+	    }
+	};
+	# Deep copy of objects with explicit deep copy actions.
+	if
+	    (
+	     (
+	      $declaration->{'intrinsic'} eq "class"
+	      ||
+	      $declaration->{'intrinsic'} eq "type"
+	     )
+	     &&
+	     (grep {$_->{'type'} eq $type} &List::ExtraUtils::as_array($deepCopyActions->{'deepCopyActions'}))
+	    ) {
+		my $isAllocatable = grep {$_ eq "allocatable"} @{$declaration->{'attributes'}};
+		my $isPointer     = grep {$_ eq "pointer"    } @{$declaration->{'attributes'}};
+		my $rank = 0;
+		if ( grep {$_ =~ m/^dimension\s*\(/} @{$declaration->{'attributes'}} ) {
+		    my $dimensionDeclarator = join(",",map {/^dimension\s*\(([a-zA-Z0-9_,:\s]+)\)/} @{$declaration->{'attributes'}});
+		    $rank        = ($dimensionDeclarator =~ tr/,//)+1;
+		    $deepCopy->{'rankMaximum'} = $rank
+			if ( $rank > $deepCopy->{'rankMaximum'} );					    
+		}
+		foreach my $variableName ( @{$declaration->{'variableNames'}} ) {
+		    $deepCopy->{'assignments'} .= "if (allocated(self%".$variableName.")) then\n"
+			if ( $isAllocatable );
+		    $deepCopy->{'assignments'} .= "if (associated(self%".$variableName.")) then\n"
+			if ( $isPointer     );
+		    for(my $i=1;$i<=$rank;++$i) {
+			$deepCopy->{'assignments'} .= (" " x $i)."do i".$i."=lbound(self%".$variableName.",dim=".$i."),ubound(self%".$variableName.",dim=".$i.")\n";
+		    }
+		    my $arrayElement = $rank > 0 ? "(".join(",",map {"i".$_} 1..$rank).")" : "";
+		    $deepCopy->{'assignments'} .= (" " x $rank)."call destination%".$variableName.$arrayElement."%deepCopyActions()\n";
+		    for(my $i=1;$i<=$rank;++$i) {
+			$deepCopy->{'assignments'} .= (" " x ($rank+1-$i))."end do\n";
+		    }
+		    $deepCopy->{'assignments'} .= "end if\n"
+			if ( $isAllocatable || $isPointer );
+		}
+	}
+	# Deep copy of HDF5 objects.
+	if
+	    (
+	     $declaration->{'intrinsic'} eq "type"
+	     &&
+	     $declaration->{'type'     } =~ m/^\s*hdf5object\s*$/i
+	    ) {
+		$deepCopy->{'modules'}->{'HDF5_Access'} = 1;
+		$deepCopy->{'assignments'} .= "!\$ call hdf5Access%set  ()\n";
+		$deepCopy->{'assignments'} .= "call self%".$_."%deepCopy(destination%".$_.")\n"
+		    foreach ( @{$declaration->{'variables'}} );
+		$deepCopy->{'assignments'} .= "!\$ call hdf5Access%unset()\n";
+	}
+	# Deep copy of non-(class,pointer) functionClass objects.
+	if ( exists($class->{'deepCopy'}->{'functionClass'}) ) {
+	    foreach my $object ( @{$declaration->{'variables'}} ) {
+		(my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
+		if ( grep {lc($_) eq lc($name)} split(/\s*,\s*/,$class->{'deepCopy'}->{'functionClass'}->{'variables'}) ) {
+		    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
+			$deepCopy->{'assignments' } .= "nullify(destination%".$name.")\n";
+			$deepCopy->{'assignments' } .= "if (associated(self%".$name.")) then\n";
+			$deepCopy->{'resetCode'   } .= "if (associated(self%".$name.")) then\n";
+			$deepCopy->{'finalizeCode'} .= "if (associated(self%".$name.")) then\n";
+			$deepCopy->{'assignments' } .= "if (associated(self%".$name."\%copiedSelf)) then\n";
+			$deepCopy->{'assignments' } .= "  select type(s => self%".$name."\%copiedSelf)\n";
+			$deepCopy->{'assignments' } .= "  ".$declaration->{'intrinsic'}." is (".$declaration->{'type'}.")\n";
+			$deepCopy->{'assignments' } .= "   destination%".$name." => s\n";
+			$deepCopy->{'assignments' } .= "  class default\n";
+			$deepCopy->{'assignments' } .= "   call Error_Report('copiedSelf has incorrect type'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
+			$deepCopy->{'assignments' } .= "  end select\n";
+			$deepCopy->{'assignments' } .= "  call self%".$name."\%copiedSelf\%referenceCountIncrement()\n";
+			$deepCopy->{'assignments' } .= "else\n";
+			$deepCopy->{'assignments' } .= " allocate(destination%".$name.",mold=self%".$name.")\n";
+		    }
+		    $deepCopy->{'resetCode'   } .= "call self%".$name."%deepCopyReset   ()\n";
+		    $deepCopy->{'finalizeCode'} .= "call self%".$name."%deepCopyFinalize()\n";
+		    $deepCopy->{'assignments' } .= "call self%".$name."%deepCopy(destination%".$name.")\n";
+		    $deepCopy->{'assignments' } .= "self%".$name."%copiedSelf => destination%".$name."\n";
+		    $deepCopy->{'assignments' } .= "call destination%".$name."%autoHook()\n";
+		    $deepCopy->{'assignments' } .= "end if\n"
+			if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} );
+		    $deepCopy->{'assignments' } .= "if (debugReporting.and.mpiSelf\%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbosityLevelSilent)\n"
+			if ( $debugging );
+		    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
+			$deepCopy->{'assignments' } .= "end if\n";
+			$deepCopy->{'resetCode'   } .= "end if\n";
+			$deepCopy->{'finalizeCode'} .= "end if\n";
+		    }
+		}
+	    }
+	}
+	# Perform any increments.
+	if ( exists($class->{'deepCopy'}->{'increment'}) ) {
+	    my @increments = map {{variable => $_}} split(/\s*,\s*/,$class->{'deepCopy'}->{'increment'}->{'variables'});
+	    foreach ( @increments ) {
+		($_->{'host'} = $_->{'variable'}) =~ s/^([^%]+)%.+/$1/;
+	    }
+	    foreach my $object ( @{$declaration->{'variables'}} ) {
+		(my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
+		foreach my $increment ( @increments ) {
+		    if ( lc($increment->{'host'}) eq lc($name) ) {
+			$deepCopy->{'assignments'} .= "!\$omp atomic\n"
+			    if ( exists($class->{'deepCopy'}->{'increment'}->{'atomic'}) && $class->{'deepCopy'}->{'increment'}->{'atomic'} eq "yes" );
+			$deepCopy->{'assignments'} .= "destination\%".$increment->{'variable'}."=destination\%".$increment->{'variable'}."+1\n";
+		    }
+		}
+	    }
+	}
+	# Perform any sets.
+	if ( exists($class->{'deepCopy'}->{'setTo'}) ) {
+	    my @setTos = map {{variable => $_}} split(/\s*,\s*/,$class->{'deepCopy'}->{'setTo'}->{'variables'});
+	    foreach ( @setTos ) {
+		($_->{'host'} = $_->{'variable'}) =~ s/^([^%]+)%.+/$1/;
+	    }
+	    foreach my $object ( @{$declaration->{'variables'}} ) {
+		(my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
+		foreach my $setTo ( @setTos ) {
+		    if ( lc($setTo->{'host'}) eq lc($name) ) {
+			$deepCopy->{'assignments'} .= "destination\%".$setTo->{'variable'}."=".$class->{'deepCopy'}->{'setTo'}->{'value'}."\n";
+		    }
+		}
+	    }
+	}
+	# Perform any explicit deep copies.
+	if ( exists($class->{'deepCopy'}->{'deepCopy'}) ) {
+	    my @deepCopies = split(/\s*,\s*/,$class->{'deepCopy'}->{'deepCopy'}->{'variables'});
+	    foreach my $object ( @{$declaration->{'variableNames'}} ) {
+		foreach my $deepCopy ( @deepCopies ) {
+		    if ( lc($object) eq lc($deepCopy) ) {
+			$deepCopy->{'assignments'} .= "nullify(destination\%".$object.")\n";
+			$deepCopy->{'assignments'} .= "allocate(destination\%".$object.",mold=self\%".$object.")\n";
+			if ( exists($class->{'deepCopy'}->{'deepCopy'}->{'copy'}) ) {
+			    $deepCopy->{'modules'}->{$class->{'deepCopy'}->{'deepCopy'}->{'module'}} = 1
+				if ( exists($class->{'deepCopy'}->{'deepCopy'}->{'module'}) );
+			    $deepCopy->{'assignments'} .= "if (associated(self\%".$object.")) call ".$class->{'deepCopy'}->{'deepCopy'}->{'copy'}."(self\%".$object.",destination\%".$object.")\n";
+			} else {
+			    $deepCopy->{'assignments'} .= "if (associated(self\%".$object.")) call self\%".$object."\%deepCopy(destination\%".$object.")\n";
+			}
+			if ( exists($class->{'deepCopy'}->{'deepCopy'}->{'reset'}) ) {
+			    $deepCopy->{'resetModules'}->{$class->{'deepCopy'}->{'deepCopy'}->{'module'}} = 1
+				if ( exists($class->{'deepCopy'}->{'deepCopy'}->{'module'}) );
+			    $deepCopy->{'resetCode'} .= "if (associated(self\%".$object.")) call ".$class->{'deepCopy'}->{'deepCopy'}->{'reset'}."(self\%".$object.")\n";
+			}
+			if ( exists($class->{'deepCopy'}->{'deepCopy'}->{'finalize'}) ) {
+			    $deepCopy->{'finalizeModules'}->{$class->{'deepCopy'}->{'deepCopy'}->{'module'}} = 1
+				if ( exists($class->{'deepCopy'}->{'deepCopy'}->{'module'}) );
+			    $deepCopy->{'finalizeCode'} .= "if (associated(self\%".$object.")) call ".$class->{'deepCopy'}->{'deepCopy'}->{'finalize'}."(self\%".$object.")\n";
+			}
+		    }
+		}
+	    }
+	}
+	# Reinitialize OpenMP locks.
+	if
+	    (
+	     $declaration->{'intrinsic'} eq "integer"
+	     &&
+	     exists ($declaration->{'type'})
+	     &&
+	     defined($declaration->{'type'})
+	     &&
+	     $declaration->{'type'     } =~ m/^\s*omp_lock_kind\s*$/i
+	    ) {
+		$deepCopy->{'assignments'} .= "!\$ call OMP_Init_Lock(destination\%".$_.")\n"
+		    foreach ( @{$declaration->{'variables'}} );
+	}
+	# Reinitialize OpenMP read/write locks.
+	if
+	    (
+	     $declaration->{'intrinsic'} eq "type"
+	     &&
+	     exists ($declaration->{'type'})
+	     &&
+	     defined($declaration->{'type'})
+	     &&
+	     $declaration->{'type'     } =~ m/^\s*ompReadWriteLock\s*$/i
+	    ) {
+		foreach ( @{$declaration->{'variables'}} ) {
+		    my @dimensions =
+			exists($declaration->{'attributes'})
+			?
+			map {/^dimension\s*\(([:,]+)\)/} @{$declaration->{'attributes'}}
+		    :
+			undef();
+		    if ( @dimensions ) {
+			my @rank = split(",",$dimensions[0]);
+			# Add loop index variables.
+			$deepCopy->{'rankMaximum'} = scalar(@rank)
+			    if ( scalar(@rank) > $deepCopy->{'rankMaximum'} );
+			for(my $i=1;$i<=scalar(@rank);++$i) {
+			    $deepCopy->{'assignments'} .= "!\$ do i".$i."=lbound(destination\%".$_.",dim=".$i."),ubound(destination\%".$_.",dim=".$i.")\n";
+			}
+			$deepCopy->{'assignments'} .= "!\$    call destination\%".$_."(".join(",",map {"i".$_} 1..scalar(@rank)).")%initialize()\n";
+			for(my $i=1;$i<=scalar(@rank);++$i) {
+			    $deepCopy->{'assignments'} .= "!\$ end do\n";
+			}
+		    } else {
+			# Scalar lock.
+			$deepCopy->{'assignments'} .= "!\$ call destination\%".$_."%initialize()\n";
+		    }
+		}
+	}
+    }
+   
 }
 
 sub lctrim {

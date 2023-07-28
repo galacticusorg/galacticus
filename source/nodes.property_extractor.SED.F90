@@ -636,7 +636,7 @@ contains
     character       (len=12                                    )                                :: label
     type            (multiCounter                              )                                :: state
     type            (ompLock                                   )                                :: stateLock
-    !$omp threadprivate(stellarPopulationSpectra_,stellarPopulationSpectraPostprocessor_,cosmologyFunctions_,integratorTime,integratorWavelength,integratorMetallicity,abundancesStellar,wavelength,wavelengthMinimum,wavelengthMaximum,timeMinimum,timeMaximum,age)
+    !$omp threadprivate(stellarPopulationSpectra_,stellarPopulationSpectraPostprocessor_,cosmologyFunctions_,integratorTime,integratorWavelength,integratorMetallicity,abundancesStellar,wavelength,wavelengthMinimum,wavelengthMaximum,timeMinimum,timeMaximum,age,redshift)
     !![
     <optionalArgument name="parallelize" defaultsTo=".false." />
     !!]
@@ -812,7 +812,6 @@ contains
       !!}
       implicit none
       double precision, intent(in   ) :: timeBirth
-      double precision                :: redshift
 
       age             =min(                            &
            &               +     time                  &

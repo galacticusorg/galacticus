@@ -567,6 +567,7 @@ contains
        ! Get node position component.
        position => node%position()
        ! Test for primary progenitor status.
+       allocate(nodePositionHistory(0,0))
        if (node%isPrimaryProgenitor().or..not.associated(node%parent)) then
           ! Node is the primary progenitor (or is the root node in its tree), so exists only until the time of its parent and has
           ! fixed position.
@@ -587,6 +588,7 @@ contains
              end if
           end if
           ! Construct array of positions at output times.
+          deallocate(nodePositionHistory)
           allocate(nodePositionHistory(3_c_size_t,outputMaximum-outputMinimum+1))
           do output=1,outputMaximum-outputMinimum+1
              nodePositionHistory(:,output)=position%position()
@@ -608,6 +610,7 @@ contains
              end if
           end if
           ! Construct array of positions at output times.
+          deallocate(nodePositionHistory)
           allocate(nodePositionHistory(3_c_size_t,outputMaximum-outputMinimum+1))
           timeCurrent=basic%time()
           do output=1,outputMaximum-outputMinimum+1

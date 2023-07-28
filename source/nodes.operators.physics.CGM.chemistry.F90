@@ -204,6 +204,7 @@ contains
     class           (cosmologyFunctionsClass               ), intent(in   ), target  :: cosmologyFunctions_
     class           (radiationFieldClass                   ), intent(in   ), pointer :: radiationIntergalacticBackground
     type            (radiationFieldList                    )               , pointer :: radiationFieldList_
+    !$GLC attributes initialized :: radiationIntergalacticBackground
     !![
     <constructorAssign variables="fractionTimescaleEquilibrium, *atomicIonizationRateCollisional_, *atomicRecombinationRateRadiative_, *atomicCrossSectionIonizationPhoto_, *chemicalReactionRate_, *darkMatterHaloScale_, *cosmologyFunctions_, *radiationIntergalacticBackground"/>
     !!]
