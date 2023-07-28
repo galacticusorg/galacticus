@@ -86,6 +86,10 @@ jobs:
           md5sum Galacticus.exe
           chmod u=wrx ./scripts/build/buildProfiler.pl
           ./scripts/build/buildProfiler.pl build.log buildProfile.html --durationMinimum 20
+      - name: Detect warnings
+        run: |
+          grep -n -C 5 Warning: build.log
+          ! grep -q Warning: build.log
       - name: Upload Galacticus executable
         uses: actions/upload-artifact@v3
         with:
