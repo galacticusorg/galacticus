@@ -200,11 +200,11 @@ sub Process_FunctionClass {
 		(my $label = $nonAbstractClass->{'name'}) =~ s/^$directive->{'name'}//;
 		$label = lcfirst($label)
 		    unless ( $label =~ m/^[A-Z]{2,}/ );
-		my $hasCustomDescriptor = 0;
+		$nonAbstractClass->{'hasCustomDescriptor'} = 0;
 		my $extensionOf;
 		# Build lists of all potential parameter and object names for this class, including any from parent classes.
-		my $potentialNames;
-		my $class = $nonAbstractClass;
+		my $potentialNames = {};
+		my $class          = $nonAbstractClass;
 		while ( $class ) {
 		    my $node = $class->{'tree'}->{'firstChild'};
 		    $node = $node->{'sibling'}
@@ -218,59 +218,8 @@ sub Process_FunctionClass {
 		    # Search the node for declarations.
 		    $node = $node->{'firstChild'};
 		    while ( $node ) {
-			if ( $node->{'type'} eq "declaration" ) {
-			    foreach my $declaration ( @{$node->{'declarations'}} ) {
-				# Identify object pointers.
-				push(@{$potentialNames->{'objects'}},map {$_ =~ s/\s*([a-zA-Z0-9_]+).*/$1/; $_} @{$declaration->{'variables'}})
-				    if
-				    (
-				     $declaration->{'intrinsic'} eq "class"
-				      &&
-				      (
-				       (grep {&lctrim($declaration->{'type'}) eq lc($_)} keys                       (%{$stateStorables->{'functionClasses'       }}))
-				       ||
-				       (grep {&lctrim($declaration->{'type'}) eq lc($_)} &List::ExtraUtils::as_array(  $stateStorables->{'functionClassInstances'} ))
-				      )
-				     &&
-				     grep {$_ eq "pointer"} @{$declaration->{'attributes'}}
-				    );
-				# Identify stateful types.
-				push(@{$potentialNames->{'statefulTypes'}},$declaration)
-				    if
-				    (
-				     $declaration->{'intrinsic'} eq "type"
-				     &&
-				     $declaration->{'type'     } =~ m/^stateful(Integer|Double|Logical)\s*$/i
-				    );
-				# Identify enumerations.
-				push(@{$potentialNames->{'enumerations'}},$declaration)
-				    if
-				    (
-				     $declaration->{'intrinsic'} eq "type"
-				     &&
-				     $declaration->{'type'     } =~ m/^enumeration[a-z0-9_]+type\s*$/i
-				    );
-				# Identify regular parameters.
-				push(@{$potentialNames->{'parameters'}},$declaration)
-				    if
-				    (
-				     (grep {$_ eq $declaration->{'intrinsic'}} ( "integer", "logical", "double precision", "character" ))
-				     ||
-				     (
-				             $declaration->{'intrinsic'}  eq "type"
-				      &&
-				      trimlc($declaration->{'type'     }) eq "varying_string"
-				     )
-				    );
-				$hasCustomDescriptor = 1
-				    if
-				    (
-				     $declaration->{'intrinsic'} eq "procedure"
-				     &&
-				     $declaration->{'variables'}->[0] =~ m/^descriptor=>/
-				    );
-			    }
-			}
+			&potentialDescriptorParameters($node->{'declarations'},$nonAbstractClass,$potentialNames)
+			    if ( $node->{'type'} eq "declaration" );
 			$node = $node->{'type'} eq "contains" ? $node->{'firstChild'} : $node->{'sibling'};
 		    }
 		    # Move to the parent class.
@@ -290,95 +239,15 @@ sub Process_FunctionClass {
 		    my $declaration = &Fortran::Utils::Unformat_Variables($declarationSource);
 		    die("Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass(): unable to parse variable declaration")
 			unless ( defined($declaration) );
-		    push(@{$potentialNames->{'objects'}},map {$_ =~ s/\s*([a-zA-Z0-9_]+).*/$1/; $_} @{$declaration->{'variables'}})
-			if
-			(
-			 $declaration->{'intrinsic'} eq "class"
-			 &&
-			 $declaration->{'type'     } =~ m/Class\s*$/
-			 &&
-			 grep {$_ eq "pointer"} @{$declaration->{'attributes'}}
-			);
-		    # Identify stateful types.
-		    push(@{$potentialNames->{'statefulTypes'}},$declaration)
-			if
-			(
-			 $declaration->{'intrinsic'} eq "type"
-			 &&
-			 $declaration->{'type'     } =~ m/^stateful(Integer|Double|Logical)\s*$/i
-			);
-		    # Identify enumerations.
-		    push(@{$potentialNames->{'enumerations'}},$declaration)
-			if
-			(
-			 $declaration->{'intrinsic'} eq "type"
-			 &&
-			 $declaration->{'type'     } =~ m/^enumeration[a-z0-9_]+type\s*$/i
-			);
-		    # Identify regular parameters.
-		    push(@{$potentialNames->{'parameters'}},$declaration)
-			if
-			(
-			 (grep {$_ eq $declaration->{'intrinsic'}} ( "integer", "logical", "double precision", "character" ))
-			 ||
-			 (
-			         $declaration->{'intrinsic'}  eq "type"
-			  &&
-			  trimlc($declaration->{'type'     }) eq "varying_string"
-			 )
-			);
+		    &potentialDescriptorParameters($declaration,$nonAbstractClass,$potentialNames);
 		}
 		# Add any names declared in the functionClassType.
 		if ( defined($functionClassType) ) {
 		    # Search the node for declarations.
 		    my $node = $functionClassType->{'node'}->{'firstChild'};
 		    while ( $node ) {
-			if ( $node->{'type'} eq "declaration" ) {
-			    foreach my $declaration ( @{$node->{'declarations'}} ) {
-				# Identify object pointers.
-				push(@{$potentialNames->{'objects'}},map {$_ =~ s/\s*([a-zA-Z0-9_]+).*/$1/; $_} @{$declaration->{'variables'}})
-				    if
-				    (
-				     $declaration->{'intrinsic'} eq "class"
-				      &&
-				      (
-				       (grep {&lctrim($declaration->{'type'}) eq lc($_)} keys                       (%{$stateStorables->{'functionClasses'       }}))
-				       ||
-				       (grep {&lctrim($declaration->{'type'}) eq lc($_)} &List::ExtraUtils::as_array(  $stateStorables->{'functionClassInstances'} ))
-				      )
-				     &&
-				     grep {$_ eq "pointer"} @{$declaration->{'attributes'}}
-				    );
-				# Identify stateful types.
-				push(@{$potentialNames->{'statefulTypes'}},$declaration)
-				    if
-				    (
-				     $declaration->{'intrinsic'} eq "type"
-				     &&
-				     $declaration->{'type'     } =~ m/^stateful(Integer|Double|Logical)\s*$/i
-				    );
-				# Identify enumerations.
-				push(@{$potentialNames->{'enumerations'}},$declaration)
-				    if
-				    (
-				     $declaration->{'intrinsic'} eq "type"
-				     &&
-				     $declaration->{'type'     } =~ m/^enumeration[a-z0-9_]+type\s*$/i
-				    );
-				# Identify regular parameters.
-				push(@{$potentialNames->{'parameters'}},$declaration)
-				    if
-				    (
-				     (grep {$_ eq $declaration->{'intrinsic'}} ( "integer", "logical", "double precision", "character" ))
-				     ||
-				     (
-				             $declaration->{'intrinsic'}  eq "type"
-				      &&
-				      trimlc($declaration->{'type'     }) eq "varying_string"
-				     )
-				    );
-			    }
-			}
+			&potentialDescriptorParameters($node->{'declarations'},$nonAbstractClass,$potentialNames)
+			    if ( $node->{'type'} eq "declaration" );
 			$node = $node->{'type'} eq "contains" ? $node->{'firstChild'} : $node->{'sibling'};
 		    }
 		}
@@ -544,7 +413,7 @@ sub Process_FunctionClass {
 		}
 		# Build the code.
 		$descriptorCode .= "type is (".$nonAbstractClass->{'name'}.")\n";
-		if ( $hasCustomDescriptor ) {
+		if ( $nonAbstractClass->{'hasCustomDescriptor'} ) {
 		    # The class has its own descriptor function, so we should never arrive at this point in the code.
 		    $descriptorCode .= " call Error_Report('custom descriptor exists - this should not happen'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
 		    $descriptorModules{'Error'} = 1;
@@ -3801,6 +3670,65 @@ sub stateStoreExplicitFunction {
     return ($inputCode,$outputCode,%modules);
 }
 
+sub potentialDescriptorParameters {
+    # Process variable declarations for potential parameters to include in descriptors.
+    my $declarations   = shift();
+    my $class          = shift();
+    my $potentialNames = shift();
+    our $stateStorables;
+    foreach my $declaration ( &List::ExtraUtils::as_array($declarations) ) {
+	# Identify object pointers.
+	push(@{$potentialNames->{'objects'}},map {$_ =~ s/\s*([a-zA-Z0-9_]+).*/$1/; $_} @{$declaration->{'variables'}})
+	    if
+	    (
+	     $declaration->{'intrinsic'} eq "class"
+	     &&
+	     (
+	      (grep {&lctrim($declaration->{'type'}) eq lc($_)} keys                       (%{$stateStorables->{'functionClasses'       }}))
+	      ||
+	      (grep {&lctrim($declaration->{'type'}) eq lc($_)} &List::ExtraUtils::as_array(  $stateStorables->{'functionClassInstances'} ))
+	     )
+	     &&
+	     grep {$_ eq "pointer"} @{$declaration->{'attributes'}}
+	    );
+	# Identify stateful types.
+	push(@{$potentialNames->{'statefulTypes'}},$declaration)
+	    if
+	    (
+	     $declaration->{'intrinsic'} eq "type"
+	     &&
+	     $declaration->{'type'     } =~ m/^stateful(Integer|Double|Logical)\s*$/i
+	    );
+	# Identify enumerations.
+	push(@{$potentialNames->{'enumerations'}},$declaration)
+	    if
+	    (
+	     $declaration->{'intrinsic'} eq "type"
+	     &&
+	     $declaration->{'type'     } =~ m/^enumeration[a-z0-9_]+type\s*$/i
+	    );
+	# Identify regular parameters.
+	push(@{$potentialNames->{'parameters'}},$declaration)
+	    if
+	    (
+	     (grep {$_ eq $declaration->{'intrinsic'}} ( "integer", "logical", "double precision", "character" ))
+	     ||
+	     (
+	      $declaration->{'intrinsic'}  eq "type"
+	      &&
+	      trimlc($declaration->{'type'     }) eq "varying_string"
+	     )
+	    );
+	$class->{'hasCustomDescriptor'} = 1
+	    if
+	    (
+	     $declaration->{'intrinsic'} eq "procedure"
+	     &&
+	     $declaration->{'variables'}->[0] =~ m/^descriptor=>/
+	    );
+    }
+}
+    
 sub deepCopyDeclarations {
     # Process variable declarations from a node for deep copy.
     my $class            =   shift() ;
