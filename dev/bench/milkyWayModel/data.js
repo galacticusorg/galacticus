@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1690532342826,
+  "lastUpdate": 1690532353705,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "5ea7873f6a3a1ef08f67d114710b77cca7d9529b",
-          "message": "Merge pull request #338 from galacticusorg/constrainedTrees\n\nAdd functionality for building constrained merger trees",
-          "timestamp": "2022-12-05T20:54:55-08:00",
-          "tree_id": "5c8098f5f07ea2fb1ff6f841dfb6033304849fc3",
-          "url": "https://github.com/galacticusorg/galacticus/commit/5ea7873f6a3a1ef08f67d114710b77cca7d9529b"
-        },
-        "date": 1670322844624,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 183.63,
-            "unit": "seconds",
-            "range": 0.189425447074571
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10628,6 +10598,60 @@ window.BENCHMARK_DATA = {
             "value": 206.667,
             "unit": "seconds",
             "range": 0.489981734353731
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": false,
+          "id": "f46fbef1ee3c056e0a9e74c0458c48ce17976b4c",
+          "message": "Merge pull request #442 from galacticusorg/buildRefactor\n\nReduce code duplication in `functionClass` `descriptor()` method builder",
+          "timestamp": "2023-07-28T05:17:04Z",
+          "tree_id": "397fa2bc4c2f47d56f46760567aa2c89f83e68d4",
+          "url": "https://github.com/galacticusorg/galacticus/commit/f46fbef1ee3c056e0a9e74c0458c48ce17976b4c"
+        },
+        "date": 1690532352555,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassMetallicityRelation",
+            "value": 3.7347365361624,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassSizeRelation",
+            "value": 9.59737490251823,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassVelocityDispersionRelation",
+            "value": 0.826032170943457,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupOccupationFraction",
+            "value": 23.9391299921939,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassFunction",
+            "value": 62.4722673081793,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
+            "value": 1.34492160456599,
+            "unit": "-logℒ"
           }
         ]
       }
