@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1690602356702,
+  "lastUpdate": 1690602365683,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "a09b0fa26436b205f555778ad89f1ff941544530",
-          "message": "Merge pull request #340 from galacticusorg/massDistributions\n\nAdd new mass distributions",
-          "timestamp": "2022-12-07T07:37:12-08:00",
-          "tree_id": "3781fa2371af076f5713d0183c00ddd4b0f4f83d",
-          "url": "https://github.com/galacticusorg/galacticus/commit/a09b0fa26436b205f555778ad89f1ff941544530"
-        },
-        "date": 1670444818127,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 194.267,
-            "unit": "seconds",
-            "range": 0.166961372780854
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10626,6 +10596,58 @@ window.BENCHMARK_DATA = {
             "value": 198.511,
             "unit": "seconds",
             "range": 0.142831719164083
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@obs.carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@obs.carnegiescience.edu"
+          },
+          "id": "f93400effb7083a742d6565a5b634cee23f8deab",
+          "message": "fix: Test for build warnings only in the non-static build\n\nAvoids any possible problems with warnings from the static build regarding linking of static libraries.",
+          "timestamp": "2023-07-28T22:37:53Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/f93400effb7083a742d6565a5b634cee23f8deab"
+        },
+        "date": 1690602364596,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassMetallicityRelation",
+            "value": 3.83622231819236,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassSizeRelation",
+            "value": 9.02183701424305,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassVelocityDispersionRelation",
+            "value": 0.858044315919163,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupOccupationFraction",
+            "value": 23.7932954184213,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassFunction",
+            "value": 68.8080477368147,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
+            "value": 1.46954705432508,
+            "unit": "-logℒ"
           }
         ]
       }
