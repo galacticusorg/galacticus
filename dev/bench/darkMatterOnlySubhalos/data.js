@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1690532348924,
+  "lastUpdate": 1690602352454,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "a09b0fa26436b205f555778ad89f1ff941544530",
-          "message": "Merge pull request #340 from galacticusorg/massDistributions\n\nAdd new mass distributions",
-          "timestamp": "2022-12-07T07:37:12-08:00",
-          "tree_id": "3781fa2371af076f5713d0183c00ddd4b0f4f83d",
-          "url": "https://github.com/galacticusorg/galacticus/commit/a09b0fa26436b205f555778ad89f1ff941544530"
-        },
-        "date": 1670444812907,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 59.932,
-            "unit": "seconds",
-            "range": 0.179971108792713
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8732,6 +8702,34 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 25031.0988635966,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@obs.carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@obs.carnegiescience.edu"
+          },
+          "id": "f93400effb7083a742d6565a5b634cee23f8deab",
+          "message": "fix: Test for build warnings only in the non-static build\n\nAvoids any possible problems with warnings from the static build regarding linking of static libraries.",
+          "timestamp": "2023-07-28T22:37:53Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/f93400effb7083a742d6565a5b634cee23f8deab"
+        },
+        "date": 1690602349924,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 49.928,
+            "unit": "seconds",
+            "range": 0.0514742654148186
           }
         ]
       }
