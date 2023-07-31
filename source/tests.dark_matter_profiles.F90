@@ -38,8 +38,8 @@ program Test_Dark_Matter_Profiles
   use :: Virial_Density_Contrast         , only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt, virialDensityContrastFixed          , fixedDensityTypeCritical
   use :: Events_Hooks                    , only : eventsHooksInitialize
   use :: Functions_Global_Utilities      , only : Functions_Global_Set
-  use :: Display                         , only : displayVerbositySet                                           , verbosityLevelStandard              , nonAnalyticSolversNumerical
-  use :: Mass_Distributions              , only : massDistributionClass                                         , massDistributionSpherical           , kinematicsDistributionClass
+  use :: Display                         , only : displayVerbositySet                                           , verbosityLevelStandard
+  use :: Mass_Distributions              , only : massDistributionClass                                         , massDistributionSpherical           , kinematicsDistributionClass          , nonAnalyticSolversNumerical
   use :: Galacticus_Nodes                , only : nodeClassHierarchyFinalize                                    , nodeClassHierarchyInitialize        , nodeComponentBasic                   , nodeComponentDarkMatterProfile, &
           &                                       treeNode                                                      , nodeComponentSpheroid
   use :: Numerical_Constants_Math        , only : Pi
