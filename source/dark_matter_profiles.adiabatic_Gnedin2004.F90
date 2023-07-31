@@ -263,7 +263,8 @@ contains
     !!{
     Generic constructor for the {\normalfont \ttfamily adiabaticGnedin2004} dark matter profile class.
     !!}
-    use :: Error, only : Error_Report
+    use :: Galacticus_Nodes, only : nodeComponentBasic
+    use :: Error           , only : Error_Report
     implicit none
     type            (darkMatterProfileAdiabaticGnedin2004)                                  :: self
     double precision                                      , intent(in   )                   :: A                    , omega            , &
@@ -275,6 +276,7 @@ contains
     type            (enumerationNonAnalyticSolversType   ), intent(in   )                   :: nonAnalyticSolver
     logical                                               , intent(in   )        , optional :: recursiveConstruct
     class           (darkMatterProfileClass              ), intent(in   ), target, optional :: recursiveSelf
+
     !![
     <optionalArgument name="recursiveConstruct" defaultsTo=".false." />
     <constructorAssign variables="A, omega, radiusFractionalPivot, toleranceRelative, nonAnalyticSolver, *cosmologyParameters_, *darkMatterHaloScale_, *darkMatterProfileDMO_, *galacticStructure_"/>
@@ -368,6 +370,127 @@ contains
     if (allocated(self%genericEnclosedMassRadius              )) deallocate(self%genericEnclosedMassRadius              )
     return
   end subroutine adiabaticGnedin2004CalculationReset
+
+  function adiabaticGnedin2004Get(self,node,weightBy,weightIndex) result(massDistribution_)
+    !!{
+    Return the dark matter mass distribution for the given {\normalfont \ttfamily node}.
+    !!}
+    use :: Galacticus_Nodes          , only : nodeComponentBasic
+    use :: Galactic_Structure_Options, only : componentTypeDarkHalo                       , massTypeDark                       , massTypeBaryonic         , weightByMass
+    use :: Mass_Distributions        , only : massDistributionSphericalAdiabaticGnedin2004, kinematicsDistributionCollisionless, massDistributionSpherical
+    use :: Functions_Global          , only : galacticStructureMassEnclosed_
+    implicit none
+    class           (massDistributionClass               ), pointer                 :: massDistribution_
+    type            (kinematicsDistributionCollisionless ), pointer                 :: kinematicsDistribution_
+    class           (darkMatterProfileAdiabaticGnedin2004), intent(inout)           :: self
+    type            (treeNode                            ), intent(inout), target   :: node
+    type            (enumerationWeightByType             ), intent(in   ), optional :: weightBy
+    integer                                               , intent(in   ), optional :: weightIndex
+    class           (massDistributionClass               ), pointer                 :: massDistributionDecorated    , massDistributionBaryonic
+    type            (treeNode                            ), pointer                 :: nodeCurrent                  , nodeHost
+    class           (nodeComponentBasic                  ), pointer                 :: basic
+    double precision                                                                :: massBaryonicSelfTotal        , massBaryonicTotal       , &
+         &                                                                             darkMatterDistributedFraction, initialMassFraction
+    !![
+    <optionalArgument name="weightBy" defaultsTo="weightByMass" />
+    !!]
+
+    ! Assume a null distribution by default.
+    massDistribution_ => null()
+    ! If weighting is not by mass, return a null profile.
+    if (weightBy_ /= weightByMass) return
+    ! Compute the initial baryonic contribution from this halo, and any satellites.
+    massBaryonicTotal        =  0.0d0
+    massBaryonicSelfTotal    =  0.0d0
+    nodeCurrent              => node
+    nodeHost                 => node
+    massDistributionBaryonic => node%massDistribution(massType=massTypeBaryonic)
+    do while (associated(nodeCurrent))
+       massBaryonicTotal=+massBaryonicTotal                                       &
+            &            +galacticStructureMassEnclosed_(                         &
+            &                                            self%galacticStructure_, &
+            &                                            nodeCurrent            , &
+            &                                            radiusLarge            , &
+            &                                            componentType          , &
+            &                                            massType               , &
+            &                                            weightBy               , &
+            &                                            weightIndex              &
+            &                                           )
+       if (associated(nodeCurrent,nodeHost)) then
+          massBaryonicSelfTotal=massBaryonicTotal
+          do while (associated(nodeCurrent%firstSatellite))
+             nodeCurrent => nodeCurrent%firstSatellite
+          end do
+          if (associated(nodeCurrent,nodeHost)) nodeCurrent => null()
+       else
+          if (associated(nodeCurrent%sibling)) then
+             nodeCurrent => nodeCurrent%sibling
+             do while (associated(nodeCurrent%firstSatellite))
+                nodeCurrent => nodeCurrent%firstSatellite
+             end do
+          else
+             nodeCurrent => nodeCurrent%parent
+             if (associated(nodeCurrent,node)) nodeCurrent => null()
+          end if
+       end if
+    end do
+    ! Limit masses to physical values.
+    massBaryonicSelfTotal=max(massBaryonicSelfTotal,0.0d0)
+    massBaryonicTotal    =max(massBaryonicTotal    ,0.0d0)
+    ! Compute the fraction of matter assumed to be distributed like the dark matter.
+    basic                         => node%basic()
+    darkMatterDistributedFraction =  min((self%cosmologyParameters_%OmegaMatter()-self%cosmologyParameters_%OmegaBaryon())/self%cosmologyParameters_%OmegaMatter()+(massBaryonicTotal-massBaryonicSelfTotal)/basic%mass(),1.0d0)
+    ! Compute the initial mass fraction.
+    initialMassFraction           =  min((self%cosmologyParameters_%OmegaMatter()-self%cosmologyParameters_%OmegaBaryon())/self%cosmologyParameters_%OmegaMatter()+ massBaryonicTotal                       /basic%mass(),1.0d0)
+    ! Create the mass distribution.
+    allocate(massDistributionSphericalAdiabaticGnedin2004 :: massDistribution_)
+    select type(massDistribution_)
+    type is (massDistributionSphericalAdiabaticGnedin2004)
+       massDistributionDecorated => self%darkMatterProfileDMO_%get(node,weightBy,weightIndex)
+       select type (massDistributionDecorated)
+       class is (massDistributionSpherical)
+          !![
+	  <referenceConstruct object="massDistribution_">
+	    <constructor>
+              massDistributionSphericalAdiabaticGnedin2004(                                                                                             &amp;
+	      &amp;                                        A                            =self                     %A                                  , &amp;
+	      &amp;                                        omega                        =self                     %omega                              , &amp;
+	      &amp;                                        radiusVirial                 =self%darkMatterHaloScale_%radiusVirial                 (node), &amp;
+	      &amp;                                        radiusFractionalPivot        =self                     %radiusFractionalPivot              , &amp;
+	      &amp;                                        darkMatterFraction           =self                     %darkMatterFraction                 , &amp;
+	      &amp;                                        darkMatterDistributedFraction=                          darkMatterDistributedFraction      , &amp;
+	      &amp;                                        massFractionInitial          =                          initialMassFraction                , &amp;
+	      &amp;                                        nonAnalyticSolver            =self                     %nonAnalyticSolver                  , &amp;
+	      &amp;                                        toleranceRelative            =self                     %toleranceRelative                  , &amp;
+	      &amp;                                        massDistribution_            =                          massDistributionDecorated          , &amp;
+	      &amp;                                        massDistributionBaryonic     =                          massDistributionBaryonic           , &amp;
+              &amp;                                        componentType                =                          componentTypeDarkHalo              , &amp;
+              &amp;                                        massType                     =                          massTypeDark                         &amp;
+              &amp;                                       )
+	    </constructor>
+	  </referenceConstruct>
+	  <objectDestructor name="massDistribution_"/>
+          !!]
+       class default
+          call Error_Report('expected a spherical mass distribution'//{introspection:location})
+       end select
+    end select
+    allocate(kinematicsDistribution_)
+    !![
+    <referenceConstruct object="kinematicsDistribution_">
+      <constructor>
+        kinematicsDistributionCollisionless( &amp;
+	 &amp;                             )
+      </constructor>
+    </referenceConstruct>
+    !!]
+    call massDistribution_%setKinematicsDistribution(kinematicsDistribution_)
+    !![
+    <objectDestructor name="kinematicsDistribution_" />
+    <objectDestructor name="massDistributionBaryonic"/>
+    !!]
+    return
+  end function adiabaticGnedin2004Get
 
   double precision function adiabaticGnedin2004EnclosedMass(self,node,radius)
     !!{

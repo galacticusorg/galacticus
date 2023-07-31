@@ -141,7 +141,7 @@ contains
     implicit none
     class           (massDistributionClass          ), pointer                 :: massDistribution_
     class           (darkMatterProfileDarkMatterOnly), intent(inout)           :: self
-    type            (treeNode                       ), intent(inout)           :: node
+    type            (treeNode                       ), intent(inout), target   :: node
     type            (enumerationWeightByType        ), intent(in   ), optional :: weightBy
     integer                                          , intent(in   ), optional :: weightIndex
     class           (massDistributionClass          ), pointer                 :: massDistributionDMO

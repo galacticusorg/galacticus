@@ -43,7 +43,7 @@ module Dark_Matter_Profiles
     <description>Return the mass distribution of the dark matter profile.</description>
     <type>class(massDistributionClass)</type>
     <pass>yes</pass>
-    <argument>type   (treeNode               ), intent(inout)           :: node       </argument>
+    <argument>type   (treeNode               ), intent(inout), target   :: node       </argument>
     <argument>type   (enumerationWeightByType), intent(in   ), optional :: weightBy   </argument>
     <argument>integer                         , intent(in   ), optional :: weightIndex</argument>
    </method>
