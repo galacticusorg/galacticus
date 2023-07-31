@@ -100,6 +100,10 @@
         <strong class="header-label">Commit:</strong>
         <a id="commit-link" rel="noopener"></a>
       </div>
+      <div class="header-item">
+        <strong class="header-label">Parameter File:</strong>
+        <a id="parameter-link" rel="noopener"></a>
+      </div>
     </header>
     <main id="main"></main>
     <footer>
@@ -140,6 +144,9 @@
           const commitLink = document.getElementById('commit-link');
           commitLink.href = data.commit.url;
           commitLink.textContent = data.commit.id;
+          const parameterLink = document.getElementById('parameter-link');
+          parameterLink.href = data.repoUrl+'/blob/'+data.commit.id+'/'+data.parameterFile;
+          parameterLink.textContent = data.parameterFile;
 
           // Render footer
           document.getElementById('dl-button').onclick = () => {
