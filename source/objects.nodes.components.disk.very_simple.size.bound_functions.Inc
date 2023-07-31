@@ -21,27 +21,30 @@
 Contains custom functions for the very simple size disk component.
 !!}
 
-function Node_Component_Disk_Very_Simple_Size_Mass_Distribution(self,weightBy,weightIndex) result(massDistribution_)
+function Node_Component_Disk_Very_Simple_Size_Mass_Distribution(self,componentType,massType,weightBy,weightIndex) result(massDistribution_)
   !!{
   Return the mass distribution for the very simple size disk component.
   !!}
-  use :: Mass_Distributions                       , only : massDistributionClass      , massDistributionCylindricalScaler, massDistributionComposite, massDistributionList   , &
+  use :: Mass_Distributions                       , only : massDistributionClass      , massDistributionCylindricalScaler, massDistributionComposite   , massDistributionList   , &
        &                                                   massDistributionCylindrical
   use :: Node_Component_Disk_Very_Simple_Size_Data, only : massDistributionStellar_   , massDistributionGas_
-  use :: Galactic_Structure_Options               , only : componentTypeDisk          , massTypeStellar                  , massTypeGaseous          , enumerationWeightByType, &
-       &                                                   weightByMass               , weightByLuminosity
+  use :: Galactic_Structure_Options               , only : componentTypeDisk          , massTypeStellar                  , massTypeGaseous             , enumerationWeightByType, &
+       &                                                   weightByMass               , weightByLuminosity               , enumerationComponentTypeType, enumerationMassTypeType
   implicit none
-  class          (massDistributionClass            ), pointer                 :: massDistribution_
-  class          (nodeComponentDiskVerySimpleSize  ), intent(inout)           :: self
-  type           (enumerationWeightByType          ), intent(in   ), optional :: weightBy
-  integer                                           , intent(in   ), optional :: weightIndex
-  type           (massDistributionCylindricalScaler), pointer                 :: massDistributionStellar   , massDistributionGas
-  type           (massDistributionComposite        ), pointer                 :: massDistributionTotal
-  type           (massDistributionList             ), pointer                 :: massDistributionComponents
-  type           (stellarLuminosities              ), save                    :: luminosities
+  class           (massDistributionClass            ), pointer                 :: massDistribution_
+  class           (nodeComponentDiskVerySimpleSize  ), intent(inout)           :: self
+  type            (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
+  type            (enumerationMassTypeType          ), intent(in   ), optional :: massType
+  type            (enumerationWeightByType          ), intent(in   ), optional :: weightBy
+  integer                                            , intent(in   ), optional :: weightIndex
+  type            (massDistributionCylindricalScaler), pointer                 :: massDistributionStellar   , massDistributionGas
+  type            (massDistributionComposite        ), pointer                 :: massDistributionTotal
+  type            (massDistributionList             ), pointer                 :: massDistributionComponents
+  type            (stellarLuminosities              ), save                    :: luminosities
   !$omp threadprivate(luminosities)
-  double precision                                                            :: massStellar               , massGas            , &
-       &                                                                         radiusScale
+  double precision                                                             :: massStellar               , massGas            , &
+       &                                                                          radiusScale
+  !$GLC attributes unused :: componentType, massType
   !![
   <optionalArgument name="weightBy" defaultsTo="weightByMass" />
   !!]

@@ -43,18 +43,20 @@ subroutine Node_Component_Disk_Standard_Attach_Pipes(self)
   return
 end subroutine Node_Component_Disk_Standard_Attach_Pipes
 
-function Node_Component_Disk_Standard_Mass_Distribution(self,weightBy,weightIndex) result(massDistribution_)
+function Node_Component_Disk_Standard_Mass_Distribution(self,componentType,massType,weightBy,weightIndex) result(massDistribution_)
   !!{
   Return the mass distribution for the standard disk component.
   !!}
-  use :: Mass_Distributions               , only : massDistributionClass      , massDistributionCylindricalScaler, massDistributionComposite, massDistributionList   , &
+  use :: Mass_Distributions               , only : massDistributionClass      , massDistributionCylindricalScaler, massDistributionComposite   , massDistributionList   , &
        &                                           massDistributionCylindrical
   use :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_   , massDistributionGas_
-  use :: Galactic_Structure_Options       , only : componentTypeDisk          , massTypeStellar                  , massTypeGaseous          , enumerationWeightByType, &
-       &                                           weightByMass               , weightByLuminosity
+  use :: Galactic_Structure_Options       , only : componentTypeDisk          , massTypeStellar                  , massTypeGaseous             , enumerationWeightByType, &
+       &                                           weightByMass               , weightByLuminosity               , enumerationComponentTypeType, enumerationMassTypeType
   implicit none
   class          (massDistributionClass            ), pointer                 :: massDistribution_
   class          (nodeComponentDiskStandard        ), intent(inout)           :: self
+  type           (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
+  type           (enumerationMassTypeType          ), intent(in   ), optional :: massType
   type           (enumerationWeightByType          ), intent(in   ), optional :: weightBy
   integer                                           , intent(in   ), optional :: weightIndex
   type           (massDistributionCylindricalScaler), pointer                 :: massDistributionStellar   , massDistributionGas
@@ -64,6 +66,7 @@ function Node_Component_Disk_Standard_Mass_Distribution(self,weightBy,weightInde
   !$omp threadprivate(luminosities)
   double precision                                                            :: massStellar               , massGas            , &
        &                                                                         radiusScale
+  !$GLC attributes unused :: componentType, massType
   !![
   <optionalArgument name="weightBy" defaultsTo="weightByMass" />
   !!]

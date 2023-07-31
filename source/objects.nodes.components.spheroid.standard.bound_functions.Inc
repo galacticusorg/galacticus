@@ -21,18 +21,20 @@
 Contains custom functions for the standard spheroid component.
 !!}
 
-function Node_Component_Spheroid_Standard_Mass_Distribution(self,weightBy,weightIndex) result(massDistribution_)
+function Node_Component_Spheroid_Standard_Mass_Distribution(self,componentType,massType,weightBy,weightIndex) result(massDistribution_)
   !!{
   Return the mass distribution for the standard spheroid component.
   !!}
-  use :: Mass_Distributions                   , only : massDistributionClass    , massDistributionSphericalScaler, massDistributionComposite, massDistributionList   , &
+  use :: Mass_Distributions                   , only : massDistributionClass    , massDistributionSphericalScaler, massDistributionComposite   , massDistributionList   , &
         &                                              massDistributionSpherical
   use :: Node_Component_Spheroid_Standard_Data, only : massDistributionStellar_ , massDistributionGas_           , kinematicDistribution_
-  use :: Galactic_Structure_Options           , only : componentTypeSpheroid    , massTypeStellar                , massTypeGaseous          , enumerationWeightByType, &
-       &                                               weightByMass             , weightByLuminosity
+  use :: Galactic_Structure_Options           , only : componentTypeSpheroid    , massTypeStellar                , massTypeGaseous             , enumerationWeightByType, &
+       &                                               weightByMass             , weightByLuminosity             , enumerationComponentTypeType, enumerationMassTypeType
   implicit none
   class           (massDistributionClass          ), pointer                 :: massDistribution_
   class           (nodeComponentSpheroidStandard  ), intent(inout)           :: self
+  type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
+  type            (enumerationMassTypeType        ), intent(in   ), optional :: massType
   type            (enumerationWeightByType        ), intent(in   ), optional :: weightBy
   integer                                          , intent(in   ), optional :: weightIndex
   type            (massDistributionSphericalScaler), pointer                 :: massDistributionStellar   , massDistributionGas
@@ -42,6 +44,7 @@ function Node_Component_Spheroid_Standard_Mass_Distribution(self,weightBy,weight
   !$omp threadprivate(luminosities)
   double precision                                                           :: massStellar               , massGas            , &
        &                                                                        radiusScale
+  !$GLC attributes unused :: componentType, massType
   !![
   <optionalArgument name="weightBy" defaultsTo="weightByMass" />
   !!]
@@ -77,7 +80,7 @@ function Node_Component_Spheroid_Standard_Mass_Distribution(self,weightBy,weight
   select type (massDistributionStellar_)
   class is (massDistributionSpherical)
      !![
-     <referenceConstruct object="massDistributionStellar" constructor="massDistributionSphericalScaler(factorScalingLength=radiusScale,factorScalingMass=massStellar,massDistribution_=massDistributionStellar_  )"/>
+     <referenceConstruct object="massDistributionStellar" constructor="massDistributionSphericalScaler(factorScalingLength=radiusScale,factorScalingMass=massStellar,massDistribution_=massDistributionStellar_)"/>
      !!]
   end select
   select type (massDistributionGas_    )

@@ -204,8 +204,8 @@ sub Tree_Node_Mass_Distribution {
 	description => "Construct and return the mass distribution associated with {\\normalfont \\ttfamily self}.",
 	modules     =>
 	    [
-	     "Mass_Distributions, only : massDistributionClass, massDistributionComposite, massDistributionList",
-	     "Galactic_Structure_Options, only : enumerationWeightByType"
+	     "Mass_Distributions        , only : massDistributionClass       , massDistributionComposite, massDistributionList"   ,
+	     "Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType  , enumerationWeightByType"
 	    ],
 	variables   =>
 	    [
@@ -214,6 +214,18 @@ sub Tree_Node_Mass_Distribution {
 		 type       => "treeNode",
 		 attributes => [ "intent(inout)" ],
 		 variables  => [ "self" ]
+	     },
+	     {
+		 intrinsic  => "type",
+		 type       => "enumerationComponentTypeType",
+		 attributes => [ "intent(in   )", "optional" ],
+		 variables  => [ "componentType" ]
+	     },
+	     {
+		 intrinsic  => "type",
+		 type       => "enumerationMassTypeType",
+		 attributes => [ "intent(in   )", "optional" ],
+		 variables  => [ "massType" ]
 	     },
 	     {
 		 intrinsic  => "type",
@@ -268,23 +280,29 @@ CODE
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated(self%component{ucfirst($class->{'name'})})) then
    do i=1,size(self%component{ucfirst($class->{'name'})})
-     massDistributionComponent => self%component{ucfirst($class->{'name'})}(i)%massDistribution()
+     massDistributionComponent => self%component{ucfirst($class->{'name'})}(i)%massDistribution(componentType,massType)
      if (associated(massDistributionComponent)) then
-       if (associated(massDistributionList_)) then
-         allocate(next_ %next)
-         allocate(next__%next)
-         next_  => next_ %next
-         next__ => next__%next
+       if (massDistributionComponent%matches(componentType,massType)) then
+         if (associated(massDistributionList_)) then
+           allocate(next_ %next)
+           allocate(next__%next)
+           next_  => next_ %next
+           next__ => next__%next
+         else
+           allocate(massDistributionList_ )
+           allocate(massDistributionList__)
+           next_  => massDistributionList_
+           next__ => massDistributionList__
+         end if
+         next_ %massDistribution_ => massDistributionComponent
+         next__%massDistribution_ => massDistributionComponent
+         next_ %next              => null()
+         next__%next              => null()
        else
-         allocate(massDistributionList_ )
-         allocate(massDistributionList__)
-         next_  => massDistributionList_
-         next__ => massDistributionList__
+         !![
+         <objectDestructor name="massDistributionComponent"/>
+         !!]
        end if
-       next_ %massDistribution_ => massDistributionComponent
-       next__%massDistribution_ => massDistributionComponent
-       next_ %next              => null()
-       next__%next              => null()
      end if
    end do
 end if

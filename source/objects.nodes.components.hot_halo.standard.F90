@@ -237,11 +237,13 @@ module Node_Component_Hot_Halo_Standard
       <interface>
        <type>class(massDistributionClass), pointer</type>
        <rank>0</rank>
-       <module>Galactic_Structure_Options, only : enumerationWeightByType</module>
-       <module>Mass_Distributions        , only : massDistributionClass  </module>
+       <module>Galactic_Structure_Options, only : enumerationWeightByType, enumerationComponentTypeType, enumerationMassTypeType</module>
+       <module>Mass_Distributions        , only : massDistributionClass                                                         </module>
        <self pass="true" intent="inout" />
-       <argument>type   (enumerationWeightByType), intent(in   ), optional :: weightBy   </argument>
-       <argument>integer                         , intent(in   ), optional :: weightIndex</argument>
+       <argument>type   (enumerationComponentTypeType), intent(in   ), optional :: componentType</argument>
+       <argument>type   (enumerationMassTypeType     ), intent(in   ), optional :: massType     </argument>
+       <argument>type   (enumerationWeightByType     ), intent(in   ), optional :: weightBy     </argument>
+       <argument>integer                              , intent(in   ), optional :: weightIndex  </argument>
       </interface>
      </binding>
    </bindings>
@@ -2279,20 +2281,23 @@ contains
     return
   end subroutine Node_Component_Hot_Halo_Standard_State_Restore
 
-  function Node_Component_Hot_Halo_Standard_Mass_Distribution(self,weightBy,weightIndex) result(massDistribution_)
+  function Node_Component_Hot_Halo_Standard_Mass_Distribution(self,componentType,massType,weightBy,weightIndex) result(massDistribution_)
     !!{
     Return the mass distribution associated with the hot halo.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentHotHaloStandard
-    use :: Galactic_Structure_Options, only : enumerationWeightByType
+    use :: Galactic_Structure_Options, only : enumerationWeightByType     , enumerationComponentTypeType, enumerationMassTypeType
     use :: Mass_Distributions        , only : massDistributionClass       , kinematicsDistributionClass
     implicit none
     class  (massDistributionClass       ), pointer                 :: massDistribution_
     class  (kinematicsDistributionClass ), pointer                 :: kinematicsDistribution_
     class  (nodeComponentHotHaloStandard), intent(inout)           :: self
+    type   (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type   (enumerationMassTypeType     ), intent(in   ), optional :: massType
     type   (enumerationWeightByType     ), intent(in   ), optional :: weightBy
     integer                              , intent(in   ), optional :: weightIndex
-
+    !$GLC attributes unused :: weightIndex, componentType, massType
+    
     massDistribution_          => hotHaloMassDistribution_  %get(self%hostNode,weightBy,weightIndex)
     if (associated(massDistribution_)) then
        kinematicsDistribution_ => hotHaloTemperatureProfile_%get(self%hostNode                     )

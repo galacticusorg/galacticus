@@ -162,7 +162,7 @@ sub Build_Node_Component_Class {
 	     function    => "Node_Component_Mass_Distribution_Null"                                                                ,
 	     description => "Return the mass distribution for this component."                                                     ,
 	     returnType  => "\\textcolor{red}{\\textless class(massDistribution)\\textgreater}"                                    ,
-	     arguments   => ""
+	     arguments   => "\\textcolor{red}{\\textless type(enumerationComponentTypeType)\\textgreater} [componentType]\\argin, \\textcolor{red}{\\textless type(enumeratioMassTypeType)\\textgreater} [massType]\\argin, \\textcolor{red}{\\textless type(enumeratioWeightByType)\\textgreater} [weightBy]\\argin, \\intzero\\ [weightIndex]\\argin"
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,

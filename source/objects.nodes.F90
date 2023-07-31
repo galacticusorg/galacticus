@@ -1341,18 +1341,20 @@ module Galacticus_Nodes
     return
   end function Node_Component_Null_TensorR2D3_InOut
 
-  function Node_Component_Mass_Distribution_Null(self,weightBy,weightIndex) result(massDistribution_)
+  function Node_Component_Mass_Distribution_Null(self,componentType,massType,weightBy,weightIndex) result(massDistribution_)
     !!{
     A null implementation of the enclosed mass in a component. Always returns zero.
     !!}
-    use :: Galactic_Structure_Options, only : enumerationWeightByType
+    use :: Galactic_Structure_Options, only : enumerationWeightByType, enumerationComponentTypeType, enumerationMassTypeType
     use :: Mass_Distributions        , only : massDistributionClass
     implicit none
-    class  (massDistributionClass  ), pointer                 :: massDistribution_
-    class  (nodeComponent          ), intent(inout)           :: self
-    type   (enumerationWeightByType), intent(in   ), optional :: weightBy
-    integer                         , intent(in   ), optional :: weightIndex
-    !$GLC attributes unused :: self, weightBy, weightIndex
+    class  (massDistributionClass       ), pointer                 :: massDistribution_
+    class  (nodeComponent               ), intent(inout)           :: self
+    type   (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type   (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    type   (enumerationWeightByType     ), intent(in   ), optional :: weightBy
+    integer                              , intent(in   ), optional :: weightIndex
+    !$GLC attributes unused :: self, componentType, massType, weightBy, weightIndex
 
     massDistribution_ => null()
     return

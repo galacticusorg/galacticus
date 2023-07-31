@@ -229,7 +229,8 @@ contains
     !!}
     use :: Mass_Distributions        , only : massDistributionClass
     use :: Coordinate_Systems        , only : Coordinates_Cartesian_To_Spherical, Coordinates_Cylindrical_To_Spherical
-    use :: Galactic_Structure_Options, only : coordinateSystemCartesian         , coordinateSystemCylindrical         , coordinateSystemSpherical, enumerationCoordinateSystemType
+    use :: Galactic_Structure_Options, only : coordinateSystemCartesian         , coordinateSystemCylindrical         , coordinateSystemSpherical, enumerationCoordinateSystemType, &
+         &                                    massTypeAll                       , componentTypeAll
     use :: Coordinates               , only : assignment(=)                     , coordinateSpherical
     use :: Error                     , only : Error_Report
     !![
@@ -272,8 +273,8 @@ contains
     call self%defaults(componentType=componentType,massType=massType,weightBy=weightBy,weightIndex=weightIndex)
     ! Evaluate the density.
     position_         =  positionSpherical_
-    massDistribution_ => node              %massDistribution(          galacticStructureState_%state%weightBy_     ,galacticStructureState_%state%weightIndex_)
-    density           =  massDistribution_ %density         (position_,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_   )
+    massDistribution_ => node              %massDistribution(                                        componentTypeAll,                              massTypeAll,galacticStructureState_%state%weightBy_,galacticStructureState_%state%weightIndex_)
+    density           =  massDistribution_ %density         (position_,galacticStructureState_%state%componentType_  ,galacticStructureState_%state%massType_                                                                                     )
     !![
     <objectDestructor name="massDistribution_"/>
     <include directive="densityTask" type="functionCall" functionType="function" returnParameter="densityComponent__">
@@ -293,7 +294,8 @@ contains
     Compute the density (of given {\normalfont \ttfamily massType}) at the specified {\normalfont \ttfamily position}. Assumes that galactic structure has already
     been computed.
     !!}
-    use :: Mass_Distributions, only : massDistributionClass
+    use :: Galactic_Structure_Options, only : massTypeAll          , componentTypeAll
+    use :: Mass_Distributions        , only : massDistributionClass
     !![
     <include directive="densitySphericalAverageTask" type="moduleUse">
     !!]
@@ -314,8 +316,8 @@ contains
     
     call self%defaults(radius=radius,componentType=componentType,massType=massType,weightBy=weightBy,weightIndex=weightIndex)
     ! Compute the spherically-averaged density.
-    massDistribution_ => node             %massDistribution       (       galacticStructureState_%state%weightBy_     ,galacticStructureState_%state%weightIndex_)
-    density           =  massDistribution_%densitySphericalAverage(radius,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_   )
+    massDistribution_ => node             %massDistribution       (                                     componentTypeAll,                              massTypeAll,galacticStructureState_%state%weightBy_,galacticStructureState_%state%weightIndex_)
+    density           =  massDistribution_%densitySphericalAverage(radius,galacticStructureState_%state%componentType_  ,galacticStructureState_%state%massType_                                                                                     )
     !![
     <objectDestructor name="massDistribution_"/>
     <include directive="densitySphericalAverageTask" type="functionCall" functionType="function" returnParameter="densitySphericalAverageComponent__">
@@ -334,7 +336,8 @@ contains
     !!{
     Compute the mass within a given radius, or the total mass if no radius is specified.
     !!}
-    use :: Mass_Distributions, only : massDistributionClass
+    use :: Galactic_Structure_Options, only : massTypeAll          , componentTypeAll
+    use :: Mass_Distributions        , only : massDistributionClass
     !![
     <include directive="enclosedMassTask" type="moduleUse">
     !!]
@@ -355,8 +358,8 @@ contains
 
     call self%defaults(radius,componentType,massType,weightBy,weightIndex)
     ! Compute the contribution from components directly, by mapping a function over all components.
-    massDistribution_ => node             %massDistribution    (galacticStructureState_%state%weightBy_,galacticStructureState_%state%weightIndex_                                          )
-    massEnclosed      =  massDistribution_%massEnclosedBySphere(galacticStructureState_%state%radius_  ,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_)
+    massDistribution_ => node             %massDistribution    (                                                                      componentTypeAll,                              massTypeAll,galacticStructureState_%state%weightBy_,galacticStructureState_%state%weightIndex_)
+    massEnclosed      =  massDistribution_%massEnclosedBySphere(galacticStructureState_%state%radius_  ,galacticStructureState_%state%componentType_  ,galacticStructureState_%state%massType_                                                                                     )
     ! Call routines to supply the masses for all components.
     !![
     <objectDestructor name="massDistribution_"/>
@@ -597,7 +600,8 @@ contains
     !!}
     use :: Mass_Distributions        , only : massDistributionClass
     use :: Coordinate_Systems        , only : Coordinates_Cartesian_To_Cylindrical, Coordinates_Spherical_To_Cylindrical
-    use :: Galactic_Structure_Options, only : coordinateSystemCartesian           , coordinateSystemCylindrical         , coordinateSystemSpherical, enumerationCoordinateSystemType
+    use :: Galactic_Structure_Options, only : coordinateSystemCartesian           , coordinateSystemCylindrical         , coordinateSystemSpherical, enumerationCoordinateSystemType, &
+         &                                     massTypeAll                        , componentTypeAll
     use :: Error                     , only : Error_Report
     use :: Galacticus_Nodes          , only : treeNode
     use :: Coordinates               , only : assignment(=)                       , coordinateCylindrical
@@ -630,8 +634,8 @@ contains
     end select
     ! Compute the surface density.
     position_         =  positionCylindrical_
-    massDistribution_ => node                %massDistribution(          galacticStructureState_%state%weightBy_     ,galacticStructureState_%state%weightIndex_)
-    surfaceDensity    =  massDistribution_   %surfaceDensity  (position_,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_   )
+    massDistribution_ => node                %massDistribution(                                        componentTypeAll,                              massTypeAll,galacticStructureState_%state%weightBy_,galacticStructureState_%state%weightIndex_)
+    surfaceDensity    =  massDistribution_   %surfaceDensity  (position_,galacticStructureState_%state%componentType_  ,galacticStructureState_%state%massType_                                                                                     )
     !![
     <objectDestructor name="massDistribution_"/>
     !!]
@@ -824,9 +828,9 @@ contains
     position           =  positionCartesian
     velocity           =  positionCartesian
     ! Evaluate the density.
-    massDistribution_         => node             %massDistribution     (                                                              galacticStructureState_%state%weightBy_     ,galacticStructureState_%state%weightIndex_)
-    massDistributionPerturber => nodeSatellite    %massDistribution     (                                                              galacticStructureState_%state%weightBy_     ,galacticStructureState_%state%weightIndex_)
-    chandrasekharIntegral     =  massDistribution_%chandrasekharIntegral(massDistribution_,massDistributionPerturber,position,velocity,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_   )
+    massDistribution_         => node             %massDistribution     (                                                                                            componentTypeAll,                              massTypeAll,galacticStructureState_%state%weightBy_,galacticStructureState_%state%weightIndex_)
+    massDistributionPerturber => nodeSatellite    %massDistribution     (                                                                                            componentTypeAll,                              massTypeAll,galacticStructureState_%state%weightBy_,galacticStructureState_%state%weightIndex_)
+    chandrasekharIntegral     =  massDistribution_%chandrasekharIntegral(massDistribution_,massDistributionPerturber,position,velocity,galacticStructureState_%state%componentType_  ,galacticStructureState_%state%massType_                                                                                     )
     !![
     <objectDestructor name="massDistribution_"        />
     <objectDestructor name="massDistributionPerturber"/>

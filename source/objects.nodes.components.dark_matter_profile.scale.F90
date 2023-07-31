@@ -54,11 +54,13 @@ module Node_Component_Dark_Matter_Profile_Scale
       <interface>
        <type>class(massDistributionClass), pointer</type>
        <rank>0</rank>
-       <module>Galactic_Structure_Options, only : enumerationWeightByType</module>
-       <module>Mass_Distributions        , only : massDistributionClass  </module>
+       <module>Galactic_Structure_Options, only : enumerationWeightByType, enumerationComponentTypeType, enumerationMassTypeType</module>
+       <module>Mass_Distributions        , only : massDistributionClass                                                         </module>
        <self pass="true" intent="inout" />
-       <argument>type   (enumerationWeightByType), intent(in   ), optional :: weightBy   </argument>
-       <argument>integer                         , intent(in   ), optional :: weightIndex</argument>
+       <argument>type   (enumerationComponentTypeType), intent(in   ), optional :: componentType</argument>
+       <argument>type   (enumerationMassTypeType     ), intent(in   ), optional :: massType     </argument>
+       <argument>type   (enumerationWeightByType     ), intent(in   ), optional :: weightBy     </argument>
+       <argument>integer                              , intent(in   ), optional :: weightIndex  </argument>
       </interface>
      </binding>
    </bindings>
@@ -250,20 +252,42 @@ contains
     return
   end subroutine Node_Component_Dark_Matter_Profile_Scale_State_Restore
 
-  function Node_Component_Dark_Matter_Profile_Scale_Mass_Distribution(self,weightBy,weightIndex) result(massDistribution_)
+  function Node_Component_Dark_Matter_Profile_Scale_Mass_Distribution(self,componentType,massType,weightBy,weightIndex) result(massDistribution_)
     !!{
     Return the mass distribution associated with the hot halo.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentDarkMatterProfileScale
-    use :: Galactic_Structure_Options, only : enumerationWeightByType
+    use :: Galactic_Structure_Options, only : enumerationWeightByType            , enumerationComponentTypeType, enumerationMassTypeType, componentTypeAll, componentTypeDarkHalo, massTypeAll, massTypeDark
     use :: Mass_Distributions        , only : massDistributionClass
     implicit none
     class  (massDistributionClass              ), pointer                 :: massDistribution_
     class  (nodeComponentDarkMatterProfileScale), intent(inout)           :: self
+    type   (enumerationComponentTypeType       ), intent(in   ), optional :: componentType
+    type   (enumerationMassTypeType            ), intent(in   ), optional :: massType
     type   (enumerationWeightByType            ), intent(in   ), optional :: weightBy
     integer                                     , intent(in   ), optional :: weightIndex
+    !![
+    <optionalArgument name="componentType" defaultsTo="componentTypeAll"/>
+    <optionalArgument name="massType"      defaultsTo="massTypeAll"     />
+    !!]
 
-    massDistribution_ => darkMatterProfile_%get(self%hostNode,weightBy,weightIndex)
+    if     (                                           &
+         &   (                                         &
+         &     componentType_ == componentTypeAll      &
+         &    .or.                                     &
+         &     componentType_ == componentTypeDarkHalo &
+         &   )                                         &
+         &  .and.                                      &
+         &   (                                         &
+         &     massType_      == massTypeAll           &
+         &    .or.                                     &
+         &     massType_      == massTypeDark          &
+         &   )                                         &
+         & ) then
+       massDistribution_ => darkMatterProfile_%get(self%hostNode,weightBy,weightIndex)
+    else
+       massDistribution_ => null()
+    end if
     return
   end function Node_Component_Dark_Matter_Profile_Scale_Mass_Distribution
 

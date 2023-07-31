@@ -46,22 +46,24 @@ double precision function Node_Component_Black_Hole_Standard_Spin(self)
   return
 end function Node_Component_Black_Hole_Standard_Spin
 
-function Node_Component_Black_Hole_Standard_Mass_Distribution(self,weightBy,weightIndex) result(massDistribution_)
+function Node_Component_Black_Hole_Standard_Mass_Distribution(self,componentType,massType,weightBy,weightIndex) result(massDistribution_)
   !!{
   Return the mass distribution for the standard black hole component.
   !!}
-  use :: Galactic_Structure_Options, only : componentTypeBlackHole   , massTypeBlackHole    , weightByMass, weightByLuminosity, &
-       &                                    enumerationWeightByType
+  use :: Galactic_Structure_Options, only : componentTypeBlackHole   , massTypeBlackHole           , weightByMass           , weightByLuminosity, &
+       &                                    enumerationWeightByType  , enumerationComponentTypeType, enumerationMassTypeType
   use :: Mass_Distributions        , only : massDistributionBlackHole, massDistributionClass
   implicit none
   class  (massDistributionClass         ), pointer                 :: massDistribution_
   class  (nodeComponentBlackHoleStandard), intent(inout)           :: self
+  type   (enumerationComponentTypeType  ), intent(in   ), optional :: componentType
+  type   (enumerationMassTypeType       ), intent(in   ), optional :: massType
   type   (enumerationWeightByType       ), intent(in   ), optional :: weightBy
   integer                                , intent(in   ), optional :: weightIndex
   !![
   <optionalArgument name="weightBy" defaultsTo="weightByMass" />
   !!]
-  !$GLC attributes unused :: weightIndex
+  !$GLC attributes unused :: weightIndex, componentType, massType
 
   if (weightBy_ /= weightByMass) then
      massDistribution_ => null()
