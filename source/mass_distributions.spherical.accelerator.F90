@@ -182,7 +182,6 @@ contains
     double precision                                                 :: massEnclosed1    , massEnclosed2, &
          &                                                              radiusLogarithmic
     logical                                                          :: found
-    integer                                                          :: i
 
     found            =.false.
     radiusLogarithmic=log(radius)
