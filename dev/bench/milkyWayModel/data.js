@@ -1,62 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1690675741198,
+  "lastUpdate": 1690786450346,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "93588f314d5a73a1ae63a5bf908ffe0d7d1acefe",
-          "message": "Merge pull request #341 from galacticusorg/h2Clumping\n\nAccount for hot halo density profile in molecular hydrogen calculations",
-          "timestamp": "2022-12-08T05:45:42-08:00",
-          "tree_id": "9ba658a1a08a5d54d49e1eb5284880b78fb206c3",
-          "url": "https://github.com/galacticusorg/galacticus/commit/93588f314d5a73a1ae63a5bf908ffe0d7d1acefe"
-        },
-        "date": 1670521169793,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Likelihood - localGroupMassMetallicityRelation",
-            "value": 4.71646062086302,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupMassSizeRelation",
-            "value": 5.0372700792549,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupMassVelocityDispersionRelation",
-            "value": 0.974906688906732,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupOccupationFraction",
-            "value": 23.450409249967,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupStellarMassFunction",
-            "value": 65.2342861452598,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
-            "value": 1.26426554522604,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10648,6 +10594,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 1.46954705432508,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "3fea25a0a779c2b879057cf7328e7c70e15ec77c",
+          "message": "fix: Deallocate object to avoid memory leak",
+          "timestamp": "2023-07-31T03:33:40Z",
+          "tree_id": "22001050019317d78ef5424a28a1eb411d04349e",
+          "url": "https://github.com/galacticusorg/galacticus/commit/3fea25a0a779c2b879057cf7328e7c70e15ec77c"
+        },
+        "date": 1690786449521,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 196.53,
+            "unit": "seconds",
+            "range": 0.463158720095747
           }
         ]
       }
