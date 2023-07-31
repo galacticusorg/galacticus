@@ -151,7 +151,7 @@ sub extract {
 	$output =
 	{
 	    repoUrl       => "https://github.com/galacticusorg/galacticus",
-	    parameterFile => $parameterFileName;
+	    parameterFile => $parameterFileName,
 	    commit        =>
 	    {
 		author =>
