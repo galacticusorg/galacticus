@@ -784,6 +784,7 @@ contains
     !!]
     deallocate(integratorTime       )
     deallocate(integratorMetallicity)
+    deallocate(integratorWavelength )
     !$omp end parallel
     return
 
