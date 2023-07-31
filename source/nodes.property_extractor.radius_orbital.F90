@@ -70,7 +70,7 @@ contains
     use :: Galacticus_Nodes, only : nodeComponentSatellite
     use :: Vectors         , only : Vector_Magnitude
     implicit none
-    class           (nodePropertyExtractorRadiusOrbital), intent(inout)           :: self
+    class           (nodePropertyExtractorRadiusOrbital), intent(inout), target   :: self
     type            (treeNode                          ), intent(inout), target   :: node
     type            (multiCounter                      ), intent(inout), optional :: instance
     type            (treeNode                          ), pointer                 :: nodeWork

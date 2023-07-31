@@ -42,7 +42,6 @@ my %staticLinkDependencies =
      FoX_sax        => [ "FoX_common"                                   ],
      FoX_wxml       => [ "FoX_utils"                                    ],
      FoX_common     => [ "FoX_fsys"                                     ],
-     matheval       => [ "fl"                                           ],
      qhullcpp       => [ "stdc++"                                       ]
     );
 # Find default preprocessor directives.
@@ -61,9 +60,6 @@ my $isStatic = grep {$_ eq "-static"} @compilerOptions;
 # necessary as HDF5 relies on some functions in libdl, but it is not linked by default when static linking is used.
 push(@{$dependencies{'hdf5'}},"dl")
     if ( $isStatic );
-# Add explicit dependency on libfl (flex lexer). This appears to be necessary when static linking is used.
-push(@{$dependencies{'matheval'}},"fl")
-    if ( $isStatic || $isMacOS );
 # Detect if libpthread is already included.
 my $pthreadIncluded = grep {$_ eq "-lpthread"} @compilerOptions;
 # Initialize a hash of required libraries.

@@ -30,7 +30,7 @@
      !!}
      private
      integer(c_size_t), allocatable, dimension(:) :: activeProcessRanks
-     logical                                      :: doPing            , reportWaitTime
+     logical                                      :: doPing            =.false., reportWaitTime
    contains
      final     ::                 fcfsDestructor
      procedure :: forestNumber => fcfsForestNumber

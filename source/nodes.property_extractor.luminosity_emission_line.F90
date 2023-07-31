@@ -53,7 +53,7 @@ Implements an emission line luminosity node property extractor class.
     <description>
       An emission line luminosity property extractor class. The luminosity of the named emission line (given by the {\normalfont
       \ttfamily lineNames} parameter: if multiple lines are named, the sum of their luminosities) is computed. Additional dust
-      attenutation for emission line luminosities can be specified via the {\normalfont \ttfamily depthOpticalISMCoefficient}
+      attenuation for emission line luminosities can be specified via the {\normalfont \ttfamily depthOpticalISMCoefficient}
       parameter.
     </description>
   </nodePropertyExtractor>
@@ -307,7 +307,7 @@ contains
     use            :: Numerical_Constants_Prefixes    , only : centi              , hecto                , mega
     use            :: Stellar_Luminosities_Structure  , only : max                , stellarLuminosities
     implicit none
-    class           (nodePropertyExtractorLmnstyEmssnLine), intent(inout)           :: self
+    class           (nodePropertyExtractorLmnstyEmssnLine), intent(inout), target   :: self
     type            (treeNode                            ), intent(inout), target   :: node
     type            (multiCounter                        ), intent(inout), optional :: instance
     class           (nodeComponentBasic                  ), pointer                 :: basic

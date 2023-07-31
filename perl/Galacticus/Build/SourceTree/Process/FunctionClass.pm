@@ -32,11 +32,11 @@ sub Process_FunctionClass {
     # Initialize code directive locations.
     my $directiveLocations;
     # Initialize state storables database.
-    my $stateStorables;
+    our $stateStorables;
     # Initialize deep copy actions database.
-    my $deepCopyActions;
+    our $deepCopyActions;
     # Determine if debugging output is required.
-    my $debugging = exists($ENV{'GALACTICUS_OBJECTS_DEBUG'}) && $ENV{'GALACTICUS_OBJECTS_DEBUG'} eq "yes";
+    our $debugging = exists($ENV{'GALACTICUS_OBJECTS_DEBUG'}) && $ENV{'GALACTICUS_OBJECTS_DEBUG'} eq "yes";
     # Walk the tree, looking for code blocks.
     my $node  = $tree;
     my $depth = 0;
@@ -200,11 +200,11 @@ sub Process_FunctionClass {
 		(my $label = $nonAbstractClass->{'name'}) =~ s/^$directive->{'name'}//;
 		$label = lcfirst($label)
 		    unless ( $label =~ m/^[A-Z]{2,}/ );
-		my $hasCustomDescriptor = 0;
+		$nonAbstractClass->{'hasCustomDescriptor'} = 0;
 		my $extensionOf;
 		# Build lists of all potential parameter and object names for this class, including any from parent classes.
-		my $potentialNames;
-		my $class = $nonAbstractClass;
+		my $potentialNames = {};
+		my $class          = $nonAbstractClass;
 		while ( $class ) {
 		    my $node = $class->{'tree'}->{'firstChild'};
 		    $node = $node->{'sibling'}
@@ -218,59 +218,8 @@ sub Process_FunctionClass {
 		    # Search the node for declarations.
 		    $node = $node->{'firstChild'};
 		    while ( $node ) {
-			if ( $node->{'type'} eq "declaration" ) {
-			    foreach my $declaration ( @{$node->{'declarations'}} ) {
-				# Identify object pointers.
-				push(@{$potentialNames->{'objects'}},map {$_ =~ s/\s*([a-zA-Z0-9_]+).*/$1/; $_} @{$declaration->{'variables'}})
-				    if
-				    (
-				     $declaration->{'intrinsic'} eq "class"
-				      &&
-				      (
-				       (grep {&lctrim($declaration->{'type'}) eq lc($_)} keys                       (%{$stateStorables->{'functionClasses'       }}))
-				       ||
-				       (grep {&lctrim($declaration->{'type'}) eq lc($_)} &List::ExtraUtils::as_array(  $stateStorables->{'functionClassInstances'} ))
-				      )
-				     &&
-				     grep {$_ eq "pointer"} @{$declaration->{'attributes'}}
-				    );
-				# Identify stateful types.
-				push(@{$potentialNames->{'statefulTypes'}},$declaration)
-				    if
-				    (
-				     $declaration->{'intrinsic'} eq "type"
-				     &&
-				     $declaration->{'type'     } =~ m/^stateful(Integer|Double|Logical)\s*$/i
-				    );
-				# Identify enumerations.
-				push(@{$potentialNames->{'enumerations'}},$declaration)
-				    if
-				    (
-				     $declaration->{'intrinsic'} eq "type"
-				     &&
-				     $declaration->{'type'     } =~ m/^enumeration[a-z0-9_]+type\s*$/i
-				    );
-				# Identify regular parameters.
-				push(@{$potentialNames->{'parameters'}},$declaration)
-				    if
-				    (
-				     (grep {$_ eq $declaration->{'intrinsic'}} ( "integer", "logical", "double precision", "character" ))
-				     ||
-				     (
-				             $declaration->{'intrinsic'}  eq "type"
-				      &&
-				      trimlc($declaration->{'type'     }) eq "varying_string"
-				     )
-				    );
-				$hasCustomDescriptor = 1
-				    if
-				    (
-				     $declaration->{'intrinsic'} eq "procedure"
-				     &&
-				     $declaration->{'variables'}->[0] =~ m/^descriptor=>/
-				    );
-			    }
-			}
+			&potentialDescriptorParameters($node->{'declarations'},$nonAbstractClass,$potentialNames)
+			    if ( $node->{'type'} eq "declaration" );
 			$node = $node->{'type'} eq "contains" ? $node->{'firstChild'} : $node->{'sibling'};
 		    }
 		    # Move to the parent class.
@@ -290,95 +239,15 @@ sub Process_FunctionClass {
 		    my $declaration = &Fortran::Utils::Unformat_Variables($declarationSource);
 		    die("Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass(): unable to parse variable declaration")
 			unless ( defined($declaration) );
-		    push(@{$potentialNames->{'objects'}},map {$_ =~ s/\s*([a-zA-Z0-9_]+).*/$1/; $_} @{$declaration->{'variables'}})
-			if
-			(
-			 $declaration->{'intrinsic'} eq "class"
-			 &&
-			 $declaration->{'type'     } =~ m/Class\s*$/
-			 &&
-			 grep {$_ eq "pointer"} @{$declaration->{'attributes'}}
-			);
-		    # Identify stateful types.
-		    push(@{$potentialNames->{'statefulTypes'}},$declaration)
-			if
-			(
-			 $declaration->{'intrinsic'} eq "type"
-			 &&
-			 $declaration->{'type'     } =~ m/^stateful(Integer|Double|Logical)\s*$/i
-			);
-		    # Identify enumerations.
-		    push(@{$potentialNames->{'enumerations'}},$declaration)
-			if
-			(
-			 $declaration->{'intrinsic'} eq "type"
-			 &&
-			 $declaration->{'type'     } =~ m/^enumeration[a-z0-9_]+type\s*$/i
-			);
-		    # Identify regular parameters.
-		    push(@{$potentialNames->{'parameters'}},$declaration)
-			if
-			(
-			 (grep {$_ eq $declaration->{'intrinsic'}} ( "integer", "logical", "double precision", "character" ))
-			 ||
-			 (
-			         $declaration->{'intrinsic'}  eq "type"
-			  &&
-			  trimlc($declaration->{'type'     }) eq "varying_string"
-			 )
-			);
+		    &potentialDescriptorParameters($declaration,$nonAbstractClass,$potentialNames);
 		}
 		# Add any names declared in the functionClassType.
 		if ( defined($functionClassType) ) {
 		    # Search the node for declarations.
 		    my $node = $functionClassType->{'node'}->{'firstChild'};
 		    while ( $node ) {
-			if ( $node->{'type'} eq "declaration" ) {
-			    foreach my $declaration ( @{$node->{'declarations'}} ) {
-				# Identify object pointers.
-				push(@{$potentialNames->{'objects'}},map {$_ =~ s/\s*([a-zA-Z0-9_]+).*/$1/; $_} @{$declaration->{'variables'}})
-				    if
-				    (
-				     $declaration->{'intrinsic'} eq "class"
-				      &&
-				      (
-				       (grep {&lctrim($declaration->{'type'}) eq lc($_)} keys                       (%{$stateStorables->{'functionClasses'       }}))
-				       ||
-				       (grep {&lctrim($declaration->{'type'}) eq lc($_)} &List::ExtraUtils::as_array(  $stateStorables->{'functionClassInstances'} ))
-				      )
-				     &&
-				     grep {$_ eq "pointer"} @{$declaration->{'attributes'}}
-				    );
-				# Identify stateful types.
-				push(@{$potentialNames->{'statefulTypes'}},$declaration)
-				    if
-				    (
-				     $declaration->{'intrinsic'} eq "type"
-				     &&
-				     $declaration->{'type'     } =~ m/^stateful(Integer|Double|Logical)\s*$/i
-				    );
-				# Identify enumerations.
-				push(@{$potentialNames->{'enumerations'}},$declaration)
-				    if
-				    (
-				     $declaration->{'intrinsic'} eq "type"
-				     &&
-				     $declaration->{'type'     } =~ m/^enumeration[a-z0-9_]+type\s*$/i
-				    );
-				# Identify regular parameters.
-				push(@{$potentialNames->{'parameters'}},$declaration)
-				    if
-				    (
-				     (grep {$_ eq $declaration->{'intrinsic'}} ( "integer", "logical", "double precision", "character" ))
-				     ||
-				     (
-				             $declaration->{'intrinsic'}  eq "type"
-				      &&
-				      trimlc($declaration->{'type'     }) eq "varying_string"
-				     )
-				    );
-			    }
-			}
+			&potentialDescriptorParameters($node->{'declarations'},$nonAbstractClass,$potentialNames)
+			    if ( $node->{'type'} eq "declaration" );
 			$node = $node->{'type'} eq "contains" ? $node->{'firstChild'} : $node->{'sibling'};
 		    }
 		}
@@ -544,7 +413,7 @@ sub Process_FunctionClass {
 		}
 		# Build the code.
 		$descriptorCode .= "type is (".$nonAbstractClass->{'name'}.")\n";
-		if ( $hasCustomDescriptor ) {
+		if ( $nonAbstractClass->{'hasCustomDescriptor'} ) {
 		    # The class has its own descriptor function, so we should never arrive at this point in the code.
 		    $descriptorCode .= " call Error_Report('custom descriptor exists - this should not happen'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
 		    $descriptorModules{'Error'} = 1;
@@ -756,7 +625,7 @@ sub Process_FunctionClass {
 			    # Handle objects built via objectBuilder directives.
 			    if ( defined($descriptorParameters->{'objects'}) ) {
 				foreach ( @{$descriptorParameters->{'objects'}} ) {
-				    $descriptorCode .= "call self%".$_->{'name'}."%descriptor(parameters)\n";
+				    $descriptorCode .= "if (associated(self%".$_->{'name'}.")) call self%".$_->{'name'}."%descriptor(parameters)\n";
 				}
 			    }
 			    # Handle linked lists.
@@ -1206,37 +1075,32 @@ CODE
 		code        => $allowedParametersCode
 	    };
 	    # Add "deepCopy" method.
-            my %deepCopyModules;
-            my %deepCopyResetModules;
-            my %deepCopyFinalizeModules;
+	    my $deepCopy;
             if ( $debugging ) {
-		$deepCopyModules{'MPI_Utilities'     } = 1;
-		$deepCopyModules{'ISO_Varying_String'} = 1;
-		$deepCopyModules{'String_Handling'   } = 1;
-		$deepCopyModules{'Display'           } = 1;
+		$deepCopy->{'modules'}->{'MPI_Utilities'     } = 1;
+		$deepCopy->{'modules'}->{'ISO_Varying_String'} = 1;
+		$deepCopy->{'modules'}->{'String_Handling'   } = 1;
+		$deepCopy->{'modules'}->{'Display'           } = 1;
             }
-	    $rankMaximum = 0;
-            my $deepCopyCode;
-            my $deepCopyResetCode;
-            my $deepCopyFinalizeCode;
+	    $deepCopy->{'rankMaximum'} = 0;
             my $linkedListVariables;
             my $linkedListResetVariables;
             my $linkedListFinalizeVariables;
             @{$linkedListVariables        } = ();
             @{$linkedListResetVariables   } = ();
             @{$linkedListFinalizeVariables} = ();
-            $deepCopyResetCode    .= "self%copiedSelf => null()\n";
-            $deepCopyResetCode    .= "select type (self)\n";
-	    $deepCopyFinalizeCode .= "self%copiedSelf => null()\n";
-            $deepCopyFinalizeCode .= "select type (self)\n";
-            $deepCopyCode         .= "select type (self)\n";
+            $deepCopy->{'resetCode'   } .= "self%copiedSelf => null()\n";
+            $deepCopy->{'resetCode'   } .= "select type (self)\n";
+	    $deepCopy->{'finalizeCode'} .= "self%copiedSelf => null()\n";
+            $deepCopy->{'finalizeCode'} .= "select type (self)\n";
+            $deepCopy->{'code'        } .= "select type (self)\n";
 	    foreach my $nonAbstractClass ( @nonAbstractClasses ) {
 		# Search the tree for this class.
 		my $class = $nonAbstractClass;
-		my $assignments;
+		undef($deepCopy->{'assignments'});
 		# Add a class guard for resets.
-		$deepCopyResetCode    .= "type is (".$nonAbstractClass->{'name'}.")\n";
-		$deepCopyFinalizeCode .= "type is (".$nonAbstractClass->{'name'}.")\n";
+		$deepCopy->{'resetCode'   } .= "type is (".$nonAbstractClass->{'name'}.")\n";
+		$deepCopy->{'finalizeCode'} .= "type is (".$nonAbstractClass->{'name'}.")\n";
 		while ( $class ) {
 		    my $node = $class->{'tree'}->{'firstChild'};
 		    $node = $node->{'sibling'}
@@ -1245,241 +1109,15 @@ CODE
 			unless ( $node );
 		    # Handle linked lists.
 		    (my $linkedListCode, my $linkedListResetCode, my $linkedListFinalizeCode) = &deepCopyLinkedList($nonAbstractClass,$linkedListVariables,$linkedListResetVariables,$linkedListFinalizeVariables,$debugging);
-		    $assignments          .= $linkedListCode;
-		    $deepCopyResetCode    .= $linkedListResetCode;
-		    $deepCopyFinalizeCode .= $linkedListFinalizeCode;
+		    $deepCopy->{'assignments' } .= $linkedListCode;
+		    $deepCopy->{'resetCode'   } .= $linkedListResetCode;
+		    $deepCopy->{'finalizeCode'} .= $linkedListFinalizeCode;
 		    # Search the node for declarations.
 		    my @ignore = exists($class->{'deepCopy'}->{'ignore'}) ? split(/\s*,\s*/,$class->{'deepCopy'}->{'ignore'}->{'variables'}) : ();
 		    $node = $node->{'firstChild'};
 		    while ( $node ) {
-			if ( $node->{'type'} eq "declaration" ) {
-			    foreach my $declaration ( @{$node->{'declarations'}} ) {
-				# Deep copy of functionClass objects.
-				(my $type = $declaration->{'type'}) =~ s/(^\s*|\s*$)//g
-				    if ( $declaration->{'intrinsic'} eq "class" || $declaration->{'intrinsic'} eq "type" );
-				if
-				    (
-				     $declaration->{'intrinsic'} eq "class"
-				     &&
-				     (grep {$_ eq $type    } (keys(%{$stateStorables->{'functionClasses'}}),@{$stateStorables->{'functionClassInstances'}}))
-				     &&
-				     grep {$_ eq "pointer"}  @{$declaration   ->{'attributes'     }}
-				    )
-				{
-				    foreach my $object ( @{$declaration->{'variables'}} ) {
-					(my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
-					next
-					    if ( grep {lc($_) eq lc($name)} @ignore );
-					$deepCopyResetCode    .= "if (associated(self%".$name.")) call self%".$name."%deepCopyReset   ()\n";
-					$deepCopyFinalizeCode .= "if (associated(self%".$name.")) call self%".$name."%deepCopyFinalize()\n";
-					$assignments          .= "nullify(destination%".$name.")\n";
-					$assignments          .= "if (associated(self%".$name.")) then\n";
-					$assignments          .= " if (associated(self%".$name."\%copiedSelf)) then\n";
-					$assignments          .= "  select type(s => self%".$name."\%copiedSelf)\n";
-					$assignments          .= "  ".$declaration->{'intrinsic'}." is (".$declaration->{'type'}.")\n";
-					$assignments          .= "   destination%".$name." => s\n";
-					$assignments          .= "  class default\n";
-					$assignments          .= "   call Error_Report('copiedSelf has incorrect type'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
-					$assignments          .= "  end select\n";
-					$assignments          .= "  call self%".$name."\%copiedSelf\%referenceCountIncrement()\n";
-					$assignments          .= " else\n";
-					$assignments          .= "  allocate(destination%".$name.",mold=self%".$name.")\n";
-					$assignments          .= "  call self%".$name."%deepCopy(destination%".$name.")\n";
-					$assignments          .= "  self%".$name."%copiedSelf => destination%".$name."\n";
-					$assignments          .= "  call destination%".$name."%autoHook()\n";
-					$assignments          .= " end if\n";
-					$assignments          .= " if (debugReporting.and.mpiSelf\%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbosityLevelSilent)\n"
-					    if ( $debugging );
-					$assignments       .= "end if\n";
-				    }
-				};
-				# Deep copy of objects with explicit deep copy actions.
-				if
-				    (
-				     (
-				      $declaration->{'intrinsic'} eq "class"
-				      ||
-				      $declaration->{'intrinsic'} eq "type"
-				     )
-				     &&
-				     (grep {$_->{'type'} eq $type} &List::ExtraUtils::as_array($deepCopyActions->{'deepCopyActions'}))
-				    ) {
-					my $isAllocatable = grep {$_ eq "allocatable"} @{$declaration->{'attributes'}};
-					my $isPointer     = grep {$_ eq "pointer"    } @{$declaration->{'attributes'}};
-					my $rank = 0;
-					if ( grep {$_ =~ m/^dimension\s*\(/} @{$declaration->{'attributes'}} ) {
-					    my $dimensionDeclarator = join(",",map {/^dimension\s*\(([a-zA-Z0-9_,:\s]+)\)/} @{$declaration->{'attributes'}});
-					    $rank        = ($dimensionDeclarator =~ tr/,//)+1;
-					    $rankMaximum = $rank
-						if ( $rank > $rankMaximum );					    
-					}
-					foreach my $variableName ( @{$declaration->{'variableNames'}} ) {
-					    $assignments .= "if (allocated(self%".$variableName.")) then\n"
-						if ( $isAllocatable );
-					    $assignments .= "if (associated(self%".$variableName.")) then\n"
-						if ( $isPointer     );
-					    for(my $i=1;$i<=$rank;++$i) {
-						$assignments .= (" " x $i)."do i".$i."=lbound(self%".$variableName.",dim=".$i."),ubound(self%".$variableName.",dim=".$i.")\n";
-					    }
-					    my $arrayElement = $rank > 0 ? "(".join(",",map {"i".$_} 1..$rank).")" : "";
-					    $assignments .= (" " x $rank)."call destination%".$variableName.$arrayElement."%deepCopyActions()\n";
-					    for(my $i=1;$i<=$rank;++$i) {
-						    $assignments .= (" " x ($rank+1-$i))."end do\n";
-					    }
-					    $assignments .= "end if\n"
-						if ( $isAllocatable || $isPointer );
-					}
-				}
-				# Deep copy of HDF5 objects.
-				if
-				    (
-				     $declaration->{'intrinsic'} eq "type"
-				     &&
-				     $declaration->{'type'     } =~ m/^\s*hdf5object\s*$/i
-				    ) {
-					$deepCopyModules{'HDF5_Access'} = 1;
-					$assignments .= "!\$ call hdf5Access%set  ()\n";
-					$assignments .= "call self%".$_."%deepCopy(destination%".$_.")\n"
-					    foreach ( @{$declaration->{'variables'}} );
-					$assignments .= "!\$ call hdf5Access%unset()\n";
-				}
-				# Deep copy of non-(class,pointer) functionClass objects.
-				if ( exists($class->{'deepCopy'}->{'functionClass'}) ) {
-				    foreach my $object ( @{$declaration->{'variables'}} ) {
-					(my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
-					if ( grep {lc($_) eq lc($name)} split(/\s*,\s*/,$class->{'deepCopy'}->{'functionClass'}->{'variables'}) ) {
-					    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
-						$assignments          .= "nullify(destination%".$name.")\n";
-						$assignments          .= "if (associated(self%".$name.")) then\n";
-						$deepCopyResetCode    .= "if (associated(self%".$name.")) then\n";
-						$deepCopyFinalizeCode .= "if (associated(self%".$name.")) then\n";
-						$assignments          .= "if (associated(self%".$name."\%copiedSelf)) then\n";
-						$assignments          .= "  select type(s => self%".$name."\%copiedSelf)\n";
-						$assignments          .= "  ".$declaration->{'intrinsic'}." is (".$declaration->{'type'}.")\n";
-						$assignments          .= "   destination%".$name." => s\n";
-						$assignments          .= "  class default\n";
-						$assignments          .= "   call Error_Report('copiedSelf has incorrect type'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
-						$assignments          .= "  end select\n";
-						$assignments          .= "  call self%".$name."\%copiedSelf\%referenceCountIncrement()\n";
-						$assignments          .= "else\n";
-						$assignments          .= " allocate(destination%".$name.",mold=self%".$name.")\n";
-					    }
-					    $deepCopyResetCode    .= "call self%".$name."%deepCopyReset   ()\n";
-					    $deepCopyFinalizeCode .= "call self%".$name."%deepCopyFinalize()\n";
-					    $assignments          .= "call self%".$name."%deepCopy(destination%".$name.")\n";
-					    $assignments          .= "self%".$name."%copiedSelf => destination%".$name."\n";
-					    $assignments          .= "call destination%".$name."%autoHook()\n";
-					    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
-						$assignments       .= "end if\n";
-					    }
-					    $assignments       .= "if (debugReporting.and.mpiSelf\%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbosityLevelSilent)\n"
-						if ( $debugging );
-					    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
-						$assignments          .= "end if\n";
-						$deepCopyResetCode    .= "end if\n";
-						$deepCopyFinalizeCode .= "end if\n";
-					    }
-					}
-				    }
-				}
-				# Perform any increments.
-				if ( exists($class->{'deepCopy'}->{'increment'}) ) {
-				    my @increments = map {{variable => $_}} split(/\s*,\s*/,$class->{'deepCopy'}->{'increment'}->{'variables'});
-				    foreach ( @increments ) {
-					($_->{'host'} = $_->{'variable'}) =~ s/^([^%]+)%.+/$1/;
-				    }
-				    foreach my $object ( @{$declaration->{'variables'}} ) {
-					(my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
-					foreach my $increment ( @increments ) {
-					    if ( lc($increment->{'host'}) eq lc($name) ) {
-						$assignments .= "!\$omp atomic\n"
-						    if ( exists($class->{'deepCopy'}->{'increment'}->{'atomic'}) && $class->{'deepCopy'}->{'increment'}->{'atomic'} eq "yes" );
-						$assignments .= "destination\%".$increment->{'variable'}."=destination\%".$increment->{'variable'}."+1\n";
-					    }
-					}
-				    }
-				}
-                                # Perform any explicit deep copies.
-				if ( exists($class->{'deepCopy'}->{'deepCopy'}) ) {
-				    my @deepCopies = split(/\s*,\s*/,$class->{'deepCopy'}->{'deepCopy'}->{'variables'});
-				    foreach my $object ( @{$declaration->{'variableNames'}} ) {
-					foreach my $deepCopy ( @deepCopies ) {
-					    if ( lc($object) eq lc($deepCopy) ) {
-						$assignments .= "nullify(destination\%".$object.")\n";
-						$assignments .= "allocate(destination\%".$object.",mold=self\%".$object.")\n";
-						if ( exists($class->{'deepCopy'}->{'deepCopy'}->{'copy'}) ) {
-						    $deepCopyModules{$class->{'deepCopy'}->{'deepCopy'}->{'module'}} = 1
-							if ( exists($class->{'deepCopy'}->{'deepCopy'}->{'module'}) );
-						    $assignments .= "if (associated(self\%".$object.")) call ".$class->{'deepCopy'}->{'deepCopy'}->{'copy'}."(self\%".$object.",destination\%".$object.")\n";
-						} else {
-						    $assignments .= "if (associated(self\%".$object.")) call self\%".$object."\%deepCopy(destination\%".$object.")\n";
-						}
-						if ( exists($class->{'deepCopy'}->{'deepCopy'}->{'reset'}) ) {
-						    $deepCopyResetModules{$class->{'deepCopy'}->{'deepCopy'}->{'module'}} = 1
-							if ( exists($class->{'deepCopy'}->{'deepCopy'}->{'module'}) );
-						    $deepCopyResetCode .= "if (associated(self\%".$object.")) call ".$class->{'deepCopy'}->{'deepCopy'}->{'reset'}."(self\%".$object.")\n";
-						}
-						if ( exists($class->{'deepCopy'}->{'deepCopy'}->{'finalize'}) ) {
-						    $deepCopyFinalizeModules{$class->{'deepCopy'}->{'deepCopy'}->{'module'}} = 1
-							if ( exists($class->{'deepCopy'}->{'deepCopy'}->{'module'}) );
-						    $deepCopyFinalizeCode .= "if (associated(self\%".$object.")) call ".$class->{'deepCopy'}->{'deepCopy'}->{'finalize'}."(self\%".$object.")\n";
-						}
-					    }
-					}
-				    }
-				}
-				# Reinitialize OpenMP locks.
-				if
-				    (
-				     $declaration->{'intrinsic'} eq "integer"
-				     &&
-				     exists ($declaration->{'type'})
-				     &&
-				     defined($declaration->{'type'})
-				     &&
-				     $declaration->{'type'     } =~ m/^\s*omp_lock_kind\s*$/i
-				    ) {
-					$assignments .= "!\$ call OMP_Init_Lock(destination\%".$_.")\n"
-					    foreach ( @{$declaration->{'variables'}} );
-				}
-				# Reinitialize OpenMP read/write locks.
-				if
-				    (
-				     $declaration->{'intrinsic'} eq "type"
-				     &&
-				     exists ($declaration->{'type'})
-				     &&
-				     defined($declaration->{'type'})
-				     &&
-				     $declaration->{'type'     } =~ m/^\s*ompReadWriteLock\s*$/i
-				    ) {
-					foreach ( @{$declaration->{'variables'}} ) {
-					    my @dimensions =
-						exists($declaration->{'attributes'})
-						?
-						map {/^dimension\s*\(([:,]+)\)/} @{$declaration->{'attributes'}}
-					        :
-						undef();
-					    if ( @dimensions ) {
-						my @rank = split(",",$dimensions[0]);
-						# Add loop index variables.
-						$rankMaximum = scalar(@rank)
-						    if ( scalar(@rank) > $rankMaximum );
-						for(my $i=1;$i<=scalar(@rank);++$i) {
-						    $assignments .= "!\$ do i".$i."=lbound(destination\%".$_.",dim=".$i."),ubound(destination\%".$_.",dim=".$i.")\n";
-						}
-						$assignments .= "!\$    call destination\%".$_."(".join(",",map {"i".$_} 1..scalar(@rank)).")%initialize()\n";
-						for(my $i=1;$i<=scalar(@rank);++$i) {
-						    $assignments .= "!\$ end do\n";
-						}
-					    } else {
-						# Scalar lock.
-						$assignments .= "!\$ call destination\%".$_."%initialize()\n";
-					    }
-					}
-				}
-			    }
-			}
+			&deepCopyDeclarations($class,$nonAbstractClass,$node,$node->{'declarations'},\@ignore,$lineNumber,$deepCopy)
+			    if ( $node->{'type'} eq "declaration" );
 			$node = $node->{'sibling'};
 		    }
 		    # Move to the parent class.
@@ -1497,346 +1135,47 @@ CODE
 		    next
 			unless ( defined($declarationSource) );
 		    my $declaration = &Fortran::Utils::Unformat_Variables($declarationSource);
-		    (my $type = $declaration->{'type'}) =~ s/(^\s*|\s*$)//g
-			if ( $declaration->{'intrinsic'} eq "class" || $declaration->{'intrinsic'} eq "type" );
-		    if
-			(
-			 $declaration->{'intrinsic'} eq "class"
-			 &&
-			 $declaration->{'type'     } =~ m/Class\s*$/
-			 &&
-			 grep {$_ eq "pointer"} @{$declaration->{'attributes'}}
-			) {
-			    foreach my $object ( @{$declaration->{'variables'}} ) {
-				(my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
-				$deepCopyResetCode    .= "if (associated(self%".$name.")) call self%".$name."%deepCopyReset()\n";
-				$deepCopyFinalizeCode .= "if (associated(self%".$name.")) call self%".$name."%deepCopyReset()\n";
-				$assignments          .= "nullify(destination%".$name.")\n";
-				$assignments          .= "if (associated(self%".$name.")) then\n";
-				$assignments          .= " if (associated(self%".$name."\%copiedSelf)) then\n";
-				$assignments          .= "  select type(s => self%".$name."\%copiedSelf)\n";
-				$assignments          .= "  ".$declaration->{'intrinsic'}." is (".$declaration->{'type'}.")\n";
-				$assignments          .= "   destination%".$name." => s\n";
-				$assignments          .= "  class default\n";
-				$assignments          .= "   call Error_Report('copiedSelf has incorrect type'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
-				$assignments          .= "  end select\n";
-				$assignments          .= "  call self%".$name."\%copiedSelf\%referenceCountIncrement()\n";
-				$assignments          .= " else\n";
-				$assignments          .= "  allocate(destination%".$name.",mold=self%".$name.")\n";
-				$assignments          .= "  call self%".$name."%deepCopy(destination%".$name.")\n";
-				$assignments          .= "  self%".$name."%copiedSelf => destination%".$name."\n";
-				$assignments          .= "  call destination%".$name."%autoHook()\n";
-				$assignments          .= " end if\n";
-				$assignments          .= " if (debugReporting.and.mpiSelf\%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbosityLevelSilent)\n"
-				    if ( $debugging );
-				$assignments       .= "end if\n";
-			    }
-		    }
-		    # Deep copy of objects with explicit deep copy actions.
-		    if
-			(
-			 (
-			  $declaration->{'intrinsic'} eq "class"
-			  ||
-			  $declaration->{'intrinsic'} eq "type"
-			 )
-			 &&
-			 (grep {$_->{'type'} eq $type} &List::ExtraUtils::as_array($deepCopyActions->{'deepCopyActions'}))
-			) {
-			    my $isAllocatable = grep {$_ eq "allocatable"} @{$declaration->{'attributes'}};
-			    my $isPointer     = grep {$_ eq "pointer"    } @{$declaration->{'attributes'}};
-			    my $rank = 0;
-			    if ( grep {$_ =~ m/^dimension\s*\(/} @{$declaration->{'attributes'}} ) {
-				my $dimensionDeclarator = join(",",map {/^dimension\s*\(([a-zA-Z0-9_,:\s]+)\)/} @{$declaration->{'attributes'}});
-				$rank        = ($dimensionDeclarator =~ tr/,//)+1;
-				$rankMaximum = $rank
-				    if ( $rank > $rankMaximum );
-			    }
-			    foreach my $variableName ( @{$declaration->{'variableNames'}} ) {
-				$assignments .= "if (allocated(self%".$variableName.")) then\n"
-				    if ( $isAllocatable );
-				$assignments .= "if (associated(self%".$variableName.")) then\n"
-				    if ( $isPointer     );
-				for(my $i=1;$i<=$rank;++$i) {
-				    $assignments .= (" " x $i)."do i".$i."=lbound(self%".$variableName.",dim=".$i."),ubound(self%".$variableName.",dim=".$i.")\n";
-				}
-				my $arrayElement = $rank > 0 ? "(".join(",",map {"i".$_} 1..$rank).")" : "";
-				$assignments .= (" " x $rank)."call destination%".$variableName.$arrayElement."%deepCopyActions()\n";
-				for(my $i=1;$i<=$rank;++$i) {
-					$assignments .= (" " x ($rank+1-$i))."end do\n";
-				}
-				$assignments .= "end if\n"
-				    if ( $isAllocatable || $isPointer );
-			    }
-		    }
-		    # Deep copy of HDF5 objects.
-		    if
-			(
-			 $declaration->{'intrinsic'} eq "type"
-			 &&
-			 $declaration->{'type'     } =~ m/^\s*hdf5object\s*$/i
-			) {
-			    $deepCopyModules{'HDF5_Access'} = 1;
-			    $assignments .= "!\$ call hdf5Access%set  ()\n";
-			    $assignments .= "call self%".$_."%deepCopy(destination%".$_.")\n"
-				foreach ( @{$declaration->{'variables'}} );
-			    $assignments .= "!\$ call hdf5Access%unset()\n";
-		    }
-		    # Deep copy of non-(class,pointer) functionClass objects.
-		    if ( exists($class->{'deepCopy'}->{'functionClass'}) ) {
-			foreach my $object ( @{$declaration->{'variables'}} ) {
-			    (my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
-			    if ( grep {lc($_) eq lc($name)} split(/\s*,\s*/,$class->{'deepCopy'}->{'functionClass'}->{'variables'}) ) {
-				if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
-				    $assignments          .= "nullify(destination%".$name.")\n";
-				    $assignments          .= "if (associated(self%".$name.")) then\n";
-				    $deepCopyResetCode    .= "if (associated(self%".$name.")) then\n";
-				    $deepCopyFinalizeCode .= "if (associated(self%".$name.")) then\n";
-				    $assignments          .= "if (associated(self%".$name."\%copiedSelf)) then\n";
-				    $assignments          .= "  select type(s => self%".$name."\%copiedSelf)\n";
-				    $assignments          .= "  ".$declaration->{'intrinsic'}." is (".$declaration->{'type'}.")\n";
-				    $assignments          .= "   destination%".$name." => s\n";
-				    $assignments          .= "  class default\n";
-				    $assignments          .= "   call Error_Report('copiedSelf has incorrect type'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
-				    $assignments          .= "  end select\n";
-				    $assignments          .= "  call self%".$name."\%copiedSelf\%referenceCountIncrement()\n";
-				    $assignments          .= "else\n";
-				    $assignments          .= " allocate(destination%".$name.",mold=self%".$name.")\n";
-				}
-				$deepCopyResetCode    .= "call self%".$name."%deepCopyReset   ()\n";
-				$deepCopyFinalizeCode .= "call self%".$name."%deepCopyFinalize()\n";
-				$assignments          .= "call self%".$name."%deepCopy(destination%".$name.")\n";
-				$assignments          .= " self%".$name."%copiedSelf => destination%".$name."\n";
-				$assignments          .= "call destination%".$name."%autoHook()\n";
-				if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
-				    $assignments .= "end if\n";
-				}
-				$assignments       .= "if (debugReporting.and.mpiSelf\%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbosityLevelSilent)\n"
-				    if ( $debugging );
-				if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
-				    $assignments          .= "end if\n";
-				    $deepCopyResetCode    .= "end if\n";
-				    $deepCopyFinalizeCode .= "end if\n";
-				}
-			    }
-			}
-		    }
-		    # Perform any increments.
-		    if ( exists($class->{'deepCopy'}->{'increment'}) ) {
-			my @increments = map {{variable => $_}} split(/\s*,\s*/,$class->{'deepCopy'}->{'increment'}->{'variables'});
-			foreach ( @increments ) {
-			    ($_->{'host'} = $_->{'variable'}) =~ s/^([^%]+)%.+/$1/;
-			}
-			foreach my $object ( @{$declaration->{'variables'}} ) {
-			    (my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
-			    foreach my $increment ( @increments ) {
-				if ( lc($increment->{'host'}) eq lc($name) ) {
-				    $assignments .= "!\$omp atomic\n"
-					if ( exists($class->{'deepCopy'}->{'increment'}->{'atomic'}) && $class->{'deepCopy'}->{'increment'}->{'atomic'} eq "yes" );
-				    $assignments .= "destination\%".$increment->{'variable'}."=destination\%".$increment->{'variable'}."+1\n";
-				}
-			    }
-			}
-		    }
-		    # Perform any explicit deep copies.
-		    if ( exists($class->{'deepCopy'}->{'deepCopy'}) ) {
-			my @deepCopies = split(/\s*,\s*/,$class->{'deepCopy'}->{'deepCopy'}->{'variables'});
-			foreach my $object ( @{$declaration->{'variables'}} ) {
-			    foreach my $deepCopy ( @deepCopies ) {
-				if ( lc($object) eq lc($deepCopy) ) {
-				    $assignments .= "nullify(destination\%".$object.")\n";
-				    $assignments .= "allocate(destination\%".$object.",mold=self\%".$object.")\n";
-				    if ( exists($class->{'deepCopy'}->{'deepCopy'}->{'function'}) ) {
-					$deepCopyModules{$class->{'deepCopy'}->{'deepCopy'}->{'module'}} = 1
-					    if ( exists($class->{'deepCopy'}->{'deepCopy'}->{'module'}) );
-					$assignments .= "if (associated(self\%".$object.")) call ".$class->{'deepCopy'}->{'deepCopy'}->{'function'}."(self\%".$object.",destination\%".$object.")\n";
-				    } else {
-					$assignments .= "if (associated(self\%".$object.")) call self\%".$object."\%deepCopy(destination\%".$object.")\n";
-				    }
-				}
-			    }
-			}
-		    }
+		    my @ignore      = ();
+		    &deepCopyDeclarations($class,$nonAbstractClass,$node,$declaration,\@ignore,$lineNumber,$deepCopy);
 		}
 		# Add any objects declared in the functionClassType class.
 		if ( defined($functionClassType) ) {
 		    # Search the node for declarations.
-		    my $node = $functionClassType->{'node'}->{'firstChild'};
+		    my @ignore = ();
+		    my $node   = $functionClassType->{'node'}->{'firstChild'};
 		    while ( $node ) {
-			if ( $node->{'type'} eq "declaration" ) {
-			    foreach my $declaration ( @{$node->{'declarations'}} ) {
-				# Deep copy of functionClass objects.
-				(my $type = $declaration->{'type'}) =~ s/(^\s*|\s*$)//g
-				    if ( $declaration->{'intrinsic'} eq "class" );
-				if
-				    (
-				     $declaration->{'intrinsic'} eq "class"
-				     &&
-				     (grep {$_ eq $type    } (keys(%{$stateStorables->{'functionClasses'}}),@{$stateStorables->{'functionClassInstances'}}))
-				     &&
-				     grep {$_ eq "pointer"}  @{$declaration   ->{'attributes'     }}
-				    )
-				{
-				    foreach my $object ( @{$declaration->{'variables'}} ) {
-					(my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
-					$deepCopyResetCode    .= "if (associated(self%".$name.")) call self%".$name."%deepCopyReset   ()\n";
-					$deepCopyFinalizeCode .= "if (associated(self%".$name.")) call self%".$name."%deepCopyFinalize()\n";
-					$assignments          .= "nullify(destination%".$name.")\n";
-					$assignments          .= "if (associated(self%".$name.")) then\n";
-					$assignments          .= " if (associated(self%".$name."\%copiedSelf)) then\n";
-					$assignments          .= "  select type(s => self%".$name."\%copiedSelf)\n";
-					$assignments          .= "  ".$declaration->{'intrinsic'}." is (".$declaration->{'type'}.")\n";
-					$assignments          .= "   destination%".$name." => s\n";
-					$assignments          .= "  class default\n";
-					$assignments          .= "   call Error_Report('copiedSelf has incorrect type'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
-					$assignments          .= "  end select\n";
-					$assignments          .= "  call self%".$name."\%copiedSelf\%referenceCountIncrement()\n";
-					$assignments          .= " else\n";
-					$assignments          .= "  allocate(destination%".$name.",mold=self%".$name.")\n";
-					$assignments          .= "  call self%".$name."%deepCopy(destination%".$name.")\n";
-					$assignments          .= "  self%".$name."%copiedSelf => destination%".$name."\n";
-					$assignments          .= "  call destination%".$name."%autoHook()\n";
-					$assignments          .= " end if\n";
-					$assignments          .= " if (debugReporting.and.mpiSelf\%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbosityLevelSilent)\n"
-					    if ( $debugging );
-					$assignments       .= "end if\n";
-				    }
-				};
-				# Deep copy of HDF5 objects.
-				if
-				    (
-				     $declaration->{'intrinsic'} eq "type"
-				     &&
-				     $declaration->{'type'     } =~ m/^\s*hdf5object\s*$/i
-				    ) {
-					$deepCopyModules{'HDF5_Access'} = 1;
-					$assignments .= "!\$ call hdf5Access%set  ()\n";
-					$assignments .= "call self%".$_."%deepCopy(destination%".$_.")\n"
-					    foreach ( @{$declaration->{'variables'}} );
-					$assignments .= "!\$ call hdf5Access%unset()\n";
-				}
-				# Deep copy of non-(class,pointer) functionClass objects.
-				if ( exists($class->{'deepCopy'}->{'functionClass'}) ) {
-				    foreach my $object ( @{$declaration->{'variables'}} ) {
-					(my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
-					if ( grep {lc($_) eq lc($name)} split(/\s*,\s*/,$class->{'deepCopy'}->{'functionClass'}->{'variables'}) ) {
-					    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
-						$assignments          .= "nullify(destination%".$name.")\n";
-						$assignments          .= "if (associated(self%".$name.")) then\n";
-						$deepCopyResetCode    .= "if (associated(self%".$name.")) then\n";
-						$deepCopyFinalizeCode .= "if (associated(self%".$name.")) then\n";
-						$assignments          .= "if (associated(self%".$name."\%copiedSelf)) then\n";
-						$assignments          .= "  select type(s => self%".$name."\%copiedSelf)\n";
-						$assignments          .= "  ".$declaration->{'intrinsic'}." is (".$declaration->{'type'}.")\n";
-						$assignments          .= "   destination%".$name." => s\n";
-						$assignments          .= "  class default\n";
-						$assignments          .= "   call Error_Report('copiedSelf has incorrect type'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
-						$assignments          .= "  end select\n";
-						$assignments          .= "  call self%".$name."\%copiedSelf\%referenceCountIncrement()\n";
-						$assignments          .= "else\n";
-						$assignments          .= " allocate(destination%".$name.",mold=self%".$name.")\n";
-					    }
-					    $deepCopyResetCode    .= "call self%".$name."%deepCopyReset   ()\n";
-					    $deepCopyFinalizeCode .= "call self%".$name."%deepCopyFinalize()\n";
-					    $assignments          .= "call self%".$name."%deepCopy(destination%".$name.")\n";
-					    $assignments          .= "self%".$name."%copiedSelf => destination%".$name."\n";
-					    $assignments          .= "call destination%".$name."%autoHook()\n";
-					    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
-						$assignments       .= "end if\n";
-					    }
-					    $assignments       .= "if (debugReporting.and.mpiSelf\%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbosityLevelSilent)\n"
-						if ( $debugging );
-				   	    $assignments       .= "call destination%".$name."%autoHook()\n";
-					    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
-						$assignments          .= "end if\n";
-						$deepCopyResetCode    .= "end if\n";
-						$deepCopyFinalizeCode .= "end if\n";
-					    }
-					}
-				    }
-				}
-				# Reinitialize OpenMP locks.
-				if
-				    (
-				     $declaration->{'intrinsic'} eq "integer"
-				     &&
-				     exists ($declaration->{'type'})
-				     &&
-				     defined($declaration->{'type'})
-				     &&
-				     $declaration->{'type'     } =~ m/^\s*omp_lock_kind\s*$/i
-				    ) {
-					$assignments .= "!\$ call OMP_Init_Lock(destination\%".$_.")\n"
-					    foreach ( @{$declaration->{'variables'}} );
-				}
-				# Reinitialize OpenMP read/write locks.
-				if
-				    (
-				     $declaration->{'intrinsic'} eq "type"
-				     &&
-				     exists ($declaration->{'type'})
-				     &&
-				     defined($declaration->{'type'})
-				     &&
-				     $declaration->{'type'     } =~ m/^\s*ompReadWriteLock\s*$/i
-				    ) {
-					foreach ( @{$declaration->{'variables'}} ) {
-					    my @dimensions =
-						exists($declaration->{'attributes'})
-						?
-						map {/^dimension\s*\(([:,]+)\)/} @{$declaration->{'attributes'}}
-					        :
-						undef();
-					    if ( @dimensions ) {
-						my @rank = split(",",$dimensions[0]);
-						# Add loop index variables.
-						$rankMaximum = scalar(@rank)
-						    if ( scalar(@rank) > $rankMaximum );
-						for(my $i=1;$i<=scalar(@rank);++$i) {
-						    $assignments .= "!\$ do i".$i."=lbound(destination\%".$_.",dim=".$i."),ubound(destination\%".$_.",dim=".$i.")\n";
-						}
-						$assignments .= "!\$    call destination\%".$_."(".join(",",map {"i".$_} 1..scalar(@rank)).")%initialize()\n";
-						for(my $i=1;$i<=scalar(@rank);++$i) {
-						    $assignments .= "!\$ end do\n";
-						}
-					    } else {
-						# Scalar lock.
-						$assignments .= "!\$ call destination\%".$_."%initialize()\n";
-					    }
-					}
-				}
-			    }
-			}
+			&deepCopyDeclarations($class,$nonAbstractClass,$node,$node->{'declarations'},\@ignore,$lineNumber,$deepCopy)
+			    if ( $node->{'type'} eq "declaration" );
 			$node = $node->{'sibling'};
 		    }
 		}
 		# Check that the type of the destination matches, and perform the copy. Reset the reference count to the copy.
-		$deepCopyCode .= "type is (".$nonAbstractClass->{'name'}.")\n";
-		$deepCopyCode .= "select type (destination)\n";
-		$deepCopyCode .= "type is (".$nonAbstractClass->{'name'}.")\n";
-		$deepCopyCode .= "destination=self\n";
-		$deepCopyCode .= $assignments
-		    if ( defined($assignments) );
-		$deepCopyCode .= "class default\n";
-		$deepCopyCode .= "call Error_Report('destination and source types do not match'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
-		$deepCopyCode .= "end select\n";
+		$deepCopy->{'code'} .= "type is (".$nonAbstractClass->{'name'}.")\n";
+		$deepCopy->{'code'} .= "select type (destination)\n";
+		$deepCopy->{'code'} .= "type is (".$nonAbstractClass->{'name'}.")\n";
+		$deepCopy->{'code'} .= "destination=self\n";
+		$deepCopy->{'code'} .= $deepCopy->{'assignments'}
+		    if ( defined($deepCopy->{'assignments'}) );
+		$deepCopy->{'code'} .= "class default\n";
+		$deepCopy->{'code'} .= "call Error_Report('destination and source types do not match'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
+		$deepCopy->{'code'} .= "end select\n";
 		# Specify required modules.
-		$deepCopyModules{'Error'} = 1;
+		$deepCopy->{'modules'}->{'Error'} = 1;
 	    }
-            $deepCopyCode         .= "end select\n";
-	    $deepCopyResetCode    .= "end select\n";
-	    $deepCopyFinalizeCode .= "end select\n";
+            $deepCopy->{'code'        } .= "end select\n";
+	    $deepCopy->{'resetCode'   } .= "end select\n";
+	    $deepCopy->{'finalizeCode'} .= "end select\n";
             # Reset the reference count to this newly created object.
-            $deepCopyCode .= "call destination%referenceCountReset()\n";
+            $deepCopy->{'code'} .= "call destination%referenceCountReset()\n";
             # Reset the state operation ID if necessary.
-            $deepCopyCode .= "destination%stateOperationID=0_c_size_t\n";
+            $deepCopy->{'code'} .= "destination%stateOperationID=0_c_size_t\n";
             # Insert variables declarations.
-            $deepCopyCode         = &Fortran::Utils::Format_Variable_Definitions($linkedListVariables        ).$deepCopyCode        ;
-            $deepCopyResetCode    = &Fortran::Utils::Format_Variable_Definitions($linkedListResetVariables   ).$deepCopyResetCode   ;
-            $deepCopyFinalizeCode = &Fortran::Utils::Format_Variable_Definitions($linkedListFinalizeVariables).$deepCopyFinalizeCode;
+            $deepCopy->{'code'        } = &Fortran::Utils::Format_Variable_Definitions($linkedListVariables        ).$deepCopy->{'code'}        ;
+            $deepCopy->{'resetCode'   } = &Fortran::Utils::Format_Variable_Definitions($linkedListResetVariables   ).$deepCopy->{'resetCode'}   ;
+            $deepCopy->{'finalizeCode'} = &Fortran::Utils::Format_Variable_Definitions($linkedListFinalizeVariables).$deepCopy->{'finalizeCode'};
             # Insert any iterator variables needed.
-            $deepCopyCode = "integer :: ".join(",",map {"i".$_} 1..$rankMaximum)."\n".$deepCopyCode
-                if ( $rankMaximum > 0 );
+            $deepCopy->{'code'} = "integer :: ".join(",",map {"i".$_} 1..$deepCopy->{'rankMaximum'})."\n".$deepCopy->{'code'}
+                if ( $deepCopy->{'rankMaximum'} > 0 );
 	    $methods{'deepCopy'} =
 	    {
 		description => "Perform a deep copy of the object. This is a wrapper around the actual deep-copy code.",
@@ -1853,9 +1192,9 @@ CODE
 		type        => "void",
 		recursive   => "yes",
 		pass        => "yes",
-		modules     => join(" ",keys(%deepCopyModules)),
+		modules     => join(" ",keys(%{$deepCopy->{'modules'}})),
 		argument    => [ "class(".$directive->{'name'}."Class), intent(inout) :: destination" ],
-		code        => $deepCopyCode
+		code        => $deepCopy->{'code'}
 	    };
 	    $methods{'deepCopyReset'} =
 	    {
@@ -1863,7 +1202,7 @@ CODE
 		type        => "void",
 		recursive   => "yes",
 		pass        => "yes",
-		code        => $deepCopyResetCode
+		code        => $deepCopy->{'resetCode'}
 	    };
 	    $methods{'deepCopyFinalize'} =
 	    {
@@ -1871,28 +1210,31 @@ CODE
 		type        => "void",
 		recursive   => "yes",
 		pass        => "yes",
-		code        => $deepCopyFinalizeCode
+		code        => $deepCopy->{'finalizeCode'}
 	    };
-	    $methods{'deepCopyReset'   }->{'modules'} = join(" ",keys(%deepCopyResetModules   ))
-		if ( scalar(keys(%deepCopyResetModules   )) > 0 );
-	    $methods{'deepCopyFinalize'}->{'modules'} = join(" ",keys(%deepCopyFinalizeModules))
-		if ( scalar(keys(%deepCopyFinalizeModules)) > 0 );
+	    $methods{'deepCopyReset'   }->{'modules'} = join(" ",keys(%{$deepCopy->{'resetModules'   }}))
+		if ( scalar(keys(%{$deepCopy->{'resetModules'   }})) > 0 );
+	    $methods{'deepCopyFinalize'}->{'modules'} = join(" ",keys(%{$deepCopy->{'finalizeModules'}}))
+		if ( scalar(keys(%{$deepCopy->{'finalizeModules'}})) > 0 );
 	    # Add "stateStore" and "stateRestore" method.
+	    my $stateStores =
+	    {
+		stateFileUsed          => 0,
+		gslStateFileUsed       => 0,
+		rankMaximum            => 0,
+		allocatablesFound      => 0,
+		explicitFunctionsFound => 0,
+		dimensionalsFound      => 0,
+		labelUsed              => 0		
+	    };
 	    my $stateStoreCode;
 	    my $stateRestoreCode;
 	    my $stateLinkedListVariables;
             @{$stateLinkedListVariables} = ();
-	    my %stateStoreModules   = ( "Display" => 1, "ISO_Varying_String" => 1, "String_Handling" => 1, "ISO_C_Binding" => 1 );
-	    my %stateRestoreModules = ( "Display" => 1, "ISO_Varying_String" => 1, "String_Handling" => 1, "ISO_C_Binding" => 1 );
+	    %{$stateStores->{'stateStoreModules'  }} = ( "Display" => 1, "ISO_Varying_String" => 1, "String_Handling" => 1, "ISO_C_Binding" => 1 );
+	    %{$stateStores->{'stateRestoreModules'}} = ( "Display" => 1, "ISO_Varying_String" => 1, "String_Handling" => 1, "ISO_C_Binding" => 1 );
 	    my @outputUnusedVariables;
 	    my @inputUnusedVariables;
-	    my $allocatablesFound      = 0;
-	    my $explicitFunctionsFound = 0;
-	    my $dimensionalsFound      = 0;
-	    my $gslStateFileUsed       = 0;
-	    my $stateFileUsed          = 0;
-	    my $labelUsed              = 0;
-	    $rankMaximum               = 0;
 	    $stateStoreCode   .= "position=FTell(stateFile)\n";
 	    $stateRestoreCode .= "position=FTell(stateFile)\n";
 	    $stateStoreCode   .= "call displayIndent(var_str('storing state for \""  .$directive->{'name'}."\" [position: ')//position//']',verbosity=verbosityLevelWorking)\n";
@@ -1901,6 +1243,7 @@ CODE
 	    $stateRestoreCode .= "select type (self)\n";
 	    foreach my $nonAbstractClass ( @nonAbstractClasses ) {
 		# Build the code.
+		my $stateStore = $stateStores->{$nonAbstractClass->{'name'}};
 		$stateStoreCode   .= "type is (".$nonAbstractClass->{'name'}.")\n";
 		$stateRestoreCode .= "type is (".$nonAbstractClass->{'name'}.")\n";
 		if ( exists($nonAbstractClass->{'recursive'}) && $nonAbstractClass->{'recursive'} eq "yes" ) {
@@ -1931,18 +1274,16 @@ CODE
 		(my $label = $nonAbstractClass->{'name'}) =~ s/^$directive->{'name'}//;
 		$label = lcfirst($label)
 		    unless ( $label =~ m/^[A-Z]{2,}/ );
-		my $hasCustomStateStore   = 0;
-		my $hasCustomStateRestore = 0;
+		$stateStore->{'hasCustomStateStore'  } = 0;
+		$stateStore->{'hasCustomStateRestore'} = 0;
 		my $extensionOf;
 		# Generate code to output all variables from this class (and any parent class).
-		my $outputCode;
-		my $inputCode;
-		my @staticVariables;
+		@{$stateStore->{'staticVariables'}} = ();
 		my $class = $nonAbstractClass;
 		while ( $class ) {
 		    my $node = $class->{'tree'}->{'firstChild'};
 		    $node = $node->{'sibling'}
-		    while ( $node && ( $node->{'type'} ne "type" || ( ! exists($node->{'name'}) || $node->{'name'} ne $class->{'name'} ) ) );
+		        while ( $node && ( $node->{'type'} ne "type" || ( ! exists($node->{'name'}) || $node->{'name'} ne $class->{'name'} ) ) );
 		    last
 			unless ( $node );
 		    # Find the parent class.
@@ -1950,314 +1291,33 @@ CODE
 			$extensionOf = $1;
 		    }
 		    # Find any variables to be excluded from state store/restore.
-		    my @excludes = exists($class->{'stateStorable'}->{'exclude'}->{'variables'}) ? split(/\s*,\s*/,$class->{'stateStorable'}->{'exclude'}->{'variables'}) : ();
+		    @{$stateStore->{'excludes'}} = exists($class->{'stateStorable'}->{'exclude'}->{'variables'}) ? split(/\s*,\s*/,$class->{'stateStorable'}->{'exclude'}->{'variables'}) : ();
 		    # Search the node for declarations.
 		    $node = $node->{'firstChild'};
 		    while ( $node ) {
-			if ( $node->{'type'} eq "declaration" ) {
-			    foreach my $declaration ( @{$node->{'declarations'}} ) {
-				# Identify variable type.
-				if ( $declaration->{'intrinsic'} eq "procedure" || $declaration->{'intrinsic'} eq "final" ) {
-				    # Type-bound procedure - nothing to do.
-				} elsif ( $declaration->{'intrinsic'} eq "class" || $declaration->{'intrinsic'} eq "type" ) {
-				    # Look for pointers to functionClasses.
-				    (my $type = $declaration->{'type'}) =~ s/\s//g;
-				    if (
-					$declaration->{'intrinsic'} eq "class"
-					&&
-					(grep {$_ eq "pointer"}      @{$declaration   ->{'attributes'     }} )
-					&&
-					(grep {$_ eq $type    } keys(%{$stateStorables->{'functionClasses'}}))
-					) {
-					# Pointer to a functionClass object.
-					foreach ( @{$declaration->{'variables'}} ) {
-					    $labelUsed = 1;
-					    (my $variableName = $_) =~ s/\s*=.*$//;
-					    next
-						if ( grep {lc($_) eq lc($variableName)} @excludes );
-					    $outputCode .= " if (displayVerbosity() >= verbosityLevelWorking) then\n";
-					    $outputCode .= "  select type (c__ => self%".$variableName.")\n";
-					    $outputCode .= "  class is (".$declaration->{'type'}.")\n";
-					    # <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
-					    #  <description>
-					    #   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
-					    #  </description>
-					    # </workaround>
-					    $outputCode .= "   write (label,'(i16)') 0\n";
-					    #$outputCode .= "   write (label,'(i16)') sizeof(c__)\n";
-					    $outputCode .= "  end select\n";
-					    $outputCode .= "  call displayMessage('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
-					    $outputCode .= " end if\n";
-					    $inputCode  .= " call displayMessage('restoring \"".$variableName."\"',verbosity=verbosityLevelWorking)\n";
-					    $outputCode .= " call self%".$variableName."%stateStore  (stateFile,gslStateFile,stateOperationID)\n";
-					    $inputCode  .= " call self%".$variableName."%stateRestore(stateFile,gslStateFile,stateOperationID)\n";
-					    $stateFileUsed    = 1;
-					    $gslStateFileUsed = 1;
-					}
-				    } elsif (
-					$declaration->{'intrinsic'} eq "type"
-					&&
-					$declaration->{'type'     } =~ m/^enumeration[a-z0-9_]+type/i
-					) {
-					# Enumeration.
-					if ( grep {$_ eq "allocatable"} @{$declaration->{'attributes'}} ) {
-					    # For allocatable variables we must first store the shape so that they can be reallocated on restore.
-					    my $dimensionDeclarator = join(",",map {/^dimension\s*\(([:,]+)\)/} @{$declaration->{'attributes'}});
-					    my $rank = ($dimensionDeclarator =~ tr/://);
-					    foreach my $variableName ( @{$declaration->{'variables'}} ) {
-						next
-						    if ( grep {lc($_) eq lc($variableName)} @excludes );
-						$allocatablesFound  = 1;
-						$dimensionalsFound  = 1;
-						$stateFileUsed      = 1;
-						$labelUsed          = 1;
-						$outputCode        .= " if (allocated(self%".$variableName.")) then\n";
-						$outputCode        .= "  if (displayVerbosity() >= verbosityLevelWorking) then\n";
-						# <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
-						#  <description>
-						#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
-						#  </description>
-						# </workaround>
-						$outputCode .= "   write (label,'(i16)') 0\n";
-						#$outputCode        .= "   write (label,'(i16)') sizeof(self%".$variableName.")\n";
-						$outputCode        .= "   call displayMessage('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
-						$outputCode        .= "  end if\n";
-						$outputCode        .= "  write (stateFile) .true.\n"
-						                    . "  write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n"
-					                            . "  write (stateFile) self%".$variableName."%ID\n";
-						$outputCode        .= " else\n";
-						$outputCode        .= "  write (stateFile) .false.\n";
-						$outputCode        .= " end if\n";
-						$inputCode         .= " read (stateFile) wasAllocated\n";
-						$inputCode         .= " if (allocated(self%".$variableName.")) deallocate(self%".$variableName.")\n";
-						$inputCode         .= " if (wasAllocated) then\n";
-						$inputCode         .= "  call displayMessage('restoring \"".$variableName."\"',verbosity=verbosityLevelWorking)\n";
-						$inputCode         .= "  allocate(storedShape(".$rank."))\n";
-						$inputCode         .= "  read (stateFile) storedShape\n";
-						$inputCode         .= "  allocate(self%".$variableName."(".join(",",map {"storedShape(".$_.")"} 1..$rank)."))\n";
-						$inputCode         .= "  deallocate(storedShape)\n";
-						$inputCode         .= "  read (stateFile) self%".$variableName."%ID\n";
-						$inputCode         .= " end if\n";
-					    }
-					} else {
-					    $outputCode .= " if (displayVerbosity() >= verbosityLevelWorking) then\n";
-					    foreach ( @{$declaration->{'variableNames'}} ) {
-						# <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
-						#  <description>
-						#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
-						#  </description>
-						# </workaround>
-						$outputCode .= "   write (label,'(i16)') 0\n";
-						#$outputCode .= "   write (label,'(i16)') sizeof(".$_.")\n";
-						$outputCode .= "  call displayMessage('storing \"".$_."\" with size '//trim(adjustl(label))//' bytes')\n";
-					    }
-					    $outputCode .= " end if\n";
-					    $outputCode .= "  write (stateFile) ".join(",",map {"self%".$_."%ID"} @{$declaration->{'variableNames'}})."\n";
-					    $inputCode  .= "  read  (stateFile) ".join(",",map {"self%".$_."%ID"} @{$declaration->{'variableNames'}})."\n";
-					}
-				    } elsif (
-					(  grep {$_->{'type'} eq $type    } &List::ExtraUtils::as_array($stateStorables->{'stateStorables'        }))
-					||
-					(  grep {$_           eq $type    } &List::ExtraUtils::as_array($stateStorables->{'functionClassInstances'}))
-					){
-					# This is a non-pointer object which is explicitly stateStorable.
-					# Get presence of pointer attribute.
-					my $isPointer = grep {$_ eq "pointer"} @{$declaration->{'attributes'}};
-					# Get list of named pointer variables that are allowed.
-					my @explicits = exists($class->{'stateStorable'}->{'functionClass'}->{'variables'}) ? split(/\s*,\s*/,$class->{'stateStorable'}->{'functionClass'}->{'variables'}) : ();
-					my $isFunctionClass = grep {$_ eq $type} @{$stateStorables->{'functionClassInstances'}};
-					# Construct code to output.
-					foreach ( @{$declaration->{'variables'}} ) {
-					    (my $variableName = $_) =~ s/\s*=.*$//;
-					    next
-						if ( grep {lc($_) eq lc($variableName)} @excludes );
-					    next
-						unless ( (! $isPointer) || grep {lc($_) eq lc($variableName)} @explicits );
-					    my $rank = 0;
- 					    if ( grep {$_ =~ m/^dimension\s*\(/} @{$declaration->{'attributes'}} ) {
-						my $dimensionDeclarator = join(",",map {/^dimension\s*\(([a-zA-Z0-9_,:\s]+)\)/} @{$declaration->{'attributes'}});
-						$rank        = ($dimensionDeclarator =~ tr/,//)+1;
-						$rankMaximum = $rank
-						    if ( $rank > $rankMaximum );
-					    }
-					    if ( grep {$_ eq "allocatable"} @{$declaration->{'attributes'}} ) {
-						# For allocatable variables we must first store the shape so that they can be reallocated on restore.
-						$allocatablesFound  = 1;
-						$dimensionalsFound  = 1
-						    if ( $rank > 0 );
-						$outputCode .= " if (allocated(self%".$variableName.")) then\n";
-						$outputCode .= "  write (stateFile) .true.\n";
-						$outputCode .= "  write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n"
-						    if ( $rank > 0 );
-						$inputCode  .= " read (stateFile) wasAllocated\n";
-						$inputCode  .= " if (allocated(self%".$variableName.")) deallocate(self%".$variableName.")\n";
-						$inputCode  .= " if (wasAllocated) then\n";
-						if ( $rank > 0 ) {
-						    $inputCode  .= "  allocate(storedShape(".$rank."))\n";
-						    $inputCode  .= "  read (stateFile) storedShape\n";
-						}
-						if ( $declaration->{'intrinsic'} eq "class" ) {
-						    (my $storable) = grep {$_->{'type'} eq $type} @{$stateStorables->{'stateStorables'}};
-						    my $functionName = $type."ClassRestore".($rank > 0 ? $rank."D" : "");
-						    $stateRestoreModules{$storable->{'module'}.",only:".$functionName} = 1;
-						    $inputCode  .= "  call ".$functionName."(self%".$variableName.",stateFile".($rank > 0 ? ",storedShape" : "").")\n";
-						} else {
-						    $inputCode  .= "  allocate(self%".$variableName.($rank > 0 ? "(".join(",",map {"storedShape(".$_.")"} 1..$rank).")" : "").")\n";
-						}
-						if ( $rank > 0 ) {
-						    $inputCode  .= "  deallocate(storedShape)\n";
-						}
-					    }
-					    for(my $i=1;$i<=$rank;++$i) {
-						$outputCode .= (" " x $i)."do i".$i."=lbound(self%".$variableName.",dim=".$i."),ubound(self%".$variableName.",dim=".$i.")\n";
-						$inputCode  .= (" " x $i)."do i".$i."=lbound(self%".$variableName.",dim=".$i."),ubound(self%".$variableName.",dim=".$i.")\n";
-					    }
-					    my $arrayElement = $rank > 0 ? "(".join(",",map {"i".$_} 1..$rank).")" : "";
-					    $labelUsed   = 1;
-					    $outputCode .= " if (displayVerbosity() >= verbosityLevelWorking) then\n";
-					    if ( $declaration->{'intrinsic'} eq "class" ) {
-						$outputCode .= "  select type (c__ => self%".$variableName.$arrayElement.")\n";
-						$outputCode .= "  class is (".$declaration->{'type'}.")\n";
-						# <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
-						#  <description>
-						#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
-						#  </description>
-						# </workaround>
-						$outputCode .= "   write (label,'(i16)') 0\n";
-						#$outputCode .= "   write (label,'(i16)') sizeof(c__)\n";
-						$outputCode .= "  end select\n";
-					    } else {
-						# <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
-						#  <description>
-						#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
-						#  </description>
-						# </workaround>
-						$outputCode .= "   write (label,'(i16)') 0\n";
-						#$outputCode .= "   write (label,'(i16)') sizeof(self%".$variableName.")\n";
-					    }
-					    $outputCode .= "  call displayMessage('storing \"".$variableName.$arrayElement."\" with size '//trim(adjustl(label))//' bytes')\n";
-					    $outputCode .= " end if\n";
-					    $inputCode  .= " call displayMessage('restoring \"".$variableName.$arrayElement."\"',verbosity=verbosityLevelWorking)\n";
-					    $inputCode  .= (" " x $rank)." call self%".$variableName.$arrayElement."%stateRestore(stateFile,gslStateFile".($isFunctionClass ? ",stateOperationID" : "").")\n";
-					    $outputCode .= (" " x $rank)." call self%".$variableName.$arrayElement."%stateStore  (stateFile,gslStateFile".($isFunctionClass ? ",stateOperationID" : ",storeIdentifier=".($declaration->{'intrinsic'} eq "class" ? ".true." : ".false.")).")\n";
-					    for(my $i=1;$i<=$rank;++$i) {
-						$outputCode .= (" " x ($rank+1-$i))."end do\n";
-						$inputCode  .= (" " x ($rank+1-$i))."end do\n";
-					    }
-					    if ( grep {$_ eq "allocatable"} @{$declaration->{'attributes'}} ) {
-						$inputCode  .= " end if\n";
-						$outputCode .= " else\n";
-						$outputCode .= "  write (stateFile) .false.\n";
-						$outputCode .= " end if\n";
-					    }
-					    $stateFileUsed    = 1;
-					    $gslStateFileUsed = 1;
-					}
-				    }				    
-				} else {
-				    # Intrinsic type.
-				    if ( grep {$_ eq "pointer"} @{$declaration->{'attributes'}} ) {
-					# Pointers are currently not handled.
-				    } elsif ( exists($declaration->{'type'}) && defined($declaration->{'type'}) && $declaration->{'type'} =~ m/^\s*omp_lock_kind\s*/ ) {
-					# Do not store OpenMP lock variables.
-				    } elsif ( grep {$_ eq "allocatable"} @{$declaration->{'attributes'}} ) {
-					# For allocatable variables we must first store the shape so that they can be reallocated on restore.
-					my $dimensionDeclarator = join(",",map {/^dimension\s*\(([:,]+)\)/} @{$declaration->{'attributes'}});
-					my $rank = ($dimensionDeclarator =~ tr/://);
-					foreach my $variableName ( @{$declaration->{'variables'}} ) {
-					    next
-						if ( grep {lc($_) eq lc($variableName)} @excludes );
-					    $allocatablesFound  = 1;
-					    $dimensionalsFound  = 1;
-					    $stateFileUsed      = 1;
-					    $labelUsed          = 1;
-					    $outputCode        .= " if (allocated(self%".$variableName.")) then\n";
-					    $outputCode        .= "  if (displayVerbosity() >= verbosityLevelWorking) then\n";
-					    # <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
-					    #  <description>
-					    #   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
-					    #  </description>
-					    # </workaround>
-					    $outputCode .= "   write (label,'(i16)') 0\n";
-					    #$outputCode        .= "   write (label,'(i16)') sizeof(self%".$variableName.")\n";
-					    $outputCode        .= "   call displayMessage('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
-					    $outputCode        .= "  end if\n";
-					    $outputCode        .= "  write (stateFile) .true.\n"
-							       . "  write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n"
-					                       . "  write (stateFile) self%".$variableName."\n";
-					    $outputCode        .= " else\n";
-					    $outputCode        .= "  write (stateFile) .false.\n";
-					    $outputCode        .= " end if\n";
-					    $inputCode         .= " read (stateFile) wasAllocated\n";
-					    $inputCode         .= " if (allocated(self%".$variableName.")) deallocate(self%".$variableName.")\n";
-					    $inputCode         .= " if (wasAllocated) then\n";
-					    $inputCode         .= "  call displayMessage('restoring \"".$variableName."\"',verbosity=verbosityLevelWorking)\n";
-					    $inputCode         .= "  allocate(storedShape(".$rank."))\n";
-					    $inputCode         .= "  read (stateFile) storedShape\n";
-					    $inputCode         .= "  allocate(self%".$variableName."(".join(",",map {"storedShape(".$_.")"} 1..$rank)."))\n";
-					    $inputCode         .= "  deallocate(storedShape)\n";
-					    $inputCode         .= "  read (stateFile) self%".$variableName."\n";
-					    $inputCode         .= " end if\n";
-					}
-				    } else {
-					# Statically-sized variable.
-					foreach ( @{$declaration->{'variables'}} ) {
-					    (my $variableName = $_) =~ s/\s*=.*$//;
-					    next
-						if ( grep {lc($_) eq lc($variableName)} @excludes );
-					    my $store = 1;
-					    if ( exists($class->{'stateStorable'}) && exists($class->{'stateStorable'}->{'restoreTo'}) ) {
-						foreach ( &List::ExtraUtils::as_array($class->{'stateStorable'}->{'restoreTo'}) ) {
-						    my @variables = split(/\s*,\s*/,$_->{'variables'});
-						    if ( grep {lc($_) eq lc($variableName)} @variables ) {
-							$store = 0;
-							$inputCode .= " self%".$variableName."=".$_->{'state'}."\n";
-						    }
-						}
-					    }
-					    push(@staticVariables,$variableName)
-						if ( $store );
-					}
-				    }
-				}
-				# Check for a custom state store/restore.
-				$hasCustomStateStore   = 1
-				    if
-				    (
-				     $declaration->{'intrinsic'} eq "procedure"
-				     &&
-				     $declaration->{'variables'}->[0] =~ m/^stateStore=>/
-				    );
-				$hasCustomStateRestore = 1
-				    if
-				    (
-				     $declaration->{'intrinsic'} eq "procedure"
-				     &&
-				     $declaration->{'variables'}->[0] =~ m/^stateRestore=>/
-				    );
-			    }
-			}
+			&stateStoreVariables($stateStores,$stateStore,$class,$node->{'declarations'})
+			    if ( $node->{'type'} eq "declaration" );
 			$node = $node->{'type'} eq "contains" ? $node->{'firstChild'} : $node->{'sibling'};
 		    }
 		    # Handle linked lists.
 		    (my $linkedListInputCode, my $linkedListOutputCode) = &stateStoreLinkedList($nonAbstractClass,$stateLinkedListVariables);
-		    $inputCode  .= $linkedListInputCode;
-		    $outputCode .= $linkedListOutputCode;
+		    $stateStore->{'inputCode'}  .= $linkedListInputCode;
+		    $stateStore->{'outputCode'} .= $linkedListOutputCode;
 		    # Handle explicit state store functions.
-		    $explicitFunctionsFound = 1
+		    $stateStores->{'explicitFunctionsFound'} = 1
 			if ( exists($nonAbstractClass->{'stateStore'}->{'stateStore'}->{'restore'}) );
 		    (my $stateStoreExplicitInputCode, my $stateStoreExplicitOutputCode, my %stateStoreExplicitModules) = &stateStoreExplicitFunction($nonAbstractClass);
-		    $inputCode  .= $stateStoreExplicitInputCode;
-		    $outputCode .= $stateStoreExplicitOutputCode;
+		    $stateStore->{'inputCode'}  .= $stateStoreExplicitInputCode;
+		    $stateStore->{'outputCode'} .= $stateStoreExplicitOutputCode;
 		    foreach my $module ( keys(%stateStoreExplicitModules) ) {
-			$stateStoreModules  {$module} = 1;
-			$stateRestoreModules{$module} = 1;
+			$stateStores->{'stateStoreModules'  }->{$module} = 1;
+			$stateStores->{'stateRestoreModules'}->{$module} = 1;
 		    }
 		    # Move to the parent class.
 		    $class = ($class->{'extends'} eq $directive->{'name'}) ? undef() : $classes{$class->{'extends'}};
 		}
 		# Find any variables to be excluded from state store/restore.
-		my @excludes = exists($directive->{'stateStorable'}->{'exclude'}->{'variables'}) ? split(/\s*,\s*/,$directive->{'stateStorable'}->{'exclude'}->{'variables'}) : ();
+		@{$stateStore->{'excludes'}} = exists($directive->{'stateStorable'}->{'exclude'}->{'variables'}) ? split(/\s*,\s*/,$directive->{'stateStorable'}->{'exclude'}->{'variables'}) : ();
 		# Add any variables declared in the base class.
 		foreach my $data ( &List::ExtraUtils::as_array($directive->{'data'}) ) {
 		    my $declarationSource;
@@ -2272,560 +1332,27 @@ CODE
 		    my $declaration = &Fortran::Utils::Unformat_Variables($declarationSource);
 		    die("Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass(): unable to parse variable declaration")
 			unless ( defined($declaration) );
-		    # Identify variable type.
-		    if ( $declaration->{'intrinsic'} eq "procedure" || $declaration->{'intrinsic'} eq "final" ) {
-			# Type-bound procedure - nothing to do.
-		    } elsif ( $declaration->{'intrinsic'} eq "class" || $declaration->{'intrinsic'} eq "type" ) {
-			# Look for pointers to functionClasses.
-			(my $type = $declaration->{'type'}) =~ s/\s//g;
-			if (
-			    $declaration->{'intrinsic'} eq "class"
-			    &&
-			    (grep {$_ eq "pointer"}      @{$declaration   ->{'attributes'     }} )
-			    &&
-			    (grep {$_ eq $type    } keys(%{$stateStorables->{'functionClasses'}}))
-			    ) {
-			    # Pointer to a functionClass object.
-			    foreach ( @{$declaration->{'variables'}} ) {
-				(my $variableName = $_) =~ s/\s*=.*$//;
-				$labelUsed  = 1;
-				$outputCode .= " if (displayVerbosity() >= verbosityLevelWorking) then\n";
-				$outputCode .= "  select type (c__ => self%".$variableName.")\n";
-				$outputCode .= "  class is (".$declaration->{'type'}.")\n";
-				# <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
-				#  <description>
-				#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
-				#  </description>
-				# </workaround>
-				$outputCode .= "   write (label,'(i16)') 0\n";
-				#$outputCode .= "   write (label,'(i16)') sizeof(c__)\n";
-				$outputCode .= "  end select\n";
-				$outputCode .= "  call displayMessage('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
-				$outputCode .= " end if\n";
-				$inputCode  .= " call displayMessage('restoring \"".$variableName."\"',verbosity=verbosityLevelWorking)\n";
-				$outputCode .= " call self%".$variableName."%stateStore  (stateFile,gslStateFile,stateOperationID)\n";
-				$inputCode  .= " call self%".$variableName."%stateRestore(stateFile,gslStateFile,stateOperationID)\n";
-				$stateFileUsed    = 1;
-				$gslStateFileUsed = 1;
-			    }
-			} elsif (
-			    $declaration->{'intrinsic'} eq "type"
-			    &&
-			    $declaration->{'type'     } =~ m/^enumeration[a-z0-9_]+type/i
-			    ) {
-			    # Enumeration.
-			    if ( grep {$_ eq "allocatable"} @{$declaration->{'attributes'}} ) {
-				# For allocatable variables we must first store the shape so that they can be reallocated on restore.
-				my $dimensionDeclarator = join(",",map {/^dimension\s*\(([:,]+)\)/} @{$declaration->{'attributes'}});
-				my $rank = ($dimensionDeclarator =~ tr/://);
-				foreach my $variableName ( @{$declaration->{'variables'}} ) {
-				    next
-					if ( grep {lc($_) eq lc($variableName)} @excludes );
-				    $allocatablesFound  = 1;
-				    $dimensionalsFound  = 1;
-				    $stateFileUsed      = 1;
-				    $labelUsed          = 1;
-				    $outputCode        .= " if (allocated(self%".$variableName.")) then\n";
-				    $outputCode        .= "  if (displayVerbosity() >= verbosityLevelWorking) then\n";
-				    # <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
-				    #  <description>
-				    #   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
-				    #  </description>
-				    # </workaround>
-				    $outputCode .= "   write (label,'(i16)') 0\n";
-				    #$outputCode        .= "   write (label,'(i16)') sizeof(self%".$variableName.")\n";
-				    $outputCode        .= "   call displayMessage('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
-				    $outputCode        .= "  end if\n";
-				    $outputCode        .= "  write (stateFile) .true.\n"
-					. "  write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n"
-					. "  write (stateFile) self%".$variableName."%ID\n";
-				    $outputCode        .= " else\n";
-				    $outputCode        .= "  write (stateFile) .false.\n";
-				    $outputCode        .= " end if\n";
-				    $inputCode         .= " read (stateFile) wasAllocated\n";
-				    $inputCode         .= " if (allocated(self%".$variableName.")) deallocate(self%".$variableName.")\n";
-				    $inputCode         .= " if (wasAllocated) then\n";
-				    $inputCode         .= "  call displayMessage('restoring \"".$variableName."\"',verbosity=verbosityLevelWorking)\n";
-				    $inputCode         .= "  allocate(storedShape(".$rank."))\n";
-				    $inputCode         .= "  read (stateFile) storedShape\n";
-				    $inputCode         .= "  allocate(self%".$variableName."(".join(",",map {"storedShape(".$_.")"} 1..$rank)."))\n";
-				    $inputCode         .= "  deallocate(storedShape)\n";
-				    $inputCode         .= "  read (stateFile) self%".$variableName."%ID\n";
-				    $inputCode         .= " end if\n";
-				}
-			    } else {
-				$outputCode .= " if (displayVerbosity() >= verbosityLevelWorking) then\n";
-				foreach ( @{$declaration->{'variableNames'}} ) {
-				    # <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
-				    #  <description>
-				    #   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
-				    #  </description>
-				    # </workaround>
-				    $outputCode .= "   write (label,'(i16)') 0\n";
-				    #$outputCode .= "   write (label,'(i16)') sizeof(".$_.")\n";
-				    $outputCode .= "  call displayMessage('storing \"".$_."\" with size '//trim(adjustl(label))//' bytes')\n";
-				}
-				$outputCode .= " end if\n";
-				$outputCode .= "  write (stateFile) ".join(",",map {"self%".$_."%ID"} @{$declaration->{'variableNames'}})."\n";
-				$inputCode  .= "  read  (stateFile) ".join(",",map {"self%".$_."%ID"} @{$declaration->{'variableNames'}})."\n";
-			    }
-			} elsif (
-			    (  grep {$_->{'type'} eq $type    } &List::ExtraUtils::as_array($stateStorables->{'stateStorables'        }))
-			    ||
-			    (  grep {$_           eq $type    } &List::ExtraUtils::as_array($stateStorables->{'functionClassInstances'}))
-			    ){
-			    # Get presence of pointer attribute.
-			    my $isPointer = grep {$_ eq "pointer"} @{$declaration->{'attributes'}};
-			    # Get list of named pointer variables that are allowed.
-			    my @explicits = exists($directive->{'stateStorable'}->{'functionClass'}->{'variables'}) ? split(/\s*,\s*/,$directive->{'stateStorable'}->{'functionClass'}->{'variables'}) : ();
-			    # This is a non-pointer object which is explicitly stateStorable or implicitly storeable by virtue of being a functionClass.
-			    # Construct code to output.
-			    foreach ( @{$declaration->{'variables'}} ) {
-				(my $variableName = $_) =~ s/\s*=.*$//;
-				next
-				    if ( grep {lc($_) eq lc($variableName)} @excludes );
-				next
-				    unless ( (! $isPointer) || grep {lc($_) eq lc($variableName)} @explicits );
-				my $rank = 0;
-				if ( grep {$_ =~ m/^dimension\s*\(/} @{$declaration->{'attributes'}} ) {
-				    my $dimensionDeclarator = join(",",map {/^dimension\s*\(([:,]+)\)/} @{$declaration->{'attributes'}});
-				    $rank        = ($dimensionDeclarator =~ tr/,//)+1;
-				    $rankMaximum = $rank
-					if ( $rank > $rankMaximum );
-				}
-				if ( grep {$_ eq "allocatable"} @{$declaration->{'attributes'}} ) {
-				    # For allocatable variables we must first store the shape so that they can be reallocated on restore.
-				    $allocatablesFound  = 1;
-				    $dimensionalsFound  = 1
-					if ( $rank > 0 );
-				    $outputCode .= " if (allocated(self%".$variableName.")) then\n";
-				    $outputCode .= "  write (stateFile) .true.\n";
-				    $outputCode .= "  write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n"
-					if ( $rank > 0 );
-				    $inputCode  .= " read (stateFile) wasAllocated\n";
-				    $inputCode  .= " if (allocated(self%".$variableName.")) deallocate(self%".$variableName.")\n";
-				    $inputCode  .= " if (wasAllocated) then\n";
-				    if ( $rank > 0 ) {
-					$inputCode  .= "  allocate(storedShape(".$rank."))\n";
-					$inputCode  .= "  read (stateFile) storedShape\n";
-				    }
-				    if ( $declaration->{'intrinsic'} eq "class" ) {
-					(my $storable) = grep {$_->{'type'} eq $type} &List::ExtraUtils::as_array($stateStorables->{'stateStorables'});
-					my $functionName = $type."ClassRestore".($rank > 0 ? $rank."D" : "");
-					$stateRestoreModules{$storable->{'module'}.",only:".$functionName} = 1;
-					$inputCode  .= "  call ".$functionName."(self%".$variableName.",stateFile".($rank > 0 ? ",storedShape" : "").")\n";
-				    } else {
-					$inputCode  .= "  allocate(self%".$variableName.($rank > 0 ? "(".join(",",map {"storedShape(".$_.")"} 1..$rank).")" : "").")\n";
-				    }
-				    if ( $rank > 0 ) {
-					$inputCode  .= "  deallocate(storedShape)\n";
-				    }
-				}
-				for(my $i=1;$i<=$rank;++$i) {
-				    $outputCode .= (" " x $i)."do i".$i."=lbound(self%".$variableName.",dim=".$i."),ubound(self%".$variableName.",dim=".$i.")\n";
-				    $inputCode  .= (" " x $i)."do i".$i."=lbound(self%".$variableName.",dim=".$i."),ubound(self%".$variableName.",dim=".$i.")\n";
-				}
-				my $arrayElement = $rank > 0 ? "(".join(",",map {"i".$_} 1..$rank).")" : "";
-				$labelUsed   = 1;
-				$outputCode .= " if (displayVerbosity() >= verbosityLevelWorking) then\n";
-				if ( $declaration->{'intrinsic'} eq "class" ) {
-				    $outputCode .= "  select type (c__ => self%".$variableName.$arrayElement.")\n";
-				    $outputCode .= "  class is (".$declaration->{'type'}.")\n";
-				    # <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
-				    #  <description>
-				    #   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
-				    #  </description>
-				    # </workaround>
-				    $outputCode .= "   write (label,'(i16)') 0\n";
-				    #$outputCode .= "   write (label,'(i16)') sizeof(c__)\n";
-				    $outputCode .= "  end select\n";
-				} else {
-				    # <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
-				    #  <description>
-				    #   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
-				    #  </description>
-				    # </workaround>
-				    $outputCode .= "   write (label,'(i16)') 0\n";
-				    #$outputCode .= "   write (label,'(i16)') sizeof(self%".$variableName.$arrayElement.")\n";
-				}
-				$outputCode .= "  call displayMessage('storing \"".$variableName.$arrayElement."\" with size '//trim(adjustl(label))//' bytes')\n";
-				$outputCode .= " end if\n";
-				$inputCode  .= " call displayMessage('restoring \"".$variableName.$arrayElement."\"',verbosity=verbosityLevelWorking)\n";
-				$inputCode  .= (" " x $rank)." call self%".$variableName.$arrayElement."%stateRestore(stateFile,gslStateFile)\n";
-				$outputCode .= (" " x $rank)." call self%".$variableName.$arrayElement."%stateStore  (stateFile,gslStateFile,storeIdentifier=".($declaration->{'intrinsic'} eq "class" ? ".true." : ".false.").")\n";
-				for(my $i=1;$i<=$rank;++$i) {
-				    $outputCode .= (" " x ($rank+1-$i))."end do\n";
-				    $inputCode  .= (" " x ($rank+1-$i))."end do\n";
-				}
-				if ( grep {$_ eq "allocatable"} @{$declaration->{'attributes'}} ) {
-				    $inputCode  .= " end if\n";
-				    $outputCode .= " else\n";
-				    $outputCode .= "  write (stateFile) .false.\n";
-				    $outputCode .= " end if\n";
-				}
-				$stateFileUsed    = 1;
-				$gslStateFileUsed = 1;
-			    }
-			}
-		    } else {
-			# Intrinsic type.
-			if ( grep {$_ eq "pointer"} @{$declaration->{'attributes'}} ) {
-			    # Pointers are currently not handled.
-			} elsif ( exists($declaration->{'type'}) && $declaration->{'type'} =~ m/^\s*omp_lock_kind\s*/ ) {
-			    # Do not store OpenMP lock variables.
-			} elsif ( grep {$_ eq "allocatable"} @{$declaration->{'attributes'}} ) {
-			    # For allocatable variables we must first store the shape so that they can be reallocated on restore.
-			    my $dimensionDeclarator = join(",",map {/^dimension\s*\(([:,]+)\)/} @{$declaration->{'attributes'}});
-			    my $rank = ($dimensionDeclarator =~ tr/://);
-			    foreach my $variableName ( @{$declaration->{'variables'}} ) {
-				next
-				    if ( grep {lc($_) eq lc($variableName)} @excludes );
-				$allocatablesFound  = 1;
-				$dimensionalsFound  = 1;
-				$stateFileUsed      = 1;
-				$labelUsed          = 1;
-				$outputCode        .= " if (allocated(self%".$variableName.")) then\n";
-				$outputCode        .= "  if (displayVerbosity() >= verbosityLevelWorking) then\n";
-				# <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
-				#  <description>
-				#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
-				#  </description>
-				# </workaround>
-				$outputCode        .= "   write (label,'(i16)') 0\n";
-				#$outputCode        .= "   write (label,'(i16)') sizeof(self%".$variableName.")\n";
-				$outputCode        .= "   call displayMessage('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
-				$outputCode        .= "  end if\n";
-				$outputCode        .= "  write (stateFile) .true.\n"
-						   .  "  write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n"
-			                           .  "  write (stateFile) self%".$variableName."\n";
-				$outputCode        .= " else\n";
-				$outputCode        .= "  write (stateFile) .false.\n";
-				$outputCode        .= " end if\n";
-				$inputCode         .= " read (stateFile) wasAllocated\n";
-				$inputCode         .= " if (allocated(self%".$variableName.")) deallocate(self%".$variableName.")\n";
-				$inputCode         .= " if (wasAllocated) then\n";
-				$inputCode         .= "  call displayMessage('restoring \"".$variableName."\"',verbosity=verbosityLevelWorking)\n";
-				$inputCode         .= "  allocate(storedShape(".$rank."))\n";
-				$inputCode         .= "  read (stateFile) storedShape\n";
-				$inputCode         .= "  allocate(self%".$variableName."(".join(",",map {"storedShape(".$_.")"} 1..$rank)."))\n";
-				$inputCode         .= "  deallocate(storedShape)\n";
-				$inputCode         .= "  read (stateFile) self%".$variableName."\n";
-				$inputCode         .= " end if\n";
-			    }
-			} else {
-			    # Statically-sized variable.
-			    foreach ( @{$declaration->{'variables'}} ) {
-				(my $variableName = $_) =~ s/\s*=.*$//;
-				next
-				    if ( grep {lc($_) eq lc($variableName)} @excludes );
-				push(@staticVariables,$variableName);
-			    }
-			}
-		    }
+		    &stateStoreVariables($stateStores,$stateStore,undef(),$declaration);
 		}
 		# Add any variables declared in the functionClassType class.
 		if ( defined($functionClassType) ) {
 		    my $node = $functionClassType->{'node'}->{'firstChild'};
 		    while ( $node ) {
-			if ( $node->{'type'} eq "declaration" ) {
-			    foreach my $declaration ( @{$node->{'declarations'}} ) {
-				# Identify variable type.
-				if ( $declaration->{'intrinsic'} eq "procedure" || $declaration->{'intrinsic'} eq "final" ) {
-				    # Type-bound procedure - nothing to do.
-				} elsif ( $declaration->{'intrinsic'} eq "class" || $declaration->{'intrinsic'} eq "type" ) {
-				    # Look for pointers to functionClasses.
-				    (my $type = $declaration->{'type'}) =~ s/\s//g;
-				    if (
-					$declaration->{'intrinsic'} eq "class"
-					&&
-					(grep {$_ eq "pointer"}      @{$declaration   ->{'attributes'     }} )
-					&&
-					(grep {$_ eq $type    } keys(%{$stateStorables->{'functionClasses'}}))
-					) {
-					# Pointer to a functionClass object.
-					foreach ( @{$declaration->{'variables'}} ) {
-					    $labelUsed = 1;
-					    (my $variableName = $_) =~ s/\s*=.*$//;
-					    $outputCode .= " if (displayVerbosity() >= verbosityLevelWorking) then\n";
-					    $outputCode .= "  select type (c__ => self%".$variableName.")\n";
-					    $outputCode .= "  class is (".$declaration->{'type'}.")\n";
-					    # <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
-					    #  <description>
-					    #   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
-					    #  </description>
-					    # </workaround>
-					    $outputCode .= "   write (label,'(i16)') 0\n";
-					    #$outputCode .= "   write (label,'(i16)') sizeof(c__)\n";
-					    $outputCode .= "  end select\n";
-					    $outputCode .= "  call displayMessage('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
-					    $outputCode .= " end if\n";
-					    $inputCode  .= " call displayMessage('restoring \"".$variableName."\"',verbosity=verbosityLevelWorking)\n";
-					    $outputCode .= " call self%".$variableName."%stateStore  (stateFile,gslStateFile,stateOperationID)\n";
-					    $inputCode  .= " call self%".$variableName."%stateRestore(stateFile,gslStateFile,stateOperationID)\n";
-					    $stateFileUsed    = 1;
-					    $gslStateFileUsed = 1;
-					}
-				    } elsif (
-					$declaration->{'intrinsic'} eq "type"
-					&&
-					$declaration->{'type'     } =~ m/^enumeration[a-z0-9_]+type/i
-					) {
-					# Enumeration.
-					if ( grep {$_ eq "allocatable"} @{$declaration->{'attributes'}} ) {
-					    # For allocatable variables we must first store the shape so that they can be reallocated on restore.
-					    my $dimensionDeclarator = join(",",map {/^dimension\s*\(([:,]+)\)/} @{$declaration->{'attributes'}});
-					    my $rank = ($dimensionDeclarator =~ tr/://);
-					    foreach my $variableName ( @{$declaration->{'variables'}} ) {
-						next
-						    if ( grep {lc($_) eq lc($variableName)} @excludes );
-						$allocatablesFound  = 1;
-						$dimensionalsFound  = 1;
-						$stateFileUsed      = 1;
-						$labelUsed          = 1;
-						$outputCode        .= " if (allocated(self%".$variableName.")) then\n";
-						$outputCode        .= "  if (displayVerbosity() >= verbosityLevelWorking) then\n";
-						# <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
-						#  <description>
-						#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
-						#  </description>
-						# </workaround>
-						$outputCode .= "   write (label,'(i16)') 0\n";
-						#$outputCode        .= "   write (label,'(i16)') sizeof(self%".$variableName.")\n";
-						$outputCode        .= "   call displayMessage('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
-						$outputCode        .= "  end if\n";
-						$outputCode        .= "  write (stateFile) .true.\n"
-						    . "  write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n"
-						    . "  write (stateFile) self%".$variableName."%ID\n";
-						$outputCode        .= " else\n";
-						$outputCode        .= "  write (stateFile) .false.\n";
-						$outputCode        .= " end if\n";
-						$inputCode         .= " read (stateFile) wasAllocated\n";
-						$inputCode         .= " if (allocated(self%".$variableName.")) deallocate(self%".$variableName.")\n";
-						$inputCode         .= " if (wasAllocated) then\n";
-						$inputCode         .= "  call displayMessage('restoring \"".$variableName."\"',verbosity=verbosityLevelWorking)\n";
-						$inputCode         .= "  allocate(storedShape(".$rank."))\n";
-						$inputCode         .= "  read (stateFile) storedShape\n";
-						$inputCode         .= "  allocate(self%".$variableName."(".join(",",map {"storedShape(".$_.")"} 1..$rank)."))\n";
-						$inputCode         .= "  deallocate(storedShape)\n";
-						$inputCode         .= "  read (stateFile) self%".$variableName."%ID\n";
-						$inputCode         .= " end if\n";
-					    }
-					} else {
-					    $outputCode .= " if (displayVerbosity() >= verbosityLevelWorking) then\n";
-					    foreach ( @{$declaration->{'variableNames'}} ) {
-						# <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
-						#  <description>
-						#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
-						#  </description>
-						# </workaround>
-						$outputCode .= "   write (label,'(i16)') 0\n";
-						#$outputCode .= "   write (label,'(i16)') sizeof(".$_.")\n";
-						$outputCode .= "  call displayMessage('storing \"".$_."\" with size '//trim(adjustl(label))//' bytes')\n";
-					    }
-					    $outputCode .= " end if\n";
-					    $outputCode .= "  write (stateFile) ".join(",",map {"self%".$_."%ID"} @{$declaration->{'variableNames'}})."\n";
-					    $inputCode  .= "  read  (stateFile) ".join(",",map {"self%".$_."%ID"} @{$declaration->{'variableNames'}})."\n";
-					}
-				    } elsif (
-					(
-					 (  grep {$_->{'type'} eq $type    } &List::ExtraUtils::as_array($stateStorables->{'stateStorables'        }))
-					 ||
-					 (  grep {$_           eq $type    } &List::ExtraUtils::as_array($stateStorables->{'functionClassInstances'}))
-					)
-					&&
-					(! grep {$_           eq "pointer"} @{$declaration   ->{'attributes'            }})
-					){
-					# This is a non-pointer object which is explicitly stateStorable.
-					# Validate: Currently we do not support store/restore of polymorphic functionClass objects.
-					die("Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass(): storing of polymorphic functionClass objects is not implemented")
-					    if
-					    (
-					     $declaration->{'intrinsic'} eq "class"
-					     &&
-					     (grep {$_ eq $type} @{$stateStorables->{'functionClassInstances'}})
-					    );
-					my $isFunctionClass = grep {$_ eq $type} @{$stateStorables->{'functionClassInstances'}};
-					# Construct code to output.
-					foreach ( @{$declaration->{'variables'}} ) {
-					    (my $variableName = $_) =~ s/\s*=.*$//;
-					    next
-						if ( grep {lc($_) eq lc($variableName)} @excludes );
-					    my $rank = 0;
-					    if ( grep {$_ =~ m/^dimension\s*\(/} @{$declaration->{'attributes'}} ) {
-						my $dimensionDeclarator = join(",",map {/^dimension\s*\(([a-zA-Z0-9_,:\s]+)\)/} @{$declaration->{'attributes'}});
-						$rank        = ($dimensionDeclarator =~ tr/,//)+1;
-						$rankMaximum = $rank
-						    if ( $rank > $rankMaximum );
-					    }
-					    if ( grep {$_ eq "allocatable"} @{$declaration->{'attributes'}} ) {
-						# For allocatable variables we must first store the shape so that they can be reallocated on restore.
-						$allocatablesFound  = 1;
-						$dimensionalsFound  = 1
-						    if ( $rank > 0 );
-						$outputCode .= " if (allocated(self%".$variableName.")) then\n";
-						$outputCode .= "  write (stateFile) .true.\n";
-						$outputCode .= "  write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n"
-						    if ( $rank > 0 );
-						$inputCode  .= " read (stateFile) wasAllocated\n";
-						$inputCode  .= " if (allocated(self%".$variableName.")) deallocate(self%".$variableName.")\n";
-						$inputCode  .= " if (wasAllocated) then\n";
-						if ( $rank > 0 ) {
-						    $inputCode  .= "  allocate(storedShape(".$rank."))\n";
-						    $inputCode  .= "  read (stateFile) storedShape\n";
-						}
-						if ( $declaration->{'intrinsic'} eq "class" ) {
-						    (my $storable) = grep {$_->{'type'} eq $type} &List::ExtraUtils::as_array($stateStorables->{'stateStorables'});
-						    my $functionName = $type."ClassRestore".($rank > 0 ? $rank."D" : "");
-						    $stateRestoreModules{$storable->{'module'}.",only:".$functionName} = 1;
-						    $inputCode  .= "  call ".$functionName."(self%".$variableName.",stateFile".($rank > 0 ? ",storedShape" : "").")\n";
-						} else {
-						    $inputCode  .= "  allocate(self%".$variableName.($rank > 0 ? "(".join(",",map {"storedShape(".$_.")"} 1..$rank).")" : "").")\n";
-						}
-						if ( $rank > 0 ) {
-						    $inputCode  .= "  deallocate(storedShape)\n";
-						}
-					    }
-					    for(my $i=1;$i<=$rank;++$i) {
-						$outputCode .= (" " x $i)."do i".$i."=lbound(self%".$variableName.",dim=".$i."),ubound(self%".$variableName.",dim=".$i.")\n";
-						$inputCode  .= (" " x $i)."do i".$i."=lbound(self%".$variableName.",dim=".$i."),ubound(self%".$variableName.",dim=".$i.")\n";
-					    }
-					    my $arrayElement = $rank > 0 ? "(".join(",",map {"i".$_} 1..$rank).")" : "";
-					    $labelUsed   = 1;
-					    $outputCode .= " if (displayVerbosity() >= verbosityLevelWorking) then\n";
-					    if ( $declaration->{'intrinsic'} eq "class" ) {
-						$outputCode .= "  select type (c__ => self%".$variableName.$arrayElement.")\n";
-						$outputCode .= "  class is (".$declaration->{'type'}.")\n";
-						# <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
-						#  <description>
-						#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
-						#  </description>
-						# </workaround>
-						$outputCode .= "   write (label,'(i16)') 0\n";
-						#$outputCode .= "   write (label,'(i16)') sizeof(c__)\n";
-						$outputCode .= "  end select\n";
-					    } else {
-						# <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
-						#  <description>
-						#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
-						#  </description>
-						# </workaround>
-						$outputCode .= "   write (label,'(i16)') 0\n";
-						#$outputCode .= "   write (label,'(i16)') sizeof(self%".$variableName.")\n";
-					    }
-					    $outputCode .= "  call displayMessage('storing \"".$variableName.$arrayElement."\" with size '//trim(adjustl(label))//' bytes')\n";
-					    $outputCode .= " end if\n";
-					    $inputCode  .= " call displayMessage('restoring \"".$variableName.$arrayElement."\"',verbosity=verbosityLevelWorking)\n";
-					    $inputCode  .= (" " x $rank)." call self%".$variableName.$arrayElement."%stateRestore(stateFile,gslStateFile".($isFunctionClass ? ",stateOperationID" : "").")\n";
-					    $outputCode .= (" " x $rank)." call self%".$variableName.$arrayElement."%stateStore  (stateFile,gslStateFile".($isFunctionClass ? ",stateOperationID" : ",storeIdentifier=".($declaration->{'intrinsic'} eq "class" ? ".true." : ".false.")).")\n";
-					    for(my $i=1;$i<=$rank;++$i) {
-						$outputCode .= (" " x ($rank+1-$i))."end do\n";
-						$inputCode  .= (" " x ($rank+1-$i))."end do\n";
-					    }
-					    if ( grep {$_ eq "allocatable"} @{$declaration->{'attributes'}} ) {
-						$inputCode  .= " end if\n";
-						$outputCode .= " else\n";
-						$outputCode .= "  write (stateFile) .false.\n";
-						$outputCode .= " end if\n";
-					    }
-					    $stateFileUsed    = 1;
-					    $gslStateFileUsed = 1;
-					}
-				    }
-				} else {
-				    # Intrinsic type.
-				    if ( grep {$_ eq "pointer"} @{$declaration->{'attributes'}} ) {
-					# Pointers are currently not handled.
-				    } elsif ( exists($declaration->{'type'}) && defined($declaration->{'type'}) && $declaration->{'type'} =~ m/^\s*omp_lock_kind\s*/ ) {
-					# Do not store OpenMP lock variables.					
-				    } elsif ( grep {$_ eq "allocatable"} @{$declaration->{'attributes'}} ) {
-					# For allocatable variables we must first store the shape so that they can be reallocated on restore.
-					my $dimensionDeclarator = join(",",map {/^dimension\s*\(([:,]+)\)/} @{$declaration->{'attributes'}});
-					my $rank = ($dimensionDeclarator =~ tr/://);
-					foreach my $variableName ( @{$declaration->{'variables'}} ) {
-					    next
-						if ( grep {lc($_) eq lc($variableName)} @excludes );
-					    $allocatablesFound  = 1;
-					    $dimensionalsFound  = 1;
-					    $stateFileUsed      = 1;
-					    $labelUsed          = 1;
-					    $outputCode        .= " if (allocated(self%".$variableName.")) then\n";
-					    $outputCode        .= "  if (displayVerbosity() >= verbosityLevelWorking) then\n";
-					    # <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
-					    #  <description>
-					    #   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
-					    #  </description>
-					    # </workaround>
-					    $outputCode        .= "   write (label,'(i16)') 0\n";
-					    #$outputCode        .= "   write (label,'(i16)') sizeof(self%".$variableName.")\n";
-					    $outputCode        .= "   call displayMessage('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
-					    $outputCode        .= "  end if\n";
-					    $outputCode        .= "  write (stateFile) .true.\n"
-					                       .  "  write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n"
-					                       .  "  write (stateFile) self%".$variableName."\n";
-					    $outputCode        .= " else\n";
-					    $outputCode        .= "  write (stateFile) .false.\n";
-					    $outputCode        .= " end if\n";
-					    $inputCode         .= " read (stateFile) wasAllocated\n";
-					    $inputCode         .= " if (allocated(self%".$variableName.")) deallocate(self%".$variableName.")\n";
-					    $inputCode         .= " if (wasAllocated) then\n";
-					    $inputCode         .= "  call displayMessage('restoring \"".$variableName."\"',verbosity=verbosityLevelWorking)\n";
-					    $inputCode         .= "  allocate(storedShape(".$rank."))\n";
-					    $inputCode         .= "  read (stateFile) storedShape\n";
-					    $inputCode         .= "  allocate(self%".$variableName."(".join(",",map {"storedShape(".$_.")"} 1..$rank)."))\n";
-					    $inputCode         .= "  deallocate(storedShape)\n";
-					    $inputCode         .= "  read (stateFile) self%".$variableName."\n";
-					    $inputCode         .= " end if\n";
-					}
-				    } else {
-					# Statically-sized variable.
-					foreach ( @{$declaration->{'variables'}} ) {
-					    (my $variableName = $_) =~ s/\s*=.*$//;
-					    next
-						if ( grep {lc($_) eq lc($variableName)} @excludes );
-					    my $store = 1;
-					    if ( exists($class->{'stateStorable'}) && exists($class->{'stateStorable'}->{'restoreTo'}) ) {
-						foreach ( &List::ExtraUtils::as_array($class->{'stateStorable'}->{'restoreTo'}) ) {
-						    my @variables = split(/\s*,\s*/,$_->{'variables'});
-						    if ( grep {lc($_) eq lc($variableName)} @variables ) {
-							$store = 0;
-							$inputCode .= " self%".$variableName."=".$_->{'state'}."\n";
-						    }
-						}
-					    }
-					    push(@staticVariables,$variableName)
-						if ( $store );
-					}
-				    }
-				}
-				$hasCustomStateStore   = 1
-				    if
-				    (
-				     $declaration->{'intrinsic'} eq "procedure"
-				     &&
-				     $declaration->{'variables'}->[0] =~ m/^stateStore=>/
-				    );
-				$hasCustomStateRestore = 1
-				    if
-				    (
-				     $declaration->{'intrinsic'} eq "procedure"
-				     &&
-				     $declaration->{'variables'}->[0] =~ m/^stateRestore=>/
-				    );
-			    }
-			}
+			&stateStoreVariables($stateStores,$stateStore,undef(),$node->{'declarations'})
+			    if ( $node->{'type'} eq "declaration" );
 			$node = $node->{'type'} eq "contains" ? $node->{'firstChild'} : $node->{'sibling'};
 		    }
 		}
 		# Add code to method.
-		$stateFileUsed = 1
-		    if ( scalar(@staticVariables) > 0 );
-		if ( $hasCustomStateStore   ) {
+		$stateStores->{'stateFileUsed'} = 1
+		    if ( scalar(@{$stateStore->{'staticVariables'}}) > 0 );
+		if ( $stateStore->{'hasCustomStateStore'  } ) {
 		    # The class has its own state store function, so we should never arrive at this point in the code.
 		    $stateStoreCode .= " call Error_Report('custom state store function exists - this should not happen'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
-		    $stateStoreModules{'Error'} = 1;
+		    $stateStores->{'stateStoreModules'}->{'Error'} = 1;
 		} else {
-		    foreach ( @staticVariables ) {
-			$labelUsed       = 1;
+		    foreach ( @{$stateStore->{'staticVariables'}} ) {
+			$stateStores->{'labelUsed'}       = 1;
 			$stateStoreCode .= " if (displayVerbosity() >= verbosityLevelWorking) then\n";
 			# <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
 			#  <description>
@@ -2837,23 +1364,23 @@ CODE
 			$stateStoreCode .= "  call displayMessage('storing \"".$_."\" with size '//trim(adjustl(label))//' bytes')\n";
 			$stateStoreCode .= " end if\n";
 		    }
-		    $stateStoreCode .= " write (stateFile) ".join(", &\n  & ",map {"self%".$_} @staticVariables)."\n"
-			if ( scalar(@staticVariables) > 0 );
-		    $stateStoreCode .= $outputCode
-			if ( defined($outputCode) );
+		    $stateStoreCode .= " write (stateFile) ".join(", &\n  & ",map {"self%".$_} @{$stateStore->{'staticVariables'}})."\n"
+			if ( scalar(@{$stateStore->{'staticVariables'}}) > 0 );
+		    $stateStoreCode .= $stateStore->{'outputCode'}
+			if ( defined($stateStore->{'outputCode'}) );
 		}
-		if ( $hasCustomStateRestore ) {
+		if ( $stateStore->{'hasCustomStateRestore'} ) {
 		    # The class has its own state store function, so we should never arrive at this point in the code.
 		    $stateRestoreCode .= " call Error_Report('custom state restore function exists - this should not happen'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
-		    $stateRestoreModules{'Error'} = 1;
+		    $stateStores->{'stateRestoreModules'}->{'Error'} = 1;
 		} else {
-		    foreach ( @staticVariables ) {
+		    foreach ( @{$stateStore->{'staticVariables'}} ) {
 			$stateRestoreCode .= " call displayMessage('restoring \"".$_."\"',verbosity=verbosityLevelWorking)\n";
 		    }
-		    $stateRestoreCode .= " read (stateFile) ".join(", &\n  & ",map {"self%".$_} @staticVariables)."\n"
-			if ( scalar(@staticVariables) > 0 );
-		    $stateRestoreCode .= $inputCode
-			if ( defined($inputCode) );
+		    $stateRestoreCode .= " read (stateFile) ".join(", &\n  & ",map {"self%".$_} @{$stateStore->{'staticVariables'}})."\n"
+			if ( scalar(@{$stateStore->{'staticVariables'}}) > 0 );
+		    $stateRestoreCode .= $stateStore->{'inputCode'}
+			if ( defined($stateStore->{'inputCode'}) );
 		}
 	    }
 	    $stateStoreCode   .= "end select\n";
@@ -2862,32 +1389,32 @@ CODE
 	    $stateRestoreCode .= "end select\n";
 	    $stateRestoreCode .= "call displayUnindent('done',verbosity=verbosityLevelWorking)\n";
 	    $stateRestoreCode .= "return\n";
-	    unless ( $gslStateFileUsed ) {
+	    unless ( $stateStores->{'gslStateFileUsed'} ) {
 		push(@outputUnusedVariables,"gslStateFile");
 		push(@inputUnusedVariables ,"gslStateFile");
 	    }
-	    unless ( $stateFileUsed     ) {
+	    unless ( $stateStores->{'stateFileUsed'}     ) {
 		push(@outputUnusedVariables,"stateFile"    );
 		push(@inputUnusedVariables ,"stateFile"    );
 	    }
 	    $stateStoreCode   =
-		($rankMaximum > 0 ? " integer :: ".join(", ",map {"i".$_} 1..$rankMaximum)."\n" : "").
+		($stateStores->{'rankMaximum'} > 0 ? " integer :: ".join(", ",map {"i".$_} 1..$stateStores->{'rankMaximum'})."\n" : "").
 		(@outputUnusedVariables ? " !\$GLC attributes unused :: ".join(", ",@outputUnusedVariables)."\n" : "").
 		$stateStoreCode  ;
 	    $stateRestoreCode =
-		($rankMaximum > 0 ? " integer :: ".join(", ",map {"i".$_} 1..$rankMaximum)."\n" : "").
+		($stateStores->{'rankMaximum'} > 0 ? " integer :: ".join(", ",map {"i".$_} 1..$stateStores->{'rankMaximum'})."\n" : "").
 		(@inputUnusedVariables ? " !\$GLC attributes unused :: ".join(", ",@inputUnusedVariables)."\n" : "").
 		$stateRestoreCode;
-	    if ( $allocatablesFound ) {
-		$stateRestoreCode = ($dimensionalsFound ? "integer(c_size_t), allocatable, dimension(:) :: storedShape\n"  : "").
-		    ($allocatablesFound ? "logical                                      :: wasAllocated\n" : "").
+	    if ( $stateStores->{'allocatablesFound'} ) {
+		$stateRestoreCode = ($stateStores->{'dimensionalsFound'} ? "integer(c_size_t), allocatable, dimension(:) :: storedShape\n"  : "").
+		    ($stateStores->{'allocatablesFound'} ? "logical                                      :: wasAllocated\n" : "").
 		    $stateRestoreCode;
 	    }
-	    if ( $explicitFunctionsFound ) {
+	    if ( $stateStores->{'explicitFunctionsFound'} ) {
 		$stateRestoreCode = "logical :: wasAssociated\n".$stateRestoreCode;
 	    }
 	    $stateStoreCode   = " character(len=16) :: label\n".$stateStoreCode
-                 if ( $labelUsed );
+                 if ( $stateStores->{'labelUsed'} );
             $stateStoreCode   = " integer(c_size_t) :: position\n".$stateStoreCode;
             $stateRestoreCode = " integer(c_size_t) :: position\n".$stateRestoreCode;
 	    $stateStoreCode   = &Fortran::Utils::Format_Variable_Definitions($stateLinkedListVariables).$stateStoreCode;
@@ -2897,7 +1424,15 @@ CODE
 		description => "Store the state of this object to file.",
 		type        => "void",
 		pass        => "yes",
-		modules     => join(" ",keys(%stateStoreModules)),
+		argument    => [ "integer, intent(in   ) :: stateFile", "type(c_ptr), intent(in   ) :: gslStateFile", "integer(c_size_t), intent(in   ) :: stateOperationID"  ],
+		code        => "call self%stateStore_(stateFile,gslStateFile,stateOperationID)"
+	    };
+	    $methods{'stateStore_'} =
+	    {
+		description => "Store the state of this object to file.",
+		type        => "void",
+		pass        => "yes",
+		modules     => join(" ",keys(%{$stateStores->{'stateStoreModules'}})),
 		argument    => [ "integer, intent(in   ) :: stateFile", "type(c_ptr), intent(in   ) :: gslStateFile", "integer(c_size_t), intent(in   ) :: stateOperationID"  ],
 		code        => $stateStoreCode
 	    };
@@ -2906,7 +1441,15 @@ CODE
 		description => "Restore the state of this object from file.",
 		type        => "void",
 		pass        => "yes",
-		modules     => join(" ",keys(%stateRestoreModules)),
+		argument    => [ "integer, intent(in   ) :: stateFile", "type(c_ptr), intent(in   ) :: gslStateFile", "integer(c_size_t), intent(in   ) :: stateOperationID"  ],
+		code        => "call self%stateRestore_(stateFile,gslStateFile,stateOperationID)"
+	    };
+	    $methods{'stateRestore_'} =
+	    {
+		description => "Restore the state of this object from file.",
+		type        => "void",
+		pass        => "yes",
+		modules     => join(" ",keys(%{$stateStores->{'stateRestoreModules'}})),
 		argument    => [ "integer, intent(in   ) :: stateFile", "type(c_ptr), intent(in   ) :: gslStateFile", "integer(c_size_t), intent(in   ) :: stateOperationID"  ],
 		code        => $stateRestoreCode
 	    };
@@ -4311,6 +2854,610 @@ sub stateStoreExplicitFunction {
 	}
     }
     return ($inputCode,$outputCode,%modules);
+}
+
+sub potentialDescriptorParameters {
+    # Process variable declarations for potential parameters to include in descriptors.
+    my $declarations   = shift();
+    my $class          = shift();
+    my $potentialNames = shift();
+    our $stateStorables;
+    foreach my $declaration ( &List::ExtraUtils::as_array($declarations) ) {
+	# Identify object pointers.
+	push(@{$potentialNames->{'objects'}},map {$_ =~ s/\s*([a-zA-Z0-9_]+).*/$1/; $_} @{$declaration->{'variables'}})
+	    if
+	    (
+	     $declaration->{'intrinsic'} eq "class"
+	     &&
+	     (
+	      (grep {&lctrim($declaration->{'type'}) eq lc($_)} keys                       (%{$stateStorables->{'functionClasses'       }}))
+	      ||
+	      (grep {&lctrim($declaration->{'type'}) eq lc($_)} &List::ExtraUtils::as_array(  $stateStorables->{'functionClassInstances'} ))
+	     )
+	     &&
+	     grep {$_ eq "pointer"} @{$declaration->{'attributes'}}
+	    );
+	# Identify stateful types.
+	push(@{$potentialNames->{'statefulTypes'}},$declaration)
+	    if
+	    (
+	     $declaration->{'intrinsic'} eq "type"
+	     &&
+	     $declaration->{'type'     } =~ m/^stateful(Integer|Double|Logical)\s*$/i
+	    );
+	# Identify enumerations.
+	push(@{$potentialNames->{'enumerations'}},$declaration)
+	    if
+	    (
+	     $declaration->{'intrinsic'} eq "type"
+	     &&
+	     $declaration->{'type'     } =~ m/^enumeration[a-z0-9_]+type\s*$/i
+	    );
+	# Identify regular parameters.
+	push(@{$potentialNames->{'parameters'}},$declaration)
+	    if
+	    (
+	     (grep {$_ eq $declaration->{'intrinsic'}} ( "integer", "logical", "double precision", "character" ))
+	     ||
+	     (
+	      $declaration->{'intrinsic'}  eq "type"
+	      &&
+	      trimlc($declaration->{'type'     }) eq "varying_string"
+	     )
+	    );
+	$class->{'hasCustomDescriptor'} = 1
+	    if
+	    (
+	     $declaration->{'intrinsic'} eq "procedure"
+	     &&
+	     $declaration->{'variables'}->[0] =~ m/^descriptor=>/
+	    );
+    }
+}
+    
+sub deepCopyDeclarations {
+    # Process variable declarations from a node for deep copy.
+    my $class            =   shift() ;
+    my $nonAbstractClass =   shift() ;
+    my $node             =   shift() ;
+    my $declarations     =   shift() ;
+    my @ignore           = @{shift()};
+    my $lineNumber       =   shift() ;
+    my $deepCopy         =   shift() ;
+    our $stateStorables;
+    our $debugging;
+    our $deepCopyActions;
+    foreach my $declaration ( &List::ExtraUtils::as_array($declarations) ) {
+	# Deep copy of functionClass objects.
+	(my $type = $declaration->{'type'}) =~ s/(^\s*|\s*$)//g
+	    if ( $declaration->{'intrinsic'} eq "class" || $declaration->{'intrinsic'} eq "type" );
+	if
+	    (
+	     $declaration->{'intrinsic'} eq "class"
+	     &&
+	     (grep {$_ eq $type    } (keys(%{$stateStorables->{'functionClasses'}}),@{$stateStorables->{'functionClassInstances'}}))
+	     &&
+	     grep {$_ eq "pointer"}  @{$declaration   ->{'attributes'     }}
+	    )
+	{
+	    foreach my $object ( @{$declaration->{'variables'}} ) {
+		(my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
+		next
+		    if ( grep {lc($_) eq lc($name)} @ignore );
+		$deepCopy->{'resetCode'   } .= "if (associated(self%".$name.")) call self%".$name."%deepCopyReset   ()\n";
+		$deepCopy->{'finalizeCode'} .= "if (associated(self%".$name.")) call self%".$name."%deepCopyFinalize()\n";
+		$deepCopy->{'assignments' } .= "nullify(destination%".$name.")\n";
+		$deepCopy->{'assignments' } .= "if (associated(self%".$name.")) then\n";
+		$deepCopy->{'assignments' } .= " if (associated(self%".$name."\%copiedSelf)) then\n";
+		$deepCopy->{'assignments' } .= "  select type(s => self%".$name."\%copiedSelf)\n";
+		$deepCopy->{'assignments' } .= "  ".$declaration->{'intrinsic'}." is (".$declaration->{'type'}.")\n";
+		$deepCopy->{'assignments' } .= "   destination%".$name." => s\n";
+		$deepCopy->{'assignments' } .= "  class default\n";
+		$deepCopy->{'assignments' } .= "   call Error_Report('copiedSelf has incorrect type'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
+		$deepCopy->{'assignments' } .= "  end select\n";
+		$deepCopy->{'assignments' } .= "  call self%".$name."\%copiedSelf\%referenceCountIncrement()\n";
+		$deepCopy->{'assignments' } .= " else\n";
+		$deepCopy->{'assignments' } .= "  allocate(destination%".$name.",mold=self%".$name.")\n";
+		$deepCopy->{'assignments' } .= "  call self%".$name."%deepCopy(destination%".$name.")\n";
+		$deepCopy->{'assignments' } .= "  self%".$name."%copiedSelf => destination%".$name."\n";
+		$deepCopy->{'assignments' } .= "  call destination%".$name."%autoHook()\n";
+		$deepCopy->{'assignments' } .= " end if\n";
+		$deepCopy->{'assignments' } .= " if (debugReporting.and.mpiSelf\%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbosityLevelSilent)\n"
+		    if ( $debugging );
+		$deepCopy->{'assignments' } .= "end if\n";
+	    }
+	};
+	# Deep copy of objects with explicit deep copy actions.
+	if
+	    (
+	     (
+	      $declaration->{'intrinsic'} eq "class"
+	      ||
+	      $declaration->{'intrinsic'} eq "type"
+	     )
+	     &&
+	     (grep {$_->{'type'} eq $type} &List::ExtraUtils::as_array($deepCopyActions->{'deepCopyActions'}))
+	    ) {
+		my $isAllocatable = grep {$_ eq "allocatable"} @{$declaration->{'attributes'}};
+		my $isPointer     = grep {$_ eq "pointer"    } @{$declaration->{'attributes'}};
+		my $rank = 0;
+		if ( grep {$_ =~ m/^dimension\s*\(/} @{$declaration->{'attributes'}} ) {
+		    my $dimensionDeclarator = join(",",map {/^dimension\s*\(([a-zA-Z0-9_,:\s]+)\)/} @{$declaration->{'attributes'}});
+		    $rank        = ($dimensionDeclarator =~ tr/,//)+1;
+		    $deepCopy->{'rankMaximum'} = $rank
+			if ( $rank > $deepCopy->{'rankMaximum'} );					    
+		}
+		foreach my $variableName ( @{$declaration->{'variableNames'}} ) {
+		    $deepCopy->{'assignments'} .= "if (allocated(self%".$variableName.")) then\n"
+			if ( $isAllocatable );
+		    $deepCopy->{'assignments'} .= "if (associated(self%".$variableName.")) then\n"
+			if ( $isPointer     );
+		    for(my $i=1;$i<=$rank;++$i) {
+			$deepCopy->{'assignments'} .= (" " x $i)."do i".$i."=lbound(self%".$variableName.",dim=".$i."),ubound(self%".$variableName.",dim=".$i.")\n";
+		    }
+		    my $arrayElement = $rank > 0 ? "(".join(",",map {"i".$_} 1..$rank).")" : "";
+		    $deepCopy->{'assignments'} .= (" " x $rank)."call destination%".$variableName.$arrayElement."%deepCopyActions()\n";
+		    for(my $i=1;$i<=$rank;++$i) {
+			$deepCopy->{'assignments'} .= (" " x ($rank+1-$i))."end do\n";
+		    }
+		    $deepCopy->{'assignments'} .= "end if\n"
+			if ( $isAllocatable || $isPointer );
+		}
+	}
+	# Deep copy of HDF5 objects.
+	if
+	    (
+	     $declaration->{'intrinsic'} eq "type"
+	     &&
+	     $declaration->{'type'     } =~ m/^\s*hdf5object\s*$/i
+	    ) {
+		$deepCopy->{'modules'}->{'HDF5_Access'} = 1;
+		$deepCopy->{'assignments'} .= "!\$ call hdf5Access%set  ()\n";
+		$deepCopy->{'assignments'} .= "call self%".$_."%deepCopy(destination%".$_.")\n"
+		    foreach ( @{$declaration->{'variables'}} );
+		$deepCopy->{'assignments'} .= "!\$ call hdf5Access%unset()\n";
+	}
+	# Deep copy of non-(class,pointer) functionClass objects.
+	if ( exists($class->{'deepCopy'}->{'functionClass'}) ) {
+	    foreach my $object ( @{$declaration->{'variables'}} ) {
+		(my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
+		if ( grep {lc($_) eq lc($name)} split(/\s*,\s*/,$class->{'deepCopy'}->{'functionClass'}->{'variables'}) ) {
+		    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
+			$deepCopy->{'assignments' } .= "nullify(destination%".$name.")\n";
+			$deepCopy->{'assignments' } .= "if (associated(self%".$name.")) then\n";
+			$deepCopy->{'resetCode'   } .= "if (associated(self%".$name.")) then\n";
+			$deepCopy->{'finalizeCode'} .= "if (associated(self%".$name.")) then\n";
+			$deepCopy->{'assignments' } .= "if (associated(self%".$name."\%copiedSelf)) then\n";
+			$deepCopy->{'assignments' } .= "  select type(s => self%".$name."\%copiedSelf)\n";
+			$deepCopy->{'assignments' } .= "  ".$declaration->{'intrinsic'}." is (".$declaration->{'type'}.")\n";
+			$deepCopy->{'assignments' } .= "   destination%".$name." => s\n";
+			$deepCopy->{'assignments' } .= "  class default\n";
+			$deepCopy->{'assignments' } .= "   call Error_Report('copiedSelf has incorrect type'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
+			$deepCopy->{'assignments' } .= "  end select\n";
+			$deepCopy->{'assignments' } .= "  call self%".$name."\%copiedSelf\%referenceCountIncrement()\n";
+			$deepCopy->{'assignments' } .= "else\n";
+			$deepCopy->{'assignments' } .= " allocate(destination%".$name.",mold=self%".$name.")\n";
+		    }
+		    $deepCopy->{'resetCode'   } .= "call self%".$name."%deepCopyReset   ()\n";
+		    $deepCopy->{'finalizeCode'} .= "call self%".$name."%deepCopyFinalize()\n";
+		    $deepCopy->{'assignments' } .= "call self%".$name."%deepCopy(destination%".$name.")\n";
+		    $deepCopy->{'assignments' } .= "self%".$name."%copiedSelf => destination%".$name."\n";
+		    $deepCopy->{'assignments' } .= "call destination%".$name."%autoHook()\n";
+		    $deepCopy->{'assignments' } .= "end if\n"
+			if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} );
+		    $deepCopy->{'assignments' } .= "if (debugReporting.and.mpiSelf\%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbosityLevelSilent)\n"
+			if ( $debugging );
+		    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
+			$deepCopy->{'assignments' } .= "end if\n";
+			$deepCopy->{'resetCode'   } .= "end if\n";
+			$deepCopy->{'finalizeCode'} .= "end if\n";
+		    }
+		}
+	    }
+	}
+	# Perform any increments.
+	if ( exists($class->{'deepCopy'}->{'increment'}) ) {
+	    my @increments = map {{variable => $_}} split(/\s*,\s*/,$class->{'deepCopy'}->{'increment'}->{'variables'});
+	    foreach ( @increments ) {
+		($_->{'host'} = $_->{'variable'}) =~ s/^([^%]+)%.+/$1/;
+	    }
+	    foreach my $object ( @{$declaration->{'variables'}} ) {
+		(my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
+		foreach my $increment ( @increments ) {
+		    if ( lc($increment->{'host'}) eq lc($name) ) {
+			$deepCopy->{'assignments'} .= "!\$omp atomic\n"
+			    if ( exists($class->{'deepCopy'}->{'increment'}->{'atomic'}) && $class->{'deepCopy'}->{'increment'}->{'atomic'} eq "yes" );
+			$deepCopy->{'assignments'} .= "destination\%".$increment->{'variable'}."=destination\%".$increment->{'variable'}."+1\n";
+		    }
+		}
+	    }
+	}
+	# Perform any sets.
+	if ( exists($class->{'deepCopy'}->{'setTo'}) ) {
+	    my @setTos = map {{variable => $_}} split(/\s*,\s*/,$class->{'deepCopy'}->{'setTo'}->{'variables'});
+	    foreach ( @setTos ) {
+		($_->{'host'} = $_->{'variable'}) =~ s/^([^%]+)%.+/$1/;
+	    }
+	    foreach my $object ( @{$declaration->{'variables'}} ) {
+		(my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
+		foreach my $setTo ( @setTos ) {
+		    if ( lc($setTo->{'host'}) eq lc($name) ) {
+			$deepCopy->{'assignments'} .= "destination\%".$setTo->{'variable'}."=".$class->{'deepCopy'}->{'setTo'}->{'value'}."\n";
+		    }
+		}
+	    }
+	}
+	# Perform any explicit deep copies.
+	if ( exists($class->{'deepCopy'}->{'deepCopy'}) ) {
+	    my @deepCopies = split(/\s*,\s*/,$class->{'deepCopy'}->{'deepCopy'}->{'variables'});
+	    foreach my $object ( @{$declaration->{'variableNames'}} ) {
+		foreach my $deepCopy ( @deepCopies ) {
+		    if ( lc($object) eq lc($deepCopy) ) {
+			$deepCopy->{'assignments'} .= "nullify(destination\%".$object.")\n";
+			$deepCopy->{'assignments'} .= "allocate(destination\%".$object.",mold=self\%".$object.")\n";
+			if ( exists($class->{'deepCopy'}->{'deepCopy'}->{'copy'}) ) {
+			    $deepCopy->{'modules'}->{$class->{'deepCopy'}->{'deepCopy'}->{'module'}} = 1
+				if ( exists($class->{'deepCopy'}->{'deepCopy'}->{'module'}) );
+			    $deepCopy->{'assignments'} .= "if (associated(self\%".$object.")) call ".$class->{'deepCopy'}->{'deepCopy'}->{'copy'}."(self\%".$object.",destination\%".$object.")\n";
+			} else {
+			    $deepCopy->{'assignments'} .= "if (associated(self\%".$object.")) call self\%".$object."\%deepCopy(destination\%".$object.")\n";
+			}
+			if ( exists($class->{'deepCopy'}->{'deepCopy'}->{'reset'}) ) {
+			    $deepCopy->{'resetModules'}->{$class->{'deepCopy'}->{'deepCopy'}->{'module'}} = 1
+				if ( exists($class->{'deepCopy'}->{'deepCopy'}->{'module'}) );
+			    $deepCopy->{'resetCode'} .= "if (associated(self\%".$object.")) call ".$class->{'deepCopy'}->{'deepCopy'}->{'reset'}."(self\%".$object.")\n";
+			}
+			if ( exists($class->{'deepCopy'}->{'deepCopy'}->{'finalize'}) ) {
+			    $deepCopy->{'finalizeModules'}->{$class->{'deepCopy'}->{'deepCopy'}->{'module'}} = 1
+				if ( exists($class->{'deepCopy'}->{'deepCopy'}->{'module'}) );
+			    $deepCopy->{'finalizeCode'} .= "if (associated(self\%".$object.")) call ".$class->{'deepCopy'}->{'deepCopy'}->{'finalize'}."(self\%".$object.")\n";
+			}
+		    }
+		}
+	    }
+	}
+	# Reinitialize OpenMP locks.
+	if
+	    (
+	     $declaration->{'intrinsic'} eq "integer"
+	     &&
+	     exists ($declaration->{'type'})
+	     &&
+	     defined($declaration->{'type'})
+	     &&
+	     $declaration->{'type'     } =~ m/^\s*omp_lock_kind\s*$/i
+	    ) {
+		$deepCopy->{'assignments'} .= "!\$ call OMP_Init_Lock(destination\%".$_.")\n"
+		    foreach ( @{$declaration->{'variables'}} );
+	}
+	# Reinitialize OpenMP read/write locks.
+	if
+	    (
+	     $declaration->{'intrinsic'} eq "type"
+	     &&
+	     exists ($declaration->{'type'})
+	     &&
+	     defined($declaration->{'type'})
+	     &&
+	     $declaration->{'type'     } =~ m/^\s*ompReadWriteLock\s*$/i
+	    ) {
+		foreach ( @{$declaration->{'variables'}} ) {
+		    my @dimensions =
+			exists($declaration->{'attributes'})
+			?
+			map {/^dimension\s*\(([:,]+)\)/} @{$declaration->{'attributes'}}
+		    :
+			undef();
+		    if ( @dimensions ) {
+			my @rank = split(",",$dimensions[0]);
+			# Add loop index variables.
+			$deepCopy->{'rankMaximum'} = scalar(@rank)
+			    if ( scalar(@rank) > $deepCopy->{'rankMaximum'} );
+			for(my $i=1;$i<=scalar(@rank);++$i) {
+			    $deepCopy->{'assignments'} .= "!\$ do i".$i."=lbound(destination\%".$_.",dim=".$i."),ubound(destination\%".$_.",dim=".$i.")\n";
+			}
+			$deepCopy->{'assignments'} .= "!\$    call destination\%".$_."(".join(",",map {"i".$_} 1..scalar(@rank)).")%initialize()\n";
+			for(my $i=1;$i<=scalar(@rank);++$i) {
+			    $deepCopy->{'assignments'} .= "!\$ end do\n";
+			}
+		    } else {
+			# Scalar lock.
+			$deepCopy->{'assignments'} .= "!\$ call destination\%".$_."%initialize()\n";
+		    }
+		}
+	}
+    }
+   
+}
+
+sub stateStoreVariables {
+    # Generate code to store/restore variables in functionClass objects.
+    my  $stateStores    = shift();
+    my  $stateStore     = shift();
+    my  $class          = shift();
+    my  $declarations   = shift();
+    our $stateStorables          ;
+    foreach my $declaration ( &List::ExtraUtils::as_array($declarations) ) {
+	# Identify variable type.
+	if ( $declaration->{'intrinsic'} eq "procedure" || $declaration->{'intrinsic'} eq "final" ) {
+	    # Type-bound procedure - nothing to do.
+	} elsif ( $declaration->{'intrinsic'} eq "class" || $declaration->{'intrinsic'} eq "type" ) {
+	    # Look for pointers to functionClasses.
+	    (my $type = $declaration->{'type'}) =~ s/\s//g;
+	    if (
+		$declaration->{'intrinsic'} eq "class"
+		&&
+		(grep {$_ eq "pointer"}      @{$declaration   ->{'attributes'     }} )
+		&&
+		(grep {$_ eq $type    } keys(%{$stateStorables->{'functionClasses'}}))
+		) {
+		# Pointer to a functionClass object.
+		foreach ( @{$declaration->{'variables'}} ) {
+		    $stateStores->{'labelUsed'} = 1;
+		    (my $variableName = $_) =~ s/\s*=.*$//;
+		    next
+			if ( grep {lc($_) eq lc($variableName)} @{$stateStore->{'excludes'}} );
+		    $stateStore->{'outputCode'} .= " if (displayVerbosity() >= verbosityLevelWorking) then\n";
+		    $stateStore->{'outputCode'} .= "  select type (c__ => self%".$variableName.")\n";
+		    $stateStore->{'outputCode'} .= "  class is (".$declaration->{'type'}.")\n";
+		    # <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
+		    #  <description>
+		    #   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
+		    #  </description>
+		    # </workaround>
+		    $stateStore->{'outputCode'} .= "   write (label,'(i16)') 0\n";
+		    #$stateStore->{'outputCode'} .= "   write (label,'(i16)') sizeof(c__)\n";
+		    $stateStore->{'outputCode'} .= "  end select\n";
+		    $stateStore->{'outputCode'} .= "  call displayMessage('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
+		    $stateStore->{'outputCode'} .= " end if\n";
+		    $stateStore->{'inputCode'}  .= " call displayMessage('restoring \"".$variableName."\"',verbosity=verbosityLevelWorking)\n";
+		    $stateStore->{'outputCode'} .= " call self%".$variableName."%stateStore  (stateFile,gslStateFile,stateOperationID)\n";
+		    $stateStore->{'inputCode'}  .= " call self%".$variableName."%stateRestore(stateFile,gslStateFile,stateOperationID)\n";
+		    $stateStores->{'stateFileUsed'}    = 1;
+		    $stateStores->{'gslStateFileUsed'} = 1;
+		}
+	    } elsif (
+		$declaration->{'intrinsic'} eq "type"
+		&&
+		$declaration->{'type'     } =~ m/^enumeration[a-z0-9_]+type/i
+		) {
+		# Enumeration.
+		if ( grep {$_ eq "allocatable"} @{$declaration->{'attributes'}} ) {
+		    # For allocatable variables we must first store the shape so that they can be reallocated on restore.
+		    my $dimensionDeclarator = join(",",map {/^dimension\s*\(([:,]+)\)/} @{$declaration->{'attributes'}});
+		    my $rank = ($dimensionDeclarator =~ tr/://);
+		    foreach my $variableName ( @{$declaration->{'variables'}} ) {
+			next
+			    if ( grep {lc($_) eq lc($variableName)} @{$stateStore->{'excludes'}} );
+			$stateStores->{'allocatablesFound'}  = 1;
+			$stateStores->{'dimensionalsFound'}  = 1;
+			$stateStores->{'stateFileUsed'}      = 1;
+			$stateStores->{'labelUsed'}          = 1;
+			$stateStore->{'outputCode'}        .= " if (allocated(self%".$variableName.")) then\n";
+			$stateStore->{'outputCode'}        .= "  if (displayVerbosity() >= verbosityLevelWorking) then\n";
+			# <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
+			#  <description>
+			#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
+			#  </description>
+			# </workaround>
+			$stateStore->{'outputCode'} .= "   write (label,'(i16)') 0\n";
+			#$stateStore->{'outputCode'}        .= "   write (label,'(i16)') sizeof(self%".$variableName.")\n";
+			$stateStore->{'outputCode'}        .= "   call displayMessage('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
+			$stateStore->{'outputCode'}        .= "  end if\n";
+			$stateStore->{'outputCode'}        .= "  write (stateFile) .true.\n"
+			    . "  write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n"
+			    . "  write (stateFile) self%".$variableName."%ID\n";
+			$stateStore->{'outputCode'}        .= " else\n";
+			$stateStore->{'outputCode'}        .= "  write (stateFile) .false.\n";
+			$stateStore->{'outputCode'}        .= " end if\n";
+			$stateStore->{'inputCode'}         .= " read (stateFile) wasAllocated\n";
+			$stateStore->{'inputCode'}         .= " if (allocated(self%".$variableName.")) deallocate(self%".$variableName.")\n";
+			$stateStore->{'inputCode'}         .= " if (wasAllocated) then\n";
+			$stateStore->{'inputCode'}         .= "  call displayMessage('restoring \"".$variableName."\"',verbosity=verbosityLevelWorking)\n";
+			$stateStore->{'inputCode'}         .= "  allocate(storedShape(".$rank."))\n";
+			$stateStore->{'inputCode'}         .= "  read (stateFile) storedShape\n";
+			$stateStore->{'inputCode'}         .= "  allocate(self%".$variableName."(".join(",",map {"storedShape(".$_.")"} 1..$rank)."))\n";
+			$stateStore->{'inputCode'}         .= "  deallocate(storedShape)\n";
+			$stateStore->{'inputCode'}         .= "  read (stateFile) self%".$variableName."%ID\n";
+			$stateStore->{'inputCode'}         .= " end if\n";
+		    }
+		} else {
+		    $stateStore->{'outputCode'} .= " if (displayVerbosity() >= verbosityLevelWorking) then\n";
+		    foreach ( @{$declaration->{'variableNames'}} ) {
+			# <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
+			#  <description>
+			#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
+			#  </description>
+			# </workaround>
+			$stateStore->{'outputCode'} .= "   write (label,'(i16)') 0\n";
+			#$stateStore->{'outputCode'} .= "   write (label,'(i16)') sizeof(".$_.")\n";
+			$stateStore->{'outputCode'} .= "  call displayMessage('storing \"".$_."\" with size '//trim(adjustl(label))//' bytes')\n";
+		    }
+		    $stateStore->{'outputCode'} .= " end if\n";
+		    $stateStore->{'outputCode'} .= "  write (stateFile) ".join(",",map {"self%".$_."%ID"} @{$declaration->{'variableNames'}})."\n";
+		    $stateStore->{'inputCode'}  .= "  read  (stateFile) ".join(",",map {"self%".$_."%ID"} @{$declaration->{'variableNames'}})."\n";
+		}
+	    } elsif (
+		(  grep {$_->{'type'} eq $type    } &List::ExtraUtils::as_array($stateStorables->{'stateStorables'        }))
+		||
+		(  grep {$_           eq $type    } &List::ExtraUtils::as_array($stateStorables->{'functionClassInstances'}))
+		){
+		# This is a non-pointer object which is explicitly stateStorable.
+		# Get presence of pointer attribute.
+		my $isPointer = grep {$_ eq "pointer"} @{$declaration->{'attributes'}};
+		# Get list of named pointer variables that are allowed.
+		my @explicits = (defined($class) && exists($class->{'stateStorable'}->{'functionClass'}->{'variables'})) ? split(/\s*,\s*/,$class->{'stateStorable'}->{'functionClass'}->{'variables'}) : ();
+		my $isFunctionClass = grep {$_ eq $type} @{$stateStorables->{'functionClassInstances'}};
+		# Construct code to output.
+		foreach ( @{$declaration->{'variables'}} ) {
+		    (my $variableName = $_) =~ s/\s*=.*$//;
+		    next
+			if ( grep {lc($_) eq lc($variableName)} @{$stateStore->{'excludes'}} );
+		    next
+			unless ( (! $isPointer) || grep {lc($_) eq lc($variableName)} @explicits );
+		    my $rank = 0;
+		    if ( grep {$_ =~ m/^dimension\s*\(/} @{$declaration->{'attributes'}} ) {
+			my $dimensionDeclarator = join(",",map {/^dimension\s*\(([a-zA-Z0-9_,:\s]+)\)/} @{$declaration->{'attributes'}});
+			$rank        = ($dimensionDeclarator =~ tr/,//)+1;
+			$stateStores->{'rankMaximum'} = $rank
+			    if ( $rank > $stateStores->{'rankMaximum'} );
+		    }
+		    if ( grep {$_ eq "allocatable"} @{$declaration->{'attributes'}} ) {
+			# For allocatable variables we must first store the shape so that they can be reallocated on restore.
+			$stateStores->{'allocatablesFound'}  = 1;
+			$stateStores->{'dimensionalsFound'}  = 1
+			    if ( $rank > 0 );
+			$stateStore->{'outputCode'} .= " if (allocated(self%".$variableName.")) then\n";
+			$stateStore->{'outputCode'} .= "  write (stateFile) .true.\n";
+			$stateStore->{'outputCode'} .= "  write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n"
+			    if ( $rank > 0 );
+			$stateStore->{'inputCode'}  .= " read (stateFile) wasAllocated\n";
+			$stateStore->{'inputCode'}  .= " if (allocated(self%".$variableName.")) deallocate(self%".$variableName.")\n";
+			$stateStore->{'inputCode'}  .= " if (wasAllocated) then\n";
+			if ( $rank > 0 ) {
+			    $stateStore->{'inputCode'}  .= "  allocate(storedShape(".$rank."))\n";
+			    $stateStore->{'inputCode'}  .= "  read (stateFile) storedShape\n";
+			}
+			if ( $declaration->{'intrinsic'} eq "class" ) {
+			    (my $storable) = grep {$_->{'type'} eq $type} @{$stateStorables->{'stateStorables'}};
+			    my $functionName = $type."ClassRestore".($rank > 0 ? $rank."D" : "");
+			    $stateStores->{'stateRestoreModules'}->{$storable->{'module'}.",only:".$functionName} = 1;
+			    $stateStore->{'inputCode'}  .= "  call ".$functionName."(self%".$variableName.",stateFile".($rank > 0 ? ",storedShape" : "").")\n";
+			} else {
+			    $stateStore->{'inputCode'}  .= "  allocate(self%".$variableName.($rank > 0 ? "(".join(",",map {"storedShape(".$_.")"} 1..$rank).")" : "").")\n";
+			}
+			if ( $rank > 0 ) {
+			    $stateStore->{'inputCode'}  .= "  deallocate(storedShape)\n";
+			}
+		    }
+		    for(my $i=1;$i<=$rank;++$i) {
+			$stateStore->{'outputCode'} .= (" " x $i)."do i".$i."=lbound(self%".$variableName.",dim=".$i."),ubound(self%".$variableName.",dim=".$i.")\n";
+			$stateStore->{'inputCode'}  .= (" " x $i)."do i".$i."=lbound(self%".$variableName.",dim=".$i."),ubound(self%".$variableName.",dim=".$i.")\n";
+		    }
+		    my $arrayElement = $rank > 0 ? "(".join(",",map {"i".$_} 1..$rank).")" : "";
+		    $stateStores->{'labelUsed'}   = 1;
+		    $stateStore->{'outputCode'} .= " if (displayVerbosity() >= verbosityLevelWorking) then\n";
+		    if ( $declaration->{'intrinsic'} eq "class" ) {
+			$stateStore->{'outputCode'} .= "  select type (c__ => self%".$variableName.$arrayElement.")\n";
+			$stateStore->{'outputCode'} .= "  class is (".$declaration->{'type'}.")\n";
+			# <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
+			#  <description>
+			#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
+			#  </description>
+			# </workaround>
+			$stateStore->{'outputCode'} .= "   write (label,'(i16)') 0\n";
+			#$stateStore->{'outputCode'} .= "   write (label,'(i16)') sizeof(c__)\n";
+			$stateStore->{'outputCode'} .= "  end select\n";
+		    } else {
+			# <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
+			#  <description>
+			#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
+			#  </description>
+			# </workaround>
+			$stateStore->{'outputCode'} .= "   write (label,'(i16)') 0\n";
+			#$stateStore->{'outputCode'} .= "   write (label,'(i16)') sizeof(self%".$variableName.")\n";
+		    }
+		    $stateStore->{'outputCode'} .= "  call displayMessage('storing \"".$variableName.$arrayElement."\" with size '//trim(adjustl(label))//' bytes')\n";
+		    $stateStore->{'outputCode'} .= " end if\n";
+		    $stateStore->{'inputCode'}  .= " call displayMessage('restoring \"".$variableName.$arrayElement."\"',verbosity=verbosityLevelWorking)\n";
+		    $stateStore->{'inputCode'}  .= (" " x $rank)." call self%".$variableName.$arrayElement."%stateRestore(stateFile,gslStateFile".($isFunctionClass ? ",stateOperationID" : "").")\n";
+		    $stateStore->{'outputCode'} .= (" " x $rank)." call self%".$variableName.$arrayElement."%stateStore  (stateFile,gslStateFile".($isFunctionClass ? ",stateOperationID" : ",storeIdentifier=".($declaration->{'intrinsic'} eq "class" ? ".true." : ".false.")).")\n";
+		    for(my $i=1;$i<=$rank;++$i) {
+			$stateStore->{'outputCode'} .= (" " x ($rank+1-$i))."end do\n";
+			$stateStore->{'inputCode'}  .= (" " x ($rank+1-$i))."end do\n";
+		    }
+		    if ( grep {$_ eq "allocatable"} @{$declaration->{'attributes'}} ) {
+			$stateStore->{'inputCode'}  .= " end if\n";
+			$stateStore->{'outputCode'} .= " else\n";
+			$stateStore->{'outputCode'} .= "  write (stateFile) .false.\n";
+			$stateStore->{'outputCode'} .= " end if\n";
+		    }
+		    $stateStores->{'stateFileUsed'}    = 1;
+		    $stateStores->{'gslStateFileUsed'} = 1;
+		}
+	    }				    
+	} else {
+	    # Intrinsic type.
+	    if ( grep {$_ eq "pointer"} @{$declaration->{'attributes'}} ) {
+		# Pointers are currently not handled.
+	    } elsif ( exists($declaration->{'type'}) && defined($declaration->{'type'}) && $declaration->{'type'} =~ m/^\s*omp_lock_kind\s*/ ) {
+		# Do not store OpenMP lock variables.
+	    } elsif ( grep {$_ eq "allocatable"} @{$declaration->{'attributes'}} ) {
+		# For allocatable variables we must first store the shape so that they can be reallocated on restore.
+		my $dimensionDeclarator = join(",",map {/^dimension\s*\(([:,]+)\)/} @{$declaration->{'attributes'}});
+		my $rank = ($dimensionDeclarator =~ tr/://);
+		foreach my $variableName ( @{$declaration->{'variables'}} ) {
+		    next
+			if ( grep {lc($_) eq lc($variableName)} @{$stateStore->{'excludes'}} );
+		    $stateStores->{'allocatablesFound'}  = 1;
+		    $stateStores->{'dimensionalsFound'}  = 1;
+		    $stateStores->{'stateFileUsed'}      = 1;
+		    $stateStores->{'labelUsed'}          = 1;
+		    $stateStore->{'outputCode'}        .= " if (allocated(self%".$variableName.")) then\n";
+		    $stateStore->{'outputCode'}        .= "  if (displayVerbosity() >= verbosityLevelWorking) then\n";
+		    # <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
+		    #  <description>
+		    #   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
+		    #  </description>
+		    # </workaround>
+		    $stateStore->{'outputCode'} .= "   write (label,'(i16)') 0\n";
+		    #$stateStore->{'outputCode'}        .= "   write (label,'(i16)') sizeof(self%".$variableName.")\n";
+		    $stateStore->{'outputCode'}        .= "   call displayMessage('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
+		    $stateStore->{'outputCode'}        .= "  end if\n";
+		    $stateStore->{'outputCode'}        .= "  write (stateFile) .true.\n"
+			. "  write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n"
+			. "  write (stateFile) self%".$variableName."\n";
+		    $stateStore->{'outputCode'}        .= " else\n";
+		    $stateStore->{'outputCode'}        .= "  write (stateFile) .false.\n";
+		    $stateStore->{'outputCode'}        .= " end if\n";
+		    $stateStore->{'inputCode'}         .= " read (stateFile) wasAllocated\n";
+		    $stateStore->{'inputCode'}         .= " if (allocated(self%".$variableName.")) deallocate(self%".$variableName.")\n";
+		    $stateStore->{'inputCode'}         .= " if (wasAllocated) then\n";
+		    $stateStore->{'inputCode'}         .= "  call displayMessage('restoring \"".$variableName."\"',verbosity=verbosityLevelWorking)\n";
+		    $stateStore->{'inputCode'}         .= "  allocate(storedShape(".$rank."))\n";
+		    $stateStore->{'inputCode'}         .= "  read (stateFile) storedShape\n";
+		    $stateStore->{'inputCode'}         .= "  allocate(self%".$variableName."(".join(",",map {"storedShape(".$_.")"} 1..$rank)."))\n";
+		    $stateStore->{'inputCode'}         .= "  deallocate(storedShape)\n";
+		    $stateStore->{'inputCode'}         .= "  read (stateFile) self%".$variableName."\n";
+		    $stateStore->{'inputCode'}         .= " end if\n";
+		}
+	    } else {
+		# Statically-sized variable.
+		foreach ( @{$declaration->{'variables'}} ) {
+		    (my $variableName = $_) =~ s/\s*=.*$//;
+		    next
+			if ( grep {lc($_) eq lc($variableName)} @{$stateStore->{'excludes'}} );
+		    my $store = 1;
+		    if ( defined($class) && exists($class->{'stateStorable'}) && exists($class->{'stateStorable'}->{'restoreTo'}) ) {
+			foreach ( &List::ExtraUtils::as_array($class->{'stateStorable'}->{'restoreTo'}) ) {
+			    my @variables = split(/\s*,\s*/,$_->{'variables'});
+			    if ( grep {lc($_) eq lc($variableName)} @variables ) {
+				$store = 0;
+				$stateStore->{'inputCode'} .= " self%".$variableName."=".$_->{'state'}."\n";
+			    }
+			}
+		    }
+		    push(@{$stateStore->{'staticVariables'}},$variableName)
+			if ( $store );
+		}
+	    }
+	}
+	# Check for a custom state store/restore.
+	$stateStore->{'hasCustomStateStore'  } = 1
+	    if
+	    (
+	     $declaration->{'intrinsic'} eq "procedure"
+	     &&
+	     $declaration->{'variables'}->[0] =~ m/^stateStore=>/
+	    );
+	$stateStore->{'hasCustomStateRestore'} = 1
+	    if
+	    (
+	     $declaration->{'intrinsic'} eq "procedure"
+	     &&
+	     $declaration->{'variables'}->[0] =~ m/^stateRestore=>/
+	    );
+    }
 }
 
 sub lctrim {

@@ -402,7 +402,7 @@ contains
     parameters=inputParameters(self%parameters)
     call parameters%parametersGroupCopy(self%parameters)
     call Node_Components_Thread_Initialize(parameters)   
-    ! Determine out worker number.
+    ! Determine our worker number.
     numberWorker=OMP_Get_Thread_Num()
     if (self%reportTiming) then
        call timer_%stop()

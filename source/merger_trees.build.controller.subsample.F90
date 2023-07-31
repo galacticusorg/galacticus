@@ -141,15 +141,15 @@ contains
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
-    class           (mergerTreeBuildControllerSubsample), intent(inout)          :: self    
-    type            (treeNode                          ), intent(inout), pointer :: node
-    class           (mergerTreeWalkerClass             ), intent(inout)          :: treeWalker_
-    type            (treeNode                          )               , pointer :: nodeNext       , nodeChild  , &
-         &                                                                          nodeParent
-    class           (nodeComponentBasic                )               , pointer :: basic          , basicParent
-    double precision                                                             :: rateSubsampling
-    integer         (c_size_t                          )                         :: countNodes
-    logical                                                                      :: finished
+    class           (mergerTreeBuildControllerSubsample), intent(inout)           :: self    
+    type            (treeNode                          ), intent(inout), pointer  :: node
+    class           (mergerTreeWalkerClass             ), intent(inout), optional :: treeWalker_
+    type            (treeNode                          )               , pointer  :: nodeNext       , nodeChild  , &
+         &                                                                           nodeParent
+    class           (nodeComponentBasic                )               , pointer  :: basic          , basicParent
+    double precision                                                              :: rateSubsampling
+    integer         (c_size_t                          )                          :: countNodes
+    logical                                                                       :: finished
 
     ! The node which we return to the tree builder must be one that we have determined will not be pruned, since this node will be
     ! fully-processed by the tree builder. Therefore, if we prune a node we must check for pruning of the next node, and so on
@@ -179,7 +179,12 @@ contains
        else
           ! Prune the node.
           !! Get the next node to walk to in the tree.
-          subsampleControl=treeWalker_%next(nodeNext)
+          if (present(treeWalker_)) then
+             subsampleControl =  treeWalker_%next(nodeNext)
+          else
+             subsampleControl =  .false.
+             nodeNext         => null()
+          end if
           !! Decouple the node from the tree.
           nodeParent => node      %parent
           nodeChild  => nodeParent%firstChild

@@ -69,7 +69,7 @@ contains
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, treeNode
     implicit none
-    class(nodePropertyExtractorDarkMatterProfileShapeParameter), intent(inout)           :: self
+    class(nodePropertyExtractorDarkMatterProfileShapeParameter), intent(inout), target   :: self
     type (treeNode                                            ), intent(inout), target   :: node
     type (multiCounter                                        ), intent(inout), optional :: instance
     class(nodeComponentDarkMatterProfile                      ), pointer                 :: darkMatterProfile

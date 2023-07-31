@@ -104,15 +104,19 @@ contains
     Skip side branches of a tree under construction.
     !!}
     implicit none
-    class(mergerTreeBuildControllerBranchless), intent(inout)          :: self    
-    type (treeNode                           ), intent(inout), pointer :: node
-    class(mergerTreeWalkerClass              ), intent(inout)          :: treeWalker_
+    class(mergerTreeBuildControllerBranchless), intent(inout)           :: self    
+    type (treeNode                           ), intent(inout), pointer  :: node
+    class(mergerTreeWalkerClass              ), intent(inout), optional :: treeWalker_
     !$GLC attributes unused :: self
 
     branchlessControl=.true.
     ! Move to the next node in the tree while such exists, and the current node is on a side branch.
     do while (branchlessControl.and.associated(node%parent).and..not.node%isPrimaryProgenitor())
-       branchlessControl=treeWalker_%next(node)
+       if (present(treeWalker_)) then
+          branchlessControl=treeWalker_%next(node)
+       else
+          branchlessControl=.false.
+       end if
     end do
     return
   end function branchlessControl

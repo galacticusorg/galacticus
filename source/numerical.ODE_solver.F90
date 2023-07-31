@@ -459,6 +459,7 @@ contains
        call self%integrator%integrandSet (zCount,integrandsWrapper)
        latentIntegrator_=C_FunLoc(latentIntegrator)
     else
+       allocate(z0(0))
        latentIntegrator_=C_NULL_FUNPTR 
     end if
     ! Initialize error analyzer.

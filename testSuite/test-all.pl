@@ -575,6 +575,11 @@ my @executablesToRun = (
 	mpi      => 0
     },
     {
+	name     => "tests.dark_matter_profiles.Zhao1996.exe",                            # Tests of Zhao1996 dark matter profiles.
+	valgrind => 0,
+	mpi      => 0
+    },
+    {
 	name     => "tests.orbits.exe",                                                   # Tests of orbits.
 	valgrind => 0,
 	mpi      => 0

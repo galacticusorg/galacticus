@@ -328,7 +328,7 @@ contains
     Returns the time of collapse for a perturbation of linear theory overdensity {\normalfont \ttfamily criticalOverdensity}.
     !!}
     use :: Cosmology_Functions, only : timeToleranceRelativeBigCrunch
-    use :: Root_Finder        , only : rangeExpandMultiplicative     , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
+    use :: Root_Finder        , only : rangeExpandMultiplicative     , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
     implicit none
     class           (criticalOverdensityClass), intent(inout)              , target :: self
     double precision                          , intent(in   )                       :: criticalOverdensity
@@ -338,7 +338,7 @@ contains
     integer                                   , parameter                           :: countPerUnit            =10000
     double precision                          , allocatable  , dimension(:)         :: threshold
     double precision                                                                :: timeBigCrunch                   , collapseThresholdMinimum      , &
-         &                                                                             collapseThresholdMaximum
+         &                                                                             collapseThresholdMaximum        , timeGuess
     logical                                                                         :: updateResult                    , remakeTable
     integer                                                                         :: i                               , countThresholds               , &
          &                                                                             countNewLower                   , countNewUpper
@@ -456,7 +456,14 @@ contains
              ! Populate the table in regions where it was not previously populated.
              do i=1,countThresholds
                 self%criticalOverdensityTarget=self%collapseThreshold%x(i)
-                if (threshold(i) < 0.0d0) threshold(i)=self%finderTimeOfCollapse%find(rootGuess=self%timeOfCollapsePrevious)
+                if (threshold(i) < 0.0d0) then
+                   if (i == 1) then
+                      timeGuess=self%cosmologyFunctions_%cosmicTime(expansionFactor=1.0d0)
+                   else
+                      timeGuess=threshold(i-1)
+                   end if
+                   threshold(i)=self%finderTimeOfCollapse%find(rootGuess=timeGuess)
+                end if
              end do
              call self%collapseThreshold%populate(threshold)
              deallocate(threshold)

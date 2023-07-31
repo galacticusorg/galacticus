@@ -109,7 +109,7 @@ contains
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite
     implicit none
-    class           (nodePropertyExtractorRadiusBoundMass), intent(inout)           :: self
+    class           (nodePropertyExtractorRadiusBoundMass), intent(inout), target   :: self
     type            (treeNode                            ), intent(inout), target   :: node
     type            (multiCounter                        ), intent(inout), optional :: instance
     class           (nodeComponentSatellite              )               , pointer  :: satellite

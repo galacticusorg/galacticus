@@ -705,7 +705,7 @@ contains
     implicit none
     class           (posteriorSampleLikelihoodHaloMassFunction), intent(inout)               :: self
     class           (posteriorSampleStateClass                ), intent(inout)               :: simulationState
-    type            (modelParameterList                       ), intent(in   ), dimension(:) :: modelParametersActive_                       , modelParametersInactive_
+    type            (modelParameterList                       ), intent(inout), dimension(:) :: modelParametersActive_                       , modelParametersInactive_
     class           (posteriorSampleConvergenceClass          ), intent(inout)               :: simulationConvergence
     double precision                                           , intent(in   )               :: temperature                                  , logLikelihoodCurrent    , &
          &                                                                                      logPriorCurrent                              , logPriorProposed
