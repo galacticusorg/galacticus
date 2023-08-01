@@ -36,9 +36,9 @@ module Node_Component_Hot_Halo_Cold_Mode
   private
   public :: Node_Component_Hot_Halo_Cold_Mode_Initialize       , Node_Component_Hot_Halo_Cold_Mode_Rate_Compute       , &
        &    Node_Component_Hot_Halo_Cold_Mode_Scale_Set        , Node_Component_Hot_Halo_Cold_Mode_Tree_Initialize    , &
-       &    Node_Component_Hot_Halo_Cold_Mode_Node_Merger      , Node_Component_Hot_Halo_Cold_Mode_Formation          , &
        &    Node_Component_Hot_Halo_Cold_Mode_Thread_Initialize, Node_Component_Hot_Halo_Cold_Mode_Thread_Uninitialize, &
-       &    Node_Component_Hot_Halo_Cold_Mode_State_Store      , Node_Component_Hot_Halo_Cold_Mode_State_Restore
+       &    Node_Component_Hot_Halo_Cold_Mode_State_Store      , Node_Component_Hot_Halo_Cold_Mode_State_Restore      , &
+       &    Node_Component_Hot_Halo_Cold_Mode_Node_Merger
 
   !![
   <component>
@@ -150,7 +150,7 @@ contains
     Initializes the tree node hot halo cold mode methods module.
     !!}
     use :: Events_Hooks                                     , only : nodePromotionEvent       , satelliteMergerEvent    , openMPThreadBindingAtLevel, dependencyRegEx, &
-         &                                                           dependencyDirectionAfter
+         &                                                           dependencyDirectionAfter , haloFormationEvent
     use :: Galacticus_Nodes                                 , only : defaultHotHaloComponent
     use :: Hot_Halo_Cold_Mode_Density_Core_Radii            , only : hotHaloColdModeCoreRadii
     use :: Input_Parameters                                 , only : inputParameter           , inputParameters
@@ -175,6 +175,7 @@ contains
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
        call nodePromotionEvent  %attach(defaultHotHaloComponent,nodePromotion  ,openMPThreadBindingAtLevel,label='nodeComponentHotHaloColdMode'                          )
        call satelliteMergerEvent%attach(defaultHotHaloComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentHotHaloColdMode',dependencies=dependencies)
+       call haloFormationEvent  %attach(defaultHotHaloComponent,haloFormation  ,openMPThreadBindingAtLevel,label='nodeComponentHotHaloColdMode'                          )
     end if
     return
   end subroutine Node_Component_Hot_Halo_Cold_Mode_Thread_Initialize
@@ -188,7 +189,7 @@ contains
     !!{
     Uninitializes the tree node hot halo cold mode methods module.
     !!}
-    use :: Events_Hooks                                     , only : nodePromotionEvent       , satelliteMergerEvent
+    use :: Events_Hooks                                     , only : nodePromotionEvent       , satelliteMergerEvent     , haloFormationEvent
     use :: Galacticus_Nodes                                 , only : defaultHotHaloComponent
     use :: Node_Component_Hot_Halo_Cold_Mode_Structure_Tasks, only : darkMatterHaloScale_     , hotHaloColdModeCoreRadii_
     implicit none
@@ -205,6 +206,7 @@ contains
        !!]
        if (nodePromotionEvent  %isAttached(defaultHotHaloComponent,nodePromotion  )) call nodePromotionEvent  %detach(defaultHotHaloComponent,nodePromotion  )
        if (satelliteMergerEvent%isAttached(defaultHotHaloComponent,satelliteMerger)) call satelliteMergerEvent%detach(defaultHotHaloComponent,satelliteMerger)
+       if (haloFormationEvent  %isAttached(defaultHotHaloComponent,haloFormation  )) call haloFormationEvent  %detach(defaultHotHaloComponent,haloFormation  )
     end if
     return
   end subroutine Node_Component_Hot_Halo_Cold_Mode_Thread_Uninitialize
@@ -782,12 +784,7 @@ contains
     return
   end subroutine nodePromotion
 
-  !![
-  <haloFormationTask>
-   <unitName>Node_Component_Hot_Halo_Cold_Mode_Formation</unitName>
-  </haloFormationTask>
-  !!]
-  subroutine Node_Component_Hot_Halo_Cold_Mode_Formation(node)
+  subroutine haloFormation(self,node)
     !!{
     Updates the hot halo gas distribution at a formation event, if requested.
     !!}
@@ -795,8 +792,10 @@ contains
     use :: Galacticus_Nodes                     , only : nodeComponentHotHalo    , nodeComponentHotHaloColdMode, treeNode
     use :: Node_Component_Hot_Halo_Standard_Data, only : outflowReturnOnFormation
     implicit none
+    class(*                   ), intent(inout) :: self
     type (treeNode            ), intent(inout) :: node
     class(nodeComponentHotHalo), pointer       :: hotHalo
+    !$GLC attributes unused :: self
 
     ! Return immediately if return of outflowed gas on formation events is not requested.
     if (.not.outflowReturnOnFormation) return
@@ -829,7 +828,7 @@ contains
             &                                  )
     end select
     return
-  end subroutine Node_Component_Hot_Halo_Cold_Mode_Formation
+  end subroutine haloFormation
 
   !![
   <stateStoreTask>

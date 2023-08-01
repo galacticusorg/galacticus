@@ -187,23 +187,6 @@ contains
     use :: ISO_Varying_String                 , only : assignment(=)             , operator(//)                 , varying_string
     use :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsDeadlocked, deadlockStatusIsNotDeadlocked, deadlockStatusIsSuspendable , enumerationDeadlockStatusType
     use :: String_Handling                    , only : operator(//)
-    !![
-    <include directive="interTreeSatelliteAttach" type="moduleUse">
-    !!]
-    include 'events.inter_tree.satellite_attach.modules.inc'
-    !![
-    </include>
-    <include directive="interTreeSatelliteInsert" type="moduleUse">
-    !!]
-    include 'events.inter_tree.satellite_insert.modules.inc'
-    !![
-    </include>
-    <include directive="interTreePostProcess" type="moduleUse">
-    !!]
-    include 'events.inter_tree.post_process.modules.inc'
-    !![
-    </include>
-    !!]
     implicit none
     class           (nodeEvent                    ), intent(in   )          :: event
     type            (treeNode                     ), intent(inout), pointer :: node
@@ -388,12 +371,9 @@ contains
                       pullNode%parent%firstSatellite => pullNode
                       ! Allow any necessary manipulation of the nodes.
                       !![
-                      <include directive="interTreeSatelliteInsert" type="functionCall" functionType="void">
-                       <functionArgs>pullNode,node</functionArgs>
-                      !!]
-                      include 'events.inter_tree.satellite_insert.inc'
-                      !![
-                      </include>
+		      <eventHook name="interTreeSatelliteInsert">
+			<callWith>pullNode,node</callWith>
+		      </eventHook>
                       !!]
                    else
                       ! Attach pulled node as the primary progenitor of the target node as it is the primary (and only progenitor).
@@ -404,12 +384,9 @@ contains
                       ! have occurred if trees were processed unsplit. We also reset the basic mass and time last isolated for the same
                       ! reason.
                       !![
-                      <include directive="interTreeSatelliteAttach" type="functionCall" functionType="void">
-                       <functionArgs>pullNode</functionArgs>
-                      !!]
-                      include 'events.inter_tree.satellite_attach.inc'
-                      !![
-                      </include>
+		      <eventHook name="interTreeSatelliteAttach">
+			<callWith>pullNode</callWith>
+		      </eventHook>
                       !!]
                       pullBasic   => pullNode%basic()
                       attachBasic => node%basic()
@@ -500,12 +477,9 @@ contains
              end if
              ! Allow any postprocessing of the inter-tree transfer event that may be necessary.
              !![
-             <include directive="interTreePostProcess" type="functionCall" functionType="void">
-              <functionArgs>pullNode</functionArgs>
-             !!]
-             include 'events.inter_tree.postprocess.inc'
-             !![
-             </include>
+	     <eventHook name="interTreePostProcess">
+	       <callWith>pullNode</callWith>
+	     </eventHook>
              !!]
              ! Record that the event was performed, and set the deadlock status to not deadlocked since we changed the tree.
              deadlockStatus     =deadlockStatusIsNotDeadlocked

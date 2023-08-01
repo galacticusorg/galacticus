@@ -46,10 +46,9 @@ module Node_Component_Hot_Halo_Standard
   public :: Node_Component_Hot_Halo_Standard_Initialize  , Node_Component_Hot_Halo_Standard_Thread_Initialize  , &
        &    Node_Component_Hot_Halo_Standard_Scale_Set   , Node_Component_Hot_Halo_Standard_Tree_Initialize    , &
        &    Node_Component_Hot_Halo_Standard_Node_Merger , Node_Component_Hot_Halo_Standard_Thread_Uninitialize, &
-       &    Node_Component_Hot_Halo_Standard_Post_Step   , Node_Component_Hot_Halo_Standard_Formation          , &
+       &    Node_Component_Hot_Halo_Standard_Post_Step   , Node_Component_Hot_Halo_Standard_Reset              , &
        &    Node_Component_Hot_Halo_Standard_Rate_Compute, Node_Component_Hot_Halo_Standard_Pre_Evolve         , &
-       &    Node_Component_Hot_Halo_Standard_State_Store , Node_Component_Hot_Halo_Standard_State_Restore      , &
-       &    Node_Component_Hot_Halo_Standard_Reset
+       &    Node_Component_Hot_Halo_Standard_State_Store , Node_Component_Hot_Halo_Standard_State_Restore
 
   !![
   <component>
@@ -469,8 +468,8 @@ contains
     !!{
     Initializes the tree node hot halo methods module.
     !!}
-    use :: Events_Hooks    , only : nodePromotionEvent                   , satelliteMergerEvent    , postEvolveEvent, openMPThreadBindingAtLevel, &
-         &                          dependencyRegEx                      , dependencyDirectionAfter
+    use :: Events_Hooks    , only : nodePromotionEvent                   , satelliteMergerEvent    , postEvolveEvent   , openMPThreadBindingAtLevel, &
+         &                          dependencyRegEx                      , dependencyDirectionAfter, haloFormationEvent
     use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : defaultHotHaloComponent
     use :: Input_Parameters, only : inputParameter                       , inputParameters
@@ -503,6 +502,7 @@ contains
        call nodePromotionEvent  %attach(defaultHotHaloComponent,nodePromotion  ,openMPThreadBindingAtLevel,label='nodeComponentHotHaloStandard'                          )
        call satelliteMergerEvent%attach(defaultHotHaloComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentHotHaloStandard',dependencies=dependencies)
        call postEvolveEvent     %attach(defaultHotHaloComponent,postEvolve     ,openMPThreadBindingAtLevel,label='nodeComponentHotHaloStandard'                          )
+       call haloFormationEvent  %attach(defaultHotHaloComponent,haloFormation  ,openMPThreadBindingAtLevel,label='nodeComponentHotHaloStandard'                          )
        allocate(radiation                         )
        allocate(radiationFieldList_               )
        allocate(radiationCosmicMicrowaveBackground)
@@ -542,7 +542,7 @@ contains
     !!{
     Uninitializes the tree node hot halo methods module.
     !!}
-    use :: Events_Hooks    , only : nodePromotionEvent     , satelliteMergerEvent, postEvolveEvent
+    use :: Events_Hooks    , only : nodePromotionEvent     , satelliteMergerEvent, postEvolveEvent, haloFormationEvent
     use :: Galacticus_Nodes, only : defaultHotHaloComponent
     implicit none
 
@@ -568,6 +568,7 @@ contains
        if (nodePromotionEvent  %isAttached(defaultHotHaloComponent,nodePromotion  )) call nodePromotionEvent  %detach(defaultHotHaloComponent,nodePromotion  )
        if (satelliteMergerEvent%isAttached(defaultHotHaloComponent,satelliteMerger)) call satelliteMergerEvent%detach(defaultHotHaloComponent,satelliteMerger)
        if (postEvolveEvent     %isAttached(defaultHotHaloComponent,postEvolve     )) call postEvolveEvent     %detach(defaultHotHaloComponent,postEvolve     )
+       if (haloFormationEvent  %isAttached(defaultHotHaloComponent,haloFormation  )) call haloFormationEvent  %detach(defaultHotHaloComponent,haloFormation  )
     end if
     return
   end subroutine Node_Component_Hot_Halo_Standard_Thread_Uninitialize
@@ -2088,12 +2089,7 @@ contains
     return
   end subroutine Node_Component_Hot_Halo_Standard_Initializor
 
-  !![
-  <haloFormationTask>
-   <unitName>Node_Component_Hot_Halo_Standard_Formation</unitName>
-  </haloFormationTask>
-  !!]
-  subroutine Node_Component_Hot_Halo_Standard_Formation(node)
+  subroutine haloFormation(self,node)
     !!{
     Updates the hot halo gas distribution at a formation event, if requested.
     !!}
@@ -2105,6 +2101,7 @@ contains
     use :: Numerical_Constants_Atomic           , only : atomicMassHydrogen
     use :: Radiation_Fields                     , only : radiationFieldIntergalacticBackground
     implicit none
+    class           (*                   ), intent(inout) :: self
     type            (treeNode            ), intent(inout) :: node
     class           (nodeComponentBasic  ), pointer       :: basic
     class           (nodeComponentHotHalo), pointer       :: hotHalo
@@ -2113,6 +2110,7 @@ contains
     !$omp threadprivate(outflowedAbundances,chemicalDensities,chemicalMasses)
     double precision                                      :: hydrogenByMass       , massToDensityConversion, &
          &                                                   numberDensityHydrogen, temperature
+    !$GLC attributes unused :: self
 
     ! Return immediately if return of outflowed gas on formation events is not requested.
     if (.not.outflowReturnOnFormation) return
@@ -2183,7 +2181,7 @@ contains
     end select
 
     return
-  end subroutine Node_Component_Hot_Halo_Standard_Formation
+  end subroutine haloFormation
 
   !![
   <stateStoreTask>
