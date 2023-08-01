@@ -57,6 +57,12 @@ contains
     ! Allow arbitrary functions to act prior to the host change event.
     !![
     <eventHook name="satellitePreHostChange">
+      <import>
+	<module name="Galacticus_Nodes" symbols="treeNode"/>
+      </import>
+      <interface>
+	type(treeNode), intent(inout), target :: satelliteNode, newHostNode
+      </interface>
      <callWith>satelliteNode,newHostNode</callWith>
     </eventHook>
     !!]
@@ -75,6 +81,12 @@ contains
     ! Allow arbitrary functions to process the host change event.
     !![
     <eventHook name="satelliteHostChange">
+      <import>
+	<module name="Galacticus_Nodes" symbols="treeNode"/>
+      </import>
+      <interface>
+	type(treeNode), intent(inout), target :: satelliteNode
+      </interface>
      <callWith>satelliteNode</callWith>
     </eventHook>
     !!]
