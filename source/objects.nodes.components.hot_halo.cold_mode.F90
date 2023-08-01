@@ -97,6 +97,10 @@ module Node_Component_Hot_Halo_Cold_Mode
   ! Internal count of abundances.
   integer :: abundancesCount
 
+  ! A threadprivate object used to track to which thread events are attached.
+  integer :: thread
+  !$omp threadprivate(thread)
+
 contains
 
   !![
@@ -173,9 +177,9 @@ contains
        <objectBuilder class="hotHaloOutflowReincorporation" name="hotHaloOutflowReincorporation_" source="subParameters"/>
        !!]
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
-       call nodePromotionEvent  %attach(defaultHotHaloComponent,nodePromotion  ,openMPThreadBindingAtLevel,label='nodeComponentHotHaloColdMode'                          )
-       call satelliteMergerEvent%attach(defaultHotHaloComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentHotHaloColdMode',dependencies=dependencies)
-       call haloFormationEvent  %attach(defaultHotHaloComponent,haloFormation  ,openMPThreadBindingAtLevel,label='nodeComponentHotHaloColdMode'                          )
+       call nodePromotionEvent  %attach(thread,nodePromotion  ,openMPThreadBindingAtLevel,label='nodeComponentHotHaloColdMode'                          )
+       call satelliteMergerEvent%attach(thread,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentHotHaloColdMode',dependencies=dependencies)
+       call haloFormationEvent  %attach(thread,haloFormation  ,openMPThreadBindingAtLevel,label='nodeComponentHotHaloColdMode'                          )
     end if
     return
   end subroutine Node_Component_Hot_Halo_Cold_Mode_Thread_Initialize
@@ -204,9 +208,9 @@ contains
        <objectDestructor name="galacticStructure_"            />
        <objectDestructor name="hotHaloOutflowReincorporation_"/>
        !!]
-       if (nodePromotionEvent  %isAttached(defaultHotHaloComponent,nodePromotion  )) call nodePromotionEvent  %detach(defaultHotHaloComponent,nodePromotion  )
-       if (satelliteMergerEvent%isAttached(defaultHotHaloComponent,satelliteMerger)) call satelliteMergerEvent%detach(defaultHotHaloComponent,satelliteMerger)
-       if (haloFormationEvent  %isAttached(defaultHotHaloComponent,haloFormation  )) call haloFormationEvent  %detach(defaultHotHaloComponent,haloFormation  )
+       if (nodePromotionEvent  %isAttached(thread,nodePromotion  )) call nodePromotionEvent  %detach(thread,nodePromotion  )
+       if (satelliteMergerEvent%isAttached(thread,satelliteMerger)) call satelliteMergerEvent%detach(thread,satelliteMerger)
+       if (haloFormationEvent  %isAttached(thread,haloFormation  )) call haloFormationEvent  %detach(thread,haloFormation  )
     end if
     return
   end subroutine Node_Component_Hot_Halo_Cold_Mode_Thread_Uninitialize

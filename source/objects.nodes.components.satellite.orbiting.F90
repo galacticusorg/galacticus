@@ -138,6 +138,10 @@ module Node_Component_Satellite_Orbiting
   type            (enumerationInitializationTypeMassBoundType)            :: initializationTypeMassBound
   double precision                                                        :: radiusMaximumOverRadiusVirial        , densityContrastMassBound
 
+  ! A threadprivate object used to track to which thread events are attached.
+  integer :: thread
+  !$omp threadprivate(thread)
+
 contains
 
   !![
@@ -238,7 +242,7 @@ contains
        <objectBuilder class="virialOrbit"           name="virialOrbit_"           source="subParameters"/>
        <objectBuilder class="galacticStructure"     name="galacticStructure_"     source="subParameters"/>
        !!]
-       call satellitePreHostChangeEvent%attach(defaultSatelliteComponent,satellitePreHostChange,openMPThreadBindingAtLevel,label='nodeComponentSatelliteOrbiting')
+       call satellitePreHostChangeEvent%attach(thread,satellitePreHostChange,openMPThreadBindingAtLevel,label='nodeComponentSatelliteOrbiting')
        ! Check that the virial orbit class supports setting of angular coordinates.
        if (.not.virialOrbit_%isAngularlyResolved()) call Error_Report('"orbiting" satellite component requires a virialOrbit class which provides angularly-resolved orbits'//{introspection:location})
     end if
@@ -268,7 +272,7 @@ contains
        <objectDestructor name="virialOrbit_"          />
        <objectDestructor name="galacticStructure_"    />
        !!]
-       if (satellitePreHostChangeEvent%isAttached(defaultSatelliteComponent,satellitePreHostChange)) call satellitePreHostChangeEvent%detach(defaultSatelliteComponent,satellitePreHostChange)
+       if (satellitePreHostChangeEvent%isAttached(thread,satellitePreHostChange)) call satellitePreHostChangeEvent%detach(thread,satellitePreHostChange)
     end if
     return
   end subroutine Node_Component_Satellite_Orbiting_Thread_Uninitialize

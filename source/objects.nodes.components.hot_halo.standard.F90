@@ -280,6 +280,10 @@ module Node_Component_Hot_Halo_Standard
   double precision                                        , parameter :: scaleMassRelative                 =1.0d-3
   double precision                                        , parameter :: scaleRadiusRelative               =1.0d-1
 
+  ! A threadprivate object used to track to which thread events are attached.
+  integer :: thread
+  !$omp threadprivate(thread)
+
 contains
 
   !![
@@ -499,10 +503,10 @@ contains
        <objectBuilder class="galacticStructure"              name="galacticStructure_"              source="subParameters"/>
        !!]
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
-       call nodePromotionEvent  %attach(defaultHotHaloComponent,nodePromotion  ,openMPThreadBindingAtLevel,label='nodeComponentHotHaloStandard'                          )
-       call satelliteMergerEvent%attach(defaultHotHaloComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentHotHaloStandard',dependencies=dependencies)
-       call postEvolveEvent     %attach(defaultHotHaloComponent,postEvolve     ,openMPThreadBindingAtLevel,label='nodeComponentHotHaloStandard'                          )
-       call haloFormationEvent  %attach(defaultHotHaloComponent,haloFormation  ,openMPThreadBindingAtLevel,label='nodeComponentHotHaloStandard'                          )
+       call nodePromotionEvent  %attach(thread,nodePromotion  ,openMPThreadBindingAtLevel,label='nodeComponentHotHaloStandard'                          )
+       call satelliteMergerEvent%attach(thread,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentHotHaloStandard',dependencies=dependencies)
+       call postEvolveEvent     %attach(thread,postEvolve     ,openMPThreadBindingAtLevel,label='nodeComponentHotHaloStandard'                          )
+       call haloFormationEvent  %attach(thread,haloFormation  ,openMPThreadBindingAtLevel,label='nodeComponentHotHaloStandard'                          )
        allocate(radiation                         )
        allocate(radiationFieldList_               )
        allocate(radiationCosmicMicrowaveBackground)
@@ -565,10 +569,10 @@ contains
        <objectDestructor name="radiation"                         />
        <objectDestructor name="galacticStructure_"                />
        !!]
-       if (nodePromotionEvent  %isAttached(defaultHotHaloComponent,nodePromotion  )) call nodePromotionEvent  %detach(defaultHotHaloComponent,nodePromotion  )
-       if (satelliteMergerEvent%isAttached(defaultHotHaloComponent,satelliteMerger)) call satelliteMergerEvent%detach(defaultHotHaloComponent,satelliteMerger)
-       if (postEvolveEvent     %isAttached(defaultHotHaloComponent,postEvolve     )) call postEvolveEvent     %detach(defaultHotHaloComponent,postEvolve     )
-       if (haloFormationEvent  %isAttached(defaultHotHaloComponent,haloFormation  )) call haloFormationEvent  %detach(defaultHotHaloComponent,haloFormation  )
+       if (nodePromotionEvent  %isAttached(thread,nodePromotion  )) call nodePromotionEvent  %detach(thread,nodePromotion  )
+       if (satelliteMergerEvent%isAttached(thread,satelliteMerger)) call satelliteMergerEvent%detach(thread,satelliteMerger)
+       if (postEvolveEvent     %isAttached(thread,postEvolve     )) call postEvolveEvent     %detach(thread,postEvolve     )
+       if (haloFormationEvent  %isAttached(thread,haloFormation  )) call haloFormationEvent  %detach(thread,haloFormation  )
     end if
     return
   end subroutine Node_Component_Hot_Halo_Standard_Thread_Uninitialize

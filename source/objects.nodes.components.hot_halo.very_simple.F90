@@ -108,6 +108,10 @@ module Node_Component_Hot_Halo_Very_Simple
   double precision :: rateCooling
   !$omp threadprivate(gotCoolingRate,rateCooling)
 
+  ! A threadprivate object used to track to which thread events are attached.
+  integer :: thread
+  !$omp threadprivate(thread)
+
 contains
 
   subroutine Node_Component_Hot_Halo_Very_Simple_Initialize()
@@ -153,9 +157,9 @@ contains
        <objectBuilder class="accretionHalo"       name="accretionHalo_"       source="subParameters"/>
        !!]
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
-       call nodePromotionEvent  %attach(defaultHotHaloComponent,nodePromotion  ,openMPThreadBindingAtLevel,label='nodeComponentHotHaloVerySimple'                          )
-       call satelliteMergerEvent%attach(defaultHotHaloComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentHotHaloVerySimple',dependencies=dependencies)
-       call postEvolveEvent     %attach(defaultHotHaloComponent,postEvolve     ,openMPThreadBindingAtLevel,label='nodeComponentHotHaloVerySimple'                          )
+       call nodePromotionEvent  %attach(thread,nodePromotion  ,openMPThreadBindingAtLevel,label='nodeComponentHotHaloVerySimple'                          )
+       call satelliteMergerEvent%attach(thread,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentHotHaloVerySimple',dependencies=dependencies)
+       call postEvolveEvent     %attach(thread,postEvolve     ,openMPThreadBindingAtLevel,label='nodeComponentHotHaloVerySimple'                          )
     end if
     return
   end subroutine Node_Component_Hot_Halo_Very_Simple_Thread_Initialize
@@ -179,9 +183,9 @@ contains
        <objectDestructor name="coolingRate_"        />
        <objectDestructor name="accretionHalo_"      />
        !!]
-       if (nodePromotionEvent  %isAttached(defaultHotHaloComponent,nodePromotion  )) call nodePromotionEvent  %detach(defaultHotHaloComponent,nodePromotion  )
-       if (satelliteMergerEvent%isAttached(defaultHotHaloComponent,satelliteMerger)) call satelliteMergerEvent%detach(defaultHotHaloComponent,satelliteMerger)
-       if (postEvolveEvent     %isAttached(defaultHotHaloComponent,postEvolve     )) call postEvolveEvent     %detach(defaultHotHaloComponent,postEvolve     )
+       if (nodePromotionEvent  %isAttached(thread,nodePromotion  )) call nodePromotionEvent  %detach(thread,nodePromotion  )
+       if (satelliteMergerEvent%isAttached(thread,satelliteMerger)) call satelliteMergerEvent%detach(thread,satelliteMerger)
+       if (postEvolveEvent     %isAttached(thread,postEvolve     )) call postEvolveEvent     %detach(thread,postEvolve     )
     end if
     return
   end subroutine Node_Component_Hot_Halo_Very_Simple_Thread_Uninitialize

@@ -92,6 +92,10 @@ module Node_Component_Satellite_Preset
   </component>
   !!]
 
+  ! A threadprivate object used to track to which thread events are attached.
+  integer :: thread
+  !$omp threadprivate(thread)
+  
 contains
 
   !![
@@ -112,12 +116,12 @@ contains
     !$GLC attributes unused :: parameters_
 
     if (defaultSatelliteComponent%presetIsActive()) then
-       call            nodePromotionEvent%attach(defaultSatelliteComponent,nodePromotion           ,openMPThreadBindingAtLevel,label='nodeComponentSatellitePreset')
-       call      satelliteHostChangeEvent%attach(defaultSatelliteComponent,satelliteHostChange     ,openMPThreadBindingAtLevel,label='nodeComponentSatellitePreset')
-       call    branchJumpPostProcessEvent%attach(defaultSatelliteComponent,interTreePostProcess    ,openMPThreadBindingAtLevel,label='nodeComponentSatellitePreset')
-       call     interTreePostProcessEvent%attach(defaultSatelliteComponent,interTreePostProcess    ,openMPThreadBindingAtLevel,label='nodeComponentSatellitePreset')
-       call interTreeSatelliteInsertEvent%attach(defaultSatelliteComponent,interTreeSatelliteInsert,openMPThreadBindingAtLevel,label='nodeComponentSatellitePreset')
-       call interTreeSatelliteAttachEvent%attach(defaultSatelliteComponent,interTreeSatelliteAttach,openMPThreadBindingAtLevel,label='nodeComponentSatellitePreset')
+       call            nodePromotionEvent%attach(thread,nodePromotion           ,openMPThreadBindingAtLevel,label='nodeComponentSatellitePreset')
+       call      satelliteHostChangeEvent%attach(thread,satelliteHostChange     ,openMPThreadBindingAtLevel,label='nodeComponentSatellitePreset')
+       call    branchJumpPostProcessEvent%attach(thread,interTreePostProcess    ,openMPThreadBindingAtLevel,label='nodeComponentSatellitePreset')
+       call     interTreePostProcessEvent%attach(thread,interTreePostProcess    ,openMPThreadBindingAtLevel,label='nodeComponentSatellitePreset')
+       call interTreeSatelliteInsertEvent%attach(thread,interTreeSatelliteInsert,openMPThreadBindingAtLevel,label='nodeComponentSatellitePreset')
+       call interTreeSatelliteAttachEvent%attach(thread,interTreeSatelliteAttach,openMPThreadBindingAtLevel,label='nodeComponentSatellitePreset')
     end if
     return
   end subroutine Node_Component_Satellite_Preset_Thread_Initialize
@@ -137,12 +141,12 @@ contains
     implicit none
 
     if (defaultSatelliteComponent%presetIsActive()) then
-       if (           nodePromotionEvent%isAttached(defaultSatelliteComponent,nodePromotion           )) call            nodePromotionEvent%detach(defaultSatelliteComponent,nodePromotion           )
-       if (     satelliteHostChangeEvent%isAttached(defaultSatelliteComponent,satelliteHostChange     )) call      satelliteHostChangeEvent%detach(defaultSatelliteComponent,satelliteHostChange     )
-       if (   branchJumpPostProcessEvent%isAttached(defaultSatelliteComponent,interTreePostProcess    )) call    branchJumpPostProcessEvent%detach(defaultSatelliteComponent,interTreePostProcess    )
-       if (    interTreePostProcessEvent%isAttached(defaultSatelliteComponent,interTreePostProcess    )) call     interTreePostProcessEvent%detach(defaultSatelliteComponent,interTreePostProcess    )
-       if (interTreeSatelliteInsertEvent%isAttached(defaultSatelliteComponent,interTreeSatelliteInsert)) call interTreeSatelliteInsertEvent%detach(defaultSatelliteComponent,interTreeSatelliteInsert)
-       if (interTreeSatelliteAttachEvent%isAttached(defaultSatelliteComponent,interTreeSatelliteAttach)) call interTreeSatelliteAttachEvent%detach(defaultSatelliteComponent,interTreeSatelliteAttach)
+       if (           nodePromotionEvent%isAttached(thread,nodePromotion           )) call            nodePromotionEvent%detach(thread,nodePromotion           )
+       if (     satelliteHostChangeEvent%isAttached(thread,satelliteHostChange     )) call      satelliteHostChangeEvent%detach(thread,satelliteHostChange     )
+       if (   branchJumpPostProcessEvent%isAttached(thread,interTreePostProcess    )) call    branchJumpPostProcessEvent%detach(thread,interTreePostProcess    )
+       if (    interTreePostProcessEvent%isAttached(thread,interTreePostProcess    )) call     interTreePostProcessEvent%detach(thread,interTreePostProcess    )
+       if (interTreeSatelliteInsertEvent%isAttached(thread,interTreeSatelliteInsert)) call interTreeSatelliteInsertEvent%detach(thread,interTreeSatelliteInsert)
+       if (interTreeSatelliteAttachEvent%isAttached(thread,interTreeSatelliteAttach)) call interTreeSatelliteAttachEvent%detach(thread,interTreeSatelliteAttach)
     end if
     return
   end subroutine Node_Component_Satellite_Preset_Thread_Uninitialize
