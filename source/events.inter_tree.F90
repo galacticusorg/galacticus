@@ -372,6 +372,12 @@ contains
                       ! Allow any necessary manipulation of the nodes.
                       !![
 		      <eventHook name="interTreeSatelliteInsert">
+			<import>
+			  <module name="Galacticus_Nodes" symbols="treeNode"/>
+			</import>
+			<interface>
+			  type(treeNode), intent(inout), pointer :: pullNode, node
+			</interface>
 			<callWith>pullNode,node</callWith>
 		      </eventHook>
                       !!]
@@ -385,6 +391,12 @@ contains
                       ! reason.
                       !![
 		      <eventHook name="interTreeSatelliteAttach">
+			<import>
+			  <module name="Galacticus_Nodes" symbols="treeNode"/>
+			</import>
+			<interface>
+			  type(treeNode), intent(inout), pointer :: pullNode
+			</interface>
 			<callWith>pullNode</callWith>
 		      </eventHook>
                       !!]
@@ -478,6 +490,12 @@ contains
              ! Allow any postprocessing of the inter-tree transfer event that may be necessary.
              !![
 	     <eventHook name="interTreePostProcess">
+	       <import>
+		 <module name="Galacticus_Nodes" symbols="treeNode"/>
+	       </import>
+	       <interface>
+		 type(treeNode), intent(inout), pointer :: pullNode
+	       </interface>
 	       <callWith>pullNode</callWith>
 	     </eventHook>
              !!]

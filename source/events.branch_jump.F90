@@ -79,6 +79,12 @@ contains
     ! Allow any postprocessing of the branch jump event that may be necessary.
     !![
     <eventHook name="branchJumpPostProcess">
+      <import>
+	<module name="Galacticus_Nodes" symbols="treeNode"/>
+      </import>
+      <interface>
+	type(treeNode), intent(inout), pointer :: node
+      </interface>
      <callWith>node</callWith>
     </eventHook>
     !!]
