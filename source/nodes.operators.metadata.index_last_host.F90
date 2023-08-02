@@ -128,9 +128,9 @@ contains
     use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
-    class(*                 ), intent(inout) :: self
-    type (treeNode          ), intent(inout) :: node
-    class(nodeComponentBasic), pointer       :: basic
+    class(*                 ), intent(inout)         :: self
+    type (treeNode          ), intent(inout), target :: node
+    class(nodeComponentBasic), pointer               :: basic
 
     select type (self)
     class is (nodeOperatorIndexLastHost)

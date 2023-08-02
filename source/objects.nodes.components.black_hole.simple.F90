@@ -83,6 +83,10 @@ module Node_Component_Black_Hole_Simple
   ! Output options.
   logical          :: outputAccretion
 
+  ! A threadprivate object used to track to which thread events are attached.
+  integer :: thread
+  !$omp threadprivate(thread)
+
 contains
 
   !![
@@ -192,7 +196,7 @@ contains
        <objectBuilder class="starFormationRateSpheroids" name="starFormationRateSpheroids_" source="subParameters"/>
        !!]
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
-       call satelliteMergerEvent%attach(defaultBlackHoleComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentBlackHoleSimple',dependencies=dependencies)
+       call satelliteMergerEvent%attach(thread,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentBlackHoleSimple',dependencies=dependencies)
     end if
     return
   end subroutine Node_Component_Black_Hole_Simple_Thread_Initialize
@@ -217,7 +221,7 @@ contains
        <objectDestructor name="blackHoleBinaryMerger_"     />
        <objectDestructor name="starFormationRateSpheroids_"/>
        !!]
-       if (satelliteMergerEvent%isAttached(defaultBlackHoleComponent,satelliteMerger)) call satelliteMergerEvent%detach(defaultBlackHoleComponent,satelliteMerger)
+       if (satelliteMergerEvent%isAttached(thread,satelliteMerger)) call satelliteMergerEvent%detach(thread,satelliteMerger)
     end if
     return
   end subroutine Node_Component_Black_Hole_Simple_Thread_Uninitialize

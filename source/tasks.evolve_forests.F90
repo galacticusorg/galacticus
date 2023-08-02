@@ -407,7 +407,7 @@ contains
          &                                                                              outputTimeNext
     type            (varying_string               )                           , save :: message
     character       (len=20                       )                           , save :: label
-    !$omp threadprivate(tree,finished,iOutput,evolveToTime,message,label,treeIsNew,treeTimeEarliest,outputTimeNext)
+    !$omp threadprivate(tree,finished,iOutput,evolveToTime,message,label,treeIsNew,treeTimeEarliest,treeTimeLatest,outputTimeNext)
     logical                                                                   , save :: treeIsFinished                            , evolutionIsEventLimited     , &
          &                                                                              success                                   , removeTree                  , &
          &                                                                              suspendTree                               , treesDidEvolve              , &

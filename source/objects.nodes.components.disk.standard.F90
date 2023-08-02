@@ -180,6 +180,10 @@ module Node_Component_Disk_Standard
   ! Pipe attachment status.
   logical                                     :: pipesAttached                             =.false.
 
+  ! A threadprivate object used to track to which thread events are attached.
+  integer :: thread
+  !$omp threadprivate(thread)
+
 contains
 
   !![
@@ -280,8 +284,8 @@ contains
     ! Check if this implementation is selected. If so, initialize the mass distribution.
     if (defaultDiskComponent%standardIsActive()) then
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
-       call satelliteMergerEvent%attach(defaultDiskComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentDiskStandard',dependencies=dependencies)
-       call postEvolveEvent     %attach(defaultDiskComponent,postEvolve     ,openMPThreadBindingAtLevel,label='nodeComponentDiskStandard'                          )
+       call satelliteMergerEvent%attach(thread,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentDiskStandard',dependencies=dependencies)
+       call postEvolveEvent     %attach(thread,postEvolve     ,openMPThreadBindingAtLevel,label='nodeComponentDiskStandard'                          )
        ! Find our parameters.
        subParameters=parameters%subParameters('componentDisk')
        !![
@@ -362,8 +366,8 @@ contains
     implicit none
 
     if (defaultDiskComponent%standardIsActive()) then
-       if (satelliteMergerEvent%isAttached(defaultDiskComponent,satelliteMerger)) call satelliteMergerEvent%detach(defaultDiskComponent,satelliteMerger)
-       if (postEvolveEvent     %isAttached(defaultDiskComponent,postEvolve     )) call postEvolveEvent     %detach(defaultDiskComponent,postEvolve     )
+       if (satelliteMergerEvent%isAttached(thread,satelliteMerger)) call satelliteMergerEvent%detach(thread,satelliteMerger)
+       if (postEvolveEvent     %isAttached(thread,postEvolve     )) call postEvolveEvent     %detach(thread,postEvolve     )
        !![
        <objectDestructor name="darkMatterHaloScale_"        />
        <objectDestructor name="stellarPopulationProperties_"/>

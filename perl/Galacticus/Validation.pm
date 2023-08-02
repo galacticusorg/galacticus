@@ -12,9 +12,10 @@ use PDL::IO::HDF5;
 use Git;
 
 sub extract {
-    my $fileName = shift();
-    my $name     = shift();
-    my $suffix   = shift();
+    my $fileName          = shift();
+    my $name              = shift();
+    my $suffix            = shift();
+    my $parameterFileName = shift();
     my @likelihoods;
     my @results;
     my $model    = new PDL::IO::HDF5($fileName);
@@ -149,8 +150,9 @@ sub extract {
 	my $output;
 	$output =
 	{
-	    repoUrl => "https://github.com/galacticusorg/galacticus",
-	    commit =>
+	    repoUrl       => "https://github.com/galacticusorg/galacticus",
+	    parameterFile => $parameterFileName,
+	    commit        =>
 	    {
 		author =>
 		{

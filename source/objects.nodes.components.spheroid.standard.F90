@@ -182,6 +182,10 @@ module Node_Component_Spheroid_Standard
   double precision, parameter                 :: massMinimum                         =1.0d-06
   double precision, parameter                 :: angularMomentumMinimum              =1.0d-20
 
+  ! A threadprivate object used to track to which thread events are attached.
+  integer :: thread
+  !$omp threadprivate(thread)
+
 contains
 
   !![
@@ -274,10 +278,10 @@ contains
 
     ! Check if this implementation is selected. If so, initialize the mass distribution.
     if (defaultSpheroidComponent%standardIsActive()) then
-       call postEvolveEvent     %attach(defaultSpheroidComponent,postEvolve     ,openMPThreadBindingAtLevel,label='nodeComponentSpheroidStandard'                          )
+       call postEvolveEvent     %attach(thread,postEvolve     ,openMPThreadBindingAtLevel,label='nodeComponentSpheroidStandard'                          )
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
        dependencies(2)=dependencyRegEx(dependencyDirectionAfter,'^nodeComponentDisk')
-       call satelliteMergerEvent%attach(defaultSpheroidComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentSpheroidStandard',dependencies=dependencies)
+       call satelliteMergerEvent%attach(thread,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentSpheroidStandard',dependencies=dependencies)
        ! Find our parameters.
        subParameters=parameters%subParameters('componentSpheroid')
        !![
@@ -362,8 +366,8 @@ contains
     implicit none
 
     if (defaultSpheroidComponent%standardIsActive()) then
-       if (postEvolveEvent     %isAttached(defaultSpheroidComponent,postEvolve     )) call postEvolveEvent     %detach(defaultSpheroidComponent,postEvolve     )
-       if (satelliteMergerEvent%isAttached(defaultSpheroidComponent,satelliteMerger)) call satelliteMergerEvent%detach(defaultSpheroidComponent,satelliteMerger)
+       if (postEvolveEvent     %isAttached(thread,postEvolve     )) call postEvolveEvent     %detach(thread,postEvolve     )
+       if (satelliteMergerEvent%isAttached(thread,satelliteMerger)) call satelliteMergerEvent%detach(thread,satelliteMerger)
        !![
        <objectDestructor name="stellarPopulationProperties_"/>
        <objectDestructor name="darkMatterHaloScale_"        />
