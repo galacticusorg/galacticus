@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1690951072668,
+  "lastUpdate": 1690951081888,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "429de06c773f660e4d551bfdf44adcff5407204e",
-          "message": "fix: Deallocate `elementsToTrack` if necessary before reallocating",
-          "timestamp": "2022-12-20T17:18:46Z",
-          "tree_id": "3f54c2f22764414cab1ef835b54f1e62704cf345",
-          "url": "https://github.com/galacticusorg/galacticus/commit/429de06c773f660e4d551bfdf44adcff5407204e"
-        },
-        "date": 1671565950630,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 192.941,
-            "unit": "seconds",
-            "range": 0.234505650255011
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10624,6 +10594,60 @@ window.BENCHMARK_DATA = {
             "value": 223.701,
             "unit": "seconds",
             "range": 0.0787965735289962
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "55cac102888b7b0324e90e11ddc2e673fa851131",
+          "message": "Merge pull request #445 from galacticusorg/buildRefactor\n\nReplace `include` directives with events in some trivial cases",
+          "timestamp": "2023-08-02T01:22:21Z",
+          "tree_id": "8e731ac7269422465ea73bfbf9eb0741167bf769",
+          "url": "https://github.com/galacticusorg/galacticus/commit/55cac102888b7b0324e90e11ddc2e673fa851131"
+        },
+        "date": 1690951080792,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassMetallicityRelation",
+            "value": 3.27601298855862,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassSizeRelation",
+            "value": 9.50668579880912,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassVelocityDispersionRelation",
+            "value": 0.856109814363159,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupOccupationFraction",
+            "value": 23.969225876387,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassFunction",
+            "value": 70.7473742298182,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
+            "value": 1.35131210320676,
+            "unit": "-logℒ"
           }
         ]
       }
