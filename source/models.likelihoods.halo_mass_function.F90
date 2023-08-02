@@ -705,16 +705,16 @@ contains
     implicit none
     class           (posteriorSampleLikelihoodHaloMassFunction), intent(inout)               :: self
     class           (posteriorSampleStateClass                ), intent(inout)               :: simulationState
-    type            (modelParameterList                       ), intent(inout), dimension(:) :: modelParametersActive_                       , modelParametersInactive_
+    type            (modelParameterList                       ), intent(inout), dimension(:) :: modelParametersActive_                          , modelParametersInactive_
     class           (posteriorSampleConvergenceClass          ), intent(inout)               :: simulationConvergence
-    double precision                                           , intent(in   )               :: temperature                                  , logLikelihoodCurrent    , &
-         &                                                                                      logPriorCurrent                              , logPriorProposed
+    double precision                                           , intent(in   )               :: temperature                                     , logLikelihoodCurrent                            , &
+         &                                                                                      logPriorCurrent                                 , logPriorProposed
     real                                                       , intent(inout)               :: timeEvaluate
     double precision                                           , intent(  out), optional     :: logLikelihoodVariance
     logical                                                    , intent(inout), optional     :: forceAcceptance
-    double precision                                           , allocatable  , dimension(:) :: stateVector                                  , massFunction
-    double precision                                           , parameter                   :: errorFractionalMaximum                =1.0d+1
-    double precision                                           , parameter                   :: amplitudeFractionalPerturbationMinimum=1.0d-6, amplitudeFractionalPerturbationMaximum=1.0d+2
+    double precision                                           , allocatable  , dimension(:) :: stateVector                                     , massFunction
+    double precision                                           , parameter                   :: errorFractionalMaximum                   =1.0d+1
+    double precision                                           , parameter                   :: amplitudeFractionalPerturbationMinimum   =1.0d-6, amplitudeFractionalPerturbationMaximum   =1.0d+2
     class           (haloMassFunctionClass                    ), pointer                     :: haloMassFunction_
     type            (vector                                   )                              :: difference
     type            (integrator                               ), allocatable                 :: integrator_
@@ -722,10 +722,11 @@ contains
     type            (treeNode                                 ), pointer                     :: node
     class           (nodeComponentBasic                       ), pointer                     :: basic
     logical                                                                                  :: evaluationFailed
-    integer                                                                                  :: i                                            , status
-    double precision                                                                         :: countHalosMean                               , likelihood                                   , &
-         &                                                                                      argumentOffset                               , amplitudeFractionalPerturbationPeak          , &
-         &                                                                                      varianceFractionalModelDiscrepancy           , stoppingTimeParameter
+    integer                                                                                  :: i                                               , status
+    double precision                                                                         :: countHalosMean                                  , likelihood                                      , &
+         &                                                                                      argumentOffset                                  , amplitudeFractionalPerturbationPeak             , &
+         &                                                                                      varianceFractionalModelDiscrepancy              , stoppingTimeParameter                           , &
+         &                                                                                      amplitudeFractionalPerturbationMinimumLog        ,amplitudeFractionalPerturbationMaximumLog
     !$GLC attributes unused :: simulationConvergence, temperature, timeEvaluate, logLikelihoodCurrent, logPriorCurrent, modelParametersInactive_, forceAcceptance
 
     ! There is no variance in our likelihood estimate.
@@ -858,15 +859,30 @@ contains
                            &         -          stoppingTimeParameter    *log                       (countHalosMean/stoppingTimeParameter+1.0d0                       )
                    end if
                 end do
+                ! Find suitable limits for integration.
+                amplitudeFractionalPerturbationMinimumLog=log(amplitudeFractionalPerturbationMinimum)
+                if (integrandLikelihoodPoisson(amplitudeFractionalPerturbationMinimumLog) <= 0.0d0) then
+                   do while (integrandLikelihoodPoisson(amplitudeFractionalPerturbationMinimumLog) <= 0.0d0)
+                      amplitudeFractionalPerturbationMinimumLog=amplitudeFractionalPerturbationMinimumLog+1.0d0
+                   end do
+                   amplitudeFractionalPerturbationMinimumLog=amplitudeFractionalPerturbationMinimumLog-1.0d0
+                end if
+                amplitudeFractionalPerturbationMaximumLog=log(amplitudeFractionalPerturbationMaximum)
+                if (integrandLikelihoodPoisson(amplitudeFractionalPerturbationMaximumLog) <= 0.0d0) then
+                   do while (integrandLikelihoodPoisson(amplitudeFractionalPerturbationMaximumLog) <= 0.0d0)
+                      amplitudeFractionalPerturbationMaximumLog=amplitudeFractionalPerturbationMaximumLog-1.0d0
+                   end do
+                   amplitudeFractionalPerturbationMaximumLog=amplitudeFractionalPerturbationMaximumLog+1.0d0
+                end if
                 ! Integrate the Poisson distribution over the distribution of mean parameters.
                 allocate(integrator_)             
-                integrator_=integrator           (                                                          &
-                     &                                              integrandLikelihoodPoisson            , &
-                     &                            toleranceRelative=1.0d-3                                  &
+                integrator_=integrator           (                                                             &
+                     &                                              integrandLikelihoodPoisson               , &
+                     &                            toleranceRelative=1.0d-3                                     &
                      &                           )
-                likelihood =integrator_%integrate(                                                          &
-                     &                                              amplitudeFractionalPerturbationMinimum, &
-                     &                                              amplitudeFractionalPerturbationMaximum  &
+                likelihood =integrator_%integrate(                                                             &
+                     &                                              amplitudeFractionalPerturbationMinimumLog, &
+                     &                                              amplitudeFractionalPerturbationMaximumLog  &
                      &                           )
                 deallocate(integrator_)
                 ! Evaluate the log-likelihood, correcting for the maximum of the argument of the exponential which we factored out
@@ -933,16 +949,18 @@ contains
 
   contains
 
-    double precision function integrandLikelihoodPoisson(amplitudeFractionalPerturbation)
+    double precision function integrandLikelihoodPoisson(amplitudeFractionalPerturbationLog)
       !!{
       Integrand function for Poisson likelihood.
       !!}
       use :: Numerical_Constants_Math, only : Pi
       implicit none
-      double precision, intent(in   ) :: amplitudeFractionalPerturbation
-      double precision                :: argument
+      double precision, intent(in   ) :: amplitudeFractionalPerturbationLog
+      double precision                :: amplitudeFractionalPerturbation   , argument
       integer                         :: i
-      
+
+      ! Convert from logarithm of the amplitude, to the actual amplitude.
+      amplitudeFractionalPerturbation=exp(amplitudeFractionalPerturbationLog)
       ! Term related to the log-normal distribution of the perturbation amplitude.
       argument=-0.5d0*(log(amplitudeFractionalPerturbation)+1.0d0)**2
       ! Sum terms corresponding to each mass bin.
@@ -971,15 +989,16 @@ contains
                  &         -          stoppingTimeParameter    *log                       (countHalosMean/stoppingTimeParameter+1.0d0                       )
          end if
       end do
-      integrandLikelihoodPoisson=+exp(                            &
-           &                          min(                        &
-           &                              +0.0d0         ,        &
-           &                              +argument               &
-           &                              -argumentOffset         &
-           &                             )                        &
-           &                         )                            &
-           &                     /amplitudeFractionalPerturbation &
-           &                     /sqrt(2.0d0*Pi)
+      integrandLikelihoodPoisson=+exp(                            & ! ⎫
+           &                          min(                        & ! ⎪
+           &                              +0.0d0         ,        & ! ⎪
+           &                              +argument               & ! ⎬ Convert from logℒ to ℒ (offset).
+           &                              -argumentOffset         & ! ⎪
+           &                             )                        & ! ⎪
+           &                         )                            & ! ⎭
+           &                     /amplitudeFractionalPerturbation & ! ⎫ Normalize the distribution over the perturbation amplitude, λ.
+           &                     /sqrt(2.0d0*Pi)                  & ! ⎭
+           &                     *amplitudeFractionalPerturbation   ! { Convert from d/dλ to d/dlogλ.
       return
     end function integrandLikelihoodPoisson
     
