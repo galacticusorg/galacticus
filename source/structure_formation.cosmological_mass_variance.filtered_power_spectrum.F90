@@ -103,7 +103,8 @@
      ! Unique values in the variance table and their corresponding indices.
      type            (uniqueTable                            ), allocatable, dimension(:) :: rootVarianceUniqueTable
      logical                                                                              :: monotonicInterpolation                        , growthIsMassDependent_                               , &
-         &                                                                                   normalizationSigma8                   =.false., truncateAtParticleHorizon
+          &                                                                                  normalizationSigma8                   =.false., truncateAtParticleHorizon                            , &
+          &                                                                                  storeTabulations
    contains
      !![
      <methods>
@@ -168,7 +169,7 @@ contains
     double precision                                                         :: sigma8Value                        , tolerance                                  , &
          &                                                                      toleranceTopHat                    , wavenumberReference
     logical                                                                  :: monotonicInterpolation             , nonMonotonicIsFatal                        , &
-         &                                                                      truncateAtParticleHorizon
+         &                                                                      truncateAtParticleHorizon          , storeTabulations
 
     !![
     <objectBuilder    class="cosmologyParameters"                name="cosmologyParameters_"                        source="parameters"                                                  />
@@ -243,6 +244,12 @@ contains
       <defaultValue>.false.</defaultValue>
       <description>If true then integration over the power spectrum is truncated at a wavenumber $k=1/H_\mathrm{p}(t_0)$, where $H_\mathrm{p}(t_0)$ is the comoving distance to the particle horizon at the present epoch. Otherwise, integration continues to $k=0$.</description>
     </inputParameter>
+    <inputParameter>
+      <name>storeTabulations</name>
+      <source>parameters</source>
+      <defaultValue>.true.</defaultValue>
+      <description>If true then tabulated $\sigma(M)$ results are stored to file for future re-use.</description>
+    </inputParameter>
     <conditionalCall>
      <call>
       self=filteredPowerConstructorInternal(                                                                         &amp;
@@ -251,6 +258,7 @@ contains
        &amp;                                nonMonotonicIsFatal                =nonMonotonicIsFatal                , &amp;
        &amp;                                monotonicInterpolation             =monotonicInterpolation             , &amp;
        &amp;                                truncateAtParticleHorizon          =truncateAtParticleHorizon          , &amp;
+       &amp;                                storeTabulations                   =storeTabulations                   , &amp;
        &amp;                                cosmologyParameters_               =cosmologyParameters_               , &amp;
        &amp;                                cosmologyFunctions_                =cosmologyFunctions_                , &amp;
        &amp;                                linearGrowth_                      =linearGrowth_                      , &amp;
@@ -290,7 +298,7 @@ contains
     return
   end function filteredPowerConstructorParameters
 
-  function filteredPowerConstructorInternal(sigma8,cosmologicalMassVarianceReference,powerSpectrumPrimordialTransferredReference,wavenumberReference,tolerance,toleranceTopHat,nonMonotonicIsFatal,monotonicInterpolation,truncateAtParticleHorizon,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,transferFunction_,powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_,powerSpectrumWindowFunctionTopHat_) result(self)
+  function filteredPowerConstructorInternal(sigma8,cosmologicalMassVarianceReference,powerSpectrumPrimordialTransferredReference,wavenumberReference,tolerance,toleranceTopHat,nonMonotonicIsFatal,monotonicInterpolation,truncateAtParticleHorizon,storeTabulations,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,transferFunction_,powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_,powerSpectrumWindowFunctionTopHat_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily filteredPower} linear growth class.
     !!}
@@ -305,7 +313,7 @@ contains
     double precision                                         , intent(in   )                   :: tolerance                                  , toleranceTopHat
     double precision                                         , intent(in   )        , optional :: wavenumberReference                        , sigma8
     logical                                                  , intent(in   )                   :: nonMonotonicIsFatal                        , monotonicInterpolation, &
-         &                                                                                        truncateAtParticleHorizon
+         &                                                                                        truncateAtParticleHorizon                  , storeTabulations
     class           (cosmologyParametersClass               ), intent(in   ), target           :: cosmologyParameters_
     class           (cosmologyFunctionsClass                ), intent(in   ), target           :: cosmologyFunctions_
     class           (powerSpectrumPrimordialTransferredClass), intent(in   ), target           :: powerSpectrumPrimordialTransferred_
@@ -318,7 +326,7 @@ contains
     double precision                                                                           :: halfModeMass
     integer                                                                                    :: status
     !![
-    <constructorAssign variables="tolerance, toleranceTopHat, nonMonotonicIsFatal, monotonicInterpolation, truncateAtParticleHorizon, *cosmologyParameters_, *cosmologyFunctions_, *linearGrowth_, *transferFunction_, *powerSpectrumPrimordialTransferred_, *powerSpectrumWindowFunction_, *powerSpectrumWindowFunctionTopHat_"/>
+    <constructorAssign variables="tolerance, toleranceTopHat, nonMonotonicIsFatal, monotonicInterpolation, truncateAtParticleHorizon, storeTabulations, *cosmologyParameters_, *cosmologyFunctions_, *linearGrowth_, *transferFunction_, *powerSpectrumPrimordialTransferred_, *powerSpectrumWindowFunction_, *powerSpectrumWindowFunctionTopHat_"/>
     !!]
 
     if (.not.present(powerSpectrumWindowFunctionTopHat_)) then
@@ -1237,8 +1245,8 @@ contains
     type            (hdf5Object                           )                              :: dataFile
     integer                                                                              :: i
 
-    ! Return immediately if the file does not exist.
-    if (.not.File_Exists(char(self%fileName))) return
+    ! Return immediately if the file does not exist or we are not using stored solutions.
+    if (.not.self%storeTabulations.or..not.File_Exists(char(self%fileName))) return
     call displayMessage('reading σ(M) data from: '//self%fileName,verbosityLevelWorking)
     !$ call hdf5Access%set()
     call dataFile%openFile     (char(self%fileName)          ,overWrite                       =.false.)
@@ -1304,6 +1312,8 @@ contains
     type            (hdf5Object                           )                              :: dataFile
     integer                                                                              :: i
 
+    ! Return immediately if we are not using stored solutions.
+    if (.not.self%storeTabulations) return
     call displayMessage('writing σ(M) data to: '//self%fileName,verbosityLevelWorking)
     ! Prepare data.
     allocate(massTmp              (self%rootVarianceTable(1)%size()                 ))
