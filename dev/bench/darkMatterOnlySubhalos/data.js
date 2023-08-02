@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1690951077493,
+  "lastUpdate": 1690998484486,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "41073b970bbcceef060e5d689f7fc81502c552d3",
-          "message": "fix: `mpiCounter` destructor must reset initialization state\n\nOtherwise such an object can be finalizef twice causing a segfault.",
-          "timestamp": "2022-12-22T17:54:28Z",
-          "tree_id": "dd72f9c5bdeda938043f148e7570c946bc8b6811",
-          "url": "https://github.com/galacticusorg/galacticus/commit/41073b970bbcceef060e5d689f7fc81502c552d3"
-        },
-        "date": 1671742146629,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 52.371,
-            "unit": "seconds",
-            "range": 0.0567000881838577
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8728,6 +8698,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 24902.6397568805,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "d7c95ab107aca859ee58abcbda553d5d5df46b33",
+          "message": "fix: Mark variable as `threadprivate`\n\nVariable `treeTimeLatest` in `taskEvolveForests` class was not `threadprivate`, but is used independently without locking by all threads. Marking it `threadprivate` avoids possible race conditions.",
+          "timestamp": "2023-08-02T14:27:27Z",
+          "tree_id": "c66d3c0a485581f3a76d1b2f49ce139a509b137e",
+          "url": "https://github.com/galacticusorg/galacticus/commit/d7c95ab107aca859ee58abcbda553d5d5df46b33"
+        },
+        "date": 1690998482013,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 49.816,
+            "unit": "seconds",
+            "range": 0.0296715351819036
           }
         ]
       }
