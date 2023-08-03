@@ -50,6 +50,7 @@
      final     ::                                      sidmCoreNFWDestructor
      procedure :: autoHook                          => sidmCoreNFWAutoHook
      procedure :: calculationReset                  => sidmCoreNFWCalculationReset
+     procedure :: get                               => sidmCoreNFWGet
      procedure :: radiusCore                        => sidmCoreNFWRadiusCore
      procedure :: density                           => sidmCoreNFWDensity
      procedure :: densityLogSlope                   => sidmCoreNFWDensityLogSlope
@@ -203,6 +204,76 @@ contains
     if (allocated(self%genericEnclosedMassRadius              )) deallocate(self%genericEnclosedMassRadius              )
     return
   end subroutine sidmCoreNFWCalculationReset
+
+  function sidmCoreNFWGet(self,node,weightBy,weightIndex) result(massDistribution_)
+    !!{
+    Return the dark matter mass distribution for the given {\normalfont \ttfamily node}.
+    !!}
+    use :: Galacticus_Nodes          , only : nodeComponentBasic
+    use :: Galactic_Structure_Options, only : componentTypeDarkHalo               , massTypeDark                       , weightByMass
+    use :: Mass_Distributions        , only : massDistributionSphericalSIDMCoreNFW, kinematicsDistributionCollisionless, massDistributionNFW, nonAnalyticSolversNumerical
+    implicit none
+    class           (massDistributionClass              ), pointer                 :: massDistribution_
+    type            (kinematicsDistributionCollisionless), pointer                 :: kinematicsDistribution_
+    class           (darkMatterProfileDMOSIDMCoreNFW    ), intent(inout)           :: self
+    type            (treeNode                           ), intent(inout)           :: node
+    type            (enumerationWeightByType            ), intent(in   ), optional :: weightBy
+    integer                                              , intent(in   ), optional :: weightIndex
+    class           (massDistributionClass              ), pointer                 :: massDistributionDecorated
+    class           (nodeComponentBasic                 ), pointer                 :: basic
+    double precision                                                               :: radiusVirial
+    !![
+    <optionalArgument name="weightBy" defaultsTo="weightByMass" />
+    !!]
+
+    ! Assume a null distribution by default.
+    massDistribution_ => null()
+    ! If weighting is not by mass, return a null profile.
+    if (weightBy_ /= weightByMass) return
+    ! Create the mass distribution.
+    allocate(massDistributionSphericalSIDMCoreNFW :: massDistribution_)
+    select type(massDistribution_)
+    type is (massDistributionSphericalSIDMCoreNFW)
+       radiusVirial              =  self%darkMatterHaloScale_ %radiusVirial(node                     )
+       massDistributionDecorated => self%darkMatterProfileDMO_%get         (node,weightBy,weightIndex)
+       basic                     => node                      %basic       (                         )
+       select type (massDistributionDecorated)
+       class is (massDistributionNFW)
+          !![
+	  <referenceConstruct object="massDistribution_">
+	    <constructor>
+              massDistributionSphericalSIDMCoreNFW(                                                         &amp;
+	      &amp;                                factorRadiusCore   =self %factorRadiusCore             , &amp;
+	      &amp;                                timeAge            =basic%time                       (), &amp;
+	      &amp;                                nonAnalyticSolver  =      nonAnalyticSolversNumerical  , &amp;
+	      &amp;                                massDistribution_  =      massDistributionDecorated    , &amp;
+	      &amp;                                darkMatterParticle_=self %darkMatterParticle_          , &amp;
+              &amp;                                componentType      =      componentTypeDarkHalo        , &amp;
+              &amp;                                massType           =      massTypeDark                   &amp;
+              &amp;                               )
+	    </constructor>
+	  </referenceConstruct>
+	  <objectDestructor name="massDistribution_"/>
+          !!]
+       class default
+          call Error_Report('expected a spherical mass distribution'//{introspection:location})
+       end select
+    end select
+    allocate(kinematicsDistribution_)
+    !![
+    <referenceConstruct object="kinematicsDistribution_">
+      <constructor>
+        kinematicsDistributionCollisionless( &amp;
+	 &amp;                             )
+      </constructor>
+    </referenceConstruct>
+    !!]
+    call massDistribution_%setKinematicsDistribution(kinematicsDistribution_)
+    !![
+    <objectDestructor name="kinematicsDistribution_"/>
+    !!]
+    return
+  end function sidmCoreNFWGet
 
   double precision function sidmCoreNFWRadiusCore(self,node)
     !!{
