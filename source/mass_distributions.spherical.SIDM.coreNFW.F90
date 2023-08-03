@@ -116,11 +116,12 @@ contains
     class is (massDistributionNFW)
        self=massDistributionSphericalSIDMCoreNFW(factorRadiusCore,timeAge,enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),massDistribution_,darkMatterParticle_,enumerationComponentTypeEncode(componentType,includesPrefix=.false.),enumerationMassTypeEncode(massType,includesPrefix=.false.))
     class default
-       call Error_Report('a spherically-symmetric mass distribution is required'//{introspection:location})
+       call Error_Report('an NFW mass distribution is required'//{introspection:location})
     end select
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="darkMatterParticle_" />
+    <objectDestructor name="darkMatterParticle_"/>
+    <objectDestructor name="massDistribution_"  />
     !!]
     return
   end function sphericalSIDMCoreNFWConstructorParameters
