@@ -347,8 +347,12 @@ sub Build_Children {
 		    $unitRawCode .= $rawLine
 			unless ( $closer );
 		} until ( eof($code) );
-		die("Build_Children: no matching unit closer was found for opener '".$opener."'")
-		    unless ( $closer );
+		unless ( $closer ) {
+		    chomp($opener);
+		    $opener =~ s/^\s*//;
+		    $opener =~ s/\s*$//;
+		    die("Build_Children: no matching unit closer was found for opener '".$opener."'");
+		}
  	    }
 	    last
 		if ( $unitFound );
