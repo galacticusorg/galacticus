@@ -93,6 +93,7 @@
      </methods>
      !!]
      final     ::                                      sidmIsothermalDestructor
+     procedure :: get                               => sidmIsothermalGet
      procedure :: autoHook                          => sidmIsothermalAutoHook
      procedure :: calculationReset                  => sidmIsothermalCalculationReset
      procedure :: density                           => sidmIsothermalDensity
@@ -219,6 +220,73 @@ contains
     if (calculationResetEvent%isAttached(self,sidmIsothermalCalculationReset)) call calculationResetEvent%detach(self,sidmIsothermalCalculationReset)
     return
   end subroutine sidmIsothermalDestructor
+
+  function sidmIsothermalGet(self,node,weightBy,weightIndex) result(massDistribution_)
+    !!{
+    Return the dark matter mass distribution for the given {\normalfont \ttfamily node}.
+    !!}
+    use :: Galacticus_Nodes          , only : nodeComponentBasic
+    use :: Galactic_Structure_Options, only : componentTypeDarkHalo                  , massTypeDark                        , weightByMass
+    use :: Mass_Distributions        , only : massDistributionSphericalSIDMIsothermal, kinematicsDistributionSIDMIsothermal, nonAnalyticSolversNumerical, massDistributionSpherical
+    implicit none
+    class           (massDistributionClass               ), pointer                 :: massDistribution_
+    type            (kinematicsDistributionSIDMIsothermal), pointer                 :: kinematicsDistribution_
+    class           (darkMatterProfileDMOSIDMIsothermal  ), intent(inout)           :: self
+    type            (treeNode                            ), intent(inout)           :: node
+    type            (enumerationWeightByType             ), intent(in   ), optional :: weightBy
+    integer                                               , intent(in   ), optional :: weightIndex
+    class           (massDistributionClass               ), pointer                 :: massDistributionDecorated
+    class           (nodeComponentBasic                  ), pointer                 :: basic
+    !![
+    <optionalArgument name="weightBy" defaultsTo="weightByMass" />
+    !!]
+
+    ! Assume a null distribution by default.
+    massDistribution_ => null()
+    ! If weighting is not by mass, return a null profile.
+    if (weightBy_ /= weightByMass) return
+    ! Create the mass distribution.
+    allocate(massDistributionSphericalSIDMIsothermal :: massDistribution_)
+    select type(massDistribution_)
+    type is (massDistributionSphericalSIDMIsothermal)
+       massDistributionDecorated => self%darkMatterProfileDMO_%get  (node,weightBy,weightIndex)
+       basic                     => node                      %basic(                         )
+       select type (massDistributionDecorated)
+       class is (massDistributionSpherical)
+          !![
+	  <referenceConstruct object="massDistribution_">
+	    <constructor>
+              massDistributionSphericalSIDMIsothermal(                                                         &amp;
+	      &amp;                                   timeAge            =basic%time                       (), &amp;
+	      &amp;                                   nonAnalyticSolver  =      nonAnalyticSolversNumerical  , &amp;
+	      &amp;                                   massDistribution_  =      massDistributionDecorated    , &amp;
+	      &amp;                                   darkMatterParticle_=self %darkMatterParticle_          , &amp;
+              &amp;                                   componentType      =      componentTypeDarkHalo        , &amp;
+              &amp;                                   massType           =      massTypeDark                   &amp;
+              &amp;                                  )
+	    </constructor>
+	  </referenceConstruct>
+	  <objectDestructor name="massDistribution_"/>
+          !!]
+       class default
+          call Error_Report('expected a spherical mass distribution'//{introspection:location})
+       end select
+    end select
+    allocate(kinematicsDistribution_)
+    !![
+    <referenceConstruct object="kinematicsDistribution_">
+      <constructor>
+        kinematicsDistributionSIDMIsothermal( &amp;
+	 &amp;                              )
+      </constructor>
+    </referenceConstruct>
+    !!]
+    call massDistribution_%setKinematicsDistribution(kinematicsDistribution_)
+    !![
+    <objectDestructor name="kinematicsDistribution_"/>
+    !!]
+    return
+  end function sidmIsothermalGet
 
   subroutine sidmIsothermalCalculationReset(self,node)
     !!{
