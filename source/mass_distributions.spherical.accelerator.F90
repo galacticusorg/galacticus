@@ -67,7 +67,8 @@ contains
     type            (inputParameters                     ), intent(inout) :: parameters
     class           (massDistributionClass               ), pointer       :: massDistribution_
     double precision                                                      :: toleranceRelative, factorRadiusMaximum
-    type            (varying_string                      )                :: componentType    , massType
+    type            (varying_string                      )                :: componentType    , massType           , &
+         &                                                                   nonAnalyticSolver
 
     !![
     <inputParameter>
@@ -81,6 +82,12 @@ contains
       <defaultValue>3.0d0</defaultValue>
       <source>parameters</source>
       <description>The maximum factor by which to interpolate in radius.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>nonAnalyticSolver</name>
+      <defaultValue>var_str('fallThrough')</defaultValue>
+      <source>parameters</source>
+      <description>Selects how solutions are computed when no analytic solution is available. If set to ``{\normalfont \ttfamily fallThrough}'' then the solution ignoring heating is used, while if set to ``{\normalfont \ttfamily numerical}'' then numerical solvers are used to find solutions.</description>
     </inputParameter>
     <inputParameter>
       <name>componentType</name>
@@ -98,7 +105,7 @@ contains
     !!]
     select type (massDistribution_)
     class is (massDistributionSpherical)
-       self=massDistributionSphericalAccelerator(toleranceRelative,factorRadiusMaximum,massDistribution_,enumerationComponentTypeEncode(componentType,includesPrefix=.false.),enumerationMassTypeEncode(massType,includesPrefix=.false.))
+       self=massDistributionSphericalAccelerator(toleranceRelative,factorRadiusMaximum,enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),massDistribution_,enumerationComponentTypeEncode(componentType,includesPrefix=.false.),enumerationMassTypeEncode(massType,includesPrefix=.false.))
     class default
        call Error_Report('a spherically-symmetric mass distribution is required'//{introspection:location})
     end select
@@ -109,7 +116,7 @@ contains
     return
   end function sphericalAcceleratorConstructorParameters
   
-  function sphericalAcceleratorConstructorInternal(toleranceRelative,factorRadiusMaximum,massDistribution_,componentType,massType) result(self)
+  function sphericalAcceleratorConstructorInternal(toleranceRelative,factorRadiusMaximum,nonAnalyticSolver,massDistribution_,componentType,massType) result(self)
     !!{
     Constructor for ``sphericalAccelerator'' mass distribution class.
     !!}
@@ -117,14 +124,15 @@ contains
     type            (massDistributionSphericalAccelerator)                          :: self
     class           (massDistributionSpherical           ), intent(in   ), target   :: massDistribution_
     double precision                                      , intent(in   )           :: toleranceRelative, factorRadiusMaximum
+    type            (enumerationNonAnalyticSolversType   ), intent(in   )           :: nonAnalyticSolver
     type            (enumerationComponentTypeType        ), intent(in   ), optional :: componentType
     type            (enumerationMassTypeType             ), intent(in   ), optional :: massType
     !![
-    <constructorAssign variables="toleranceRelative, factorRadiusMaximum, *massDistribution_, componentType, massType"/>
+    <constructorAssign variables="toleranceRelative, factorRadiusMaximum, *massDistribution_, nonAnalyticSolver, componentType, massType"/>
     !!]
 
     self%factorRadiusLogarithmicMaximum=+log(sqrt(factorRadiusMaximum))
-    self%dimensionless=self%massDistribution_%isDimensionless()
+    self%dimensionless                 =self%massDistribution_%isDimensionless()
     return
   end function sphericalAcceleratorConstructorInternal
 

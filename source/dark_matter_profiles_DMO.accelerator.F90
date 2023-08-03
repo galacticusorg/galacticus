@@ -163,7 +163,7 @@ contains
     Return the dark matter mass distribution for the given {\normalfont \ttfamily node}.
     !!}
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo               , massTypeDark                       , weightByMass
-    use :: Mass_Distributions        , only : massDistributionSphericalAccelerator, kinematicsDistributionCollisionless, massDistributionSpherical
+    use :: Mass_Distributions        , only : massDistributionSphericalAccelerator, kinematicsDistributionCollisionless, massDistributionSpherical, nonAnalyticSolversNumerical
     implicit none
     class           (massDistributionClass              ), pointer                 :: massDistribution_
     type            (kinematicsDistributionCollisionless), pointer                 :: kinematicsDistribution_
@@ -190,12 +190,13 @@ contains
           !![
 	  <referenceConstruct object="massDistribution_">
 	    <constructor>
-              massDistributionSphericalAccelerator(                                                    &amp;
-	      &amp;                                toleranceRelative  =self%toleranceRelative        , &amp;
-	      &amp;                                factorRadiusMaximum=self%factorRadiusMaximum      , &amp;
-	      &amp;                                massDistribution_  =     massDistributionDecorated, &amp;
-              &amp;                                componentType      =     componentTypeDarkHalo    , &amp;
-              &amp;                                massType           =     massTypeDark               &amp;
+              massDistributionSphericalAccelerator(                                                      &amp;
+	      &amp;                                toleranceRelative  =self%toleranceRelative          , &amp;
+	      &amp;                                factorRadiusMaximum=self%factorRadiusMaximum        , &amp;
+	      &amp;                                massDistribution_  =     massDistributionDecorated  , &amp;
+              &amp;                                nonAnalyticSolver  =     nonAnalyticSolversNumerical, &amp;
+              &amp;                                componentType      =     componentTypeDarkHalo      , &amp;
+              &amp;                                massType           =     massTypeDark                 &amp;
               &amp;                               )
 	    </constructor>
 	  </referenceConstruct>
