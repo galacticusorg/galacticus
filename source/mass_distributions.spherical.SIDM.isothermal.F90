@@ -469,7 +469,7 @@ contains
     !!{
     Compute a solution for the isothermal core of an SIDM halo.
     !!}
-use :: Coordinates, only : coordinateSpherical, assignment(=)
+    use :: Coordinates                     , only : coordinateSpherical            , assignment(=)
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
