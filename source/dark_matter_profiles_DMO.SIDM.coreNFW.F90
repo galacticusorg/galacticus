@@ -221,7 +221,6 @@ contains
     integer                                              , intent(in   ), optional :: weightIndex
     class           (massDistributionClass              ), pointer                 :: massDistributionDecorated
     class           (nodeComponentBasic                 ), pointer                 :: basic
-    double precision                                                               :: radiusVirial
     !![
     <optionalArgument name="weightBy" defaultsTo="weightByMass" />
     !!]
@@ -234,9 +233,8 @@ contains
     allocate(massDistributionSphericalSIDMCoreNFW :: massDistribution_)
     select type(massDistribution_)
     type is (massDistributionSphericalSIDMCoreNFW)
-       radiusVirial              =  self%darkMatterHaloScale_ %radiusVirial(node                     )
-       massDistributionDecorated => self%darkMatterProfileDMO_%get         (node,weightBy,weightIndex)
-       basic                     => node                      %basic       (                         )
+       massDistributionDecorated => self%darkMatterProfileDMO_%get  (node,weightBy,weightIndex)
+       basic                     => node                      %basic(                         )
        select type (massDistributionDecorated)
        class is (massDistributionNFW)
           !![
