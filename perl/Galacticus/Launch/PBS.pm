@@ -439,7 +439,7 @@ sub SubmitJobs {
 		print $scriptFile "ulimit -c unlimited\n";
 		my $mpi = (exists($arguments{'mpi'}) && $arguments{'mpi'} eq "yes") || (exists($newJob->{'mpi'}) && $newJob->{'mpi'} eq "yes");
 		print $scriptFile "export OMP_NUM_THREADS=".($mpi ? 1 : $ppn)."\n";
-		print $scriptFile ($mpi ? "mpirun --map-by node -np ".$mpiProcs." " : "").$newJob->{'command'}."\n";
+		print $scriptFile ($mpi ? "mpirun --map-by node --mca mpi_preconnect_mpi 1 --mca btl ^ib -np ".$mpiProcs." " : "").$newJob->{'command'}."\n";
 		print $scriptFile "exit\n";
 		close($scriptFile);
 	    } else {
