@@ -40,13 +40,6 @@ contains
     use :: ISO_Varying_String                 , only : assignment(=)                , operator(//)                 , varying_string
     use :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsNotDeadlocked, enumerationDeadlockStatusType
     use :: String_Handling                    , only : operator(//)
-    !![
-    <include directive="branchJumpPostProcess" type="moduleUse">
-    !!]
-    include 'events.branch_jump.post_process.modules.inc'
-    !![
-    </include>
-    !!]
     implicit none
     class    (nodeEvent                    ), intent(in   )          :: event
     type     (treeNode                     ), intent(inout), pointer :: node
@@ -85,12 +78,15 @@ contains
     call newHost%removePairedEvent(event)
     ! Allow any postprocessing of the branch jump event that may be necessary.
     !![
-    <include directive="branchJumpPostProcess" type="functionCall" functionType="void">
-     <functionArgs>node</functionArgs>
-    !!]
-    include 'events.branch_jump.postprocess.inc'
-    !![
-    </include>
+    <eventHook name="branchJumpPostProcess">
+      <import>
+	<module name="Galacticus_Nodes" symbols="treeNode"/>
+      </import>
+      <interface>
+	type(treeNode), intent(inout), pointer :: node
+      </interface>
+     <callWith>node</callWith>
+    </eventHook>
     !!]
     ! Since we changed the tree, record that the tree is not deadlocked.
     deadlockStatus=deadlockStatusIsNotDeadlocked
