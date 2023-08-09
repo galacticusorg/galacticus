@@ -68,6 +68,7 @@ contains
     </inputParameter>
     <inputParameter>
       <name>branchOnly</name>
+      <defaultValue>.false.</defaultValue>
       <source>parameters</source>
       <description>If true, follow descendants only to the end of the branch. Otherwise, follow them to the end of the entire merger tree.</description>
     </inputParameter>
