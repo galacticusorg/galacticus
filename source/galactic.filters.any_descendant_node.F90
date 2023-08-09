@@ -33,7 +33,7 @@
      !!}
      private
      class  (galacticFilterClass), pointer :: galacticFilter_ => null()
-     logical                               :: allowSelf
+     logical                               :: allowSelf                , branchOnly
    contains
      final     ::           anyDescendantNodeDestructor
      procedure :: passes => anyDescendantNodePasses
@@ -58,7 +58,7 @@ contains
     type   (galacticFilterAnyDescendantNode)                :: self
     type   (inputParameters                ), intent(inout) :: parameters
     class  (galacticFilterClass            ), pointer       :: galacticFilter_
-    logical                                                 :: allowSelf
+    logical                                                 :: allowSelf      , branchOnly
          
     !![
     <inputParameter>
@@ -66,9 +66,14 @@ contains
       <source>parameters</source>
       <description>If true, the node itself is considered as a descendant, otherwise the node itself is excluded from the descendant node search.</description>
     </inputParameter>
+    <inputParameter>
+      <name>branchOnly</name>
+      <source>parameters</source>
+      <description>If true, follow descendants only to the end of the branch. Otherwise, follow them to the end of the entire merger tree.</description>
+    </inputParameter>
     <objectBuilder class="galacticFilter" name="galacticFilter_" source="parameters"/>
     !!]
-    self=galacticFilterAnyDescendantNode(allowSelf,galacticFilter_)
+    self=galacticFilterAnyDescendantNode(allowSelf,branchOnly,galacticFilter_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="galacticFilter_"    />
@@ -76,16 +81,16 @@ contains
     return
   end function anyDescendantNodeConstructorParameters
   
-  function anyDescendantNodeConstructorInternal(allowSelf,galacticFilter_) result(self)
+  function anyDescendantNodeConstructorInternal(allowSelf,branchOnly,galacticFilter_) result(self)
     !!{
     Internal constructor for the ``anyDescendantNode'' galactic filter class.
     !!}
     implicit none
     type   (galacticFilterAnyDescendantNode)                        :: self
-    logical                                 , intent(in   )         :: allowSelf
+    logical                                 , intent(in   )         :: allowSelf      , branchOnly
     class  (galacticFilterClass            ), intent(in   ), target :: galacticFilter_
     !![
-    <constructorAssign variables="allowSelf, *galacticFilter_"/>
+    <constructorAssign variables="allowSelf, branchOnly, *galacticFilter_"/>
     !!]
 
     return
@@ -120,9 +125,17 @@ contains
        nodeDescendant => node%parent
     end if
     do while (associated(nodeDescendant))
-       anyDescendantNodePasses =  self          %galacticFilter_%passes(nodeDescendant)
-       nodeDescendant          => nodeDescendant%parent
-       if (anyDescendantNodePasses) exit
+       anyDescendantNodePasses=self%galacticFilter_%passes(nodeDescendant)
+       if     (                                             &
+            &   anyDescendantNodePasses                     & ! } If the descendant node passes, we can exit early.
+            &  .or.                                         &
+            &   (                                           & ! ⎫
+            &          self          %branchOnly            & ! ⎪  If we are following only the branch to which the
+            &    .and.                                      & ! ⎬  node belongs, and have reached the end of that
+            &     .not.nodeDescendant%isPrimaryProgenitor() & ! ⎪  branch, exit so that we serarch no further.
+            &   )                                           & ! ⎭
+            & ) exit
+       nodeDescendant => nodeDescendant%parent
     end do
     return
   end function anyDescendantNodePasses
