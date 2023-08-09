@@ -43,7 +43,7 @@
      !!}
      private
      class           (outputTimesClass), pointer                   :: outputTimes_  => null()
-     logical                                                       :: dumpTrees
+     logical                                                       :: dumpTrees              , removeUngridded
      double precision                                              :: snapTolerance
      double precision                  , allocatable, dimension(:) :: timeGrid
    contains
@@ -69,7 +69,7 @@ contains
     type            (mergerTreeOperatorRegridTimes)                :: self
     type            (inputParameters              ), intent(inout) :: parameters
     class           (outputTimesClass             ), pointer       :: outputTimes_
-    logical                                                        :: dumpTrees
+    logical                                                        :: dumpTrees    , removeUngridded
     double precision                                               :: snapTolerance
 
     !![
@@ -80,6 +80,12 @@ contains
       <description>Specifies whether or not to dump merger trees as they are regridded.</description>
     </inputParameter>
     <inputParameter>
+      <name>removeUngridded</name>
+      <source>parameters</source>
+      <defaultValue>.true.</defaultValue>
+      <description>If true, remove nodes not at gridded times. Otherwise, leave them in place.</description>
+    </inputParameter>
+    <inputParameter>
       <name>snapTolerance</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
@@ -87,7 +93,7 @@ contains
     </inputParameter>
     <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
     !!]
-    self=mergerTreeOperatorRegridTimes(snapTolerance,dumpTrees,outputTimes_)
+    self=mergerTreeOperatorRegridTimes(snapTolerance,dumpTrees,removeUngridded,outputTimes_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="outputTimes_"/>
@@ -95,7 +101,7 @@ contains
     return
   end function regridTimesConstructorParameters
 
-  function regridTimesConstructorInternal(snapTolerance,dumpTrees,outputTimes_) result(self)
+  function regridTimesConstructorInternal(snapTolerance,dumpTrees,removeUngridded,outputTimes_) result(self)
     !!{
     Internal constructor for the regrid times merger tree operator class.
     !!}
@@ -103,15 +109,15 @@ contains
     implicit none
     type            (mergerTreeOperatorRegridTimes)                        :: self
     double precision                               , intent(in   )         :: snapTolerance
-    logical                                        , intent(in   )         :: dumpTrees
+    logical                                        , intent(in   )         :: dumpTrees    , removeUngridded
     class           (outputTimesClass             ), intent(in   ), target :: outputTimes_
     integer         (c_size_t                     )                        :: i
     !![
-    <constructorAssign variables="dumpTrees, snapTolerance, *outputTimes_"/>
+    <constructorAssign variables="dumpTrees, snapTolerance, removeUngridded, *outputTimes_"/>
     !!]
 
     ! Validate arguments.
-    if (self%outputTimes_%count() < 2_c_size_t) call Error_Report('2 or more output times are required'//{introspection:location})
+    if (self%removeUngridded .and. self%outputTimes_%count() < 2_c_size_t) call Error_Report('2 or more output times are required'//{introspection:location})
     allocate(self%timeGrid(self%outputTimes_%count()))
     do i=1,self%outputTimes_%count()
        self%timeGrid(i)=self%outputTimes_%time(i)
@@ -279,13 +285,21 @@ contains
              basic       => node       %basic()
              basicParent => node%parent%basic()
              ! Get the time of this node and its parent.
-             timeNow   =basic  %time()
+             timeNow   =basic      %time()
              timeParent=basicParent%time()
              ! Locate these times in the list of grid times.
-             iNow   =interpolator_%locate(timeNow   )
-             iParent=interpolator_%locate(timeParent)
+             if (size(self%timeGrid) > 1) then
+                iNow   =interpolator_%locate(timeNow   )
+                iParent=interpolator_%locate(timeParent)
+             else
+                iNow   =0
+                iParent=0
+                if (timeNow    >= self%timeGrid(1)) iNow   =1
+                if (timeParent >  self%timeGrid(1)) iParent=1
+             end if
              ! For nodes existing precisely at a grid time, ignore this grid point. (These are,
              ! typically, nodes which have been created at these points.)
+             if (timeNow    == self%timeGrid(iNow   )) iNow   =iNow   +1
              if (timeParent == self%timeGrid(iParent)) iParent=iParent-1
              ! If the branch from node to parent spans one or more grid times, insert new nodes
              ! at those points.
@@ -383,76 +397,84 @@ contains
           deallocate(highlightNodes)
        end if
        ! Walk the tree removing nodes not at grid times.
-       countNodes              =0_c_size_t
-       treeWalkerIsolatedNodes=mergerTreeWalkerIsolatedNodes(currentTree)
-       do while (treeWalkerIsolatedNodes%next(node))
-          basic => node%basic()
-          ! Get the time for this node.
-          timeNow=basic%time()
-          ! Find the closest time in the new time grid.
-          iNow   =interpolator_%locate(timeNow,closest=.true.)
-          ! If this node does not lie precisely on the grid then remove it.
-          if (associated(node%parent) .and. timeNow /= self%timeGrid(iNow)) then
-             if (node%isPrimaryProgenitor()) then
-                ! Handle primary progenitor nodes.
-                if (associated(node%firstChild)) then
-                   ! Handle primary progenitors with children
-                   nodeChild => node%firstChild
-                   ! Assign all children a parent that is the parent of the current node.
-                   do while (associated(nodeChild))
-                      nodeChild%parent => node%parent
-                      if (.not.associated(nodeChild%sibling)) then
-                         nodeChild%sibling => node     %sibling
-                         nodeChild         => null()
-                      else
-                         nodeChild         => nodeChild%sibling
-                      end if
-                   end do
-                   ! Assign the current node's parent a child that is the child of the current node.
-                   node%parent%firstChild => node%firstChild
+       if (self%removeUngridded) then
+          countNodes              =0_c_size_t
+          treeWalkerIsolatedNodes=mergerTreeWalkerIsolatedNodes(currentTree)
+          do while (treeWalkerIsolatedNodes%next(node))
+             basic => node%basic()
+             ! Get the time for this node.
+             timeNow=basic%time()
+             ! Find the closest time in the new time grid.
+             iNow   =interpolator_%locate(timeNow,closest=.true.)
+             ! If this node does not lie precisely on the grid then remove it.
+             if (associated(node%parent) .and. timeNow /= self%timeGrid(iNow)) then
+                if (node%isPrimaryProgenitor()) then
+                   ! Handle primary progenitor nodes.
+                   if (associated(node%firstChild)) then
+                      ! Handle primary progenitors with children
+                      nodeChild => node%firstChild
+                      ! Assign all children a parent that is the parent of the current node.
+                      do while (associated(nodeChild))
+                         nodeChild%parent => node%parent
+                         if (.not.associated(nodeChild%sibling)) then
+                            nodeChild%sibling => node     %sibling
+                            nodeChild         => null()
+                         else
+                            nodeChild         => nodeChild%sibling
+                         end if
+                      end do
+                      ! Assign the current node's parent a child that is the child of the current node.
+                      node%parent%firstChild => node%firstChild
+                   else
+                      ! Handle primary nodes with no children - simply make the parent's main
+                      ! progenitor the sibling of the current node.
+                      node%parent%firstChild => node%sibling
+                   end if
                 else
-                   ! Handle primary nodes with no children - simply make the parent's main
-                   ! progenitor the sibling of the current node.
-                   node%parent%firstChild => node%sibling
+                   ! Handle non-primary nodes.
+                   if (associated(node%firstChild)) then
+                      ! Handle non-primary nodes with children.
+                      ! Assign all children a parent that is the parent of the current node.
+                      nodeChild => node%firstChild
+                      do while (associated(nodeChild))
+                         nodeChild%parent => node%parent
+                         if (.not.associated(nodeChild%sibling)) then
+                            nodeChild%sibling => node     %sibling
+                            nodeChild         => null()
+                         else
+                            nodeChild         => nodeChild%sibling
+                         end if
+                      end do
+                      ! Find which sibling points to the current node and link in the children of the current node.
+                      nodeSibling => node%parent%firstChild
+                      do while (.not.associated(nodeSibling%sibling,node))
+                         nodeSibling => nodeSibling%sibling
+                      end do
+                      nodeSibling%sibling => node%firstChild
+                   else
+                      ! Handle non-primary nodes with no children - just snip it out of the sibling list.
+                      nodeSibling => node%parent%firstChild
+                      do while (.not.associated(nodeSibling%sibling,node))
+                         nodeSibling => nodeSibling%sibling
+                      end do
+                      nodeSibling%sibling => node%sibling
+                   end if
                 end if
+                ! Destroy the node.
+                call node%destroy()
+                deallocate(node)
+                call treeWalkerIsolatedNodes%previous(node)
              else
-                ! Handle non-primary nodes.
-                if (associated(node%firstChild)) then
-                   ! Handle non-primary nodes with children.
-                   ! Assign all children a parent that is the parent of the current node.
-                   nodeChild => node%firstChild
-                   do while (associated(nodeChild))
-                      nodeChild%parent => node%parent
-                      if (.not.associated(nodeChild%sibling)) then
-                         nodeChild%sibling => node     %sibling
-                         nodeChild         => null()
-                      else
-                         nodeChild         => nodeChild%sibling
-                      end if
-                   end do
-                   ! Find which sibling points to the current node and link in the children of the current node.
-                   nodeSibling => node%parent%firstChild
-                   do while (.not.associated(nodeSibling%sibling,node))
-                      nodeSibling => nodeSibling%sibling
-                   end do
-                   nodeSibling%sibling => node%firstChild
-                else
-                   ! Handle non-primary nodes with no children - just snip it out of the sibling list.
-                   nodeSibling => node%parent%firstChild
-                   do while (.not.associated(nodeSibling%sibling,node))
-                      nodeSibling => nodeSibling%sibling
-                   end do
-                   nodeSibling%sibling => node%sibling
-                end if
+                countNodes=countNodes+1_c_size_t
              end if
-             ! Destroy the node.
-             call node%destroy()
-             deallocate(node)
-             call treeWalkerIsolatedNodes%previous(node)
-          else
+          end do
+       else
+          countNodes             =0_c_size_t
+          treeWalkerIsolatedNodes=mergerTreeWalkerIsolatedNodes(currentTree)
+          do while (treeWalkerIsolatedNodes%next(node))
              countNodes=countNodes+1_c_size_t
-          end if
-       end do
+          end do
+       end if
        call displayMessage(var_str('Tree contains ')//countNodes//' nodes after regridding',verbosityLevelWorking)
        ! Dump the processed tree if required.
        if (self%dumpTrees) call Merger_Tree_Dump(                              &
