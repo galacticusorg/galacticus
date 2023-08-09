@@ -128,10 +128,14 @@ jobs:
         id: depup
         run: |
           versionMajor=`curl --silent https://data.nublado.org/cloudy_releases/ | grep -o -E 'href="c[[:digit:]]*/">'| sed 's/href="c//;s/\/">//' | sort -g -k 1 | tail -1`
-          versionFull=`curl --silent https://data.nublado.org/cloudy_releases/c${versionMajor}/ | grep -o -E 'href="c[[:digit:]]*\.[[:digit:]]*\.tar\.gz">' | sed 's/href="c//;s/\.tar\.gz">//'`
-          sed -i~ -r s/"^cloudy:\s+[0-9\.]+"/"cloudy: ${versionFull}"/ aux/dependencies.yml
-          echo "latest=${versionFull}" >> "$GITHUB_OUTPUT"
-          echo "branch=cloudy" >> "$GITHUB_OUTPUT"
+          if [[ ! -z ${versionMajor} ]]; then
+            versionFull=`curl --silent https://data.nublado.org/cloudy_releases/c${versionMajor}/ | grep -o -E 'href="c[[:digit:]]*\.[[:digit:]]*\.tar\.gz">' | sed 's/href="c//;s/\.tar\.gz">//'`
+            if [[ ! -z ${versionFull} ]]; then
+              sed -i~ -r s/"^cloudy:\s+[0-9\.]+"/"cloudy: ${versionFull}"/ aux/dependencies.yml
+              echo "latest=${versionFull}" >> "$GITHUB_OUTPUT"
+              echo "branch=cloudy" >> "$GITHUB_OUTPUT"
+            fi
+          fi
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v4
         with:
