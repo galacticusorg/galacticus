@@ -222,7 +222,7 @@ contains
        basicChild              =>  nodeChild             %basic            ()
        radiusScaleChild        =   darkMatterProfileChild%scale            ()
        massUnresolved          =  +basic                 %mass             () &
-            &                     -basicChild            %mass             ()
+            &                     -basicChild            %mass             ()       
        ! Iterate over progenitors and sum their energies.
        nodeSibling =>                                   nodeChild
        energyTotal =  self%darkMatterProfileDMO_%energy(nodeSibling)
@@ -265,77 +265,81 @@ contains
        ! the virial orbital parameter distribution, plus an internal energy corresponding to that of a halo with mass
        ! equal to the total unresolved mass scaled by some correction factor (to account for the fact that the unresolved
        ! accretion will not in fact be in a single halo).
-       nodeUnresolved              => treeNode                                                      (                         )
-       basicUnresolved             => nodeUnresolved                              %basic            (autoCreate=.true.        )
-       darkMatterProfileUnresolved => nodeUnresolved                              %darkMatterProfile(autoCreate=.true.        )
-       call basicUnresolved            %massSet            (min(massResolution   ,massUnresolved       ))
-       call basicUnresolved            %timeSet            (    basicChild%time()                       )
-       call basicUnresolved            %timeLastIsolatedSet(    basicChild%time()                       )
-       radiusScaleUnresolved       =  self          %darkMatterProfileScaleRadius_%radius           (           nodeUnresolved)
-       call darkMatterProfileUnresolved%scaleSet           (                      radiusScaleUnresolved )
-       ! Compute a correction factor to the orbital energy which takes into account the mass dependence of the 1/(1+m/M)ᵅ
-       ! term that is applied to the orbital energy. Averaging this over a power-law mass function gives the result
-       ! below. In the case that α=0 the result is identically 1 - in this case we avoid computing β functions.
-       massRatio                       =+basicUnresolved%mass()                                               &
-            &                           /basicChild     %mass()
-       a                               =+2.0d0                                                                &
-            &                           -massFunctionSlopeLogarithmic
-       b                               =+massFunctionSlopeLogarithmic                                         &
-            &                           +self%massExponent                                                    &
-            &                           -1.0d0
-       energyKineticSubresolutionFactor=+Beta_Function_Incomplete_Normalized(a,b,massRatio/(1.0d0+massRatio)) &
-            &                           *Beta_Function                      (a,b                            ) &
-            &                           *           (2.0d0-massFunctionSlopeLogarithmic)                      &
-            &                           /massRatio**(2.0d0-massFunctionSlopeLogarithmic)
-       if (self%massExponent == 0.0d0) then
-          energyPotentialSubresolutionFactor=+1.0d0
-       else
-          b                                 =+massFunctionSlopeLogarithmic                                         &
-               &                             +self%massExponent                                                    &
-               &                             -2.0d0
-          energyPotentialSubresolutionFactor=+Beta_Function_Incomplete_Normalized(a,b,massRatio/(1.0d0+massRatio)) &
-               &                             *Beta_Function                      (a,b                            ) &
-               &                             *           (2.0d0-massFunctionSlopeLogarithmic)                      &
-               &                             /massRatio**(2.0d0-massFunctionSlopeLogarithmic)
+       if (massUnresolved > 0.0d0) then
+          nodeUnresolved              => treeNode                                                      (                         )
+          basicUnresolved             => nodeUnresolved                              %basic            (autoCreate=.true.        )
+          darkMatterProfileUnresolved => nodeUnresolved                              %darkMatterProfile(autoCreate=.true.        )
+          call basicUnresolved            %massSet            (min(massResolution   ,massUnresolved       ))
+          call basicUnresolved            %timeSet            (    basicChild%time()                       )
+          call basicUnresolved            %timeLastIsolatedSet(    basicChild%time()                       )
+          radiusScaleUnresolved       =  self          %darkMatterProfileScaleRadius_%radius           (           nodeUnresolved)
+          call darkMatterProfileUnresolved%scaleSet           (                      radiusScaleUnresolved )
+          ! Compute a correction factor to the orbital energy which takes into account the mass dependence of the 1/(1+m/M)ᵅ
+          ! term that is applied to the orbital energy. Averaging this over a power-law mass function gives the result
+          ! below. In the case that α=0 the result is identically 1 - in this case we avoid computing β functions.
+          massRatio                       =+basicUnresolved%mass()                                               &
+               &                           /basicChild     %mass()
+          a                               =+2.0d0                                                                &
+               &                           -massFunctionSlopeLogarithmic
+          b                               =+massFunctionSlopeLogarithmic                                         &
+               &                           +self%massExponent                                                    &
+               &                           -1.0d0
+          energyKineticSubresolutionFactor=+Beta_Function_Incomplete_Normalized(a,b,massRatio/(1.0d0+massRatio)) &
+               &                           *Beta_Function                      (a,b                            ) &
+               &                           *           (2.0d0-massFunctionSlopeLogarithmic)                      &
+               &                           /massRatio**(2.0d0-massFunctionSlopeLogarithmic)
+          if (self%massExponent == 0.0d0) then
+             energyPotentialSubresolutionFactor=+1.0d0
+          else
+             b                                 =+massFunctionSlopeLogarithmic                                         &
+                  &                             +self%massExponent                                                    &
+                  &                             -2.0d0
+             energyPotentialSubresolutionFactor=+Beta_Function_Incomplete_Normalized(a,b,massRatio/(1.0d0+massRatio)) &
+                  &                             *Beta_Function                      (a,b                            ) &
+                  &                             *           (2.0d0-massFunctionSlopeLogarithmic)                      &
+                  &                             /massRatio**(2.0d0-massFunctionSlopeLogarithmic)
+          end if
+          ! Compute a correction factor to the internal energy which takes into account the mass dependence of the 1/(1+m/M)ᵅ
+          ! term that is applied to the orbital energy. Averaging this over a power-law mass function gives the result
+          ! below.
+          energyInternalSubresolutionFactor=+(                                                                                                                            &
+               &                              +2.0d0                                                                                                                      &
+               &                              -(massFunctionSlopeLogarithmic+energyInternalFormFactorSlopeLogarithmic)                                                    &
+               &                             )                                                                                                                            &
+               &                            *Hypergeometric_2F1(                                                                                                          &
+               &                                                [self%massExponent, 8.0d0/3.0d0-(massFunctionSlopeLogarithmic+energyInternalFormFactorSlopeLogarithmic)], &
+               &                                                [                  11.0d0/3.0d0-(massFunctionSlopeLogarithmic+energyInternalFormFactorSlopeLogarithmic)], &
+               &                                                -1.0d0/massRatio                                                                                          &
+               &                                               )                                                                                                          &
+               &                            /(                                                                                                                            &
+               &                                                                    8.0d0/3.0d0-(massFunctionSlopeLogarithmic+energyInternalFormFactorSlopeLogarithmic)   &
+               &                              )
+          ! Determine the orbital and internal energies.
+          energyKinetic  =+0.5d0                                                                       &
+               &          *self%virialOrbit_%velocityTotalRootMeanSquared(nodeUnresolved,nodeChild)**2 &
+               &          /(1.0d0+massRatio)
+          energyPotential=+self%virialOrbit_%energyMean                  (nodeUnresolved,nodeChild)    &
+               &          -                  energyKinetic
+          energyOrbital  =+energyPotential                                     &
+               &          *energyPotentialSubresolutionFactor                  &
+               &          +energyKinetic                                       &
+               &          *energyKineticSubresolutionFactor
+          energyTotal    =+energyTotal                                         &
+               &          +massUnresolved                                      &
+               &          *self%unresolvedEnergy                               &
+               &          *(                                                   &
+               &            +energyOrbital                                     &
+               &            +energyInternalSubresolutionFactor                 &
+               &            *self%darkMatterProfileDMO_%energy(nodeUnresolved) &
+               &            /massResolution                                    &
+               &           )                                                   &
+               &          *(                                                   &
+               &            +1.0d0                                             &
+               &            +self%energyBoost                                  &
+               &           )
+          call nodeUnresolved%destroy()
+          deallocate(nodeUnresolved)
        end if
-       ! Compute a correction factor to the internal energy which takes into account the mass dependence of the 1/(1+m/M)ᵅ
-       ! term that is applied to the orbital energy. Averaging this over a power-law mass function gives the result
-       ! below.
-       energyInternalSubresolutionFactor=+(                                                                                                                            &
-            &                              +2.0d0                                                                                                                      &
-            &                              -(massFunctionSlopeLogarithmic+energyInternalFormFactorSlopeLogarithmic)                                                    &
-            &                             )                                                                                                                            &
-            &                            *Hypergeometric_2F1(                                                                                                          &
-            &                                                [self%massExponent, 8.0d0/3.0d0-(massFunctionSlopeLogarithmic+energyInternalFormFactorSlopeLogarithmic)], &
-            &                                                [                  11.0d0/3.0d0-(massFunctionSlopeLogarithmic+energyInternalFormFactorSlopeLogarithmic)], &
-            &                                                -1.0d0/massRatio                                                                                          &
-            &                                               )                                                                                                          &
-            &                            /(                                                                                                                            &
-            &                                                                    8.0d0/3.0d0-(massFunctionSlopeLogarithmic+energyInternalFormFactorSlopeLogarithmic)   &
-            &                              )
-       ! Determine the orbital and internal energies.
-       energyKinetic  =+0.5d0                                                                       &
-            &          *self%virialOrbit_%velocityTotalRootMeanSquared(nodeUnresolved,nodeChild)**2 &
-            &          /(1.0d0+massRatio)
-       energyPotential=+self%virialOrbit_%energyMean                  (nodeUnresolved,nodeChild)    &
-            &          -                  energyKinetic
-       energyOrbital  =+energyPotential                                     &
-            &          *energyPotentialSubresolutionFactor                  &
-            &          +energyKinetic                                       &
-            &          *energyKineticSubresolutionFactor
-       energyTotal    =+energyTotal                                         &
-            &          +massUnresolved                                      &
-            &          *self%unresolvedEnergy                               &
-            &          *(                                                   &
-            &            +energyOrbital                                     &
-            &            +energyInternalSubresolutionFactor                 &
-            &            *self%darkMatterProfileDMO_%energy(nodeUnresolved) &
-            &            /massResolution                                    &
-            &           )                                                   &
-            &          *(                                                   &
-            &            +1.0d0                                             &
-            &            +self%energyBoost                                  &
-            &           )
        ! Add mutual gravitational binding energy of any sibling halo and any unresolved mass.
        if (associated(nodeChild%sibling))                                      &
             & energyTotal=+energyTotal                                         &
@@ -349,8 +353,6 @@ contains
             &               +1.0d0                                             &
             &               +self%energyBoost                                  &
             &              )
-       call nodeUnresolved%destroy()
-       deallocate(nodeUnresolved)
        ! Convert energy back to scale radius.
        self_               => self
        node_               => node
