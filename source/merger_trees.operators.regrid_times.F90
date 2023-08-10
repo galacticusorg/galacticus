@@ -42,8 +42,9 @@
      A merger tree operator class which restructures the tree onto a fixed grid of timesteps.
      !!}
      private
-     class           (outputTimesClass), pointer                   :: outputTimes_  => null()
-     logical                                                       :: dumpTrees              , removeUngridded
+     class           (outputTimesClass), pointer                   :: outputTimes_    => null()
+     logical                                                       :: dumpTrees                , removeUngridded, &
+          &                                                           propagateLabels
      double precision                                              :: snapTolerance
      double precision                  , allocatable, dimension(:) :: timeGrid
    contains
@@ -69,7 +70,8 @@ contains
     type            (mergerTreeOperatorRegridTimes)                :: self
     type            (inputParameters              ), intent(inout) :: parameters
     class           (outputTimesClass             ), pointer       :: outputTimes_
-    logical                                                        :: dumpTrees    , removeUngridded
+    logical                                                        :: dumpTrees      , removeUngridded, &
+         &                                                            propagateLabels
     double precision                                               :: snapTolerance
 
     !![
@@ -86,6 +88,12 @@ contains
       <description>If true, remove nodes not at gridded times. Otherwise, leave them in place.</description>
     </inputParameter>
     <inputParameter>
+      <name>propagateLabels</name>
+      <source>parameters</source>
+      <defaultValue>.true.</defaultValue>
+      <description>If true, any labels attached to progenitor nodes are propagated to newly inserted nodes.</description>
+    </inputParameter>
+    <inputParameter>
       <name>snapTolerance</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
@@ -93,7 +101,7 @@ contains
     </inputParameter>
     <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
     !!]
-    self=mergerTreeOperatorRegridTimes(snapTolerance,dumpTrees,removeUngridded,outputTimes_)
+    self=mergerTreeOperatorRegridTimes(snapTolerance,dumpTrees,removeUngridded,propagateLabels,outputTimes_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="outputTimes_"/>
@@ -101,7 +109,7 @@ contains
     return
   end function regridTimesConstructorParameters
 
-  function regridTimesConstructorInternal(snapTolerance,dumpTrees,removeUngridded,outputTimes_) result(self)
+  function regridTimesConstructorInternal(snapTolerance,dumpTrees,removeUngridded,propagateLabels,outputTimes_) result(self)
     !!{
     Internal constructor for the regrid times merger tree operator class.
     !!}
@@ -109,11 +117,12 @@ contains
     implicit none
     type            (mergerTreeOperatorRegridTimes)                        :: self
     double precision                               , intent(in   )         :: snapTolerance
-    logical                                        , intent(in   )         :: dumpTrees    , removeUngridded
+    logical                                        , intent(in   )         :: dumpTrees      , removeUngridded, &
+         &                                                                    propagateLabels
     class           (outputTimesClass             ), intent(in   ), target :: outputTimes_
     integer         (c_size_t                     )                        :: i
     !![
-    <constructorAssign variables="dumpTrees, snapTolerance, removeUngridded, *outputTimes_"/>
+    <constructorAssign variables="dumpTrees, snapTolerance, removeUngridded, propagateLabels, *outputTimes_"/>
     !!]
 
     ! Validate arguments.
@@ -152,6 +161,7 @@ contains
     use            :: Kind_Numbers           , only : kind_int8
     use            :: Merger_Tree_Walkers    , only : mergerTreeWalkerAllNodes, mergerTreeWalkerIsolatedNodes
     use            :: Merger_Trees_Dump      , only : Merger_Tree_Dump
+    use            :: Nodes_Labels           , only : nodeLabelIsPresent      , nodeLabelSet                 , nodeLabelCount
     use            :: Numerical_Comparison   , only : Values_Agree
     use            :: Numerical_Interpolation, only : interpolator
     use            :: String_Handling        , only : operator(//)
@@ -161,7 +171,7 @@ contains
     type            (treeNode                     )                             , pointer :: nodeChild                       , mergee     , &
          &                                                                                   nodeSibling                     , node
     type            (treeNodeList                 ), allocatable  , dimension(:)          :: newNodes
-    integer         (kind=kind_int8               ), allocatable  , dimension(:)          :: highlightNodes
+    integer         (kind_int8                    ), allocatable  , dimension(:)          :: highlightNodes
     class           (nodeComponentBasic           )                             , pointer :: basicChild                      , basicParent, &
          &                                                                                   basic
     class           (nodeComponentSatellite       )                             , pointer :: mergeeSatellite
@@ -173,7 +183,7 @@ contains
     type            (interpolator                 )                                       :: interpolator_
     integer         (c_size_t                     )                                       :: iNow                            , iParent    , &
          &                                                                                   iTime                           , countNodes
-    integer                                                                               :: allocErr
+    integer                                                                               :: allocErr                        , i
     double precision                                                                      :: massNow                         , massParent , &
          &                                                                                   timeNow                         , timeParent
     integer         (kind=kind_int8               )                                       :: firstNewNode                    , nodeIndex
@@ -343,6 +353,12 @@ contains
                    if (iTime < iParent) newNodes(iTime-iNow)%node%parent     => newNodes(iTime-iNow+1)%node
                    ! Set subsampling rate.
                    call newNodes(iTime-iNow)%node%subsamplingWeightSet(node%subsamplingWeight())
+                   ! Propagate labels.
+                   if (self%propagateLabels) then
+                      do i=1,nodeLabelCount()
+                         if (nodeLabelIsPresent(i,node)) call nodeLabelSet(i,newNodes(iTime-iNow)%node)
+                      end do
+                   end if
                 end do
                 ! Link final node to the parent.
                 newNodes(iParent-iNow)%node%parent  => node%parent
