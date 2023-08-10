@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1691615754589,
+  "lastUpdate": 1691635992544,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "618eb5b594676b31af0db361aef52aa77085632c",
-          "message": "Merge pull request #348 from galacticusorg/nullInitializePointers\n\nEnsure all pointers in derived-type objects all null initialized",
-          "timestamp": "2023-01-10T15:55:55-08:00",
-          "tree_id": "0fd46a2948334ecdb1ece10b2c13616a3b7df721",
-          "url": "https://github.com/galacticusorg/galacticus/commit/618eb5b594676b31af0db361aef52aa77085632c"
-        },
-        "date": 1673412835822,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 51.348,
-            "unit": "seconds",
-            "range": 0.0414921679358762
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8724,6 +8694,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 25257.8908941139,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "a375dcde2702f204d63d2ed2c58fdf7cea779ec0",
+          "message": "feat: Add functionality to the `mergerTreeOperatorRegrid` class\n\nAdds an option to prevent removal of nodes at  ungridded times (i.e. new nodes are inserted at the grid times, but no nodes are removed). Also refactors the code to allow a single grid time when ungridded nodes are not to be removed.",
+          "timestamp": "2023-08-09T23:26:36Z",
+          "tree_id": "3bc6c70419311c62580075b4a266277eae16c01c",
+          "url": "https://github.com/galacticusorg/galacticus/commit/a375dcde2702f204d63d2ed2c58fdf7cea779ec0"
+        },
+        "date": 1691635990769,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 49.818,
+            "unit": "seconds",
+            "range": 0.0321496500762908
           }
         ]
       }
