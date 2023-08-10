@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1691635995711,
+  "lastUpdate": 1691636002906,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "618eb5b594676b31af0db361aef52aa77085632c",
-          "message": "Merge pull request #348 from galacticusorg/nullInitializePointers\n\nEnsure all pointers in derived-type objects all null initialized",
-          "timestamp": "2023-01-10T15:55:55-08:00",
-          "tree_id": "0fd46a2948334ecdb1ece10b2c13616a3b7df721",
-          "url": "https://github.com/galacticusorg/galacticus/commit/618eb5b594676b31af0db361aef52aa77085632c"
-        },
-        "date": 1673412840108,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 168.512,
-            "unit": "seconds",
-            "range": 0.22697929420991
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10620,6 +10590,60 @@ window.BENCHMARK_DATA = {
             "value": 212.132,
             "unit": "seconds",
             "range": 0.605443308659505
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "a375dcde2702f204d63d2ed2c58fdf7cea779ec0",
+          "message": "feat: Add functionality to the `mergerTreeOperatorRegrid` class\n\nAdds an option to prevent removal of nodes at  ungridded times (i.e. new nodes are inserted at the grid times, but no nodes are removed). Also refactors the code to allow a single grid time when ungridded nodes are not to be removed.",
+          "timestamp": "2023-08-09T23:26:36Z",
+          "tree_id": "3bc6c70419311c62580075b4a266277eae16c01c",
+          "url": "https://github.com/galacticusorg/galacticus/commit/a375dcde2702f204d63d2ed2c58fdf7cea779ec0"
+        },
+        "date": 1691636001889,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassMetallicityRelation",
+            "value": 3.27601298855862,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassSizeRelation",
+            "value": 9.50668579880912,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassVelocityDispersionRelation",
+            "value": 0.856109814363159,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupOccupationFraction",
+            "value": 23.969225876387,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassFunction",
+            "value": 70.7473742298182,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
+            "value": 1.35131210320676,
+            "unit": "-logℒ"
           }
         ]
       }
