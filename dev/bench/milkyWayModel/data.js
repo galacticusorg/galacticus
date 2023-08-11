@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1691741632086,
+  "lastUpdate": 1691741640007,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "ebb98121bba118e49fac2cfec2d68dea4fbedba2",
-          "message": "fix: Use copy constructors when walking the parameter tree\n\nThis avoids segmentation faults due to finalization on assignment.",
-          "timestamp": "2023-01-12T11:22:51-08:00",
-          "tree_id": "9fa7a16930cefaac01d0a539162b84ddc6123b1f",
-          "url": "https://github.com/galacticusorg/galacticus/commit/ebb98121bba118e49fac2cfec2d68dea4fbedba2"
-        },
-        "date": 1673575186612,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 289.176,
-            "unit": "seconds",
-            "range": 0.773898184517248
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10620,6 +10590,60 @@ window.BENCHMARK_DATA = {
             "value": 319.829,
             "unit": "seconds",
             "range": 0.645961995785535
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7f9ef8648b3d04c59a53383d47dd1b7c07703fdf",
+          "message": "fix: Ensure count of node labels is correct if none exist",
+          "timestamp": "2023-08-10T22:16:51-07:00",
+          "tree_id": "a43aadcef4d33ab8eeee927946b7965737eba2a9",
+          "url": "https://github.com/galacticusorg/galacticus/commit/7f9ef8648b3d04c59a53383d47dd1b7c07703fdf"
+        },
+        "date": 1691741639028,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassMetallicityRelation",
+            "value": 3.27601298855862,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassSizeRelation",
+            "value": 9.50668579880912,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassVelocityDispersionRelation",
+            "value": 0.856109814363159,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupOccupationFraction",
+            "value": 23.969225876387,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassFunction",
+            "value": 70.7473742298182,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
+            "value": 1.35131210320676,
+            "unit": "-logℒ"
           }
         ]
       }
