@@ -121,7 +121,11 @@ contains
     implicit none
     
     !$omp critical(lockNodeLabels)
-    nodeLabelCount=size(labels_)
+    if (allocated(labels_)) then
+       nodeLabelCount=size(labels_)
+    else
+       nodeLabelCount=0
+    end if
     !$omp end critical(lockNodeLabels)
     return
   end function nodeLabelCount
