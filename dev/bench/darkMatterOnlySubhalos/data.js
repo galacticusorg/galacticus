@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1691722081351,
+  "lastUpdate": 1691722089969,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "1fd62974f45f3a114efd9dba474113e7e151c5a0",
-          "message": "Merge pull request #349 from galacticusorg/orbitingNBodyTrees\n\nReset satellite timescales when a subhalo is promoted to an isolated halo",
-          "timestamp": "2023-01-11T06:10:38-08:00",
-          "tree_id": "db4a3c4fc16467627d563c488dd475656a3cc7ab",
-          "url": "https://github.com/galacticusorg/galacticus/commit/1fd62974f45f3a114efd9dba474113e7e151c5a0"
-        },
-        "date": 1673461432514,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 57.3752255203618,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 26.1474686204082,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 27887.2181311663,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8724,6 +8685,45 @@ window.BENCHMARK_DATA = {
             "value": 56.001,
             "unit": "seconds",
             "range": 0.275824038111244
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "03f1be418ea2846f56cee7c299f4ae208dc6c216",
+          "message": "fix(style): Correct a typo in a comment",
+          "timestamp": "2023-08-10T23:33:15Z",
+          "tree_id": "fda400cd223a48cfd05abfdb04f4c298cdbaf9e7",
+          "url": "https://github.com/galacticusorg/galacticus/commit/03f1be418ea2846f56cee7c299f4ae208dc6c216"
+        },
+        "date": 1691722088855,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 58.5315751069983,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 26.4657217377668,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 25134.956813135,
+            "unit": "-logℒ"
           }
         ]
       }
