@@ -354,7 +354,7 @@ contains
                    ! Set subsampling rate.
                    call newNodes(iTime-iNow)%node%subsamplingWeightSet(node%subsamplingWeight())
                    ! Propagate labels.
-                   if (self%propagateLabels) then
+                   if (self%propagateLabels .and. nodeLabelCount() > 0) then
                       do i=1,nodeLabelCount()
                          if (nodeLabelIsPresent(i,node)) call nodeLabelSet(i,newNodes(iTime-iNow)%node)
                       end do
