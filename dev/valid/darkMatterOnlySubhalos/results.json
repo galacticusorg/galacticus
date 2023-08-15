@@ -1,31 +1,34 @@
 window.ANALYSES_DATA = {
    "repoUrl" : "https://github.com/galacticusorg/galacticus",
-   "parameterFile" : "testSuite/parameters/validate_darkMatterOnlySubHalos.xml",
+   "commit" : {
+      "timestamp" : "Mon, 14 Aug 2023 20:55:05 +0000",
+      "message" : "feat: Add the `rate()` method to the `mergerTreeBranchingProbabilityGnrlzdPrssSchchtr` class",
+      "author" : {
+         "email" : "abenson@carnegiescience.edu",
+         "name" : "Andrew Benson"
+      },
+      "url" : "https://github.com/galacticusorg/galacticus/commit/ea48a439dc6908397670624edf80cac0e0f2c486",
+      "id" : "ea48a439dc6908397670624edf80cac0e0f2c486"
+   },
    "results" : [
       {
+         "attributes" : {
+            "xAxisIsLog" : 1,
+            "logLikelihood" : -58.5502038320892,
+            "name" : "subhaloMassFunction",
+            "yDataset" : "massFunction",
+            "description" : "Subhalo mass function",
+            "xAxisLabel" : "M_sub/M_host",
+            "xDataset" : "massRatio",
+            "yCovariance" : "massFunctionCovariance",
+            "yAxisIsLog" : 1,
+            "targetLabel" : "Caterpillar (Griffen et al. 2016)",
+            "yDatasetTarget" : "massFunctionTarget",
+            "yAxisLabel" : "N(M_sub/M_host)",
+            "type" : "function1D",
+            "yCovarianceTarget" : "massFunctionCovarianceTarget"
+         },
          "data" : {
-            "yErrorTarget" : [
-               51.3782902056651,
-               26.0179861733882,
-               16.7191064734362,
-               11.1493068188206,
-               6.13001146041204,
-               3.4586622846863,
-               2.06736365184258,
-               1.4106919944177,
-               0.972709227047141,
-               0.527389447708467,
-               0.374656366063347,
-               0.288748572010993,
-               0.200498056827932,
-               0.168278722586883,
-               0.100881520672063,
-               0.0693445807052977,
-               0.055255084507513,
-               0.0403526082688254,
-               0.0289760107689346,
-               0
-            ],
             "yDataset" : [
                3490.24642198215,
                1779.02043112596,
@@ -70,26 +73,26 @@ window.ANALYSES_DATA = {
                0.0294117647058824,
                0
             ],
-            "yError" : [
-               89.1217331198789,
-               30.218464186228,
-               15.2293760206981,
-               7.14405629573493,
-               3.23257199928488,
-               1.65671053754135,
-               0.843014022024835,
-               0.436016445329898,
-               0.252395253542551,
-               0.170284173173819,
-               0.125524797570897,
-               0.0911239344440934,
-               0.0697115046283683,
-               0.0507595371555425,
-               0.0357142857142857,
-               0.0234194233010786,
-               0.0163663417676994,
-               0.0112938487863156,
-               0.0101015254455221,
+            "yErrorTarget" : [
+               51.3782902056651,
+               26.0179861733882,
+               16.7191064734362,
+               11.1493068188206,
+               6.13001146041204,
+               3.4586622846863,
+               2.06736365184258,
+               1.4106919944177,
+               0.972709227047141,
+               0.527389447708467,
+               0.374656366063347,
+               0.288748572010993,
+               0.200498056827932,
+               0.168278722586883,
+               0.100881520672063,
+               0.0693445807052977,
+               0.055255084507513,
+               0.0403526082688254,
+               0.0289760107689346,
                0
             ],
             "xDataset" : [
@@ -113,27 +116,71 @@ window.ANALYSES_DATA = {
                0.177827941003892,
                0.354813389233575,
                0.707945784384137
+            ],
+            "yError" : [
+               89.1217331198789,
+               30.218464186228,
+               15.2293760206981,
+               7.14405629573493,
+               3.23257199928488,
+               1.65671053754135,
+               0.843014022024835,
+               0.436016445329898,
+               0.252395253542551,
+               0.170284173173819,
+               0.125524797570897,
+               0.0911239344440934,
+               0.0697115046283683,
+               0.0507595371555425,
+               0.0357142857142857,
+               0.0234194233010786,
+               0.0163663417676994,
+               0.0112938487863156,
+               0.0101015254455221,
+               0
             ]
-         },
-         "attributes" : {
-            "xAxisIsLog" : 1,
-            "description" : "Subhalo mass function",
-            "yDatasetTarget" : "massFunctionTarget",
-            "targetLabel" : "Caterpillar (Griffen et al. 2016)",
-            "xDataset" : "massRatio",
-            "xAxisLabel" : "M_sub/M_host",
-            "yCovarianceTarget" : "massFunctionCovarianceTarget",
-            "type" : "function1D",
-            "name" : "subhaloMassFunction",
-            "yAxisIsLog" : 1,
-            "yAxisLabel" : "N(M_sub/M_host)",
-            "logLikelihood" : -58.5502038320892,
-            "yCovariance" : "massFunctionCovariance",
-            "yDataset" : "massFunction"
          }
       },
       {
+         "attributes" : {
+            "xDataset" : "radiusFractional",
+            "yCovariance" : "radialDistributionCovariance",
+            "yAxisIsLog" : 1,
+            "targetLabel" : "Caterpillar (Griffen et al. 2016)",
+            "yDatasetTarget" : "radialDistributionTarget",
+            "yAxisLabel" : "N(R_sub/R_vir,host)",
+            "yCovarianceTarget" : "radialDistributionCovarianceTarget",
+            "type" : "function1D",
+            "logLikelihood" : -26.3324829191724,
+            "xAxisIsLog" : 1,
+            "name" : "subhaloRadialDistribution",
+            "yDataset" : "radialDistribution",
+            "description" : "Subhalo radial distribution",
+            "xAxisLabel" : "R_sub/R_vir,host"
+         },
          "data" : {
+            "yDatasetTarget" : [
+               0,
+               0,
+               0.0294117647058826,
+               0.0294117647058825,
+               0.0882352941176477,
+               0.0294117647058825,
+               0.23529411764706,
+               0.176470588235295,
+               0.47058823529412,
+               0.617647058823533,
+               1.1764705882353,
+               2.00000000000001,
+               3.26470588235296,
+               5.08823529411767,
+               8.70588235294125,
+               10.7941176470589,
+               17.2352941176471,
+               21.4117647058825,
+               28.7647058823531,
+               34.2941176470591
+            ],
             "yErrorTarget" : [
                0,
                0,
@@ -177,28 +224,6 @@ window.ANALYSES_DATA = {
                17.2052556879919,
                20.616946065292,
                22.597203984198
-            ],
-            "yDatasetTarget" : [
-               0,
-               0,
-               0.0294117647058826,
-               0.0294117647058825,
-               0.0882352941176477,
-               0.0294117647058825,
-               0.23529411764706,
-               0.176470588235295,
-               0.47058823529412,
-               0.617647058823533,
-               1.1764705882353,
-               2.00000000000001,
-               3.26470588235296,
-               5.08823529411767,
-               8.70588235294125,
-               10.7941176470589,
-               17.2352941176471,
-               21.4117647058825,
-               28.7647058823531,
-               34.2941176470591
             ],
             "yError" : [
                0,
@@ -244,46 +269,26 @@ window.ANALYSES_DATA = {
                0.707945784384138,
                0.891250938133746
             ]
-         },
-         "attributes" : {
-            "xAxisIsLog" : 1,
-            "description" : "Subhalo radial distribution",
-            "xDataset" : "radiusFractional",
-            "yDatasetTarget" : "radialDistributionTarget",
-            "targetLabel" : "Caterpillar (Griffen et al. 2016)",
-            "xAxisLabel" : "R_sub/R_vir,host",
-            "yCovarianceTarget" : "radialDistributionCovarianceTarget",
-            "name" : "subhaloRadialDistribution",
-            "type" : "function1D",
-            "yAxisIsLog" : 1,
-            "yAxisLabel" : "N(R_sub/R_vir,host)",
-            "yDataset" : "radialDistribution",
-            "logLikelihood" : -26.3324829191724,
-            "yCovariance" : "radialDistributionCovariance"
          }
       },
       {
+         "attributes" : {
+            "xDataset" : "massBound",
+            "yCovariance" : "velocityMaximumMeanCovariance",
+            "yDatasetTarget" : "velocityMaximumMeanTarget",
+            "targetLabel" : "Caterpillar (Griffen et al. 2016)",
+            "yAxisIsLog" : 1,
+            "yAxisLabel" : "⟨ V_max ⟩ / km s⁻¹",
+            "yCovarianceTarget" : "velocityMaximumMeanCovarianceTarget",
+            "type" : "function1D",
+            "name" : "subhaloVelocityMaximumMean",
+            "logLikelihood" : -25139.2189837662,
+            "xAxisIsLog" : 1,
+            "yDataset" : "velocityMaximumMean",
+            "description" : "Subhalo mean maximum velocity vs. bound mass relation",
+            "xAxisLabel" : "M_bound/M_☉"
+         },
          "data" : {
-            "yErrorTarget" : [
-               0.0322636940327158,
-               0.00897876674480857,
-               0.0214796815899033,
-               0.0355328943242052,
-               0.0685651026362631,
-               0.0730067712748558,
-               0.115123482040044,
-               0.183412409675549,
-               0.368980797282297,
-               0.340940693774987,
-               0.543017203909876,
-               1.02331397215057,
-               1.2306712636792,
-               1.76371975467955,
-               2.10633963706394,
-               1.68291413922398,
-               6.84832917579171,
-               0
-            ],
             "yDataset" : [
                4.40059666308751,
                5.27200747638127,
@@ -323,6 +328,26 @@ window.ANALYSES_DATA = {
                91.21,
                91.595,
                119.56
+            ],
+            "yErrorTarget" : [
+               0.0322636940327158,
+               0.00897876674480857,
+               0.0214796815899033,
+               0.0355328943242052,
+               0.0685651026362631,
+               0.0730067712748558,
+               0.115123482040044,
+               0.183412409675549,
+               0.368980797282297,
+               0.340940693774987,
+               0.543017203909876,
+               1.02331397215057,
+               1.2306712636792,
+               1.76371975467955,
+               2.10633963706394,
+               1.68291413922398,
+               6.84832917579171,
+               0
             ],
             "xDataset" : [
                5906401.17715916,
@@ -364,33 +389,8 @@ window.ANALYSES_DATA = {
                2.37278694648188,
                6.02764944771608
             ]
-         },
-         "attributes" : {
-            "description" : "Subhalo mean maximum velocity vs. bound mass relation",
-            "xAxisIsLog" : 1,
-            "yCovarianceTarget" : "velocityMaximumMeanCovarianceTarget",
-            "xAxisLabel" : "M_bound/M_☉",
-            "yDatasetTarget" : "velocityMaximumMeanTarget",
-            "targetLabel" : "Caterpillar (Griffen et al. 2016)",
-            "xDataset" : "massBound",
-            "yAxisIsLog" : 1,
-            "type" : "function1D",
-            "name" : "subhaloVelocityMaximumMean",
-            "yCovariance" : "velocityMaximumMeanCovariance",
-            "logLikelihood" : -25139.2189837662,
-            "yDataset" : "velocityMaximumMean",
-            "yAxisLabel" : "⟨ V_max ⟩ / km s⁻¹"
          }
       }
    ],
-   "commit" : {
-      "timestamp" : "Thu, 10 Aug 2023 22:16:51 -0700",
-      "author" : {
-         "name" : "Andrew Benson",
-         "email" : "abensonca@gmail.com"
-      },
-      "url" : "https://github.com/galacticusorg/galacticus/commit/7f9ef8648b3d04c59a53383d47dd1b7c07703fdf",
-      "id" : "7f9ef8648b3d04c59a53383d47dd1b7c07703fdf",
-      "message" : "fix: Ensure count of node labels is correct if none exist"
-   }
+   "parameterFile" : "testSuite/parameters/validate_darkMatterOnlySubHalos.xml"
 }
