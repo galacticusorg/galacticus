@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1691741635962,
+  "lastUpdate": 1692069741804,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "edf56bd05e127325a2415787df342c4e72f15671",
-          "message": "feat: Allow for smoothed transitions in high-pass filters\n\nMake use of these in the COSMOS SHMR likelihood class to avoid having sharp transitions in the likelihood function.",
-          "timestamp": "2023-01-13T17:13:09Z",
-          "tree_id": "b1c263cc0161db07919d832a57f94b36c905bbc8",
-          "url": "https://github.com/galacticusorg/galacticus/commit/edf56bd05e127325a2415787df342c4e72f15671"
-        },
-        "date": 1673651805661,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 63.681,
-            "unit": "seconds",
-            "range": 0.315732323337358
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8724,6 +8694,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 25139.2189837662,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "ea48a439dc6908397670624edf80cac0e0f2c486",
+          "message": "feat: Add the `rate()` method to the `mergerTreeBranchingProbabilityGnrlzdPrssSchchtr` class",
+          "timestamp": "2023-08-14T20:55:05Z",
+          "tree_id": "d13bcaa10158865edd50e753fddabd74c9438e16",
+          "url": "https://github.com/galacticusorg/galacticus/commit/ea48a439dc6908397670624edf80cac0e0f2c486"
+        },
+        "date": 1692069739429,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 57.898,
+            "unit": "seconds",
+            "range": 0.096102029114951
           }
         ]
       }
