@@ -6316,6 +6316,43 @@ jobs:
           ./test-concentration-Ludlow2016.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
+  Test-Dark-Matter-Profiles-Projected:
+    runs-on: ubuntu-latest
+    container: ghcr.io/galacticusorg/buildenv:latest
+    needs: Build-Executable-Linux
+    steps:
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
+      - name: Check out repository code
+        uses: actions/checkout@v3
+      - name: Check out repository datasets
+        uses: actions/checkout@v3      
+        with:
+          repository: galacticusorg/datasets
+          path: datasets
+      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+      - name: Download executables
+        uses: actions/download-artifact@v3
+        with:
+          name: galacticus-exec
+      - name: Create test suite output directory
+        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
+      - name: Run test
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
+          chmod u=wrx ./Galacticus.exe
+          cd testSuite
+          chmod u=wrx ./test-tidallyTruncatedNFWFit.pl
+          set -o pipefail
+          ./test-tidallyTruncatedNFWFit.pl 2>&1 | tee test.log
+          ! grep -q FAIL test.log
+      - run: echo "This job's status is ${{ job.status }}."
   Test-Constraint-Deterministic-Spins:
     runs-on: ubuntu-latest
     container: ghcr.io/galacticusorg/buildenv:latest
@@ -10246,6 +10283,7 @@ jobs:
              Test-Branch-Subsampling,
              Test-CGM-Mass-Cooled,
              Test-Concentration-Ludlow2016,
+             Test-Dark-Matter-Profiles-Projected,
              Test-Constraint-Deterministic-Spins,
              Test-Constraint-Mass-Function,
              Test-Extract-Directives,
