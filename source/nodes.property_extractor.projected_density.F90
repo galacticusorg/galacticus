@@ -297,6 +297,8 @@ contains
              end if
           end do
        end if
+       densityProjected(i,1)=+densityProjected       (i,1) &
+            &                +densityProjectedCurrent
        if (self%includeRadii) densityProjected(i,2)=radius_
     end do
     return
