@@ -4606,7 +4606,7 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          chmod u=wrx ./tests.dark_matter_profiles.exe
+          chmod u=wrx ./tests.dark_matter_profiles.projected.exe
           set -o pipefail
           ./tests.dark_matter_profiles.projected.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
