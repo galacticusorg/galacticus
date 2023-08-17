@@ -16,6 +16,9 @@
     <redshift        value="0.504" ignoreWarnings="true"/>
   </haloEnvironment>
 
+  <!-- Isolation bias -->
+  <isolationBias value="=[haloMassFunctionParameters::MilkyWay]"/>
+
   <!-- Include Milky Way cosmology and mass function parameters -->
   <xi:include href="haloMassFunctionParameters.xml"                xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
   <xi:include href="simulation_Symphony_MilkyWay_hires.xml" xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
