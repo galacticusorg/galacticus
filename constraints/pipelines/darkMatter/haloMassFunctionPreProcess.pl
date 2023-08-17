@@ -2137,13 +2137,21 @@ sub zoomInsPostprocessSetVolume {
 	die("error: 'massTotal' attribute is missing from file '".$pathName."selectedParticles_".$redshiftLabel.".hdf5'")
 	    unless ( grep {$_ eq "massTotal"} $analysisFile->group('Snapshot00001')->group('HaloCatalog')->attrs() );
 	(my $mass)                  = $analysisFile->group('Snapshot00001')->group('HaloCatalog')->attrGet('massTotal');
+	# Find properties of the central halo.
+	my $primaryHaloFileName  = $pathName."primaryHalo_".$redshiftLabel.".xml";
+	my $xml                  = new XML::Simple();
+	my $primaryHaloData      = $xml->XMLin($primaryHaloFileName);
+	my $massPrimary          = $primaryHaloData->{'m'};
 	# Compute the mean density of the universe.
 	my $gravitationalConstant   = pdl 4.3011827419096073e-9;
 	my $densityMean             = 3.0*$OmegaMatter*$HubbleConstant**2/8.0/PI/$gravitationalConstant;
 	# Compute the volume of a cube containing the mass of our selected region.
-	my $boxSize                                                     = (    $mass/$densityMean       )**(1.0/3.0);
-	$simulation->{$realization}->{$redshiftLabel}->{'radiusRegion'} = (3.0*$mass/$densityMean/4.0/PI)**(1.0/3.0);
-	$simulation->{$realization}->{$redshiftLabel}->{'massRegion'  } =      $mass                                ;
+	die("Primary halo mass exceeds region mass")
+	    if ( $massPrimary >= $mass );
+	my $boxSize                                                     = (    ($mass-$massPrimary)/$densityMean       )**(1.0/3.0);
+	$simulation->{$realization}->{$redshiftLabel}->{'radiusRegion'} = (3.0* $mass              /$densityMean/4.0/PI)**(1.0/3.0);
+	$simulation->{$realization}->{$redshiftLabel}->{'massRegion'  } =       $mass                                              ;
+	$simulation->{$realization}->{$redshiftLabel}->{'massPrimary' } =             $massPrimary                                 ;
 	# Iterate over halo types.
 	foreach my $haloType ( "alwaysIsolated", "nonFlyby", "all" ) {
 	    # Set the box size.
@@ -2178,6 +2186,7 @@ sub zoomInsPostProcessMassFunction {
 	# Store these to the halo mass function.
 	my $haloMassFunctionFile = new PDL::IO::HDF5(">".$pathName."haloMassFunction_".$haloType."_".$redshiftLabel.":MPI0000.hdf5");
 	my $simulationGroup      = $haloMassFunctionFile->group('simulation0001')                                     ;
+	$simulationGroup->attrSet(massPrimary            => $simulation->{$realization}->{$redshiftLabel}->{'massPrimary' });
 	$simulationGroup->attrSet(massRegion             => $simulation->{$realization}->{$redshiftLabel}->{'massRegion'  });
 	$simulationGroup->attrSet(radiusRegion           => $simulation->{$realization}->{$redshiftLabel}->{'radiusRegion'});
 	$simulationGroup->attrSet(overdensityEnvironment => $overdensity                                                   );
