@@ -109,6 +109,7 @@ Implements a merger tree branching probability class using a generalized Press-S
      procedure :: probabilityBound      => generalizedPressSchechterProbabilityBound
      procedure :: fractionSubresolution => generalizedPressSchechterFractionSubresolution
      procedure :: massBranch            => generalizedPressSchechterMassBranch
+     procedure :: rate                  => generalizedPressSchechterRate
      procedure :: stepMaximum           => generalizedPressSchechterStepMaximum
      procedure :: computeCommonFactors  => generalizedPressSchechterComputeCommonFactors
      procedure :: excursionSetTest      => generalizedPressSchechterExcursionSetTest
@@ -368,6 +369,36 @@ contains
          &                                                              )
     return
   end function generalizedPressSchechterMassBranchRoot
+
+  double precision function generalizedPressSchechterRate(self,mass,deltaCritical,time,massBranch,node)
+    !!{
+    Return the rate per unit mass and per unit change in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time
+    {\normalfont \ttfamily deltaCritical} will undergo a branching to progenitors with mass {\normalfont \ttfamily massBranch}.
+    !!}
+    implicit none
+    class           (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr), intent(inout), target :: self
+    double precision                                                 , intent(in   )         :: deltaCritical, mass     , &
+         &                                                                                      massBranch   , time
+    type            (treeNode                                       ), intent(inout), target :: node
+    double precision                                                                         :: massBranch_  , childSigma, &
+         &                                                                                      childAlpha
+    
+    ! Always use the rate from the lower half of the mass range.
+    if (self%distributionFunctionLowerHalfOnly) then
+       if (massBranch > 0.5d0*mass) then
+          massBranch_=+mass-massBranch
+       else
+          massBranch_=     +massBranch
+       end if
+    else
+       massBranch_   =     +massBranch
+    end if
+    call self                          %computeCommonFactors              (node,mass,deltaCritical,time)
+    call self%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(massBranch,self%parentTime,childSigma,childAlpha)
+    self_                         => self
+    generalizedPressSchechterRate =  generalizedPressSchechterProgenitorMassFunction(massBranch,childSigma,childAlpha,node)
+    return
+  end function generalizedPressSchechterRate
 
   double precision function generalizedPressSchechterStepMaximum(self,haloMass,deltaCritical,time,massResolution)
     !!{

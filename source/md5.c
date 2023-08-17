@@ -89,7 +89,8 @@ void md5Update(MD5Context *ctx, uint8_t *input_buffer, size_t input_len){
     ctx->size += (uint64_t)input_len;
 
     // Copy each byte in input_buffer into the next space in our context input
-    for(unsigned int i = 0; i < input_len; ++i){
+    unsigned int i;
+    for(i = 0; i < input_len; ++i){
         ctx->input[offset++] = (uint8_t)*(input_buffer + i);
 
         // If we've filled our context input, copy it into our local array input
@@ -97,7 +98,8 @@ void md5Update(MD5Context *ctx, uint8_t *input_buffer, size_t input_len){
         // Every time we fill out a chunk, we run it through the algorithm
         // to enable some back and forth between cpu and i/o
         if(offset % 64 == 0){
-            for(unsigned int j = 0; j < 16; ++j){
+	  unsigned int j;
+	  for(j = 0; j < 16; ++j){
                 // Convert to little-endian
                 // The local variable `input` our 512-bit chunk separated into 32-bit words
                 // we can use in calculations
@@ -127,7 +129,8 @@ void md5Finalize(MD5Context *ctx){
 
     // Do a final update (internal to this function)
     // Last two 32-bit words are the two halves of the size (converted from bytes to bits)
-    for(unsigned int j = 0; j < 14; ++j){
+    unsigned int j;
+    for(j = 0; j < 14; ++j){
         input[j] = (uint32_t)(ctx->input[(j * 4) + 3]) << 24 |
                    (uint32_t)(ctx->input[(j * 4) + 2]) << 16 |
                    (uint32_t)(ctx->input[(j * 4) + 1]) <<  8 |
@@ -139,7 +142,8 @@ void md5Finalize(MD5Context *ctx){
     md5Step(ctx->buffer, input);
 
     // Move the result into digest (convert from little-endian)
-    for(unsigned int i = 0; i < 4; ++i){
+    unsigned int i;
+    for(i = 0; i < 4; ++i){
         ctx->digest[(i * 4) + 0] = (uint8_t)((ctx->buffer[i] & 0x000000FF));
         ctx->digest[(i * 4) + 1] = (uint8_t)((ctx->buffer[i] & 0x0000FF00) >>  8);
         ctx->digest[(i * 4) + 2] = (uint8_t)((ctx->buffer[i] & 0x00FF0000) >> 16);
@@ -160,7 +164,8 @@ void md5Step(uint32_t *buffer, uint32_t *input){
 
     unsigned int j;
 
-    for(unsigned int i = 0; i < 64; ++i){
+    unsigned int i;
+    for(i = 0; i < 64; ++i){
         switch(i / 16){
             case 0:
                 E = F(BB, CC, DD);
@@ -228,7 +233,8 @@ void md5Hash(int textLength, char *input, char *hash) {
   /* Convert the result to a hash */
   uint8_t result[16];
   md5String(input, result);
-  for(unsigned int i = 0; i < 16; ++i){
+  unsigned int i;
+  for(i = 0; i < 16; ++i){
     sprintf(hash+2*i, "%02x", result[i]);
   }
   hash[32] = '\0';

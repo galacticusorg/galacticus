@@ -182,7 +182,7 @@ contains
     double precision                                       , dimension(:) , allocatable :: virialPropertiesUnitsInSI
     class           (nodePropertyExtractorVirialProperties), intent(inout)              :: self
     double precision                                       , intent(in   )              :: time
-   !$GLC attributes unused :: self, time
+    !$GLC attributes unused :: self, time
 
     allocate(virialPropertiesUnitsInSI(3))
     virialPropertiesUnitsInSI=[            &

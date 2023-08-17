@@ -38,7 +38,7 @@ module Merger_Trees_Dump
 contains
 
   subroutine Merger_Tree_Dump(tree,highlightNodes,backgroundColor,nodeColor,edgeColor,highlightColor,nodeStyle&
-       &,highlightStyle ,edgeStyle ,labelNodes,labelUnique,scaleNodesByLogMass,edgeLengthsToTimes,timeRange,path)
+       &,highlightStyle ,edgeStyle ,labelNodes,labelUnique,scaleNodesByLogMass,edgeLengthsToTimes,useNodeLabels,timeRange,path)
     !!{
     Dumps the tree structure to a file in a format suitable for processing with \href{http://www.graphviz.org/}{\normalfont \scshape dot}. Nodes
     are shown as circles if isolated or rectangles if satellites. Isolated nodes are connected to their descendant halo, while
@@ -46,9 +46,10 @@ contains
     specified.
     !!}
     use :: Galacticus_Nodes   , only : mergerTree              , nodeComponentBasic, treeNode
-    use :: ISO_Varying_String , only : assignment(=)           , char              , operator(//), trim, &
+    use :: ISO_Varying_String , only : assignment(=)           , char              , operator(//)  , trim, &
           &                            varying_string
     use :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
+    use :: Nodes_Labels       , only : nodeLabelNames          , nodeLabelIsPresent, nodeLabelCount
     implicit none
     type            (mergerTree              )              , intent(in   )                    :: tree
     integer         (kind=kind_int8          ), dimension(:), intent(in   ), optional          :: highlightNodes
@@ -57,15 +58,18 @@ contains
          &                                                                                        highlightStyle           , nodeColor           , &
          &                                                                                        nodeStyle
     logical                                                 , intent(in   ), optional          :: edgeLengthsToTimes       , labelNodes          , &
-         &                                                                                        scaleNodesByLogMass      , labelUnique
+         &                                                                                        scaleNodesByLogMass      , labelUnique         , &
+         &                                                                                        useNodeLabels
     double precision                          , dimension(2), intent(in   ), optional          :: timeRange
     type            (varying_string          )              , intent(in   ), optional          :: path
+    type            (varying_string          ), dimension(:), allocatable                      :: labelNames
     type            (treeNode                )                                       , pointer :: node
     class           (nodeComponentBasic      )                                       , pointer :: basicParent              , basic
     type            (mergerTreeWalkerAllNodes)                                                 :: treeWalker
     logical                                                                                    :: edgeLengthsToTimesActual , labelNodesActual    , &
-         &                                                                                        scaleNodesByLogMassActual, labelUniqueActual
-    integer                                                                                    :: fileUnit
+         &                                                                                        scaleNodesByLogMassActual, labelUniqueActual   , &
+         &                                                                                        useNodeLabelsActual      , first
+    integer                                                                                    :: fileUnit                 , i
     double precision                                                                           :: nodeMass                 , nodeMassMaximum     , &
          &                                                                                        nodeMassMinimum          , timeDifference      , &
          &                                                                                        timeMaximum              , timeMinimum
@@ -77,7 +81,7 @@ contains
          &                                                                                        outputCountFormatted     , style               , &
          &                                                                                        treeIndexFormatted
     character       (len=1024                )                                                 :: fileName
-    type            (varying_string          )                                                 :: fullFileName
+    type            (varying_string          )                                                 :: fullFileName             , label_
 
     ! If the tree index differs from the previous one, then reset the output count.
     if (tree%index /= treeIndexPrevious) then
@@ -127,6 +131,11 @@ contains
     else
        labelNodesActual         =.true.
     end if
+    if (present(useNodeLabels      )) then
+       useNodeLabelsActual      =useNodeLabels
+    else
+      useNodeLabelsActual       =.false.
+    end if
     if (present(labelUnique        )) then
        labelUniqueActual        =labelUnique
     else
@@ -142,6 +151,8 @@ contains
     else
        edgeLengthsToTimesActual =.false.
     end if
+    ! Get node label names.
+    if (useNodeLabelsActual) call nodeLabelNames(labelNames)
     ! If sizes are to be scaled by mass, find the range of masses in the tree. If edges are set to time intervals, find minimum
     ! and maximum times in tree.
     if (scaleNodesByLogMassActual.or.edgeLengthsToTimesActual) then
@@ -214,10 +225,22 @@ contains
              style=nodeStyleActual
           end if
           ! Create node labels.
-          if (labelUniqueActual) then
+          if      (useNodeLabelsActual) then
+             label_=""
+             first=.true.
+             do i=1,nodeLabelCount()
+                if (nodeLabelIsPresent(i,node)) then
+                   if (.not.first) label_=label_//"; "
+                   label_=label_//labelNames(i)
+                   first=.false.
+                end if
+             end do
+          else if (labelUniqueActual  ) then
              write (      label,'(i16.16)') node       %uniqueID()
+             label_=trim(label)
           else
              write (      label,'(i16.16)') node       %index   ()
+             label_=trim(label)
           end if
           ! Create node.
           if (node%isSatellite()) then
@@ -246,7 +269,7 @@ contains
           if (.not.labelNodesActual) then
              write (fileUnit,'(a,i16.16,a)'    ) '"',node%uniqueID(),'" [label=""];'
           else
-             write (fileUnit,'(a,i16.16,a,a,a)') '"',node%uniqueID(),'" [label="',label,'"];'
+             write (fileUnit,'(a,i16.16,a,a,a)') '"',node%uniqueID(),'" [label="',char(label_),'"];'
           end if
        end if
     end do
