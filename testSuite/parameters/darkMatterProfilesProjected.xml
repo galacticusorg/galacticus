@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<!-- Parameter file used for testing dark matter profile projection. -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+  <cosmologyFunctions value="matterLambda"/>
+  <cosmologyParameters value="simple">
+    <OmegaMatter value="0.3"/>
+    <OmegaDarkEnergy value="0.7"/>
+    <OmegaBaryon value="0.0"/>
+    <HubbleConstant value="70.0"/>
+  </cosmologyParameters>
+</parameters>
