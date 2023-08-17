@@ -17,7 +17,7 @@
   </haloEnvironment>
 
   <!-- Isolation bias -->
-  <isolationBias value="=[haloMassFunctionParameters::isolationBiasLMC]" ignoreWarnings="yes"/>
+  <isolationBias value="=[haloMassFunctionParameters::isolationBiasLMC]" ignoreWarnings="true"/>
 
   <!-- Include Milky Way cosmology and mass function parameters -->
   <xi:include href="haloMassFunctionParameters.xml"                xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
