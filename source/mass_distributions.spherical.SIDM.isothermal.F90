@@ -637,7 +637,6 @@ contains
     type            (enumerationComponentTypeType           ), intent(in   ), optional :: componentType
     type            (enumerationMassTypeType                ), intent(in   ), optional :: massType
     type            (enumerationStructureErrorCodeType      ), intent(  out), optional :: status
-    double precision                                                                   :: radiusScaleFree
     type            (coordinateSpherical                    )                          :: coordinatesInteraction
     
     if (present(status)) status=structureErrorCodeSuccess
