@@ -107,6 +107,7 @@
        <method method="restoreEnergyTable"               description="Attempt to restore the tabulated energy from file, returning true if successful."                  />
      </methods>
      !!]
+     procedure :: get                              => finiteResolutionNFWGet
      procedure :: autoHook                         => finiteResolutionNFWAutoHook
      procedure :: calculationReset                 => finiteResolutionNFWCalculationReset
      procedure :: density                          => finiteResolutionNFWDensity
@@ -327,6 +328,68 @@ contains
     return
   end subroutine finiteResolutionNFWCalculationReset  
 
+  function finiteResolutionNFWGet(self,node,weightBy,weightIndex) result(massDistribution_)
+    !!{
+    Return the dark matter mass distribution for the given {\normalfont \ttfamily node}.
+    !!}
+    use :: Galacticus_Nodes          , only : nodeComponentBasic                          , nodeComponentDarkMatterProfile
+    use :: Galactic_Structure_Options, only : componentTypeDarkHalo                       , massTypeDark                             , weightByMass
+    use :: Mass_Distributions        , only : massDistributionSphericalFiniteResolutionNFW, kinematicsDistributionFiniteResolutionNFW, massDistributionSpherical
+    implicit none
+    class  (massDistributionClass                    ), pointer                 :: massDistribution_
+    type   (kinematicsDistributionFiniteResolutionNFW), pointer                 :: kinematicsDistribution_
+    class  (darkMatterProfileDMOFiniteResolutionNFW  ), intent(inout)           :: self
+    type   (treeNode                                 ), intent(inout)           :: node
+    type   (enumerationWeightByType                  ), intent(in   ), optional :: weightBy
+    integer                                           , intent(in   ), optional :: weightIndex
+    class  (nodeComponentBasic                       ), pointer                 :: basic
+    class  (nodeComponentDarkMatterProfile           ), pointer                 :: darkMatterProfile
+    !![
+    <optionalArgument name="weightBy" defaultsTo="weightByMass" />
+    !!]
+
+    ! Assume a null distribution by default.
+    massDistribution_ => null()
+    ! If weighting is not by mass, return a null profile.
+    if (weightBy_ /= weightByMass) return
+    ! Create the mass distribution.
+    allocate(massDistributionSphericalFiniteResolutionNFW :: massDistribution_)
+    select type(massDistribution_)
+    type is (massDistributionSphericalFiniteResolutionNFW)
+       basic => node%basic()
+       darkMatterProfile => node%darkMatterProfile()
+       !![
+       <referenceConstruct object="massDistribution_">
+	 <constructor>
+           massDistributionSphericalFiniteResolutionNFW(                                                                                         &amp;
+	   &amp;                                        lengthResolution =self                                  %lengthResolutionPhysical(node), &amp;
+	   &amp;                                        radiusScale      =darkMatterProfile                     %scale                   (    ), &amp;
+	   &amp;                                        radiusVirial     =self             %darkMatterHaloScale_%radiusVirial            (node), &amp;
+	   &amp;                                        mass             =basic                                 %mass                    (    ), &amp;
+           &amp;                                        componentType    =                                       componentTypeDarkHalo         , &amp;
+           &amp;                                        massType         =                                       massTypeDark                    &amp;
+           &amp;                                       )
+	 </constructor>
+       </referenceConstruct>
+       <objectDestructor name="massDistribution_"/>
+       !!]
+    end select
+    allocate(kinematicsDistribution_)
+    !![
+    <referenceConstruct object="kinematicsDistribution_">
+      <constructor>
+        kinematicsDistributionFiniteResolutionNFW( &amp;
+	 &amp;                                   )
+      </constructor>
+    </referenceConstruct>
+    !!]
+    call massDistribution_%setKinematicsDistribution(kinematicsDistribution_)
+    !![
+    <objectDestructor name="kinematicsDistribution_"/>
+    !!]
+    return
+  end function finiteResolutionNFWGet
+
   double precision function finiteResolutionNFWDensity(self,node,radius)
     !!{
     Returns the density (in $M_\odot/\mathrm{MPc}^3$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
@@ -395,7 +458,7 @@ contains
     class           (darkMatterProfileDMOFiniteResolutionNFW), intent(inout) :: self
     type            (treeNode                               ), intent(inout) :: node
     double precision                                         , intent(in   ) :: radius
-    class           (nodeComponentBasic                     ), pointer       :: basic
+   class           (nodeComponentBasic                     ), pointer       :: basic
     class           (nodeComponentDarkMatterProfile         ), pointer       :: darkMatterProfile
     double precision                                                         :: concentration            , radiusScaleFree, &
          &                                                                      lengthResolutionScaleFree
