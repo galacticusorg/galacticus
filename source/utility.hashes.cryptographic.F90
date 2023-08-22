@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-! Specify an explicit dependence on the utility.hashes.cryptographic.md5.o object file.
+! Specify an explicit dependence on the md5.o object file.
 !: $(BUILDPATH)/md5.o
 
 module Hashes_Cryptographic
