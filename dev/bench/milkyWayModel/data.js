@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1692668820423,
+  "lastUpdate": 1692668829285,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "e2cb6f3570438aa22bbdd4d6bf4ed18668d99434",
-          "message": "Merge pull request #356 from galacticusorg/font2008RoundingErrors\n\nfix: Avoid root search range failure in `font2008` hot halo ram pressure stripping class",
-          "timestamp": "2023-01-18T07:42:56-08:00",
-          "tree_id": "5c2c250b769545c02df451188ebbe2436c09018c",
-          "url": "https://github.com/galacticusorg/galacticus/commit/e2cb6f3570438aa22bbdd4d6bf4ed18668d99434"
-        },
-        "date": 1674070328209,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 210.149,
-            "unit": "seconds",
-            "range": 0.59596048526604
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10620,6 +10590,60 @@ window.BENCHMARK_DATA = {
             "value": 237.131,
             "unit": "seconds",
             "range": 0.294276910407664
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "2e4d4ad34084440a26bcdfadc33601a4f16e53d7",
+          "message": "fix: Remove OpenMP locks from `accretionDisksADAF` class\n\nThis are obsolete (and have been for a long time) as the tabulated solutions are now stored in each object of this class (and so are not shared).",
+          "timestamp": "2023-08-21T15:29:58-07:00",
+          "tree_id": "437fdaefcaddcf9efc219bb970f048b1e95bab2e",
+          "url": "https://github.com/galacticusorg/galacticus/commit/2e4d4ad34084440a26bcdfadc33601a4f16e53d7"
+        },
+        "date": 1692668827913,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassMetallicityRelation",
+            "value": 3.61900842182208,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassSizeRelation",
+            "value": 10.588824960662,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassVelocityDispersionRelation",
+            "value": 0.799608411284678,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupOccupationFraction",
+            "value": 23.6785721019041,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassFunction",
+            "value": 67.7384154401288,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
+            "value": 1.24778572576594,
+            "unit": "-logℒ"
           }
         ]
       }
