@@ -424,7 +424,7 @@ contains
 
   subroutine interpolatorGSLInitialize(self,ya)
     !!{
-    Initialize GSL interpoltor.
+    Initialize GSL interpolator.
     !!}
     use :: Error        , only : Error_Report
     use :: Interface_GSL, only : GSL_Success
@@ -623,9 +623,9 @@ contains
     class           (interpolator                    ), intent(inout)               :: self
     double precision                                  , intent(in   )               :: x
     double precision                                  , intent(in   ), dimension(:) :: ya
-    type            (varying_string                  )                              :: message
-    type            (enumerationExtrapolationTypeType), save                        :: extrapolationType
+    type            (varying_string                  ), save                        :: message
     !$omp threadprivate(message)
+    type            (enumerationExtrapolationTypeType)                              :: extrapolationType
     integer         (c_int                           )                              :: statusGSL
     double precision                                                                :: x_
 
