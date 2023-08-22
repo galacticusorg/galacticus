@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1692668815857,
+  "lastUpdate": 1692668824771,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "e2cb6f3570438aa22bbdd4d6bf4ed18668d99434",
-          "message": "Merge pull request #356 from galacticusorg/font2008RoundingErrors\n\nfix: Avoid root search range failure in `font2008` hot halo ram pressure stripping class",
-          "timestamp": "2023-01-18T07:42:56-08:00",
-          "tree_id": "5c2c250b769545c02df451188ebbe2436c09018c",
-          "url": "https://github.com/galacticusorg/galacticus/commit/e2cb6f3570438aa22bbdd4d6bf4ed18668d99434"
-        },
-        "date": 1674070332616,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 57.3844543134178,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 25.9186267741694,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 26366.2430061311,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8724,6 +8685,45 @@ window.BENCHMARK_DATA = {
             "value": 57.123,
             "unit": "seconds",
             "range": 0.0704137770608578
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "2e4d4ad34084440a26bcdfadc33601a4f16e53d7",
+          "message": "fix: Remove OpenMP locks from `accretionDisksADAF` class\n\nThis are obsolete (and have been for a long time) as the tabulated solutions are now stored in each object of this class (and so are not shared).",
+          "timestamp": "2023-08-21T15:29:58-07:00",
+          "tree_id": "437fdaefcaddcf9efc219bb970f048b1e95bab2e",
+          "url": "https://github.com/galacticusorg/galacticus/commit/2e4d4ad34084440a26bcdfadc33601a4f16e53d7"
+        },
+        "date": 1692668823668,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 58.5315751069983,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 26.4657217377668,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 25134.956813135,
+            "unit": "-logℒ"
           }
         ]
       }
