@@ -43,7 +43,7 @@ my $stepCount = $i+1;
 my @values = sort(keys(%{$data->{'properties'}}));
 my @rates;
 foreach my $property ( @values ) {
-    push(@rates,map {{property => $property, function => $_}} sort(keys($data->{'properties'}->{$property}->{'rate'})));
+    push(@rates,map {{property => $property, function => $_}} sort(keys(%{$data->{'properties'}->{$property}->{'rate'}})));
 }
 open(my $valueLog,">","debugValues.csv");
 print $valueLog "time , ".join(" , ",@values)."\n";
