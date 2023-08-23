@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1692812647740,
+  "lastUpdate": 1692812655081,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "c17eea79b5ad78e21a97d2ab909b4a5b26a0af3a",
-          "message": "feat: Refactor the Gaussian emulator model likelihood class\n\n* Makes this class more efficient;\n\n* Handles cases where the simulator has intrinsic variance (i.e. exploits the fact that the emulator can not possibly have smaller variance than the simulator);\n\n* Adds a variogram class to provide more flexibility in variogram models.",
-          "timestamp": "2023-01-20T19:41:51Z",
-          "tree_id": "12e20e3efa8f3c824d5c0462c7bd52d7cd17e12b",
-          "url": "https://github.com/galacticusorg/galacticus/commit/c17eea79b5ad78e21a97d2ab909b4a5b26a0af3a"
-        },
-        "date": 1674268924395,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 193.588,
-            "unit": "seconds",
-            "range": 1.68454195554745
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10620,6 +10590,60 @@ window.BENCHMARK_DATA = {
             "value": 208.291,
             "unit": "seconds",
             "range": 0.214240285657083
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "7cd7b6df772e1a6bde6d74da6fb8fc894db2bee6",
+          "message": "fix: Correct method descriptions\n\nIn several places \"cm\" was missing the \"m\".",
+          "timestamp": "2023-08-23T07:39:03-07:00",
+          "tree_id": "86aaa1b252e0b8d7d66fb1be787200c73580a158",
+          "url": "https://github.com/galacticusorg/galacticus/commit/7cd7b6df772e1a6bde6d74da6fb8fc894db2bee6"
+        },
+        "date": 1692812654391,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassMetallicityRelation",
+            "value": 3.42795701008481,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassSizeRelation",
+            "value": 10.3236158898131,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassVelocityDispersionRelation",
+            "value": 0.840619438436014,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupOccupationFraction",
+            "value": 24.0612166943218,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassFunction",
+            "value": 69.8922100635251,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
+            "value": 1.27384044800987,
+            "unit": "-logℒ"
           }
         ]
       }
