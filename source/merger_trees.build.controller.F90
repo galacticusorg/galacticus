@@ -43,6 +43,18 @@ module Merger_Tree_Build_Controllers
     <argument>type (treeNode             ), intent(inout), pointer  :: node       </argument>
     <argument>class(mergerTreeWalkerClass), intent(inout), optional :: treeWalker_</argument>
    </method>
+   <method name="timeMinimum" >
+    <description>Return the minimum ``time'' (using the usual $w$ variable for merger tree building) allowed for this node.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>type            (treeNode), intent(inout) :: node                                 </argument>
+    <argument>double precision          , intent(in   ) :: massBranch, criticalOverdensityBranch</argument>
+    <code>
+      !$GLC attributes unused :: self, node, massBranch, criticalOverdensityBranch
+      ! No limit to time by default.
+      mergerTreeBuildControllerTimeMinimum=criticalOverdensityBranch
+    </code>
+   </method>   
    <method name="timeMaximum" >
     <description>Return the maximum ``time'' (using the usual $w$ variable for merger tree building) allowed for this node.</description>
     <type>double precision</type>
