@@ -31,6 +31,8 @@ sub Build_Meta_Rate_Functions {
     # Build rate setting functions for evolvable meta-properties.
     my $build = shift();
     my $class = shift();
+    # Determine if debugging output is required.
+    my $debugging = exists($ENV{'GALACTICUS_FCFLAGS'}) && $ENV{'GALACTICUS_FCFLAGS'} =~ m/(^|\s)\-DDEBUGGING($|\s)/;
     # Build the function.
     my $classTypeName = "nodeComponent".ucfirst($class->{'name'});
     my $function =
@@ -79,7 +81,11 @@ sub Build_Meta_Rate_Functions {
     };
     # Build the function.
     if ( grep {$class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
-	push(@{$function->{'modules'}},"Error");
+	push(@{$function->{'modules'}},"Error"    );
+	push(@{$function->{'modules'}},"Debugging")
+	    if ( $debugging );
+	push(@{$function->{'variables'}},{intrinsic => "type", type => "varying_string", variables => [ "message" ]},{intrinsic => "character", type => "len=13", variables => [ "label" ]})
+	    if ( $debugging );
 	$function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
 !$GLC attributes unused :: interrupt, interruptProcedure, self
 CODE
@@ -105,6 +111,15 @@ else
 end if
 nodeRates(offset)=nodeRates(offset)+setValue
 CODE
+	if ( $debugging ) {
+	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+if (isDebugging()) then
+ write (label,'(e12.6)') setValue
+ message="   rate: ("//getCaller()//") {$className}:floatRank0MetaProperties "//trim(adjustl(label))
+ call debugLog(message)
+end if
+CODE
+	}
     }
     # Insert a type-binding for this function into the relevant type.
     push(

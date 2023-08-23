@@ -142,7 +142,8 @@ print
     join(" ",map {"-l".$_} @sortedLibraries).
     $staticOptions.
     $osOptions.
-    ((grep {$_ eq "blas"} @sortedLibraries) ? " -fexternal-blas" : "").
-    ($linkLibRT                             ? " -lrt"            : "").
+    ((grep {$_ eq "-DDEBUGGING"} @compilerOptions) ? " -rdynamic"       : "").
+    ((grep {$_ eq "blas"       } @sortedLibraries) ? " -fexternal-blas" : "").
+    ($linkLibRT                                    ? " -lrt"            : "").
     "\n";
 exit;
