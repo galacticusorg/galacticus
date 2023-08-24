@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1692912120226,
+  "lastUpdate": 1692912127957,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "b9e1110209090aebbab11164a64a25d45b51945e",
-          "message": "Merge pull request #358 from galacticusorg/namespaceVariables\n\nRemove prefix-based namespacing of submodule-scope variables",
-          "timestamp": "2023-01-21T08:32:54-08:00",
-          "tree_id": "83d720b7565a9f25568c5e060562f0c9546ad532",
-          "url": "https://github.com/galacticusorg/galacticus/commit/b9e1110209090aebbab11164a64a25d45b51945e"
-        },
-        "date": 1674328011349,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 198.737,
-            "unit": "seconds",
-            "range": 0.0393967003617005
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10620,6 +10590,60 @@ window.BENCHMARK_DATA = {
             "value": 228.513,
             "unit": "seconds",
             "range": 1.08628545972038
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "c28a88f038736a156970f43dd0eb41037ff9f80d",
+          "message": "fix: Add highlighted \"WARNING\" on mismatched cosmological parameters",
+          "timestamp": "2023-08-24T15:17:02Z",
+          "tree_id": "3e47956d4d064e5b4a07ed5ca59a1313553fb19e",
+          "url": "https://github.com/galacticusorg/galacticus/commit/c28a88f038736a156970f43dd0eb41037ff9f80d"
+        },
+        "date": 1692912126773,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassMetallicityRelation",
+            "value": 3.55178149493395,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassSizeRelation",
+            "value": 10.833480318933,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassVelocityDispersionRelation",
+            "value": 0.727384505571875,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupOccupationFraction",
+            "value": 24.1054424083548,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassFunction",
+            "value": 68.3982979636022,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
+            "value": 1.26439024807642,
+            "unit": "-logℒ"
           }
         ]
       }
