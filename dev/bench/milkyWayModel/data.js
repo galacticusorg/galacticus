@@ -1,62 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1692812655081,
+  "lastUpdate": 1692865897731,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "c17eea79b5ad78e21a97d2ab909b4a5b26a0af3a",
-          "message": "feat: Refactor the Gaussian emulator model likelihood class\n\n* Makes this class more efficient;\n\n* Handles cases where the simulator has intrinsic variance (i.e. exploits the fact that the emulator can not possibly have smaller variance than the simulator);\n\n* Adds a variogram class to provide more flexibility in variogram models.",
-          "timestamp": "2023-01-20T19:41:51Z",
-          "tree_id": "12e20e3efa8f3c824d5c0462c7bd52d7cd17e12b",
-          "url": "https://github.com/galacticusorg/galacticus/commit/c17eea79b5ad78e21a97d2ab909b4a5b26a0af3a"
-        },
-        "date": 1674268932270,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Likelihood - localGroupMassMetallicityRelation",
-            "value": 4.10506800245251,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupMassSizeRelation",
-            "value": 8.53819607330649,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupMassVelocityDispersionRelation",
-            "value": 1.33404255369956,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupOccupationFraction",
-            "value": 24.3429843749987,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupStellarMassFunction",
-            "value": 127.383069346823,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
-            "value": 4.4595580177165,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10644,6 +10590,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 1.27384044800987,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": false,
+          "id": "3d09e973a1c5355740ebeccc1e20eb5b71517979",
+          "message": "Merge pull request #451 from galacticusorg/singleStep\n\nAdd a `mergerTreeBuildContoller` class that takes just a single step in the tree",
+          "timestamp": "2023-08-24T05:25:38Z",
+          "tree_id": "ccc351bea3a2dd0c65b1479f4de1ea85c2748c4d",
+          "url": "https://github.com/galacticusorg/galacticus/commit/3d09e973a1c5355740ebeccc1e20eb5b71517979"
+        },
+        "date": 1692865896540,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 233.743,
+            "unit": "seconds",
+            "range": 0.251097789713961
           }
         ]
       }
