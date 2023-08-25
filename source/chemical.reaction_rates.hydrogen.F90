@@ -52,25 +52,25 @@
    contains
      !![
      <methods>
-       <method description="Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H} + \hbox{e}^- \rightarrow \hbox{H}^+ + 2\hbox{e}^-$."     method="rateH_Electron_to_Hplus_2Electron"  />
-       <method description="Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}^+ + \hbox{e}^- \rightarrow \hbox{H} + \gamma$."          method="rateHplus_Electron_to_H_Photon"     />
+       <method description="Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H} + \hbox{e}^- \rightarrow \hbox{H}^+ + 2\hbox{e}^-$."    method="rateH_Electron_to_Hplus_2Electron"  />
+       <method description="Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}^+ + \hbox{e}^- \rightarrow \hbox{H} + \gamma$."         method="rateHplus_Electron_to_H_Photon"     />
        <method description="Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H} + \hbox{e}^- \rightarrow \hbox{H}^- + \gamma$."         method="rateH_Electron_to_Hminus_Photon"    />
        <method description="Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H} + \hbox{H}^- \rightarrow \hbox{H}_2 + \hbox{e}^-$."     method="rateH_Hminus_to_H2_Electron"        />
-       <method description="Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H} + \hbox{H}^+ \rightarrow \hbox{H}_2^+ + \gamma$."        method="rateH_Hplus_to_H2plus_Photon"       />
-       <method description="Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \hbox{H} \rightarrow \hbox{H}_2 + \hbox{H}^+$."    method="rateH2plus_H_to_H2_Hplus"           />
-       <method description="Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2 + \hbox{H}^+ \rightarrow \hbox{H}_2^+ + \hbox{H}$."    method="rateH2_Hplus_to_H2plus_H"           />
-       <method description="Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2 + \hbox{e}^- \rightarrow 2\hbox{H} + \hbox{e}^-$."     method="rateH2_Electron_to_2H_Electron"     />
-       <method description="Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2 + \hbox{H} \rightarrow 3\hbox{H}$."                    method="rateH2_H_to_3H"                     />
+       <method description="Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H} + \hbox{H}^+ \rightarrow \hbox{H}_2^+ + \gamma$."       method="rateH_Hplus_to_H2plus_Photon"       />
+       <method description="Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \hbox{H} \rightarrow \hbox{H}_2 + \hbox{H}^+$."   method="rateH2plus_H_to_H2_Hplus"           />
+       <method description="Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2 + \hbox{H}^+ \rightarrow \hbox{H}_2^+ + \hbox{H}$."   method="rateH2_Hplus_to_H2plus_H"           />
+       <method description="Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2 + \hbox{e}^- \rightarrow 2\hbox{H} + \hbox{e}^-$."    method="rateH2_Electron_to_2H_Electron"     />
+       <method description="Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2 + \hbox{H} \rightarrow 3\hbox{H}$."                   method="rateH2_H_to_3H"                     />
        <method description="Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \hbox{H} \rightarrow \hbox{H}_2 + \hbox{H}^+$."   method="rateHminus_Electron_to_H_2Electron" />
-       <method description="Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}^- + \hbox{H} \rightarrow 2 \hbox{H} + \hbox{e}^-$."      method="rateHminus_H_to_2H_Electron"        />
-       <method description="Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \hbox{H} \rightarrow \hbox{H}_2 + \hbox{H}^+$."    method="rateHminus_Hplus_to_2H"             />
+       <method description="Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}^- + \hbox{H} \rightarrow 2 \hbox{H} + \hbox{e}^-$."     method="rateHminus_H_to_2H_Electron"        />
+       <method description="Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \hbox{H} \rightarrow \hbox{H}_2 + \hbox{H}^+$."   method="rateHminus_Hplus_to_2H"             />
        <method description="Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}^- + \hbox{H}^+ \rightarrow \hbox{H}_2^+ + \hbox{e}^-$." method="rateHminus_Hplus_to_H2plus_Electron"/>
-       <method description="Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \hbox{e}^- \rightarrow 2\hbox{H}$."                method="rateH2plus_Electron_to_2H"          />
-       <method description="Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \hbox{H}^- \rightarrow \hbox{H}_2 + \hbox{H}$."    method="rateH2plus_Hminus_to_H2_H"          />
+       <method description="Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \hbox{e}^- \rightarrow 2\hbox{H}$."               method="rateH2plus_Electron_to_2H"          />
+       <method description="Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \hbox{H}^- \rightarrow \hbox{H}_2 + \hbox{H}$."   method="rateH2plus_Hminus_to_H2_H"          />
        <method description="Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H} + \gamma \rightarrow \hbox{H}^+ + \hbox{e}^-$."         method="rateH_Gamma_to_Hplus_Electron"      />
-       <method description="Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}^- + \gamma \rightarrow \hbox{H} + \hbox{e}^-$."          method="rateHminus_Gamma_to_H_Electron"     />
+       <method description="Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}^- + \gamma \rightarrow \hbox{H} + \hbox{e}^-$."         method="rateHminus_Gamma_to_H_Electron"     />
        <method description="Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2 + \gamma \rightarrow \hbox{H}_2^+ + \hbox{e}^-$."     method="rateH2_Gamma_to_H2plus_Electron"    />
-       <method description="Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \gamma \rightarrow \hbox{H} + \hbox{H}^+$."        method="rateH2plus_Gamma_to_H_Hplus"        />
+       <method description="Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \gamma \rightarrow \hbox{H} + \hbox{H}^+$."       method="rateH2plus_Gamma_to_H_Hplus"        />
        <method description="Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \gamma \rightarrow 2\hbox{H}^+ + \hbox{e}^-$."    method="rateH2plus_Gamma_to_2Hplus_Electron"/>
        <method description="Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \gamma \rightarrow 2\hbox{H}^+ + \hbox{e}^-$."    method="rateH2_Gamma_to_H2star_to_2H"       />
        <method description="Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2 + \gamma \rightarrow 2\hbox{H}$."                     method="rateH2_Gamma_to_2H"                 />
