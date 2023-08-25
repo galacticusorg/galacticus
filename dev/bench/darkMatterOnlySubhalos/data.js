@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1692925339523,
+  "lastUpdate": 1692925348249,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "5664c7f70e5ae715ead9b390257b8dcb5e68ab4a",
-          "message": "fix: Trap out of range values and floating points errors in the `bhattacharya2011` halo mass function class",
-          "timestamp": "2023-01-23T09:06:27-08:00",
-          "tree_id": "50b7f975db924da05b2ae0ea8583d2a312c178f8",
-          "url": "https://github.com/galacticusorg/galacticus/commit/5664c7f70e5ae715ead9b390257b8dcb5e68ab4a"
-        },
-        "date": 1674506643479,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 57.3844543134178,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 25.9186267741694,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 26366.2430061311,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8724,6 +8685,45 @@ window.BENCHMARK_DATA = {
             "value": 48.34,
             "unit": "seconds",
             "range": 0.0227156333825522
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": false,
+          "id": "4c020b1e878370a7337ed241db559f46d7d8e287",
+          "message": "Merge pull request #452 from galacticusorg/schneiderCatch\n\nCatch numerical failures in the `darkMatterProfileConcentrationSchneider2015` class",
+          "timestamp": "2023-08-24T22:00:40Z",
+          "tree_id": "26538619dbd650fda193be4a388c37db9a479753",
+          "url": "https://github.com/galacticusorg/galacticus/commit/4c020b1e878370a7337ed241db559f46d7d8e287"
+        },
+        "date": 1692925347298,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 58.5502038320892,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 26.3324829191724,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 25139.2189837662,
+            "unit": "-logℒ"
           }
         ]
       }
