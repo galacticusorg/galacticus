@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1692925348249,
+  "lastUpdate": 1693017636055,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "ae48d60d531a85eacf32f66f2a7930be70f1960f",
-          "message": "Merge pull request #360 from galacticusorg/interpolator2D\n\nAdd a simple 2D interpolator class",
-          "timestamp": "2023-01-26T06:19:50-08:00",
-          "tree_id": "e8501ca80058ef1fa74c8dc9a5704cbc3d6e0157",
-          "url": "https://github.com/galacticusorg/galacticus/commit/ae48d60d531a85eacf32f66f2a7930be70f1960f"
-        },
-        "date": 1674764753106,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 59.895,
-            "unit": "seconds",
-            "range": 0.219873827455829
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8724,6 +8694,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 25139.2189837662,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "03df2130a7ba1dc0e7fec6f3af0a5a0e62d0eb54",
+          "message": "feat: Add support for reading/writing of HDF5 3D ragged arrays",
+          "timestamp": "2023-08-25T15:08:25-07:00",
+          "tree_id": "dcfddf102aa3e28040cca905b62f75ea22ceb702",
+          "url": "https://github.com/galacticusorg/galacticus/commit/03df2130a7ba1dc0e7fec6f3af0a5a0e62d0eb54"
+        },
+        "date": 1693017633596,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 59.23,
+            "unit": "seconds",
+            "range": 0.270506931519187
           }
         ]
       }
