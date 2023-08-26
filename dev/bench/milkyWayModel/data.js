@@ -1,62 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1692925352351,
+  "lastUpdate": 1693017640430,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "5664c7f70e5ae715ead9b390257b8dcb5e68ab4a",
-          "message": "fix: Trap out of range values and floating points errors in the `bhattacharya2011` halo mass function class",
-          "timestamp": "2023-01-23T09:06:27-08:00",
-          "tree_id": "50b7f975db924da05b2ae0ea8583d2a312c178f8",
-          "url": "https://github.com/galacticusorg/galacticus/commit/5664c7f70e5ae715ead9b390257b8dcb5e68ab4a"
-        },
-        "date": 1674506647236,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Likelihood - localGroupMassMetallicityRelation",
-            "value": 3.47407785599028,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupMassSizeRelation",
-            "value": 3.70240379789367,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupMassVelocityDispersionRelation",
-            "value": 0.673723765898714,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupOccupationFraction",
-            "value": 24.2081458375965,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupStellarMassFunction",
-            "value": 59.984565525506,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
-            "value": 7.9905564307121,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10644,6 +10590,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 1.26439024807642,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "03df2130a7ba1dc0e7fec6f3af0a5a0e62d0eb54",
+          "message": "feat: Add support for reading/writing of HDF5 3D ragged arrays",
+          "timestamp": "2023-08-25T15:08:25-07:00",
+          "tree_id": "dcfddf102aa3e28040cca905b62f75ea22ceb702",
+          "url": "https://github.com/galacticusorg/galacticus/commit/03df2130a7ba1dc0e7fec6f3af0a5a0e62d0eb54"
+        },
+        "date": 1693017639119,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 204.975,
+            "unit": "seconds",
+            "range": 0.236255158669681
           }
         ]
       }
