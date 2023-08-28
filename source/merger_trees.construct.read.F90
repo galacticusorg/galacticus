@@ -935,32 +935,35 @@ contains
           &                                      mergerTree                       , treeNodeList
     use    :: Merger_Tree_Read_Importers, only : nodeData                         , nodeDataMinimal
     use    :: Merger_Tree_State_Store   , only : treeStateStoreSequence
+    use    :: Merger_Tree_Walkers       , only : mergerTreeWalkerAllNodes
     use    :: Numerical_Comparison      , only : Values_Agree
     !$ use :: OMP_Lib                   , only : OMP_Unset_Lock
     use    :: Sorting                   , only : sort
     use    :: String_Handling           , only : operator(//)
     use    :: Vectors                   , only : Vector_Magnitude                 , Vector_Product
     implicit none
-    type            (mergerTree               ), pointer                             :: tree
-    class           (mergerTreeConstructorRead), intent(inout)                       :: self
-    integer         (c_size_t                 ), intent(in   )                       :: treeNumber
-    logical                                    , intent(  out)                       :: finished
-    integer         (c_size_t                 )                                      :: treeNumberInternal
-    integer         (kind_int8                ), allocatable, dimension(:  )         :: historyIndex
-    double precision                           , allocatable, dimension(:  )         :: historyMass           , historyTime
-    double precision                           , allocatable, dimension(:,:)         :: position              , velocity
-    class           (nodeDataMinimal          ), allocatable, dimension(:  ), target :: nodes
-    type            (treeNodeList             ), allocatable, dimension(:  )         :: nodeList
-    logical                                    , allocatable, dimension(:  )         :: childIsSubhalo
-    double precision                                        , dimension(3  )         :: relativePosition      , relativeVelocity , &
-         &                                                                              orbitalAngularMomentum
-    integer         (c_size_t                 ), allocatable, dimension(:  )         :: nodeSubset
-    integer                                                                          :: isolatedNodeCount
-    integer         (c_size_t                 )                                      :: historyCountMaximum   , iNode            , &
-         &                                                                              iOutput               , treeNumberMaximum, &
-         &                                                                              treeNumberOffset
-    logical                                                                          :: returnSplitForest
-    type            (varying_string           )                                      :: message
+    type            (mergerTree               ), pointer                              :: tree
+    class           (mergerTreeConstructorRead), intent(inout)                        :: self
+    integer         (c_size_t                 ), intent(in   )                        :: treeNumber
+    logical                                    , intent(  out)                        :: finished
+    integer         (c_size_t                 )                                       :: treeNumberInternal
+    integer         (kind_int8                ), allocatable, dimension(:  )          :: historyIndex
+    double precision                           , allocatable, dimension(:  )          :: historyMass           , historyTime
+    double precision                           , allocatable, dimension(:,:)          :: position              , velocity
+    class           (nodeDataMinimal          ), allocatable, dimension(:  ), target  :: nodes
+    type            (treeNode                 )                             , pointer :: nodeWork
+    type            (treeNodeList             ), allocatable, dimension(:  )          :: nodeList
+    logical                                    , allocatable, dimension(:  )          :: childIsSubhalo
+    double precision                                        , dimension(3  )          :: relativePosition      , relativeVelocity , &
+         &                                                                               orbitalAngularMomentum
+    integer         (c_size_t                 ), allocatable, dimension(:  )          :: nodeSubset
+    integer                                                                           :: isolatedNodeCount
+    integer         (c_size_t                 )                                       :: historyCountMaximum   , iNode            , &
+         &                                                                               iOutput               , treeNumberMaximum, &
+         &                                                                               treeNumberOffset
+    logical                                                                           :: returnSplitForest
+    type            (mergerTreeWalkerAllNodes )                                       :: treeWalkerAll
+    type            (varying_string           )                                       :: message
 
     ! Snapshot the state of the next tree to read.
     treeStateStoreSequence=treeNumber
@@ -1279,7 +1282,10 @@ contains
                   &      )
           end if
           ! Apply any tree initialization operators.
-          call self%nodeOperator_%nodeTreeInitialize(tree%nodeBase)
+          treeWalkerAll=mergerTreeWalkerAllNodes(tree,spanForest=.true.)
+          do while (treeWalkerAll%next(nodeWork))
+             call self%nodeOperator_%nodeTreeInitialize(nodeWork)
+          end do
           ! Assign named properties.
           if     (                                    &
                &   size(self%presetNamedReals   ) > 0 &

@@ -153,7 +153,7 @@ contains
     use, intrinsic :: ISO_C_Binding   , only : c_size_t
     use            :: Kind_Numbers    , only : kind_int8
     implicit none
-    class           (mergerTreeBuilderSmoothAccretion), intent(inout)         :: self
+    class           (mergerTreeBuilderSmoothAccretion), intent(inout), target :: self
     type            (mergerTree                      ), intent(inout), target :: tree
     type            (treeNode                        ), pointer               :: nodeCurrent   , nodeNew
     class           (nodeComponentBasic              ), pointer               :: basic

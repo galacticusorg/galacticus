@@ -338,7 +338,7 @@ contains
     implicit none
     class           (posteriorSampleLikelihoodGaussianRegression), intent(inout)                   :: self
     class           (posteriorSampleStateClass                  ), intent(inout)                   :: simulationState
-    type            (modelParameterList                         ), intent(in   ), dimension(:)     :: modelParametersActive_                    , modelParametersInactive_
+    type            (modelParameterList                         ), intent(inout), dimension(:)     :: modelParametersActive_                    , modelParametersInactive_
     class           (posteriorSampleConvergenceClass            ), intent(inout)                   :: simulationConvergence
     double precision                                             , intent(in   )                   :: temperature                               , logLikelihoodCurrent    , &
          &                                                                                            logPriorCurrent                           , logPriorProposed
@@ -706,7 +706,7 @@ contains
     subroutine evaluateSimulator(synchronizeOnly,logLikelihood_,logLikelihoodVariance_)
       !!{
       Call the {\normalfont \ttfamily evaluate} method of the simulator. If {\normalfont \ttfamily synchronizeOnly} is true then
-      no evaluation is actually needed, but we must still call the method to allow for possible MPI syncrhonization. In this case
+      no evaluation is actually needed, but we must still call the method to allow for possible MPI synchronization. In this case
       call with an impossible proposed prior such that the simulator can choose to not evaluate.
       !!}
       implicit none

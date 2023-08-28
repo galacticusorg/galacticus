@@ -41,7 +41,7 @@ module Posterior_Sampling_State_Initialize
     <type>void</type>
     <pass>yes</pass>
     <argument>class           (posteriorSampleStateClass     ), intent(inout)               :: simulationState</argument>
-    <argument>type            (modelParameterList            ), intent(in   ), dimension(:) :: modelParameters_</argument>
+    <argument>type            (modelParameterList            ), intent(inout), dimension(:) :: modelParameters_</argument>
     <argument>class           (posteriorSampleLikelihoodClass), intent(inout)               :: modelLikelihood</argument>
     <argument>double precision                                , intent(  out)               :: timeEvaluatePrevious, logLikelihood, logPosterior</argument>
    </method>

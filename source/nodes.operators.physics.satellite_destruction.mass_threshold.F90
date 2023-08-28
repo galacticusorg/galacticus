@@ -147,13 +147,23 @@ contains
     Trigger destruction of the satellite by setting the time until destruction to zero.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite, treeNode
+    use :: Display         , only : displayBlue           , displayYellow, displayGreen, displayReset
+    use :: Error           , only : Error_Report
     implicit none
     type (treeNode              ), intent(inout), target  :: node
     class(nodeComponentSatellite)               , pointer :: satellite
 
     satellite => node%satellite()
-    if (satellite%boundMass() < self_%massDestroy(node)) &
-         & call satellite%destructionTimeSet(0.0d0)
+    if (satellite%boundMass() < self_%massDestroy(node)) then
+       if (satellite%destructionTime() >= 0.0d0)                                                                                                                                                                               &
+            call Error_Report(                                                                                                                                                                                                  &
+            &                 'satellite was previously triggered for destruction - but still exists'                                                                                                              //char(10)// &
+            &                 displayGreen()//'  HELP:'//displayReset()//' destruction requires the following timestepper to be included:'                                                                         //char(10)// &
+            &                 '    <'//displayBlue()//'mergerTreeEvolveTimestep'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"satelliteDestruction"'//displayReset()//'>'          // &
+            &                 {introspection:location}                                                                                                                                                                          &
+            &                )
+       call satellite%destructionTimeSet(0.0d0)
+    end if
     return
   end subroutine destructionTrigger
 

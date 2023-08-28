@@ -123,7 +123,7 @@ contains
     class           (posteriorSampleStateInitializeLatinHypercube), intent(inout)                 :: self
     class           (posteriorSampleStateClass                   ), intent(inout)                 :: simulationState
     class           (posteriorSampleLikelihoodClass              ), intent(inout)                 :: modelLikelihood
-    type            (modelParameterList                          ), intent(in   ), dimension(:  ) :: modelParameters_
+    type            (modelParameterList                          ), intent(inout), dimension(:  ) :: modelParameters_
     double precision                                              , intent(  out)                 :: timeEvaluatePrevious, logLikelihood , &
          &                                                                                           logPosterior
     integer         (kind=c_size_t                               ), allocatable  , dimension(:  ) :: order

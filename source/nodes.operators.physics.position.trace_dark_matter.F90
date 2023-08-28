@@ -155,8 +155,8 @@ contains
     !!}
     use :: Error, only : Error_Report
     implicit none
-    class(*       ), intent(inout) :: self
-    type (treeNode), intent(inout) :: node
+    class(*       ), intent(inout)         :: self
+    type (treeNode), intent(inout), target :: node
     
     select type (self)
     class is (nodeOperatorPositionTraceDarkMatter)

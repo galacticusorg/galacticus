@@ -83,7 +83,7 @@ contains
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSatellite
     implicit none
-    class(nodePropertyExtractorMassBoundMaximum), intent(inout)           :: self
+    class(nodePropertyExtractorMassBoundMaximum), intent(inout), target   :: self
     type (treeNode                             ), intent(inout), target   :: node
     type (multiCounter                         ), intent(inout), optional :: instance
     class(nodeComponentBasic                   )               , pointer  :: basic

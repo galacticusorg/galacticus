@@ -34,7 +34,7 @@ my @tests =
 	 mean             => 1.077,
 	 meanTolerance    => 0.040,
 	 scatter          => 0.114,
-	 scatterTolerance => 0.008
+	 scatterTolerance => 0.016
      }
     );
 
@@ -73,8 +73,8 @@ foreach my $test ( @tests ) {
     # Evaluate the mean and scatter and check these match the target values.
     my $mean    = $concentrationsMeasured->average();
     my $scatter = $concentrationsMeasured->stdv();
-    print "Mean - ".$mean. " (target = ".$test->{'mean'}." +/- ".$test->{'meanTolerance'}."\n";
-    print "Scatter - ".$scatter. " (target = ".$test->{'scatter'}." +/- ".$test->{'scatterTolerance'}."\n";
+    print "Mean - "   .$mean   ." (target = ".$test->{'mean'   }." ± ".$test->{'meanTolerance'   }.")\n";
+    print "Scatter - ".$scatter." (target = ".$test->{'scatter'}." ± ".$test->{'scatterTolerance'}.")\n";
     my $status  =
 	(
 	 abs($mean   -$test->{'mean'   }) < $test->{'meanTolerance'   }

@@ -33,6 +33,7 @@ Contains a module which implements a transfer function class based on the therma
    <encodeFunction>yes</encodeFunction>
    <entry label="bode2001"   />
    <entry label="barkana2001"/>
+   <entry label="viel05"     />
   </enumeration>
   !!]
 
@@ -115,7 +116,7 @@ contains
       <name>scaleCutOffModel</name>
       <source>parameters</source>
       <defaultValue>var_str('barkana2001')</defaultValue>
-      <description>The model to use to compute the cut-off scale, either ``{\normalfont \ttfamily bode2001}'' to use the fitting function given by equation~A9 of \cite{bode_halo_2001}, or ``{\normalfont \ttfamily barkana2001}'' to use the fitting function given by equation~(4) of \cite{barkana_constraints_2001}.</description>
+      <description>The model to use to compute the cut-off scale, either ``{\normalfont \ttfamily bode2001}'' to use the fitting function given by equation~A9 of \cite{bode_halo_2001}, ``{\normalfont \ttfamily barkana2001}'' to use the fitting function given by equation~(4) of \cite{barkana_constraints_2001}, or ``{\normalfont \ttfamily viel05}'' to use the fitting function given by equation~(7) of \cite{viel_constraining_2005}.</description>
     </inputParameter>
     <inputParameter>
       <name>epsilon</name>
@@ -219,6 +220,22 @@ contains
                &           /  self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)           &
                &           /(particle%degreesOfFreedomEffective()/degreesOfFreedomReference)**0.29d0 &
                &           /(particle%mass                     ()/            massReference)**1.15d0
+       case (scaleCutOffModelViel05     %ID)
+          ! This uses equation (7) from Viel et al. (2005; https://ui.adsabs.harvard.edu/abs/2005PhRvD..71f3534V).
+          self%scaleCutOff=+0.049d0                                                                  &
+               &           *(                                                                        &
+               &             +(                                                                      &
+               &               +self%cosmologyParameters_%OmegaMatter   (                  )         &
+               &               -self%cosmologyParameters_%OmegaBaryon   (                  )         &
+               &              )                                                                      &
+               &             /0.25d0                                                                 &
+               &            )**0.11d0                                                                &
+               &           *(                                                                        &
+               &             +self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)           &
+               &             /0.7d0                                                                  &
+               &            )**1.22d0                                                                &
+               &           /  self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)           &
+               &           /(particle%mass                     ()/            massReference)**1.11d0
        case default
           call Error_Report('invalid cut-off scale model'//{introspection:location})
        end select

@@ -151,6 +151,10 @@ module Node_Component_Black_Hole_Standard
   ! Record of whether cold mode is explicitly tracked.
   logical          :: coldModeTracked
 
+  ! A threadprivate object used to track to which thread events are attached.
+  integer :: thread
+  !$omp threadprivate(thread)
+
 contains
 
   !![
@@ -302,7 +306,7 @@ contains
 
     if (defaultBlackHoleComponent%standardIsActive()) then
        dependencies(1)=dependencyRegEx(dependencyDirectionBefore,'^remnantStructure:')
-       call satelliteMergerEvent%attach(defaultBlackHoleComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentBlackHoleStandard',dependencies=dependencies)
+       call satelliteMergerEvent%attach(thread,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentBlackHoleStandard',dependencies=dependencies)
        ! Find our parameters.
        subParameters=parameters%subParameters('componentBlackHole')
        !![
@@ -335,7 +339,7 @@ contains
     implicit none
 
     if (defaultBlackHoleComponent%standardIsActive()) then
-       if (satelliteMergerEvent%isAttached(defaultBlackHoleComponent,satelliteMerger)) call satelliteMergerEvent%detach(defaultBlackHoleComponent,satelliteMerger)
+       if (satelliteMergerEvent%isAttached(thread,satelliteMerger)) call satelliteMergerEvent%detach(thread,satelliteMerger)
        !![
        <objectDestructor name="cosmologyParameters_"                />
        <objectDestructor name="accretionDisks_"                     />

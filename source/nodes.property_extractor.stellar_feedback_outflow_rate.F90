@@ -158,7 +158,7 @@ contains
     use :: Histories                     , only : history
     use :: Stellar_Luminosities_Structure, only : stellarLuminosities
     implicit none
-    class           (nodePropertyExtractorStellarFeedbackOutflowRate), intent(inout)           :: self
+    class           (nodePropertyExtractorStellarFeedbackOutflowRate), intent(inout), target   :: self
     type            (treeNode                                       ), intent(inout), target   :: node
     type            (multiCounter                                   ), intent(inout), optional :: instance
     class           (nodeComponentDisk                              ), pointer                 :: disk

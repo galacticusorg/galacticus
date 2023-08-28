@@ -56,8 +56,7 @@ contains
     !!{
     Constructor for the ``childNode'' galactic filter class which takes a parameter set as input.
     !!}
-    use :: Cosmology_Functions, only : cosmologyFunctionsClass
-    use :: Input_Parameters   , only : inputParameter         , inputParameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (galacticFilterChildNode)                :: self
     type   (inputParameters        ), intent(inout) :: parameters

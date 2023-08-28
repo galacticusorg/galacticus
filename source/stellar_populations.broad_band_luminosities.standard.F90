@@ -174,7 +174,7 @@ contains
     integer                                                         , dimension( :                   ), intent(in   ) :: luminosityIndex                       , filterIndex
     double precision                                                , dimension( :                   ), intent(in   ) :: age                                   , redshift
     type            (abundances                                    )                                  , intent(in   ) :: abundancesStellar
-    type            (stellarPopulationSpectraPostprocessorList     ), dimension( :                   ), intent(in   ) :: stellarPopulationSpectraPostprocessor_
+    type            (stellarPopulationSpectraPostprocessorList     ), dimension( :                   ), intent(inout) :: stellarPopulationSpectraPostprocessor_
     class           (stellarPopulationClass                        )                                  , intent(inout) :: stellarPopulation_
     double precision                                                , dimension(size(luminosityIndex))                :: standardLuminosities
     double precision                                                , dimension(0:1                  )                :: hAge                                  , hMetallicity
@@ -254,7 +254,7 @@ contains
     double precision                                                , intent(in   ), dimension( :   )              :: redshift
     double precision                                                , intent(  out), dimension( :   ), allocatable :: ages
     double precision                                                , intent(  out), dimension( : ,:), allocatable :: luminosities
-    type            (stellarPopulationSpectraPostprocessorList     ), intent(in   ), dimension( :   )              :: stellarPopulationSpectraPostprocessor_
+    type            (stellarPopulationSpectraPostprocessorList     ), intent(inout), dimension( :   )              :: stellarPopulationSpectraPostprocessor_
     class           (stellarPopulationClass                        ), intent(inout)                                :: stellarPopulation_
     type            (abundances                                    ), intent(in   )                                :: abundancesStellar
     double precision                                                               , dimension(0:1  )              :: hMetallicity
@@ -322,7 +322,7 @@ contains
     class           (stellarPopulationBroadBandLuminositiesStandard), intent(inout)                   :: self
     integer                                                         , intent(in   ), dimension(:    ) :: filterIndex                                   , luminosityIndex
     double precision                                                , intent(in   ), dimension(:    ) :: redshift
-    type            (stellarPopulationSpectraPostprocessorList     ), intent(in   ), dimension(:    ) :: stellarPopulationSpectraPostprocessor_
+    type            (stellarPopulationSpectraPostprocessorList     ), intent(inout), dimension(:    ) :: stellarPopulationSpectraPostprocessor_
     class           (stellarPopulationClass                        ), intent(inout)                   :: stellarPopulation_
     type            (luminosityTable                               ), allocatable  , dimension(:    ) :: luminosityTablesTemporary
     double precision                                                , allocatable  , dimension(:,:,:) :: luminosityTemporary

@@ -21,7 +21,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorArray" abstract="yes">
-   <description>An abstract output analysis property extractor class which provieds a array of floating point properties.</description>
+   <description>An abstract output analysis property extractor class which provides a array of floating point properties.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorClass), abstract :: nodePropertyExtractorArray

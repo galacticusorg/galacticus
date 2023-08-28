@@ -35,11 +35,11 @@ contains
     Initialize the interface with RecFast, including downloading and compiling RecFast if necessary.
     !!}
     use :: Display           , only : displayMessage   , verbosityLevelWorking
-    use :: File_Utilities    , only : Directory_Make   , File_Exists          , File_Lock   , File_Unlock   , &
+    use :: File_Utilities    , only : Directory_Make   , File_Exists          , File_Lock         , File_Unlock   , &
           &                           lockDescriptor
     use :: Error             , only : Error_Report
-    use :: Input_Paths       , only : inputPath        , pathTypeDataDynamic  , pathTypeExec
-    use :: ISO_Varying_String, only : assignment(=)    , char                 , operator(//), varying_string
+    use :: Input_Paths       , only : inputPath        , pathTypeDataDynamic  , pathTypeDataStatic
+    use :: ISO_Varying_String, only : assignment(=)    , char                 , operator(//)      , varying_string
     use :: System_Command    , only : System_Command_Do
     use :: System_Download   , only : download
     use :: System_Compilers  , only : compiler         , languageFortran
@@ -70,7 +70,7 @@ contains
                   & call Error_Report("failed to download RecFast code"//{introspection:location})
           end if
           call displayMessage("patching RecFast code....",verbosityLevelWorking)
-          call System_Command_Do("cp "//inputPath(pathTypeExec)//"aux/RecFast_Modifications/recfast.for.patch "//recfastPath//"; cd "//recfastPath//"; patch < recfast.for.patch",status)
+          call System_Command_Do("cp "//inputPath(pathTypeDataStatic)//"patches/RecFast/recfast.for.patch "//recfastPath//"; cd "//recfastPath//"; patch < recfast.for.patch",status)
           if (status /= 0) call Error_Report("failed to patch RecFast file 'recfast.for'"//{introspection:location})
           call System_Command_Do("touch "//recfastPath//"patched")
        end if

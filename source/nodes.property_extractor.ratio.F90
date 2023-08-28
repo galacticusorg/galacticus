@@ -137,7 +137,7 @@ contains
     !!}
     use :: Error, only : Error_Report
     implicit none
-    class           (nodePropertyExtractorRatio), intent(inout)           :: self
+    class           (nodePropertyExtractorRatio), intent(inout), target   :: self
     type            (treeNode                  ), intent(inout), target   :: node
     type            (multiCounter              ), intent(inout), optional :: instance
     double precision                                                      :: numerator, denominator

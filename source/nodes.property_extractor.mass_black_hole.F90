@@ -70,7 +70,7 @@ contains
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBlackHole, treeNode
     implicit none
-    class(nodePropertyExtractorMassBlackHole), intent(inout)           :: self
+    class(nodePropertyExtractorMassBlackHole), intent(inout), target   :: self
     type (treeNode                          ), intent(inout), target   :: node
     type (multiCounter                      ), intent(inout), optional :: instance
     class(nodeComponentBlackHole            ), pointer                 :: blackHole

@@ -108,7 +108,7 @@ contains
     use :: Dark_Matter_Halo_Spins, only : Dark_Matter_Halo_Angular_Momentum_Scale
     use :: Galacticus_Nodes      , only : nodeComponentSpin
     implicit none
-    class(nodePropertyExtractorSpin), intent(inout)           :: self
+    class(nodePropertyExtractorSpin), intent(inout), target   :: self
     type (treeNode                 ), intent(inout), target   :: node
     type (multiCounter             ), intent(inout), optional :: instance
     class(nodeComponentSpin        ), pointer                 :: spin

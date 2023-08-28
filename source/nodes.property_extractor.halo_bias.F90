@@ -108,7 +108,7 @@ contains
     Implement a {\normalfont \ttfamily haloBias} node property extractor.
     !!}
     implicit none
-    class           (nodePropertyExtractorHaloBias), intent(inout)           :: self
+    class           (nodePropertyExtractorHaloBias), intent(inout), target   :: self
     type            (treeNode                     ), intent(inout), target   :: node
     type            (multiCounter                 ), intent(inout), optional :: instance
     type            (treeNode                     )               , pointer  :: nodeIsolated

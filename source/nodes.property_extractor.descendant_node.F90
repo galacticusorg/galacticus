@@ -129,7 +129,7 @@ contains
     use :: Galacticus_Nodes    , only : nodeComponentBasic
     use :: Numerical_Comparison, only : Values_Agree
     implicit none
-    class           (nodePropertyExtractorDescendantNode), intent(inout)           :: self
+    class           (nodePropertyExtractorDescendantNode), intent(inout), target   :: self
     type            (treeNode                           ), intent(inout), target   :: node
     type            (multiCounter                       ), intent(inout), optional :: instance
     type            (treeNode                           ), pointer                 :: nodeDescendant

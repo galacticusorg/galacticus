@@ -350,7 +350,11 @@ contains
     countHalos=Count_Lines_In_File(self%fileName,comment_char="#")-1_c_size_t
     countTrees=                                                    0_c_size_t    
     ! Allocate storage
-    if (self%expansionFactorNeeded) allocate(expansionFactor(countHalos))
+    if (self%expansionFactorNeeded) then
+       allocate(expansionFactor(countHalos))
+    else
+       allocate(expansionFactor(         0))
+    end if
     if (allocated(self%readColumns)) then
        allocate(propertiesInteger(self%readColumnsIntegerCount))
        allocate(propertiesReal   (self%readColumnsRealCount   ))

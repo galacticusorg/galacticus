@@ -156,8 +156,8 @@ contains
     use :: Galacticus_Nodes, only : nodeComponentSatellite, treeNode
     use :: Vectors         , only : Vector_Magnitude
     implicit none
-    class(*                     ), intent(inout) :: self
-    type (treeNode              ), intent(inout) :: node
+    class(*                     ), intent(inout)         :: self
+    type (treeNode              ), intent(inout), target :: node
     class(nodeComponentSatellite), pointer       :: satellite
 
     select type (self)

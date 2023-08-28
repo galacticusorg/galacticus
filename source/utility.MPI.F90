@@ -178,11 +178,13 @@ module MPI_Utilities
      <methods>
        <method description="Increment the counter and return the new value." method="increment"/>
        <method description="Decrement the counter and return the new value." method="decrement"/>
+       <method description="Get the current value of the counter."           method="get"      />
        <method description="Reset the counter."                              method="reset"    />
      </methods>
      !!]
      procedure :: increment => counterIncrement
      procedure :: decrement => counterDecrement
+     procedure :: get       => counterGet
      procedure :: reset     => counterReset
   end type mpiCounter
 
@@ -2050,14 +2052,14 @@ contains
     !!{
     Constructor for MPI counter class.
     !!}
-    use, intrinsic :: ISO_C_Binding, only : C_Null_Ptr           , C_F_Pointer
+    use, intrinsic :: ISO_C_Binding, only : C_Null_Ptr
 #ifdef USEMPI
     use            :: Error        , only : Error_Report
-    use            :: MPI_F08      , only : MPI_Win_Create       , MPI_Address_Kind, MPI_Info_Null      , MPI_Alloc_Mem, &
+    use            :: MPI_F08      , only : MPI_Win_Allocate     , MPI_Address_Kind, MPI_Info_Null      , MPI_Alloc_Mem, &
          &                                  MPI_TypeClass_Integer, MPI_SizeOf      , MPI_Type_Match_Size
 #endif
     implicit none
-    type   (mpiCounter)          :: self
+    type   (mpiCounter) :: self
 #ifdef USEMPI
     integer                      :: mpiSize            , iError
     integer(c_size_t  ), pointer :: countInitialPointer
@@ -2274,5 +2276,38 @@ contains
 #endif
     return
   end function counterDecrement
+
+  function counterGet(self)
+    !!{
+    Return the current value of an MPI counter.
+    !!}
+#ifdef USEMPI
+    use :: Error  , only : Error_Report
+    use :: MPI_F08, only : MPI_Win_Lock    , MPI_Get, MPI_Win_Unlock, MPI_Lock_Exclusive, &
+    &                      MPI_Address_Kind
+#endif
+    implicit none
+    integer(c_size_t  )                :: counterGet
+    class  (mpiCounter), intent(inout) :: self
+#ifdef USEMPI
+    integer(c_size_t  ), dimension(1)  :: counterOut
+    integer                            :: iError
+
+    !$ call self%ompLock_%  set()
+    call MPI_Win_Lock(MPI_Lock_Exclusive,0,0,self%window,iError)
+    if (iError /= 0) call Error_Report('failed to lock RMA window'           //{introspection:location})
+    call MPI_Get(counterOut,1,self%typeClass,0,0_MPI_Address_Kind,1,self%typeClass,self%window,iError)
+    if (iError /= 0) call Error_Report('failed to get value from MPI counter'//{introspection:location})
+    call MPI_Win_Unlock(0,self%window,iError)
+    if (iError /= 0) call Error_Report('failed to unlock RMA window'         //{introspection:location})
+    !$ call self%ompLock_%unset()
+    counterGet=counterOut(1)-1_c_size_t
+#else
+    !$ call self%ompLock_%  set()
+    counterGet=self%counter-1_c_size_t
+    !$ call self%ompLock_%unset()
+#endif
+    return
+  end function counterGet
 
 end module MPI_Utilities

@@ -21,7 +21,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorTuple" abstract="yes">
-   <description>An abstract output analysis property extractor class which provieds a tuple of floating point properties.</description>
+   <description>An abstract output analysis property extractor class which provides a tuple of floating point properties.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorClass), abstract :: nodePropertyExtractorTuple

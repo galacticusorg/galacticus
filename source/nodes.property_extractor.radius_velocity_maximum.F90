@@ -118,7 +118,7 @@ contains
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
-    class(nodePropertyExtractorRadiusVelocityMaximum), intent(inout)           :: self
+    class(nodePropertyExtractorRadiusVelocityMaximum), intent(inout), target   :: self
     type (treeNode                                  ), intent(inout), target   :: node
     type (multiCounter                              ), intent(inout), optional :: instance
     !$GLC attributes unused :: instance

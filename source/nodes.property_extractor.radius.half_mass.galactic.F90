@@ -106,7 +106,7 @@ contains
     !!}
     use :: Galactic_Structure_Options, only : massTypeGalactic
     implicit none
-    class(nodePropertyExtractorRadiusHalfMassGalactic), intent(inout)           :: self
+    class(nodePropertyExtractorRadiusHalfMassGalactic), intent(inout), target   :: self
     type (treeNode                                   ), intent(inout), target   :: node
     type (multiCounter                               ), intent(inout), optional :: instance
     !$GLC attributes unused :: self, instance

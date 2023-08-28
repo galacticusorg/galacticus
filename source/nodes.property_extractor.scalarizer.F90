@@ -124,7 +124,7 @@ contains
     use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
-    class           (nodePropertyExtractorScalarizer), intent(inout)                 :: self
+    class           (nodePropertyExtractorScalarizer), intent(inout), target         :: self
     type            (treeNode                       ), intent(inout), target         :: node
     type            (multiCounter                   ), intent(inout), optional       :: instance
     class           (nodeComponentBasic             ), pointer                       :: basic

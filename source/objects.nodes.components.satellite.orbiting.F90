@@ -38,10 +38,9 @@ module Node_Component_Satellite_Orbiting
   implicit none
   private
   public :: Node_Component_Satellite_Orbiting_Scale_Set        , Node_Component_Satellite_Orbiting_Create             , &
-       &    Node_Component_Satellite_Orbiting_Pre_Host_Change  , Node_Component_Satellite_Orbiting_Initialize         , &
+       &    Node_Component_Satellite_Orbiting_Tree_Initialize  , Node_Component_Satellite_Orbiting_Initialize         , &
        &    Node_Component_Satellite_Orbiting_Thread_Initialize, Node_Component_Satellite_Orbiting_Thread_Uninitialize, &
-       &    Node_Component_Satellite_Orbiting_State_Store      , Node_Component_Satellite_Orbiting_State_Restore      , &
-       &    Node_Component_Satellite_Orbiting_Tree_Initialize
+       &    Node_Component_Satellite_Orbiting_State_Store      , Node_Component_Satellite_Orbiting_State_Restore
   
   !![
   <component>
@@ -139,6 +138,10 @@ module Node_Component_Satellite_Orbiting
   type            (enumerationInitializationTypeMassBoundType)            :: initializationTypeMassBound
   double precision                                                        :: radiusMaximumOverRadiusVirial        , densityContrastMassBound
 
+  ! A threadprivate object used to track to which thread events are attached.
+  integer :: thread
+  !$omp threadprivate(thread)
+
 contains
 
   !![
@@ -221,7 +224,8 @@ contains
     !!}
     use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : defaultSatelliteComponent
-    use :: Input_Parameters, only : inputParameter           , inputParameters
+    use :: Input_Parameters, only : inputParameter             , inputParameters
+    use :: Events_Hooks    , only : satellitePreHostChangeEvent, openMPThreadBindingAtLevel
     implicit none
     type(inputParameters), intent(inout) :: parameters
     type(inputParameters)                :: subParameters
@@ -238,6 +242,7 @@ contains
        <objectBuilder class="virialOrbit"           name="virialOrbit_"           source="subParameters"/>
        <objectBuilder class="galacticStructure"     name="galacticStructure_"     source="subParameters"/>
        !!]
+       call satellitePreHostChangeEvent%attach(thread,satellitePreHostChange,openMPThreadBindingAtLevel,label='nodeComponentSatelliteOrbiting')
        ! Check that the virial orbit class supports setting of angular coordinates.
        if (.not.virialOrbit_%isAngularlyResolved()) call Error_Report('"orbiting" satellite component requires a virialOrbit class which provides angularly-resolved orbits'//{introspection:location})
     end if
@@ -254,6 +259,7 @@ contains
     Uninitializes the tree node orbiting satellite module.
     !!}
     use :: Galacticus_Nodes, only : defaultSatelliteComponent
+    use :: Events_Hooks    , only : satellitePreHostChangeEvent
     implicit none
 
     if (defaultSatelliteComponent%orbitingIsActive()) then
@@ -266,6 +272,7 @@ contains
        <objectDestructor name="virialOrbit_"          />
        <objectDestructor name="galacticStructure_"    />
        !!]
+       if (satellitePreHostChangeEvent%isAttached(thread,satellitePreHostChange)) call satellitePreHostChangeEvent%detach(thread,satellitePreHostChange)
     end if
     return
   end subroutine Node_Component_Satellite_Orbiting_Thread_Uninitialize
@@ -423,23 +430,20 @@ contains
     return
   end subroutine Node_Component_Satellite_Orbiting_Create
   
-  !![
-  <satellitePreHostChangeTask>
-   <unitName>Node_Component_Satellite_Orbiting_Pre_Host_Change</unitName>
-  </satellitePreHostChangeTask>
-  !!]
-  subroutine Node_Component_Satellite_Orbiting_Pre_Host_Change(node,nodeHostNew)
+  subroutine satellitePreHostChange(self,node,nodeHostNew)
     !!{
     A satellite is about to move to a new host, adjust its position and velocity appropriately
     !!}
     use :: Galacticus_Nodes, only : defaultSatelliteComponent, nodeComponentSatellite, treeNode
     implicit none
+    class           (*                     ), intent(inout)         :: self
     type            (treeNode              ), intent(inout), target :: node             , nodeHostNew
     type            (treeNode              ), pointer               :: nodeHost         , nodeHostNew_
     class           (nodeComponentSatellite), pointer               :: satellite        , satelliteHost
     double precision                        , dimension(3)          :: positionSatellite, velocitySatellite, &
          &                                                             positionHost     , velocityHost
-
+    !$GLC attributes unused :: self
+    
     ! Return immediately if this method is not active.
     if (.not.defaultSatelliteComponent%orbitingIsActive()) return
     ! Extract current position and velocity.
@@ -465,7 +469,7 @@ contains
     call satellite%positionSet(positionSatellite)
     call satellite%velocitySet(velocitySatellite)
     return
-  end subroutine Node_Component_Satellite_Orbiting_Pre_Host_Change
+  end subroutine satellitePreHostChange
   
   function Node_Component_Satellite_Orbiting_Virial_Orbit(self) result(orbit)
     !!{

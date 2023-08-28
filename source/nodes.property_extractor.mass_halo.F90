@@ -143,7 +143,7 @@ contains
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
     implicit none
-    class           (nodePropertyExtractorMassHalo), intent(inout)           :: self
+    class           (nodePropertyExtractorMassHalo), intent(inout), target   :: self
     type            (treeNode                     ), intent(inout), target   :: node
     type            (multiCounter                 ), intent(inout), optional :: instance
     class           (nodeComponentBasic           ), pointer                 :: basic

@@ -62,6 +62,8 @@ Contains a module which implements a merger tree build controller class which bu
      double precision                                               :: criticalOverdensityConstrained                        , varianceConstrained                                 , &
           &                                                            timeConstrained                                       , massConstrained                                     , &
           &                                                            redshiftConstrained
+     type            (varying_string                     )          :: label                                                 , labelDescription
+     integer                                                        :: labelID
    contains
      final     ::                               constrainedDestructor
      procedure :: control                    => constrainedControl
@@ -101,7 +103,26 @@ contains
          &                                                                   timeConstrained                             , massConstrained                           , &
          &                                                                   timePresent                                 , redshiftConstrained                       , &
          &                                                                   expansionFactor
-
+    type            (varying_string                      )                :: label                                       , labelDescription
+  
+    !![
+    <inputParameter>
+      <name>label</name>
+      <source>parameters</source>
+      <defaultValue>var_str(' ')</defaultValue>
+      <description>A label to apply to constrained node.</description>
+    </inputParameter>
+    !!]
+    if (label == '') label=' '
+    if (trim(label) /= '') then
+       !![
+       <inputParameter>
+         <name>labelDescription</name>
+         <source>parameters</source>
+         <description>A description of the label.</description>
+       </inputParameter>
+       !!]
+    end if
     !![
     <objectBuilder class="mergerTreeBranchingProbability" name="mergerTreeBranchingProbabilityUnconstrained_" parameterName="mergerTreeBranchingProbabilityUnconstrained" source="parameters"/>
     <objectBuilder class="mergerTreeBranchingProbability" name="mergerTreeBranchingProbabilityConstrained_"   parameterName="mergerTreeBranchingProbabilityConstrained"   source="parameters"/>
@@ -173,7 +194,7 @@ contains
        massConstrained               =0.0d0
        call Error_Report('must provide either [criticalOverdensityConstrained] and [varianceConstrained], or [timeConstrained] and [massConstrained]')
     end if
-    self=mergerTreeBuildControllerConstrained(criticalOverdensityConstrained,varianceConstrained,enumerationConstructionOptionEncode(char(constructionOption),includesPrefix=.false.),mergerTreeBranchingProbabilityUnconstrained_,mergerTreeBranchingProbabilityConstrained_,cosmologyFunctions_,linearGrowth_,criticalOverdensity_,cosmologicalMassVariance_,mergerTreeMassResolution_)
+    self=mergerTreeBuildControllerConstrained(criticalOverdensityConstrained,varianceConstrained,enumerationConstructionOptionEncode(char(constructionOption),includesPrefix=.false.),label,labelDescription,mergerTreeBranchingProbabilityUnconstrained_,mergerTreeBranchingProbabilityConstrained_,cosmologyFunctions_,linearGrowth_,criticalOverdensity_,cosmologicalMassVariance_,mergerTreeMassResolution_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="mergerTreeBranchingProbabilityUnconstrained_"/>
@@ -187,13 +208,15 @@ contains
     return
   end function constrainedConstructorParameters
 
-  function constrainedConstructorInternal(criticalOverdensityConstrained,varianceConstrained,constructionOption,mergerTreeBranchingProbabilityUnconstrained_,mergerTreeBranchingProbabilityConstrained_,cosmologyFunctions_,linearGrowth_,criticalOverdensity_,cosmologicalMassVariance_,mergerTreeMassResolution_) result(self)
+  function constrainedConstructorInternal(criticalOverdensityConstrained,varianceConstrained,constructionOption,label,labelDescription,mergerTreeBranchingProbabilityUnconstrained_,mergerTreeBranchingProbabilityConstrained_,cosmologyFunctions_,linearGrowth_,criticalOverdensity_,cosmologicalMassVariance_,mergerTreeMassResolution_) result(self)
     !!{
     Internal constructor for the ``constrained'' merger tree build controller class.
     !!}
+    use :: Nodes_Labels, only : nodeLabelRegister
     implicit none
     type            (mergerTreeBuildControllerConstrained)                        :: self
     type            (enumerationConstructionOptionType   ), intent(in   )         :: constructionOption
+    type            (varying_string                      ), intent(in   )         :: label                                       , labelDescription
     class           (mergerTreeBranchingProbabilityClass ), intent(in   ), target :: mergerTreeBranchingProbabilityUnconstrained_, mergerTreeBranchingProbabilityConstrained_
     class           (cosmologyFunctionsClass             ), intent(in   ), target :: cosmologyFunctions_
     class           (linearGrowthClass                   ), intent(in   ), target :: linearGrowth_
@@ -203,10 +226,10 @@ contains
     double precision                                      , intent(in   )         :: criticalOverdensityConstrained              , varianceConstrained
     double precision                                                              :: timePresent                                 , expansionFactor
     !![
-    <constructorAssign variables="criticalOverdensityConstrained, varianceConstrained, constructionOption, *mergerTreeBranchingProbabilityUnconstrained_, *mergerTreeBranchingProbabilityConstrained_, *cosmologyFunctions_, *linearGrowth_, *criticalOverdensity_, *cosmologicalMassVariance_, *mergerTreeMassResolution_"/>
+    <constructorAssign variables="criticalOverdensityConstrained, varianceConstrained, constructionOption, label, labelDescription, *mergerTreeBranchingProbabilityUnconstrained_, *mergerTreeBranchingProbabilityConstrained_, *cosmologyFunctions_, *linearGrowth_, *criticalOverdensity_, *cosmologicalMassVariance_, *mergerTreeMassResolution_"/>
     !!]
 
-        ! Find mass and time corresponding to the constraint point.
+    ! Find mass and time corresponding to the constraint point.
     timePresent             =self%cosmologyFunctions_      %cosmicTime                 (expansionFactor    =1.0d0                                                                          )
     self%massConstrained    =self%cosmologicalMassVariance_%mass                       (time               =timePresent                        ,rootVariance=sqrt(self%varianceConstrained))
     self%timeConstrained    =self%criticalOverdensity_     %timeOfCollapse             (criticalOverdensity=self%criticalOverdensityConstrained,mass        =     self%massConstrained     )
@@ -217,6 +240,12 @@ contains
     !![
     <addMetaProperty component="basic" name="isConstrained" type="integer" id="self%isConstrainedID" isCreator="yes"/>
     !!]
+    ! Register a label if required.
+    if (trim(label) /= '') then
+       self%labelID=nodeLabelRegister(char(label),char(labelDescription))
+    else
+       self%labelID=-1
+    end if
     return
   end function constrainedConstructorInternal
 
@@ -245,10 +274,10 @@ contains
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
-    class(mergerTreeBuildControllerConstrained), intent(inout)          :: self
-    type (treeNode                            ), intent(inout), pointer :: node
-    class(mergerTreeWalkerClass               ), intent(inout)          :: treeWalker_
-    class(nodeComponentBasic                  )               , pointer :: basic
+    class(mergerTreeBuildControllerConstrained), intent(inout)           :: self
+    type (treeNode                            ), intent(inout), pointer  :: node
+    class(mergerTreeWalkerClass               ), intent(inout), optional :: treeWalker_
+    class(nodeComponentBasic                  )               , pointer  :: basic
 
     ! Always return true as we never want to halt tree building.
     constrainedControl=.true.
@@ -271,13 +300,21 @@ contains
     case (constructionOptionConstrainedBranchOnly       %ID)
        basic => node%basic()
        do while (constrainedControl.and.associated(node%parent).and. basic%integerRank0MetaPropertyGet(self%isConstrainedID) == 0                                 )
-          constrainedControl=treeWalker_%next(node)
+          if (present(treeWalker_)) then
+             constrainedControl=treeWalker_%next(node)
+          else
+             constrainedControl=.false.
+          end if
           if (constrainedControl) basic => node%basic()
        end do
     case (constructionOptionConstrainedAndMainBranchOnly%ID)
        basic => node%basic()
        do while (constrainedControl.and.associated(node%parent).and.(basic%integerRank0MetaPropertyGet(self%isConstrainedID) == 0 .and. .not.node%isOnMainBranch()))
-          constrainedControl=treeWalker_%next(node)
+          if (present(treeWalker_)) then
+             constrainedControl=treeWalker_%next(node)
+          else
+             constrainedControl=.false.
+          end if
           if (constrainedControl) basic => node%basic()
        end do
     case (constructionOptionAllBranches                 %ID)
@@ -315,6 +352,7 @@ contains
     use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBasic
     use :: Kind_Numbers    , only : kind_int8
+    use :: Nodes_Labels    , only : nodeLabelSet
     implicit none
     class           (mergerTreeBuildControllerConstrained), intent(inout)         :: self
     type            (treeNode                            ), intent(inout), target :: node
@@ -357,6 +395,7 @@ contains
     call basicConstrained%massSet                    (           self%massConstrained                )
     call basicConstrained%timeSet                    (                criticalOverdensityProgenitor  )
     call basicConstrained%integerRank0MetaPropertySet(self%isConstrainedID                         ,1)
+    if (self%labelID > 0) call nodeLabelSet(self%labelID,nodeConstrained)
     massSecondary=+     massParent      &
          &        -self%massConstrained
     if (massSecondary > self%mergerTreeMassResolution_%resolution(node%hostTree)) then

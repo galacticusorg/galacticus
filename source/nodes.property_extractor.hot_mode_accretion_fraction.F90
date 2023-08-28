@@ -106,7 +106,7 @@ contains
     !!}
     use :: Accretion_Halos, only : accretionModeHot, accretionModeTotal
     implicit none
-    class           (nodePropertyExtractorFractionAccretionHotMode), intent(inout)           :: self
+    class           (nodePropertyExtractorFractionAccretionHotMode), intent(inout), target   :: self
     type            (treeNode                                     ), intent(inout), target   :: node
     type            (multiCounter                                 ), intent(inout), optional :: instance
     double precision                                                                         :: accretionRateHot, accretionRateTotal

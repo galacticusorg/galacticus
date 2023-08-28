@@ -97,7 +97,7 @@ contains
     !!}
     use :: Galacticus_Nodes, only : nodeComponentHotHalo
     implicit none
-    class(nodePropertyExtractorMassCooled), intent(inout)           :: self
+    class(nodePropertyExtractorMassCooled), intent(inout), target   :: self
     type (treeNode                       ), intent(inout), target   :: node
     type (multiCounter                   ), intent(inout), optional :: instance
     class(nodeComponentHotHalo           )               , pointer  :: hotHalo

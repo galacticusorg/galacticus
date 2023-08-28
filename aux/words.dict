@@ -193,6 +193,7 @@ Patej
 Peebles
 Peng
 Pfaff
+Plummer
 Quadri
 Refregier
 Renzini
@@ -266,6 +267,7 @@ al
 allocatable
 allocator
 analyses
+analytical
 angularly
 anisotropic
 anisotropies
@@ -275,6 +277,9 @@ apocentric
 appendable
 arborist
 arcsecond
+arcseconds
+arcminute
+arcminutes
 asymptotes
 axion
 backtrace
@@ -305,6 +310,7 @@ cdm
 cflags
 chabrier
 changeset
+checkpointing
 christoph
 chunked
 chunking
@@ -677,6 +683,7 @@ steradian
 steradians
 stochastically
 storable
+subclasses
 subdirectory
 subfile
 subforests

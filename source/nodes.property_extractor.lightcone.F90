@@ -61,7 +61,7 @@
      type            (varying_string         ), allocatable, dimension(:) :: names_                            , descriptions_
      double precision                         , allocatable, dimension(:) :: unitsInSI_
      logical                                                              :: includeObservedRedshift           , includeAngularCoordinates, &
-          &                                                                  atCrossing
+          &                                                                  atCrossing                        , failIfNotInLightcone
    contains
      final     ::                 lightconeDestructor
      procedure :: elementCount => lightconeElementCount
@@ -93,7 +93,7 @@ contains
     class  (cosmologyFunctionsClass       ), pointer       :: cosmologyFunctions_
     class  (geometryLightconeClass        ), pointer       :: geometryLightcone_
     logical                                                :: includeObservedRedshift, includeAngularCoordinates, &
-         &                                                    atCrossing
+         &                                                    atCrossing             , failIfNotInLightcone
 
     !![
     <inputParameter>
@@ -114,10 +114,16 @@ contains
       <defaultValue>.false.</defaultValue>
       <description>If true output positions/velocities at the time of lightcone crossing. Otherwise, output positions at the output time.</description>
     </inputParameter>
+    <inputParameter>
+      <name>failIfNotInLightcone</name>
+      <source>parameters</source>
+      <defaultValue>.true.</defaultValue>
+      <description>If true, a node that is not in the lightcone will cause a fatal error. Otherwise, such nodes are simply assigned unphysical values for lightcone properties.</description>
+    </inputParameter>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     <objectBuilder class="geometryLightcone"  name="geometryLightcone_"  source="parameters"/>
     !!]
-    self=nodePropertyExtractorLightcone(includeObservedRedshift,includeAngularCoordinates,atCrossing,cosmologyFunctions_,geometryLightcone_)
+    self=nodePropertyExtractorLightcone(includeObservedRedshift,includeAngularCoordinates,atCrossing,failIfNotInLightcone,cosmologyFunctions_,geometryLightcone_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"/>
@@ -126,7 +132,7 @@ contains
     return
   end function lightconeConstructorParameters
 
-  function lightconeConstructorInternal(includeObservedRedshift,includeAngularCoordinates,atCrossing,cosmologyFunctions_,geometryLightcone_) result(self)
+  function lightconeConstructorInternal(includeObservedRedshift,includeAngularCoordinates,atCrossing,failIfNotInLightcone,cosmologyFunctions_,geometryLightcone_) result(self)
     !!{
     Internal constructor for the ``lightcone'' output extractor property extractor class.
     !!}
@@ -135,11 +141,11 @@ contains
     implicit none
     type   (nodePropertyExtractorLightcone)                        :: self
     logical                                , intent(in   )         :: includeObservedRedshift, includeAngularCoordinates, &
-         &                                                            atCrossing
+         &                                                            atCrossing             , failIfNotInLightcone
     class  (cosmologyFunctionsClass       ), intent(in   ), target :: cosmologyFunctions_
     class  (geometryLightconeClass        ), intent(in   ), target :: geometryLightcone_
     !![
-    <constructorAssign variables="includeObservedRedshift, includeAngularCoordinates, atCrossing, *cosmologyFunctions_, *geometryLightcone_"/>
+    <constructorAssign variables="includeObservedRedshift, includeAngularCoordinates, atCrossing, failIfNotInLightcone, *cosmologyFunctions_, *geometryLightcone_"/>
     !!]
 
     self%elementCount_=8
@@ -241,6 +247,13 @@ contains
 
     if (.not.present(instance).and..not.self%atCrossing) call Error_Report('instance is required'//{introspection:location})
     allocate(lightconeExtract(self%elementCount_))
+    if (.not.self%geometryLightcone_%isInLightcone(node,atPresentEpoch=.true.)) then
+       ! Node is not in the lightcone. If this is allowed, simply assign unphysical values.
+       if (self%failIfNotInLightcone) call Error_Report('node is not in lightcone'//{introspection:location})
+       lightconeExtract=-huge(0.0d0)
+       return
+    end if
+    ! Node is in the lightcone - compute properties on the lightcone.
     if (self%atCrossing) then
        lightconeExtract(1:3)=self%geometryLightcone_%positionLightconeCrossing(node                                   )
        lightconeExtract(4:6)=self%geometryLightcone_%velocityLightconeCrossing(node                                   )
@@ -311,13 +324,18 @@ contains
     else
        replicationCount=self%geometryLightcone_%replicationCount(node)
        if (replicationCount < 1_c_size_t) then
-          if (self%geometryLightcone_%isInLightcone(node,atPresentEpoch=.true.)) then
-             label="true"
+          if (self%failIfNotInLightcone) then
+             if (self%geometryLightcone_%isInLightcone(node,atPresentEpoch=.true.)) then
+                label="true"
+             else
+                label="false"
+             end if
+             message=var_str("Node ")//node%index()//" of tree "//node%hostTree%index//" appears in "//replicationCount//"(<1) replicants - this should not happen - lightcone intersection reports '"//trim(label)//"'"
+             call Error_Report(message//{introspection:location})
           else
-             label="false"
+             ! Nodes not in the lightcone are to be accepted.
+             replicationCount=1
           end if
-          message=var_str("Node ")//node%index()//" of tree "//node%hostTree%index//" appears in "//replicationCount//"(<1) replicants - this should not happen - lightcone intersection reports '"//trim(label)//"'"
-          call Error_Report(message//{introspection:location})
        end if
        call instance%append(replicationCount)
        self%instanceIndex=instance%count()

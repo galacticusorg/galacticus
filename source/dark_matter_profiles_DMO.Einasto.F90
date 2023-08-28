@@ -116,7 +116,7 @@
        <method description="Tabulates the freefall time vs. freefall radius for Einasto halos." method="freefallTabulate" />
        <method description="Compute the freefall time in a scale-free Einasto halo." method="freefallTimeScaleFree" />
        <method description="Returns the gravitational potential (in units where the virial mass and scale radius are unity) in an Einasto dark matter profile with given {\normalfont \ttfamily concentration} and {\normalfont \ttfamily alpha} at the given {\normalfont \ttfamily radius} (given in units of the scale radius)." method="potentialScaleFree" />
-       <method description=" Comptue the radius at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentumScaleFree} in a scale free Einasto profile." method="radiusFromSpecificAngularMomentumScaleFree" />
+       <method description=" Compute the radius at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentumScaleFree} in a scale free Einasto profile." method="radiusFromSpecificAngularMomentumScaleFree" />
        <method description="Create a tabulation of the relation between specific angular momentum and radius in an Einasto profile." method="radiusFromSpecificAngularMomentumTableMake" />
      </methods>
      !!]
@@ -255,7 +255,7 @@ contains
          &                                rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative    , &
          &                                rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive      &
          &                               )
-    self%finderVelocityPeak   =rootFinder(&
+    self%finderVelocityPeak   =rootFinder(                                                                 &
          &                                rootFunction                 =einastoCircularVelocityPeakRadius, &
          &                                toleranceRelative            =toleranceRelative                , &
          &                                rangeExpandUpward            =2.0d0                            , &
@@ -496,8 +496,8 @@ contains
     alpha             =  darkMatterProfile%shape            (                 )
     radiusScale       =  darkMatterProfile%scale            (                 )
     ! Solve for the radius (in units of the scale radius) at which the rotation curve peaks.
-    alpha_=alpha
-    radiusPeak  =self%finderVelocityPeak%find(rootGuess=radiusScale)
+    alpha_            =  alpha
+    radiusPeak        =  self             %finderVelocityPeak%find(rootGuess=radiusScale)
     ! Convert to a physical radius.
     einastoRadiusCircularVelocityMaximum=radiusPeak*radiusScale
     return
@@ -653,7 +653,7 @@ contains
 
   double precision function einastoRadiusFromSpecificAngularMomentumScaleFree(self,alpha,specificAngularMomentumScaleFree)
     !!{
-    Comptue the radius at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentumScaleFree} in a scale free Einasto
+    Compute the radius at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentumScaleFree} in a scale free Einasto
     profile.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
@@ -1602,7 +1602,7 @@ contains
 
     double precision function einastoJeansEquationIntegrand(radius)
       !!{
-      Integrand for Einasto drak matter profile Jeans equation.
+      Integrand for Einasto dark matter profile Jeans equation.
       !!}
       use :: Gamma_Functions, only : Gamma_Function_Incomplete_Complementary
       implicit none

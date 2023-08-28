@@ -493,6 +493,7 @@ contains
           end do
        end if
     else
+       allocate(forestID                (0  ))
        allocate(forestSnapshotHaloCounts(0,0))
     end if
     ! Open the merger tree file.

@@ -634,7 +634,7 @@ contains
     character       (len=12                                    )                                :: label
     type            (multiCounter                              )                                :: state
     type            (ompLock                                   )                                :: stateLock
-    !$omp threadprivate(stellarPopulationSpectra_,stellarPopulationSpectraPostprocessor_,cosmologyFunctions_,integratorTime,integratorWavelength,integratorMetallicity,abundancesStellar,wavelength,wavelengthMinimum,wavelengthMaximum,timeMinimum,timeMaximum,age)
+    !$omp threadprivate(stellarPopulationSpectra_,stellarPopulationSpectraPostprocessor_,cosmologyFunctions_,integratorTime,integratorWavelength,integratorMetallicity,abundancesStellar,wavelength,wavelengthMinimum,wavelengthMaximum,timeMinimum,timeMaximum,age,redshift)
     !![
     <optionalArgument name="parallelize" defaultsTo=".false." />
     !!]
@@ -679,6 +679,7 @@ contains
     !$omp parallel private (iWavelength,iTime,iMetallicity,metallicityMinimum,metallicityMaximum)
     allocate(integratorTime       )
     allocate(integratorMetallicity)
+    allocate(integratorWavelength )
     integratorTime       =integrator(sedIntegrandTime       ,toleranceRelative=self%toleranceRelative)
     integratorMetallicity=integrator(sedIntegrandMetallicity,toleranceRelative=self%toleranceRelative)
     integratorWavelength =integrator(sedIntegrandWavelength ,toleranceRelative=self%toleranceRelative)
@@ -781,6 +782,7 @@ contains
     !!]
     deallocate(integratorTime       )
     deallocate(integratorMetallicity)
+    deallocate(integratorWavelength )
     !$omp end parallel
     return
 
@@ -809,7 +811,6 @@ contains
       !!}
       implicit none
       double precision, intent(in   ) :: timeBirth
-      double precision                :: redshift
 
       age             =min(                            &
            &               +     time                  &

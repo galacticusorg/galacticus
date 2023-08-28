@@ -40,38 +40,21 @@ contains
     Return the version number to use for a named dependency.
     !!}
     use :: Error             , only : Error_Report
-    use :: Input_Paths       , only : inputPath     , pathTypeExec
-    use :: ISO_Varying_String, only : varying_string, trim        , assignment(=), char, index, &
-         &                            extract
+    use :: ISO_Varying_String, only : varying_string, index, extract, var_str
     implicit none
     type     (varying_string)                          :: dependencyVersion
     character(len=*         ), intent(in   )           :: dependency
     logical                  , intent(in   ), optional :: majorOnly
-    integer                                            :: fileUnit
-    character(len=256       )                          :: line             , dependency_
-    type     (varying_string)                          :: version_
-    integer                                            :: indexSeparator   , status
     !![
     <optionalArgument name="majorOnly" defaultsTo=".false."/>
     !!]
     
     !$omp critical(dependenciesInitialize)
     if (.not.initialized) then
-       call dependencies_%initialize()
-       open(newUnit=fileUnit,file=char(inputPath(pathTypeExec))//'aux/dependencies.yml',status='old',form='formatted',iostat=status)
-       do while (status == 0)
-          read (fileUnit,'(a)',iostat=status) line
-          if (status /= 0) exit
-          indexSeparator=index(line,":")
-          if (indexSeparator == 0) then
-             call Error_Report('badly-formed YAML'//{introspection:location})
-          else
-             dependency_=line(1:indexSeparator-1 )
-             version_   =line(  indexSeparator+2:)
-             call dependencies_%set(trim(dependency_),trim(version_))
-          end if
-       end do
-       close(fileUnit)
+       call dependencies_%initialize()       
+       !![
+       <dependenciesInitialize/>
+       !!]
        initialized=.true.
     end if
     !$omp end critical(dependenciesInitialize)

@@ -26,13 +26,13 @@ program Test_MPI
   Tests of MPI functions.
   !!}
   use   , intrinsic :: ISO_C_Binding     , only : c_size_t
-  use               :: Unit_Tests        , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group  , Unit_Tests_Finish
-  use               :: Display           , only : displayMessage     , displayVerbositySet   , verbosityLevelStandard
+  use               :: Unit_Tests        , only : Assert               , Unit_Tests_Begin_Group, Unit_Tests_End_Group  , Unit_Tests_Finish
+  use               :: Display           , only : displayMessage       , displayVerbositySet   , verbosityLevelStandard
   !$ use            :: OMP_Lib           , only : OMP_Get_Max_Threads
 #ifdef USEMPI
   use               :: Events_Hooks      , only : eventsHooksInitialize
   use               :: MPI_F08           , only : MPI_Thread_Multiple
-  use               :: MPI_Utilities     , only : mpiBarrier         , mpiCounter            , mpiFinalize           , mpiInitialize    , &
+  use               :: MPI_Utilities     , only : mpiBarrier           , mpiCounter            , mpiFinalize           , mpiInitialize    , &
        &                                          mpiSelf
   use               :: ISO_Varying_String, only : char
 #endif

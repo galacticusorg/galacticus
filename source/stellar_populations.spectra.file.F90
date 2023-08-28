@@ -180,7 +180,8 @@ contains
     integer                                                                  :: jWavelength                , jMetallicity, &
          &                                                                      jAge
     double precision                                                         :: metallicity
-    type            (varying_string              )                           :: message
+    type            (varying_string              ), save                     :: message
+    !$omp threadprivate(message)
     character       (len=12                      )                           :: metallicityLabel           , label
 
     ! Ensure that the file has been read.

@@ -197,7 +197,7 @@ contains
     use            :: Galacticus_Nodes          , only : nodeComponentBasic, treeNode
     use, intrinsic :: ISO_C_Binding             , only : c_size_t
     implicit none
-    class  (nodePropertyExtractorLuminosityStellar), intent(inout)           :: self
+    class  (nodePropertyExtractorLuminosityStellar), intent(inout), target   :: self
     type   (treeNode                              ), intent(inout), target   :: node
     type   (multiCounter                          ), intent(inout), optional :: instance
     class  (nodeComponentBasic                    ), pointer                 :: basic

@@ -41,14 +41,18 @@
     contributed by unresolved accretion is zero. The three components of the angular momentum vector of unresolved accretion are
     treated as independent Wiener processes with time-dependent variance. Specifically, each component of the angular momentum
     vector obeys:
-    \begin{equation}
-     J_\mathrm{i}(t_2) = J_\mathrm{i}(t_1) + \left[ \sigma^2 \left( J_\mathrm{v}^2(t_2) - J_\mathrm{v}^2(t_1) \left\{ \frac{M(t_1)-M_\mathrm{u}}{M(t_2)} \right\}^2 \right) \right]^{1/2} N(0,1)
-    \end{equation}    
+    \begin{eqnarray}
+    J_\mathrm{i}(t_2) &amp;=&amp; J_\mathrm{i}(t_1) + \left[ \sigma^2 \left( J_\mathrm{v}^2(t_2) - J_\mathrm{v}^2(t_1) \left\{ \frac{M(t_1)+M_\mathrm{r}}{M(t_1)} \right\}^2 \right) \right]^{1/2} N(0,1) \nonumber \\
+                      &amp;=&amp; J_\mathrm{i}(t_1) + \left[ \sigma^2 \left( J_\mathrm{v}^2(t_2) - J_\mathrm{v}^2(t_1) \left\{ \frac{M(t_2)-M_\mathrm{u}}{M(t_1)} \right\}^2 \right) \right]^{1/2} N(0,1)
+    \end{eqnarray}    
     where $J_\mathrm{v}(t) = M_\mathrm{v}(t) V_\mathrm{v}(t) R_\mathrm{v}(t)$ is the characteristic virial angular momentum,
     $M_\mathrm{v}(t)$, $V_\mathrm{v}(t)$, and $R_\mathrm{v}(t)$ are the virial mass, velocity, and radius respectively,
-    $M_\mathrm{u}$ is the unresolved mass between times $t_1$ and $t_2$ $\sigma^2$ represents the variance in angular momentum per
-    unit increase in $J_\mathrm{v}^2$, and $N(0,1)$ is a random variable distributed as a standard normal. The parameter
-    $\sigma=${\normalfont \ttfamily [angularMomentumVarianceSpecific]}.
+    $M_\mathrm{r}$ and $M_\mathrm{u}$ are the resolved and unresolved mass between times $t_1$ and $t_2$r
+    respectively\footnote{Note that this assumes that the characteristic angular momentum scales in proportion to mass. In detail
+    this is not correct, as there is also some dependence on the change in redshift across the timestep due to the dependence of
+    virial densities on redshift. In practice, we ignore this dependence and absorb such effects into the parameter $\sigma$.},
+    $\sigma^2$ represents the variance in angular momentum per unit increase in $J_\mathrm{v}^2$, and $N(0,1)$ is a random
+    variable distributed as a standard normal. The parameter $\sigma=${\normalfont \ttfamily [angularMomentumVarianceSpecific]}.
    </description>
   </nodeOperator>
   !!]
