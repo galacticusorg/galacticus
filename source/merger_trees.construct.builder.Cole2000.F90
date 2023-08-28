@@ -658,9 +658,15 @@ contains
                 else
                    snapEarliestTime     =.false.
                 end if
+                ! Allow the build controller to set a minimum step.
+                deltaW=max(                                                                                                                                              &
+                     &                                                             deltaW                                                                              , &
+                     &     +self_%workers(numberWorker)%mergerTreeBuildController_%timeMinimum               (nodeCurrent,branchMassCurrent,branchDeltaCriticalCurrent)  &
+                     &     -                                                       branchDeltaCriticalCurrent                                                            &
+                     &    )
                 ! Limit the timestep according to the build controller.
-                deltaWController=+self_%workers(numberWorker)%mergerTreeBuildController_%timeMaximum(nodeCurrent,branchMassCurrent,branchDeltaCriticalCurrent) &
-                     &           -branchDeltaCriticalCurrent
+                deltaWController=+self_%workers(numberWorker)%mergerTreeBuildController_%timeMaximum               (nodeCurrent,branchMassCurrent,branchDeltaCriticalCurrent) &
+                     &           -                                                       branchDeltaCriticalCurrent
                 if (deltaWController < deltaW) then
                    deltaW               =deltaWController
                    controlLimited       =.true.

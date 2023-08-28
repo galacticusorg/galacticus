@@ -214,6 +214,8 @@ sub Build_Rate_Functions {
     my $class       = shift();
     my $member      = shift();
     $code::property = shift();
+    # Determine if debugging output is required.
+    my $debugging = exists($ENV{'GALACTICUS_FCFLAGS'}) && $ENV{'GALACTICUS_FCFLAGS'} =~ m/(^|\s)\-DDEBUGGING($|\s)/;
     # Skip this property if it is not evolvable, or is virtual.
     return
 	if
@@ -266,6 +268,11 @@ sub Build_Rate_Functions {
 	     }
 	    ]
     };
+    push(@{$function->{'modules'}},"Debugging","ISO_Varying_String")
+	if ( $debugging );
+    push(@{$function->{'variables'}},{intrinsic => "type", type => "varying_string", variables => [ "message" ]},{intrinsic => "character", type => "len=32", variables => [ "label" ]})
+	if ( $debugging );
+    my $debugIteratorRequired = 0;
     # For non-intrinsic types add a workspace variable.
     unless ( &isIntrinsic($code::property->{'data'}->{'type'}) ) {
 	(my $currentTypeDescriptor) = &Galacticus::Build::Components::DataTypes::dataObjectDefinition($code::property->{'data'},matchOnly => 1);
@@ -297,6 +304,8 @@ sub Build_Rate_Functions {
     $function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
 !$GLC attributes unused :: {join(",",@argumentsUnused)}
 CODE
+    $code::className          = $class ->{'name'};
+    $code::memberName         = $member->{'name'};
     $code::offsetNameAll      = &offsetName('all'     ,$class->{'name'}.ucfirst($member->{'name'}),$code::property->{'name'});
     $code::offsetNameActive   = &offsetName('active'  ,$class->{'name'}.ucfirst($member->{'name'}),$code::property->{'name'});
     $code::offsetNameInactive = &offsetName('inactive',$class->{'name'}.ucfirst($member->{'name'}),$code::property->{'name'});
@@ -322,12 +331,33 @@ CODE
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 nodeRates(offset)=nodeRates(offset)+setValue
 CODE
+	if ( $debugging ) {
+	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+if (isDebugging()) then
+ write (label,'(e12.6)') setValue
+ message="   rate: ("//getCaller()//") {$className}:{$memberName}:{$property->{'name'}} "//trim(adjustl(label))
+ call debugLog(message)
+end if
+CODE
+    	    }
 	} else {
 	    $function->{'content'} .= $code::offset;
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 count=size(setValue)
 nodeRates(offset:offset+count-1)=nodeRates(offset:offset+count-1)+setValue
 CODE
+	    if ( $debugging ) {
+		$debugIteratorRequired = 1;
+		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+if (isDebugging()) then
+ do i=1,count
+  write (label,'(a1,i4.4,a2,e12.6)') "[",i,"] ",setValue(i)
+  message="   rate: ("//getCaller()//") {$className}:{$memberName}:{$property->{'name'}}"//trim(adjustl(label))
+  call debugLog(message)
+ end do
+end if
+CODE
+	    }
 	}
     } else {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
@@ -340,7 +370,25 @@ if (count > 0) then
    call current%serialize(nodeRates(offset:offset+count-1))
 end if
 CODE
+	if ( $debugging ) {
+	    push(@{$function->{'variables'}},{intrinsic => "double precision", attributes => [ "allocatable", "dimension(:)" ], variables => [ "rates" ]});
+	    $debugIteratorRequired = 1;
+	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+if (isDebugging() .and. count > 0) then
+ allocate(rates(count))
+ call setValue%serialize(rates)
+ do i=1,count
+  write (label,'(a1,i4.4,a2,e12.6)') "[",i,"] ",rates(i)
+  message="   rate: ("//getCaller()//") {$className}:{$memberName}:{$property->{'name'}}"//trim(adjustl(label))
+  call debugLog(message)
+ end do
+end if
+CODE
+	}
     }
+    # Add a debug iterator variable if required.
+    push(@{$function->{'variables'}},{intrinsic => "integer", variables => [ "i" ]})
+	if ( $debugIteratorRequired );
     # Insert a type-binding for this function into the relevant type.
     push(
 	@{$build->{'types'}->{$implementationTypeName}->{'boundFunctions'}},

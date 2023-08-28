@@ -351,7 +351,7 @@ contains
           diskStructureSolverSpecificAngularMomentum=0.5d0
        else
           diskStructureSolverSpecificAngularMomentum=  &
-               & +radiusStructureSolver            &
+               & +radiusStructureSolver                &
                & /(                                    &
                &   +massDistributionDiskDensityMoment2 &
                &   /massDistributionDiskDensityMoment1 &
