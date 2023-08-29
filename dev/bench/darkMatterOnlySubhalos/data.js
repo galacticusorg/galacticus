@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1693286083197,
+  "lastUpdate": 1693286090589,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "f6d60ffbc3145e9bb417842402d4b1262efbbdb2",
-          "message": "fix: Fix the `mergerTreeBuildMassesUnion` class\n\n* Correctly handle deep copy and state store of member classes;\n\n* Mark that multiple `mergerTreeBuildMasses` members are allowed;\n\n* Fix typo which caused double allocation of one of the masses arrays.",
-          "timestamp": "2023-01-27T00:50:53Z",
-          "tree_id": "5eab63d7834b71dea95ddf5b49e823f0dbca1c07",
-          "url": "https://github.com/galacticusorg/galacticus/commit/f6d60ffbc3145e9bb417842402d4b1262efbbdb2"
-        },
-        "date": 1674799583357,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 57.2577034798009,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 26.1512854931292,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 26350.9375297304,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8724,6 +8685,45 @@ window.BENCHMARK_DATA = {
             "value": 50.408,
             "unit": "seconds",
             "range": 0.128559713751907
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "0eb84762c6daca60c08640e1bc1b1bb211ec131a",
+          "message": "feat: Add node and tree indices to debug log output",
+          "timestamp": "2023-08-28T23:54:08Z",
+          "tree_id": "5ea548ab11fae8562973877cb37b4c3572e70c40",
+          "url": "https://github.com/galacticusorg/galacticus/commit/0eb84762c6daca60c08640e1bc1b1bb211ec131a"
+        },
+        "date": 1693286089692,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 58.5242080709765,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 26.4439006068673,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 25257.8908941139,
+            "unit": "-logℒ"
           }
         ]
       }
