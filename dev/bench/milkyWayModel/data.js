@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1693286086802,
+  "lastUpdate": 1693286094012,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "f6d60ffbc3145e9bb417842402d4b1262efbbdb2",
-          "message": "fix: Fix the `mergerTreeBuildMassesUnion` class\n\n* Correctly handle deep copy and state store of member classes;\n\n* Mark that multiple `mergerTreeBuildMasses` members are allowed;\n\n* Fix typo which caused double allocation of one of the masses arrays.",
-          "timestamp": "2023-01-27T00:50:53Z",
-          "tree_id": "5eab63d7834b71dea95ddf5b49e823f0dbca1c07",
-          "url": "https://github.com/galacticusorg/galacticus/commit/f6d60ffbc3145e9bb417842402d4b1262efbbdb2"
-        },
-        "date": 1674799579401,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 218.09,
-            "unit": "seconds",
-            "range": 0.160449368959167
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10620,6 +10590,60 @@ window.BENCHMARK_DATA = {
             "value": 234.963,
             "unit": "seconds",
             "range": 0.306806290677302
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "0eb84762c6daca60c08640e1bc1b1bb211ec131a",
+          "message": "feat: Add node and tree indices to debug log output",
+          "timestamp": "2023-08-28T23:54:08Z",
+          "tree_id": "5ea548ab11fae8562973877cb37b4c3572e70c40",
+          "url": "https://github.com/galacticusorg/galacticus/commit/0eb84762c6daca60c08640e1bc1b1bb211ec131a"
+        },
+        "date": 1693286093356,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassMetallicityRelation",
+            "value": 3.66546592943343,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassSizeRelation",
+            "value": 9.37085191838936,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassVelocityDispersionRelation",
+            "value": 0.901394625736313,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupOccupationFraction",
+            "value": 23.7754860306449,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassFunction",
+            "value": 69.2646162731899,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
+            "value": 10.9446588628862,
+            "unit": "-logℒ"
           }
         ]
       }
