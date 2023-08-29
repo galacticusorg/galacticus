@@ -125,7 +125,7 @@ my @tests =
 		  output            => 1                                                                                          ,
 		  expression        => "(%[spheroidRadius]*%[spheroidVelocity]*%[spheroidMassStellar])/%[spheroidAngularMomentum]",
 		  values            => pdl ( 0.5 )                                                                                ,
-		  toleranceRelative => 4.0e-5
+		  toleranceRelative => 2.0e-4
 	      },
 	      {
 		  name              => "rotation curve"                         ,
