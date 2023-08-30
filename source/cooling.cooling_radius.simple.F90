@@ -390,17 +390,18 @@ contains
     !!}
     implicit none
     double precision                    , intent(in   ) :: radius
-    double precision                                    :: coolingTime     , density, temperature
+    double precision                                    :: coolingTime     , density, &
+         &                                                 temperature
     type            (chemicalAbundances), save          :: densityChemicals
     !$omp threadprivate(densityChemicals)
     
     ! Compute density, temperature and abundances.
-    density         = self_%hotHaloMassDistribution_  %density    (node_,radius)
-    temperature     = self_%hotHaloTemperatureProfile_%temperature(node_,radius)
-    densityChemicals= fractionsChemical_ &
-         &           *density
+    density         =self_%hotHaloMassDistribution_  %density    (node_,radius                                                             )
+    temperature     =self_%hotHaloTemperatureProfile_%temperature(node_,radius                                                             )
+    densityChemicals=fractionsChemical_
+    call densityChemicals%scale(density)
     ! Compute the cooling time at the specified radius.
-    coolingTime=self_%coolingTime_              %time       (node_,temperature,density,abundancesGas_,densityChemicals,self_%radiation)
+    coolingTime     =self_%coolingTime_              %time       (node_,temperature,density,abundancesGas_,densityChemicals,self_%radiation)
     ! Return the difference between cooling time and time available.
     coolingRadiusRoot=coolingTime-coolingTimeAvailable_
     return

@@ -407,9 +407,11 @@ contains
     call self%chemicalReactionRate_%rates(lengthColumn,temperature,chemicalDensities,factorClumping,self%radiation_,chemicalDensitiesRates,node)
     ! Convert to mass change rates.
     call chemicalDensitiesRates%numberToMass(chemicalMassesRates)
-    chemicalMassesRates=+chemicalMassesRates     &
-         &              *gigaYear                &
-         &              /massToDensityConversion
+    chemicalMassesRates=+chemicalMassesRates       &
+         &              *(                         &
+         &                +gigaYear                &
+         &                /massToDensityConversion &
+         &               )
     ! Zero rates of analytically-solved properties.
     if (self%assumeEquilibrium) then
        call chemicalMassesRates%abundanceSet(self%atomicHydrogenIndex      ,0.0d0)
