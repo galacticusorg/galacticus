@@ -719,10 +719,10 @@ contains
                &                             +       Pi       *radiusScaleFree   *(- 23.0d0+ 2.0d0*Pi**2- 2.0d0*log(radiusScaleFree))
        else if (radiusScaleFree > radiusScaleFreeLarge) then
           ! Use series solution for large radii.
-          velocityDispersionSquaredScaleFree=+Pi*(- 3.0d0+  4.0d0*log(radiusScaleFree))/(   4.0d0*radiusScaleFree   ) &
-               &                             +Pi*( 69.0d0+ 20.0d0*log(radiusScaleFree))/(  50.0d0*radiusScaleFree**2) &
-               &                             +Pi*(-97.0d0- 60.0d0*log(radiusScaleFree))/( 300.0d0*radiusScaleFree**3) &
-               &                             +Pi*(284.0d0+420.0d0*log(radiusScaleFree))/(3675.0d0*radiusScaleFree**4)
+          velocityDispersionSquaredScaleFree=+Pi*(-  3.0d0+  4.0d0*log(radiusScaleFree))/(   4.0d0*radiusScaleFree   ) &
+               &                             +Pi*(+ 69.0d0+ 20.0d0*log(radiusScaleFree))/(  50.0d0*radiusScaleFree**2) &
+               &                             +Pi*(- 97.0d0- 60.0d0*log(radiusScaleFree))/( 300.0d0*radiusScaleFree**3) &
+               &                             +Pi*(+284.0d0+420.0d0*log(radiusScaleFree))/(3675.0d0*radiusScaleFree**4)
        else
           ! Use full solution.
           velocityDispersionSquaredScaleFree=+(                                                                                                 &
@@ -779,10 +779,10 @@ contains
                &                                         - 9.0d0*Pi**4 /20.0d0*radiusScaleFree**4
        else if (radiusScaleFree > radiusScaleFreeLarge) then
           ! Use series solution for large radii.
-          velocityDispersionSquaredScaleFree=+Pi*(  -5.0d0+  4.0d0*log(radiusScaleFree))/(    4.0d0*radiusScaleFree    ) &
-               &                             +Pi*( 177.0d0+  60.0d0*log(radiusScaleFree))/(  100.0d0*radiusScaleFree**2) &
-               &                             +Pi*(-157.0d0-  60.0d0*log(radiusScaleFree))/(  300.0d0*radiusScaleFree**3) &
-               &                             +Pi*(5857.0d0+1260.0d0*log(radiusScaleFree))/(14700.0d0*radiusScaleFree**4)
+          velocityDispersionSquaredScaleFree=+Pi*(-   5.0d0+   4.0d0*log(radiusScaleFree))/(    4.0d0*radiusScaleFree   ) &
+               &                             +Pi*(+ 177.0d0+  60.0d0*log(radiusScaleFree))/(  100.0d0*radiusScaleFree**2) &
+               &                             +Pi*(- 157.0d0-  60.0d0*log(radiusScaleFree))/(  300.0d0*radiusScaleFree**3) &
+               &                             +Pi*(+5857.0d0+1260.0d0*log(radiusScaleFree))/(14700.0d0*radiusScaleFree**4)
        else
           ! Use full solution.
           velocityDispersionSquaredScaleFree=+(                                                                                    &
@@ -832,10 +832,10 @@ contains
                &                             + 4.0d0*Pi/189.0d0*     radiusScaleFree**3.5d0*(-887.0d0+1260.0d0*log(2.0d0))
        else if (radiusScaleFree > radiusScaleFreeLarge) then
           ! Use series solution for large radii.
-          velocityDispersionSquaredScaleFree=+Pi*(-29.0d0+ 24.0d0*log(2.0d0)+ 12.0d0*log(radiusScaleFree))/(  12.0d0*radiusScaleFree   ) &
-               &                             +Pi*(107.0d0+120.0d0*log(2.0d0)+ 60.0d0*log(radiusScaleFree))/( 120.0d0*radiusScaleFree**2) &
-               &                             +Pi*(-11.0d0- 40.0d0*log(2.0d0)- 20.0d0*log(radiusScaleFree))/(  96.0d0*radiusScaleFree**3) &
-               &                             +Pi*( 57.0d0+280.0d0*log(2.0d0)+140.0d0*log(radiusScaleFree))/(1344.0d0*radiusScaleFree**4)
+          velocityDispersionSquaredScaleFree=+Pi*(- 29.0d0+ 24.0d0*log(2.0d0)+ 12.0d0*log(radiusScaleFree))/(  12.0d0*radiusScaleFree   ) &
+               &                             +Pi*(+107.0d0+120.0d0*log(2.0d0)+ 60.0d0*log(radiusScaleFree))/( 120.0d0*radiusScaleFree**2) &
+               &                             +Pi*(- 11.0d0- 40.0d0*log(2.0d0)- 20.0d0*log(radiusScaleFree))/(  96.0d0*radiusScaleFree**3) &
+               &                             +Pi*(+ 57.0d0+280.0d0*log(2.0d0)+140.0d0*log(radiusScaleFree))/(1344.0d0*radiusScaleFree**4)
        else
           ! Use full solution.
           velocityDispersionSquaredScaleFree=+(                                                             &
@@ -846,7 +846,7 @@ contains
                &                                 -38.0d0*sqrt(radiusScaleFree**3*(+1.0d0+radiusScaleFree))  &
                &                                 -57.0d0*sqrt(radiusScaleFree**5*(+1.0d0+radiusScaleFree))  &
                &                                 -24.0d0*sqrt(radiusScaleFree**7*(+1.0d0+radiusScaleFree))  &
-               &                                 -6.0d0                                                     &
+               &                                 - 6.0d0                                                    &
                &                                 *(+1.0d0+      radiusScaleFree                        )**2 &
                &                                 *(+1.0d0+2.0d0*radiusScaleFree                        )    &
                &                                 *(-1.0d0+8.0d0*radiusScaleFree*(1.0d0+radiusScaleFree))    &
@@ -893,7 +893,7 @@ contains
        else if (radiusScaleFree > radiusScaleFreeLarge) then
           ! Use series solution for large radii.
           velocityDispersionSquaredScaleFree=+Pi*(-   7.0d0+   8.0d0*log(2.0d0)+   4.0d0*log(radiusScaleFree))/(    4.0d0*radiusScaleFree   ) &
-               &                             +Pi*(  147.0d0+ 120.0d0*log(2.0d0)+  60.0d0*log(radiusScaleFree))/(  200.0d0*radiusScaleFree**2) &
+               &                             +Pi*(+ 147.0d0+ 120.0d0*log(2.0d0)+  60.0d0*log(radiusScaleFree))/(  200.0d0*radiusScaleFree**2) &
                &                             +Pi*(-  79.0d0- 840.0d0*log(2.0d0)- 420.0d0*log(radiusScaleFree))/( 2400.0d0*radiusScaleFree**3) &
                &                             +Pi*(-3589.0d0+7560.0d0*log(2.0d0)+3780.0d0*log(radiusScaleFree))/(33600.0d0*radiusScaleFree**4)
        else
