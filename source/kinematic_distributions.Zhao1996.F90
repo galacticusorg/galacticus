@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Xiaolong Du.
+
   !!{
   Implementation of a kinematic distribution class for \cite{zhao_analytical_1996} mass distributions.
   !!}
@@ -93,6 +95,7 @@ contains
     class           (kinematicsDistributionZhao1996), intent(inout) :: self
     class           (coordinate                    ), intent(in   ) :: coordinates
     class           (massDistributionClass         ), intent(inout) :: massDistributionEmbedding
+    double precision                                , parameter     :: radiusTiny               =1.0d-3, radiusLarge=1.0d2
     double precision                                                :: radius
 
     select type (massDistributionEmbedding)
@@ -105,12 +108,25 @@ contains
           velocityDispersion=self%velocityDispersion1DNumerical(coordinates,massDistributionEmbedding)
           return
        case (specialCaseNFW        %ID)
+       if      (radius < radiusTiny ) then
+          ! Use series solution for small radii.
+          velocityDispersion=+11.0d0*Pi/15.0d0*radius**4                                            &
+               &             +       Pi/ 6.0d0*radius**3*(-101.0d0+12.0d0*Pi**2-12.0d0*log(radius)) &
+               &             + 2.0d0*Pi/ 3.0d0*radius**2*(- 59.0d0+ 6.0d0*Pi**2- 6.0d0*log(radius)) &
+               &             +       Pi       *radius   *(- 23.0d0+ 2.0d0*Pi**2- 2.0d0*log(radius))
+       else if (radius > radiusLarge) then
+          ! Use series solution for large radii.
+          velocityDispersion=+Pi*(-  3.0d0+  4.0d0*log(radius))/(   4.0d0*radius   ) &
+               &             +Pi*(+ 69.0d0+ 20.0d0*log(radius))/(  50.0d0*radius**2) &
+               &             +Pi*(- 97.0d0- 60.0d0*log(radius))/( 300.0d0*radius**3) &
+               &             +Pi*(+284.0d0+420.0d0*log(radius))/(3675.0d0*radius**4)
+       else
           velocityDispersion=+2.0d0                                                                                                         &
                &             *Pi                                                                                                            &
                &             *(                                                                                                             &
                &               +radius                                                                                                      &
                &               *(                                                                                                           &
-               &                 -1.0d0                                                                                                     &                                                                                                   
+               &                 -1.0d0                                                                                                     &
                &                 +radius                                                                                                    &
                &                 *(                                                                                                         &
                &                   -9.0d0                                                                                                   &
@@ -124,7 +140,23 @@ contains
                &               +6.0d0*radius**2*(+1.0d0+radius)**2*Dilogarithm(-radius)                                                     &
                &              )                                                                                                             &
                &             /radius
+          end if
        case (specialCaseCoredNFW   %ID)
+       if      (radius < radiusTiny ) then
+          ! Use series solution for small radii.
+          velocityDispersion=+(119.0d0*Pi-12.0d0*Pi**3)/ 6.0d0           &
+               &             +(119.0d0*Pi-12.0d0*Pi**3)/ 2.0d0*radius    &
+               &             +(353.0d0*Pi-36.0d0*Pi**3)/ 6.0d0*radius**2 &
+               &             +(121.0d0*Pi-12.0d0*Pi**3)/ 6.0d0*radius**3 &
+               &                         - 9.0d0*Pi**4 /20.0d0*radius**4
+       else if (radius > radiusLarge) then
+          ! Use series solution for large radii.
+          velocityDispersion=+Pi*(-   5.0d0+   4.0d0*log(radius))/(    4.0d0*radius   ) &
+               &             +Pi*(+ 177.0d0+  60.0d0*log(radius))/(  100.0d0*radius**2) &
+               &             +Pi*(- 157.0d0-  60.0d0*log(radius))/(  300.0d0*radius**3) &
+               &             +Pi*(+5857.0d0+1260.0d0*log(radius))/(14700.0d0*radius**4)
+       else
+          ! Use full solution.
           velocityDispersion=+(+1.0d0+radius)**3                                                                               &
                &             *(                                                                                                &
                &               +Pi                                                                                             &
@@ -139,7 +171,22 @@ contains
                &               - 6.0d0*Pi*log        (+1.0d0+radius)**2                                                        &
                &               -12.0d0*Pi*Dilogarithm(      -radius)                                                           &
                &              )
+          end if
        case (specialCaseGamma0_5NFW%ID)
+       if      (radius < radiusTiny ) then
+          ! Use series solution for small radii.
+          velocityDispersion=+16.0d0*Pi/  3.0d0*sqrt(radius      )*(- 11.0d0+  16.0d0*log(2.0d0)) &
+               &             +16.0d0*Pi/ 15.0d0*     radius**1.5d0*(-139.0d0+ 200.0d0*log(2.0d0)) &
+               &             + 2.0d0*Pi/  7.0d0*     radius**2.5d0*(-387.0d0+ 560.0d0*log(2.0d0)) &
+               &             + 4.0d0*Pi/189.0d0*     radius**3.5d0*(-887.0d0+1260.0d0*log(2.0d0))
+       else if (radius > radiusLarge) then
+          ! Use series solution for large radii.
+          velocityDispersion=+Pi*(- 29.0d0+ 24.0d0*log(2.0d0)+ 12.0d0*log(radius))/(  12.0d0*radius   ) &
+               &             +Pi*(+107.0d0+120.0d0*log(2.0d0)+ 60.0d0*log(radius))/( 120.0d0*radius**2) &
+               &             +Pi*(- 11.0d0- 40.0d0*log(2.0d0)- 20.0d0*log(radius))/(  96.0d0*radius**3) &
+               &             +Pi*(+ 57.0d0+280.0d0*log(2.0d0)+140.0d0*log(radius))/(1344.0d0*radius**4)
+       else
+          ! Use full solution.
           velocityDispersion=+8.0d0                                                                                                                  &
                &             /9.0d0                                                                                                                  &
                &             *Pi                                                                                                                     &
@@ -160,7 +207,22 @@ contains
                &              )                                                                                                                      &
                &             /        radius                                                                                                         &
                &             /(+1.0d0+radius)
+          end if
        case (specialCaseGamma1_5NFW%ID)
+       if      (radius < radiusTiny ) then
+          ! Use series solution for small radii.
+          velocityDispersion=+8.0d0*Pi/   3.0d0*sqrt(radius       )                                                        &
+               &             -      Pi/3150.0d0*     radius**3.5d0 *(-19861.0d0+60480.0d0*log(2.0d0)-7560.0d0*log(radius)) &
+               &             -      Pi/ 175.0d0*     radius**2.5d0 *(- 8683.0d0+13440.0d0*log(2.0d0)-1680.0d0*log(radius)) &
+               &             -4.0d0*Pi/  75.0d0*     radius**1.5d0 *(-  817.0d0+  960.0d0*log(2.0d0)- 120.0d0*log(radius))
+       else if (radius > radiusLarge) then
+          ! Use series solution for large radii.
+          velocityDispersion=+Pi*(-   7.0d0+   8.0d0*log(2.0d0)+   4.0d0*log(radius))/(    4.0d0*radius   ) &
+               &             +Pi*(+ 147.0d0+ 120.0d0*log(2.0d0)+  60.0d0*log(radius))/(  200.0d0*radius**2) &
+               &             +Pi*(-  79.0d0- 840.0d0*log(2.0d0)- 420.0d0*log(radius))/( 2400.0d0*radius**3) &
+               &             +Pi*(-3589.0d0+7560.0d0*log(2.0d0)+3780.0d0*log(radius))/(33600.0d0*radius**4)
+       else
+          ! Use full solution.
           velocityDispersion=+8.0d0                                                                                                               &
                &             /5.0d0                                                                                                               &
                &             *Pi                                                                                                                  &
@@ -175,6 +237,7 @@ contains
                &               /radius**2                                                                                                         &
                &               /(+1.0d0+radius)                                                                                                   &
                &              )
+          end if
        case default
           velocityDispersion=+0.0d0
           call Error_Report('unknown special case'//{introspection:location})
