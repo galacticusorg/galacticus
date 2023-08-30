@@ -320,7 +320,9 @@ contains
     class           (nodeComponentHotHalo), pointer               :: hotHalo
     double precision                      , parameter             :: zeroRadius    =0.0d0
     type            (chemicalAbundances  )                        :: chemicalMasses
-    double precision                                              :: outerRadius         , massToDensityConversion
+    double precision                                              :: outerRadius         , massToDensityConversion, &
+         &                                                           radiusGuess         , rootZero               , &
+         &                                                           rootOuter
 
     ! Check if node differs from previous one for which we performed calculations.
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
@@ -358,21 +360,23 @@ contains
        node_ => node
        ! Check if cooling time at hot halo outer radius is reached.
        outerRadius=hotHalo%outerRadius()
-       if (coolingRadiusRoot(outerRadius) < 0.0d0) then
+       rootOuter=coolingRadiusRoot(outerRadius)
+       if (rootOuter < 0.0d0) then
           ! Cooling time available exceeds cooling time at outer radius radius, return outer radius.
           self%radiusStored=outerRadius
           simpleRadius     =self%radiusStored
           return
        end if
        ! Check if cooling time at halo center is reached.
-       if (coolingRadiusRoot(zeroRadius) > 0.0d0) then
+       rootZero=coolingRadiusRoot(zeroRadius)
+       if (rootZero > 0.0d0) then
           ! Cooling time at halo center exceeds the time available, return zero radius.
           self%radiusStored=zeroRadius
           simpleRadius     =self%radiusStored
           return
        end if
        ! Cooling radius is between zero and outer radii. Search for the cooling radius.
-       self%radiusStored=self%finder      %find(rootRange=[zeroRadius,outerRadius])
+       self%radiusStored=self%finder      %find(rootRange=[zeroRadius,outerRadius],rootRangeValues=[rootZero,rootOuter])
        simpleRadius     =self%radiusStored
     else
        simpleRadius     =self%radiusStored

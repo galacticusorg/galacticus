@@ -294,7 +294,8 @@ contains
     double precision                                                 , parameter             :: smallProbabilityFraction=1.0d-3
     type            (varying_string                                 )                        :: message
     character       (len=26                                         )                        :: label
-    double precision                                                                         :: massUpper
+    double precision                                                                         :: massUpper                      , rootFunctionLower  , &
+         &                                                                                      rootFunctionUpper
     !$GLC attributes unused :: randomNumberGenerator_
 
     ! Ensure excursion set calculations have sufficient range in σ.
@@ -312,13 +313,10 @@ contains
        massUpper         =+      haloMass
        self%normalization=+0.5d0
     end if    
-    ! Check that the root is bracketed.    
-    if     (                                                           &
-         &     generalizedPressSchechterMassBranchRoot(massResolution) &
-         &    *generalizedPressSchechterMassBranchRoot(massUpper     ) &
-         &  >=                                                         &
-         &    0.0d0                                                    &
-         & ) then
+    ! Check that the root is bracketed.
+    rootFunctionLower=generalizedPressSchechterMassBranchRoot(massResolution)
+    rootFunctionUpper=generalizedPressSchechterMassBranchRoot(massUpper     )
+    if (rootFunctionLower*rootFunctionUpper >= 0.0d0) then
        ! Warn about this situation.
        if (displayVerbosity() >= verbosityLevelWarn) then
           message="halo branching mass root is not bracketed in generalizedPressSchechterMassBranch()"
@@ -334,7 +332,7 @@ contains
           call displayMessage(message,verbosityLevelWarn)
        end if
        ! If the root function is positive at half of the parent halo mass then we have a binary split.
-       if (generalizedPressSchechterMassBranchRoot(massUpper) >= 0.0d0) then
+       if (rootFunctionUpper >= 0.0d0) then
           ! Check that we are sufficiently close to zero. If we're not, it might indicate a problem.
           if     (                                                                           &
                &   generalizedPressSchechterMassBranchRoot(massUpper)                        &
@@ -350,7 +348,7 @@ contains
        end if
     end if
     ! Find the branch mass.
-    generalizedPressSchechterMassBranch=self%finder%find(rootRange=[massResolution,massUpper])
+    generalizedPressSchechterMassBranch=self%finder%find(rootRange=[massResolution,massUpper],rootRangeValues=[rootFunctionLower,rootFunctionUpper])
     return
   end function generalizedPressSchechterMassBranch
 

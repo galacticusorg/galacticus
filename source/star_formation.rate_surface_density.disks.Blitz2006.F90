@@ -493,8 +493,9 @@ contains
     logical                                                        , intent(inout), allocatable, dimension(  :) :: intervalIsAnalytic
     double precision                                               , intent(inout), allocatable, dimension(  :) :: integralsAnalytic
     double precision                                                                                            :: coefficientNormalization     , coefficientFactorBoost, &
-         &                                                                                                         coefficientFactorBoostStellar, coefficientMolecular
-
+         &                                                                                                         coefficientFactorBoostStellar, coefficientMolecular  , &
+         &                                                                                                         rootValueInner               , rootValueOuter
+    
     ! Check if we can assume a monotonic surface density.
     if (self%assumeMonotonicSurfaceDensity) then
        ! Set the critical radius to a very negative value so that pressure ratio is always computed.
@@ -506,8 +507,11 @@ contains
           allocate(blitz2006Intervals(2,0))
           self%radiusCritical=-huge(0.0d0)          
        else
+          self_ => self
+          node_ => node
           ! Test if the inner radius is below the pressure threshold.
-          if (self%pressureRatio(node,radiusInner) <= 1.0d0) then
+          rootValueInner=blitz2006CriticalDensityRoot(radiusInner)
+          if (rootValueInner <= 0.0d0) then
              ! The entire disk is below the pressure threshold so use a single interval.
              allocate(blitz2006Intervals(2,1))
              allocate(intervalIsAnalytic(  1))
@@ -525,7 +529,8 @@ contains
              ! Compute coefficients needed for analytic solutions.
              if (self%assumeExponentialDisk.and.self%useTabulation) call computeCoefficients()
              ! Test the surface density at the outer radius.
-             if (self%pressureRatio(node,radiusOuter) >= 1.0d0) then
+             rootValueOuter=blitz2006CriticalDensityRoot(radiusOuter)
+             if (rootValueOuter >= 0.0d0) then
                 ! Entire disk is above the pressure threshold so use a single interval.
                 allocate(blitz2006Intervals(2,1))
                 allocate(intervalIsAnalytic(  1))
@@ -541,12 +546,10 @@ contains
              else
                 ! The disk transitions the pressure threshold - attempt to locate the radius at which this happens and use two
                 ! intervals split at this point.
-                self_ => self
-                node_ => node
                 if (self%radiusCriticalPrevious > 0.0d0) then
                    self%radiusCritical=self%finder%find(rootGuess=self%radiusCriticalPrevious)
                 else
-                   self%radiusCritical=self%finder%find(rootRange=[radiusInner,radiusOuter]  )
+                   self%radiusCritical=self%finder%find(rootRange=[radiusInner,radiusOuter],rootRangeValues=[rootValueInner,rootValueOuter])
                 end if
                 self%radiusCriticalPrevious=self%radiusCritical
                 allocate(blitz2006Intervals(2,2))

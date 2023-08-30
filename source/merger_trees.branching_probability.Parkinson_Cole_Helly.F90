@@ -406,7 +406,7 @@ contains
          self_%probabilityGradientMinimum=parkinsonColeHellyMassBranchRootDerivative(logMassMinimum)
          self_%probabilityGradientMaximum=parkinsonColeHellyMassBranchRootDerivative(logMassMaximum)
          self_%probabilityMaximum        =parkinsonColeHellyMassBranchRoot          (logMassMaximum)
-         massBranchGeneric=exp(finder%find(rootRange=[logMassMinimum,logMassMaximum]))
+         massBranchGeneric=exp(finder%findWithFUpper(rootRange=[logMassMinimum,logMassMaximum],rootRangeValueHigh=self_%probabilityMaximum))
       end if
       return
     end function massBranchGeneric
