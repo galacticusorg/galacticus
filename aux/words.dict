@@ -33,6 +33,10 @@
 ψ
 ω
 Å
+0ᵗʰ
+1ˢᵗ
+2ⁿᵈ
+3ʳᵈ
 1d
 2MASS
 2d
@@ -69,7 +73,7 @@ Buser
 CAMB
 CCD
 CDF
-CGM
+CGM/A
 CIE
 CMB
 CPUs
@@ -119,6 +123,7 @@ Granato
 Grubb
 Gunawardhana
 Harald
+hdf5Access
 Hearin
 Heger
 Hogg
@@ -564,6 +569,7 @@ particulation
 passwordFrom
 passwordfrom
 pbs
+pc
 perger
 periapsis
 pericenter

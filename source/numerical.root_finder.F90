@@ -190,7 +190,7 @@ module Root_Finder
   interface
      function gsl_root_fsolver_alloc(T) bind(c,name='gsl_root_fsolver_alloc')
        !!{
-       Template for the GSL root solver alloc function.
+       Template for the GSL root solver allocate function.
        !!}
        import
        type(c_ptr)        :: gsl_root_fsolver_alloc
@@ -199,7 +199,7 @@ module Root_Finder
 
      function gsl_root_fdfsolver_alloc(T) bind(c,name='gsl_root_fdfsolver_alloc')
        !!{
-       Template for the GSL root solver alloc function.
+       Template for the GSL root solver allocate function.
        !!}
        import
        type(c_ptr)        :: gsl_root_fdfsolver_alloc
@@ -308,7 +308,7 @@ module Root_Finder
 
      function gsl_fsolver_type_get(i) bind(c,name='gsl_fsolver_type_get')
        !!{
-       Template for GSL interface fsolver type function.
+       Template for GSL interface {\normalfont \ttfamily fsolver} type function.
        !!}
        import c_ptr, c_int
        type   (c_ptr)                       :: gsl_fsolver_type_get
@@ -317,7 +317,7 @@ module Root_Finder
 
      function gsl_fdfsolver_type_get(i) bind(c,name='gsl_fdfsolver_type_get')
        !!{
-       Template for GSL interface fdfsolver type function.
+       Template for GSL interface {\normalfont \ttfamily fdfsolver} type function.
        !!}
        import c_ptr, c_int
        type   (c_ptr)                       :: gsl_fdfsolver_type_get
