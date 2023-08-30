@@ -68,8 +68,10 @@
      !!}
      private
      double precision                                                 :: rateAdjust                                 , massMinimum             , &
-          &                                                              filteredFractionRateStored                 , filteredFractionStored
-     logical                                                          :: filteredFractionRateComputed               , filteredFractionComputed
+          &                                                              filteredFractionRateStored                 , filteredFractionStored  , &
+          &                                                              rateCorrectionStored
+     logical                                                          :: filteredFractionRateComputed               , filteredFractionComputed, &
+          &                                                              rateCorrectionComputed
      integer         (kind=kind_int8                       )          :: lastUniqueID
      class           (intergalacticMediumFilteringMassClass), pointer :: intergalacticMediumFilteringMass_ => null()
      class           (darkMatterProfileDMOClass            ), pointer :: darkMatterProfileDMO_             => null()
@@ -188,6 +190,7 @@ contains
 
     self%filteredFractionComputed    =.false.
     self%filteredFractionRateComputed=.false.
+    self%rateCorrectionComputed      =.false.
     self%lastUniqueID                =-huge(0_c_size_t)
     return
   end subroutine naozBarkana2007Initialize
@@ -231,6 +234,7 @@ contains
 
     self%filteredFractionComputed    =.false.
     self%filteredFractionRateComputed=.false.
+    self%rateCorrectionComputed      =.false.
     self%lastUniqueID                =node%uniqueID()
     return
   end subroutine naozBarkana2007CalculationReset
@@ -388,20 +392,26 @@ contains
     double precision                                              :: fractionFiltered, fractionAccreted, &
          &                                                           growthRate
 
-    hotHalo          =>  node                     %hotHalo           (    )
-    growthRate       =  +self                     %rateAdjust               &
-         &              /self%darkMatterHaloScale_%timescaleDynamical(node)
-    fractionFiltered =  +self                     %filteredFraction  (node)
-    fractionAccreted =  +  hotHalo                %          mass    (    ) &
-         &              /(                                                  &
-         &                +hotHalo                %          mass    (    ) &
-         &                +hotHalo                %unaccretedMass    (    ) &
-         &               )
-    rateCorrection   =  +(                                                  &
-         &                +fractionAccreted                                 &
-         &                -fractionFiltered                                 &
-         &               )                                                  &
-         &              *growthRate
+    ! Check if node differs from previous one for which we performed calculations.
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    if (.not.self%rateCorrectionComputed) then
+       hotHalo                   =>  node                     %hotHalo           (    )
+       growthRate                =  +self                     %rateAdjust               &
+            &                       /self%darkMatterHaloScale_%timescaleDynamical(node)
+       fractionFiltered          =  +self                     %filteredFraction  (node)
+       fractionAccreted          =  +  hotHalo                %          mass    (    ) &
+            &                       /(                                                  &
+            &                         +hotHalo                %          mass    (    ) &
+            &                         +hotHalo                %unaccretedMass    (    ) &
+            &                        )
+       self%rateCorrectionStored =  +(                                                  &
+            &                         +fractionAccreted                                 &
+            &                         -fractionFiltered                                 &
+            &                        )                                                  &
+            &                       *growthRate
+       self%rateCorrectionComputed=.true.
+    end if
+    rateCorrection=self%rateCorrectionStored
     return
   end function naozBarkana2007RateCorrection
   
@@ -755,10 +765,12 @@ contains
        naozBarkana2007AccretionRateChemicals=+naozBarkana2007AccretionRateChemicals                  &
             &                                -fractionChemicals                                      &
             &                                *(                                                      &
-            &                                  +hotHalo                            %          mass() &
-            &                                  +hotHalo                            %unaccretedMass() &
-            &                                 )                                                      &
-            &                                *rateCorrection
+            &                                  +(                                                    &
+            &                                    +hotHalo                          %          mass() &
+            &                                    +hotHalo                          %unaccretedMass() &
+            &                                   )                                                    &
+            &                                  *rateCorrection&
+            &                                 )
     end if
     ! If accretion is allowed only on new growth, check for new growth and shut off accretion if growth is not new.
     if (self%accretionNewGrowthOnly .and. self%accretionHaloTotal_%accretedMass(node) < basic%floatRank0MetaPropertyGet(self%massProgenitorMaximumID)) call naozBarkana2007AccretionRateChemicals%reset()
