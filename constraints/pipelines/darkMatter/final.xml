@@ -21,7 +21,7 @@
     <nodeOperator value="darkMatterProfileScaleSet"        />
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
     <nodeOperator value="haloAngularMomentumVitvitska2002"  >
-      <exponentMass value="0.10475"/>
+      <exponentMass value="1.10475"/>
     </nodeOperator>
     <nodeOperator value="haloAngularMomentumInterpolate"   />
     <!-- Cosmological epoch -->

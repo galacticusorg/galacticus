@@ -103,7 +103,7 @@ contains
     !![
     <inputParameter>
       <name>exponentMass</name>
-      <defaultValue>1.0d0</defaultValue>
+      <defaultValue>2.0d0</defaultValue>
       <source>parameters</source>
       <description>The exponent of mass ratio appearing in the orbital angular momentum term in the Vitvitska model.</description>
     </inputParameter>
