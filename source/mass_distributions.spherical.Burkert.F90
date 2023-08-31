@@ -128,7 +128,7 @@ contains
     !![
     <inputParameter>
       <name>densityNormalization</name>
-      <defaultValue>1.0d0/Pi</defaultValue>
+      <defaultValue>1.0d0/Pi/(log(8.0d0)-Pi/2.0d0)</defaultValue>
       <description>The density normalization of the Burkert profile.</description>
       <source>parameters</source>
     </inputParameter>
