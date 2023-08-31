@@ -747,7 +747,7 @@ contains
           ! Mass is being moved from the hot reservoir to the unaccreted reservoir. Find the mass fraction of chemicals in the hot
           ! halo.
           if (hotHalo%mass() > 0.0d0) then
-             fractionChemicals=+hotHalo%chemicals() &
+             fractionChemicals= hotHalo%chemicals() &
                   &            /hotHalo%mass     ()
           else
              call fractionChemicals%reset()
@@ -756,20 +756,20 @@ contains
           ! Mass is being moved from the unaccreted reservoir to the hot reservoir. Find the mass fraction of chemicals in the
           ! unaccreted gas.
           if (hotHalo%unaccretedMass() > 0.0d0) then
-             fractionChemicals=+self   %chemicalMasses(node,hotHalo%unaccretedMass(),accretionMode) &
+             fractionChemicals= self   %chemicalMasses(node,hotHalo%unaccretedMass(),accretionMode) &
                   &            /hotHalo%unaccretedMass(                                           )
           else
              call fractionChemicals%reset()
           end if
        end if
-       naozBarkana2007AccretionRateChemicals=+naozBarkana2007AccretionRateChemicals                  &
+       naozBarkana2007AccretionRateChemicals= naozBarkana2007AccretionRateChemicals                  &
             &                                -fractionChemicals                                      &
             &                                *(                                                      &
             &                                  +(                                                    &
             &                                    +hotHalo                          %          mass() &
             &                                    +hotHalo                          %unaccretedMass() &
             &                                   )                                                    &
-            &                                  *rateCorrection&
+            &                                  *rateCorrection                                       &
             &                                 )
     end if
     ! If accretion is allowed only on new growth, check for new growth and shut off accretion if growth is not new.

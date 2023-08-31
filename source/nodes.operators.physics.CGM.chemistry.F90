@@ -407,11 +407,10 @@ contains
     call self%chemicalReactionRate_%rates(lengthColumn,temperature,chemicalDensities,factorClumping,self%radiation_,chemicalDensitiesRates,node)
     ! Convert to mass change rates.
     call chemicalDensitiesRates%numberToMass(chemicalMassesRates)
-    chemicalMassesRates=+chemicalMassesRates       &
-         &              *(                         &
-         &                +gigaYear                &
-         &                /massToDensityConversion &
-         &               )
+    call chemicalMassesRates   %scale       (                         &
+         &                                   +gigaYear                &
+         &                                   /massToDensityConversion &
+         &                                  )
     ! Zero rates of analytically-solved properties.
     if (self%assumeEquilibrium) then
        call chemicalMassesRates%abundanceSet(self%atomicHydrogenIndex      ,0.0d0)
@@ -462,13 +461,14 @@ contains
     ! Truncate masses to zero to avoid unphysical behavior.
     call chemicalMasses%enforcePositive()
     massChemicals=chemicalMasses%sumOver()
-    if     (                                          &
-         &   massChemicals > 0.0d0                    &
-         &  .and.                                     &
-         &   massChemicals > hotHalo%mass()           &
-         & ) chemicalMasses=+        chemicalMasses   &
-         &                  *hotHalo%mass          () &
-         &                  /        massChemicals
+    if     (                                                     &
+         &   massChemicals > 0.0d0                               &
+         &  .and.                                                &
+         &   massChemicals > hotHalo%mass()                      &
+         & ) call chemicalMasses%scale(                          &
+         &                             +hotHalo%mass          () &
+         &                             /        massChemicals    &
+         &                            )
     ! Scale all chemical masses by their mass in atomic mass units to get a number density.
     call chemicalMasses%massToNumber(chemicalDensities)
     ! Compute factor converting mass of chemicals in (M☉/mᵤ) to number density in cm⁻³.
@@ -480,7 +480,7 @@ contains
     end if
     if (present(massToDensityConversion)) massToDensityConversion=massToDensityConversion_
     ! Convert to number density.
-    chemicalDensities=chemicalDensities*massToDensityConversion_
+    call chemicalDensities%scale(massToDensityConversion_)
     return
   end subroutine cgmChemistryComputeState
 

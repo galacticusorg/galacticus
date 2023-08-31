@@ -321,8 +321,7 @@ contains
     double precision                      , parameter             :: zeroRadius    =0.0d0
     type            (chemicalAbundances  )                        :: chemicalMasses
     double precision                                              :: outerRadius         , massToDensityConversion, &
-         &                                                           radiusGuess         , rootZero               , &
-         &                                                           rootOuter
+         &                                                           rootZero            , rootOuter
 
     ! Check if node differs from previous one for which we performed calculations.
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
@@ -350,7 +349,7 @@ contains
              massToDensityConversion=0.0d0
           end if          
           ! Convert to number density per unit total mass density.
-          fractionsChemical_=fractionsChemical_*massToDensityConversion
+          call fractionsChemical_%scale(massToDensityConversion)
        end if
        ! Set epoch for radiation field.
        basic => node%basic()
