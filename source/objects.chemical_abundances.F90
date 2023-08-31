@@ -258,6 +258,7 @@ contains
     class           (chemicalAbundances), intent(inout) :: self
     double precision                    , intent(in   ) :: multiplier
 
+    if (chemicalsCount == 0) return
     self%chemicalValue= self%chemicalValue &
          &             *     multiplier
     return
