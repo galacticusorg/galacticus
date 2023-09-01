@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1693605237890,
+  "lastUpdate": 1693605247763,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "79b7325d1563d2760811f8624ec6fbb1a4fb6d91",
-          "message": "Merge pull request #363 from galacticusorg/chandraDensity\n\nAvoid computing Chandrasekhar integrals if density is zero",
-          "timestamp": "2023-01-27T14:24:33-08:00",
-          "tree_id": "f8ba0b4169808a697f7051550c1ffa7c00304fad",
-          "url": "https://github.com/galacticusorg/galacticus/commit/79b7325d1563d2760811f8624ec6fbb1a4fb6d91"
-        },
-        "date": 1674882109370,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 258.598,
-            "unit": "seconds",
-            "range": 0.192181164519245
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10618,6 +10588,58 @@ window.BENCHMARK_DATA = {
             "value": 195.442,
             "unit": "seconds",
             "range": 0.692867664131626
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@obs.carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@obs.carnegiescience.edu"
+          },
+          "id": "db8121c69e6a0867d6a5d7d9bfa79f41efb001ab",
+          "message": "fix: Use the deploy app to allow comments on PRs from external collaborators",
+          "timestamp": "2023-09-01T18:11:16Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/db8121c69e6a0867d6a5d7d9bfa79f41efb001ab"
+        },
+        "date": 1693605246281,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassMetallicityRelation",
+            "value": 3.34010807231743,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassSizeRelation",
+            "value": 9.05089950515783,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassVelocityDispersionRelation",
+            "value": 0.995003358346423,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupOccupationFraction",
+            "value": 24.2806285130524,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassFunction",
+            "value": 93.4045161107519,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
+            "value": 1.29736523344343,
+            "unit": "-logℒ"
           }
         ]
       }
