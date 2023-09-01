@@ -101,7 +101,7 @@ contains
     !![
     <inputParameter>
       <name>densityNormalization</name>
-      <defaultValue>0.5d0/Pi</defaultValue>
+      <defaultValue>1.0d0/2.0d0/Pi/(log(4.0d0)-1.0d0)</defaultValue>
       <description>The density normalization of the NFW profile.</description>
       <source>parameters</source>
     </inputParameter>
