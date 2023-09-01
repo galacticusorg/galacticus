@@ -280,7 +280,7 @@ contains
     allocate(descriptions(3))
     descriptions(1)=var_str('The best-fit tidal truncation radius assuming an underlying NFW profile.'    )
     descriptions(2)=var_str('The best-fit tidal truncation fit metric assuming an underlying NFW profile.')
-    descriptions(3)=var_str('The best-fit tidal truncation density normalization, assuming and underling NFW Profile.')
+    descriptions(3)=var_str('The best-fit density normalization, assuming and underling NFW Profile.')
     return
   end subroutine tidallyTruncatedNFWFitDescriptions
 
