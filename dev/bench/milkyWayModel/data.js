@@ -1,62 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1693514183384,
+  "lastUpdate": 1693605237890,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "7e0956d088d0d34abfcaadec5ca77daa33d99768",
-          "message": "Merge pull request #362 from galacticusorg/satelliteDestructThreshold\n\nAllow satellite destruction mass threshold to additionally scale with the tree mass",
-          "timestamp": "2023-01-27T06:20:50-08:00",
-          "tree_id": "f30ad2ecc7bd2ec643af54568478558189cc348c",
-          "url": "https://github.com/galacticusorg/galacticus/commit/7e0956d088d0d34abfcaadec5ca77daa33d99768"
-        },
-        "date": 1674847889779,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Likelihood - localGroupMassMetallicityRelation",
-            "value": 4.38581413657457,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupMassSizeRelation",
-            "value": 7.09707388600789,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupMassVelocityDispersionRelation",
-            "value": 1.27948101200236,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupOccupationFraction",
-            "value": 24.3517746574536,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupStellarMassFunction",
-            "value": 141.562867040534,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
-            "value": 4.59796194932996,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10644,6 +10590,34 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 10.7801728110126,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@obs.carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@obs.carnegiescience.edu"
+          },
+          "id": "db8121c69e6a0867d6a5d7d9bfa79f41efb001ab",
+          "message": "fix: Use the deploy app to allow comments on PRs from external collaborators",
+          "timestamp": "2023-09-01T18:11:16Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/db8121c69e6a0867d6a5d7d9bfa79f41efb001ab"
+        },
+        "date": 1693605236751,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 195.442,
+            "unit": "seconds",
+            "range": 0.692867664131626
           }
         ]
       }
