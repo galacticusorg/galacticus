@@ -268,6 +268,16 @@ jobs:
     permissions:
       packages: write
     steps:
+      - name: "Detect PR build"
+        id: detectBranch
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+             echo Running on a PR - will build, but not push
+             echo "doPush=false" >> "$GITHUB_OUTPUT"
+          else
+             echo Running on a non-PR - will build and push
+             echo "doPush=true"  >> "$GITHUB_OUTPUT"
+          fi
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v2
         with:
@@ -282,7 +292,7 @@ jobs:
       - name: Build and push Docker image 
         uses: docker/build-push-action@v3
         with:
-          push: true
+          push: ${{ steps.detectBranch.outputs.doPush }}
           tags: ghcr.io/galacticusorg/galacticus:latest
           labels: ${{ steps.meta.outputs.labels }}
   ### Documentation
