@@ -121,6 +121,7 @@
      </methods>
      !!]
      final     ::                                               einastoDestructor
+     procedure :: get                                        => einastoGet
      procedure :: density                                    => einastoDensity
      procedure :: densityLogSlope                            => einastoDensityLogSlope
      procedure :: radialMoment                               => einastoRadialMoment
@@ -301,6 +302,66 @@ contains
     !!]
     return
   end subroutine einastoDestructor
+
+  function einastoGet(self,node,weightBy,weightIndex) result(massDistribution_)
+    !!{
+    Return the dark matter mass distribution for the given {\normalfont \ttfamily node}.
+    !!}
+    use :: Galacticus_Nodes          , only : nodeComponentBasic     , nodeComponentDarkMatterProfile
+    use :: Galactic_Structure_Options, only : componentTypeDarkHalo  , massTypeDark                       , weightByMass
+    use :: Mass_Distributions        , only : massDistributionEinasto, kinematicsDistributionCollisionless
+    implicit none
+    class           (massDistributionClass              ), pointer                 :: massDistribution_
+    type            (kinematicsDistributionCollisionless), pointer                 :: kinematicsDistribution_
+    class           (darkMatterProfileDMOEinasto        ), intent(inout)           :: self
+    type            (treeNode                           ), intent(inout)           :: node
+    type            (enumerationWeightByType            ), intent(in   ), optional :: weightBy
+    integer                                              , intent(in   ), optional :: weightIndex
+    class           (nodeComponentBasic                 ), pointer                 :: basic
+    class           (nodeComponentDarkMatterProfile     ), pointer                 :: darkMatterProfile
+    !![
+    <optionalArgument name="weightBy" defaultsTo="weightByMass" />
+    !!]
+
+    ! Assume a null distribution by default.
+    massDistribution_ => null()
+    ! If weighting is not by mass, return a null profile.
+    if (weightBy_ /= weightByMass) return
+    ! Create the mass distribution.
+    allocate(massDistributionEinasto :: massDistribution_)
+    select type(massDistribution_)
+    type is (massDistributionEinasto)
+       basic             => node%basic            ()
+       darkMatterProfile => node%darkMatterProfile()
+       !![
+       <referenceConstruct object="massDistribution_">
+	 <constructor>
+           massDistributionEinasto(                                                                                  &amp;
+           &amp;                   mass          =basic            %mass                                     (    ), &amp;
+           &amp;                   virialRadius  =self             %darkMatterHaloScale_%radiusVirial        (node), &amp;
+           &amp;                   scaleLength   =darkMatterProfile%scale                                    (    ), &amp;
+           &amp;                   shapeParameter=darkMatterProfile%shape                                    (    ), &amp;
+           &amp;                   componentType=                                       componentTypeDarkHalo      , &amp;
+           &amp;                   massType     =                                       massTypeDark                 &amp;
+           &amp;                  )
+	 </constructor>
+       </referenceConstruct>
+       !!]
+    end select
+    allocate(kinematicsDistribution_)
+    !![
+    <referenceConstruct object="kinematicsDistribution_">
+      <constructor>
+        kinematicsDistributionCollisionless()
+      </constructor>
+    </referenceConstruct>
+    !!]
+    call massDistribution_%setKinematicsDistribution(kinematicsDistribution_)
+    !![
+    <objectDestructor name="kinematicsDistribution_"/>
+    !!]
+    return
+  end function einastoGet
 
   double precision function einastoDensity(self,node,radius)
     !!{
