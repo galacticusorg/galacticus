@@ -250,7 +250,7 @@ contains
     ! Write basic tree information.
     treeCurrent => tree
     do while (associated(treeCurrent))
-       write (fileUnit) treeCurrent%index,treeCurrent%volumeWeight,treeCurrent%initializedUntil,nodeArrayPosition(treeCurrent%nodeBase%uniqueID(),nodeIndices)
+       write (fileUnit) treeCurrent%index,treeCurrent%volumeWeight,treeCurrent%initializedUntil,nodeArrayPosition(treeCurrent%nodeBase,nodeIndices)
        treeCurrent => treeCurrent%nextTree
     end do
     ! Output nodes.
@@ -262,14 +262,14 @@ contains
        write (fileUnit) node%index(),node%uniqueID()
        ! Pointers to other nodes.
        write (fileUnit)                                                      &
-            & nodeArrayPosition(node%parent        %uniqueID(),nodeIndices), &
-            & nodeArrayPosition(node%firstChild    %uniqueID(),nodeIndices), &
-            & nodeArrayPosition(node%sibling       %uniqueID(),nodeIndices), &
-            & nodeArrayPosition(node%firstSatellite%uniqueID(),nodeIndices), &
-            & nodeArrayPosition(node%mergeTarget   %uniqueID(),nodeIndices), &
-            & nodeArrayPosition(node%firstMergee   %uniqueID(),nodeIndices), &
-            & nodeArrayPosition(node%siblingMergee %uniqueID(),nodeIndices), &
-            & nodeArrayPosition(node%formationNode %uniqueID(),nodeIndices)
+            & nodeArrayPosition(node%parent        ,nodeIndices), &
+            & nodeArrayPosition(node%firstChild    ,nodeIndices), &
+            & nodeArrayPosition(node%sibling       ,nodeIndices), &
+            & nodeArrayPosition(node%firstSatellite,nodeIndices), &
+            & nodeArrayPosition(node%mergeTarget   ,nodeIndices), &
+            & nodeArrayPosition(node%firstMergee   ,nodeIndices), &
+            & nodeArrayPosition(node%siblingMergee ,nodeIndices), &
+            & nodeArrayPosition(node%formationNode ,nodeIndices)
        ! Store the node.
        call node%serializeRaw(fileUnit)
        ! Store any events attached to the node.
@@ -284,7 +284,7 @@ contains
        do while (associated(event))
           call event%serializeRaw(fileUnit)
           if (associated(event%node)) then
-             write (fileUnit) nodeArrayPosition(event%node%uniqueID(),nodeIndices)
+             write (fileUnit) nodeArrayPosition(event%node,nodeIndices)
           else
              write (fileUnit) -1
           end if
@@ -298,7 +298,7 @@ contains
 
   contains
 
-    integer function nodeArrayPosition(nodeIndex,nodeIndices)
+    integer function nodeArrayPosition(node,nodeIndices)
       !!{
       Returns the position of a node in the output list given its index.
       !!}
@@ -307,14 +307,16 @@ contains
       use :: Kind_Numbers      , only : kind_int8
       use :: String_Handling   , only : operator(//)
       implicit none
-      integer(kind_int8     )              , intent(in   ) :: nodeIndex
+      type   (treeNode      ), pointer     , intent(in   ) :: node
       integer(kind_int8     ), dimension(:), intent(in   ) :: nodeIndices
       type   (varying_string)                              :: message
+      integer(kind_int8     )                              :: nodeIndex
 
-      if (nodeIndex == -1) then
+      if (.not.associated(node)) then
          nodeArrayPosition=-1
       else
          nodeArrayPosition=1
+         nodeIndex        =node%uniqueID()
          do while (nodeArrayPosition <= size(nodeIndices) .and. nodeIndices(nodeArrayPosition) /= nodeIndex)
             nodeArrayPosition=nodeArrayPosition+1
          end do
