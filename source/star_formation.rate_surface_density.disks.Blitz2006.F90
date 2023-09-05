@@ -152,42 +152,42 @@ contains
       <name>heightToRadialScaleDisk</name>
       <defaultSource>\citep{kregel_flattening_2002}</defaultSource>
       <defaultValue>0.137d0</defaultValue>
-      <description>The ratio of scale height to scale radius for disks in the ``Blitz-Rosolowsky2006'' star formation timescale calculation.</description>
+      <description>The ratio of scale height to scale radius for disks in the \cite{blitz_role_2006} star formation timescale calculation.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>surfaceDensityCritical</name>
       <defaultSource>\citep{bigiel_star_2008}</defaultSource>
       <defaultValue>200.0d0</defaultValue>
-      <description>The surface density (in units of $M_\odot$ pc$^{-2}$) in the ``Blitz-Rosolowsky2006'' star formation timescale calculation at which low-density truncation begins.</description>
+      <description>The surface density (in units of $M_\odot$ pc$^{-2}$) in the \cite{blitz_role_2006} star formation timescale calculation at which low-density truncation begins.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>surfaceDensityExponent</name>
       <defaultSource>\citep{bigiel_star_2008}</defaultSource>
       <defaultValue>0.4d0</defaultValue>
-      <description>The exponent for surface density in the ``Blitz-Rosolowsky2006'' star formation timescale calculation at in the high density regime.</description>
+      <description>The exponent for surface density in the \cite{blitz_role_2006} star formation timescale calculation at in the high density regime.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>starFormationFrequencyNormalization</name>
       <defaultSource>\citep{leroy_star_2008}</defaultSource>
       <defaultValue>5.25d-10</defaultValue>
-      <description>The star formation frequency (in the low-density limit and in units of yr$^{-1}$) in the ``Blitz-Rosolowsky2006'' star formation timescale calculation.</description>
+      <description>The star formation frequency (in the low-density limit and in units of yr$^{-1}$) in the \cite{blitz_role_2006} star formation timescale calculation.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>pressureCharacteristic</name>
       <defaultSource>\citep{blitz_role_2006}</defaultSource>
       <defaultValue>4.54d0</defaultValue>
-      <description>The characteristic pressure (given as $P_0/k_\mathrm{B}$ in units of K cm$^{-3}$) in the scaling relation of molecular hydrogen fraction with disk pressure in the ``Blitz-Rosolowsky2006'' star formation timescale calculation.</description>
+      <description>The characteristic pressure (given as $P_0/k_\mathrm{B}$ in units of K cm$^{-3}$) in the scaling relation of molecular hydrogen fraction with disk pressure in the \cite{blitz_role_2006} star formation timescale calculation.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>pressureExponent</name>
       <defaultSource>\citep{blitz_role_2006}</defaultSource>
       <defaultValue>0.92d0</defaultValue>
-      <description>The exponent in the scaling relation of molecular hydrogen fraction with disk pressure in the ``Blitz-Rosolowsky2006'' star formation timescale calculation.</description>
+      <description>The exponent in the scaling relation of molecular hydrogen fraction with disk pressure in the \cite{blitz_role_2006} star formation timescale calculation.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -493,8 +493,9 @@ contains
     logical                                                        , intent(inout), allocatable, dimension(  :) :: intervalIsAnalytic
     double precision                                               , intent(inout), allocatable, dimension(  :) :: integralsAnalytic
     double precision                                                                                            :: coefficientNormalization     , coefficientFactorBoost, &
-         &                                                                                                         coefficientFactorBoostStellar, coefficientMolecular
-
+         &                                                                                                         coefficientFactorBoostStellar, coefficientMolecular  , &
+         &                                                                                                         rootValueInner               , rootValueOuter
+    
     ! Check if we can assume a monotonic surface density.
     if (self%assumeMonotonicSurfaceDensity) then
        ! Set the critical radius to a very negative value so that pressure ratio is always computed.
@@ -506,8 +507,11 @@ contains
           allocate(blitz2006Intervals(2,0))
           self%radiusCritical=-huge(0.0d0)          
        else
+          self_ => self
+          node_ => node
           ! Test if the inner radius is below the pressure threshold.
-          if (self%pressureRatio(node,radiusInner) <= 1.0d0) then
+          rootValueInner=blitz2006CriticalDensityRoot(radiusInner)
+          if (rootValueInner <= 0.0d0) then
              ! The entire disk is below the pressure threshold so use a single interval.
              allocate(blitz2006Intervals(2,1))
              allocate(intervalIsAnalytic(  1))
@@ -525,7 +529,8 @@ contains
              ! Compute coefficients needed for analytic solutions.
              if (self%assumeExponentialDisk.and.self%useTabulation) call computeCoefficients()
              ! Test the surface density at the outer radius.
-             if (self%pressureRatio(node,radiusOuter) >= 1.0d0) then
+             rootValueOuter=blitz2006CriticalDensityRoot(radiusOuter)
+             if (rootValueOuter >= 0.0d0) then
                 ! Entire disk is above the pressure threshold so use a single interval.
                 allocate(blitz2006Intervals(2,1))
                 allocate(intervalIsAnalytic(  1))
@@ -541,12 +546,10 @@ contains
              else
                 ! The disk transitions the pressure threshold - attempt to locate the radius at which this happens and use two
                 ! intervals split at this point.
-                self_ => self
-                node_ => node
                 if (self%radiusCriticalPrevious > 0.0d0) then
                    self%radiusCritical=self%finder%find(rootGuess=self%radiusCriticalPrevious)
                 else
-                   self%radiusCritical=self%finder%find(rootRange=[radiusInner,radiusOuter]  )
+                   self%radiusCritical=self%finder%find(rootRange=[radiusInner,radiusOuter],rootRangeValues=[rootValueInner,rootValueOuter])
                 end if
                 self%radiusCriticalPrevious=self%radiusCritical
                 allocate(blitz2006Intervals(2,2))

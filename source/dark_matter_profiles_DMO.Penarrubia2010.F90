@@ -145,6 +145,7 @@ contains
     Generic constructor for the {\normalfont \ttfamily penarrubia2010} dark matter halo profile class.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile
+    use :: Kind_Numbers    , only : kind_int8
     implicit none
     type            (darkMatterProfileDMOPenarrubia2010)                        :: self
     class           (darkMatterHaloScaleClass          ), intent(in   ), target :: darkMatterHaloScale_
@@ -185,7 +186,7 @@ contains
     self%specialCase          =specialCaseGeneral
     self%scaleRadiusPrevious  =-1.0d0
     self%normalizationPrevious=-1.0d0
-    self%uniqueIDPrevious     =node%uniqueID()
+    self%uniqueIDPrevious     =-1_kind_int8
     return
   end function penarrubia2010ConstructorInternal
 

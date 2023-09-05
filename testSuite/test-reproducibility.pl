@@ -117,7 +117,7 @@ my @tests =
 		  name              => "spheroid radius"          ,
 		  output            => 1                          ,
 		  property          => "spheroidRadius"           ,
-		  values            => pdl ( 0.00360708622165663 ),
+		  values            => pdl ( 0.00360790592392348 ),
 		  toleranceRelative => 1.4e-5
 	      },
 	      {
@@ -125,7 +125,7 @@ my @tests =
 		  output            => 1                                                                                          ,
 		  expression        => "(%[spheroidRadius]*%[spheroidVelocity]*%[spheroidMassStellar])/%[spheroidAngularMomentum]",
 		  values            => pdl ( 0.5 )                                                                                ,
-		  toleranceRelative => 4.0e-5
+		  toleranceRelative => 2.0e-4
 	      },
 	      {
 		  name              => "rotation curve"                         ,

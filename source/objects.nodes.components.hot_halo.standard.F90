@@ -677,9 +677,10 @@ contains
              ! Mark ODE failure here to force derivatives to be recomputed.
              status=GSL_Failure
              if (massChemicalsPositive > 0.0d0) then
-                chemicalMasses=+          chemicalMasses         &
-                     &         *max(0.0d0,massChemicals        ) &
-                     &         /          massChemicalsPositive
+                call chemicalMasses%scale(                                  &
+                     &                    +max(0.0d0,massChemicals        ) &
+                     &                    /          massChemicalsPositive  &
+                     &                   )
              else
                 call chemicalMasses%reset()
              end if
@@ -687,9 +688,10 @@ contains
           end if
           if (chemicalMasses%sumOver() > hotHalo%mass()) then
              ! Ensure total mass of chemicals can not exceed the mass of the hot halo gas.
-             chemicalMasses=+chemicalMasses           &
-                  &         *hotHalo       %mass   () &
-                  &         /chemicalMasses%sumOver()
+             call chemicalMasses%scale(                          &
+                  &                    +hotHalo       %mass   () &
+                  &                    /chemicalMasses%sumOver() &
+                  &                   )
              call hotHalo%chemicalsSet(chemicalMasses)
              ! Mark ODE failure here to force derivatives to be recomputed.
              status=GSL_Failure
@@ -732,34 +734,34 @@ contains
              hotHaloParent => nodeParent%hotHalo(autoCreate=.true.)
              spinParent    => nodeParent%spin   (                 )
              call hotHaloParent%outflowedAngularMomentumSet(                                           &
-                  &                                         +hotHaloParent %outflowedAngularMomentum() &
+                  &                                          hotHaloParent %outflowedAngularMomentum() &
                   &                                         +hotHalo       %outflowedMass           () &
                   &                                         *spinParent    %angularMomentum         () &
                   &                                         /basicParent   %mass                    () &
                   &                                        )
              call hotHalo      %outflowedAngularMomentumSet(                                           &
-                  &                                         +0.0d0                                     &
+                  &                                          0.0d0                                     &
                   &                                        )
              call hotHaloParent%outflowedMassSet           (                                           &
-                  &                                         +hotHaloParent %outflowedMass           () &
+                  &                                          hotHaloParent %outflowedMass           () &
                   &                                         +hotHalo       %outflowedMass           () &
                   &                                        )
              call hotHalo      %outflowedMassSet           (                                           &
-                  &                                         +0.0d0                                     &
+                  &                                          0.0d0                                     &
                   &                                        )
              call hotHaloParent%outflowedAbundancesSet     (                                           &
-                  &                                         +hotHaloParent %outflowedAbundances     () &
+                  &                                          hotHaloParent %outflowedAbundances     () &
                   &                                         +hotHalo       %outflowedAbundances     () &
                   &                                        )
              call hotHalo      %outflowedAbundancesSet     (                                           &
-                  &                                         +zeroAbundances                            &
+                  &                                          zeroAbundances                            &
                   &                                        )
              call hotHaloParent%outflowedChemicalsSet      (                                           &
-                  &                                         +hotHaloParent %outflowedChemicals      () &
+                  &                                          hotHaloParent %outflowedChemicals      () &
                   &                                         +hotHalo       %outflowedChemicals      () &
                   &                                        )
              call hotHalo      %outflowedChemicalsSet      (                                           &
-                  &                                         +zeroChemicalAbundances                    &
+                  &                                          zeroChemicalAbundances                    &
                   &                                        )
           end select
        end if
@@ -778,31 +780,31 @@ contains
              hotHaloParent => nodeParent%hotHalo(autoCreate=.true.)
              spinParent    => nodeParent%spin   (                 )
              call hotHaloParent%outflowedAngularMomentumSet(                                           &
-                  &                                         +hotHaloParent %outflowedAngularMomentum() &
+                  &                                          hotHaloParent %outflowedAngularMomentum() &
                   &                                         +hotHalo       %strippedMass            () &
                   &                                         *spinParent    %angularMomentum         () &
                   &                                         /basicParent   %mass                    () &
                   &                                        )
              call hotHaloParent%outflowedMassSet           (                                           &
-                  &                                         +hotHaloParent %outflowedMass           () &
+                  &                                          hotHaloParent %outflowedMass           () &
                   &                                         +hotHalo       %strippedMass            () &
                   &                                        )
              call hotHalo      %strippedMassSet            (                                           &
-                  &                                         +0.0d0                                     &
+                  &                                          0.0d0                                     &
                   &                                        )
              call hotHaloParent%outflowedAbundancesSet     (                                           &
-                  &                                         +hotHaloParent %outflowedAbundances     () &
+                  &                                          hotHaloParent %outflowedAbundances     () &
                   &                                         +hotHalo       %strippedAbundances      () &
                   &                                        )
              call hotHalo      %strippedAbundancesSet      (                                           &
-                  &                                         +zeroAbundances                            &
+                  &                                          zeroAbundances                            &
                   &                                        )
              call hotHaloParent%outflowedChemicalsSet      (                                           &
-                  &                                         +hotHaloParent %outflowedChemicals      () &
+                  &                                          hotHaloParent %outflowedChemicals      () &
                   &                                         +hotHalo       %strippedChemicals       () &
                   &                                        )
              call hotHalo      %strippedChemicalsSet       (                                           &
-                  &                                         +zeroChemicalAbundances                    &
+                  &                                          zeroChemicalAbundances                    &
                   &                                        )
           end select
        end if
@@ -973,8 +975,8 @@ contains
           ! Get the rate of change of chemicals.
           hotHaloCooling => nodeCooling%hotHalo()
           chemicalsCoolingRate=hotHaloCooling%chemicals()
-          chemicalsCoolingRate=massRate*chemicalsCoolingRate/hotHaloCooling%mass()
-          call    hotHalo%chemicalsRate       (-chemicalsCoolingRate )
+          call chemicalsCoolingRate %scale(-massRate/hotHaloCooling%mass())
+          call hotHalo%chemicalsRate      (chemicalsCoolingRate           )
        end if
     end select
     return
@@ -1002,9 +1004,9 @@ contains
        node => hotHalo%hostNode
        massRateLimited=min(massRate,rateMaximumExpulsion*hotHalo%mass()/darkMatterHaloScale_%timescaleDynamical(node))
        ! Get the rate of change of abundances, chemicals, and angular momentum.
-       abundancesRates    =hotHalo%abundances     ()*massRateLimited/hotHalo%mass()
-       angularMomentumRate=hotHalo%angularMomentum()*massRateLimited/hotHalo%mass()
-       chemicalsRates     =hotHalo%chemicals      ()*massRateLimited/hotHalo%mass()
+       abundancesRates    =hotHalo%abundances     ()*(massRateLimited/hotHalo%mass())
+       angularMomentumRate=hotHalo%angularMomentum()*(massRateLimited/hotHalo%mass())
+       chemicalsRates     =hotHalo%chemicals      ()*(massRateLimited/hotHalo%mass())
        call hotHalo%    massRemovalRate(+    massRateLimited)
        call hotHalo%           massRate(-    massRateLimited)
        call hotHalo%     abundancesRate(-    abundancesRates)
@@ -1012,9 +1014,9 @@ contains
        call hotHalo%      chemicalsRate(-     chemicalsRates)
        ! If this node is a satellite and stripped gas is being tracked, move mass and abundances to the stripped reservoir.
        if (node%isSatellite().and.trackStrippedGas) then
-          call hotHalo%      strippedMassRate(+massRateLimited)
-          call hotHalo%strippedAbundancesRate(+abundancesRates)
-          call hotHalo% strippedChemicalsRate(+ chemicalsRates)
+          call hotHalo%      strippedMassRate(massRateLimited)
+          call hotHalo%strippedAbundancesRate(abundancesRates)
+          call hotHalo% strippedChemicalsRate( chemicalsRates)
        end if
       ! Trigger an event to allow other processes to respond to this action.
       !![
@@ -1077,9 +1079,8 @@ contains
     class           (nodeComponentBasic  )                         , pointer :: basic
     type            (abundances          ), save                             :: outflowedAbundances
     !$omp threadprivate(outflowedAbundances)
-    type            (chemicalAbundances  ), save                             :: chemicalDensities      , chemicalMasses         , &
-         &                                                                      chemicalMassesRates
-    !$omp threadprivate(chemicalDensities,chemicalMassesRates,chemicalMasses)
+    type            (chemicalAbundances  ), save                             :: chemicalDensities      , chemicalMassesRates
+    !$omp threadprivate(chemicalDensities,chemicalMassesRates)
     double precision                                                         :: strippedOutflowFraction, massToDensityConversion, &
          &                                                                      hydrogenByMass         , numberDensityHydrogen  , &
          &                                                                      temperature
@@ -1120,9 +1121,9 @@ contains
           end if
           ! Get the chemical densities.
           call chemicalState_%chemicalDensities(chemicalDensities,numberDensityHydrogen,temperature,outflowedAbundances,radiation)
-          ! Convert from densities to masses.
-          call chemicalDensities%numberToMass(chemicalMasses)
-          chemicalMassesRates=chemicalMasses*rate*hydrogenByMass/numberDensityHydrogen/atomicMassHydrogen
+          ! Convert from densities to mass rates.
+          call chemicalDensities  %numberToMass(chemicalMassesRates                                         )
+          call chemicalMassesRates%scale       (rate*hydrogenByMass/numberDensityHydrogen/atomicMassHydrogen)
           ! Compute the rate at which chemicals are returned to the hot reservoir.
           if (trackStrippedGas) &
                &  call self% strippedChemicalsRate(chemicalMassesRates*       strippedOutflowFraction ,interrupt,interruptProcedure)
@@ -1363,10 +1364,10 @@ contains
     !!{
     Return outflowed gas to the hot halo.
     !!}
-    use :: Abundances_Structure                 , only : abundances                           , max
+    use :: Abundances_Structure                 , only : abundances        , max
     use :: Chemical_Abundances_Structure        , only : chemicalAbundances
-    use :: Galacticus_Nodes                     , only : interruptTask                        , nodeComponentBasic       , nodeComponentHotHaloStandard, treeNode
-    use :: Node_Component_Hot_Halo_Standard_Data, only : starveSatellites                     , starveSatellitesOutflowed
+    use :: Galacticus_Nodes                     , only : interruptTask     , nodeComponentBasic       , nodeComponentHotHaloStandard, treeNode
+    use :: Node_Component_Hot_Halo_Standard_Data, only : starveSatellites  , starveSatellitesOutflowed
     use :: Numerical_Constants_Math             , only : Pi
     implicit none
     class           (nodeComponentHotHaloStandard), intent(inout)          :: self
@@ -1392,15 +1393,15 @@ contains
        call self%              outflowedMassRate(-           massReturnRate,interrupt,interruptProcedure)
        call self%                       massRate(+           massReturnRate,interrupt,interruptProcedure)
        if (outflowedMass /= 0.0d0) then
-          angularMomentumReturnRate=self%outflowedAngularMomentum()*massReturnRate/outflowedMass
-          abundancesReturnRate     =self%outflowedAbundances     ()*massReturnRate/outflowedMass
-          chemicalsReturnRate      =self%outflowedChemicals      ()*massReturnRate/outflowedMass
+          angularMomentumReturnRate=self%outflowedAngularMomentum()*(massReturnRate/outflowedMass)
+          abundancesReturnRate     =self%outflowedAbundances     ()*(massReturnRate/outflowedMass)
+          chemicalsReturnRate      =self%outflowedChemicals      ()*(massReturnRate/outflowedMass)
           call self%outflowedAngularMomentumRate(-angularMomentumReturnRate,interrupt,interruptProcedure)
-          call self%         angularMomentumRate(+angularMomentumReturnRate,interrupt,interruptProcedure)
+          call self%         angularMomentumRate( angularMomentumReturnRate,interrupt,interruptProcedure)
           call self%     outflowedAbundancesRate(-     abundancesReturnRate,interrupt,interruptProcedure)
-          call self%              abundancesRate(+     abundancesReturnRate,interrupt,interruptProcedure)
+          call self%              abundancesRate(      abundancesReturnRate,interrupt,interruptProcedure)
           call self%      outflowedChemicalsRate(-      chemicalsReturnRate,interrupt,interruptProcedure)
-          call self%               chemicalsRate(+      chemicalsReturnRate,interrupt,interruptProcedure)
+          call self%               chemicalsRate(       chemicalsReturnRate,interrupt,interruptProcedure)
        end if
        ! The outer radius must be increased as the halo fills up with gas.
        outerRadius =self                %outerRadius (    )
@@ -1481,13 +1482,13 @@ contains
     ! If gas is present, adjust the rates.
     if (gasMass > 0.0d0) then
        ! Mass.
-       call self%           massRate(                       gasMassRate        ,interrupt,interruptProcedure)
+       call self%           massRate(                        gasMassRate         ,interrupt,interruptProcedure)
        ! Angular momentum.
-       call self%angularMomentumRate(self%angularMomentum()*gasMassRate/gasMass,interrupt,interruptProcedure)
+       call self%angularMomentumRate(self%angularMomentum()*(gasMassRate/gasMass),interrupt,interruptProcedure)
        ! Metal abundances.
-       call self%     abundancesRate(self%abundances     ()*gasMassRate/gasMass,interrupt,interruptProcedure)
+       call self%     abundancesRate(self%abundances     ()*(gasMassRate/gasMass),interrupt,interruptProcedure)
        ! Chemical abundances.
-       call self%      chemicalsRate(self%chemicals      ()*gasMassRate/gasMass,interrupt,interruptProcedure)
+       call self%      chemicalsRate(self%chemicals      ()*(gasMassRate/gasMass),interrupt,interruptProcedure)
     end if
     return
   end subroutine Node_Component_Hot_Halo_Standard_Hot_Gas_All_Rate
@@ -1525,21 +1526,21 @@ contains
        massVirial    =basic%mass()
        radiusVirial  =darkMatterHaloScale_%radiusVirial  (node)
        velocityVirial=darkMatterHaloScale_%velocityVirial(node)
-       call    hotHalo%                    massScale(                       massVirial                               *scaleMassRelative  )
-       call    hotHalo%           outflowedMassScale(                       massVirial                               *scaleMassRelative  )
-       call    hotHalo%          unaccretedMassScale(                       massVirial                               *scaleMassRelative  )
-       call    hotHalo%              abundancesScale(unitAbundances        *massVirial                               *scaleMassRelative  )
-       call    hotHalo%    unaccretedAbundancesScale(unitAbundances        *massVirial                               *scaleMassRelative  )
-       call    hotHalo%     outflowedAbundancesScale(unitAbundances        *massVirial                               *scaleMassRelative  )
-       call    hotHalo%               chemicalsScale(unitChemicalAbundances*massVirial                               *scaleMassRelative  )
-       call    hotHalo%      outflowedChemicalsScale(unitChemicalAbundances*massVirial                               *scaleMassRelative  )
-       call    hotHalo%         angularMomentumScale(                       massVirial*radiusVirial*velocityVirial   *scaleMassRelative  )
-       call    hotHalo%outflowedAngularMomentumScale(                       massVirial*radiusVirial*velocityVirial   *scaleMassRelative  )
-       call    hotHalo%             outerRadiusScale(                                  radiusVirial                  *scaleRadiusRelative)
+       call    hotHalo%                    massScale(                        massVirial                               *scaleMassRelative   )
+       call    hotHalo%           outflowedMassScale(                        massVirial                               *scaleMassRelative   )
+       call    hotHalo%          unaccretedMassScale(                        massVirial                               *scaleMassRelative   )
+       call    hotHalo%              abundancesScale(unitAbundances        *(massVirial                               *scaleMassRelative  ))
+       call    hotHalo%    unaccretedAbundancesScale(unitAbundances        *(massVirial                               *scaleMassRelative  ))
+       call    hotHalo%     outflowedAbundancesScale(unitAbundances        *(massVirial                               *scaleMassRelative  ))
+       call    hotHalo%               chemicalsScale(unitChemicalAbundances*(massVirial                               *scaleMassRelative  ))
+       call    hotHalo%      outflowedChemicalsScale(unitChemicalAbundances*(massVirial                               *scaleMassRelative  ))
+       call    hotHalo%         angularMomentumScale(                        massVirial*radiusVirial*velocityVirial   *scaleMassRelative   )
+       call    hotHalo%outflowedAngularMomentumScale(                        massVirial*radiusVirial*velocityVirial   *scaleMassRelative   )
+       call    hotHalo%             outerRadiusScale(                                   radiusVirial                  *scaleRadiusRelative )
        if (trackStrippedGas) then
-          call hotHalo%            strippedMassScale(                       massVirial                               *scaleMassRelative  )
-          call hotHalo%      strippedAbundancesScale(unitAbundances        *massVirial                               *scaleMassRelative  )
-          call hotHalo%       strippedChemicalsScale(unitChemicalAbundances*massVirial                               *scaleMassRelative  )
+          call hotHalo%            strippedMassScale(                        massVirial                               *scaleMassRelative   )
+          call hotHalo%      strippedAbundancesScale(unitAbundances        *(massVirial                               *scaleMassRelative  ))
+          call hotHalo%       strippedChemicalsScale(unitChemicalAbundances*(massVirial                               *scaleMassRelative  ))
        end if
     end select
     return
