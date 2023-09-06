@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1693997322444,
+  "lastUpdate": 1693997329780,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "a8a286ec1628d80447bafa24fa50974574b3fbf7",
-          "message": "Merge pull request #365 from galacticusorg/takahashi2011FileLock\n\nAdd file locking to the `gravitationalLensingTakahashi2011` class to avoid conflicts between processes",
-          "timestamp": "2023-01-27T22:20:25-08:00",
-          "tree_id": "add031ae1efa8288047b8bb200decc3f61dca0fe",
-          "url": "https://github.com/galacticusorg/galacticus/commit/a8a286ec1628d80447bafa24fa50974574b3fbf7"
-        },
-        "date": 1674897010008,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 57.4721000776937,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 25.9954078427452,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 29402.9078379971,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8720,6 +8681,45 @@ window.BENCHMARK_DATA = {
             "value": 69.019,
             "unit": "seconds",
             "range": 0.188140638885034
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "94ded2ded9c80fed323bfe76c2075977081ab394",
+          "message": "Merge pull request #453 from galacticusorg/optimization\n\nBaryonic physics optimizations",
+          "timestamp": "2023-09-05T14:41:44Z",
+          "tree_id": "61e3a167309c1df2e1a176e2ec762919862e6ec0",
+          "url": "https://github.com/galacticusorg/galacticus/commit/94ded2ded9c80fed323bfe76c2075977081ab394"
+        },
+        "date": 1693997329213,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 57.7364585291731,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 25.6372510052421,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 23643.7766921421,
+            "unit": "-logℒ"
           }
         ]
       }
