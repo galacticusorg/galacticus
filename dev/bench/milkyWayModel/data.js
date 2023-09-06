@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1693997326117,
+  "lastUpdate": 1693997333817,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "a8a286ec1628d80447bafa24fa50974574b3fbf7",
-          "message": "Merge pull request #365 from galacticusorg/takahashi2011FileLock\n\nAdd file locking to the `gravitationalLensingTakahashi2011` class to avoid conflicts between processes",
-          "timestamp": "2023-01-27T22:20:25-08:00",
-          "tree_id": "add031ae1efa8288047b8bb200decc3f61dca0fe",
-          "url": "https://github.com/galacticusorg/galacticus/commit/a8a286ec1628d80447bafa24fa50974574b3fbf7"
-        },
-        "date": 1674897006415,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 218.419,
-            "unit": "seconds",
-            "range": 0.0669096405610489
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10616,6 +10586,60 @@ window.BENCHMARK_DATA = {
             "value": 146.723,
             "unit": "seconds",
             "range": 0.211565828998024
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "94ded2ded9c80fed323bfe76c2075977081ab394",
+          "message": "Merge pull request #453 from galacticusorg/optimization\n\nBaryonic physics optimizations",
+          "timestamp": "2023-09-05T14:41:44Z",
+          "tree_id": "61e3a167309c1df2e1a176e2ec762919862e6ec0",
+          "url": "https://github.com/galacticusorg/galacticus/commit/94ded2ded9c80fed323bfe76c2075977081ab394"
+        },
+        "date": 1693997332830,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassMetallicityRelation",
+            "value": 3.582563003824,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassSizeRelation",
+            "value": 9.94176907891703,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassVelocityDispersionRelation",
+            "value": 0.925672297704321,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupOccupationFraction",
+            "value": 24.2309698659553,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassFunction",
+            "value": 72.0108989507493,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
+            "value": 1.20979088741696,
+            "unit": "-logℒ"
           }
         ]
       }
