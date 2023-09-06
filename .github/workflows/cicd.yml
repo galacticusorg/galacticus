@@ -10085,11 +10085,6 @@ jobs:
     steps:
       - name: Check out repository code
         uses: actions/checkout@v3
-      - uses: tibdex/github-app-token@v1
-        id: generate-token
-        with:
-          app_id: ${{ secrets.DEPLOY_APP_ID }}
-          private_key: ${{ secrets.DEPLOY_APP_PRIVATE_KEY }}
       - name: Download artifacts (executable-linux)
         uses: actions/download-artifact@v3
         with:
@@ -10120,9 +10115,10 @@ jobs:
           name: Dark matter-only subhalos benchmarks
           tool: 'customSmallerIsBetter'
           output-file-path: benchmark_darkMatterOnlySubhalos.json
+          summary-always: true
           comment-on-alert: true
           alert-comment-cc-users: '@abensonca'
-          github-token: ${{ steps.generate-token.outputs.token }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           auto-push: false
           benchmark-data-dir-path: dev/bench/darkMatterOnlySubhalos
           gh-pages-branch: gh-pages
@@ -10146,9 +10142,10 @@ jobs:
           name: Milky Way model benchmarks
           tool: 'customSmallerIsBetter'
           output-file-path: benchmark_milkyWay.json
+          summary-always: true
           comment-on-alert: true
           alert-comment-cc-users: '@abensonca'
-          github-token: ${{ steps.generate-token.outputs.token }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           auto-push: false
           benchmark-data-dir-path: dev/bench/milkyWayModel
           gh-pages-branch: gh-pages
@@ -10172,9 +10169,10 @@ jobs:
           name: Dark matter-only subhalos benchmarks
           tool: 'customSmallerIsBetter'
           output-file-path: validate_darkMatterOnlySubhalos.json
+          summary-always: true
           comment-on-alert: true
           alert-comment-cc-users: '@abensonca'
-          github-token: ${{ steps.generate-token.outputs.token }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           auto-push: false
           benchmark-data-dir-path: dev/bench/darkMatterOnlySubhalos
           gh-pages-branch: gh-pages
@@ -10198,9 +10196,10 @@ jobs:
           name: Milky Way model benchmarks
           tool: 'customSmallerIsBetter'
           output-file-path: validate_milkyWayModel.json
+          summary-always: true
           comment-on-alert: true
           alert-comment-cc-users: '@abensonca'
-          github-token: ${{ steps.generate-token.outputs.token }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           auto-push: false
           benchmark-data-dir-path: dev/bench/milkyWayModel
           gh-pages-branch: gh-pages
