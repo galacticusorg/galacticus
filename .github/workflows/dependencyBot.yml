@@ -9,7 +9,7 @@ jobs:
   CAMB:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: tibdex/github-app-token@v1
         id: generate-token
         with:
@@ -36,7 +36,7 @@ jobs:
   forutils:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: tibdex/github-app-token@v1
         id: generate-token
         with:
@@ -63,7 +63,7 @@ jobs:
   CLASS:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: tibdex/github-app-token@v1
         id: generate-token
         with:
@@ -91,7 +91,7 @@ jobs:
   FSPS:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: tibdex/github-app-token@v1
         id: generate-token
         with:
@@ -118,7 +118,7 @@ jobs:
   Cloudy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: tibdex/github-app-token@v1
         id: generate-token
         with:
