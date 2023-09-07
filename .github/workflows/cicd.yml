@@ -10115,7 +10115,7 @@ jobs:
           name: Dark matter-only subhalos benchmarks
           tool: 'customSmallerIsBetter'
           output-file-path: benchmark_darkMatterOnlySubhalos.json
-          summary-always: true
+          summary-always: false
           comment-on-alert: true
           alert-comment-cc-users: '@abensonca'
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -10142,7 +10142,7 @@ jobs:
           name: Milky Way model benchmarks
           tool: 'customSmallerIsBetter'
           output-file-path: benchmark_milkyWay.json
-          summary-always: true
+          summary-always: false
           comment-on-alert: true
           alert-comment-cc-users: '@abensonca'
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -10169,7 +10169,7 @@ jobs:
           name: Dark matter-only subhalos benchmarks
           tool: 'customSmallerIsBetter'
           output-file-path: validate_darkMatterOnlySubhalos.json
-          summary-always: true
+          summary-always: false
           comment-on-alert: true
           alert-comment-cc-users: '@abensonca'
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -10196,7 +10196,7 @@ jobs:
           name: Milky Way model benchmarks
           tool: 'customSmallerIsBetter'
           output-file-path: validate_milkyWayModel.json
-          summary-always: true
+          summary-always: false
           comment-on-alert: true
           alert-comment-cc-users: '@abensonca'
           github-token: ${{ secrets.GITHUB_TOKEN }}
