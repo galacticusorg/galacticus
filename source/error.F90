@@ -27,8 +27,8 @@ module Error
   !!}
   use, intrinsic :: ISO_C_Binding     , only : c_int
   use            :: ISO_Varying_String, only : varying_string
-  use            :: Interface_GSL     , only : GSL_Failure   , GSL_Success , GSL_eDom, GSL_eRange, &
-          &                                    GSL_eUndrFlw  , GSL_eZeroDiv
+  use            :: Interface_GSL     , only : GSL_Failure   , GSL_Success , GSL_eDom  , GSL_eRange, &
+          &                                    GSL_eUndrFlw  , GSL_eZeroDiv, GSL_eRound
   implicit none
   private
   public :: Error_Report               , Error_Handler_Register    , &
@@ -59,6 +59,7 @@ module Error
   integer, parameter, public :: errorStatusFail        =GSL_Failure  ! Generic failure.
   integer, parameter, public :: errorStatusInputDomain =GSL_eDom     ! Input domain error.
   integer, parameter, public :: errorStatusOutOfRange  =GSL_eRange   ! Output range error.
+  integer, parameter, public :: errorStatusRound       =GSL_eRound   ! Rounding error.
   integer, parameter, public :: errorStatusDivideByZero=GSL_eZeroDiv ! Divide by zero.
   integer, parameter, public :: errorStatusUnderflow   =GSL_eUndrFlw ! Floating point underflow.
   integer, parameter, public :: errorStatusXCPU        =1025         ! CPU time limit exceeded.
