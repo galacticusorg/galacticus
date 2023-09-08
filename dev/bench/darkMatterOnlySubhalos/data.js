@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1694161699591,
+  "lastUpdate": 1694196571019,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "558eac414f363eda8870ebf6922b8b21386aace6",
-          "message": "fix: Correct parameter names for subhalo destruction mass thresholds",
-          "timestamp": "2023-02-02T00:02:39Z",
-          "tree_id": "245e18a0dbce1212e9525f1b9913c0e8d5c53dc1",
-          "url": "https://github.com/galacticusorg/galacticus/commit/558eac414f363eda8870ebf6922b8b21386aace6"
-        },
-        "date": 1675306352766,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 51.337,
-            "unit": "seconds",
-            "range": 0.0221833270707651
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8720,6 +8690,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 23474.8868845493,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2e41e19b6199e6b4db4d9755326f6a5ee4f80e55",
+          "message": "Merge pull request #463 from galacticusorg/roundOffFix\n\nAllow to tolerate round-off errors in merger tree branching integrals",
+          "timestamp": "2023-09-08T14:33:45Z",
+          "tree_id": "096fc4774a16a0df7d09de52ea767bf336602713",
+          "url": "https://github.com/galacticusorg/galacticus/commit/2e41e19b6199e6b4db4d9755326f6a5ee4f80e55"
+        },
+        "date": 1694196569204,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 51.827,
+            "unit": "seconds",
+            "range": 0.0273148311373203
           }
         ]
       }
