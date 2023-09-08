@@ -489,13 +489,16 @@ contains
     class           (starFormationRateSurfaceDensityDisksBlitz2006), intent(inout), target                      :: self
     double precision                                                              , allocatable, dimension(:,:) :: blitz2006Intervals
     type            (treeNode                                     ), intent(inout), target                      :: node
-    double precision                                               , intent(in   )                              :: radiusInner                  , radiusOuter
+    double precision                                               , intent(in   )                              :: radiusInner                             , radiusOuter
     logical                                                        , intent(inout), allocatable, dimension(  :) :: intervalIsAnalytic
     double precision                                               , intent(inout), allocatable, dimension(  :) :: integralsAnalytic
-    double precision                                                                                            :: coefficientNormalization     , coefficientFactorBoost, &
-         &                                                                                                         coefficientFactorBoostStellar, coefficientMolecular  , &
-         &                                                                                                         rootValueInner               , rootValueOuter
-    
+    double precision                                               , parameter                                  :: factorBoostStellarCoefficientTiny=1.0d-6
+    double precision                                                                                            :: coefficientNormalization                , coefficientFactorBoost, &
+         &                                                                                                         coefficientFactorBoostStellar           , coefficientMolecular  , &
+         &                                                                                                         rootValueInner                          , rootValueOuter        , &
+         &                                                                                                         radiusAnalytic                          , sqrtTerm
+    logical                                                                                                     :: thresholdCondition
+
     ! Check if we can assume a monotonic surface density.
     if (self%assumeMonotonicSurfaceDensity) then
        ! Set the critical radius to a very negative value so that pressure ratio is always computed.
@@ -510,8 +513,16 @@ contains
           self_ => self
           node_ => node
           ! Test if the inner radius is below the pressure threshold.
-          rootValueInner=blitz2006CriticalDensityRoot(radiusInner)
-          if (rootValueInner <= 0.0d0) then
+          if (self%assumeExponentialDisk) then
+             ! For exponential disks this condition has a simple analytic form.
+             rootValueInner    =-huge(0.0d0)
+             thresholdCondition=1.0d0/self%pressureRatioCoefficient-self%factorBoostStellarCoefficient >= 1.0d0
+           else
+             ! For generic disks test this numeriaclly.
+             rootValueInner    =blitz2006CriticalDensityRoot(radiusInner)
+             thresholdCondition=rootValueInner                                                         <= 0.0d0
+          end if          
+          if (thresholdCondition) then
              ! The entire disk is below the pressure threshold so use a single interval.
              allocate(blitz2006Intervals(2,1))
              allocate(intervalIsAnalytic(  1))
@@ -546,10 +557,51 @@ contains
              else
                 ! The disk transitions the pressure threshold - attempt to locate the radius at which this happens and use two
                 ! intervals split at this point.
-                if (self%radiusCriticalPrevious > 0.0d0) then
-                   self%radiusCritical=self%finder%find(rootGuess=self%radiusCriticalPrevious)
+                if (self%assumeExponentialDisk) then
+                   ! For exponential disks we have an analytic solution for the transition radius.
+                   if (self%factorBoostStellarCoefficient <= factorBoostStellarCoefficientTiny) then
+                      radiusAnalytic=+0.5d0*log(self%pressureRatioCoefficient)
+                   else
+                      sqrtTerm      =+(                                                                                      &
+                           &                 +  9.0d0*self%pressureRatioCoefficient**2*self%factorBoostStellarCoefficient**2 &
+                           &           +sqrt(                                                                                &
+                           &                 +  3.0d0                                                                        &
+                           &                )                                                                                &
+                           &           *sqrt(                                                                                &
+                           &                 +256.0d0*self%pressureRatioCoefficient**3                                       &
+                           &                 + 27.0d0*self%pressureRatioCoefficient**4*self%factorBoostStellarCoefficient**4 &
+                           &                )                                                                                &
+                           &          )**(1.0d0/3.0d0)
+                      radiusAnalytic=+2.0d0                                                                                                                  &
+                           &         *log(                                                                                                                   &
+                           &              +0.5d0                                                                                                             &
+                           &              *sqrt(                                                                                                             &
+                           &                          -4.0d0* (2.0d0/3.0d0)**(1.0d0/3.0d0)                      *self%pressureRatioCoefficient     /sqrtTerm &
+                           &                          +1.0d0/( 2.0d0       **(1.0d0/3.0d0)*3.0d0**(2.0d0/3.0d0))                                   *sqrtTerm &
+                           &                   )                                                                                                             &
+                           &              +0.5d0                                                                                                             &
+                           &              *sqrt(                                                                                                             &
+                           &                          +4.0d0* (2.0d0/3.0d0)**(1.0d0/3.0d0)                      *self%pressureRatioCoefficient     /sqrtTerm &
+                           &                          -1.0d0/( 2.0d0       **(1.0d0/3.0d0)*3.0d0**(2.0d0/3.0d0))                                   *sqrtTerm &
+                           &                          +2.0d0                                                                                                 &
+                           &                                                                                    *self%pressureRatioCoefficient               &
+                           &                                                                                    *self%factorBoostStellarCoefficient          &
+                           &                    /sqrt(                                                                                                       &
+                           &                          -4.0d0* (2.0d0/3.0d0)**(1.0d0/3.0d0)                      *self%pressureRatioCoefficient     /sqrtTerm &
+                           &                          +1.0d0/( 2.0d0       **(1.0d0/3.0d0)*3.0d0**(2.0d0/3.0d0))                                   *sqrtTerm &
+                           &                         )                                                                                                       &
+                           &                   )                                                                                                             &
+                           &             )
+                   end if
+                   self%radiusCritical=+     radiusAnalytic &
+                        &              *self%radiusDisk
                 else
-                   self%radiusCritical=self%finder%find(rootRange=[radiusInner,radiusOuter],rootRangeValues=[rootValueInner,rootValueOuter])
+                   ! For non-exponential disks, seek a solution numerically.
+                   if (self%radiusCriticalPrevious > 0.0d0) then
+                      self%radiusCritical=self%finder%find(rootGuess=self%radiusCriticalPrevious)
+                   else
+                      self%radiusCritical=self%finder%find(rootRange=[radiusInner,radiusOuter],rootRangeValues=[rootValueInner,rootValueOuter])
+                   end if
                 end if
                 self%radiusCriticalPrevious=self%radiusCritical
                 allocate(blitz2006Intervals(2,2))
@@ -1151,4 +1203,4 @@ contains
     pressureRatio     =+pressureRatio                      &
          &             *factorBoostStellar
     return
-  end function blitz2006PressureRatioExponential  
+  end function blitz2006PressureRatioExponential
