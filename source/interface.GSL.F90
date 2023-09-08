@@ -158,6 +158,7 @@ module Interface_GSL
   <gslConstant variable="GSL_EBadTol"  gslSymbol="GSL_EBADTOL"  gslHeader="gsl_errno" type="integer"/>
   <gslConstant variable="GSL_ETol"     gslSymbol="GSL_ETOL"     gslHeader="gsl_errno" type="integer"/>
   <gslConstant variable="GSL_ERound"   gslSymbol="GSL_EROUND"   gslHeader="gsl_errno" type="integer"/>
+  <gslConstant variable="GSL_EMaxIter" gslSymbol="GSL_EMAXITER" gslHeader="gsl_errno" type="integer"/>
   !!]
 
   ! Precision modes.

@@ -139,6 +139,7 @@ program Tests_Merger_Tree_Branching
        &                                                                                                                       precisionHypergeometric                =1.0d-6                                                       , &
        &                                                                                                                       hypergeometricTabulate                 =.true.                                                       , &
        &                                                                                                                       cdmAssumptions                         =.true.                                                       , &
+       &                                                                                                                       tolerateRoundOffErrors                 =.false.                                                      , &
        &                                                                                                                       cosmologicalMassVariance_              =cosmologicalMassVarianceFilteredPower_                       , &
        &                                                                                                                       criticalOverdensity_                   =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_  &
        &                                                                                                                      )
@@ -150,6 +151,7 @@ program Tests_Merger_Tree_Branching
        &                                                                                                                       precisionHypergeometric                =1.0d-6                                                       , &
        &                                                                                                                       hypergeometricTabulate                 =.false.                                                      , &
        &                                                                                                                       cdmAssumptions                         =.true.                                                       , &
+       &                                                                                                                       tolerateRoundOffErrors                 =.false.                                                      , &
        &                                                                                                                       cosmologicalMassVariance_              =cosmologicalMassVarianceFilteredPower_                       , &
        &                                                                                                                       criticalOverdensity_                   =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_  &
        &                                                                                                                      )
@@ -161,6 +163,7 @@ program Tests_Merger_Tree_Branching
        &                                                                                                                       precisionHypergeometric                =1.0d-6                                                       , &
        &                                                                                                                       hypergeometricTabulate                 =.false.                                                      , &
        &                                                                                                                       cdmAssumptions                         =.false.                                                      , &
+       &                                                                                                                       tolerateRoundOffErrors                 =.false.                                                      , &
        &                                                                                                                       cosmologicalMassVariance_              =cosmologicalMassVarianceFilteredPower_                       , &
        &                                                                                                                       criticalOverdensity_                   =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_  &
        &                                                                                                                      )
