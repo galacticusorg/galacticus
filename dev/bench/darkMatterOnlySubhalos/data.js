@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1693997329780,
+  "lastUpdate": 1694161690117,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "7a094cbaef51d934685b780dbe5a1f2db830e1c6",
-          "message": "fix: Remove an unnecessary module `use`",
-          "timestamp": "2023-01-31T19:34:04Z",
-          "tree_id": "435df98dda03f985cd4f627db7a12018a7edf773",
-          "url": "https://github.com/galacticusorg/galacticus/commit/7a094cbaef51d934685b780dbe5a1f2db830e1c6"
-        },
-        "date": 1675210334462,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 50.33,
-            "unit": "seconds",
-            "range": 0.0749533188051942
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8720,6 +8690,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 23643.7766921421,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "92dfec05a324db5178bccd47285f1b4899ea4cbd",
+          "message": "Merge pull request #464 from galacticusorg/sigmaTruncatedPower\n\nMake integration of $\\sigma(M)$ more robust for models with truncated power spectra",
+          "timestamp": "2023-09-08T01:57:11Z",
+          "tree_id": "ca3022418aa99d027443e8d34a61e8ab6c5ce4c1",
+          "url": "https://github.com/galacticusorg/galacticus/commit/92dfec05a324db5178bccd47285f1b4899ea4cbd"
+        },
+        "date": 1694161687349,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 57.439,
+            "unit": "seconds",
+            "range": 0.0974109850068084
           }
         ]
       }
