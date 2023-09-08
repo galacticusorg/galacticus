@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1694196575012,
+  "lastUpdate": 1694196582949,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "558eac414f363eda8870ebf6922b8b21386aace6",
-          "message": "fix: Correct parameter names for subhalo destruction mass thresholds",
-          "timestamp": "2023-02-02T00:02:39Z",
-          "tree_id": "245e18a0dbce1212e9525f1b9913c0e8d5c53dc1",
-          "url": "https://github.com/galacticusorg/galacticus/commit/558eac414f363eda8870ebf6922b8b21386aace6"
-        },
-        "date": 1675306357575,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 210.372,
-            "unit": "seconds",
-            "range": 0.174938846460426
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10616,6 +10586,60 @@ window.BENCHMARK_DATA = {
             "value": 207.16,
             "unit": "seconds",
             "range": 0.179955550060414
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2e41e19b6199e6b4db4d9755326f6a5ee4f80e55",
+          "message": "Merge pull request #463 from galacticusorg/roundOffFix\n\nAllow to tolerate round-off errors in merger tree branching integrals",
+          "timestamp": "2023-09-08T14:33:45Z",
+          "tree_id": "096fc4774a16a0df7d09de52ea767bf336602713",
+          "url": "https://github.com/galacticusorg/galacticus/commit/2e41e19b6199e6b4db4d9755326f6a5ee4f80e55"
+        },
+        "date": 1694196582308,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassMetallicityRelation",
+            "value": 3.17454457340027,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassSizeRelation",
+            "value": 8.46153940840019,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassVelocityDispersionRelation",
+            "value": 1.06095641891005,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupOccupationFraction",
+            "value": 24.252661075156,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassFunction",
+            "value": 70.991499069039,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
+            "value": 9.77241950199985,
+            "unit": "-logℒ"
           }
         ]
       }
