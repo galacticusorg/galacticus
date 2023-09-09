@@ -1,62 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1694252801849,
+  "lastUpdate": 1694288572935,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "a6b432a7e58272dd1d5a781ce8ff9fa440057d6f",
-          "message": "Merge pull request #371 from galacticusorg/oscillatingTk\n\nAllow σ(M) integral to be split at local minima of the transfer function",
-          "timestamp": "2023-02-07T18:53:32-08:00",
-          "tree_id": "baf78ba1ea22233d882d7d78982086b8466b10eb",
-          "url": "https://github.com/galacticusorg/galacticus/commit/a6b432a7e58272dd1d5a781ce8ff9fa440057d6f"
-        },
-        "date": 1675834188891,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Likelihood - localGroupMassMetallicityRelation",
-            "value": 4.24129233581603,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupMassSizeRelation",
-            "value": 6.00661558569096,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupMassVelocityDispersionRelation",
-            "value": 1.26477982147318,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupOccupationFraction",
-            "value": 24.5991915543534,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupStellarMassFunction",
-            "value": 142.579555078319,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
-            "value": 4.62058430371848,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10640,6 +10586,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 10.7651717039636,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": false,
+          "id": "051be396b0a919add84d46a5b85b0254c7b43136",
+          "message": "Merge pull request #466 from galacticusorg/optimization\n\nFurther optimization of baryonic physics models",
+          "timestamp": "2023-09-09T16:47:29Z",
+          "tree_id": "ac23c59150536c00e9d5ae80e78c411db8cac8b5",
+          "url": "https://github.com/galacticusorg/galacticus/commit/051be396b0a919add84d46a5b85b0254c7b43136"
+        },
+        "date": 1694288571929,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 230.926,
+            "unit": "seconds",
+            "range": 0.272738702788789
           }
         ]
       }
