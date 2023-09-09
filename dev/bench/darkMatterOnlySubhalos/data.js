@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1694252798438,
+  "lastUpdate": 1694288568936,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "c24b46c497e12677d6cd492d586cf92757badaaa",
-          "message": "Merge pull request #373 from galacticusorg/massDefinitions\n\nAdd functionality to convert between halo mass definitions based on infall time (instead of just current time)",
-          "timestamp": "2023-02-09T05:18:20Z",
-          "tree_id": "ee1a4954a131b6887721024ae064af7b34b8d0b8",
-          "url": "https://github.com/galacticusorg/galacticus/commit/c24b46c497e12677d6cd492d586cf92757badaaa"
-        },
-        "date": 1675929124063,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 59.683,
-            "unit": "seconds",
-            "range": 0.137673890044293
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8720,6 +8690,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 23643.7766921421,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": false,
+          "id": "051be396b0a919add84d46a5b85b0254c7b43136",
+          "message": "Merge pull request #466 from galacticusorg/optimization\n\nFurther optimization of baryonic physics models",
+          "timestamp": "2023-09-09T16:47:29Z",
+          "tree_id": "ac23c59150536c00e9d5ae80e78c411db8cac8b5",
+          "url": "https://github.com/galacticusorg/galacticus/commit/051be396b0a919add84d46a5b85b0254c7b43136"
+        },
+        "date": 1694288567458,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 60.01,
+            "unit": "seconds",
+            "range": 0.106254411672726
           }
         ]
       }
