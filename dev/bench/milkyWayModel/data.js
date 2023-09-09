@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1694252794875,
+  "lastUpdate": 1694252801849,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "a6b432a7e58272dd1d5a781ce8ff9fa440057d6f",
-          "message": "Merge pull request #371 from galacticusorg/oscillatingTk\n\nAllow σ(M) integral to be split at local minima of the transfer function",
-          "timestamp": "2023-02-07T18:53:32-08:00",
-          "tree_id": "baf78ba1ea22233d882d7d78982086b8466b10eb",
-          "url": "https://github.com/galacticusorg/galacticus/commit/a6b432a7e58272dd1d5a781ce8ff9fa440057d6f"
-        },
-        "date": 1675834180918,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 203.646,
-            "unit": "seconds",
-            "range": 0.141938014642032
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10616,6 +10586,60 @@ window.BENCHMARK_DATA = {
             "value": 168.812,
             "unit": "seconds",
             "range": 0.136724540589684
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "219789d07e9fd373d3150fb691d04a9659f34f9f",
+          "message": "Merge pull request #465 from galacticusorg/fspsArm64\n\nFix build of FSPS on Apple M1/M2 chips",
+          "timestamp": "2023-09-09T02:39:08Z",
+          "tree_id": "230759199a9f1f1d41b627a1320054d4ce3bc165",
+          "url": "https://github.com/galacticusorg/galacticus/commit/219789d07e9fd373d3150fb691d04a9659f34f9f"
+        },
+        "date": 1694252800929,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassMetallicityRelation",
+            "value": 3.17812392253161,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassSizeRelation",
+            "value": 8.59176895706195,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassVelocityDispersionRelation",
+            "value": 1.3520004131317,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupOccupationFraction",
+            "value": 24.3002661797178,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassFunction",
+            "value": 72.8505659807896,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
+            "value": 10.7651717039636,
+            "unit": "-logℒ"
           }
         ]
       }
