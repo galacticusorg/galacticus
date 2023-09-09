@@ -71,6 +71,7 @@ contains
     !![
     <optionalArgument name="static" defaultsTo=".false." />
     !!]
+#include "os.inc"
 
     ! Specify source code path.
     call Interface_FSPS_Version(fspsVersion)
@@ -112,7 +113,14 @@ contains
        else
           call System_Command_Do("cd "//fspsPath//"/src; sed -i~ -E s/'^(F90FLAGS = .*)[[:space:]]*\-static(.*)'/'\1 \2'/g Makefile")
        end if
-       call System_Command_Do("cd "//fspsPath//"/src; export SPS_HOME="//fspsPath//'; export F90FLAGS="-mcmodel=medium '//char(compilerOptions(languageFortran))//'"; sed -i~ -E s/"gfortran"/"'//char(compiler(languageFortran))//'"/ Makefile; make clean; make -j 1',status)
+       call System_Command_Do(                                                                                                                                                &
+            &                 "cd "//fspsPath//"/src; export SPS_HOME="//fspsPath//'; export F90FLAGS="'                                                                   // &
+#ifndef __aarch64__
+            &                 '-mcmodel=medium '                                                                                                                           // & ! Larger memory model required except on Arm64.
+#endif
+            &                 char(compilerOptions(languageFortran))//'"; sed -i~ -E s/"gfortran"/"'//char(compiler(languageFortran))//'"/ Makefile; make clean; make -j 1',  &
+            &                 status                                                                                                                                          &
+            &                )
        if (.not.File_Exists(fspsPath//"/src/autosps.exe") .or. status /= 0) call Error_Report("failed to build autosps.exe code"//{introspection:location})
     end if
     call File_Unlock(fspsLock)
