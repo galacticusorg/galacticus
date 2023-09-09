@@ -93,7 +93,7 @@ contains
           ! Download CAMB if necessary.
           if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"CAMB_"//char(cambVersion)//".tar.gz")) then
              call displayMessage("downloading CAMB code....",verbosityLevelWorking)
-             call download("https://github.com/cmbant/CAMB/archive/refs/tags/"//char(cambVersion)//".tar.gz",char(inputPath(pathTypeDataDynamic))//"CAMB_"//char(cambVersion)//".tar.gz",status)
+             call download("https://github.com/cmbant/CAMB/archive/refs/tags/"//char(cambVersion)//".tar.gz",char(inputPath(pathTypeDataDynamic))//"CAMB_"//char(cambVersion)//".tar.gz",status=status)
              if (status /= 0 .or. .not.File_Exists(inputPath(pathTypeDataDynamic)//"CAMB_"//char(cambVersion)//".tar.gz")) call Error_Report("unable to download CAMB"//{introspection:location})
           end if
           call displayMessage("unpacking CAMB code....",verbosityLevelWorking)
@@ -103,7 +103,7 @@ contains
           if (.not.File_Exists(cambPath//"../forutils/Makefile")) then
              if (.not.File_Exists(cambPath//"../forutils_"//char(forutilsVersion)//".tar.gz")) then
                 call displayMessage("downloading forutils code....",verbosityLevelWorking)
-                call download("https://github.com/cmbant/forutils/archive/refs/tags/"//char(forutilsVersion)//".tar.gz",char(cambPath)//"../forutils_"//char(forutilsVersion)//".tar.gz",status)
+                call download("https://github.com/cmbant/forutils/archive/refs/tags/"//char(forutilsVersion)//".tar.gz",char(cambPath)//"../forutils_"//char(forutilsVersion)//".tar.gz",status=status)
                 if (status /= 0 .or. .not.File_Exists(cambPath//"../forutils_"//char(forutilsVersion)//".tar.gz")) call Error_Report("unable to download forutils"//{introspection:location})
              end if
              call displayMessage("unpacking forutils code....",verbosityLevelWorking)

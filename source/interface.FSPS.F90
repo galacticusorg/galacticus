@@ -84,7 +84,7 @@ contains
        if (.not.File_Exists(fspsPath)) then
           if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"FSPS_"//char(fspsVersion)//".tar.gz")) then
              call displayMessage("downloading FSPS source code....",verbosityLevelWorking)
-             call download("https://github.com/cconroy20/fsps/archive/refs/tags/v"//char(fspsVersion)//".tar.gz",char(inputPath(pathTypeDataDynamic))//"FSPS_"//char(fspsVersion)//".tar.gz",status)
+             call download("https://github.com/cconroy20/fsps/archive/refs/tags/v"//char(fspsVersion)//".tar.gz",char(inputPath(pathTypeDataDynamic))//"FSPS_"//char(fspsVersion)//".tar.gz",status=status)
              if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"FSPS_"//char(fspsVersion)//".tar.gz") .or. status /= 0) call Error_Report("failed to download FSPS"//{introspection:location})
           end if
           call displayMessage("unpacking FSPS code....",verbosityLevelWorking)
