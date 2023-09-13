@@ -412,7 +412,7 @@ contains
 
   function sedWavelengths(self,time)
     !!{
-    Return column descriptions of the {\normalfont \ttfamily sed} property.
+    Return wavelengths at which the SED is tabulated.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -461,25 +461,31 @@ contains
     return
   end function sedWavelengths
 
-  subroutine sedColumnDescriptions(self,descriptions,time)
+  subroutine sedColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnitsInSI,time)
     !!{
     Return column descriptions of the {\normalfont \ttfamily sed} property.
     !!}
+    use :: Numerical_Constants_Units, only : angstromsPerMeter
     implicit none
     class           (nodePropertyExtractorSED), intent(inout)                            :: self
     double precision                          , intent(in   ), optional                  :: time
     type            (varying_string          ), intent(inout), dimension(:), allocatable :: descriptions
+    double precision                          , intent(inout), dimension(:), allocatable :: values 
+    type            (varying_string          ), intent(  out)                            :: valuesDescription
+    double precision                          , intent(  out)                            :: valuesUnitsInSI
     double precision                          , dimension(:) , allocatable               :: wavelengths
     integer         (c_size_t                )                                           :: i
     character       (len=18                  )                                           :: label
     
     allocate(descriptions(self%size(time)))
-    allocate(wavelengths (self%size(time)))
-    wavelengths=self%wavelengths(time)
+    allocate(values      (self%size(time)))
+    values=self%wavelengths(time)
     do i=1,size(descriptions)      
-       write (label,'(a2,1x,e12.6,1x,a1)') "λ=",wavelengths(i),"Å"
+       write (label,'(a2,1x,e12.6,1x,a1)') "λ=",values(i),"Å"
        descriptions(i)=trim(label)
     end do
+    valuesDescription=var_str('Wavelengths at which the SED is tabulated [in units of Å].')
+    valuesUnitsInSI  =1.0d0/angstromsPerMeter
     return
   end subroutine sedColumnDescriptions
 

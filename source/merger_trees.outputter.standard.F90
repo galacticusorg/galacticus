@@ -763,12 +763,23 @@ contains
                 call     dataset%writeAttribute(self%doubleProperty(iProperty)%metaData%value(iMetaDatum),char(self%doubleProperty(iProperty)%metaData%key(iMetaDatum)))
              end do
              call        dataset%close         (                                                                   )
-             if (allocated(self%doubleProperty(iProperty)%rank1Descriptors) .and. size(self%doubleProperty(iProperty)%rank1Descriptors) > 0)                        &
-                  & call self%outputGroups(indexOutput)%nodeDataGroup%writeDataset(                                                                                 &
-                  &                                                                     self%doubleProperty(iProperty)%rank1Descriptors                           , &
-                  &                                                                trim(self%doubleProperty(iProperty)%name            )//"Columns"               , &
-                  &                                                                trim(self%doubleProperty(iProperty)%comment         )//" (column descriptions)"  &
-                  &                                                               )
+             if (allocated(self%doubleProperty(iProperty)%rank1Descriptors     ) .and. size(self%doubleProperty(iProperty)%rank1Descriptors     ) > 0) then
+                call self%outputGroups(indexOutput)%nodeDataGroup%writeDataset(                                                                                       &
+                     &                                                              self%doubleProperty(iProperty)%rank1Descriptors                                 , &
+                     &                                                         trim(self%doubleProperty(iProperty)%name                  )//"Columns"               , &
+                     &                                                         trim(self%doubleProperty(iProperty)%comment               )//" (column descriptions)"  &
+                     &                                                        )
+             end if
+             if (allocated(self%doubleProperty(iProperty)%rank1DescriptorValues) .and. size(self%doubleProperty(iProperty)%rank1DescriptorValues) > 0) then
+                call self%outputGroups(indexOutput)%nodeDataGroup%writeDataset(                                                                                       &
+                     &                                                              self%doubleProperty(iProperty)%rank1DescriptorValues                            , &
+                     &                                                         trim(self%doubleProperty(iProperty)%name                  )//"ColumnValues"          , &
+                     &                                                         char(self%doubleProperty(iProperty)%rank1DescriptorComment)                            &
+                     &                                                        )
+             dataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(trim(self%doubleProperty(iProperty)%name)//"ColumnValues")
+             call dataset%writeAttribute(self%doubleProperty(iProperty)%rank1DescriptorUnitsInSI,"unitsInSI")
+             call dataset%close()
+             end if
           end if
        end do
        self%doublePropertiesWritten=self%doublePropertiesWritten+self%doubleBufferCount
@@ -1005,7 +1016,7 @@ contains
        self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                   time))%unitsInSI =extractor_%unitsInSI   (                   time)
        do i=1,extractor_%elementCount(time)
           if (allocated(self%doubleProperty(doubleProperty+i)%rank1Descriptors)) deallocate(self%doubleProperty(doubleProperty+i)%rank1Descriptors)
-          call extractor_%columnDescriptions(self%doubleProperty(doubleProperty+i)%rank1Descriptors,time)
+          call extractor_%columnDescriptions(self%doubleProperty(doubleProperty+i)%rank1Descriptors,self%doubleProperty(doubleProperty+i)%rank1DescriptorValues,self%doubleProperty(doubleProperty+i)%rank1DescriptorComment,self%doubleProperty(doubleProperty+i)%rank1DescriptorUnitsInSI,time)
        end do
        do i=1,extractor_%elementCount(                   time)
           call extractor_%metaData(i,self%doubleProperty (doubleProperty +i)%metaData)
@@ -1053,7 +1064,7 @@ contains
           end do
           do i=1,extractor_%elementCount(elementTypeDouble,time)
              if (allocated(self%doubleProperty(doubleProperty+i)%rank1Descriptors)) deallocate(self%doubleProperty(doubleProperty+i)%rank1Descriptors)
-             call extractor_%columnDescriptions(elementTypeDouble,i,time,self%doubleProperty(doubleProperty+i)%rank1Descriptors)
+             call extractor_%columnDescriptions(elementTypeDouble,i,time,self%doubleProperty(doubleProperty+i)%rank1Descriptors,self%doubleProperty(doubleProperty+i)%rank1DescriptorValues,self%doubleProperty(doubleProperty+i)%rank1DescriptorComment,self%doubleProperty(doubleProperty+i)%rank1DescriptorUnitsInSI)
           end do
           doubleProperty =doubleProperty +extractor_%elementCount(elementTypeDouble ,time)
           deallocate(namesTmp       )
