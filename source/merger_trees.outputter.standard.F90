@@ -530,20 +530,22 @@ contains
                &                                                                     +extractor_     %elementCount(                       time         )
        class is (nodePropertyExtractorList         )
           ! List property extractor - extract and store the values.
-          doubleTuple =extractor_%extract       (node     ,instance)
-          if (     allocated(self%doubleProperty (doubleProperty +1)%scalar     ))                          deallocate(self%doubleProperty (doubleProperty +1)%scalar)
-          if (     allocated(self%doubleProperty (doubleProperty +1)%rank1      ))                          deallocate(self%doubleProperty (doubleProperty +1)%rank1 )
-          if (.not.allocated(self%doubleProperty (doubleProperty +1)%rank1VarLen)) allocate(self%doubleProperty (doubleProperty +1)%rank1VarLen(self%doubleBufferSize))
-          if (associated(self%doubleProperty (doubleProperty +1)%rank1VarLen (self%doubleBufferCount )%row)) then
-             if (size(self%doubleProperty (doubleProperty +1)%rank1VarLen (self%doubleBufferCount )%row) /= size(doubleTuple)) deallocate(self%doubleProperty (doubleProperty +1)%rank1VarLen (self%doubleBufferCount )%row)
-          end if
-          if (.not.associated(self%doubleProperty (doubleProperty +1)%rank1VarLen (self%doubleBufferCount )%row)) then
-             allocate(self%doubleProperty (doubleProperty +1)%rank1VarLen (self%doubleBufferCount )%row(size(doubleTuple)))
-          end if
-          self%doubleProperty (doubleProperty +1)%rank1VarLen(self%doubleBufferCount)%row=doubleTuple
-          deallocate(doubleTuple )
+          doubleArray =extractor_%extract       (node     ,instance)
+          do i=1,+extractor_%elementCount(                      )
+             if (     allocated(self%doubleProperty (doubleProperty +i)%scalar     ))                          deallocate(self%doubleProperty (doubleProperty +i)%scalar)
+             if (     allocated(self%doubleProperty (doubleProperty +i)%rank1      ))                          deallocate(self%doubleProperty (doubleProperty +i)%rank1 )
+             if (.not.allocated(self%doubleProperty (doubleProperty +i)%rank1VarLen)) allocate(self%doubleProperty (doubleProperty +i)%rank1VarLen(self%doubleBufferSize))
+             if (associated(self%doubleProperty (doubleProperty +i)%rank1VarLen (self%doubleBufferCount )%row)) then
+                if (size(self%doubleProperty (doubleProperty +i)%rank1VarLen (self%doubleBufferCount )%row) /= size(doubleArray,dim=1)) deallocate(self%doubleProperty (doubleProperty +i)%rank1VarLen (self%doubleBufferCount )%row)
+             end if
+             if (.not.associated(self%doubleProperty (doubleProperty +i)%rank1VarLen (self%doubleBufferCount )%row)) then
+                allocate(self%doubleProperty (doubleProperty +i)%rank1VarLen (self%doubleBufferCount )%row(size(doubleArray,dim=1)))
+             end if
+             self%doubleProperty (doubleProperty +i)%rank1VarLen(self%doubleBufferCount)%row=doubleArray(:,i)
+          end do
+          deallocate(doubleArray )
           doubleProperty                                                            =+doubleProperty                                                     &
-               &                                                                     +1
+               &                                                                     +extractor_     %elementCount(                                    )
        class is (nodePropertyExtractorMulti        )
           ! Multi property extractor - extract and store the values.
           doubleProperties =extractor_%extractDouble (node,time,instance,doubleRanks)
@@ -1026,9 +1028,11 @@ contains
        deallocate(descriptionsTmp)
     class is (nodePropertyExtractorList         )
        ! List property extractor - get the name, description, and units.
-       self%doubleProperty (doubleProperty +1                                                                 )%name      =extractor_%name        (                       )
-       self%doubleProperty (doubleProperty +1                                                                 )%comment   =extractor_%description (                       )
-       self%doubleProperty (doubleProperty +1                                                                 )%unitsInSI =extractor_%unitsInSI   (                       )
+       call extractor_%names       (namesTmp            )
+       call extractor_%descriptions(descriptionsTmp     )
+       self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                       ))%name      =namesTmp
+       self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                       ))%comment   =descriptionsTmp
+       self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                       ))%unitsInSI =extractor_%unitsInSI   (                       )
        call    extractor_%metaData(  self%doubleProperty (doubleProperty +1)%metaData)
        doubleProperty =doubleProperty +1
     class is (nodePropertyExtractorIntegerScalar)
