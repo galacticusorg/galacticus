@@ -32,12 +32,12 @@
    contains
      !![
      <methods>
-       <method method="count"       description="Return a count of the number of properties extracted."              />
-       <method method="extract"     description="Extract the properties from the given {\normalfont \ttfamily node}."/>
-       <method method="name"        description="Return the name of the properties extracted."                       />
-       <method method="description" description="Return a description of the properties extracted."                  />
-       <method method="unitsInSI"   description="Return the units of the properties extracted in the SI system."     />
-       <method method="metaData"    description="Populate a hash with meta-data for the property."                   />
+       <method method="elementCount" description="Return a count of the number of properties extracted."              />
+       <method method="extract"      description="Extract the properties from the given {\normalfont \ttfamily node}."/>
+       <method method="name"         description="Return the name of the properties extracted."                       />
+       <method method="description"  description="Return a description of the properties extracted."                  />
+       <method method="unitsInSI"    description="Return the units of the properties extracted in the SI system."     />
+       <method method="metaData"     description="Populate a hash with meta-data for the property."                   />
      </methods>
      !!]
      procedure(listElementCount), deferred :: elementCount
