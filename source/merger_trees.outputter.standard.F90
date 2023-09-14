@@ -1017,7 +1017,8 @@ contains
        self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                   time))%comment   =descriptionsTmp
        self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                   time))%unitsInSI =extractor_%unitsInSI   (                   time)
        do i=1,extractor_%elementCount(time)
-          if (allocated(self%doubleProperty(doubleProperty+i)%rank1Descriptors)) deallocate(self%doubleProperty(doubleProperty+i)%rank1Descriptors)
+          if (allocated(self%doubleProperty(doubleProperty+i)%rank1Descriptors     )) deallocate(self%doubleProperty(doubleProperty+i)%rank1Descriptors     )
+          if (allocated(self%doubleProperty(doubleProperty+i)%rank1DescriptorValues)) deallocate(self%doubleProperty(doubleProperty+i)%rank1DescriptorValues)
           call extractor_%columnDescriptions(self%doubleProperty(doubleProperty+i)%rank1Descriptors,self%doubleProperty(doubleProperty+i)%rank1DescriptorValues,self%doubleProperty(doubleProperty+i)%rank1DescriptorComment,self%doubleProperty(doubleProperty+i)%rank1DescriptorUnitsInSI,time)
        end do
        do i=1,extractor_%elementCount(                   time)
@@ -1067,7 +1068,8 @@ contains
              call extractor_%metaData(elementTypeDouble,time,i,self%doubleProperty (doubleProperty +i)%metaData)
           end do
           do i=1,extractor_%elementCount(elementTypeDouble,time)
-             if (allocated(self%doubleProperty(doubleProperty+i)%rank1Descriptors)) deallocate(self%doubleProperty(doubleProperty+i)%rank1Descriptors)
+             if (allocated(self%doubleProperty(doubleProperty+i)%rank1Descriptors     )) deallocate(self%doubleProperty(doubleProperty+i)%rank1Descriptors     )
+             if (allocated(self%doubleProperty(doubleProperty+i)%rank1DescriptorValues)) deallocate(self%doubleProperty(doubleProperty+i)%rank1DescriptorValues)
              call extractor_%columnDescriptions(elementTypeDouble,i,time,self%doubleProperty(doubleProperty+i)%rank1Descriptors,self%doubleProperty(doubleProperty+i)%rank1DescriptorValues,self%doubleProperty(doubleProperty+i)%rank1DescriptorComment,self%doubleProperty(doubleProperty+i)%rank1DescriptorUnitsInSI)
           end do
           doubleProperty =doubleProperty +extractor_%elementCount(elementTypeDouble ,time)
