@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1694735803684,
+  "lastUpdate": 1694735812751,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "f3540a4c84d6aac85141e8b18ece4c201d2bd1ba",
-          "message": "Merge pull request #374 from galacticusorg/axionTk\n\nAdd the Passaglia & Hu (2022) transfer function for axionic dark matter",
-          "timestamp": "2023-02-10T04:21:22Z",
-          "tree_id": "35d77f35302e67f37bda2a2b429e033047f17c09",
-          "url": "https://github.com/galacticusorg/galacticus/commit/f3540a4c84d6aac85141e8b18ece4c201d2bd1ba"
-        },
-        "date": 1676016282777,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 166.563,
-            "unit": "seconds",
-            "range": 0.121268709892022
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10620,6 +10590,60 @@ window.BENCHMARK_DATA = {
             "value": 266.26,
             "unit": "seconds",
             "range": 1.7358663543032
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "90736f9fff69acdc6c5e893519c274fb2f0260df",
+          "message": "Merge pull request #470 from galacticusorg/arrayPropertyColumns\n\nAllow `nodePropertyExtractorArray` objects to specify numerical column values",
+          "timestamp": "2023-09-14T20:51:32Z",
+          "tree_id": "f112f521e66397511c8a2b2c1d252c2b5415125f",
+          "url": "https://github.com/galacticusorg/galacticus/commit/90736f9fff69acdc6c5e893519c274fb2f0260df"
+        },
+        "date": 1694735811596,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassMetallicityRelation",
+            "value": 3.57944474007854,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassSizeRelation",
+            "value": 9.0930259767054,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassVelocityDispersionRelation",
+            "value": 0.926652115549488,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupOccupationFraction",
+            "value": 24.2724648032126,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassFunction",
+            "value": 94.9665517712776,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
+            "value": 1.24127618049523,
+            "unit": "-logℒ"
           }
         ]
       }
