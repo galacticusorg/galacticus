@@ -406,7 +406,7 @@ contains
     return
   end subroutine multiNames
 
-  subroutine multiColumnDescriptions(self,elementType,i,time,descriptions)
+  subroutine multiColumnDescriptions(self,elementType,i,time,descriptions,values,valuesDescription,valuesUnitsInSI)
     !!{
     Return column descriptions of the multiple properties.
     !!}
@@ -417,8 +417,11 @@ contains
     integer                                     , intent(in   )                             :: i
     double precision                            , intent(in   )                             :: time
     type            (varying_string            ), intent(  out), dimension(:) , allocatable :: descriptions
+    double precision                            , intent(  out), dimension(:) , allocatable :: values
+    type            (varying_string            ), intent(  out)                             :: valuesDescription
+    double precision                            , intent(  out)                             :: valuesUnitsInSI
     type            (multiExtractorList        ), pointer                                   :: extractor_
-    integer                                                                                 :: elementCount, offset
+    integer                                                                                 :: elementCount     , offset
 
     offset     =  0
     extractor_ => self%extractors
@@ -461,7 +464,7 @@ contains
           if (elementType == elementTypeDouble ) then
              elementCount=extractor_%elementCount(time)
              if (offset+elementCount >= i) then
-                call extractor_%columnDescriptions(descriptions,time)
+                call extractor_%columnDescriptions(descriptions,values,valuesDescription,valuesUnitsInSI,time)
                 return
              end if
           end if

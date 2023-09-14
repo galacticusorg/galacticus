@@ -361,18 +361,25 @@ contains
     return
   end subroutine projectedMassDescriptions
 
-  subroutine projectedMassColumnDescriptions(self,descriptions,time)
+  subroutine projectedMassColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnitsInSI,time)
     !!{
     Return column descriptions of the {\normalfont \ttfamily projectedMass} property.
     !!}
     implicit none
-    class           (nodePropertyExtractorProjectedMass), intent(inout)                             :: self
-    double precision                                    , intent(in   ), optional                   :: time
-    type            (varying_string                    ), intent(inout), dimension(:) , allocatable :: descriptions
+    class           (nodePropertyExtractorProjectedMass), intent(inout)                            :: self
+    double precision                                    , intent(in   ), optional                  :: time
+    type            (varying_string                    ), intent(inout), dimension(:), allocatable :: descriptions
+    double precision                                    , intent(inout), dimension(:), allocatable :: values
+    type            (varying_string                    ), intent(  out)                            :: valuesDescription
+    double precision                                    , intent(  out)                            :: valuesUnitsInSI
+
     !$GLC attributes unused :: time
 
     allocate(descriptions(self%radiiCount))
-    descriptions=self%radii%name
+    allocate(values      (              0))
+    valuesDescription=var_str('')
+    valuesUnitsInSI  =0.0d0
+    descriptions     =self%radii%name
     return
   end subroutine projectedMassColumnDescriptions
 
