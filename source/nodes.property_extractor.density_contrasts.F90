@@ -312,8 +312,8 @@ contains
     !$GLC attributes unused :: time
 
     allocate(descriptions(self%elementCount_))
-       descriptions(1)='Radius enclosing a given density contrast [Mpc].'
-       descriptions(2)='Mass within a given density contrast [M☉].'
+    descriptions(1)='Radius enclosing a given density contrast [Mpc].'
+    descriptions(2)='Mass within a given density contrast [M☉].'
     return
   end subroutine densityContrastsDescriptions
 
@@ -325,10 +325,10 @@ contains
     class           (nodePropertyExtractorDensityContrasts), intent(inout)                            :: self
     double precision                                       , intent(in   ), optional                  :: time
     type            (varying_string                       ), intent(inout), dimension(:), allocatable :: descriptions
+    double precision                                       , intent(inout), dimension(:), allocatable :: values
     type            (varying_string                       ), intent(  out)                            :: valuesDescription
     double precision                                       , intent(  out)                            :: valuesUnitsInSI
     character       (len=32                               )                                           :: label
-    double precision                                       , intent(inout), dimension(:), allocatable :: values
     integer         (c_size_t                             )                                           :: i
     !$GLC attributes unused :: time
 
