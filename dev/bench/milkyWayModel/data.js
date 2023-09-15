@@ -1,62 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1694735812751,
+  "lastUpdate": 1694813411025,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "f3540a4c84d6aac85141e8b18ece4c201d2bd1ba",
-          "message": "Merge pull request #374 from galacticusorg/axionTk\n\nAdd the Passaglia & Hu (2022) transfer function for axionic dark matter",
-          "timestamp": "2023-02-10T04:21:22Z",
-          "tree_id": "35d77f35302e67f37bda2a2b429e033047f17c09",
-          "url": "https://github.com/galacticusorg/galacticus/commit/f3540a4c84d6aac85141e8b18ece4c201d2bd1ba"
-        },
-        "date": 1676016292526,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Likelihood - localGroupMassMetallicityRelation",
-            "value": 3.99354009002036,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupMassSizeRelation",
-            "value": 7.06357475544158,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupMassVelocityDispersionRelation",
-            "value": 1.13330400835217,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupOccupationFraction",
-            "value": 24.057374866708,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupStellarMassFunction",
-            "value": 64.9092665000299,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
-            "value": 4.64630488066786,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10644,6 +10590,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 1.24127618049523,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "c02ffb64269e7c03a3471b6a8761d7833668507c",
+          "message": "fix: Correct enclosed mass in dimensionfull Hernquist profiles",
+          "timestamp": "2023-09-15T18:33:55Z",
+          "tree_id": "9c722a35a7ee8662efccdf66ce4dfdc656a54ed0",
+          "url": "https://github.com/galacticusorg/galacticus/commit/c02ffb64269e7c03a3471b6a8761d7833668507c"
+        },
+        "date": 1694813410007,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 247.297,
+            "unit": "seconds",
+            "range": 0.453488809123873
           }
         ]
       }
