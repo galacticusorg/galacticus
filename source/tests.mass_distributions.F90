@@ -83,9 +83,21 @@ program Test_Mass_Distributions
   select type (massDistribution_)
   class is (massDistributionSpherical)
      position=[1.0d0,0.0d0,0.0d0]
-     call Assert("Half mass radius"         ,massDistribution_%radiusHalfMass      (        ), 1.0d0+sqrt(2.0d0),absTol=1.0d-6)
-     call Assert("Mass within scale radius" ,massDistribution_%massEnclosedBySphere(1.0d0   ), 0.25d0           ,absTol=1.0d-6)
-     call Assert("Potential at scale radius",massDistribution_%potential           (position),-0.50d0           ,absTol=1.0d-6)
+     call Assert("Half mass radius          (dimensionless)",massDistribution_%radiusHalfMass      (        ), 1.0d0+sqrt(2.0d0)        ,absTol=1.0d-6)
+     call Assert("Mass within scale radius  (dimensionless)",massDistribution_%massEnclosedBySphere(1.0d0   ), 0.25d0                   ,absTol=1.0d-6)
+     call Assert("Potential at scale radius (dimensionless)",massDistribution_%potential           (position),-0.50d0                   ,absTol=1.0d-6)
+  end select
+  deallocate(massDistribution_)
+  allocate(massDistributionHernquist :: massDistribution_)
+  select type (massDistribution_)
+  type is (massDistributionHernquist)
+     massDistribution_=massDistributionHernquist(dimensionless=.false.,mass=2.0d0,scaleLength=2.0d0)
+  end select
+  select type (massDistribution_)
+  class is (massDistributionSpherical)
+     position=[2.0d0,0.0d0,0.0d0]
+     call Assert("Half mass radius          (dimensionful )",massDistribution_%radiusHalfMass      (        ),2.0d0*( 1.0d0+sqrt(2.0d0)),absTol=1.0d-6)
+     call Assert("Mass within scale radius  (dimensionful )",massDistribution_%massEnclosedBySphere(2.0d0   ),2.0d0*( 0.25d0           ),absTol=1.0d-6)
   end select
   deallocate(massDistribution_)
   call Unit_Tests_End_Group()
