@@ -198,16 +198,19 @@ contains
     return
   end subroutine coldModeDestructor
 
-  subroutine coldModeCalculationReset(self,node)
+  subroutine coldModeCalculationReset(self,node,uniqueID)
     !!{
     Reset the accretion rate calculation.
     !!}
+    use :: Kind_Numbers, only : kind_int8
     implicit none
-    class(accretionHaloColdMode), intent(inout) :: self
-    type (treeNode             ), intent(inout) :: node
+    class  (accretionHaloColdMode), intent(inout) :: self
+    type   (treeNode             ), intent(inout) :: node
+    integer(kind_int8            ), intent(in   ) :: uniqueID
+    !$GLC attributes unused :: node
 
     self%coldFractionComputed=.false.
-    self%lastUniqueID        =node%uniqueID()
+    self%lastUniqueID        =uniqueID
     return
   end subroutine coldModeCalculationReset
 
@@ -472,7 +475,7 @@ contains
        coldModeColdModeFraction=1.0d0
     case (accretionModeHot%ID,accretionModeCold%ID)
        ! Reset calculations if necessary.
-       if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+       if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
        ! Compute cold fraction if not already computed.
        if (.not.self%coldFractionComputed) then
           ! Get the basic component.

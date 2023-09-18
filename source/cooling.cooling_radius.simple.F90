@@ -228,17 +228,20 @@ contains
     return
   end subroutine simpleDestructor
 
-  subroutine simpleCalculationReset(self,node)
+  subroutine simpleCalculationReset(self,node,uniqueID)
     !!{
     Reset the cooling radius calculation.
     !!}
+    use :: Kind_Numbers, only : kind_int8
     implicit none
-    class(coolingRadiusSimple), intent(inout) :: self
-    type (treeNode           ), intent(inout) :: node
+    class  (coolingRadiusSimple), intent(inout) :: self
+    type   (treeNode           ), intent(inout) :: node
+    integer(kind_int8          ), intent(in   ) :: uniqueID
+    !$GLC attributes unused :: node
 
     self%radiusComputed          =.false.
     self%radiusGrowthRateComputed=.false.
-    self%lastUniqueID            =node%uniqueID()
+    self%lastUniqueID            =uniqueID
     return
   end subroutine simpleCalculationReset
 
@@ -259,7 +262,7 @@ contains
          &                                                   temperature                     , temperatureLogSlope
 
     ! Check if node differs from previous one for which we performed calculations.
-    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     ! Check if cooling radius growth rate is already computed.
     if (.not.self%radiusGrowthRateComputed) then
        ! Flag that cooling radius is now computed.
@@ -324,7 +327,7 @@ contains
          &                                                           rootZero            , rootOuter
 
     ! Check if node differs from previous one for which we performed calculations.
-    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     ! Check if cooling radius is already computed.
     if (.not.self%radiusComputed) then
        ! Flag that cooling radius is now computed.
