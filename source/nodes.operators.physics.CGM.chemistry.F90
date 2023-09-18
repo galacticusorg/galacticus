@@ -461,13 +461,15 @@ contains
     ! Truncate masses to zero to avoid unphysical behavior.
     call chemicalMasses%enforcePositive()
     massChemicals=chemicalMasses%sumOver()
-    if     (                                                     &
-         &   massChemicals > 0.0d0                               &
-         &  .and.                                                &
-         &   massChemicals > hotHalo%mass()                      &
-         & ) call chemicalMasses%scale(                          &
-         &                             +hotHalo%mass          () &
-         &                             /        massChemicals    &
+    if     (                                                                        &
+         &             massChemicals >         0.0d0                                &
+         &  .and.                                                                   &
+         &             massChemicals >         hotHalo%mass()                       &
+         &  .and.                                                                   &
+         &   -exponent(massChemicals)+exponent(hotHalo%mass()) < maxExponent(0.0d0) &
+         & ) call chemicalMasses%scale(                                             &
+         &                             +hotHalo%mass          ()                    &
+         &                             /        massChemicals                       &
          &                            )
     ! Scale all chemical masses by their mass in atomic mass units to get a number density.
     call chemicalMasses%massToNumber(chemicalDensities)
