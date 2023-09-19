@@ -300,7 +300,7 @@ contains
          &   self%galacticStructure_%massEnclosed(node,radiusZero) >= 0.0d0           &
          & ) then
        ! Check if node differs from previous one for which we performed calculations.
-       if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+       if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
        ! Initial estimate of the tidal radius.
        if (self%radiusTidalPrevious <= 0.0d0) then
           self%radiusTidalPrevious=+sqrt(                                              &
@@ -373,15 +373,18 @@ contains
     return
   end function king1962TidalRadiusSolver
 
-  subroutine king1962CalculationReset(self,node)
+  subroutine king1962CalculationReset(self,node,uniqueID)
     !!{
     Reset the stored tidal radii.
     !!}
+    use :: Kind_Numbers, only : kind_int8
     implicit none
-    class(satelliteTidalStrippingRadiusKing1962), intent(inout) :: self
-    type (treeNode                             ), intent(inout) :: node
+    class  (satelliteTidalStrippingRadiusKing1962), intent(inout) :: self
+    type   (treeNode                             ), intent(inout) :: node
+    integer(kind_int8                            ), intent(in   ) :: uniqueID
+    !$GLC attributes unused :: node
 
     self%radiusTidalPrevious=-1.0d0
-    self%lastUniqueID       =node%uniqueID()
+    self%lastUniqueID       =uniqueID
     return
   end subroutine king1962CalculationReset

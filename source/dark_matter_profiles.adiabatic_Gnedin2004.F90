@@ -343,17 +343,20 @@ contains
     return
   end subroutine adiabaticGnedin2004Destructor
 
-  subroutine adiabaticGnedin2004CalculationReset(self,node)
+  subroutine adiabaticGnedin2004CalculationReset(self,node,uniqueID)
     !!{
     Reset the dark matter profile calculation.
     !!}
+    use :: Kind_Numbers, only : kind_int8
     implicit none
-    class(darkMatterProfileAdiabaticGnedin2004), intent(inout) :: self
-    type (treeNode                            ), intent(inout) :: node
+    class  (darkMatterProfileAdiabaticGnedin2004), intent(inout) :: self
+    type   (treeNode                            ), intent(inout) :: node
+    integer(kind_int8                           ), intent(in   ) :: uniqueID
+    !$GLC attributes unused :: node
 
     ! Reset calculations for this profile.
-    self%lastUniqueID                                =node%uniqueID()
-    self%genericLastUniqueID                         =node%uniqueID()
+    self%lastUniqueID                                =uniqueID
+    self%genericLastUniqueID                         =uniqueID
     self%radiusPreviousIndex                         = 0
     self%radiusPreviousIndexMaximum                  = 0
     self%radiusPrevious                              =-1.0d0
@@ -761,7 +764,7 @@ contains
     double precision                                                      :: radiusUpperBound, massEnclosed
 
     ! Reset stored solutions if the node has changed.
-    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     ! Check for a previously computed solution.
     if (self%radiusPreviousIndexMaximum > 0 .and. any(self%radiusPrevious(1:self%radiusPreviousIndexMaximum) == radius)) then
        adiabaticGnedin2004RadiusInitial=0.0d0
@@ -876,7 +879,7 @@ contains
          &                                                                   numerator                      , denominator
 
     ! Reset stored solutions if the node has changed.
-    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     ! Compute the various factors needed by this calculation.
     call self%computeFactors(node,radius,computeGradientFactors=.true.)
     ! Return unit derivative if radius is larger than the virial radius.

@@ -173,17 +173,19 @@ contains
     return
   end subroutine wechsler2002Destructor
 
-  subroutine wechsler2002CalculationReset(self,node)
+  subroutine wechsler2002CalculationReset(self,node,uniqueID)
     !!{
     Reset the cooling radius calculation.
     !!}
     implicit none
-    class(darkMatterHaloMassAccretionHistoryWechsler2002), intent(inout) :: self
-    type (treeNode                                      ), intent(inout) :: node
+    class  (darkMatterHaloMassAccretionHistoryWechsler2002), intent(inout) :: self
+    type   (treeNode                                      ), intent(inout) :: node
+    integer(kind_int8                                     ), intent(in   ) :: uniqueID
+    !$GLC attributes unused :: node
 
     self%timeFormationPrevious=-huge(0.0d0)
     self%massPrevious         =-huge(0.0d0)
-    self%lastUniqueID         =node%uniqueID()
+    self%lastUniqueID         =uniqueID
     return
   end subroutine wechsler2002CalculationReset
 
@@ -202,7 +204,7 @@ contains
          &                                                                                     mergerTreeFormationExpansionFactor
 
     ! Check if node differs from previous one for which we performed calculations.
-    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     ! Compute formation time if necessary.
     if (self%massPrevious /= mass) then
        basicBase => node%basic()

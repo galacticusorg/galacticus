@@ -582,15 +582,18 @@ contains
   <unitName>Node_Component_Hot_Halo_Standard_Reset</unitName>
   </calculationResetTask>
   !!]
-  subroutine Node_Component_Hot_Halo_Standard_Reset(node)
+  subroutine Node_Component_Hot_Halo_Standard_Reset(node,uniqueID)
     !!{
     Remove memory of stored computed values as we're about to begin computing derivatives anew.
     !!}
     use :: Galacticus_Nodes, only : treeNode
+    use :: Kind_Numbers    , only : kind_int8
     implicit none
-    type(treeNode), intent(inout) :: node
+    type   (treeNode ), intent(inout) :: node
+    integer(kind_int8), intent(in   ) :: uniqueID
+    !$GLC attributes unused :: node
 
-    uniqueIDPrevious             =node%uniqueID()
+    uniqueIDPrevious             =uniqueID
     gotCoolingRate               =.false.
     gotAngularMomentumCoolingRate=.false.
     gotOuterRadiusGrowthRate     =.false.
@@ -1252,7 +1255,7 @@ contains
     ! Return immediately if this class is not in use.
     if (.not.defaultHotHaloComponent%standardIsActive()) return
     ! Reset calculations if necessary.
-    if (node%uniqueID() /= uniqueIDPrevious) call Node_Component_Hot_Halo_Standard_Reset(node)
+    if (node%uniqueID() /= uniqueIDPrevious) call Node_Component_Hot_Halo_Standard_Reset(node,node%uniqueID())
     ! Get the hot halo component.
     hotHalo => node%hotHalo()
     ! Ensure that the standard hot halo implementation is active.

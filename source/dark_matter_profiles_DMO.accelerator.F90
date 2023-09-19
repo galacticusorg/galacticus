@@ -158,21 +158,23 @@ contains
     return
   end subroutine acceleratorDestructor
 
-  subroutine acceleratorCalculationReset(self,node)
+  subroutine acceleratorCalculationReset(self,node,uniqueID)
     !!{
     Reset the dark matter profile calculation.
     !!}
+    use :: Kind_Numbers, only : kind_int8
     implicit none
     class  (darkMatterProfileDMOAccelerator), intent(inout) :: self
     type   (treeNode                       ), intent(inout) :: node
+    integer(kind_int8                      ), intent(in   ) :: uniqueID
     integer                                                 :: i
 
     ! Trees are maintained for two nodes - this is often advantageous as queries are often made for satellite and host nodes
     ! together. If the current node is one for which we currently have a tree, invalidate that tree. Otherwise, if the current
     ! node is a satellite in the current host node, place it into the second tree, otherwise, into the first.
-    if      (node%uniqueID() == self%uniqueIDPrevious(1)) then
+    if      (uniqueID == self%uniqueIDPrevious(1)) then
        i      =+1
-    else if (node%uniqueID() == self%uniqueIDPrevious(2)) then
+    else if (uniqueID == self%uniqueIDPrevious(2)) then
        i      =+2
     else
        if (node%isSatellite() .and. node%parent%uniqueID() == self%uniqueIDPrevious(1)) then
@@ -181,7 +183,7 @@ contains
           i=1
        end if
     end if
-    self%uniqueIDPrevious(i)=node%uniqueID()
+    self%uniqueIDPrevious(i)=uniqueID
     self%treePrevious       =i
     if (associated(self%treeMassEnclosed(i)%root)) deallocate(self%treeMassEnclosed(i)%root)
     return
@@ -281,7 +283,7 @@ contains
     else if (node%uniqueID() == self%uniqueIDPrevious(2)) then
        i=2
     else
-       call self%calculationReset(node)
+       call self%calculationReset(node,node%uniqueID())
        i=self%treePrevious
     end if
     found=.false.

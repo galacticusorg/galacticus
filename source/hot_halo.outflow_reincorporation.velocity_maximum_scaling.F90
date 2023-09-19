@@ -207,18 +207,21 @@ contains
     return
   end subroutine velocityMaximumScalingDestructor
 
-  subroutine velocityMaximumScalingCalculationReset(self,node)
+  subroutine velocityMaximumScalingCalculationReset(self,node,uniqueID)
     !!{
     Reset the halo scales calculation.
     !!}
+    use :: Kind_Numbers, only : kind_int8
     implicit none
-    class(hotHaloOutflowReincorporationVelocityMaximumScaling), intent(inout) :: self
-    type (treeNode                                           ), intent(inout) :: node
+    class  (hotHaloOutflowReincorporationVelocityMaximumScaling), intent(inout) :: self
+    type   (treeNode                                           ), intent(inout) :: node
+    integer(kind_int8                                          ), intent(in   ) :: uniqueID
+    !$GLC attributes unused :: node
 
     self%velocityMaximumComputed=.false.
     self%expansionFactorComputed=.false.
     self%rateComputed           =.false.
-    self%lastUniqueID           =node%uniqueID()
+    self%lastUniqueID           =uniqueID
     return
   end subroutine velocityMaximumScalingCalculationReset
 
@@ -235,7 +238,7 @@ contains
     double precision                                                                     :: timeScale
 
     ! Check if node differs from previous one for which we performed calculations.
-    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     ! Get required components.
     ! Compute velocity maximum factor.
     if (.not.self%velocityMaximumComputed) then

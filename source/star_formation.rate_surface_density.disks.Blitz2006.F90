@@ -334,16 +334,19 @@ contains
     return
   end subroutine blitz2006Destructor
 
-  subroutine blitz2006CalculationReset(self,node)
+  subroutine blitz2006CalculationReset(self,node,uniqueID)
     !!{
     Reset the Kennicutt-Schmidt relation calculation.
     !!}
+    use :: Kind_Numbers, only : kind_int8
     implicit none
-    class(starFormationRateSurfaceDensityDisksBlitz2006), intent(inout) :: self
-    type (treeNode                                     ), intent(inout) :: node
+    class  (starFormationRateSurfaceDensityDisksBlitz2006), intent(inout) :: self
+    type   (treeNode                                     ), intent(inout) :: node
+    integer(kind_int8                                    ), intent(in   ) :: uniqueID
+    !$GLC attributes unused :: node
 
     self%factorsComputed       =.false.
-    self%lastUniqueID          =node%uniqueID()
+    self%lastUniqueID          =uniqueID
     self%radiusCriticalPrevious=-huge(0.0d0)
     return
   end subroutine blitz2006CalculationReset
@@ -362,7 +365,7 @@ contains
          &                                                                            surfaceDensityGas, factorBoost
 
     ! Check if node differs from previous one for which we performed calculations.
-    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     ! Compute factors.
     call self%computeFactors(node)
     ! Return zero rate for non-positive radius or mass.
@@ -518,7 +521,7 @@ contains
              rootValueInner    =-huge(0.0d0)
              thresholdCondition=1.0d0/self%pressureRatioCoefficient-self%factorBoostStellarCoefficient >= 1.0d0
            else
-             ! For generic disks test this numeriaclly.
+             ! For generic disks test this numerically.
              rootValueInner    =blitz2006CriticalDensityRoot(radiusInner)
              thresholdCondition=rootValueInner                                                         <= 0.0d0
           end if          

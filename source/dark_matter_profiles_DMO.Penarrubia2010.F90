@@ -216,17 +216,20 @@ contains
     return
   end subroutine penarrubia2010Destructor
 
-  subroutine penarrubia2010CalculationReset(self,node)
+  subroutine penarrubia2010CalculationReset(self,node,uniqueID)
     !!{
     Reset the dark matter profile calculation.
     !!}
+    use :: Kind_Numbers, only : kind_int8
     implicit none
-    class(darkMatterProfileDMOPenarrubia2010), intent(inout) :: self
-    type (treeNode                          ), intent(inout) :: node
+    class  (darkMatterProfileDMOPenarrubia2010), intent(inout) :: self
+    type   (treeNode                          ), intent(inout) :: node
+    integer(kind_int8                         ), intent(in   ) :: uniqueID
+    !$GLC attributes unused :: node
 
     self%scaleRadiusPrevious  =-1.0d0
     self%normalizationPrevious=-1.0d0
-    self%uniqueIDPrevious     =node%uniqueID()
+    self%uniqueIDPrevious     =uniqueID
     return
   end subroutine penarrubia2010CalculationReset
 
@@ -271,7 +274,7 @@ contains
     double precision                                                    :: fractionMassBound            , fractionRadiusMaximum, &
          &                                                                 ratioRadiusMaximumRadiusScale
 
-    if (node%uniqueID() /= self%uniqueIDPrevious) call self%calculationReset(node)
+    if (node%uniqueID() /= self%uniqueIDPrevious) call self%calculationReset(node,node%uniqueID())
     if (self%scaleRadiusPrevious < 0.0d0) then
        basic                 =>  node     %basic            ()
        satellite             =>  node     %satellite        ()
@@ -313,7 +316,7 @@ contains
          &                                                                 ratioVelocityMaximumVelocityScale, massScale              , &
          &                                                                 massScaleOriginal
     
-    if (node%uniqueID() /= self%uniqueIDPrevious) call self%calculationReset(node)
+    if (node%uniqueID() /= self%uniqueIDPrevious) call self%calculationReset(node,node%uniqueID())
     if (self%normalizationPrevious < 0.0d0) then
        basic                   =>  node     %basic            ()
        satellite               =>  node     %satellite        ()

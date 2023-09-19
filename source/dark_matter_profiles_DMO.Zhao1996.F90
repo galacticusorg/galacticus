@@ -229,15 +229,18 @@ contains
     return
   end subroutine zhao1996Destructor
 
-  subroutine zhao1996CalculationReset(self,node)
+  subroutine zhao1996CalculationReset(self,node,uniqueID)
     !!{
     Reset the dark matter profile calculation.
     !!}
+    use :: Kind_Numbers, only : kind_int8
     implicit none
-    class(darkMatterProfileDMOZhao1996), intent(inout) :: self
-    type (treeNode                    ), intent(inout) :: node
+    class  (darkMatterProfileDMOZhao1996), intent(inout) :: self
+    type   (treeNode                    ), intent(inout) :: node
+    integer(kind_int8                   ), intent(in   ) :: uniqueID
+    !$GLC attributes unused :: node
 
-    self%genericLastUniqueID                         =node%uniqueID()
+    self%genericLastUniqueID                         =uniqueID
     self%genericEnclosedMassRadiusMinimum            =+huge(0.0d0)
     self%genericEnclosedMassRadiusMaximum            =-huge(0.0d0)
     self%genericVelocityDispersionRadialRadiusMinimum=+huge(0.0d0)

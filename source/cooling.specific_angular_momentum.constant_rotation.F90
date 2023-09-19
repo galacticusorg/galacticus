@@ -218,7 +218,7 @@ contains
     double precision                                                                :: angularMomentumSpecificMean, normalizationRotation
 
     ! Check if node differs from previous one for which we performed calculations.
-    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     ! Check if specific angular momentum of cooling gas is already computed.
     if (.not.self%angularMomentumSpecificComputed) then
        ! Flag that cooling radius is now computed.
@@ -274,15 +274,18 @@ contains
     return
   end function constantRotationAngularMomentumSpecific
 
-  subroutine constantRotationCalculationReset(self,node)
+  subroutine constantRotationCalculationReset(self,node,uniqueID)
     !!{
     Reset the specific angular momentum of cooling gas calculation.
     !!}
+    use :: Kind_Numbers, only : kind_int8
     implicit none
-    class(coolingSpecificAngularMomentumConstantRotation), intent(inout) :: self
-    type (treeNode                                      ), intent(inout) :: node
+    class  (coolingSpecificAngularMomentumConstantRotation), intent(inout) :: self
+    type   (treeNode                                      ), intent(inout) :: node
+    integer(kind_int8                                     ), intent(in   ) :: uniqueID
+    !$GLC attributes unused :: node
 
     self%angularMomentumSpecificComputed=.false.
-    self%lastUniqueID                   =node%uniqueID()
+    self%lastUniqueID                   =uniqueID
     return
   end subroutine constantRotationCalculationReset

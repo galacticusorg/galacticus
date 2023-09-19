@@ -56,7 +56,7 @@ contains
 
     !![
     <include directive="calculationResetTask" type="functionCall" functionType="void">
-     <functionArgs>node</functionArgs>
+     <functionArgs>node,node%uniqueID()</functionArgs>
     !!]
     include 'calculation_reset.tasks.inc'
     !![
@@ -65,7 +65,7 @@ contains
 
     !![
     <eventHook name="calculationReset">
-     <callWith>node</callWith>
+     <callWith>node,node%uniqueID()</callWith>
     </eventHook>
     !!]
     return
