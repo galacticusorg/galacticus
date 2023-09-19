@@ -1,62 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1694813418964,
+  "lastUpdate": 1695091775855,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "c6538528d7165a7765add222e2a830bbcef77827",
-          "message": "Merge pull request #375 from galacticusorg/font2008PhysPlaus\n\nIn `hotHaloRamPressureStrippingFont2008` only solve ram pressure stripping for physically-plausible systems",
-          "timestamp": "2023-02-10T21:42:23Z",
-          "tree_id": "a82af3a6861ece24eca14dcce054e2e2006d2532",
-          "url": "https://github.com/galacticusorg/galacticus/commit/c6538528d7165a7765add222e2a830bbcef77827"
-        },
-        "date": 1676076018354,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Likelihood - localGroupMassMetallicityRelation",
-            "value": 4.439903738332,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupMassSizeRelation",
-            "value": 7.78521774416878,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupMassVelocityDispersionRelation",
-            "value": 1.35573635014961,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupOccupationFraction",
-            "value": 23.7431041256945,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupStellarMassFunction",
-            "value": 142.535108592588,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
-            "value": 4.72434381474404,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10644,6 +10590,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 1.32204863767182,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2c11769768762c96694def43cef28134e9856e9f",
+          "message": "Merge pull request #475 from galacticusorg/singleStepLabels\n\nAdd labeling of progenitor halo origins when using the `singleStep` build controller",
+          "timestamp": "2023-09-18T23:02:27Z",
+          "tree_id": "724e53c9d7489384be374b7f6b6c4c3c5e09e3c3",
+          "url": "https://github.com/galacticusorg/galacticus/commit/2c11769768762c96694def43cef28134e9856e9f"
+        },
+        "date": 1695091774588,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 214.385,
+            "unit": "seconds",
+            "range": 0.737146186315819
           }
         ]
       }
