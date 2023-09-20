@@ -37,6 +37,14 @@ sub Process_Enumerations {
 	    my $i                 = $indexing-1;
 	    $enumerationSource .= "  ! Auto-generated enumeration\n";
 	    $enumerationSource .= "  type, extends(enumerationType) :: enumeration".$node->{'directive'}->{'name'}."Type\n";
+	    $enumerationSource .= "  contains\n";
+	    $enumerationSource .= "    !![\n";
+	    $enumerationSource .= "    <methods>\n";
+	    $enumerationSource .= "      <method method=\"operator(==)\" description=\"Test the equality of two members of the enumeration.\"/>\n";
+	    $enumerationSource .= "    </methods>\n";
+	    $enumerationSource .= "    !!]\n";
+	    $enumerationSource .= "    procedure ::                  enumeration".$node->{'directive'}->{'name'}."IsEqual\n";
+	    $enumerationSource .= "    generic   :: operator(==) =>  enumeration".$node->{'directive'}->{'name'}."IsEqual\n";
 	    $enumerationSource .= "  end type enumeration".$node->{'directive'}->{'name'}."Type\n";
 	    $enumerationSource .= "  type(enumeration".$node->{'directive'}->{'name'}."Type), parameter, ".$visibility." :: ".$node->{'directive'}->{'name'}.ucfirst($_->{'label'})."=enumeration".$node->{'directive'}->{'name'}."Type(".++$i.")\n"
 		foreach ( &List::ExtraUtils::as_array($node->{'directive'}->{'entry'}) );
@@ -65,6 +73,25 @@ sub Process_Enumerations {
 	    my $enumerationTree = &Galacticus::Build::SourceTree::ParseCode($enumerationSource,"Galacticus::Build::SourceTree::Process::Enumeration()");
 	    my @enumerationNodes = &Galacticus::Build::SourceTree::Children($enumerationTree);
 	    &Galacticus::Build::SourceTree::InsertAfterNode($node,\@enumerationNodes);
+	    # Construct equality operator.
+	    my $functionName = "enumeration".ucfirst($node->{'directive'}->{'name'})."IsEqual";
+	    my $equalityFunction;
+	    $equalityFunction .= "\n";
+	    $equalityFunction .= "  ! Auto-generated enumeration function\n";
+	    $equalityFunction .= "  pure elemental logical function ".$functionName."(enumerationA,enumerationB) result(isEqual)\n";
+	    $equalityFunction .= "    !!{\n";
+	    $equalityFunction .= "    Validate a {\\normalfont \\ttfamily ".$node->{'directive'}->{'name'}."} enumeration value.\n";
+	    $equalityFunction .= "    !!}\n";
+	    $equalityFunction .= "    implicit none\n\n";
+	    $equalityFunction .= "    class(enumeration".$node->{'directive'}->{'name'}."Type), intent(in   ) :: enumerationA, enumerationB\n";
+	    $equalityFunction .= "    isEqual=enumerationA%ID == enumerationB%ID\n";
+	    $equalityFunction .= "    return\n";
+	    $equalityFunction .= "  end function ".$functionName."\n";
+	    $equalityFunction .= "  ! End auto-generated enumeration function\n";
+	    # Insert into the module.
+	    my $equalityTree = &Galacticus::Build::SourceTree::ParseCode($equalityFunction,"Galacticus::Build::SourceTree::Process::Enumeration()");
+	    my @equalityNodes = &Galacticus::Build::SourceTree::Children($equalityTree);
+	    &Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},\@equalityNodes);
 	    # Construct validator function as necessary.
 	    if ( $validator eq "yes" ) {
 		# Generate function code.
