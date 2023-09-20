@@ -38,6 +38,11 @@ sub Process_Enumerations {
 	    $enumerationSource .= "  ! Auto-generated enumeration\n";
 	    $enumerationSource .= "  type, extends(enumerationType) :: enumeration".$node->{'directive'}->{'name'}."Type\n";
 	    $enumerationSource .= "  contains\n";
+	    $enumerationSource .= "    !![\n";
+	    $enumerationSource .= "    <methods>\n";
+	    $enumerationSource .= "      <method method=\"operator(==)\" description=\"Test the equality of two members of the enumeration.\"/>\n";
+	    $enumerationSource .= "    </methods>\n";
+	    $enumerationSource .= "    !!]\n";
 	    $enumerationSource .= "    procedure ::                  enumeration".$node->{'directive'}->{'name'}."IsEqual\n";
 	    $enumerationSource .= "    generic   :: operator(==) =>  enumeration".$node->{'directive'}->{'name'}."IsEqual\n";
 	    $enumerationSource .= "  end type enumeration".$node->{'directive'}->{'name'}."Type\n";
