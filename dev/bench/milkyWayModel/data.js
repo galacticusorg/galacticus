@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1695263404148,
+  "lastUpdate": 1695263411379,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "6c39c5914b27d870f1465fff2f117631f7e6a149",
-          "message": "Merge pull request #379 from galacticusorg/linAlgMemoryLeak\n\nAvoid memory leaks with interpolators and matrices",
-          "timestamp": "2023-02-17T04:03:11Z",
-          "tree_id": "877820fc00d2fff92c170531a3689e9c6456d55d",
-          "url": "https://github.com/galacticusorg/galacticus/commit/6c39c5914b27d870f1465fff2f117631f7e6a149"
-        },
-        "date": 1676616347186,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 229.258,
-            "unit": "seconds",
-            "range": 1.94321270065846
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10620,6 +10590,60 @@ window.BENCHMARK_DATA = {
             "value": 250.36,
             "unit": "seconds",
             "range": 0.198982411278064
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "736fa7d2b150b43bc23cdb67ef92b5366df06cee",
+          "message": "Merge pull request #477 from galacticusorg/optimization\n\nGenerate custom equality operator for each enumeration",
+          "timestamp": "2023-09-20T23:11:39Z",
+          "tree_id": "bd9ad831db6bd6e1f9169848199172d24112190c",
+          "url": "https://github.com/galacticusorg/galacticus/commit/736fa7d2b150b43bc23cdb67ef92b5366df06cee"
+        },
+        "date": 1695263410540,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassMetallicityRelation",
+            "value": 3.36461935373672,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassSizeRelation",
+            "value": 8.7151401559154,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassVelocityDispersionRelation",
+            "value": 1.16008929828541,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupOccupationFraction",
+            "value": 23.9466564713043,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassFunction",
+            "value": 69.3818874703465,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
+            "value": 9.9418741682224,
+            "unit": "-logℒ"
           }
         ]
       }
