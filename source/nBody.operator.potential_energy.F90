@@ -193,6 +193,7 @@ contains
              ! Build octree.
              call octreePosition%build(positionRescaled,dble(selfBoundStatus(:,i)))
              !$omp parallel private(j)
+             !$omp do schedule(dynamic)
              do j=1,particleCount
                 if (selfBoundStatus(j,i) > 0 ) then
                    call octreePosition%traverseCompute(positionRescaled(:,j),dble(selfBoundStatus(j,i)),self%thetaTolerance,potentialEnergy(j,i),potentialEnergyPotential)
@@ -205,6 +206,7 @@ contains
                         &               /(dble(particleCount-1_c_size_t)-self%bootstrapSampleRate)
                 end if
              end do
+             !$omp end do
              !$omp end parallel
              ! Destroy the octree.
              call octreePosition%destroy()
