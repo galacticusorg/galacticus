@@ -10443,7 +10443,7 @@ jobs:
              Test-Inactive-Luminosities,
              Test-Interoutput-Star-Formation-Rate,
              Test-Mass-Host-Maximum,
-             Test-Noninstantaneous_Recycling,
+             Test-Noninstantaneous-Recycling,
              Test-Satellite-Distance-Minimum,
              Test-Tree-Filter-Labels,
              Test-Constrained-Merger-Trees,
