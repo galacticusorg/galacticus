@@ -470,5 +470,5 @@
    <countRedshifts value="10"/>
  
 </outputTimes>
-  <outputFileName value="testSuite/outputs/noninstantaneoys_recycling.hdf5"/>
+  <outputFileName value="testSuite/outputs/noninstantaneous_recycling.hdf5"/>
 </parameters>
