@@ -6778,9 +6778,9 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           cd testSuite
-          chmod u=wrx ./test-noninstantaneous_recycling.pl
+          chmod u=wrx ./test-noninstantaneous-recycling.pl
           set -o pipefail
-          ./test-noninstantaneous_recycling.pl 2>&1 | tee test.log
+          ./test-noninstantaneous-recycling.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Test-Satellite-Distance-Minimum:
