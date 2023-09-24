@@ -190,6 +190,7 @@ contains
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
+
       <name>metalYield</name>
       <defaultValue>0.0d0</defaultValue>
       <description>The metal yield to use in the instantaneous stellar evolution approximation. (If not specified it will be computed internally.)</description>
@@ -376,7 +377,7 @@ contains
     type            (integratorCompositeGaussKronrod1D)                        :: integrator_
     integer                                                                    :: fileFormat        , iAge            , &
          &                                                                        iMetallicity      , loopCount       , &
-         &                                                                        loopCountTotal    , i
+          &                                                                        loopCountTotal    , i
     double precision                                                           :: maximumMass       , minimumMass     , &
          &                                                                        metallicity
     type            (hdf5Object                       )                        :: file              , dataset
@@ -450,7 +451,7 @@ contains
                &            *tableAgeCount
           loopCount      =   0
           self_          =>  self
-          !$omp parallel private (iAge,iMetallicity,progressMessage,minimumMass,maximumMass,integrator_) copyin(self_)
+          !$omp parallel private (iAge,iMetallicity,progressMessage,minimumMass,maximumMass,integrator_) copyin(self_,indexElement_)
           allocate(stellarAstrophysics_,mold=self%stellarAstrophysics_)
           allocate(initialMassFunction_,mold=self%initialMassFunction_)
           allocate(stellarFeedback_    ,mold=self%stellarFeedback_    )
