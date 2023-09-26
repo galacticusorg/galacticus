@@ -1,36 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1695712624403,
+  "lastUpdate": 1695745007121,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "committer": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "id": "5df11a52eb6d0323b8ed5cf4a54d5c66442cec4b",
-          "message": "fix: Avoid floating point exceptions for empty mass distributions",
-          "timestamp": "2023-02-22T14:54:24Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/5df11a52eb6d0323b8ed5cf4a54d5c66442cec4b"
-        },
-        "date": 1677089037847,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 51.415,
-            "unit": "seconds",
-            "range": 0.0724327274097912
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8724,6 +8696,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 23470.8962465313,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": false,
+          "id": "ceb37911054a39d4fffe7855ba9050094ddab31f",
+          "message": "Merge pull request #480 from galacticusorg/sourceDigestFix\n\nEnsure source digests are updated",
+          "timestamp": "2023-09-26T13:16:37Z",
+          "tree_id": "f9663af3d536968c3c5881e78426ef2979a120df",
+          "url": "https://github.com/galacticusorg/galacticus/commit/ceb37911054a39d4fffe7855ba9050094ddab31f"
+        },
+        "date": 1695745004713,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 53.556,
+            "unit": "seconds",
+            "range": 0.0350770580298761
           }
         ]
       }
