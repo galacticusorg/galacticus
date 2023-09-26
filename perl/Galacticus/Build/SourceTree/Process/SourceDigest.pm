@@ -113,12 +113,12 @@ sub Find_Hash {
 			    if ( -e $sourceFileName ) {
 				print "    => Dependency file: ".$sourceFileName."\n"
 				    if ( $options{'report'} );
-				unless ( exists($digests{$sourceFileName}) ) {
+				(my $md5FileName = $sourceFileName) =~ s/^source//;
+				$md5FileName = $ENV{'BUILDPATH'}.$md5FileName.".md5";
+				if ( ! exists($digests{$sourceFileName}) ) {
 				    # Determine if we can used a stored value of the hash.
-				    (my $md5FileName = $sourceFileName) =~ s/^source//;
-				    $md5FileName = $ENV{'BUILDPATH'}.$md5FileName.".md5";
 				    $useStoredCompositeHash = 0
-					unless ( -e $md5FileName && &modificationTime($hashFileName) > &modificationTime($md5FileName) );
+					unless ( -e $md5FileName && &modificationTime($hashFileName) > &modificationTime($md5FileName) && &modificationTime($md5FileName) > &modificationTime($sourceFileName) );
 				    if ( $options{'report'} ) {
 					if ( $useStoredCompositeHash ) {
 					    print "     => Can use stored hash: "    .$sourceFileName."\n";
@@ -127,8 +127,15 @@ sub Find_Hash {
 					}
 				    }
 				} else {
-				    print "     => Digest pre-exists\n"
-					if ( $options{'report'} );
+				    $useStoredCompositeHash = 0
+					unless ( &modificationTime($hashFileName) > &modificationTime($md5FileName) );
+				    if ( $options{'report'} ) {
+					if ( $useStoredCompositeHash ) {
+					    print "     => Digest pre-exists\n";
+					} else {
+					    print "     => Digest pre-exists but is outdated\n";
+					}
+				    }
 				}
 			    }
 			}
