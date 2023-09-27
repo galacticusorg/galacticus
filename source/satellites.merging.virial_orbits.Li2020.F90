@@ -234,7 +234,15 @@ contains
     ! Create virial density contrast definition.
     allocate(self%virialDensityContrastDefinition_)
     !![
-    <referenceConstruct isResult="yes" owner="self" object="virialDensityContrastDefinition_" constructor="virialDensityContrastBryanNorman1998(self%cosmologyParameters_,self%cosmologyFunctions_)"/>
+    <referenceConstruct isResult="yes" owner="self" object="virialDensityContrastDefinition_">
+      <constructor>
+        virialDensityContrastBryanNorman1998(                                                     &amp;
+         &amp;                               allowUnsupportedCosmology=     .true.              , &amp;
+         &amp;                               cosmologyParameters_     =self%cosmologyParameters_, &amp;
+         &amp;                               cosmologyFunctions_      =self%cosmologyFunctions_   &amp;
+         &amp;                              )
+      </constructor>
+    </referenceConstruct>
     !!]
     return
   end function li2020ConstructorInternal

@@ -346,11 +346,11 @@ contains
     ! lower by a factor Ωₘ^⅙ than they should be. We explicitly account for this factor when computing virial velocity below.
     allocate(virialDensityContrastData                             )
     !![
-    <referenceConstruct object="virialDensityContrastData"                              constructor="virialDensityContrastBryanNorman1998                  (cosmologyParametersData      ,cosmologyFunctionsData                              )"/>
+    <referenceConstruct object="virialDensityContrastData"                              constructor="virialDensityContrastBryanNorman1998                  (.false.,cosmologyParametersData      ,cosmologyFunctionsData                              )"/>
     !!]
     allocate(darkMatterHaloScaleData)
     !![
-    <referenceConstruct object="darkMatterHaloScaleData"                                constructor="darkMatterHaloScaleVirialDensityContrastDefinition    (cosmologyParametersData      ,cosmologyFunctionsData    ,virialDensityContrastData)"/>
+    <referenceConstruct object="darkMatterHaloScaleData"                                constructor="darkMatterHaloScaleVirialDensityContrastDefinition    (       cosmologyParametersData      ,cosmologyFunctionsData    ,virialDensityContrastData)"/>
     !!]
     ! Generate the target dataset.
     allocate(massHILogarithmicTarget          (massHaloCount              ))

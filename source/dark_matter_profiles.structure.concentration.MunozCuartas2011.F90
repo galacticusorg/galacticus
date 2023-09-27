@@ -120,6 +120,7 @@ contains
     <referenceConstruct owner="self" object="virialDensityContrastDefinition_">
      <constructor>
       virialDensityContrastBryanNorman1998              (                                                                            &amp;
+       &amp;                                             allowUnsupportedCosmology           =     .true.                          , &amp;
        &amp;                                             cosmologyParameters_                =self%cosmologyParameters_            , &amp;
        &amp;                                             cosmologyFunctions_                 =self%cosmologyFunctions_               &amp;
        &amp;                                            )
