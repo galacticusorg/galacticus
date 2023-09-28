@@ -165,18 +165,20 @@ contains
     type            (multiCounter                               ), intent(inout), optional     :: instance
     class           (nodeComponentDarkMatterProfile             ), pointer                     :: darkMatterProfile
     class           (nodeComponentSatellite                     ), pointer                     :: satellite
-    double precision                                             , allocatable  , dimension(:) :: radii                     , fractionDensity
+    double precision                                             , allocatable  , dimension(:) :: radii                                          , fractionDensity
     type            (multiDMinimizer                            ), allocatable                 :: minimizer_
     double precision                                                            , dimension(1) :: locationMinimum
-    double precision                                             , parameter                   :: fractionRadiusOuter=0.95d0, fractionRadiusScale=0.1d0, &
-         &                                                                                        fractionMaximum    =0.10d0, fractionStep       =0.1d0
-    integer                                                      , parameter                   :: countRadiiPerDecade=10
-    integer                                                                                    :: countRadii                , i                        , &
-         &                                                                                        iteration
+    double precision                                             , parameter                   :: fractionRadiusScale                      =0.1d0, fractionMaximum    =0.1d0, & 
+         &                                                                                        radiusMaximumFractionDensityVirialMinimum=0.1d0, fractionStep       =0.1d0, &
+         &                                                                                        radiusMaximumScaleVirialMaximum          =1.0d1
+    integer                                                      , parameter                   :: radiusMaximumCountRadiiPerDecade         =10   , countRadiiPerDecade=10  
+    integer                                                                                    :: countRadii                                     , i                        , &
+         &                                                                                        iteration                                      , radiusMaximumCountRadii
     logical                                                                                    :: converged
-    double precision                                                                           :: radiusOuter               , massTotal                , &
-         &                                                                                        radiusMinimum             , radiusMaximum            , &
-         &                                                                                        radiusScale               , radiusVirial
+    double precision                                                                           :: radiusOuter                                    , massTotal                , &
+         &                                                                                        radiusMinimum                                  , radiusMaximum            , &
+         &                                                                                        radiusScale                                    , radiusVirial             , &
+         &                                                                                        radiusMaximumFractionDensityVirial             , factorStepRadius
     !$GLC attributes unused :: instance
 
     allocate(tidallyTruncatedNFWFitExtract(3))
@@ -190,8 +192,18 @@ contains
        radiusScale  =  darkMatterProfile                     %scale              (                                              )
        radiusVirial =  self             %darkMatterHaloScale_%radiusVirial       (node                                          )
        ! Choose radii for fitting.
-       radiusMaximum=    fractionRadiusOuter*radiusOuter
-       radiusMinimum=min(fractionRadiusScale*radiusScale,fractionMaximum*radiusMaximum)
+       radiusMaximum=radiusVirial
+       if (radiusOuter > radiusVirial) then
+           radiusMaximumCountRadii=int(log10(radiusMaximumScaleVirialMaximum)*dble(radiusMaximumCountRadiiPerDecade)+1.0d0)
+           factorStepRadius       =    log10(radiusMaximumScaleVirialMaximum)/dble(radiusMaximumCountRadii         ) 
+           do i=1,radiusMaximumCountRadii
+             radiusMaximum                     =10.0d0**(log10(radiusVirial)+factorStepRadius*dble(i))
+             radiusMaximumFractionDensityVirial=+self%darkMatterProfileDMO_%density(node,radiusMaximum) &
+                    &                           /self%darkMatterProfileDMO_%density(node,radiusVirial )
+              if (radiusMaximumFractionDensityVirial < radiusMaximumFractionDensityVirialMinimum) exit
+           end do 
+       end if 
+       radiusMinimum=min(fractionRadiusScale*radiusScale,fractionMaximum*radiusMaximum,fractionMaximum*radiusOuter)
        countRadii   =int(log10(radiusMaximum/radiusMinimum)*dble(countRadiiPerDecade)+1.0d0)
        radii        =Make_Range(radiusMinimum,radiusMaximum,countRadii,rangeTypeLogarithmic)
        ! Tabulate the density ratio relative to an NFW profile.
