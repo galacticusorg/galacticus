@@ -193,9 +193,8 @@ contains
        radiusScale  =  darkMatterProfile                     %scale              (                                              )
        radiusVirial =  self             %darkMatterHaloScale_%radiusVirial       (node                                          )
        ! Choose radii for fitting.
-       if (radiusOuter <= radiusVirial) then
-           radiusMaximum=radiusVirial
-       else
+       radiusMaximum=radiusVirial
+       if (radiusOuter > radiusVirial) then
            radiusMaxiumCountRadii=int(log10(radiusMaximumScaleVirialMaximum)*dble(radiusMaximumCountRadiiPerDecade)+1.0d0)
            step                  =log10(radiusMaximumScaleVirialMaximum)/dble(radiusMaxiumCountRadii) 
            do n=1,radiusMaxiumCountRadii
