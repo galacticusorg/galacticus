@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1695941959118,
+  "lastUpdate": 1695941967046,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "c92abfa868f500de89dd190dc8329b96df64219e",
-          "message": "Merge pull request #386 from galacticusorg/dependencies\n\nUse a file to store dependency versions",
-          "timestamp": "2023-02-25T16:43:43Z",
-          "tree_id": "59751bd8805093a1dcdfdb639eb8391c74873a67",
-          "url": "https://github.com/galacticusorg/galacticus/commit/c92abfa868f500de89dd190dc8329b96df64219e"
-        },
-        "date": 1677359083831,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 216.917,
-            "unit": "seconds",
-            "range": 0.202524319527258
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10624,6 +10594,60 @@ window.BENCHMARK_DATA = {
             "value": 242.19,
             "unit": "seconds",
             "range": 0.457628670430354
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "563a05278a954caba9f81b617d8bece9800c5cb4",
+          "message": "Merge pull request #483 from cgannonucm/tidally_truncated_improvement\n\nImprovements to the Radial Range that Subhalo Density Profiles are Tabulated when Fitting TNFW Profile",
+          "timestamp": "2023-09-28T19:11:30Z",
+          "tree_id": "869f3c09f051317a0b634f10f933ea66c1032e7f",
+          "url": "https://github.com/galacticusorg/galacticus/commit/563a05278a954caba9f81b617d8bece9800c5cb4"
+        },
+        "date": 1695941966017,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassMetallicityRelation",
+            "value": 2.95014513235564,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassSizeRelation",
+            "value": 8.66026481258829,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassVelocityDispersionRelation",
+            "value": 1.1512787904706,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupOccupationFraction",
+            "value": 24.3150443734923,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassFunction",
+            "value": 72.1724829562187,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
+            "value": 10.7592151656849,
+            "unit": "-logℒ"
           }
         ]
       }
