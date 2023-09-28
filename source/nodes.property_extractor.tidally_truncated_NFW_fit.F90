@@ -168,18 +168,17 @@ contains
     double precision                                             , allocatable  , dimension(:) :: radii                                          , fractionDensity
     type            (multiDMinimizer                            ), allocatable                 :: minimizer_
     double precision                                                            , dimension(1) :: locationMinimum
-    double precision                                             , parameter                   :: fractionRadiusScale                      =0.1d0, fractionMaximum=0.10d0, & 
-         &                                                                                        radiusMaximumFractionDensityVirialMinimum=0.1d0, fractionStep   =0.1d0 , &
-         &                                                                                        radiusMaximumScaleVirialMaximum          =1.0d1 
+    double precision                                             , parameter                   :: fractionRadiusScale                      =0.1d0, fractionMaximum    =0.1d0, & 
+         &                                                                                        radiusMaximumFractionDensityVirialMinimum=0.1d0, fractionStep       =0.1d0, &
+         &                                                                                        radiusMaximumScaleVirialMaximum          =1.0d1
     integer                                                      , parameter                   :: radiusMaximumCountRadiiPerDecade         =10   , countRadiiPerDecade=10  
-    integer                                                                                    :: countRadii                                     , i                     , &
-         &                                                                                        iteration                                      , n                     , &
-         &                                                                                        radiusMaxiumCountRadii
+    integer                                                                                    :: countRadii                                     , i                        , &
+         &                                                                                        iteration                                      , radiusMaximumCountRadii
     logical                                                                                    :: converged
-    double precision                                                                           :: radiusOuter                                    , massTotal             , &
-         &                                                                                        radiusMinimum                                  , radiusMaximum         , &
-         &                                                                                        radiusScale                                    , radiusVirial          , &
-         &                                                                                        radiusMaximumFractionDensityVirial             , step
+    double precision                                                                           :: radiusOuter                                    , massTotal                , &
+         &                                                                                        radiusMinimum                                  , radiusMaximum            , &
+         &                                                                                        radiusScale                                    , radiusVirial             , &
+         &                                                                                        radiusMaximumFractionDensityVirial             , factorStepRadius
     !$GLC attributes unused :: instance
 
     allocate(tidallyTruncatedNFWFitExtract(3))
@@ -195,13 +194,12 @@ contains
        ! Choose radii for fitting.
        radiusMaximum=radiusVirial
        if (radiusOuter > radiusVirial) then
-           radiusMaxiumCountRadii=int(log10(radiusMaximumScaleVirialMaximum)*dble(radiusMaximumCountRadiiPerDecade)+1.0d0)
-           step                  =log10(radiusMaximumScaleVirialMaximum)/dble(radiusMaxiumCountRadii) 
-           do n=1,radiusMaxiumCountRadii
-             radiusMaximum                     =10**(log10(radiusVirial)+step*dble(i))
+           radiusMaximumCountRadii=int(log10(radiusMaximumScaleVirialMaximum)*dble(radiusMaximumCountRadiiPerDecade)+1.0d0)
+           factorStepRadius       =    log10(radiusMaximumScaleVirialMaximum)/dble(radiusMaximumCountRadii         ) 
+           do i=1,radiusMaximumCountRadii
+             radiusMaximum                     =10.0d0**(log10(radiusVirial)+factorStepRadius*dble(i))
              radiusMaximumFractionDensityVirial=+self%darkMatterProfileDMO_%density(node,radiusMaximum) &
                     &                           /self%darkMatterProfileDMO_%density(node,radiusVirial )
-
               if (radiusMaximumFractionDensityVirial < radiusMaximumFractionDensityVirialMinimum) exit
            end do 
        end if 
