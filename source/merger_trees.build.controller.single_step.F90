@@ -41,6 +41,8 @@ Contains a module which implements a merger tree build controller class which li
      class           (criticalOverdensityClass      ), pointer :: criticalOverdensity_       => null()
      double precision                                          :: redshiftStep                        , criticalOverdensityStep
      logical                                                   :: haltAfterStep
+     integer                                                   :: primaryLabelID                      , secondaryLabelID       , &
+          &                                                       smoothLabelID
    contains
      final     ::                               singleStepDestructor
      procedure :: control                    => singleStepControl
@@ -112,6 +114,7 @@ contains
     !!{
     Internal constructor for the ``singleStep'' merger tree build controller class .
     !!}
+    use :: Nodes_Labels, only : nodeLabelRegister
     implicit none
     type            (mergerTreeBuildControllerSingleStep)                        :: self
     double precision                                     , intent(in   )         :: criticalOverdensityStep
@@ -124,13 +127,16 @@ contains
     <constructorAssign variables="criticalOverdensityStep, haltAfterStep, *cosmologyFunctions_, *criticalOverdensity_, *linearGrowth_, *mergerTreeBuildController_"/>
     !!]
 
-    self%redshiftStep=self%cosmologyFunctions_ %redshiftFromExpansionFactor(                          &
-         &            self%cosmologyFunctions_ %expansionFactor             (                         &
-         &            self%criticalOverdensity_%timeOfCollapse               (                        &
-         &                                                                    criticalOverdensityStep &
-         &                                                                   )                        &
-         &                                                                  )                         &
-         &                                                                 )
+    self%redshiftStep    =self%cosmologyFunctions_ %redshiftFromExpansionFactor(                          &
+         &                self%cosmologyFunctions_ %expansionFactor             (                         &
+         &                self%criticalOverdensity_%timeOfCollapse               (                        &
+         &                                                                        criticalOverdensityStep &
+         &                                                                       )                        &
+         &                                                                      )                         &
+         &                                                                     )
+    self%  primaryLabelID=nodeLabelRegister('progenitorFirst' ,'Identifies progenitors that were sampled first from the progenitor mass distribution.' )
+    self%secondaryLabelID=nodeLabelRegister('progenitorSecond','Identifies progenitors that were sampled second from the progenitor mass distribution.')
+    self%   smoothLabelID=nodeLabelRegister('progenitorSmooth','Identifies progenitors resulting from smooth/sub-resolution accretion.'                )
     return
   end function singleStepConstructorInternal
 
@@ -235,6 +241,7 @@ contains
     nodeNew  %sibling    => null()
     call basic%massSet(massBranch               )
     call basic%timeSet(criticalOverdensityBranch)
+    call nodeLabelSet(self%smoothLabelID,nodeNew)  
     ! Return false indicating that the current node is finished, so building should continue from its progenitor nodes.
     singleStepControlTimeMaximum=.false.
     return
@@ -253,15 +260,27 @@ contains
     return
   end function singleStepBranchingProbabilityObject
 
-  subroutine singleStepNodesInserted(self,nodeCurrent,nodeProgenitor1,nodeProgenitor2)
+  subroutine singleStepNodesInserted(self,nodeCurrent,nodeProgenitor1,nodeProgenitor2,didBranch)
     !!{
     Act on the insertion of nodes into the merger tree.
     !!}
+    use :: Nodes_Labels, only : nodeLabelSet
     implicit none
-    class(mergerTreeBuildControllerSingleStep), intent(inout)           :: self
-    type (treeNode                           ), intent(inout)           :: nodeCurrent    , nodeProgenitor1
-    type (treeNode                           ), intent(inout), optional :: nodeProgenitor2
-
+    class  (mergerTreeBuildControllerSingleStep), intent(inout)           :: self
+    type   (treeNode                           ), intent(inout)           :: nodeCurrent    , nodeProgenitor1
+    type   (treeNode                           ), intent(inout), optional :: nodeProgenitor2
+    logical                                     , intent(in   ), optional :: didBranch
+    !![
+    <optionalArgument name="didBranch" defaultsTo=".false."/>
+    !!]
+    
     call self%mergerTreeBuildController_%nodesInserted(nodeCurrent,nodeProgenitor1,nodeProgenitor2)
+    if (didBranch_) then
+       call        nodeLabelSet(self%  primaryLabelID,nodeProgenitor1)
+       if (present(nodeProgenitor2))                                   &
+            & call nodeLabelSet(self%secondaryLabelID,nodeProgenitor2)
+    else
+       call        nodeLabelSet(self%   smoothLabelID,nodeProgenitor1)  
+    end if
     return
   end subroutine singleStepNodesInserted

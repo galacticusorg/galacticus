@@ -295,18 +295,24 @@ contains
     return
   end subroutine rotationCurveDescriptions
 
-  subroutine rotationCurveColumnDescriptions(self,descriptions,time)
+  subroutine rotationCurveColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnitsInSI,time)
     !!{
     Return column descriptions of the {\normalfont \ttfamily rotationCurve} property.
     !!}
     implicit none
-    class           (nodePropertyExtractorRotationCurve), intent(inout)                             :: self
-    double precision                                    , intent(in   ), optional                   :: time
-    type            (varying_string                    ), intent(inout), dimension(:) , allocatable :: descriptions
+    class           (nodePropertyExtractorRotationCurve), intent(inout)                            :: self
+    double precision                                    , intent(in   ), optional                  :: time
+    type            (varying_string                    ), intent(inout), dimension(:), allocatable :: descriptions
+    double precision                                    , intent(inout), dimension(:), allocatable :: values
+    type            (varying_string                    ), intent(  out)                            :: valuesDescription
+    double precision                                    , intent(  out)                            :: valuesUnitsInSI
     !$GLC attributes unused :: time
 
     allocate(descriptions(self%radiiCount))
-    descriptions=self%radii%name
+    allocate(values      (              0))
+    valuesDescription=var_str('')
+    valuesUnitsInSI  =0.0d0
+    descriptions     =self%radii%name
     return
   end subroutine rotationCurveColumnDescriptions
 

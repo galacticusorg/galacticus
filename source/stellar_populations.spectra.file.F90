@@ -389,8 +389,8 @@ contains
     implicit none
     class(spectralTable), intent(inout) :: self
 
-    call self%interpolatorAge        %GSLReallocate(gslFree=.false.)
-    call self%interpolatorMetallicity%GSLReallocate(gslFree=.false.)
-    call self%interpolatorWavelength %GSLReallocate(gslFree=.false.)
+    call self%interpolatorAge        %GSLReallocate()
+    call self%interpolatorMetallicity%GSLReallocate()
+    call self%interpolatorWavelength %GSLReallocate()
     return
   end subroutine spectralTableInterpolatorsDeepCopy

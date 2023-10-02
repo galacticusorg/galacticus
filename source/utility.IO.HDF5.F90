@@ -45,7 +45,7 @@ module IO_HDF5
 #endif
 
   ! Record of initialization of this module.
-  logical                                                :: hdf5IsInitalized          =.false.
+  logical                                                :: hdf5IsInitialized         =.false.
   integer                                                :: initializationsCount      =0
 
   ! Type of HDF5 objects.
@@ -504,7 +504,7 @@ contains
           if (errorCode < 0) call Error_Report('failed to close vlen integer8 datatype'   //{introspection:location})
           call h5close_f (                   errorCode)
           if (errorCode < 0) call Error_Report('failed to uninitialize HDF5 subsystem'    //{introspection:location})
-          hdf5IsInitalized=.false.
+          hdf5IsInitialized=.false.
        end if
     end if
     return
@@ -14876,7 +14876,7 @@ contains
     type            (hdset_reg_ref_t_f), save       , target                                  :: referencedRegion
     integer                                                                                   :: errorCode
     integer         (kind=HSIZE_T     )                                                       :: i                 , j
-    integer         (kind=HID_T       )                                                       :: datasetDataspaceID, dereferencedObjectID    , &
+    integer         (kind=HID_T       )                                                       :: datasetDataspaceID, dereferencedObjectID, &
          &                                                                                       memorySpaceID     , storedDatasetID
     logical                                                                                   :: isReference       , readSubsection
     type            (hdf5Object       )                                                       :: datasetObject
@@ -14948,20 +14948,13 @@ contains
           message="dataset name was not supplied for object '"//self%objectName//"'"
           call Error_Report(message//{introspection:location})
        end if
-       ! Record if dataset already exists.
-       preExisted=self%hasDataset(datasetName)
-       ! Open the dataset.
-       datasetObject=self%openDataset(datasetName,commentText,hdf5DataTypeVlenDouble,datasetDimensions,appendTo&
-            &=appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel)
-       ! Check that pre-existing object is a 1D double.
-       if (preExisted) call datasetObject%assertDatasetType(H5T_VLEN_DOUBLE,1)
-       ! If this dataset if not overwritable, report an error.
-       if (preExisted.and..not.(datasetObject%isOverwritable.or.appendToActual)) then
-          message="dataset '"//trim(datasetName)//"' is not overwritable"
+       ! Check that the dataset exists.
+       if (.not.self%hasDataset(datasetName)) then
+          message="dataset '"//trim(datasetName)//"' does not exist in '"//self%objectName//"'"
           call Error_Report(message//{introspection:location})
        end if
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
+       datasetObject=self%openDataset(datasetName)
     end if
 
     ! Check if the dataset is a reference.
@@ -15229,21 +15222,15 @@ contains
     end if
 
     ! Determine how to close the object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
-       ! Input was not a dataset object, so just close it.
-       call datasetObject%close()
-    else
-       ! Input was a dataset object. Test if it was a reference.
-       if (datasetObject%isReference()) then
-          ! It was, so close the referenced dataset.
-          call h5dclose_f(datasetObject%objectID,errorCode)
-          if (errorCode < 0) then
-             message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
-          end if
-          ! Restore the object ID of the original dataset.
-          self%objectID=storedDatasetID
+    if (self%hdf5ObjectType == hdf5ObjectTypeDataset .and. datasetObject%isReference()) then
+       ! It was, so close the referenced dataset.
+       call h5dclose_f(datasetObject%objectID,errorCode)
+       if (errorCode < 0) then
+          message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
+          call Error_Report(message//{introspection:location})
        end if
+       ! Restore the object ID of the original dataset.
+       self%objectID=storedDatasetID
     end if
     return
   end subroutine IO_HDF5_Read_Dataset_VarDouble_3D_Array_Allocatable
@@ -15606,13 +15593,7 @@ contains
     end if
 
     ! Copy the dataset to return if necessary.
-    if (present(datasetReturned)) then
-       datasetReturned=datasetObject
-    else
-       ! Close the dataset unless this was an dataset object and it was not requested to be returned.
-       if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) call datasetObject%close()
-    end if
-
+    if (present(datasetReturned)) datasetReturned=datasetObject
     return
   end subroutine IO_HDF5_Write_Dataset_VarDouble_3D
 

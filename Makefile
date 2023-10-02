@@ -186,7 +186,7 @@ $(BUILDPATH)/%.o : $(BUILDPATH)/%.p.F90 $(BUILDPATH)/%.m $(BUILDPATH)/%.d $(BUIL
 
 # Rule for building include file with preprocessor directives to detect OS. For some reason gfortran does not define these automatically.
 $(BUILDPATH)/os.inc:
-	$(CCOMPILER) -dM -E - < /dev/null | grep -e __APPLE__ -e __linux__ > $(BUILDPATH)/os.inc
+	$(CCOMPILER) -dM -E - < /dev/null | grep -e __APPLE__ -e __linux__ -e __aarch64__ > $(BUILDPATH)/os.inc
 
 # Rules for building HDF5 C interoperability types data file.
 $(BUILDPATH)/hdf5FCInterop.dat  : $(BUILDPATH)/hdf5FCInterop.exe $(BUILDPATH)/hdf5FCInteropC.exe

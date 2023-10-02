@@ -26,13 +26,17 @@ module Output_HDF5_Open
   Handles opening of the \glc\ output file.
   !!}
   use :: ISO_Varying_String, only : varying_string
+  use :: Error             , only : errorStatusSuccess
   implicit none
   private
-  public :: Output_HDF5_Open_File, Output_HDF5_Close_File
+  public :: Output_HDF5_Open_File, Output_HDF5_Close_File, Output_HDF5_Completion_Status
 
   ! Output file name.
-  type(varying_string) :: outputFileName, outputScratchFileName
+  type   (varying_string) :: outputFileName                     , outputScratchFileName
 
+  ! Completion status.
+  integer                 :: statusCompletion=errorStatusSuccess
+ 
 contains
 
   subroutine Output_HDF5_Open_File(parameters)
@@ -216,7 +220,7 @@ contains
           !!]
           ! Close the file.
           !$ call hdf5Access%set()
-          call outputFile%writeAttribute(1,"galacticusCompleted")
+          call outputFile%writeAttribute(statusCompletion,"statusCompletion")
           !$ call hdf5Access%unset()
           ! Move the scratch file to the final file if necessary.
           if (outputFileName /= outputScratchFileName) call File_Rename(outputScratchFileName,outputFileName,overwrite=.true.)
@@ -228,4 +232,15 @@ contains
     return
   end subroutine Output_HDF5_Close_File
 
+  subroutine Output_HDF5_Completion_Status(status)
+    !!{
+    Set the completion status.
+    !!}
+    implicit none
+    integer, intent(in   ) :: status
+
+    statusCompletion=status
+    return
+  end subroutine Output_HDF5_Completion_Status
+  
 end module Output_HDF5_Open

@@ -948,7 +948,7 @@ contains
     energy         =orbit%energy         ()
     angularMomentum=orbit%angularMomentum()
     ! Compute velocity components.
-    newVelocityTangential=angularMomentum/newRadius
+    newVelocityTangential=angularMomentum/newRadius/orbit%specificReducedMass()
     newVelocityRadial    =sqrt(2.0d0*(energy+gravitationalConstantGalacticus*orbit%massHost()/newRadius)/orbit%specificReducedMass()-newVelocityTangential**2)
     ! Move to the infalling phase of the orbit if requested.
     if (present(infalling)) then

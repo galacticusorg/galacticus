@@ -288,17 +288,20 @@ contains
     return
   end subroutine burkertDestructor
 
-  subroutine burkertCalculationReset(self,node)
+  subroutine burkertCalculationReset(self,node,uniqueID)
     !!{
     Reset the dark matter profile calculation.
     !!}
+    use :: Kind_Numbers, only : kind_int8
     implicit none
-    class(darkMatterProfileDMOBurkert), intent(inout) :: self
-    type (treeNode                   ), intent(inout) :: node
+    class  (darkMatterProfileDMOBurkert), intent(inout) :: self
+    type   (treeNode                   ), intent(inout) :: node
+    integer(kind_int8                  ), intent(in   ) :: uniqueID
+    !$GLC attributes unused :: node
 
     self%specificAngularMomentumScalingsComputed=.false.
     self%maximumVelocityComputed                =.false.
-    self%lastUniqueID                           =node%uniqueID()
+    self%lastUniqueID                           =uniqueID
     return
   end subroutine burkertCalculationReset
 
@@ -553,7 +556,7 @@ contains
     double precision                                                :: scaleRadius
 
     ! Check if node differs from previous one for which we performed calculations.
-    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     ! Check if maximum velocity is already computed. Compute and store if not.
     if (.not.self%maximumVelocityComputed) then
        darkMatterProfile            => node             %darkMatterProfile(autoCreate=.true.                          )
@@ -638,7 +641,7 @@ contains
        return
     end if
     ! Check if node differs from previous one for which we performed calculations.
-    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     ! Check if scalings are already computed. Compute and store if not.
     if (.not.self%specificAngularMomentumScalingsComputed) then
        ! Flag that scale quantities are now computed.

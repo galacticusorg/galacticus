@@ -157,7 +157,9 @@
           &                                                                             metallicityPrevious              , temperaturePrevious        , &
           &                                                                             electronDensitySlopePrevious     , metallicitySlopePrevious   , &
           &                                                                             temperatureSlopePrevious         , metallicityChemicalPrevious, &
-          &                                                                             temperatureChemicalPrevious
+          &                                                                             temperatureChemicalPrevious      , hMetallicityPrevious       , &
+          &                                                                             hTemperaturePrevious
+     integer         (c_size_t                        )                              :: iMetallicityPrevious             , iTemperaturePrevious
      type            (chemicalAbundances              )                              :: chemicalDensitiesPrevious
      double precision                                  , allocatable, dimension(:  ) :: metallicities                    , temperatures
      double precision                                  , allocatable, dimension(:,:) :: densityElectron                  , densityHydrogenAtomic      , &
@@ -168,9 +170,9 @@
    contains
      !![
      <methods>
-       <method description="Read the named chemical state file." method="readFile" />
-       <method description="Compute interpolating factors in a CIE chemical state file." method="interpolatingFactors" />
-       <method description="Interpolate in the given density table." method="interpolate" />
+       <method description="Read the named chemical state file."                         method="readFile"            />
+       <method description="Compute interpolating factors in a CIE chemical state file." method="interpolatingFactors"/>
+       <method description="Interpolate in the given density table."                     method="interpolate"         />
      </methods>
      !!]
      procedure :: readFile                           => cieFileReadFile
@@ -552,41 +554,48 @@ contains
     double precision                      , intent(  out) :: hMetallicity  , hTemperature
     double precision                                      :: metallicityUse, temperatureUse
 
-    ! Copy the input parameters.
-    temperatureUse=    temperature
-    metallicityUse=max(metallicity,0.0d0)
     ! Get interpolation in temperature.
-    if (self%logarithmicTable) temperatureUse=log(temperatureUse)
-    iTemperature=max(                                                         &
-         &           min(                                                     &
-         &               self%interpolatorTemperature%locate(temperatureUse), &
-         &               self%temperatureCount-1                              &
-         &              )                                                   , &
-         &               1                                                    &
-         &          )
-    hTemperature=+(     temperatureUse                -self%temperatures(iTemperature)) &
-         &       /(self%temperatures  (iTemperature+1)-self%temperatures(iTemperature))
-    ! Get interpolation in metallicity.
-    if     (                                               &
-         &                    self%firstMetallicityIsZero  &
-         &  .and.                                          &
-         &   metallicityUse < self%firstNonZeroMetallicity &
-         & ) then
-       iMetallicity=+1
-       hMetallicity=+metallicityUse               &
-            &       /self%firstNonZeroMetallicity
-    else
-       if (self%logarithmicTable) metallicityUse=log(metallicityUse)
-       iMetallicity=max(                                                         &
-            &           min(                                                     &
-            &               self%interpolatorMetallicity%locate(metallicityUse), &
-            &               self%metallicityCount-1                              &
-            &              )                                                   , &
-            &               1                                                    &
-            &          )
-       hMetallicity=+(     metallicityUse                -self%metallicities(iMetallicity)) &
-            &       /(self%metallicities (iMetallicity+1)-self%metallicities(iMetallicity))
+    if (temperature /= self%temperaturePrevious) then
+       temperatureUse=temperature
+       if (self%logarithmicTable) temperatureUse=log(temperatureUse)
+       self%iTemperaturePrevious=max(                                                         &
+            &                        min(                                                     &
+            &                            self%interpolatorTemperature%locate(temperatureUse), &
+            &                            self%temperatureCount-1                              &
+            &                           )                                                   , &
+            &                            1                                                    &
+            &                       )
+       self%hTemperaturePrevious=+(     temperatureUse                             -self%temperatures(self%iTemperaturePrevious)) &
+            &                    /(self%temperatures  (self%iTemperaturePrevious+1)-self%temperatures(self%iTemperaturePrevious))
     end if
+    iTemperature=self%iTemperaturePrevious
+    hTemperature=self%hTemperaturePrevious
+    ! Get interpolation in metallicity.
+    if (metallicity /= self%metallicityPrevious) then
+       metallicityUse=max(metallicity,0.0d0)
+       if     (                                               &
+            &                    self%firstMetallicityIsZero  &
+            &  .and.                                          &
+            &   metallicityUse < self%firstNonZeroMetallicity &
+            & ) then
+          self%iMetallicityPrevious=+1
+          self%hMetallicityPrevious=+metallicityUse               &
+               &                    /self%firstNonZeroMetallicity
+       else
+          if (self%logarithmicTable) metallicityUse=log(metallicityUse)
+          self%iMetallicityPrevious=max(                                                         &
+               &                        min(                                                     &
+               &                            self%interpolatorMetallicity%locate(metallicityUse), &
+               &                            self%metallicityCount-1                              &
+               &                           )                                                   , &
+               &                            1                                                    &
+               &                       )
+          self%hMetallicityPrevious=+(     metallicityUse                             -self%metallicities(self%iMetallicityPrevious)) &
+               &                    /(self%metallicities (self%iMetallicityPrevious+1)-self%metallicities(self%iMetallicityPrevious))
+       end if
+    end if
+    iMetallicity=self%iMetallicityPrevious
+    hMetallicity=self%hMetallicityPrevious
     return
   end subroutine cieFileInterpolatingFactors
 

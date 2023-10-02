@@ -444,18 +444,20 @@ contains
     return
   end function constrainedBranchingProbabilityObject
 
-  subroutine constrainedNodesInserted(self,nodeCurrent,nodeProgenitor1,nodeProgenitor2)
+  subroutine constrainedNodesInserted(self,nodeCurrent,nodeProgenitor1,nodeProgenitor2,didBranch)
     !!{
     Act on the insertion of nodes into the merger tree.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
-    class (mergerTreeBuildControllerConstrained), intent(inout)           :: self
-    type  (treeNode                            ), intent(inout)           :: nodeCurrent     , nodeProgenitor1
-    type  (treeNode                            ), intent(inout), optional :: nodeProgenitor2
-    class (nodeComponentBasic                  ), pointer                 :: basicCurrent    , basicProgenitor1, &
-         &                                                                   basicProgenitor2
-    logical                                                               :: isConstrained
+    class  (mergerTreeBuildControllerConstrained), intent(inout)           :: self
+    type   (treeNode                            ), intent(inout)           :: nodeCurrent     , nodeProgenitor1
+    type   (treeNode                            ), intent(inout), optional :: nodeProgenitor2
+    logical                                      , intent(in   ), optional :: didBranch
+    class  (nodeComponentBasic                  ), pointer                 :: basicCurrent    , basicProgenitor1, &
+         &                                                                    basicProgenitor2
+    logical                                                                :: isConstrained
+    !$GLC attributes unused :: didBranch
 
     basicCurrent     => nodeCurrent    %basic                      (                    )
     basicProgenitor1 => nodeProgenitor1%basic                      (                    )

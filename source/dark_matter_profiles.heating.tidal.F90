@@ -155,17 +155,19 @@ contains
     return
   end subroutine tidalAutoHook
 
-  subroutine tidalCalculationReset(self,node)
+  subroutine tidalCalculationReset(self,node,uniqueID)
     !!{
     Reset the stored tidal radii.
     !!}
+    use :: Kind_Numbers, only : kind_int8
     implicit none
-    class(darkMatterProfileHeatingTidal), intent(inout) :: self
-    type (treeNode                     ), intent(inout) :: node
+    class  (darkMatterProfileHeatingTidal), intent(inout) :: self
+    type   (treeNode                     ), intent(inout) :: node
+    integer(kind_int8                    ), intent(in   ) :: uniqueID
 
     self   %specificEnergyOverRadiusSquared_      =-1.0d0
     self   %specificEnergyOverRadiusSquaredParent_=-1.0d0
-    self   %lastUniqueID                          =node       %uniqueID()
+    self   %lastUniqueID                          =            uniqueID
     if (associated(node%parent)) then
        self%parentUniqueID                        =node%parent%uniqueID()
     else
@@ -314,7 +316,7 @@ contains
          &   uniqueID /= self%parentUniqueID &
          &  .and.                            &
          &   uniqueID /= self%lastUniqueID   &
-         & ) call self%calculationReset(node)
+         & ) call self%calculationReset(node,uniqueID)
     if (uniqueID == self%parentUniqueID) then
        if (self%specificEnergyOverRadiusSquaredParent_ < 0.0d0) then
           satellite                                   =>      node     %satellite             ()

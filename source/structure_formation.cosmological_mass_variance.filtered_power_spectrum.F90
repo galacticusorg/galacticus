@@ -969,23 +969,26 @@ contains
       !!{
       Compute the root-variance of mass in spheres enclosing the given {\normalfont \ttfamily mass} from the power spectrum.
       !!}
-      use :: Interface_GSL           , only : GSL_EBadTol      , GSL_ETol  , GSL_ERound, GSL_Success
-      use :: Numerical_Constants_Math, only : Pi
-      use :: Numerical_Integration   , only : GSL_Integ_Gauss15, integrator
-      use :: Sorting, only : sort
+      use, intrinsic :: ISO_C_Binding           , only : c_size_t
+      use            :: Interface_GSL           , only : GSL_EBadTol      , GSL_ETol  , GSL_ERound, GSL_Success, &
+           &                                             GSL_EMaxIter
+      use            :: Numerical_Constants_Math, only : Pi
+      use            :: Numerical_Integration   , only : GSL_Integ_Gauss15, integrator
+      use            :: Sorting                 , only : sort
       implicit none
       double precision                         , intent(in   ) :: time_
       logical                                  , intent(in   ) :: useTopHat
       double precision                         , parameter     :: wavenumberBAO                         =5.0d0 ! The wavenumber above which baryon acoustic oscillations are small - used to split the integral allowing the oscillating part to be handled robustly.
-      double precision            , allocatable, dimension(:)  :: wavenumbers                                 , wavenumbersRestricted , &
+      integer         (c_size_t  )             , parameter     :: intervalsMaximum                      =10000_c_size_t
+      double precision            , allocatable, dimension(:)  :: wavenumbers                                          , wavenumbersRestricted , &
            &                                                      wavenumbersLocalMinimaTransferFunction
-      double precision                                         :: wavenumberMinimum                           , wavenumberMaximum     , &
-           &                                                      integrand                                   , integrandInterval     , &
-           &                                                      wavenumberLower                             , wavenumberUpper       , &
-           &                                                      topHatRadius
-      integer                                                  :: i                                           , status
+      double precision                                         :: wavenumberMinimum                                    , wavenumberMaximum     , &
+           &                                                      integrand                                            , integrandInterval     , &
+           &                                                      wavenumberLower                                      , wavenumberUpper       , &
+           &                                                      topHatRadius                                         , toleranceRelative
+      integer                                                  :: i                                                    , status
       logical                                                  :: computeLogarithmically
-      type            (integrator)                             :: integrator_                                 , integratorLogarithmic_
+      type            (integrator)                             :: integrator_                                          , integratorLogarithmic_
 
       time__      =time_
       topHatRadius=(                                             &
@@ -1008,12 +1011,14 @@ contains
       ! Find the maximum wavenumber for the integral (and establish the integrator).
       if (useTopHat) then
          wavenumberMaximum     =min(1.0d3/topHatRadius,self%powerSpectrumWindowFunctionTopHat_%wavenumberMaximum(smoothingMass))
-         integrator_           =integrator(varianceIntegrandTopHat           ,toleranceRelative=+self%toleranceTopHat,integrationRule=GSL_Integ_Gauss15)
-         integratorLogarithmic_=integrator(varianceIntegrandTopHatLogarithmic,toleranceRelative=+self%toleranceTopHat,integrationRule=GSL_Integ_Gauss15)
+         toleranceRelative     =                                                                +self%toleranceTopHat
+         integrator_           =integrator(varianceIntegrandTopHat           ,toleranceRelative=+self%toleranceTopHat,integrationRule=GSL_Integ_Gauss15,intervalsMaximum=intervalsMaximum)
+         integratorLogarithmic_=integrator(varianceIntegrandTopHatLogarithmic,toleranceRelative=+self%toleranceTopHat,integrationRule=GSL_Integ_Gauss15,intervalsMaximum=intervalsMaximum)
       else
          wavenumberMaximum     =min(1.0d3/topHatRadius,self%powerSpectrumWindowFunction_      %wavenumberMaximum(smoothingMass))
-         integrator_           =integrator(varianceIntegrand                 ,toleranceRelative=+self%tolerance     ,integrationRule=GSL_Integ_Gauss15)
-         integratorLogarithmic_=integrator(varianceIntegrandLogarithmic      ,toleranceRelative=+self%tolerance     ,integrationRule=GSL_Integ_Gauss15)
+         toleranceRelative     =                                                                +self%tolerance
+         integrator_           =integrator(varianceIntegrand                 ,toleranceRelative=+self%tolerance      ,integrationRule=GSL_Integ_Gauss15,intervalsMaximum=intervalsMaximum)
+         integratorLogarithmic_=integrator(varianceIntegrandLogarithmic      ,toleranceRelative=+self%tolerance      ,integrationRule=GSL_Integ_Gauss15,intervalsMaximum=intervalsMaximum)
       end if
       ! Split the integral into subsets of the wavenumber range:
       !
@@ -1084,9 +1089,36 @@ contains
          end if
          ! Recompute the integral using a logarithmic integral if necessary.
          if (computeLogarithmically) then
-            integrandInterval=integratorLogarithmic_%integrate(log(wavenumberLower),log(wavenumberUpper))
-            ! Check for zero power.
-            if (integrandInterval <= 0.0d0) call Error_Report('no power in interval integrand - unexpected'//{introspection:location})
+            integrandInterval=integratorLogarithmic_%integrate(log(wavenumberLower),log(wavenumberUpper),status=status)
+            if ((status == GSL_EMaxIter .or. status == GSL_ERound) .and. integrandInterval < toleranceRelative*integrand) then
+               ! Maximum iterations were exceeded, but the integrand is tiny - so proceed.
+            else if (status /= GSL_Success) then
+               call Error_Report('variance integral failed'//{introspection:location})
+            else if (integrandInterval <= 0.0d0) then
+               ! The integrated power is still non-positive - check the integrand at the lower limit. If it is positive, we have a
+               ! problem. Otherwise, the power in this interval seems to be actually zero, so proceed.
+               if (varianceIntegrand(wavenumberLower) > 0.0d0) then
+                  if (varianceIntegrand(wavenumberUpper) > 0.0d0) then
+                     ! The integrand is non-zero at the upper limit also - we expect a non-zero integrand in this case. As we
+                     ! didn't get one, this is a problem.
+                     call Error_Report('no power in interval integrand - unexpected'//{introspection:location})
+                  else
+                     ! The integrand is zero at the upper limit - try reducing the upper limit until we get a non-zero result.
+                     do while (wavenumberUpper > wavenumberLower .and. varianceIntegrand(wavenumberUpper) <= 0.0d0)
+                        integrandInterval=integratorLogarithmic_%integrate(log(wavenumberLower),log(wavenumberUpper),status=status)
+                        if (status == GSL_Success) then
+                           if (integrandInterval > 0.0d0) exit
+                        else
+                           call Error_Report('variance integration failed - unexpected'//{introspection:location})
+                        end if
+                        wavenumberUpper=sqrt(wavenumberUpper*wavenumberLower)
+                     end do
+                     ! We still failed to get a non-zero power - there's nothing more we can do.
+                     if (integrandInterval <= 0.0d0) &
+                          & call Error_Report('no power in interval integrand - unexpected'//{introspection:location})
+                  end if
+               end if
+            end if
          end if
          ! Accumulate the integral from this region.
          integrand=+integrand         &

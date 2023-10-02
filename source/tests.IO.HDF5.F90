@@ -30,8 +30,6 @@ program Tests_IO_HDF5
   use :: Kind_Numbers      , only : kind_int8
   use :: Unit_Tests        , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
-  type            (hdf5Object     ), target                                 :: datasetObject                  , fileObject           , &
-       &                                                                       groupObject
   integer                                                                   :: iPass                          , integerValue         , &
        &                                                                       integerValueReread             , i                    , &
        &                                                                       j                              , k
@@ -67,7 +65,6 @@ program Tests_IO_HDF5
   double precision                              , dimension(10,10,10,10,10) :: doubleValueArray5d
   double precision                              , dimension(10,10,10,10,10) :: doubleValueArray5dRereadStatic
   double precision                 , allocatable, dimension( :, :, :, :, :) :: doubleValueArray5dReread      , doubleValueArray5dRereadExpect
-  type            (varying_string ), allocatable, dimension( :)             :: datasetNames
   type            (varying_string )             , dimension(20)             :: datasetNamesReference
   type            (hdf5VarDouble  ), allocatable, dimension( :)             :: varDoubleArray2D              , varDoubleDataset2DArrayReread
   type            (hdf5VarDouble2D), allocatable, dimension( :)             :: varDoubleArray3D              , varDoubleDataset3DArrayReread

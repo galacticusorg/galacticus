@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Charles Gannon.
+
 !!{
 Implements a node property extractor that fits for a tidal truncation radius for an NFW profile.
 !!}
@@ -143,7 +145,7 @@ contains
     double precision                                             , intent(in   ) :: time
     !$GLC attributes unused :: self, time
     
-    tidallyTruncatedNFWFitElementCount=2
+    tidallyTruncatedNFWFitElementCount=3   
     return
   end function tidallyTruncatedNFWFitElementCount
 
@@ -163,32 +165,45 @@ contains
     type            (multiCounter                               ), intent(inout), optional     :: instance
     class           (nodeComponentDarkMatterProfile             ), pointer                     :: darkMatterProfile
     class           (nodeComponentSatellite                     ), pointer                     :: satellite
-    double precision                                             , allocatable  , dimension(:) :: radii                     , fractionDensity
+    double precision                                             , allocatable  , dimension(:) :: radii                                          , fractionDensity
     type            (multiDMinimizer                            ), allocatable                 :: minimizer_
     double precision                                                            , dimension(1) :: locationMinimum
-    double precision                                             , parameter                   :: fractionRadiusOuter=0.95d0, fractionRadiusScale=0.1d0, &
-         &                                                                                        fractionMaximum    =0.10d0, fractionStep       =0.1d0
-    integer                                                      , parameter                   :: countRadiiPerDecade=10
-    integer                                                                                    :: countRadii                , i                        , &
-         &                                                                                        iteration
+    double precision                                             , parameter                   :: fractionRadiusScale                      =0.1d0, fractionMaximum    =0.1d0, & 
+         &                                                                                        radiusMaximumFractionDensityVirialMinimum=0.1d0, fractionStep       =0.1d0, &
+         &                                                                                        radiusMaximumScaleVirialMaximum          =1.0d1
+    integer                                                      , parameter                   :: radiusMaximumCountRadiiPerDecade         =10   , countRadiiPerDecade=10  
+    integer                                                                                    :: countRadii                                     , i                        , &
+         &                                                                                        iteration                                      , radiusMaximumCountRadii
     logical                                                                                    :: converged
-    double precision                                                                           :: radiusOuter               , massTotal                , &
-         &                                                                                        radiusMinimum             , radiusMaximum            , &
-         &                                                                                        radiusScale               , radiusVirial
+    double precision                                                                           :: radiusOuter                                    , massTotal                , &
+         &                                                                                        radiusMinimum                                  , radiusMaximum            , &
+         &                                                                                        radiusScale                                    , radiusVirial             , &
+         &                                                                                        radiusMaximumFractionDensityVirial             , factorStepRadius
     !$GLC attributes unused :: instance
 
-    allocate(tidallyTruncatedNFWFitExtract(2))
+    allocate(tidallyTruncatedNFWFitExtract(3))
+    darkMatterProfile                => node                         %darkMatterProfile(                              )
+    tidallyTruncatedNFWFitExtract(3) =  self%darkMatterProfileDMONFW_%density          (node,darkMatterProfile%scale())
     if (node%isSatellite()) then
        ! Extract required properties.
-       darkMatterProfile => node                                  %darkMatterProfile  (                                              )
-       satellite         => node                                  %satellite          (                                              )
-       massTotal         =  self             %galacticStructure_  %massEnclosed       (node                                          )
-       radiusOuter       =  self             %galacticStructure_  %radiusEnclosingMass(node,mass=min(satellite%boundMass(),massTotal))
-       radiusScale       =  darkMatterProfile                     %scale              (                                              )
-       radiusVirial      =  self             %darkMatterHaloScale_%radiusVirial       (node                                          )
+       satellite    => node                                  %satellite          (                                              )
+       massTotal    =  self             %galacticStructure_  %massEnclosed       (node                                          )
+       radiusOuter  =  self             %galacticStructure_  %radiusEnclosingMass(node,mass=min(satellite%boundMass(),massTotal))
+       radiusScale  =  darkMatterProfile                     %scale              (                                              )
+       radiusVirial =  self             %darkMatterHaloScale_%radiusVirial       (node                                          )
        ! Choose radii for fitting.
-       radiusMaximum=    fractionRadiusOuter*radiusOuter
-       radiusMinimum=min(fractionRadiusScale*radiusScale,fractionMaximum*radiusMaximum)
+       radiusMaximum=radiusVirial
+       if (radiusOuter > radiusVirial) then
+           radiusMaximumCountRadii=int(log10(radiusMaximumScaleVirialMaximum)*dble(radiusMaximumCountRadiiPerDecade)+1.0d0)
+           factorStepRadius       =    log10(radiusMaximumScaleVirialMaximum)/dble(radiusMaximumCountRadii         ) 
+           do i=1,radiusMaximumCountRadii
+             radiusMaximum                     =10.0d0**(log10(radiusVirial)+factorStepRadius*dble(i))
+             radiusMaximumFractionDensityVirial=+self%darkMatterProfileDMO_%density(node,radiusMaximum) &
+                    &                           /self%darkMatterProfileDMO_%density(node,radiusVirial )
+              if (radiusMaximumFractionDensityVirial < radiusMaximumFractionDensityVirialMinimum) exit
+           end do 
+       end if 
+       radiusMinimum=min(fractionRadiusScale*radiusScale,fractionMaximum*radiusMaximum,fractionMaximum*radiusOuter)
        countRadii   =int(log10(radiusMaximum/radiusMinimum)*dble(countRadiiPerDecade)+1.0d0)
        radii        =Make_Range(radiusMinimum,radiusMaximum,countRadii,rangeTypeLogarithmic)
        ! Tabulate the density ratio relative to an NFW profile.
@@ -259,9 +274,10 @@ contains
     type            (varying_string                             ), intent(inout), dimension(:) , allocatable :: names
     !$GLC attributes unused :: self, time
     
-    allocate(names(2))
-    names(1)=var_str('radiusTidalTruncationNFW')
-    names(2)=var_str('metricTidalTruncationNFW')
+    allocate(names(3))
+    names(1)=var_str(              'radiusTidalTruncationNFW')
+    names(2)=var_str(              'metricTidalTruncationNFW')
+    names(3)=var_str('densityNormalizationTidalTruncationNFW')
     return
   end subroutine tidallyTruncatedNFWFitNames
 
@@ -275,9 +291,10 @@ contains
     type            (varying_string                             ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: self, time
 
-    allocate(descriptions(2))
-    descriptions(1)=var_str('The best-fit tidal truncation radius assuming an underlying NFW profile.'    )
-    descriptions(2)=var_str('The best-fit tidal truncation fit metric assuming an underlying NFW profile.')
+    allocate(descriptions(3))
+    descriptions(1)=var_str('The best-fit tidal truncation radius, rₜ, assuming an underlying NFW profile.')
+    descriptions(2)=var_str('The best-fit tidal truncation fit metric assuming an underlying NFW profile.' )
+    descriptions(3)=var_str('The density normalization, ρₛ, of the underlying NFW Profile.'                )
     return
   end subroutine tidallyTruncatedNFWFitDescriptions
 
@@ -285,15 +302,17 @@ contains
     !!{
     Return the units of a tidally-truncated NFW profile.
     !!}
-    use :: Numerical_Constants_Astronomical, only : megaParsec
+    use :: Numerical_Constants_Astronomical, only : megaParsec, massSolar
     implicit none
     double precision                                             , dimension(:) , allocatable :: tidallyTruncatedNFWFitUnitsInSI
     class           (nodePropertyExtractorTidallyTruncatedNFWFit), intent(inout)              :: self
     double precision                                             , intent(in   )              :: time
     !$GLC attributes unused :: self, time
 
-    allocate(tidallyTruncatedNFWFitUnitsInSI(2))
-    tidallyTruncatedNFWFitUnitsInSI(1)=megaParsec
-    tidallyTruncatedNFWFitUnitsInSI(2)=1.0d0
+    allocate(tidallyTruncatedNFWFitUnitsInSI(3))
+    tidallyTruncatedNFWFitUnitsInSI(1)=+megaParsec
+    tidallyTruncatedNFWFitUnitsInSI(2)=+1.0d0
+    tidallyTruncatedNFWFitUnitsInSI(3)=+massSolar     &
+         &                             /megaParsec**3
     return
   end function tidallyTruncatedNFWFitUnitsInSI

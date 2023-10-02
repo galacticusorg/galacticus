@@ -198,16 +198,19 @@ contains
     return
   end subroutine truncatedExponentialDestructor
 
-  subroutine truncatedExponentialCalculationReset(self,node)
+  subroutine truncatedExponentialCalculationReset(self,node,uniqueID)
     !!{
     Reset the dark matter profile calculation.
     !!}
+    use :: Kind_Numbers, only : kind_int8
     implicit none
-    class(darkMatterProfileDMOTruncatedExponential), intent(inout) :: self
-    type (treeNode                                ), intent(inout) :: node
+    class  (darkMatterProfileDMOTruncatedExponential), intent(inout) :: self
+    type   (treeNode                                ), intent(inout) :: node
+    integer(kind_int8                               ), intent(in   ) :: uniqueID
+    !$GLC attributes unused :: node
 
-    self%lastUniqueID                                           =node%uniqueID()
-    self%genericLastUniqueID                                    =node%uniqueID()
+    self%lastUniqueID                                           =uniqueID
+    self%genericLastUniqueID                                    =uniqueID
     self%kappaPrevious                                          =-huge(0.0d0)
     self%enclosingMassRadiusPrevious                            =-1.0d0
     self%radialVelocityDispersionVirialRadiusPrevious           =-1.0d0
@@ -235,7 +238,7 @@ contains
     double precision                                                                    :: radiusVirial, radiusDecay       , &
          &                                                                                 multiplier_
 
-    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     radiusVirial=self%darkMatterHaloScale_%radiusVirial(node)
     if (radius <= radiusVirial) then
        if (present(multiplier        )) multiplier        =+1.0d0
@@ -280,7 +283,7 @@ contains
     double precision                                                          :: radiusVirial     , scaleRadius, &
          &                                                                       concentration
 
-    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     radiusVirial                        =  self             %darkMatterHaloScale_%radiusVirial(node             )
     darkMatterProfile                   => node             %darkMatterProfile                (autoCreate=.true.)
     scaleRadius                         =  darkMatterProfile%scale                            (                 )
@@ -421,7 +424,7 @@ contains
     double precision                                          , intent(in   ) :: radius
     double precision                                                          :: radiusVirial, radiusDecay
 
-    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     radiusVirial=self%darkMatterHaloScale_%radiusVirial(node)
     if (radius <= radiusVirial) then
        truncatedExponentialEnclosedMass=+self%darkMatterProfileDMO_%enclosedMass(node,radius      )
@@ -521,7 +524,7 @@ contains
     if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        truncatedExponentialRadialVelocityDispersion=self%darkMatterProfileDMO_%radialVelocityDispersion(node,radius)
     else
-       if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+       if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
        radiusVirial=self%darkMatterHaloScale_%radiusVirial(node)
        if (radius >= radiusVirial) then
           truncatedExponentialRadialVelocityDispersion=self%radialVelocityDispersionNumerical(node,radius)

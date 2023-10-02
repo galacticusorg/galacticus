@@ -26,13 +26,14 @@ program Galacticus
   !!{
   The main {\normalfont \scshape Galacticus} program.
   !!}
+  use    :: Display                   , only : displayMessage                   , displayMagenta, displayReset
   use    :: Display_Verbosity         , only : displayVerbositySetFromParameters
   use    :: Events_Hooks              , only : eventsHooksInitialize
   use    :: Functions_Global_Utilities, only : Functions_Global_Set
   use    :: Display_Banner            , only : Display_Banner_Show
   use    :: Error                     , only : Error_Handler_Register           , Error_Report
   use    :: Error_Wait                , only : Error_Wait_Set_From_Parameters
-  use    :: Output_HDF5_Open          , only : Output_HDF5_Close_File           , Output_HDF5_Open_File
+  use    :: Output_HDF5_Open          , only : Output_HDF5_Close_File           , Output_HDF5_Open_File, Output_HDF5_Completion_Status
   use    :: ISO_Varying_String        , only : assignment(=)                    , varying_string
   use    :: Input_Parameters          , only : inputParameter                   , inputParameters
 #ifdef USEMPI
@@ -45,11 +46,9 @@ program Galacticus
   use    :: System_Limits             , only : System_Limits_Set
   use    :: Tasks                     , only : task                             , taskClass
   implicit none
-#ifdef USEMPI
-  integer                                         :: status
-#endif
   integer                             , parameter :: fileNameLengthMaximum =1024
   class    (taskClass                ), pointer   :: task_
+  integer                                         :: status
   character(len=fileNameLengthMaximum)            :: parameterFileCharacter
   type     (varying_string           )            :: parameterFile
   type     (inputParameters          )            :: parameters
@@ -93,7 +92,9 @@ program Galacticus
   !!]
   outputFileIsRequired=task_%requiresOutputFile()
   if (outputFileIsRequired) call Output_HDF5_Open_File (parameters)
-  call task_     %perform()
+  call task_%perform(status)
+  call Output_HDF5_Completion_Status(status)
+  if (status /= errorStatusSuccess) call displayMessage(displayMagenta()//'WARNING:'//displayReset()//' task failed')
   call parameters%reset  ()
   call parameters%destroy()
   !![

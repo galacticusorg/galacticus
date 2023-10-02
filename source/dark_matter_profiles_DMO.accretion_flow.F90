@@ -196,15 +196,18 @@ contains
     return
   end subroutine accretionFlowDestructor
 
-  subroutine accretionFlowCalculationReset(self,node)
+  subroutine accretionFlowCalculationReset(self,node,uniqueID)
     !!{
     Reset the dark matter profile calculation.
     !!}
+    use :: Kind_Numbers, only : kind_int8
     implicit none
-    class(darkMatterProfileDMOAccretionFlow), intent(inout) :: self
-    type (treeNode                         ), intent(inout) :: node
+    class  (darkMatterProfileDMOAccretionFlow), intent(inout) :: self
+    type   (treeNode                         ), intent(inout) :: node
+    integer(kind_int8                        ), intent(in   ) :: uniqueID
+    !$GLC attributes unused :: node
 
-    self%genericLastUniqueID                         =node%uniqueID()
+    self%genericLastUniqueID                         =uniqueID
     self%genericEnclosedMassRadiusMinimum            =+huge(0.0d0)
     self%genericEnclosedMassRadiusMaximum            =-huge(0.0d0)
     self%genericVelocityDispersionRadialRadiusMinimum=+huge(0.0d0)

@@ -59,6 +59,9 @@ module Merger_Tree_Outputter_Buffer_Types
      double precision                              , allocatable, dimension(:,:) :: rank1
      type            (hdf5VarDouble               ), allocatable, dimension(:  ) :: rank1VarLen
      type            (varying_string              ), allocatable, dimension(:  ) :: rank1Descriptors
+     double precision                              , allocatable, dimension(:  ) :: rank1DescriptorValues
+     type            (varying_string               )                             :: rank1DescriptorComment
+     double precision                                                            :: rank1DescriptorUnitsInSI
   end type outputPropertyDouble
 
 end module Merger_Tree_Outputter_Buffer_Types

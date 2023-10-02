@@ -578,8 +578,8 @@ contains
     ! Get the chemical densities.
     call self%chemicalState_%chemicalDensities(chemicalDensities,numberDensityHydrogen,temperature,zeroAbundances,self%radiation)
     ! Convert from densities to masses.
-    call chemicalDensities%numberToMass(simpleChemicalMasses)  
-    simpleChemicalMasses=simpleChemicalMasses*massAccreted*hydrogenByMassPrimordial/numberDensityHydrogen/atomicMassHydrogen
+    call chemicalDensities   %numberToMass(simpleChemicalMasses                                                          )
+    call simpleChemicalMasses%scale       (massAccreted*hydrogenByMassPrimordial/numberDensityHydrogen/atomicMassHydrogen)
     return
   end function simpleChemicalMasses
 

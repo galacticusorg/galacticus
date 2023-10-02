@@ -306,8 +306,6 @@ contains
     call groupRedshift%readDataset('massHaloMean',massHaloMeanData)
     call groupRedshift%readDataset('massHaloLow' ,massHaloLowData )
     call groupRedshift%readDataset('massHaloHigh',massHaloHighData)
-    call groupRedshift%close      (                               )
-    call fileData     %close      (                               )
     !$ call hdf5Access%unset()
     ! Create bins in halo mass.
     massHaloMinimum=massHaloMeanData(1                     )

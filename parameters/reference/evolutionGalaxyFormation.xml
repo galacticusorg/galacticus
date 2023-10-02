@@ -172,8 +172,9 @@
     <!-- (2020; MNRAS; 496; 3371; http://adsabs.harvard.edu/abs/2020MNRAS.496.3371B).                 -->
     <!-- The best fit-value for the mass exponent is taken from here                                  -->
     <!-- https://github.com/galacticusorg/galacticus/wiki/Constraints:-Halo-spins-and-concentrations. -->
+    <!-- and is offset for fix to Keplerian orbit propagation                                         -->
     <nodeOperator value="haloAngularMomentumVitvitska2002">
-      <exponentMass value="0.92527794238468"/>
+      <exponentMass value="1.92527794238468"/>
     </nodeOperator>
     <nodeOperator value="haloAngularMomentumInterpolate"/>
     <!-- Subhalo hierarchy -->

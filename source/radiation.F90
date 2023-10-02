@@ -191,7 +191,7 @@ contains
              allocate(self%rateCoefficients(size(rateCoefficients)+1))
              self%rateCoefficients(1:size(rateCoefficients))=rateCoefficients
              do i=1,size(rateCoefficients)
-                call self%rateCoefficients(i)%interpolator_%GSLReallocate(gslFree=.false.)
+                call self%rateCoefficients(i)%interpolator_%GSLReallocate()
              end do
              deallocate(rateCoefficients)
           else
@@ -261,7 +261,7 @@ contains
     implicit none
     class(rateCoefficient), intent(inout) :: self
 
-    call self%interpolator_%GSLReallocate(gslFree=.false.)
+    call self%interpolator_%GSLReallocate()
     return
   end subroutine rateCoefficientInterpolatorDeepCopy
 

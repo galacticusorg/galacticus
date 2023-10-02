@@ -167,19 +167,22 @@ contains
     return
   end subroutine covington2008Destructor
 
-  subroutine covington2008CalculationReset(self,node)
+  subroutine covington2008CalculationReset(self,node,uniqueID)
     !!{
     Reset the dark matter profile calculation.
     !!}
-    use :: Error, only : Error_Report
+    use :: Error       , only : Error_Report
+    use :: Kind_Numbers, only : kind_int8
     implicit none
-    class(*       ), intent(inout) :: self
-    type (treeNode), intent(inout) :: node
+    class  (*        ), intent(inout) :: self
+    type   (treeNode ), intent(inout) :: node
+    integer(kind_int8), intent(in   ) :: uniqueID
+    !$GLC attributes unused :: node
 
     select type (self)
     class is (mergerRemnantSizeCovington2008)
        self%propertiesCalculated=.false.
-       self%lastUniqueID       =node%uniqueID()
+       self%lastUniqueID       =uniqueID
     class default
        call Error_Report('incorrect class'//{introspection:location})
     end select
@@ -242,7 +245,7 @@ contains
     ! The calculation of remnant size is computed when first needed and then stored. This ensures that the results are determined
     ! by the properties of the merge target prior to any modification that will occur as node components are modified in response
     ! to the merger.
-    if (node%uniqueID() /= self%lastUniqueID) call covington2008CalculationReset(self,node)
+    if (node%uniqueID() /= self%lastUniqueID) call covington2008CalculationReset(self,node,node%uniqueID())
     if (.not.self%propertiesCalculated) then
        self%propertiesCalculated=.true.
        nodeHost => node%mergesWith()
