@@ -219,17 +219,20 @@ contains
     return
   end subroutine heatedMonotonicDestructor
 
-  subroutine heatedMonotonicCalculationReset(self,node)
+  subroutine heatedMonotonicCalculationReset(self,node,uniqueID)
     !!{
     Reset the dark matter profile calculation.
     !!}
+    use :: Kind_Numbers    , only : kind_int8
     implicit none
-    class(darkMatterProfileDMOHeatedMonotonic), intent(inout) :: self
-    type (treeNode                           ), intent(inout) :: node
+    class  (darkMatterProfileDMOHeatedMonotonic), intent(inout) :: self
+    type   (treeNode                           ), intent(inout) :: node
+    integer(kind_int8                          ), intent(in   ) :: uniqueID
+    !$GLC attributes unused :: node
 
     ! Reset calculations for this profile.
-    self%lastUniqueID                                =node%uniqueID()
-    self%genericLastUniqueID                         =node%uniqueID() 
+    self%lastUniqueID                                =uniqueID
+    self%genericLastUniqueID                         =uniqueID 
     self%isBound                                     =.true.
     self%radiusInitialMinimum                        =+huge(0.0d0)
     self%radiusInitialMaximum                        =-huge(0.0d0)
@@ -269,7 +272,7 @@ contains
     integer                                                                          :: i                           , countRadii
 
     ! Determine if we need to retabulate.
-    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     ! Nothing to do if profile is already tabulated.
     if (allocated(self%massProfile)) return
     ! Choose extent of radii at which to tabulate the initial profile.

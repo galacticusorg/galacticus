@@ -303,15 +303,18 @@ contains
     return
   end subroutine finiteResolutionNFWAutoHook
 
-  subroutine finiteResolutionNFWCalculationReset(self,node)
+  subroutine finiteResolutionNFWCalculationReset(self,node,uniqueID)
     !!{
     Reset the dark matter profile calculation.
     !!}
+    use :: Kind_Numbers, only : kind_int8
     implicit none
-    class(darkMatterProfileDMOFiniteResolutionNFW), intent(inout) :: self
-    type (treeNode                               ), intent(inout) :: node
+    class  (darkMatterProfileDMOFiniteResolutionNFW), intent(inout) :: self
+    type   (treeNode                               ), intent(inout) :: node
+    integer(kind_int8                              ), intent(in   ) :: uniqueID
+    !$GLC attributes unused :: node
 
-    call self%darkMatterProfileDMOFiniteResolution%calculationReset(node)
+    call self%darkMatterProfileDMOFiniteResolution%calculationReset(node,uniqueID)
     self%potentialPrevious                     =-huge(0.0d0)
     self%potentialRadiusPrevious               =-huge(0.0d0)
     self%velocityDispersionRadialPrevious      =-huge(0.0d0)
@@ -406,7 +409,7 @@ contains
     double precision                                                         :: concentration            , radiusScaleFree, &
          &                                                                      lengthResolutionScaleFree
     
-    if (node%uniqueID() /= self%lastUniqueID         ) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID         ) call self%calculationReset(node,node%uniqueID())
     if (     radius     /= self%densityRadiusPrevious) then
        darkMatterProfile          => node%darkMatterProfile       (    )
        radiusScaleFree            =       radius                        /darkMatterProfile%scale()
@@ -463,7 +466,7 @@ contains
     double precision                                                         :: concentration            , radiusScaleFree, &
          &                                                                      lengthResolutionScaleFree
     
-    if (node%uniqueID() /= self%lastUniqueID              ) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID              ) call self%calculationReset(node,node%uniqueID())
     if (     radius     /= self%enclosedMassRadiusPrevious) then
        darkMatterProfile               => node%darkMatterProfile       (    )
        radiusScaleFree                 =       radius                        /darkMatterProfile%scale()
@@ -506,7 +509,7 @@ contains
     double precision                                         , dimension(0:1)        :: hRadiusCore
     integer                                                                          :: iRadiusCore
     
-    if (node%uniqueID() /= self%lastUniqueID              ) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID              ) call self%calculationReset(node,node%uniqueID())
     if (     density    /= self%radiusEnclosingDensityDensityPrevious) then
        basic                                      =>  node%basic                                       (    )
        darkMatterProfile                          =>  node%darkMatterProfile                           (    )
@@ -692,7 +695,7 @@ contains
     double precision                                         , dimension(0:1)        :: hRadiusCore
     integer                                                                          :: iRadiusCore
     
-    if (node%uniqueID() /= self%lastUniqueID                   ) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID                   ) call self%calculationReset(node,node%uniqueID())
     if (     mass       /= self%radiusEnclosingMassMassPrevious) then
        basic                                =>  node%basic                                       (    )
        darkMatterProfile                    =>  node%darkMatterProfile                           (    )
@@ -851,7 +854,7 @@ contains
     double precision                                         , dimension(0:1) :: hRadiusCore
     integer                                                                   :: iRadiusCore
     
-    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     if (self%energyPrevious > 0.0d0) then
        basic                     =>  node%basic                                       (    )
        darkMatterProfile         =>  node%darkMatterProfile                           (    )
@@ -1175,7 +1178,7 @@ contains
     double precision                                         , parameter               :: radiusScaleFreeSmall     =1.0d-3
 
     if (present(status)) status=structureErrorCodeSuccess
-    if (node%uniqueID() /= self%lastUniqueID              ) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID              ) call self%calculationReset(node,node%uniqueID())
     if (     radius     /= self%potentialRadiusPrevious) then
        basic                        =>  node%basic                                        (    )
        darkMatterProfile            =>  node%darkMatterProfile                            (    )
@@ -1288,7 +1291,7 @@ contains
     double precision                                         , dimension(0:1) :: hRadiusCore
     integer                                                                   :: iRadiusCore
     
-    if (node%uniqueID() /= self%lastUniqueID              ) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID              ) call self%calculationReset(node,node%uniqueID())
     if (     radius     /= self%velocityDispersionRadialRadiusPrevious) then
        basic                                       =>  node%basic                                       (    )
        darkMatterProfile                           =>  node%darkMatterProfile                           (    )

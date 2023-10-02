@@ -60,7 +60,7 @@ Implements a merger tree branching probability class using the algorithm of \cit
           &                                                      G0                                               , accuracyFirstOrder                         , &
           &                                                      precisionHypergeometric
      logical                                                  :: hypergeometricTabulate                           , cdmAssumptions                             , &
-          &                                                      hypergeometricFailureWarned
+          &                                                      hypergeometricFailureWarned                      , tolerateRoundOffErrors
      type            (table1DLogarithmicLinear     )          :: subresolutionHypergeometric                      , upperBoundHypergeometric
      logical                                                  :: subresolutionHypergeometricInitialized =  .false., upperBoundHypergeometricInitialized=.false.
      double precision                                         :: massResolutionTabulated                          , factorG0Gamma2                             , &
@@ -132,7 +132,8 @@ contains
     double precision                                                                  :: gamma1                   , gamma2            , &
          &                                                                               G0                       , accuracyFirstOrder, &
          &                                                                               precisionHypergeometric
-    logical                                                                           :: hypergeometricTabulate   , cdmAssumptions
+    logical                                                                           :: hypergeometricTabulate   , cdmAssumptions    , &
+         &                                                                               tolerateRoundOffErrors
 
     ! Check and read parameters.
     !![
@@ -179,10 +180,16 @@ contains
       <description>If true, assume that $\alpha(=-\mathrm{d}\log \sigma/\mathrm{d}\log M)&gt;0$ and $\mathrm{d}\alpha/\mathrm{d}M&gt;0$ (as is true in the case of \gls{cdm}) when constructing merger trees using the \cite{parkinson_generating_2008}.</description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter>
+      <name>tolerateRoundOffErrors</name>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, round-off errors in integrations of branching probability will be tolerated. This may degrade the accuracy of solutions, but can be unavoidable in models with cut-offs in their power spectra.</description>
+      <source>parameters</source>
+    </inputParameter>
     <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
     !!]
-    self=mergerTreeBranchingProbabilityParkinsonColeHelly(G0,gamma1,gamma2,accuracyFirstOrder,precisionHypergeometric,hypergeometricTabulate,cdmAssumptions,cosmologicalMassVariance_,criticalOverdensity_)
+    self=mergerTreeBranchingProbabilityParkinsonColeHelly(G0,gamma1,gamma2,accuracyFirstOrder,precisionHypergeometric,hypergeometricTabulate,cdmAssumptions,tolerateRoundOffErrors,cosmologicalMassVariance_,criticalOverdensity_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologicalMassVariance_"/>
@@ -191,7 +198,7 @@ contains
     return
   end function parkinsonColeHellyConstructorParameters
 
-  function parkinsonColeHellyConstructorInternal(G0,gamma1,gamma2,accuracyFirstOrder,precisionHypergeometric,hypergeometricTabulate,cdmAssumptions,cosmologicalMassVariance_,criticalOverdensity_) result(self)
+  function parkinsonColeHellyConstructorInternal(G0,gamma1,gamma2,accuracyFirstOrder,precisionHypergeometric,hypergeometricTabulate,cdmAssumptions,tolerateRoundOffErrors,cosmologicalMassVariance_,criticalOverdensity_) result(self)
     !!{
     Internal constructor for the ``parkinsonColeHelly'' merger tree branching probability class.
     !!}
@@ -202,11 +209,12 @@ contains
     double precision                                                  , intent(in   )         :: gamma1                   , gamma2            , &
          &                                                                                       G0                       , accuracyFirstOrder, &
          &                                                                                       precisionHypergeometric
-    logical                                                           , intent(in   )         :: hypergeometricTabulate   , cdmAssumptions
+    logical                                                           , intent(in   )         :: hypergeometricTabulate   , cdmAssumptions    , &
+         &                                                                                       tolerateRoundOffErrors
     class           (cosmologicalMassVarianceClass                   ), intent(in   ), target :: cosmologicalMassVariance_
     class           (criticalOverdensityClass                        ), intent(in   ), target :: criticalOverdensity_
     !![
-    <constructorAssign variables="G0, gamma1, gamma2, accuracyFirstOrder, precisionHypergeometric, hypergeometricTabulate, cdmAssumptions, *cosmologicalMassVariance_, *criticalOverdensity_"/>
+    <constructorAssign variables="G0, gamma1, gamma2, accuracyFirstOrder, precisionHypergeometric, hypergeometricTabulate, cdmAssumptions, tolerateRoundOffErrors, *cosmologicalMassVariance_, *criticalOverdensity_"/>
     !!]
 
     ! Validate inputs.
@@ -406,7 +414,7 @@ contains
          self_%probabilityGradientMinimum=parkinsonColeHellyMassBranchRootDerivative(logMassMinimum)
          self_%probabilityGradientMaximum=parkinsonColeHellyMassBranchRootDerivative(logMassMaximum)
          self_%probabilityMaximum        =parkinsonColeHellyMassBranchRoot          (logMassMaximum)
-         massBranchGeneric=exp(finder%find(rootRange=[logMassMinimum,logMassMaximum]))
+         massBranchGeneric=exp(finder%findWithFUpper(rootRange=[logMassMinimum,logMassMaximum],rootRangeValueHigh=self_%probabilityMaximum))
       end if
       return
     end function massBranchGeneric
@@ -435,18 +443,31 @@ contains
     !!{
     Used to find the mass of a merger tree branching event.
     !!}
+    use :: Display, only : displayGreen    , displayBlue, displayYellow, displayReset
+    use :: Error  , only : errorStatusRound, errorStatusSuccess
     implicit none
     double precision, intent(in   ) :: logMassMaximum
     double precision                :: integral      , massMaximum
-
+    integer                         :: status
     if      (logMassMaximum < self_%probabilityMinimumMassLog) then
        parkinsonColeHellyMassBranchRoot=self_%probabilitySeek   +self_%probabilityGradientMinimum*(logMassMaximum-self_%probabilityMinimumMassLog)
     else if (logMassMaximum > self_%probabilityMaximumMassLog) then
        parkinsonColeHellyMassBranchRoot=self_%probabilityMaximum+self_%probabilityGradientMaximum*(logMassMaximum-self_%probabilityMaximumMassLog)
     else
        massMaximum=+exp(logMassMaximum)
-       integral   =+self_%branchingProbabilityPreFactor                                                           &
-            &      *self_%integrator_                  %integrate(self_%probabilityMinimumMassLog,logMassMaximum)
+       integral   =+self_%branchingProbabilityPreFactor                                                                         &
+            &      *self_%integrator_                  %integrate(self_%probabilityMinimumMassLog,logMassMaximum,status=status)
+       if (.not.(status == errorStatusSuccess .or. (status == errorStatusRound .and. self_%tolerateRoundOffErrors))) then
+          if (status == errorStatusRound) then
+             call Error_Report(                                                                                                                                                                                                                   &
+                  &            'probability integral failed to converge due to round-off errors - this can happen below the cut off scale in truncated power spectra'//char(10)//                                                                 &
+                  &             displayGreen()//'HELP:'//displayReset()//' set <'//displayBlue()//'tolerateRoundOffErrors'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"true"'//displayReset()//'/> '// &
+                  &            'to ignore round-off errors and proceed'//{introspection:location}                                                                                                                                                 &
+                  &           )
+          else
+             call Error_Report('probability integral failed to converge'//{introspection:location})
+          end if
+       end if
        parkinsonColeHellyMassBranchRoot=self_%probabilitySeek-integral
     end if
     return
@@ -533,12 +554,15 @@ contains
     Return the probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time
     {\normalfont \ttfamily deltaCritical} will undergo a branching to progenitors with mass greater than {\normalfont \ttfamily massResolution}.
     !!}
+    use :: Display, only : displayGreen    , displayBlue, displayYellow, displayReset
+    use :: Error  , only : errorStatusRound, errorStatusSuccess
     implicit none
     class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout), target :: self
     double precision                                                  , intent(in   )         :: deltaCritical , haloMass   , &
          &                                                                                       massResolution, time
     type            (treeNode                                        ), intent(inout), target :: node
     double precision                                                                          :: massMaximum   , massMinimum
+    integer                                                                                   :: status
     !$GLC attributes unused :: node
 
     ! Recompute branching probability if necessary.
@@ -558,11 +582,23 @@ contains
           call self%computeCommonFactors(deltaCritical,time,haloMass,node)
           massMinimum             =+           massResolution
           massMaximum             =+0.5d0*self%massHaloParent
-          self%probabilityPrevious=+self%branchingProbabilityPreFactor                             &
-               &                   *self%integrator_                  %integrate(                  &
-               &                                                                 log(massMinimum), &
-               &                                                                 log(massMaximum)  &
+          self%probabilityPrevious=+self%branchingProbabilityPreFactor                                    &
+               &                   *self%integrator_                  %integrate(                         &
+               &                                                                        log(massMinimum), &
+               &                                                                        log(massMaximum), &
+               &                                                                 status=status            &
                &                                                                )
+          if (.not.(status == errorStatusSuccess .or. (status == errorStatusRound .and. self_%tolerateRoundOffErrors))) then
+             if (status == errorStatusRound) then
+                call Error_Report(                                                                                                                                                                                                                   &
+                     &            'probability integral failed to converge due to round-off errors - this can happen below the cut off scale in truncated power spectra'//char(10)//                                                                 &
+                     &             displayGreen()//'HELP:'//displayReset()//' set <'//displayBlue()//'tolerateRoundOffErrors'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"true"'//displayReset()//'/> '// &
+                     &            'to ignore round-off errors and proceed'//{introspection:location}                                                                                                                                                 &
+                     &           )
+             else
+                call Error_Report('probability integral failed to converge'//{introspection:location})
+             end if
+          end if
        else
           self%probabilityPrevious=0.0d0
        end if

@@ -224,17 +224,20 @@ contains
     return
   end subroutine heatedDestructor
 
-  subroutine heatedCalculationReset(self,node)
+  subroutine heatedCalculationReset(self,node,uniqueID)
     !!{
     Reset the dark matter profile calculation.
     !!}
+    use :: Kind_Numbers, only : kind_int8
     implicit none
-    class(darkMatterProfileDMOHeated), intent(inout) :: self
-    type (treeNode                  ), intent(inout) :: node
+    class  (darkMatterProfileDMOHeated), intent(inout) :: self
+    type   (treeNode                  ), intent(inout) :: node
+    integer(kind_int8                 ), intent(in   ) :: uniqueID
+    !$GLC attributes unused :: node
 
     ! Reset calculations for this profile.
-    self%lastUniqueID                                =node%uniqueID()
-    self%genericLastUniqueID                         =node%uniqueID()
+    self%lastUniqueID                                =uniqueID
+    self%genericLastUniqueID                         =uniqueID
     self%radiusFinalPrevious                         =-huge(0.0d0)
     self%genericEnclosedMassRadiusMinimum            =+huge(0.0d0)
     self%genericEnclosedMassRadiusMaximum            =-huge(0.0d0)
@@ -427,7 +430,7 @@ contains
        return
     end if
     ! Reset calculations if necessary.
-    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     ! Find the initial radius in the unheated profile.
     if (radiusFinal /= self%radiusFinalPrevious) then
        self_        => self

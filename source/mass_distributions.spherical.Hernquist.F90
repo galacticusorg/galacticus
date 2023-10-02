@@ -318,9 +318,9 @@ contains
     fractionalRadius=radius/self%scaleLength
     if (fractionalRadius > fractionalRadiusLarge) then
        ! For very large radius approximate the mass enclosed as the total mass.
-       hernquistMassEnclosedBySphere=2.0d0*Pi*self%densityNormalization
+       hernquistMassEnclosedBySphere=self%mass
     else
-       hernquistMassEnclosedBySphere=2.0d0*Pi*self%densityNormalization*fractionalRadius**2/(1.0d0+fractionalRadius)**2
+       hernquistMassEnclosedBySphere=self%mass*fractionalRadius**2/(1.0d0+fractionalRadius)**2
     end if
     return
   end function hernquistMassEnclosedBySphere

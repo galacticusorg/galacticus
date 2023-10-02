@@ -272,13 +272,16 @@ contains
     return
   end subroutine nfwDestructor
 
-  subroutine nfwCalculationReset(self,node)
+  subroutine nfwCalculationReset(self,node,uniqueID)
     !!{
     Reset the dark matter profile calculation.
     !!}
+    use :: Kind_Numbers, only : kind_int8
     implicit none
-    class(darkMatterProfileDMONFW), intent(inout) :: self
-    type (treeNode               ), intent(inout) :: node
+    class  (darkMatterProfileDMONFW), intent(inout) :: self
+    type   (treeNode               ), intent(inout) :: node
+    integer(kind_int8              ), intent(in   ) :: uniqueID
+    !$GLC attributes unused :: node
 
     self%specificAngularMomentumScalingsComputed=.false.
     self%maximumVelocityComputed                =.false.
@@ -288,7 +291,7 @@ contains
     self%massScalePrevious                      =-1.0d0
     self%circularVelocityRadiusPrevious         =-1.0d0
     self%radialVelocityDispersionRadiusPrevious =-1.0d0
-    self%lastUniqueID                           =node%uniqueID()
+    self%lastUniqueID                           =uniqueID
     return
   end subroutine nfwCalculationReset
 
@@ -651,7 +654,7 @@ contains
 
     if (radius > 0.0d0) then
        ! Check if node differs from previous one for which we performed calculations.
-       if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+       if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
        ! Compute the circular velocity if the radius has changed.
        if (radius /= self%circularVelocityRadiusPrevious) then
           self%circularVelocityPrevious      =sqrt(gravitationalConstantGalacticus*self%enclosedMass(node,radius)/radius)
@@ -701,7 +704,7 @@ contains
     double precision                                                :: scaleRadius
 
     ! Check if node differs from previous one for which we performed calculations.
-    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     ! Check if maximum velocity is already computed. Compute and store if not.
     if (.not.self%maximumVelocityComputed) then
        basic             => node             %basic            (                 )
@@ -739,7 +742,7 @@ contains
 
     if (radius > 0.0d0) then
        ! Check if node differs from previous one for which we performed calculations.
-       if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+       if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
        ! Compute the radial velocity dispersion if the radius has changed.
        if (radius /= self%radialVelocityDispersionRadiusPrevious) then
           darkMatterProfile           => node%darkMatterProfile(autoCreate=.true.)
@@ -780,7 +783,7 @@ contains
        return
     end if
     ! Check if node differs from previous one for which we performed calculations.
-    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     ! Check if scalings are already computed. Compute and store if not.
     if (.not.self%specificAngularMomentumScalingsComputed) then
        ! Flag that scale quantities are now computed.
@@ -1002,7 +1005,7 @@ contains
          &                                                                     virialRadiusOverScaleRadius
 
     ! Check if node differs from previous one for which we performed calculations.
-    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     ! Get scale radius if required.
     if (self%densityScalePrevious < 0.0d0 .or. density /= self%enclosedDensityPrevious) then
        darkMatterProfile => node             %darkMatterProfile(autoCreate=.true.)
@@ -1050,7 +1053,7 @@ contains
          &                                                                     virialRadiusOverScaleRadius
 
     ! Check if node differs from previous one for which we performed calculations.
-    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     ! Get scale radius if required.
     if (self%massScalePrevious < 0.0d0 .or. mass /= self%enclosedMassPrevious) then
        darkMatterProfile => node             %darkMatterProfile(autoCreate=.true.)

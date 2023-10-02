@@ -59,9 +59,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository analysis-perl
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: galacticusorg/analysis-perl
           path: analysis-perl
@@ -107,9 +107,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository analysis-perl
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: galacticusorg/analysis-perl
           path: analysis-perl
@@ -145,7 +145,7 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
@@ -174,7 +174,7 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
@@ -205,7 +205,7 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
@@ -232,7 +232,7 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
@@ -268,21 +268,31 @@ jobs:
     permissions:
       packages: write
     steps:
+      - name: "Detect PR build"
+        id: detectBranch
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+             echo Running on a PR - will build, but not push
+             echo "doPush=false" >> "$GITHUB_OUTPUT"
+          else
+             echo Running on a non-PR - will build and push
+             echo "doPush=true"  >> "$GITHUB_OUTPUT"
+          fi
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v5
         with:
           images: galacticusorg/galacticus
       - name: Build and push Docker image 
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v5
         with:
-          push: true
+          push: ${{ steps.detectBranch.outputs.doPush }}
           tags: ghcr.io/galacticusorg/galacticus:latest
           labels: ${{ steps.meta.outputs.labels }}
   ### Documentation
@@ -294,7 +304,7 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
@@ -325,9 +335,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -385,7 +395,7 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
@@ -572,7 +582,7 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
@@ -762,9 +772,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -971,9 +981,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -1017,9 +1027,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -1087,9 +1097,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -1134,9 +1144,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -1202,9 +1212,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -1270,9 +1280,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -1318,9 +1328,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -1387,9 +1397,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -1455,9 +1465,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -1499,9 +1509,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -1567,9 +1577,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -1602,9 +1612,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -1637,9 +1647,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -1672,9 +1682,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -1707,9 +1717,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -1742,9 +1752,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -1777,9 +1787,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -1812,9 +1822,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -1847,9 +1857,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -1882,9 +1892,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -1917,9 +1927,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -1952,9 +1962,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -1987,9 +1997,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -2022,9 +2032,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -2057,9 +2067,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -2092,9 +2102,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -2127,9 +2137,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -2162,9 +2172,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -2197,9 +2207,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -2232,9 +2242,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -2267,9 +2277,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -2302,9 +2312,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -2337,9 +2347,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -2372,9 +2382,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -2407,9 +2417,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -2477,9 +2487,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -2512,9 +2522,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -2547,9 +2557,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -2582,9 +2592,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -2617,9 +2627,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -2652,9 +2662,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -2687,9 +2697,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -2722,9 +2732,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -2757,9 +2767,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -2792,9 +2802,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -2827,9 +2837,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -2862,9 +2872,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -2897,9 +2907,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -2932,9 +2942,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -2967,9 +2977,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -3002,9 +3012,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -3037,9 +3047,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -3072,9 +3082,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -3107,9 +3117,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -3142,9 +3152,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -3177,9 +3187,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -3212,9 +3222,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -3247,9 +3257,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -3282,9 +3292,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -3317,9 +3327,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -3352,9 +3362,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -3387,9 +3397,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -3422,9 +3432,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -3457,9 +3467,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -3492,9 +3502,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -3527,9 +3537,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -3562,9 +3572,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -3597,9 +3607,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -3632,9 +3642,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -3667,9 +3677,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -3702,9 +3712,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -3737,9 +3747,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -3772,9 +3782,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -3807,9 +3817,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -3842,9 +3852,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -3877,9 +3887,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -3912,9 +3922,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -3947,9 +3957,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -3982,9 +3992,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -4017,9 +4027,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -4052,9 +4062,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -4087,9 +4097,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -4122,9 +4132,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -4157,9 +4167,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -4192,9 +4202,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -4227,9 +4237,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -4262,9 +4272,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -4297,9 +4307,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -4332,9 +4342,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -4367,9 +4377,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -4402,9 +4412,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -4437,9 +4447,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -4472,9 +4482,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -4507,9 +4517,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -4542,9 +4552,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -4577,9 +4587,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -4612,9 +4622,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -4647,9 +4657,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -4682,9 +4692,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -4717,9 +4727,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -4752,9 +4762,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -4787,9 +4797,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -4822,9 +4832,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -4857,9 +4867,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -4892,9 +4902,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -4927,9 +4937,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -4962,9 +4972,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -4997,9 +5007,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -5032,9 +5042,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -5067,9 +5077,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -5102,9 +5112,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -5137,9 +5147,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -5172,9 +5182,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -5205,9 +5215,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -5240,9 +5250,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -5275,9 +5285,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -5310,9 +5320,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -5345,9 +5355,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -5385,9 +5395,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -5424,9 +5434,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -5460,9 +5470,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -5495,9 +5505,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -5531,9 +5541,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -5567,9 +5577,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -5605,9 +5615,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -5644,14 +5654,14 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository analysis-perl
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: galacticusorg/analysis-perl
           path: analysis-perl
       - name: Check out repository datasets
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -5687,14 +5697,14 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository analysis-perl
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: galacticusorg/analysis-perl
           path: analysis-perl
       - name: Check out repository datasets
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -5730,14 +5740,14 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository analysis-perl
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: galacticusorg/analysis-perl
           path: analysis-perl
       - name: Check out repository datasets
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -5774,14 +5784,14 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository analysis-perl
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: galacticusorg/analysis-perl
           path: analysis-perl
       - name: Check out repository datasets
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -5817,14 +5827,14 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository analysis-perl
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: galacticusorg/analysis-perl
           path: analysis-perl
       - name: Check out repository datasets
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -5860,14 +5870,14 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository analysis-perl
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: galacticusorg/analysis-perl
           path: analysis-perl
       - name: Check out repository datasets
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -5903,14 +5913,14 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository analysis-perl
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: galacticusorg/analysis-perl
           path: analysis-perl
       - name: Check out repository datasets
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -5945,14 +5955,14 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository analysis-perl
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: galacticusorg/analysis-perl
           path: analysis-perl
       - name: Check out repository datasets
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -5988,14 +5998,14 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository analysis-perl
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: galacticusorg/analysis-perl
           path: analysis-perl
       - name: Check out repository datasets
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -6032,14 +6042,14 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository analysis-perl
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: galacticusorg/analysis-perl
           path: analysis-perl
       - name: Check out repository datasets
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -6075,14 +6085,14 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository analysis-perl
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: galacticusorg/analysis-perl
           path: analysis-perl
       - name: Check out repository datasets
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -6119,9 +6129,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -6156,9 +6166,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -6193,14 +6203,14 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository analysis-perl
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: galacticusorg/analysis-perl
           path: analysis-perl
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -6236,9 +6246,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -6273,9 +6283,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -6310,9 +6320,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -6347,9 +6357,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -6384,9 +6394,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -6421,9 +6431,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -6458,9 +6468,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -6495,9 +6505,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -6532,9 +6542,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -6568,9 +6578,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -6598,9 +6608,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -6629,9 +6639,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -6666,9 +6676,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -6703,9 +6713,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -6741,9 +6751,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -6770,6 +6780,44 @@ jobs:
           ./test-mass-host-maximum.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
+  Test-Noninstantaneous-Recycling:
+    runs-on: ubuntu-latest
+    container: ghcr.io/galacticusorg/buildenv:latest
+    needs: Build-Executable-Linux
+    steps:
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: Check out repository datasets
+        uses: actions/checkout@v4      
+        with:
+          repository: galacticusorg/datasets
+          path: datasets
+      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_ANALYSIS_PERL_PATH=$GITHUB_WORKSPACE/analysis-perl" >> $GITHUB_ENV
+      - name: Download executables
+        uses: actions/download-artifact@v3
+        with:
+          name: galacticus-exec
+      - name: Create test suite output directory
+        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
+      - name: Run test
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
+          chmod u=wrx ./Galacticus.exe
+          cd testSuite
+          chmod u=wrx ./test-noninstantaneous-recycling.pl
+          set -o pipefail
+          ./test-noninstantaneous-recycling.pl 2>&1 | tee test.log
+          ! grep -q FAIL test.log
+      - run: echo "This job's status is ${{ job.status }}."
   Test-Satellite-Distance-Minimum:
     runs-on: ubuntu-latest
     container: ghcr.io/galacticusorg/buildenv:latest
@@ -6779,9 +6827,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -6817,9 +6865,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -6855,9 +6903,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -6914,9 +6962,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -6951,9 +6999,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -6988,9 +7036,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -7024,9 +7072,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -7054,11 +7102,11 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -7086,14 +7134,14 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
       - name: Check out repository analysis-perl
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: galacticusorg/analysis-perl
           path: analysis-perl
@@ -7123,9 +7171,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -7160,9 +7208,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -7197,9 +7245,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -7234,9 +7282,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -7271,9 +7319,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -7308,9 +7356,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -7345,9 +7393,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -7382,9 +7430,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -7419,9 +7467,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -7456,9 +7504,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -7493,9 +7541,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -7531,9 +7579,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -7567,9 +7615,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -7604,9 +7652,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -7641,9 +7689,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -7678,9 +7726,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -7715,9 +7763,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -7752,9 +7800,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -7789,9 +7837,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -7826,9 +7874,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -7863,9 +7911,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -7900,9 +7948,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -7938,9 +7986,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -7974,9 +8022,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -8011,9 +8059,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -8047,9 +8095,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -8083,9 +8131,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -8119,9 +8167,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -8176,9 +8224,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -8212,9 +8260,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -8248,9 +8296,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -8284,9 +8332,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -8320,9 +8368,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -8356,9 +8404,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -8413,9 +8461,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -8449,9 +8497,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -8485,9 +8533,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -8521,9 +8569,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -8558,9 +8606,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -8594,9 +8642,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -8631,14 +8679,14 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository analysis-perl
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: galacticusorg/analysis-perl
           path: analysis-perl
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -8674,9 +8722,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -8710,9 +8758,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -8746,9 +8794,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -8782,9 +8830,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -8818,9 +8866,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -8855,9 +8903,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -8892,9 +8940,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -8929,9 +8977,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -8966,9 +9014,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -9003,9 +9051,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -9040,9 +9088,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -9077,9 +9125,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -9114,9 +9162,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -9151,9 +9199,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -9188,9 +9236,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -9225,9 +9273,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -9262,9 +9310,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -9299,9 +9347,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -9336,9 +9384,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -9373,9 +9421,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -9410,9 +9458,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -9447,9 +9495,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -9484,9 +9532,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -9521,9 +9569,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -9558,9 +9606,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -9596,9 +9644,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -9633,9 +9681,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -9670,9 +9718,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -9707,9 +9755,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -9744,9 +9792,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -9782,9 +9830,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -9825,9 +9873,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -9867,7 +9915,7 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
@@ -9898,9 +9946,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out repository datasets
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v4      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -9932,7 +9980,7 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
@@ -10109,7 +10157,7 @@ jobs:
     needs: [ Benchmark-Dark-Matter-Only-Subhalos, Benchmark-Milky-Way-Model, Validate-Dark-Matter-Only-Subhalos, Validate-Milky-Way-Model ]
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Download artifacts (executable-linux)
         uses: actions/download-artifact@v3
         with:
@@ -10140,6 +10188,7 @@ jobs:
           name: Dark matter-only subhalos benchmarks
           tool: 'customSmallerIsBetter'
           output-file-path: benchmark_darkMatterOnlySubhalos.json
+          summary-always: false
           comment-on-alert: true
           alert-comment-cc-users: '@abensonca'
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -10166,6 +10215,7 @@ jobs:
           name: Milky Way model benchmarks
           tool: 'customSmallerIsBetter'
           output-file-path: benchmark_milkyWay.json
+          summary-always: false
           comment-on-alert: true
           alert-comment-cc-users: '@abensonca'
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -10192,6 +10242,7 @@ jobs:
           name: Dark matter-only subhalos benchmarks
           tool: 'customSmallerIsBetter'
           output-file-path: validate_darkMatterOnlySubhalos.json
+          summary-always: false
           comment-on-alert: true
           alert-comment-cc-users: '@abensonca'
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -10218,6 +10269,7 @@ jobs:
           name: Milky Way model benchmarks
           tool: 'customSmallerIsBetter'
           output-file-path: validate_milkyWayModel.json
+          summary-always: false
           comment-on-alert: true
           alert-comment-cc-users: '@abensonca'
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -10426,6 +10478,7 @@ jobs:
              Test-Inactive-Luminosities,
              Test-Interoutput-Star-Formation-Rate,
              Test-Mass-Host-Maximum,
+             Test-Noninstantaneous-Recycling,
              Test-Satellite-Distance-Minimum,
              Test-Tree-Filter-Labels,
              Test-Constrained-Merger-Trees,
@@ -10442,8 +10495,8 @@ jobs:
              Test-Checkpointing,
              Test-Stellar-Mass-Weighted-Ages,
              Test-Tidal-Tracks,
-	     Tests-Galactic-Structure,
-	     Test-galacticStructureState-Deallocate-Bug,
+             Tests-Galactic-Structure,
+             Test-galacticStructureState-Deallocate-Bug,
              Test-Inactive-Numerics,
              Test-Impulsive-Heating,
              Test-Halo-Triaxiality,
@@ -10513,7 +10566,7 @@ jobs:
              Validate ]
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Download artifacts (executable-linux)
         uses: actions/download-artifact@v3
         with:
@@ -10594,7 +10647,7 @@ jobs:
     needs: Deploy
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Update tag
         run: |
           git tag -f bleeding-edge

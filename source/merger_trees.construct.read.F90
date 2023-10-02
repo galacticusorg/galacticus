@@ -3062,13 +3062,11 @@ contains
     type   (treeNode          ), pointer                     :: nodeNew          , nodeSatellite
     class  (nodeComponentBasic), pointer                     :: newBasicComponent
     integer                                                  :: iNode
-    integer(c_size_t          )                              :: iIsolatedNode
 
     ! Search for cases where a node has no progenitors which do not descend into subhalos.
     do iNode=1,size(nodes)
        ! Only process if this is an isolated node.
        if (nodes(iNode)%isolatedNodeIndex /= nodeReachabilityUnreachable%ID .and. .not.nodes(iNode)%isSubhalo) then
-          iIsolatedNode=nodes(iNode)%isolatedNodeIndex
           ! Select nodes with parents.
           if (associated(nodes(iNode)%node%parent)) then
              ! Select nodes with subhalo descendants which are also the primary progenitor of their parent.
@@ -3282,7 +3280,15 @@ contains
     call progenitors%descendantSet(self,lastSeenNode%descendant,nodes)
     if (progenitors%exist()) then
        ! Determine if the parent node has a clone primary progenitor.
-       parentIsCloned=(nodeList(lastSeenNode%isolatedNodeIndex)%node%parent%uniqueID() == nodeList(lastSeenNode%isolatedNodeIndex)%node%parent%firstChild%uniqueID())
+       !! First check if the parent has a child halo.
+       if (associated(nodeList(lastSeenNode%isolatedNodeIndex)%node%parent%firstChild)) then
+          ! Parent does have a child halo - check if it is a clone.
+          parentIsCloned=(nodeList(lastSeenNode%isolatedNodeIndex)%node%parent%uniqueID() == nodeList(lastSeenNode%isolatedNodeIndex)%node%parent%firstChild%uniqueID())
+       else
+          ! Parent does not have a child halo - this means our current halo must be a subhalo in a childless host. Therefore, the
+          ! parent can not have a clone.
+          parentIsCloned=.false.
+       end if
        ! If parent is cloned, we need to make a temporary progenitor node.
        if (parentIsCloned) then
           allocate(primaryProgenitor)

@@ -263,18 +263,21 @@ contains
     return
   end subroutine krumholz2009Destructor
 
-  subroutine krumholz2009CalculationReset(self,node)
+  subroutine krumholz2009CalculationReset(self,node,uniqueID)
     !!{
     Reset the Kennicutt-Schmidt relation calculation.
     !!}
+    use :: Kind_Numbers, only : kind_int8
     implicit none
-    class(starFormationRateSurfaceDensityDisksKrumholz2009), intent(inout) :: self
-    type (treeNode                                        ), intent(inout) :: node
+    class  (starFormationRateSurfaceDensityDisksKrumholz2009), intent(inout) :: self
+    type   (treeNode                                        ), intent(inout) :: node
+    integer(kind_int8                                       ), intent(in   ) :: uniqueID
+    !$GLC attributes unused :: node
 
     self%factorsComputed       =.false.
     self%radiusCriticalPrevious=-1.0d0
     self%radiusMaximumPrevious =-1.0d0
-    self%lastUniqueID          =node%uniqueID()
+    self%lastUniqueID          =uniqueID
     return
   end subroutine krumholz2009CalculationReset
 
@@ -293,7 +296,7 @@ contains
     !$omp threadprivate(abundancesFuel)
 
     ! Check if node differs from previous one for which we performed calculations.
-    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     ! Check if factors have been precomputed.
     if (.not.self%factorsComputed) then
        ! Get the disk properties.

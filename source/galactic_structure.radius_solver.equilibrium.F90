@@ -261,7 +261,7 @@ contains
           node_ => node
        end if
        ! Begin iteration to find a converged solution.
-       do while (countIterations <= 2 .or. ( fitMeasure > self%solutionTolerance .and. countIterations < iterationMaximum ) )
+       do while (countIterations <= 1 .or. ( fitMeasure > self%solutionTolerance .and. countIterations < iterationMaximum ) )
           countIterations      =countIterations+1
           countComponentsActive=0
           if (countIterations > 1) fitMeasure=0.0d0
@@ -381,7 +381,7 @@ contains
             radiusStored  (countComponentsActive)=radius
             velocityStored(countComponentsActive)=velocity
          end if
-       else
+      else
          ! On subsequent iterations do the full calculation providing component has non-zero specific angular momentum.
          if (specificAngularMomentum <= 0.0d0) return
          ! Get current radius of the component.

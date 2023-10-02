@@ -65,7 +65,7 @@ contains
           ! Download the code if not already downloaded.
           if (.not.File_Exists(recfastPath//"recfast.for")) then
              call displayMessage("downloading RecFast code....",verbosityLevelWorking)
-             call download("https://www.astro.ubc.ca/people/scott/recfast.for",char(recfastPath)//"recfast.for")
+             call download("https://www.astro.ubc.ca/people/scott/recfast.for",char(recfastPath)//"recfast.for",retries=5,retryWait=60)
              if (.not.File_Exists(recfastPath//"recfast.for")) &
                   & call Error_Report("failed to download RecFast code"//{introspection:location})
           end if

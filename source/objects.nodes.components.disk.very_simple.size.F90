@@ -188,16 +188,19 @@ contains
     <unitName>Node_Component_Disk_Very_Simple_Size_Calculation_Reset</unitName>
   </calculationResetTask>
   !!]
-  subroutine Node_Component_Disk_Very_Simple_Size_Calculation_Reset(node)
+  subroutine Node_Component_Disk_Very_Simple_Size_Calculation_Reset(node,uniqueID)
     !!{
     Reset very simple size disk structure calculations.
     !!}
     use :: Galacticus_Nodes                         , only : treeNode
+    use :: Kind_Numbers                             , only : kind_int8
     use :: Node_Component_Disk_Very_Simple_Size_Data, only : Node_Component_Disk_Very_Simple_Size_Reset
     implicit none
-    type(treeNode), intent(inout) :: node
+    type   (treeNode ), intent(inout) :: node
+    integer(kind_int8), intent(in   ) :: uniqueID
+    !$GLC attributes unused :: node
 
-    call Node_Component_Disk_Very_Simple_Size_Reset(node%uniqueID())
+    call Node_Component_Disk_Very_Simple_Size_Reset(uniqueID)
     return
   end subroutine Node_Component_Disk_Very_Simple_Size_Calculation_Reset
 

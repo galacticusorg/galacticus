@@ -205,17 +205,20 @@ contains
     return
   end subroutine betaProfileDestructor
 
-  subroutine betaProfileCalculationReset(self,node)
+  subroutine betaProfileCalculationReset(self,node,uniqueID)
     !!{
     Reset the cooling radius calculation.
     !!}
+    use :: Kind_Numbers, only : kind_int8
     implicit none
-    class(coolingRadiusBetaProfile), intent(inout) :: self
-    type (treeNode                ), intent(inout) :: node
+    class  (coolingRadiusBetaProfile), intent(inout) :: self
+    type   (treeNode                ), intent(inout) :: node
+    integer(kind_int8               ), intent(in   ) :: uniqueID
+    !$GLC attributes unused :: node
 
     self%radiusComputed          =.false.
     self%radiusGrowthRateComputed=.false.
-    self%lastUniqueID            =node%uniqueID()
+    self%lastUniqueID            =uniqueID
     return
   end subroutine betaProfileCalculationReset
 
@@ -246,7 +249,7 @@ contains
     type            (chemicalAbundances         )                :: chemicalFractions      , chemicalMasses
 
     ! Check if node differs from previous one for which we performed calculations.
-    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
 
     ! Check if cooling radius growth rate is already computed.
     if (.not.self%radiusGrowthRateComputed) then
@@ -339,7 +342,7 @@ contains
     type            (chemicalAbundances         )                         :: chemicalFractions      , chemicalMasses
 
     ! Check if node differs from previous one for which we performed calculations.
-    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     ! Check if cooling radius is already computed.
     if (.not.self%radiusComputed) then
        ! Get the time available for cooling in node.

@@ -373,18 +373,24 @@ contains
     return
   end subroutine projectedDensityDescriptions
 
-  subroutine projectedDensityColumnDescriptions(self,descriptions,time)
+  subroutine projectedDensityColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnitsInSI,time)
     !!{
     Return column descriptions of the {\normalfont \ttfamily projectedDensity} property.
     !!}
     implicit none
-    class           (nodePropertyExtractorProjectedDensity), intent(inout)                             :: self
-    double precision                                       , intent(in   ), optional                   :: time
-    type            (varying_string                       ), intent(inout), dimension(:) , allocatable :: descriptions
+    class           (nodePropertyExtractorProjectedDensity), intent(inout)                            :: self
+    double precision                                       , intent(in   ), optional                  :: time
+    type            (varying_string                       ), intent(inout), dimension(:), allocatable :: descriptions
+    double precision                                       , intent(inout), dimension(:), allocatable :: values
+    type            (varying_string                         ), intent(  out)                            :: valuesDescription
+    double precision                                         , intent(  out)                            :: valuesUnitsInSI
     !$GLC attributes unused :: time
 
     allocate(descriptions(self%radiiCount))
-    descriptions=self%radii%name
+    allocate(values      (              0))
+    valuesDescription=var_str('')
+    valuesUnitsInSI  =0.0d0
+    descriptions     =self%radii%name
     return
   end subroutine projectedDensityColumnDescriptions
 

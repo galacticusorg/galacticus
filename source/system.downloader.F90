@@ -76,31 +76,45 @@ contains
     return
   end subroutine downloadVarStr
 
-  subroutine downloadChar(url,outputFileName,status)
+  subroutine downloadChar(url,outputFileName,retries,retryWait,status)
     !!{
     Download content from the given {\normalfont url} to the given {\normalfont \ttfamily outputFileName}.
     !!}
     use :: Error         , only : Error_Report     , errorStatusFail, errorStatusSuccess
     use :: System_Command, only : System_Command_Do
+    use :: File_Utilities, only : File_Exists      , File_Remove
     implicit none
     character(len=*), intent(in   )           :: url    , outputFileName
+    integer         , intent(in   ), optional :: retries, retryWait
     integer         , intent(  out), optional :: status
-    integer                                   :: status_
+    integer                                   :: status_, tries
+    !![
+    <optionalArgument name="retries"   defaultsTo="0" />
+    <optionalArgument name="retryWait" defaultsTo="60"/>
+    !!]
     
     call downloadInitialize()
-    status_=errorStatusFail
-    if      (downloadUsingWget) then
-       call System_Command_Do('wget --no-check-certificate "'//trim(url)//'" -O '      //trim(outputFileName),status_)
-    else if (downloadUsingCurl) then
-       call System_Command_Do('curl --insecure --location "' //trim(url)//'" --output '//trim(outputFileName),status_)
-    else if (.not.present(status)) then
-       call Error_Report('no downloader available'//{introspection:location})
-    end if
-    if (present(status)) then
-       status=status_
-    else if (status_ /= 0) then
-       call Error_Report('failed to download "'//trim(url)//'"'//{introspection:location})
-    end if
+    if (present(status)) status=0
+    tries=0
+    do while (tries <= retries_)
+       status_=errorStatusFail
+       if      (downloadUsingWget) then
+          call System_Command_Do('wget --no-check-certificate "'//trim(url)//'" -O '      //trim(outputFileName),status_)
+       else if (downloadUsingCurl) then
+          call System_Command_Do('curl --insecure --location "' //trim(url)//'" --output '//trim(outputFileName),status_)
+       else if (.not.present(status)) then
+          call Error_Report('no downloader available'//{introspection:location})
+       end if
+       if (status_ == 0) then
+          if (present(status)) status=status_
+          return
+       end if
+       tries=tries+1
+       if (File_Exists(outputFileName)) call File_Remove(outputFileName)
+       call sleep(retryWait)
+    end do
+    if (     present(status)                   )  status=status_
+    if (.not.present(status) .and. status_ /= 0) call Error_Report('failed to download "'//trim(url)//'"'//{introspection:location})
     return
   end subroutine downloadChar
 

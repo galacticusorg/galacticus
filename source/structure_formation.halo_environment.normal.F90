@@ -269,14 +269,17 @@ contains
     return
   end subroutine normalDestructor
 
-  subroutine normalCalculationReset(self,node)
+  subroutine normalCalculationReset(self,node,uniqueID)
     !!{
     Reset the normal halo environment calculation.
     !!}
     use :: Galacticus_Nodes, only : treeNode
+    use :: Kind_Numbers    , only : kind_int8
     implicit none
-    class(haloEnvironmentNormal), intent(inout) :: self
-    type (treeNode             ), intent(inout) :: node
+    class  (haloEnvironmentNormal), intent(inout) :: self
+    type   (treeNode             ), intent(inout) :: node
+    integer(kind_int8            ), intent(in   ) :: uniqueID
+    !$GLC attributes unused :: node, uniqueID
 
     self%overdensityPrevious=-huge(0.0d0)
     self%uniqueIDPrevious   =-1_kind_int8

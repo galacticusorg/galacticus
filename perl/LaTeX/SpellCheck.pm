@@ -66,9 +66,11 @@ sub spellCheckFile {
 	}
 	close($words);
     }
-    open(my $dictionary,">",$fileName.".dict");
+    open(my $dictionary,">",$fileName.".dic");
+    print $dictionary scalar(@spellWords)."\n";
     print $dictionary join("\n",uniq(sort(@spellWords)))."\n";
     close($dictionary);
+    system("cp aux/words.aff ".$fileName.".aff");
 
     # Pre-process file.
     open(my $fileIn ,"<",$fileName         );
@@ -137,6 +139,12 @@ sub spellCheckFile {
 	    $line =~ s/\\'e/e/g;
 	    $line =~ s/\\"o/o/g;
 	}
+	# Remove URLs.
+	if ( $isLaTeX ) {
+	    $line =~ s/\\href\{[^\}]+\}//g;
+	} else {
+	    $line =~ s/http:\/\/.+(\s|\))/$1/g;
+	}
 	# Write the processed line to output.
 	print $fileOut $line;
     }
@@ -146,14 +154,14 @@ sub spellCheckFile {
     # Spell check.
     my %words;
     my $lineNumber = 0;
-    open(my $spell,"hunspell -l ".($isLaTeX ? "-t " : "")."-i utf-8 -p ".$fileName.".dict ".$fileName.".spell |");
+    open(my $spell,"hunspell -l ".($isLaTeX ? "-t " : "")."-i utf-8 -d en_US,".$fileName." ".$fileName.".spell |");
     while ( my $word = <$spell> ) {
 	++$lineNumber; 
 	chomp($word);
 	$words{lc($word)}++;
     }
-    close($spell);
-    unlink($fileName.".spell",$fileName.".dict");
+    close($spell);   
+    unlink($fileName.".spell",$fileName.".dic",$fileName.".aff");
     my $warnings = "";
     foreach my $word ( sort(keys(%words)) ) {
 	$warnings .= ":warning: Possible misspelled word '".$word."' ".($words{$word} > 1 ? "(".$words{$word}." instances)" : "")." in file '".$fileNameOriginal."'\n";

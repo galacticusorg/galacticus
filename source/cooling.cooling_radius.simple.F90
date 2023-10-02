@@ -214,17 +214,20 @@ contains
     return
   end subroutine simpleDestructor
 
-  subroutine simpleCalculationReset(self,node)
+  subroutine simpleCalculationReset(self,node,uniqueID)
     !!{
     Reset the cooling radius calculation.
     !!}
+    use :: Kind_Numbers, only : kind_int8
     implicit none
-    class(coolingRadiusSimple), intent(inout) :: self
-    type (treeNode           ), intent(inout) :: node
+    class  (coolingRadiusSimple), intent(inout) :: self
+    type   (treeNode           ), intent(inout) :: node
+    integer(kind_int8          ), intent(in   ) :: uniqueID
+    !$GLC attributes unused :: node
 
     self%radiusComputed          =.false.
     self%radiusGrowthRateComputed=.false.
-    self%lastUniqueID            =node%uniqueID()
+    self%lastUniqueID            =uniqueID
     return
   end subroutine simpleCalculationReset
 
@@ -251,7 +254,7 @@ contains
          &                                                          temperature                     , temperatureLogSlope
 
     ! Check if node differs from previous one for which we performed calculations.
-    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     ! Check if cooling radius growth rate is already computed.
     if (.not.self%radiusGrowthRateComputed) then
        ! Flag that cooling radius is now computed.
@@ -319,10 +322,11 @@ contains
     class           (nodeComponentHotHalo), pointer               :: hotHalo
     double precision                      , parameter             :: zeroRadius    =0.0d0
     type            (chemicalAbundances  )                        :: chemicalMasses
-    double precision                                              :: outerRadius         , massToDensityConversion
+    double precision                                              :: outerRadius         , massToDensityConversion, &
+         &                                                           rootZero            , rootOuter
 
     ! Check if node differs from previous one for which we performed calculations.
-    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     ! Check if cooling radius is already computed.
     if (.not.self%radiusComputed) then
        ! Flag that cooling radius is now computed.
@@ -347,7 +351,7 @@ contains
              massToDensityConversion=0.0d0
           end if          
           ! Convert to number density per unit total mass density.
-          fractionsChemical_=fractionsChemical_*massToDensityConversion
+          call fractionsChemical_%scale(massToDensityConversion)
        end if
        ! Set epoch for radiation field.
        basic => node%basic()
@@ -357,21 +361,23 @@ contains
        node_ => node
        ! Check if cooling time at hot halo outer radius is reached.
        outerRadius=hotHalo%outerRadius()
-       if (coolingRadiusRoot(outerRadius) < 0.0d0) then
+       rootOuter=coolingRadiusRoot(outerRadius)
+       if (rootOuter < 0.0d0) then
           ! Cooling time available exceeds cooling time at outer radius radius, return outer radius.
           self%radiusStored=outerRadius
           simpleRadius     =self%radiusStored
           return
        end if
        ! Check if cooling time at halo center is reached.
-       if (coolingRadiusRoot(zeroRadius) > 0.0d0) then
+       rootZero=coolingRadiusRoot(zeroRadius)
+       if (rootZero > 0.0d0) then
           ! Cooling time at halo center exceeds the time available, return zero radius.
           self%radiusStored=zeroRadius
           simpleRadius     =self%radiusStored
           return
        end if
        ! Cooling radius is between zero and outer radii. Search for the cooling radius.
-       self%radiusStored=self%finder      %find(rootRange=[zeroRadius,outerRadius])
+       self%radiusStored=self%finder      %find(rootRange=[zeroRadius,outerRadius],rootRangeValues=[rootZero,rootOuter])
        simpleRadius     =self%radiusStored
     else
        simpleRadius     =self%radiusStored
@@ -406,6 +412,8 @@ contains
     else
        temperature          =   0.0d0
     end if
+    call densityChemicals%scale(density)
+    densityChemicals=fractionsChemical_
     densityChemicals        =   fractionsChemical_                                                                                                      &
          &                     *density
     !![

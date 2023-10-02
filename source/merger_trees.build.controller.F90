@@ -89,8 +89,9 @@ module Merger_Tree_Build_Controllers
     <description>Alert the controller when new nodes are inserted into the tree.</description>
     <type>void</type>
     <pass>yes</pass>
-    <argument>type(treeNode), intent(inout)           :: nodeCurrent    , nodeProgenitor1</argument>
-    <argument>type(treeNode), intent(inout), optional :: nodeProgenitor2</argument>
+    <argument>type   (treeNode), intent(inout)           :: nodeCurrent    , nodeProgenitor1</argument>
+    <argument>type   (treeNode), intent(inout), optional :: nodeProgenitor2                 </argument>
+    <argument>logical          , intent(in   ), optional :: didBranch                       </argument>
    </method>
   </functionClass>
   !!]

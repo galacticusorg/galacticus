@@ -400,7 +400,7 @@ contains
     integer         (kind_int8                          )                                      :: systemClockCount
     type            (varying_string                     )                                      :: message                  , line
     character       (len =12                            )                                      :: label
-    
+
     ! Set status to success.
     if (present(status)) status=errorStatusSuccess
     ! Set time limit.
@@ -796,8 +796,9 @@ contains
     !!}
 #ifdef DEBUGGING
     use :: Debugging             , only : isDebugging    , debugLog
-    use :: ISO_Varying_String    , only : varying_string , assignment(=)
+    use :: ISO_Varying_String    , only : varying_string , assignment(=), var_str
     use :: Galacticus_Nodes      , only : propertyTypeAll
+    use :: String_Handling       , only : operator(//)
 #endif
     use :: Error                 , only : errorStatusXCPU
     use :: Galacticus_Nodes      , only : interruptTask  , nodeComponentBasic
@@ -852,7 +853,7 @@ contains
 #ifdef DEBUGGING
     if (isDebugging()) then
        write (label,'(f9.4)') time
-       message="step: "//trim(adjustl(label))
+       message=var_str("step: ")//trim(adjustl(label))//' [treeIndex: '//self_%activeNode%hostTree%index//' ; nodeIndex '//self_%activeNode%index()//']'
        call debugLog(message)
     end if
 #endif

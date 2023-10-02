@@ -206,19 +206,22 @@ contains
     return
   end subroutine standardDestructor
 
-  subroutine standardCalculationReset(self,node)
+  subroutine standardCalculationReset(self,node,uniqueID)
     !!{
     Reset calculations for galactic structure potentials.
     !!}
     use :: Galacticus_Nodes, only : treeNode
+    use :: Kind_Numbers    , only : kind_int8
     implicit none
-    class(galacticStructureStandard), intent(inout) :: self
-    type (treeNode                 ), intent(in   ) :: node
+    class  (galacticStructureStandard), intent(inout) :: self
+    type   (treeNode                 ), intent(in   ) :: node
+    integer(kind_int8                ), intent(in   ) :: uniqueID
+    !$GLC attributes unused :: node
 
     self%potentialOffsetComputed              =.false.
     self%radiusEnclosingMassPrevious          =-huge(0.0d0)
     self%radiusEnclosingSurfaceDensityPrevious=-huge(0.0d0)
-    self%uniqueIDPrevious                     =node%uniqueID()
+    self%uniqueIDPrevious                     =uniqueID
     return
   end subroutine standardCalculationReset
 
@@ -561,7 +564,7 @@ contains
     ! Initialize status.
     if (present(status)) status=structureErrorCodeSuccess
     ! Reset calculations if this is a new node.
-    if (node%uniqueID() /= self%uniqueIDPrevious) call self%calculationReset(node)
+    if (node%uniqueID() /= self%uniqueIDPrevious) call self%calculationReset(node,node%uniqueID())
     ! Get the mass distribution for this calculation.
     massDistribution_ => node%massDistribution()
     ! Evaluate the potential at the halo virial radius.

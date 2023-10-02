@@ -31,7 +31,6 @@ program Test_Dark_Matter_Profiles_Projected
   use            :: Cosmology_Parameters      , only : cosmologyParametersSimple
   use            :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScaleVirialDensityContrastDefinition
   use            :: Virial_Density_Contrast   , only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
-  use            :: Dark_Matter_Profiles      , only : darkMatterProfileDarkMatterOnly
   use            :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMONFW
   use            :: Node_Property_Extractors  , only : nodePropertyExtractorProjectedMass                            , nodePropertyExtractorProjectedDensity
   use            :: Galactic_Structure        , only : galacticStructureStandard
@@ -51,7 +50,6 @@ program Test_Dark_Matter_Profiles_Projected
   type            (cosmologyParametersSimple                                     )                          :: cosmologyParameters_
   type            (cosmologyFunctionsMatterLambda                                )                          :: cosmologyFunctions_
   type            (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt)                          :: virialDensityContrast_
-  type            (darkMatterProfileDarkMatterOnly                               )                          :: darkMatterProfile_
   type            (galacticStructureStandard                                     )                          :: galacticStructure_
   type            (darkMatterProfileDMONFW                                       )                          :: darkMatterProfileDMO_
   type            (nodePropertyExtractorProjectedMass                            )                          :: nodePropertyExtractorProjectedMass_
@@ -135,21 +133,11 @@ program Test_Dark_Matter_Profiles_Projected
      &amp;                               )
    </constructor>
    </referenceConstruct>
-   <referenceConstruct object="darkMatterProfile_"                 >
-   <constructor>
-    darkMatterProfileDarkMatterOnly      (                                                            &amp;
-     &amp;                                cosmologyParameters_                =cosmologyParameters_ , &amp;
-     &amp;                                darkMatterHaloScale_                =darkMatterHaloScale_ , &amp;
-     &amp;                                darkMatterProfileDMO_               =darkMatterProfileDMO_  &amp;
-     &amp;                               )
-   </constructor>
-  </referenceConstruct>
    <referenceConstruct object="galacticStructure_"                 >
    <constructor>
     galacticStructureStandard            (                                                            &amp;
      &amp;                                cosmologyFunctions_                 =cosmologyFunctions_  , &amp;
-     &amp;                                darkMatterHaloScale_                =darkMatterHaloScale_ , &amp;
-     &amp;                                darkMatterProfile_                  =darkMatterProfile_     &amp;
+     &amp;                                darkMatterHaloScale_                =darkMatterHaloScale_   &amp;
      &amp;                               )
    </constructor>
   </referenceConstruct>

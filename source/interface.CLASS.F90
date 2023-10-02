@@ -93,7 +93,7 @@ contains
           ! Download CLASS if necessary.
           if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"class_public-"//char(classVersion)//".tar.gz")) then
              call displayMessage("downloading CLASS code....",verbosityLevelWorking)
-             call download("https://github.com/lesgourg/class_public/archive/refs/tags/v"//char(classVersion)//".tar.gz",char(inputPath(pathTypeDataDynamic))//"class_public-"//char(classVersion)//".tar.gz",status)
+             call download("https://github.com/lesgourg/class_public/archive/refs/tags/v"//char(classVersion)//".tar.gz",char(inputPath(pathTypeDataDynamic))//"class_public-"//char(classVersion)//".tar.gz",status=status)
              if (status /= 0 .or. .not.File_Exists(inputPath(pathTypeDataDynamic)//"class_public-"//char(classVersion)//".tar.gz")) call Error_Report("unable to download CLASS"//{introspection:location})
           end if
           call displayMessage("unpacking CLASS code....",verbosityLevelWorking)

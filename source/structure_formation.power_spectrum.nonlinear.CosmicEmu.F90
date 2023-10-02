@@ -243,7 +243,7 @@ contains
                 ! Download the code.
                 if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"CosmicEmu_v1.1.tar.gz")) then
                    call displayMessage("downloading CosmicEmu code....",verbosityLevelWorking)
-                   call download("http://www.hep.anl.gov/cosmology/CosmicEmu/CosmicEmu_v1.1.tar.gz",char(inputPath(pathTypeDataDynamic))//"CosmicEmu_v1.1.tar.gz",status)
+                   call download("http://www.hep.anl.gov/cosmology/CosmicEmu/CosmicEmu_v1.1.tar.gz",char(inputPath(pathTypeDataDynamic))//"CosmicEmu_v1.1.tar.gz",status=status)
                    if (status /= 0 .or. .not.File_Exists(inputPath(pathTypeDataDynamic)//"CosmicEmu_v1.1.tar.gz")) &
                         & call Error_Report("failed to download CosmicEmu code"//{introspection:location})
                 end if
