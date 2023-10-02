@@ -42,7 +42,7 @@ Contains a module which implements a merger tree build controller class which li
      double precision                                          :: redshiftStep                        , criticalOverdensityStep
      logical                                                   :: haltAfterStep
      integer                                                   :: primaryLabelID                      , secondaryLabelID       , &
-          &                                                       smoothLabelID
+          &                                                       smoothLabelID                       , singleLabelID
    contains
      final     ::                               singleStepDestructor
      procedure :: control                    => singleStepControl
@@ -134,9 +134,10 @@ contains
          &                                                                       )                        &
          &                                                                      )                         &
          &                                                                     )
-    self%  primaryLabelID=nodeLabelRegister('progenitorFirst' ,'Identifies progenitors that were sampled first from the progenitor mass distribution.' )
-    self%secondaryLabelID=nodeLabelRegister('progenitorSecond','Identifies progenitors that were sampled second from the progenitor mass distribution.')
-    self%   smoothLabelID=nodeLabelRegister('progenitorSmooth','Identifies progenitors resulting from smooth/sub-resolution accretion.'                )
+    self%  primaryLabelID=nodeLabelRegister('progenitorFirst' ,'Identifies progenitors that were sampled first from the progenitor mass distribution.'                           )
+    self%secondaryLabelID=nodeLabelRegister('progenitorSecond','Identifies progenitors that were sampled second from the progenitor mass distribution.'                          )
+    self%   smoothLabelID=nodeLabelRegister('progenitorSmooth','Identifies progenitors resulting from smooth/sub-resolution accretion.'                                          )
+    self%   singleLabelID=nodeLabelRegister('progenitorSingle','Identifies progenitors on a single branch all of which were sampled first from the progenitor mass distribution.')
     return
   end function singleStepConstructorInternal
 
@@ -160,15 +161,19 @@ contains
     !!{
     Apply control to merger tree building.
     !!}
+    use :: Nodes_Labels, only : nodeLabelSet
     implicit none
     class(mergerTreeBuildControllerSingleStep), intent(inout)           :: self
     type (treeNode                           ), intent(inout), pointer  :: node
     class(mergerTreeWalkerClass              ), intent(inout), optional :: treeWalker_
     
+    ! Mark the root halo as being on the single branch.
+    if (associated(node) .and. .not.associated(node%parent)) &
+         & call nodeLabelSet(self%singleLabelID,node)
     ! First call the decorated controller.
     singleStepControl=self%mergerTreeBuildController_%control(node,treeWalker_)
     ! If we are to halt after the first step, then override the decorated controller as necessary.
-    if (self%haltAfterStep .and. associated(node%parent)) singleStepControl=.false.
+    if (self%haltAfterStep .and. associated(node) .and. associated(node%parent)) singleStepControl=.false.
     return
   end function singleStepControl
 
@@ -213,7 +218,7 @@ contains
     use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBasic
     use :: Kind_Numbers    , only : kind_int8
-    use :: Nodes_Labels    , only : nodeLabelSet
+    use :: Nodes_Labels    , only : nodeLabelSet      , nodeLabelIsPresent
     implicit none
     class           (mergerTreeBuildControllerSingleStep), intent(inout)         :: self
     type            (treeNode                           ), intent(inout), target :: node
@@ -241,7 +246,9 @@ contains
     nodeNew  %sibling    => null()
     call basic%massSet(massBranch               )
     call basic%timeSet(criticalOverdensityBranch)
-    call nodeLabelSet(self%smoothLabelID,nodeNew)  
+    call nodeLabelSet(self%smoothLabelID,nodeNew)
+    if (nodeLabelIsPresent(self%singleLabelID,node)) &
+         & call nodeLabelSet(self%singleLabelID,nodeNew)
     ! Return false indicating that the current node is finished, so building should continue from its progenitor nodes.
     singleStepControlTimeMaximum=.false.
     return
@@ -264,7 +271,7 @@ contains
     !!{
     Act on the insertion of nodes into the merger tree.
     !!}
-    use :: Nodes_Labels, only : nodeLabelSet
+    use :: Nodes_Labels, only : nodeLabelSet, nodeLabelIsPresent
     implicit none
     class  (mergerTreeBuildControllerSingleStep), intent(inout)           :: self
     type   (treeNode                           ), intent(inout)           :: nodeCurrent    , nodeProgenitor1
@@ -282,5 +289,7 @@ contains
     else
        call        nodeLabelSet(self%   smoothLabelID,nodeProgenitor1)  
     end if
+    if (nodeLabelIsPresent(self%singleLabelID,nodeCurrent)) &
+         & call nodeLabelSet(self%singleLabelID,nodeProgenitor1)    
     return
   end subroutine singleStepNodesInserted
