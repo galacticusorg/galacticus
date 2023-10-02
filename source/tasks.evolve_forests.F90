@@ -513,8 +513,6 @@ contains
     !$omp barrier
     ! Begin processing trees.
     treeProcess : do while (.not.finished)
-       ! Report on memory utilization.
-       call reportMemoryUsage()
        ! Attempt to get a new tree to process. We first try to get a new tree. If no new trees exist, we will look for a tree on
        ! the stack waiting to be processed.
        ! Perform any pre-tree construction tasks.
@@ -548,6 +546,8 @@ contains
           treeIsNew=.false.
           finished =.not.associated(tree)
        end if
+       ! Report on memory utilization.
+       call reportMemoryUsage()
        ! If we got a tree (i.e. we are not "finished") process it.
        if (.not.finished) then
           treeIsFinished=.false.
@@ -703,6 +703,8 @@ contains
                 ! until that event's task is performed.
                 exit
              else
+                ! Report on memory utilization.
+                call reportMemoryUsage()
                 ! Tree reached an output time, so output it. We can then continue evolving.
                 write (label,'(f7.2)') evolveToTime
                 message="Output tree data at t="//trim(label)//" Gyr"
