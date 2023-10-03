@@ -68,7 +68,6 @@ contains
     !!{
     Compute the cumulative energy input from a star of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age} and {\normalfont \ttfamily metallicity}.
     !!}
-    use :: Stellar_Feedback, only : feedbackEnergyInputAtInfinityCanonical
     implicit none
     class           (stellarFeedbackInstantCanonical), intent(inout), target :: self
     double precision                                 , intent(in   )         :: age        , initialMass, &
