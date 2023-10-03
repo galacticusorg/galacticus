@@ -63,16 +63,17 @@ contains
     return
   end subroutine downloadInitialize
   
-  subroutine downloadVarStr(url,outputFileName,status)
+  subroutine downloadVarStr(url,outputFileName,retries,retryWait,status)
     !!{
     Download content from the given {\normalfont url} to the given {\normalfont \ttfamily outputFileName}.
     !!}
     use :: ISO_Varying_String, only : char, varying_string
     implicit none
-    type   (varying_string), intent(in   )           :: url   , outputFileName
+    type   (varying_string), intent(in   )           :: url    , outputFileName
+    integer                , intent(in   ), optional :: retries, retryWait
     integer                , intent(  out), optional :: status
     
-    call download(char(url),char(outputFileName),status)
+    call download(char(url),char(outputFileName),retries,retryWait,status)
     return
   end subroutine downloadVarStr
 
