@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1696320727333,
+  "lastUpdate": 1696320735165,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "631a147700ebbf8bc4744a98bad28567a3dabf6c",
-          "message": "fix: Merge branch 'master' of github.com:galacticusorg/galacticus",
-          "timestamp": "2023-02-27T07:30:46-08:00",
-          "tree_id": "a7057bc0913f2a42e0a192bed24e712be9fa715e",
-          "url": "https://github.com/galacticusorg/galacticus/commit/631a147700ebbf8bc4744a98bad28567a3dabf6c"
-        },
-        "date": 1677524650352,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 238.797,
-            "unit": "seconds",
-            "range": 0.144665476189165
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10624,6 +10594,60 @@ window.BENCHMARK_DATA = {
             "value": 214.053,
             "unit": "seconds",
             "range": 0.2104331247647
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "82f64062a3b79f48ea8ee6fb5282436b0c155e8f",
+          "message": "Merge pull request #487 from galacticusorg/brownianBridgeFix\n\nFix mathematical implementation of Brownian bridge solutions",
+          "timestamp": "2023-10-03T04:56:09Z",
+          "tree_id": "47de2ca5c923cedf8aeeb044c9ea346fdf77bfa0",
+          "url": "https://github.com/galacticusorg/galacticus/commit/82f64062a3b79f48ea8ee6fb5282436b0c155e8f"
+        },
+        "date": 1696320734109,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassMetallicityRelation",
+            "value": 2.99585087369573,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassSizeRelation",
+            "value": 8.42399594307135,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassVelocityDispersionRelation",
+            "value": 1.13606998291136,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupOccupationFraction",
+            "value": 24.2014044103602,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassFunction",
+            "value": 74.4316183630359,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
+            "value": 10.6609219635255,
+            "unit": "-logℒ"
           }
         ]
       }
