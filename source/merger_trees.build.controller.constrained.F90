@@ -110,7 +110,7 @@ contains
       <name>label</name>
       <source>parameters</source>
       <defaultValue>var_str(' ')</defaultValue>
-      <description>A label to apply to constrained node.</description>
+      <description>A label to apply to the constrained node.</description>
     </inputParameter>
     !!]
     if (label == '') label=' '
