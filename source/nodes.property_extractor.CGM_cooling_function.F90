@@ -351,7 +351,7 @@ contains
           ! Convert to number density per unit total mass density.
           call fractionsChemical%scale(massToDensityConversion)
        end if
-       ! Get density and temperatur  at the required radius.
+       ! Get density and temperature  at the required radius.
        density              =self%hotHaloMassDistribution_  %density    (node,radius)
        temperature          =self%hotHaloTemperatureProfile_%temperature(node,radius)
        ! Compute number density of hydrogen (in cm⁻³).
