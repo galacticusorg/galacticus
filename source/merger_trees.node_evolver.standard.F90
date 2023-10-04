@@ -400,7 +400,7 @@ contains
     integer         (kind_int8                          )                                      :: systemClockCount
     type            (varying_string                     )                                      :: message                  , line
     character       (len =12                            )                                      :: label
-    
+
     ! Set status to success.
     if (present(status)) status=errorStatusSuccess
     ! Set time limit.
@@ -468,7 +468,7 @@ contains
              deallocate(self%odeTolerancesInactiveAbsolute)
           end if
           allocate(self%propertyValuesActive         (self%propertyCountAll))
-          allocate(self%propertyValuesActiveSaved  (self%propertyCountAll))
+          allocate(self%propertyValuesActiveSaved    (self%propertyCountAll))
           allocate(self%propertyValuesInactive       (self%propertyCountAll))
           allocate(self%propertyValuesInactiveSaved  (self%propertyCountAll))
           allocate(self%propertyScalesActive         (self%propertyCountAll))
@@ -794,19 +794,30 @@ contains
     !!{
     Function which evaluates the set of ODEs for the evolution of a specific node.
     !!}
+#ifdef DEBUGGING
+    use :: Debugging             , only : isDebugging    , debugLog
+    use :: ISO_Varying_String    , only : varying_string , assignment(=), var_str
+    use :: Galacticus_Nodes      , only : propertyTypeAll
+    use :: String_Handling       , only : operator(//)
+#endif
     use :: Error                 , only : errorStatusXCPU
     use :: Galacticus_Nodes      , only : interruptTask  , nodeComponentBasic
     use :: Interface_GSL         , only : GSL_Success
     use :: ODE_Solver_Error_Codes, only : interruptedAtX , odeSolverInterrupt
     implicit none
-    double precision                    , intent(in   )               :: time
-    double precision                    , intent(in   ), dimension(:) :: y
-    double precision                    , intent(  out), dimension(:) :: dydt
-    logical                                                           :: interrupt
-    procedure       (interruptTask     ), pointer                     :: functionInterrupt
-    class           (nodeComponentBasic), pointer                     :: basic
-    integer         (kind_int8         )                              :: systemClockCount
- 
+    double precision                    , intent(in   )                                       :: time
+    double precision                    , intent(in   ), dimension(:                        ) :: y
+    double precision                    , intent(  out), dimension(:                        ) :: dydt
+    logical                                                                                   :: interrupt
+    procedure       (interruptTask     ), pointer                                             :: functionInterrupt
+    class           (nodeComponentBasic), pointer                                             :: basic
+    integer         (kind_int8         )                                                      :: systemClockCount
+#ifdef DEBUGGING
+    integer         (c_size_t          )                                                      :: iProperty
+    character       (len=32            )                                                      :: label
+    type            (varying_string    )                                                      :: message
+    double precision                                   , dimension(self_%propertyCountActive) :: valuesDebug, ratesDebug
+#endif
     ! Check for exceeding wall time.
     if (self_%systemClockMaximum > 0_kind_int8) then
        call System_Clock(systemClockCount)
@@ -839,6 +850,13 @@ contains
        dydt=0.0d0
        return
     end if
+#ifdef DEBUGGING
+    if (isDebugging()) then
+       write (label,'(f9.4)') time
+       message=var_str("step: ")//trim(adjustl(label))//' [treeIndex: '//self_%activeNode%hostTree%index//' ; nodeIndex '//self_%activeNode%index()//']'
+       call debugLog(message)
+    end if
+#endif
     ! Set derivatives to zero initially.
     call self_%activeNode%odeStepRatesInitialize()
     if (self_%interruptFirstFound .and. time >= self_%timeInterruptFirst) then
@@ -871,6 +889,20 @@ contains
           end if
        end select
     end if
+#ifdef DEBUGGING
+    if (isDebugging()) then
+       call self_%activeNode%serializeValues(valuesDebug,self_%propertyTypeODE)
+       call self_%activeNode%serializeRates (ratesDebug ,self_%propertyTypeODE)
+       do iProperty=1,self_%propertyCountActive
+          write (label,'(e12.6)') valuesDebug(iProperty)
+          message="  value: "        //self_%activeNode%nameFromIndex(int(iProperty),self_%propertyTypeODE)//" "//trim(adjustl(label))
+          call debugLog(message)          
+          write (label,'(e12.6)') ratesDebug(iProperty)
+          message="   rate: (total) "//self_%activeNode%nameFromIndex(int(iProperty),self_%propertyTypeODE)//" "//trim(adjustl(label))
+          call debugLog(message)          
+       end do
+    end if
+#endif
     return
   end function standardODEs
 

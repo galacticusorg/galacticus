@@ -27,8 +27,8 @@ module Error
   !!}
   use, intrinsic :: ISO_C_Binding     , only : c_int
   use            :: ISO_Varying_String, only : varying_string
-  use            :: Interface_GSL     , only : GSL_Failure   , GSL_Success , GSL_eDom, GSL_eRange, &
-          &                                    GSL_eUndrFlw  , GSL_eZeroDiv
+  use            :: Interface_GSL     , only : GSL_Failure   , GSL_Success , GSL_eDom    , GSL_eRange  , &
+          &                                    GSL_eUndrFlw  , GSL_eZeroDiv, GSL_eMaxIter, GSL_eRound
   implicit none
   private
   public :: Error_Report               , Error_Handler_Register    , &
@@ -55,13 +55,15 @@ module Error
 
   ! Public error codes. Where relevant these copy GSL error codes, otherwise values above 1024
   ! are used so as not to conflict with GSL error codes.
-  integer, parameter, public :: errorStatusSuccess     =GSL_Success  ! Success.
-  integer, parameter, public :: errorStatusFail        =GSL_Failure  ! Generic failure.
-  integer, parameter, public :: errorStatusInputDomain =GSL_eDom     ! Input domain error.
-  integer, parameter, public :: errorStatusOutOfRange  =GSL_eRange   ! Output range error.
-  integer, parameter, public :: errorStatusDivideByZero=GSL_eZeroDiv ! Divide by zero.
-  integer, parameter, public :: errorStatusUnderflow   =GSL_eUndrFlw ! Floating point underflow.
-  integer, parameter, public :: errorStatusXCPU        =1025         ! CPU time limit exceeded.
+  integer, parameter, public :: errorStatusSuccess      =GSL_Success  ! Success.
+  integer, parameter, public :: errorStatusFail         =GSL_Failure  ! Generic failure.
+  integer, parameter, public :: errorStatusInputDomain  =GSL_eDom     ! Input domain error.
+  integer, parameter, public :: errorStatusRound        =GSL_eRound   ! Rounding error.
+  integer, parameter, public :: errorStatusOutOfRange   =GSL_eRange   ! Output range error.
+  integer, parameter, public :: errorStatusDivideByZero =GSL_eZeroDiv ! Divide by zero.
+  integer, parameter, public :: errorStatusUnderflow    =GSL_eUndrFlw ! Floating point underflow.
+  integer, parameter, public :: errorStatusMaxIterations=GSL_eMaxIter ! Maximum iterations exceeded.
+  integer, parameter, public :: errorStatusXCPU         =1025         ! CPU time limit exceeded.
 
   ! Time to wait after errors under MPI.
   integer                    :: errorWaitTime          =86400

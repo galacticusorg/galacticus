@@ -193,7 +193,7 @@ contains
     return
   end function fcfsForestNumber
 
-  subroutine fcfsPing(self,node)
+  subroutine fcfsPing(self,node,uniqueID)
     !!{
     Return the number of the next forest to process.
     !!}
@@ -201,13 +201,15 @@ contains
     use :: MPI_Utilities   , only : mpiSelf
 #endif
     use :: Galacticus_Nodes, only : treeNode
+    use :: Kind_Numbers    , only : kind_int8
     implicit none
-    class  (*       ), intent(inout) :: self
-    type   (treeNode), intent(inout) :: node
+    class  (*        ), intent(inout) :: self
+    type   (treeNode ), intent(inout) :: node
+    integer(kind_int8), intent(in   ) :: uniqueID
 #ifdef USEMPI
-    integer(c_size_t)                :: forestNumber
+    integer(c_size_t )                :: forestNumber
 #endif
-    !$GLC attributes unused :: self, node
+    !$GLC attributes unused :: self, node, uniqueID
 
 #ifdef USEMPI
     !$omp master

@@ -121,6 +121,7 @@ contains
     ! Iterate over trees.
     treeWalker=mergerTreeWalkerIsolatedNodes(tree,spanForest=.true.)
     do while (treeWalker%next(node))
+       if (.not.associated(node%parent)) cycle
        if (node%uniqueID() == node%parent%uniqueID()) call node%uniqueIDSet()
     end do
     return

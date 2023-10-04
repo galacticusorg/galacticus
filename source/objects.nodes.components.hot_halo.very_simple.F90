@@ -195,14 +195,16 @@ contains
   <unitName>Node_Component_Hot_Halo_Very_Simple_Reset</unitName>
   </calculationResetTask>
   !!]
-  subroutine Node_Component_Hot_Halo_Very_Simple_Reset(node)
+  subroutine Node_Component_Hot_Halo_Very_Simple_Reset(node,uniqueID)
     !!{
     Remove memory of stored computed values as we're about to begin computing derivatives anew.
     !!}
     use :: Galacticus_Nodes, only : treeNode
+    use :: Kind_Numbers    , only : kind_int8
     implicit none
-    type(treeNode), intent(inout) :: node
-    !$GLC attributes unused :: node
+    type   (treeNode ), intent(inout) :: node
+    integer(kind_int8), intent(in   ) :: uniqueID
+    !$GLC attributes unused :: node, uniqueID
 
     gotCoolingRate=.false.
     return

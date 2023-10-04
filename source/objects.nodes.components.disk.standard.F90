@@ -351,7 +351,7 @@ contains
           diskStructureSolverSpecificAngularMomentum=0.5d0
        else
           diskStructureSolverSpecificAngularMomentum=  &
-               & +radiusStructureSolver            &
+               & +radiusStructureSolver                &
                & /(                                    &
                &   +massDistributionDiskDensityMoment2 &
                &   /massDistributionDiskDensityMoment1 &
@@ -404,16 +404,19 @@ contains
     <unitName>Node_Component_Disk_Standard_Calculation_Reset</unitName>
   </calculationResetTask>
   !!]
-  subroutine Node_Component_Disk_Standard_Calculation_Reset(node)
+  subroutine Node_Component_Disk_Standard_Calculation_Reset(node,uniqueID)
     !!{
     Reset standard disk structure calculations.
     !!}
     use :: Galacticus_Nodes                 , only : treeNode
+    use :: Kind_Numbers                     , only : kind_int8
     use :: Node_Component_Disk_Standard_Data, only : Node_Component_Disk_Standard_Reset
     implicit none
-    type(treeNode), intent(inout) :: node
-
-    call Node_Component_Disk_Standard_Reset(node%uniqueID())
+    type   (treeNode ), intent(inout) :: node
+    integer(kind_int8), intent(in   ) :: uniqueID
+    !$GLC attributes unused :: node
+    
+    call Node_Component_Disk_Standard_Reset(uniqueID)
     return
   end subroutine Node_Component_Disk_Standard_Calculation_Reset
 
@@ -765,11 +768,11 @@ contains
        ! Set scale for masses.
        !! The scale here (and for other quantities below) combines the mass of disk and spheroid. This avoids attempts to solve
        !! tiny disks to high precision in massive spheroidal galaxies.
-        mass           =max(                                                      &
-            &               +abs(disk%massGas    ())+abs(spheroid%massGas    ())  &
-            &               +abs(disk%massStellar())+abs(spheroid%massStellar()), &
-            &               +massMinimum                                          &
-            &              )
+       mass           =max(                                                      &
+            &              +abs(disk%massGas    ())+abs(spheroid%massGas    ())  &
+            &              +abs(disk%massStellar())+abs(spheroid%massStellar()), &
+            &              +massMinimum                                          &
+            &             )
        call disk%massGasScale          (mass)
        call disk%massStellarScale      (mass)
        call disk%massStellarFormedScale(mass)

@@ -211,7 +211,7 @@ contains
        return
     end if
     ! Reset calculations if necessary.
-    if (node%uniqueID() /= self%genericLastUniqueID) call self%calculationResetGeneric(node)
+    if (node%uniqueID() /= self%genericLastUniqueID) call self%calculationResetGeneric(node,node%uniqueID())
     ! Determine if the table must be rebuilt.
     remakeTable=.false.
     if (.not.allocated(self%genericEnclosedMassMass)) then
@@ -465,7 +465,7 @@ contains
     !$omp threadprivate(integrator_,initialized)
 
     ! Reset calculations if necessary.
-    if (node%uniqueID() /= self%genericLastUniqueID) call self%calculationResetGeneric(node)
+    if (node%uniqueID() /= self%genericLastUniqueID) call self%calculationResetGeneric(node,node%uniqueID())
     ! Determine if the table must be rebuilt.
     remakeTable=.false.
     if (.not.allocated(self%genericVelocityDispersionRadialVelocity)) then
@@ -1287,15 +1287,18 @@ contains
     return
   end subroutine genericSolverUnset
 
-  subroutine genericCalculationResetGeneric(self,node)
+  subroutine genericCalculationResetGeneric(self,node,uniqueID)
     !!{
     Reset generic profile memoized data.
     !!}
+    use :: Kind_Numbers, only : kind_int8
     implicit none
-    class(darkMatterProfileGeneric), intent(inout) :: self
-    type (treeNode                ), intent(inout) :: node
+    class  (darkMatterProfileGeneric), intent(inout) :: self
+    type   (treeNode                ), intent(inout) :: node
+    integer(kind_int8               ), intent(in   ) :: uniqueID
+    !$GLC attributes unused :: node
 
-    self%genericLastUniqueID=node%uniqueID()
+    self%genericLastUniqueID=uniqueID
     if (allocated(self%genericVelocityDispersionRadialVelocity)) deallocate(self%genericVelocityDispersionRadialVelocity)
     if (allocated(self%genericVelocityDispersionRadialRadius  )) deallocate(self%genericVelocityDispersionRadialRadius  )
     if (allocated(self%genericEnclosedMassMass                )) deallocate(self%genericEnclosedMassMass                )

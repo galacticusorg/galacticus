@@ -530,20 +530,22 @@ contains
                &                                                                     +extractor_     %elementCount(                       time         )
        class is (nodePropertyExtractorList         )
           ! List property extractor - extract and store the values.
-          doubleTuple =extractor_%extract       (node     ,instance)
-          if (     allocated(self%doubleProperty (doubleProperty +1)%scalar     ))                          deallocate(self%doubleProperty (doubleProperty +1)%scalar)
-          if (     allocated(self%doubleProperty (doubleProperty +1)%rank1      ))                          deallocate(self%doubleProperty (doubleProperty +1)%rank1 )
-          if (.not.allocated(self%doubleProperty (doubleProperty +1)%rank1VarLen)) allocate(self%doubleProperty (doubleProperty +1)%rank1VarLen(self%doubleBufferSize))
-          if (associated(self%doubleProperty (doubleProperty +1)%rank1VarLen (self%doubleBufferCount )%row)) then
-             if (size(self%doubleProperty (doubleProperty +1)%rank1VarLen (self%doubleBufferCount )%row) /= size(doubleTuple)) deallocate(self%doubleProperty (doubleProperty +1)%rank1VarLen (self%doubleBufferCount )%row)
-          end if
-          if (.not.associated(self%doubleProperty (doubleProperty +1)%rank1VarLen (self%doubleBufferCount )%row)) then
-             allocate(self%doubleProperty (doubleProperty +1)%rank1VarLen (self%doubleBufferCount )%row(size(doubleTuple)))
-          end if
-          self%doubleProperty (doubleProperty +1)%rank1VarLen(self%doubleBufferCount)%row=doubleTuple
-          deallocate(doubleTuple )
+          doubleArray =extractor_%extract       (node     ,instance)
+          do i=1,+extractor_%elementCount(                      )
+             if (     allocated(self%doubleProperty (doubleProperty +i)%scalar     ))                          deallocate(self%doubleProperty (doubleProperty +i)%scalar)
+             if (     allocated(self%doubleProperty (doubleProperty +i)%rank1      ))                          deallocate(self%doubleProperty (doubleProperty +i)%rank1 )
+             if (.not.allocated(self%doubleProperty (doubleProperty +i)%rank1VarLen)) allocate(self%doubleProperty (doubleProperty +i)%rank1VarLen(self%doubleBufferSize))
+             if (associated(self%doubleProperty (doubleProperty +i)%rank1VarLen (self%doubleBufferCount )%row)) then
+                if (size(self%doubleProperty (doubleProperty +i)%rank1VarLen (self%doubleBufferCount )%row) /= size(doubleArray,dim=1)) deallocate(self%doubleProperty (doubleProperty +i)%rank1VarLen (self%doubleBufferCount )%row)
+             end if
+             if (.not.associated(self%doubleProperty (doubleProperty +i)%rank1VarLen (self%doubleBufferCount )%row)) then
+                allocate(self%doubleProperty (doubleProperty +i)%rank1VarLen (self%doubleBufferCount )%row(size(doubleArray,dim=1)))
+             end if
+             self%doubleProperty (doubleProperty +i)%rank1VarLen(self%doubleBufferCount)%row=doubleArray(:,i)
+          end do
+          deallocate(doubleArray )
           doubleProperty                                                            =+doubleProperty                                                     &
-               &                                                                     +1
+               &                                                                     +extractor_     %elementCount(                                    )
        class is (nodePropertyExtractorMulti        )
           ! Multi property extractor - extract and store the values.
           doubleProperties =extractor_%extractDouble (node,time,instance,doubleRanks)
@@ -763,12 +765,23 @@ contains
                 call     dataset%writeAttribute(self%doubleProperty(iProperty)%metaData%value(iMetaDatum),char(self%doubleProperty(iProperty)%metaData%key(iMetaDatum)))
              end do
              call        dataset%close         (                                                                   )
-             if (allocated(self%doubleProperty(iProperty)%rank1Descriptors) .and. size(self%doubleProperty(iProperty)%rank1Descriptors) > 0)                        &
-                  & call self%outputGroups(indexOutput)%nodeDataGroup%writeDataset(                                                                                 &
-                  &                                                                     self%doubleProperty(iProperty)%rank1Descriptors                           , &
-                  &                                                                trim(self%doubleProperty(iProperty)%name            )//"Columns"               , &
-                  &                                                                trim(self%doubleProperty(iProperty)%comment         )//" (column descriptions)"  &
-                  &                                                               )
+             if (allocated(self%doubleProperty(iProperty)%rank1Descriptors     ) .and. size(self%doubleProperty(iProperty)%rank1Descriptors     ) > 0) then
+                call self%outputGroups(indexOutput)%nodeDataGroup%writeDataset(                                                                                       &
+                     &                                                              self%doubleProperty(iProperty)%rank1Descriptors                                 , &
+                     &                                                         trim(self%doubleProperty(iProperty)%name                  )//"Columns"               , &
+                     &                                                         trim(self%doubleProperty(iProperty)%comment               )//" (column descriptions)"  &
+                     &                                                        )
+             end if
+             if (allocated(self%doubleProperty(iProperty)%rank1DescriptorValues) .and. size(self%doubleProperty(iProperty)%rank1DescriptorValues) > 0) then
+                call self%outputGroups(indexOutput)%nodeDataGroup%writeDataset(                                                                                       &
+                     &                                                              self%doubleProperty(iProperty)%rank1DescriptorValues                            , &
+                     &                                                         trim(self%doubleProperty(iProperty)%name                  )//"ColumnValues"          , &
+                     &                                                         char(self%doubleProperty(iProperty)%rank1DescriptorComment)                            &
+                     &                                                        )
+             dataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(trim(self%doubleProperty(iProperty)%name)//"ColumnValues")
+             call dataset%writeAttribute(self%doubleProperty(iProperty)%rank1DescriptorUnitsInSI,"unitsInSI")
+             call dataset%close()
+             end if
           end if
        end do
        self%doublePropertiesWritten=self%doublePropertiesWritten+self%doubleBufferCount
@@ -1004,8 +1017,9 @@ contains
        self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                   time))%comment   =descriptionsTmp
        self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                   time))%unitsInSI =extractor_%unitsInSI   (                   time)
        do i=1,extractor_%elementCount(time)
-          if (allocated(self%doubleProperty(doubleProperty+i)%rank1Descriptors)) deallocate(self%doubleProperty(doubleProperty+i)%rank1Descriptors)
-          call extractor_%columnDescriptions(self%doubleProperty(doubleProperty+i)%rank1Descriptors,time)
+          if (allocated(self%doubleProperty(doubleProperty+i)%rank1Descriptors     )) deallocate(self%doubleProperty(doubleProperty+i)%rank1Descriptors     )
+          if (allocated(self%doubleProperty(doubleProperty+i)%rank1DescriptorValues)) deallocate(self%doubleProperty(doubleProperty+i)%rank1DescriptorValues)
+          call extractor_%columnDescriptions(self%doubleProperty(doubleProperty+i)%rank1Descriptors,self%doubleProperty(doubleProperty+i)%rank1DescriptorValues,self%doubleProperty(doubleProperty+i)%rank1DescriptorComment,self%doubleProperty(doubleProperty+i)%rank1DescriptorUnitsInSI,time)
        end do
        do i=1,extractor_%elementCount(                   time)
           call extractor_%metaData(i,self%doubleProperty (doubleProperty +i)%metaData)
@@ -1015,9 +1029,11 @@ contains
        deallocate(descriptionsTmp)
     class is (nodePropertyExtractorList         )
        ! List property extractor - get the name, description, and units.
-       self%doubleProperty (doubleProperty +1                                                                 )%name      =extractor_%name        (                       )
-       self%doubleProperty (doubleProperty +1                                                                 )%comment   =extractor_%description (                       )
-       self%doubleProperty (doubleProperty +1                                                                 )%unitsInSI =extractor_%unitsInSI   (                       )
+       call extractor_%names       (namesTmp            )
+       call extractor_%descriptions(descriptionsTmp     )
+       self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                       ))%name      =namesTmp
+       self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                       ))%comment   =descriptionsTmp
+       self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                       ))%unitsInSI =extractor_%unitsInSI   (                       )
        call    extractor_%metaData(  self%doubleProperty (doubleProperty +1)%metaData)
        doubleProperty =doubleProperty +1
     class is (nodePropertyExtractorIntegerScalar)
@@ -1052,8 +1068,9 @@ contains
              call extractor_%metaData(elementTypeDouble,time,i,self%doubleProperty (doubleProperty +i)%metaData)
           end do
           do i=1,extractor_%elementCount(elementTypeDouble,time)
-             if (allocated(self%doubleProperty(doubleProperty+i)%rank1Descriptors)) deallocate(self%doubleProperty(doubleProperty+i)%rank1Descriptors)
-             call extractor_%columnDescriptions(elementTypeDouble,i,time,self%doubleProperty(doubleProperty+i)%rank1Descriptors)
+             if (allocated(self%doubleProperty(doubleProperty+i)%rank1Descriptors     )) deallocate(self%doubleProperty(doubleProperty+i)%rank1Descriptors     )
+             if (allocated(self%doubleProperty(doubleProperty+i)%rank1DescriptorValues)) deallocate(self%doubleProperty(doubleProperty+i)%rank1DescriptorValues)
+             call extractor_%columnDescriptions(elementTypeDouble,i,time,self%doubleProperty(doubleProperty+i)%rank1Descriptors,self%doubleProperty(doubleProperty+i)%rank1DescriptorValues,self%doubleProperty(doubleProperty+i)%rank1DescriptorComment,self%doubleProperty(doubleProperty+i)%rank1DescriptorUnitsInSI)
           end do
           doubleProperty =doubleProperty +extractor_%elementCount(elementTypeDouble ,time)
           deallocate(namesTmp       )

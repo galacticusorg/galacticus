@@ -529,7 +529,7 @@ contains
     else
        fractionalRadiusMinimum=0.0d0
     end if
-    if (specialCaseMoment /= 0) then
+    if (specialCaseMoment /= -huge(0)) then
        ! Special case for 0ᵗʰ, 1ˢᵗ, 2ⁿᵈ, and 3ʳᵈ moments of a β=2/3 distribution.
        betaProfileDensityRadialMoment=                                          &
             & +betaProfileDensityRadialMoment                                   &

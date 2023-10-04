@@ -21,10 +21,11 @@
     <branchIntervalStep value="true" />
   </mergerTreeBuilder>
   <mergerTreeBranchingProbability value="parkinsonColeHelly">
-    <G0                 value="+0.57"/>
-    <gamma1             value="+0.38"/>
-    <gamma2             value="-0.01"/>
-    <accuracyFirstOrder value="+0.10"/>
+    <G0                     value="+0.57"/>
+    <gamma1                 value="+0.38"/>
+    <gamma2                 value="-0.01"/>
+    <accuracyFirstOrder     value="+0.10"/>
+    <tolerateRoundOffErrors value="true" />
   </mergerTreeBranchingProbability>
   
 </parameters>

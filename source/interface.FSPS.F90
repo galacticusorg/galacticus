@@ -71,6 +71,7 @@ contains
     !![
     <optionalArgument name="static" defaultsTo=".false." />
     !!]
+#include "os.inc"
 
     ! Specify source code path.
     call Interface_FSPS_Version(fspsVersion)
@@ -83,7 +84,7 @@ contains
        if (.not.File_Exists(fspsPath)) then
           if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"FSPS_"//char(fspsVersion)//".tar.gz")) then
              call displayMessage("downloading FSPS source code....",verbosityLevelWorking)
-             call download("https://github.com/cconroy20/fsps/archive/refs/tags/v"//char(fspsVersion)//".tar.gz",char(inputPath(pathTypeDataDynamic))//"FSPS_"//char(fspsVersion)//".tar.gz",status)
+             call download("https://github.com/cconroy20/fsps/archive/refs/tags/v"//char(fspsVersion)//".tar.gz",char(inputPath(pathTypeDataDynamic))//"FSPS_"//char(fspsVersion)//".tar.gz",status=status)
              if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"FSPS_"//char(fspsVersion)//".tar.gz") .or. status /= 0) call Error_Report("failed to download FSPS"//{introspection:location})
           end if
           call displayMessage("unpacking FSPS code....",verbosityLevelWorking)
@@ -112,7 +113,14 @@ contains
        else
           call System_Command_Do("cd "//fspsPath//"/src; sed -i~ -E s/'^(F90FLAGS = .*)[[:space:]]*\-static(.*)'/'\1 \2'/g Makefile")
        end if
-       call System_Command_Do("cd "//fspsPath//"/src; export SPS_HOME="//fspsPath//'; export F90FLAGS="-mcmodel=medium '//char(compilerOptions(languageFortran))//'"; sed -i~ -E s/"gfortran"/"'//char(compiler(languageFortran))//'"/ Makefile; make clean; make -j 1',status)
+       call System_Command_Do(                                                                                                                                                &
+            &                 "cd "//fspsPath//"/src; export SPS_HOME="//fspsPath//'; export F90FLAGS="'                                                                   // &
+#ifndef __aarch64__
+            &                 '-mcmodel=medium '                                                                                                                           // & ! Larger memory model required except on Arm64.
+#endif
+            &                 char(compilerOptions(languageFortran))//'"; sed -i~ -E s/"gfortran"/"'//char(compiler(languageFortran))//'"/ Makefile; make clean; make -j 1',  &
+            &                 status                                                                                                                                          &
+            &                )
        if (.not.File_Exists(fspsPath//"/src/autosps.exe") .or. status /= 0) call Error_Report("failed to build autosps.exe code"//{introspection:location})
     end if
     call File_Unlock(fspsLock)

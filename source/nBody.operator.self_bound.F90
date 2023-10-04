@@ -194,8 +194,9 @@ contains
     logical                                 , allocatable  , dimension(:  )          :: isConverged
     integer         (c_size_t              )                                         :: representativeParticleCount
     integer                                                                          :: addSubtract                   , countIteration
-    double precision                                                                 :: lengthSoftening               , massParticle          , &
-         &                                                                              convergenceFactor             , weightRepresentative
+    double precision                                                                 :: lengthSoftening               , velocitySoftening     , &
+         &                                                                              massParticle                  , convergenceFactor     , &
+         &                                                                              weightRepresentative
     type            (varying_string        )                                         :: message
     character       (len=12                )                                         :: label
 
@@ -222,8 +223,9 @@ contains
        call Error_Report('either 1 or 2 simulations (labelled "active" and "previous" in the case of 2 simulations) should be provided'//{introspection:location})
     end if
     ! Get simulation attributes.
-    lengthSoftening=simulations(current)%attributesReal%value('lengthSoftening')
-    massParticle   =simulations(current)%attributesReal%value('massParticle'   )
+    lengthSoftening  =simulations(current)%attributesReal%value('lengthSoftening')
+    massParticle     =simulations(current)%attributesReal%value('massParticle'   )
+    velocitySoftening=sqrt(gravitationalConstantGalacticus*massParticle/lengthSoftening)
     ! Get particle data.
     position    => simulations(current)%propertiesRealRank1%value('position'  )
     velocity    => simulations(current)%propertiesRealRank1%value('velocity'  )
@@ -369,7 +371,8 @@ contains
              end where
           end forall
           where(computeActual(i+1:particleCount))
-             separationSquared(i+1:particleCount)=+sum (positionRelative (:,i+1:particleCount)**2,dim=1)
+             separationSquared(i+1:particleCount)=+sum (positionRelative (:,i+1:particleCount)**2,dim=1) &
+                  &                               /velocitySoftening**2
              separation       (i+1:particleCount)=+sqrt(separationSquared(  i+1:particleCount)         )
              ! Compute potentials.
              potential        (i+1:particleCount)=+selfBoundPotential(                                      &

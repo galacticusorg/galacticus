@@ -92,6 +92,7 @@ module Chemical_Abundances_Structure
      procedure         :: serialize       => Chemical_Abundances_Serialize
      procedure         :: deserialize     => Chemical_Abundances_Deserialize
      procedure         :: increment       => Chemical_Abundances_Increment
+     procedure         :: scale           => Chemical_Abundances_Scale
      procedure         :: abundance       => Chemicals_Abundances
      procedure         :: abundanceSet    => Chemicals_Abundances_Set
      procedure         :: reset           => Chemicals_Abundances_Reset
@@ -248,6 +249,20 @@ contains
     end if
     return
   end function Chemicals_Index
+
+  subroutine Chemical_Abundances_Scale(self,multiplier)
+    !!{
+    In-place multiplication of a chemical abundances object.
+    !!}
+    implicit none
+    class           (chemicalAbundances), intent(inout) :: self
+    double precision                    , intent(in   ) :: multiplier
+
+    if (chemicalsCount == 0) return
+    self%chemicalValue= self%chemicalValue &
+         &             *     multiplier
+    return
+  end subroutine Chemical_Abundances_Scale
 
   subroutine Chemical_Abundances_Increment(self,increment)
     !!{

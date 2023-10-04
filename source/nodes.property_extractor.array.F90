@@ -42,7 +42,7 @@
        <method method="metaData"           description="Populate a hash with meta-data for the property."                   />
      </methods>
      !!]
-     procedure(arrayDescriptions), deferred :: columnDescriptions
+     procedure(arrayColumns     ), deferred :: columnDescriptions
      procedure(arraySize        ), deferred :: size
      procedure(arrayElementCount), deferred :: elementCount
      procedure(arrayExtract     ), deferred :: extract
@@ -88,6 +88,21 @@
        double precision                            , intent(in   ), optional                  :: time
        type            (varying_string            ), intent(inout), allocatable, dimension(:) :: descriptions
     end subroutine arrayDescriptions
+  end interface
+
+  abstract interface
+     subroutine arrayColumns(self,descriptions,values,valuesDescription,valuesUnitsInSI,time)
+       !!{
+       Interface for array column descriptions.
+       !!}
+       import varying_string, nodePropertyExtractorArray
+       class           (nodePropertyExtractorArray), intent(inout)                            :: self
+       double precision                            , intent(in   ), optional                  :: time
+       type            (varying_string            ), intent(inout), allocatable, dimension(:) :: descriptions
+       double precision                            , intent(inout), allocatable, dimension(:) :: values
+       type            (varying_string            ), intent(  out)                            :: valuesDescription
+       double precision                            , intent(  out)                            :: valuesUnitsInSI
+     end subroutine arrayColumns
   end interface
 
   abstract interface

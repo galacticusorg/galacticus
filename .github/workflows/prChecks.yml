@@ -16,7 +16,7 @@ jobs:
   Validate-YAML:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
@@ -29,7 +29,7 @@ jobs:
           sudo apt install -y yamllint
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v35
+        uses: tj-actions/changed-files@v39
         with:
           files: |
             **/*.yml
@@ -49,7 +49,7 @@ jobs:
   Validate-XML:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
@@ -62,7 +62,7 @@ jobs:
           sudo apt install -y libxml2-utils
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v35
+        uses: tj-actions/changed-files@v39
         with:
           files: |
             **/*.xml
@@ -84,9 +84,9 @@ jobs:
     runs-on: ubuntu-latest
     container: ghcr.io/galacticusorg/buildenv:latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Check out repository analysis-perl
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: galacticusorg/analysis-perl
           path: analysis-perl
@@ -99,7 +99,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
       - name: Get changed scripts
         id: changed-scripts
-        uses: tj-actions/changed-files@v35
+        uses: tj-actions/changed-files@v39
         with:
           files: |
             **/*.pl
@@ -130,7 +130,7 @@ jobs:
     runs-on: ubuntu-latest
     container: ghcr.io/galacticusorg/buildenv:latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
@@ -139,7 +139,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
       - name: Get changed modules
         id: changed-modules
-        uses: tj-actions/changed-files@v35
+        uses: tj-actions/changed-files@v39
         with:
           files: |
             **/*.pm
@@ -164,7 +164,7 @@ jobs:
     runs-on: ubuntu-latest
     container: ghcr.io/galacticusorg/buildenv:latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
@@ -173,7 +173,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v35
+        uses: tj-actions/changed-files@v39
         with:
           files: |
             **/*.F90
@@ -195,7 +195,7 @@ jobs:
     container: ghcr.io/galacticusorg/buildenv:latest
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
@@ -213,7 +213,7 @@ jobs:
           make -j2 work/build/stateStorables.xml
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v35
+        uses: tj-actions/changed-files@v39
         with:
           files: |
             **/*.F90
@@ -232,7 +232,7 @@ jobs:
           exit $status
       - name: Check file existence
         id: check_files
-        uses: andstor/file-existence-action@v1
+        uses: andstor/file-existence-action@v2
         with:
           files: warnings.md
       - name: Comment on the PR if any warnings were found
@@ -246,7 +246,7 @@ jobs:
     container: ghcr.io/galacticusorg/buildenv:latest
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
@@ -264,7 +264,7 @@ jobs:
           make -j2 work/build/stateStorables.xml
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v35
+        uses: tj-actions/changed-files@v39
         with:
           files: |
             **/*.tex
@@ -276,7 +276,7 @@ jobs:
           done
       - name: Check file existence
         id: check_files
-        uses: andstor/file-existence-action@v1
+        uses: andstor/file-existence-action@v2
         with:
           files: warnings.md
       - name: Comment on the PR if any warnings were found

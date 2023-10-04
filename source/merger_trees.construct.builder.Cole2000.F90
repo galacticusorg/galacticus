@@ -570,6 +570,8 @@ contains
                 ! Compute the critical overdensity corresponding to this new node.
                 deltaCritical1=self_%criticalOverdensityUpdate(branchDeltaCriticalCurrent,branchMassCurrent,nodeMass1,nodeNew1)
                 call basicNew1%timeSet(deltaCritical1)
+                ! Inform the build controller of this new node.
+                call self_%workers(numberWorker)%mergerTreeBuildController_%nodesInserted(nodeCurrent,nodeNew1)
                 ! Create links from old to new node and vice-versa.
                 nodeCurrent%firstChild => nodeNew1
                 nodeNew1%parent => nodeCurrent
@@ -613,6 +615,8 @@ contains
                 ! Set properties of the new node.
                 call basicNew1%massSet(nodeMass1     )
                 call basicNew1%timeSet(deltaCritical1)
+                ! Inform the build controller of this new node.
+                call self_%workers(numberWorker)%mergerTreeBuildController_%nodesInserted(nodeCurrent,nodeNew1)
                 ! Create links from old to new node and vice-versa.
                 nodeCurrent%firstChild => nodeNew1
                 nodeNew1   %parent     => nodeCurrent
@@ -658,9 +662,15 @@ contains
                 else
                    snapEarliestTime     =.false.
                 end if
+                ! Allow the build controller to set a minimum step.
+                deltaW=max(                                                                                                                                              &
+                     &                                                             deltaW                                                                              , &
+                     &     +self_%workers(numberWorker)%mergerTreeBuildController_%timeMinimum               (nodeCurrent,branchMassCurrent,branchDeltaCriticalCurrent)  &
+                     &     -                                                       branchDeltaCriticalCurrent                                                            &
+                     &    )
                 ! Limit the timestep according to the build controller.
-                deltaWController=+self_%workers(numberWorker)%mergerTreeBuildController_%timeMaximum(nodeCurrent,branchMassCurrent,branchDeltaCriticalCurrent) &
-                     &           -branchDeltaCriticalCurrent
+                deltaWController=+self_%workers(numberWorker)%mergerTreeBuildController_%timeMaximum               (nodeCurrent,branchMassCurrent,branchDeltaCriticalCurrent) &
+                     &           -                                                       branchDeltaCriticalCurrent
                 if (deltaWController < deltaW) then
                    deltaW               =deltaWController
                    controlLimited       =.true.
@@ -791,7 +801,7 @@ contains
                       call basicNew2%massSet(nodeMass2     )
                       call basicNew2%timeSet(deltaCritical2)
                       ! Inform the build controller of these new nodes.
-                      call self_%workers(numberWorker)%mergerTreeBuildController_%nodesInserted(nodeCurrent,nodeNew1,nodeNew2)
+                      call self_%workers(numberWorker)%mergerTreeBuildController_%nodesInserted(nodeCurrent,nodeNew1,nodeNew2,didBranch=.true.)
                       ! Create links from old to new nodes and vice-versa. (Ensure that the first child node is the more massive progenitor.)
                       if (nodeMass2 > nodeMass1) then
                          nodeCurrent%firstChild => nodeNew2
@@ -807,7 +817,7 @@ contains
                    else
                       ! Second branch would be subresolution - do not create it.
                       ! Inform the build controller of the new node.
-                      call self_%workers(numberWorker)%mergerTreeBuildController_%nodesInserted(nodeCurrent,nodeNew1)
+                      call self_%workers(numberWorker)%mergerTreeBuildController_%nodesInserted(nodeCurrent,nodeNew1         ,didBranch=.true.)
                       ! Create links from old to new nodes and vice-versa.
                       nodeCurrent   %firstChild => nodeNew1
                       nodeNew1      %sibling    => null()

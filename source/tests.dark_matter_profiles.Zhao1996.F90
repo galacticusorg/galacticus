@@ -57,8 +57,8 @@ program Test_Dark_Matter_Profiles_Zhao1996
   class           (nodeComponentDarkMatterProfile                                ), pointer               :: darkMatterProfile_
   type            (inputParameters                                               )                        :: parameters
   double precision                                                                , parameter             :: concentration                        =+8.0d0, massVirial        =+1.0d12
-  integer                                                                         , parameter             :: countRadii                           =10
-  double precision                                                                , parameter             :: radiiMinimum                         =1.0d-6, radiiMaximum      =+1.0d01
+  integer                                                                         , parameter             :: countRadii                           =20
+  double precision                                                                , parameter             :: radiiMinimum                         =1.0d-6, radiiMaximum      =+1.0d03
   double precision                                                                , dimension(countRadii) :: massNumerical                               , mass                                 , &
        &                                                                                                     velocityDispersionNumerical                 , velocityDispersion                   , &
        &                                                                                                     radii

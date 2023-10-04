@@ -127,8 +127,8 @@ contains
     !!{
     Perform all tasks.
     !!}
-    use :: Display         , only : displayIndent     , displayUnindent
-    use :: Error, only : errorStatusSuccess
+    use :: Display, only : displayIndent     , displayUnindent
+    use :: Error  , only : errorStatusSuccess
     implicit none
     class  (taskMulti    ), intent(inout), target   :: self
     integer               , intent(  out), optional :: status
@@ -138,7 +138,7 @@ contains
     if (present(status)) status=errorStatusSuccess
     task_ => self%tasks
     do while (associated(task_))
-       call task_%task_%perform()
+       call task_%task_%perform(status)
        if (present(status) .and. status /= errorStatusSuccess) return
        task_ => task_%next
     end do

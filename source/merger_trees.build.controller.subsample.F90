@@ -257,15 +257,16 @@ contains
     return
   end function subsampleBranchingProbabilityObject
 
-  subroutine subsampleNodesInserted(self,nodeCurrent,nodeProgenitor1,nodeProgenitor2)
+  subroutine subsampleNodesInserted(self,nodeCurrent,nodeProgenitor1,nodeProgenitor2,didBranch)
     !!{
     Act on the insertion of nodes into the merger tree.
     !!}
     implicit none
-    class(mergerTreeBuildControllerSubsample), intent(inout)           :: self
-    type (treeNode                          ), intent(inout)           :: nodeCurrent    , nodeProgenitor1
-    type (treeNode                          ), intent(inout), optional :: nodeProgenitor2
-    !$GLC attributes unused :: self, nodeCurrent, nodeProgenitor1, nodeProgenitor2
+    class  (mergerTreeBuildControllerSubsample), intent(inout)           :: self
+    type   (treeNode                          ), intent(inout)           :: nodeCurrent    , nodeProgenitor1
+    type   (treeNode                          ), intent(inout), optional :: nodeProgenitor2
+    logical                                    , intent(in   ), optional :: didBranch
+    !$GLC attributes unused :: self, nodeCurrent, nodeProgenitor1, nodeProgenitor2, didBranch
 
     ! Nothing to do.
     return

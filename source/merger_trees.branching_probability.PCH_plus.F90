@@ -71,7 +71,8 @@ contains
          &                                                                    G0                           , accuracyFirstOrder, &
          &                                                                    precisionHypergeometric      , gamma3            , &
          &                                                                    gamma4                       , gamma5
-    logical                                                                :: hypergeometricTabulate       , cdmAssumptions
+    logical                                                                :: hypergeometricTabulate       , cdmAssumptions    , &
+         &                                                                    tolerateRoundOffErrors
 
     ! Check and read parameters.
     !![
@@ -136,11 +137,17 @@ contains
       <description>If true, assume that $\alpha(=-\mathrm{d}\log \sigma/\mathrm{d}\log M)&gt;0$ and $\mathrm{d}\alpha/\mathrm{d}M&gt;0$ (as is true in the case of \gls{cdm}) when constructing merger trees using the \cite{parkinson_generating_2008}.</description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter>
+      <name>tolerateRoundOffErrors</name>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, round-off errors in integrations of branching probability will be tolerated. This may degrade the accuracy of solutions, but can be unavoidable in models with cut-offs in their power spectra.</description>
+      <source>parameters</source>
+    </inputParameter>
     <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
     <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
     !!]
-    self=mergerTreeBranchingProbabilityPCHPlus(G0,gamma1,gamma2,gamma3,gamma4,gamma5,accuracyFirstOrder,precisionHypergeometric,hypergeometricTabulate,cdmAssumptions,cosmologicalMassVariance_,criticalOverdensity_,linearGrowth_)
+    self=mergerTreeBranchingProbabilityPCHPlus(G0,gamma1,gamma2,gamma3,gamma4,gamma5,accuracyFirstOrder,precisionHypergeometric,hypergeometricTabulate,cdmAssumptions,tolerateRoundOffErrors,cosmologicalMassVariance_,criticalOverdensity_,linearGrowth_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologicalMassVariance_"/>
@@ -150,7 +157,7 @@ contains
     return
   end function pchPlusConstructorParameters
 
-  function pchPlusConstructorInternal(G0,gamma1,gamma2,gamma3,gamma4,gamma5,accuracyFirstOrder,precisionHypergeometric,hypergeometricTabulate,cdmAssumptions,cosmologicalMassVariance_,criticalOverdensity_,linearGrowth_) result(self)
+  function pchPlusConstructorInternal(G0,gamma1,gamma2,gamma3,gamma4,gamma5,accuracyFirstOrder,precisionHypergeometric,hypergeometricTabulate,cdmAssumptions,tolerateRoundOffErrors,cosmologicalMassVariance_,criticalOverdensity_,linearGrowth_) result(self)
     !!{
     Internal constructor for the ``pchPlus'' merger tree branching probability class.
     !!}
@@ -161,7 +168,8 @@ contains
          &                                                                            G0                           , accuracyFirstOrder, &
          &                                                                            precisionHypergeometric      , gamma3            , &
          &                                                                            gamma4                       , gamma5
-    logical                                                , intent(in   )         :: hypergeometricTabulate       , cdmAssumptions
+    logical                                                , intent(in   )         :: hypergeometricTabulate       , cdmAssumptions    , &
+         &                                                                            tolerateRoundOffErrors
     class           (cosmologicalMassVarianceClass        ), intent(in   ), target :: cosmologicalMassVariance_
     class           (criticalOverdensityClass             ), intent(in   ), target :: criticalOverdensity_
     class           (linearGrowthClass                    ), intent(in   ), target :: linearGrowth_
@@ -172,7 +180,7 @@ contains
     ! Validate.
     if (cdmAssumptions .and. gamma3 > 1.5d0) call Error_Report('γ₃>³/₂ violates CDM assumptions'//{introspection:location})
     ! Initialize.
-    self%mergerTreeBranchingProbabilityParkinsonColeHelly=mergerTreeBranchingProbabilityParkinsonColeHelly(G0,gamma1,gamma2,accuracyFirstOrder,precisionHypergeometric,hypergeometricTabulate,cdmAssumptions,cosmologicalMassVariance_,criticalOverdensity_)
+    self%mergerTreeBranchingProbabilityParkinsonColeHelly=mergerTreeBranchingProbabilityParkinsonColeHelly(G0,gamma1,gamma2,accuracyFirstOrder,precisionHypergeometric,hypergeometricTabulate,cdmAssumptions,tolerateRoundOffErrors,cosmologicalMassVariance_,criticalOverdensity_)
     return
   end function pchPlusConstructorInternal
 

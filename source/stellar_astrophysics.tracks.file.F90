@@ -445,7 +445,7 @@ contains
           interpolationFactorsMass(iMetallicity,:)=[0.0d0,1.0d0]
           massOutOfRange=.true.
        else
-          call self%interpolatorMass(iMetallicity)%linearFactors(initialMass,interpolationIndicesMass(iMetallicity,1),interpolationFactorsMass(iMetallicity,:))
+          call self%interpolatorMass(jMetallicity)%linearFactors(initialMass,interpolationIndicesMass(iMetallicity,1),interpolationFactorsMass(iMetallicity,:))
           interpolationIndicesMass(iMetallicity,2)=interpolationIndicesMass(iMetallicity,1)+1
        end if
        ! Loop over masses.

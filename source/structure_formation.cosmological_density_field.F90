@@ -530,15 +530,17 @@ contains
     return
   end function collapsingMassRoot
 
-  subroutine criticalOverdensityCalculationReset(self,node)
+  subroutine criticalOverdensityCalculationReset(self,node,uniqueID)
     !!{
     Reset the critical overdensity calculation.
     !!}
+    use :: Kind_Numbers, only : kind_int8
     implicit none
-    class(criticalOverdensityClass), intent(inout) :: self
-    type (treeNode                ), intent(inout) :: node
+    class(  criticalOverdensityClass), intent(inout) :: self
+    type   (treeNode                ), intent(inout) :: node
+    integer(kind_int8               ), intent(in   ) :: uniqueID
 
-    self%lastUniqueID=node%uniqueID()
+    self%lastUniqueID=uniqueID
     return
   end subroutine criticalOverdensityCalculationReset
 
