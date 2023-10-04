@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1696404653007,
+  "lastUpdate": 1696404661170,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "5da960e711eba8a2b71d2d8e9318fe985a87d4bd",
-          "message": "Merge pull request #392 from galacticusorg/allowedParametersScaling\n\nImprove run-time scaling of `allowedParameters()` methods for very large classes",
-          "timestamp": "2023-02-28T21:49:58Z",
-          "tree_id": "7193342c4ca93fe0a1dca18d1ceecd0943db1548",
-          "url": "https://github.com/galacticusorg/galacticus/commit/5da960e711eba8a2b71d2d8e9318fe985a87d4bd"
-        },
-        "date": 1677656071693,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 57.3275525628901,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 25.8647158159627,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 24145.1797388743,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8732,6 +8693,45 @@ window.BENCHMARK_DATA = {
             "value": 54.004,
             "unit": "seconds",
             "range": 0.0773589038181319
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "017bfd229dbee969fbeb24f6ca05e52cc054c55b",
+          "message": "Merge pull request #488 from galacticusorg/noninstantTests\n\nAdd functionality useful for testing the non-instantaneous feedback model",
+          "timestamp": "2023-10-04T04:12:14Z",
+          "tree_id": "149548972a67effcde5cd1b7b851cdbfe0ad3847",
+          "url": "https://github.com/galacticusorg/galacticus/commit/017bfd229dbee969fbeb24f6ca05e52cc054c55b"
+        },
+        "date": 1696404660122,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 57.7364585291731,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 25.6372510052421,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 23643.7766921421,
+            "unit": "-logℒ"
           }
         ]
       }
