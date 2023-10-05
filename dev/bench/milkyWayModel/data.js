@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1696450563677,
+  "lastUpdate": 1696536322841,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "5da960e711eba8a2b71d2d8e9318fe985a87d4bd",
-          "message": "Merge pull request #392 from galacticusorg/allowedParametersScaling\n\nImprove run-time scaling of `allowedParameters()` methods for very large classes",
-          "timestamp": "2023-02-28T21:49:58Z",
-          "tree_id": "7193342c4ca93fe0a1dca18d1ceecd0943db1548",
-          "url": "https://github.com/galacticusorg/galacticus/commit/5da960e711eba8a2b71d2d8e9318fe985a87d4bd"
-        },
-        "date": 1677684042331,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 289.239,
-            "unit": "seconds",
-            "range": 1.23868837889082
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10656,6 +10626,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 1.27646139745279,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d6ca028811ec022b51a2ae1c0b21d3538ac56a06",
+          "message": "Merge pull request #490 from galacticusorg/cgmCoolingFunction\n\nAdd a `nodePropertyExtractor` to output the cooling function in the CGM",
+          "timestamp": "2023-10-05T14:30:53Z",
+          "tree_id": "5ed79355033c2e09935deb3ef720d1bca878712d",
+          "url": "https://github.com/galacticusorg/galacticus/commit/d6ca028811ec022b51a2ae1c0b21d3538ac56a06"
+        },
+        "date": 1696536321771,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 193.685,
+            "unit": "seconds",
+            "range": 0.272507798052126
           }
         ]
       }
