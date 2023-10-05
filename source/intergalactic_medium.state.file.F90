@@ -248,45 +248,47 @@ contains
     class  (intergalacticMediumStateFile), intent(inout) :: self
     integer                                              :: fileFormatVersion   , iRedshift, &
          &                                                  extrapolationAllowed
-    type   (hdf5Object                  )                :: file
 
     ! Check if data has yet to be read.
-    if (.not.self%dataRead) then
-       if (.not.File_Exists(char(self%fileName))) call Error_Report('Unable to find intergalactic medium state file "' //char(self%fileName)//'"'//{introspection:location})
-       !$ call hdf5Access%set()
-       ! Open the file.
-       call file%openFile(char(self%fileName),readOnly=.true.)
-       ! Check the file format version of the file.
-       call file%readAttribute('fileFormat',fileFormatVersion)
-       if (fileFormatVersion /= fileFormatVersionCurrent) call Error_Report('file format version is out of date'//{introspection:location})
-       ! Check if extrapolation is allowed.
-       self%extrapolationType=extrapolationTypeAbort
-       if (file%hasAttribute('extrapolationAllowed')) then
-          call file%readAttribute('extrapolationAllowed',extrapolationAllowed)
-          if (extrapolationAllowed /= 0) self%extrapolationType=extrapolationTypeExtrapolate
-       end if
-       call file%readAttribute('fileFormat',fileFormatVersion)
-       ! Read the data.
-       call file%readDataset('redshift'         ,self%timeTable                   )
-       call file%readDataset('electronFraction' ,self%electronFractionTable       )
-       call file%readDataset('hIonizedFraction' ,self%ionizedHydrogenFractionTable)
-       call file%readDataset('heIonizedFraction',self%ionizedHeliumFractionTable  )
-       call file%readDataset('matterTemperature',self%temperatureTable            )
-       call file%close      (                                                     )
-       !$ call hdf5Access%unset()
-       self%redshiftCount=size(self%timeTable)
-       ! Convert redshifts to times.
-       do iRedshift=1,self%redshiftCount
-          self%timeTable(iRedshift)=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(self%timeTable(iRedshift)))
-       end do
-       ! Build interpolators.
-       self%interpolatorElectronFraction       =interpolator(self%timeTable,self%electronFractionTable       ,extrapolationType=self%extrapolationType)
-       self%interpolatorTemperature            =interpolator(self%timeTable,self%temperatureTable            ,extrapolationType=self%extrapolationType)
-       self%interpolatorIonizedHydrogenFraction=interpolator(self%timeTable,self%ionizedHydrogenFractionTable,extrapolationType=self%extrapolationType)
-       self%interpolatorIonizedHeliumFraction  =interpolator(self%timeTable,self%ionizedHeliumFractionTable  ,extrapolationType=self%extrapolationType)
-       ! Flag that data has now been read.
-       self%dataRead=.true.
-    end if
+    if (self%dataRead) return
+    block
+      type(hdf5Object) :: file
+
+      if (.not.File_Exists(char(self%fileName))) call Error_Report('Unable to find intergalactic medium state file "' //char(self%fileName)//'"'//{introspection:location})
+      !$ call hdf5Access%set()
+      ! Open the file.
+      call file%openFile(char(self%fileName),readOnly=.true.)
+      ! Check the file format version of the file.
+      call file%readAttribute('fileFormat',fileFormatVersion)
+      if (fileFormatVersion /= fileFormatVersionCurrent) call Error_Report('file format version is out of date'//{introspection:location})
+      ! Check if extrapolation is allowed.
+      self%extrapolationType=extrapolationTypeAbort
+      if (file%hasAttribute('extrapolationAllowed')) then
+         call file%readAttribute('extrapolationAllowed',extrapolationAllowed)
+         if (extrapolationAllowed /= 0) self%extrapolationType=extrapolationTypeExtrapolate
+      end if
+      call file%readAttribute('fileFormat',fileFormatVersion)
+      ! Read the data.
+      call file%readDataset('redshift'         ,self%timeTable                   )
+      call file%readDataset('electronFraction' ,self%electronFractionTable       )
+      call file%readDataset('hIonizedFraction' ,self%ionizedHydrogenFractionTable)
+      call file%readDataset('heIonizedFraction',self%ionizedHeliumFractionTable  )
+      call file%readDataset('matterTemperature',self%temperatureTable            )
+      call file%close      (                                                     )
+      !$ call hdf5Access%unset()
+      self%redshiftCount=size(self%timeTable)
+      ! Convert redshifts to times.
+      do iRedshift=1,self%redshiftCount
+         self%timeTable(iRedshift)=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(self%timeTable(iRedshift)))
+      end do
+      ! Build interpolators.
+      self%interpolatorElectronFraction       =interpolator(self%timeTable,self%electronFractionTable       ,extrapolationType=self%extrapolationType)
+      self%interpolatorTemperature            =interpolator(self%timeTable,self%temperatureTable            ,extrapolationType=self%extrapolationType)
+      self%interpolatorIonizedHydrogenFraction=interpolator(self%timeTable,self%ionizedHydrogenFractionTable,extrapolationType=self%extrapolationType)
+      self%interpolatorIonizedHeliumFraction  =interpolator(self%timeTable,self%ionizedHeliumFractionTable  ,extrapolationType=self%extrapolationType)
+      ! Flag that data has now been read.
+      self%dataRead=.true.
+    end block
     return
   end subroutine fileReadData
 
