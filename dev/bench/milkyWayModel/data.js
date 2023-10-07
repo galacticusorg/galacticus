@@ -1,36 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1696536330340,
+  "lastUpdate": 1696646073790,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "committer": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "id": "8eac31dae114401ae9a0116562e45dd151b2a12f",
-          "message": "fix: Use correct name for default \"very simple size\" disk mass distribution parameter",
-          "timestamp": "2023-03-01T15:33:56Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/8eac31dae114401ae9a0116562e45dd151b2a12f"
-        },
-        "date": 1677709728282,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 231.255,
-            "unit": "seconds",
-            "range": 0.199184587753079
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10656,6 +10628,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 10.6562052146004,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "7f2cf528e741255fb62f08f1db1a2ae0cce0a131",
+          "message": "feat: Add functionality to output the (infimum of the) excursion along each branch\n\nAdds a `nodeOperator` and `nodePropertyExtractor` to output these.",
+          "timestamp": "2023-10-06T18:53:55Z",
+          "tree_id": "8b71a16284f768e8a225f4d38a676f11cf7ec5ae",
+          "url": "https://github.com/galacticusorg/galacticus/commit/7f2cf528e741255fb62f08f1db1a2ae0cce0a131"
+        },
+        "date": 1696646072863,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 204.815,
+            "unit": "seconds",
+            "range": 0.206558708361339
           }
         ]
       }
