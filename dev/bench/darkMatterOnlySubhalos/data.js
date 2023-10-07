@@ -1,45 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1696646070018,
+  "lastUpdate": 1696646077427,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "committer": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "id": "8eac31dae114401ae9a0116562e45dd151b2a12f",
-          "message": "fix: Use correct name for default \"very simple size\" disk mass distribution parameter",
-          "timestamp": "2023-03-01T15:33:56Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/8eac31dae114401ae9a0116562e45dd151b2a12f"
-        },
-        "date": 1677709732851,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 57.3717638717242,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 25.689755316789,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 25371.9758848307,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8738,6 +8701,45 @@ window.BENCHMARK_DATA = {
             "value": 66.835,
             "unit": "seconds",
             "range": 0.16589303782857
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "7f2cf528e741255fb62f08f1db1a2ae0cce0a131",
+          "message": "feat: Add functionality to output the (infimum of the) excursion along each branch\n\nAdds a `nodeOperator` and `nodePropertyExtractor` to output these.",
+          "timestamp": "2023-10-06T18:53:55Z",
+          "tree_id": "8b71a16284f768e8a225f4d38a676f11cf7ec5ae",
+          "url": "https://github.com/galacticusorg/galacticus/commit/7f2cf528e741255fb62f08f1db1a2ae0cce0a131"
+        },
+        "date": 1696646076588,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 57.6681754904595,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 25.6634741243711,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 23666.4950168135,
+            "unit": "-logℒ"
           }
         ]
       }
