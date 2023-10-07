@@ -367,6 +367,7 @@ contains
     <objectDestructor name="galacticFilter_"                                     />
     <objectDestructor name="cosmologyParametersData"                             />
     <objectDestructor name="cosmologyFunctionsData"                              />
+    <objectDestructor name="outputAnalysisPropertyOperator_"                     />
     <objectDestructor name="outputAnalysisDistributionOperator_"                 />
     <objectDestructor name="outputAnalysisDistributionOperatorGrvtnlLnsng_"      />
     <objectDestructor name="outputAnalysisDistributionOperatorRandomErrorPlynml_"/>
@@ -383,7 +384,8 @@ contains
     type(outputAnalysisMassFunctionStellarPRIMUS), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%galacticStructure_"/>
+    <objectDestructor name="self%galacticStructure_"   />
+    <objectDestructor name="self%gravitationalLensing_"/>
     !!]
     return
   end subroutine massFunctionStellarPRIMUSDestructor
