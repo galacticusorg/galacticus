@@ -17,12 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+ Contributions to this file made by: Sachi Weerasooriya
+
   !!{
   Implements a cooling function class which implements cooling from molecular hydrogen using the cooling function of
   \cite{galli_chemistry_1998}.
   !!}
 
-   use :: Tables, only : table1DLinearLinear
+  use :: Tables, only : table1DLinearLinear
 
   !![
   <coolingFunction name="coolingFunctionMolecularHydrogenGalliPalla">
@@ -127,7 +129,6 @@
 
   ! Maximum temperature for this cooling function. Above this we assume molecular hydrogen will be dissociated, and the rate
   ! coefficients are, in any case, not valid in this regime.
-  double precision                , parameter :: temperatureMinimum          =0.0d0
   double precision                , parameter :: temperatureMaximum          =1.00d+06
   
   ! Minimum hydrogen density for which we will attempt to compute cooling functions.
@@ -198,7 +199,7 @@ contains
     !$GLC attributes unused :: node, radiation, gasAbundances
 
     ! Check if the hydrogen density is sufficiently large and temperature is below the maximum.
-    if ((numberDensityHydrogen > numberDensityHydrogenMinimum) .and. (temperature < temperatureMaximum) .and. (temperature > temperatureMinimum)) then
+    if (numberDensityHydrogen > numberDensityHydrogenMinimum .and. temperature < temperatureMaximum) then
        molecularHydrogenGalliPallaCoolingFunction=+self%coolingFunctionH_H2           (numberDensityHydrogen,temperature,chemicalDensities) & ! H   - H₂ cooling function.
             &                                     +self%coolingFunctionH2Plus_Electron(                      temperature,chemicalDensities) & ! H₂⁺ - e⁻ cooling function.
             &                                     +self%coolingFunctionH_H2Plus       (                      temperature,chemicalDensities)   ! H₂⁺ - H  cooling function.
@@ -253,7 +254,7 @@ contains
     !$GLC attributes unused :: node, radiation, gasAbundances
 
     ! Check if the hydrogen density is sufficiently large and temperature is below the maximum.
-    if ((numberDensityHydrogen > numberDensityHydrogenMinimum) .and. (temperature < temperatureMaximum) .and. (temperature > temperatureMinimum)) then
+    if (numberDensityHydrogen > numberDensityHydrogenMinimum .and. temperature < temperatureMaximum) then
        ! Initialize cumulative cooling function to zero.
        coolingFunctionCumulative=0.0d0
        ! H - H₂ cooling function.
@@ -331,7 +332,7 @@ contains
     !$GLC attributes unused :: node, gasAbundances, radiation
 
     ! Check if the hydrogen density is sufficiently large and temperature is below the maximum.
-    if ((numberDensityHydrogen > numberDensityHydrogenMinimum) .and. (temperature < temperatureMaximum) .and. (temperature > temperatureMinimum)) then
+    if (numberDensityHydrogen > numberDensityHydrogenMinimum .and. temperature < temperatureMaximum) then
        coolingFunctionCumulative=0.0d0
        ! H - H₂ cooling function.
        coolingFunction          =+self%coolingFunctionH_H2(numberDensityHydrogen,temperature,chemicalDensities)
@@ -517,11 +518,12 @@ contains
     use :: Numerical_Constants_Prefixes, only : milli
     implicit none
     class           (coolingFunctionMolecularHydrogenGalliPalla), intent(inout)             :: self
-    double precision                                            , intent(in   )             :: numberDensityHydrogen                         , temperature
-    double precision                                            , intent(  out)             :: coolingFunctionLocalThermodynamicEquilibrium  , coolingFunctionLowDensityLimit, &
+    double precision                                            , intent(in   )             :: numberDensityHydrogen                                  , temperature
+    double precision                                            , intent(  out)             :: coolingFunctionLocalThermodynamicEquilibrium           , coolingFunctionLowDensityLimit, &
          &                                                                                     numberDensityCriticalOverNumberDensityHydrogen
-    integer                                                     , parameter                 :: temperaturePointsPerDecade=100
-    double precision                                            , allocatable, dimension(:) :: logTemperatures, temperaturesThousand
+    integer                                                     , parameter                 :: temperaturePointsPerDecade                    =100
+    double precision                                            , parameter                 :: coolingFunctionMinimum                        =1.0d-300
+    double precision                                            , allocatable, dimension(:) :: logTemperatures                                        , temperaturesThousand
     integer                                                                                 :: countTemperatures
     double precision                                                                        :: logarithmic10Temperature
 
@@ -537,9 +539,6 @@ contains
           allocate(self%interpolatorCoolingFunctionCommon)
           self%temperatureMinimumInterpolators=min(self%temperatureMinimumInterpolators,temperature/2.0d0)
           self%temperatureMaximumInterpolators=max(self%temperatureMaximumInterpolators,temperature*2.0d0)
-          
-          write (0,*) temperature,self%temperatureMinimumInterpolators,self%temperatureMaximumInterpolators
-          call backtrace ()
           countTemperatures=int(log10(self%temperatureMaximumInterpolators/self%temperatureMinimumInterpolators)*dble(temperaturePointsPerDecade))+1
           call self%interpolatorCoolingFunctionCommon%create(log10(self%temperatureMinimumInterpolators),log10(self%temperatureMaximumInterpolators),countTemperatures,tableCount=3)
           logTemperatures     =self%interpolatorCoolingFunctionCommon%xs()
@@ -560,34 +559,34 @@ contains
           ! Rotational and vibrational cooling functions from Hollenbach & McKee (1979; their equations 6.37 and 6.38).          
           call self%interpolatorCoolingFunctionCommon%populate(                                                                  &
                &                                               log(                                                              &
-               &                                                   +rotationalLambda1                                            &
-               &                                                   *temperaturesThousand**rotationalExponent1                    &
-               &                                                   /(                                                            &
-               &                                                     +1.0d0                                                      &
-               &                                                     +rotationalCoefficient1                                     &
-               &                                                     *temperaturesThousand**rotationalExponent2                  &
-               &                                                    )                                                            &
-               &                                                   *exp(                                                         &
-               &                                                        -(                                                       &
-               &                                                          +rotationalTemperature1                                &
-               &                                                          /temperaturesThousand                                  &
-               &                                                         )**3                                                    &
-               &                                                       )                                                         &
-               &                                                   +rotationalLambda2                                            &
-               &                                                   *exp(                                                         &
-               &                                                        -rotationalTemperature2                                  &
-               &                                                        /temperaturesThousand                                    &
-               &                                                       )                                                         &
+               &                                                   max(                                                          &
+               &                                                       +coolingFunctionMinimum                                 , &
+               &                                                       +rotationalLambda1                                        &
+               &                                                       *temperaturesThousand**rotationalExponent1                &
+               &                                                       /(                                                        &
+               &                                                         +1.0d0                                                  &
+               &                                                         +rotationalCoefficient1                                 &
+               &                                                         *temperaturesThousand**rotationalExponent2              &
+               &                                                        )                                                        &
+               &                                                       *exp(                                                     &
+               &                                                            -(                                                   &
+               &                                                              +rotationalTemperature1                            &
+               &                                                              /temperaturesThousand                              &
+               &                                                             )**3                                                &
+               &                                                           )                                                     &
+               &                                                       +rotationalLambda2                                        &
+               &                                                       *exp(                                                     &
+               &                                                            -rotationalTemperature2                              &
+               &                                                            /temperaturesThousand                                &
+               &                                                           )                                                     &
+               &                                                      )                                                          &
                &                                                  )                                                            , &
                &                                               table=2                                                           &
                &                                              )
-          !write (0,*) "T",temperaturesThousand
-          !write (0,*) "CF",+vibrationalLambda1                                                                                  &
-    
           call self%interpolatorCoolingFunctionCommon%populate(                                                                  &
                &                                               log(                                                              &
                &                                                   max(                                                          &
-               &                                                       +1.0d-300                                               , &
+               &                                                       +coolingFunctionMinimum                                 , &
                &                                                       +vibrationalLambda1                                       &
                &                                                       *exp(                                                     &
                &                                                            -vibrationalTemperature1                             &
