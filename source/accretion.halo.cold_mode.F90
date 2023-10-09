@@ -410,7 +410,7 @@ contains
     ! Compute the temperature and density of accreting material, assuming accreted has is at the virial temperature and that the
     ! overdensity is one third of the mean overdensity of the halo.
     temperatureHot            =  self%darkMatterHaloScale_     %temperatureVirial(node        )
-    temperature               =  self%intergalacticMediumState_%temperature      (basic%time())
+    temperatureCold           =  self%intergalacticMediumState_%temperature      (basic%time())
     numberDensityHydrogen     =  hydrogenByMassPrimordial                  &
          &                       /atomicMassHydrogen                       &
          &                       *self %cosmologyParameters_%omegaBaryon() &
