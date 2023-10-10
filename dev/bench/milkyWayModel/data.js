@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1696702263007,
+  "lastUpdate": 1696954592419,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "ca3da93e4020b654e59f77aef5fdd28621f61f22",
-          "message": "Merge pull request #396 from galacticusorg/unknownParameters\n\nReport the path to a parameter when resporting an unknown parameter name",
-          "timestamp": "2023-03-02T15:35:14Z",
-          "tree_id": "5d3e4fa9a7502eefb30d2aa2d62ac6b8e3e23a87",
-          "url": "https://github.com/galacticusorg/galacticus/commit/ca3da93e4020b654e59f77aef5fdd28621f61f22"
-        },
-        "date": 1677781098929,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 175.017,
-            "unit": "seconds",
-            "range": 0.215657367134727
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10660,6 +10630,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 9.9418741682224,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a29225c6ef9c5f69db7be1d84076f6272e863686",
+          "message": "Merge pull request #493 from sachiwee/master\n\nChanges to accretion.halo.cold_mode.F90 and cooling.cooling_function.molecular_hydrogen_Galli_Palla.F90",
+          "timestamp": "2023-10-10T12:46:37Z",
+          "tree_id": "e512ab8f80b76a75a9c79caf1413ccd688e3310c",
+          "url": "https://github.com/galacticusorg/galacticus/commit/a29225c6ef9c5f69db7be1d84076f6272e863686"
+        },
+        "date": 1696954591436,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 281.081,
+            "unit": "seconds",
+            "range": 1.213199447741
           }
         ]
       }
