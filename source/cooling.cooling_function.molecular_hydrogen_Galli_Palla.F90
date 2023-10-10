@@ -17,12 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+ Contributions to this file made by: Sachi Weerasooriya
+
   !!{
   Implements a cooling function class which implements cooling from molecular hydrogen using the cooling function of
   \cite{galli_chemistry_1998}.
   !!}
 
-   use :: Tables, only : table1DLinearLinear
+  use :: Tables, only : table1DLinearLinear
 
   !![
   <coolingFunction name="coolingFunctionMolecularHydrogenGalliPalla">
@@ -516,11 +518,12 @@ contains
     use :: Numerical_Constants_Prefixes, only : milli
     implicit none
     class           (coolingFunctionMolecularHydrogenGalliPalla), intent(inout)             :: self
-    double precision                                            , intent(in   )             :: numberDensityHydrogen                         , temperature
-    double precision                                            , intent(  out)             :: coolingFunctionLocalThermodynamicEquilibrium  , coolingFunctionLowDensityLimit, &
+    double precision                                            , intent(in   )             :: numberDensityHydrogen                                  , temperature
+    double precision                                            , intent(  out)             :: coolingFunctionLocalThermodynamicEquilibrium           , coolingFunctionLowDensityLimit, &
          &                                                                                     numberDensityCriticalOverNumberDensityHydrogen
-    integer                                                     , parameter                 :: temperaturePointsPerDecade=100
-    double precision                                            , allocatable, dimension(:) :: logTemperatures, temperaturesThousand
+    integer                                                     , parameter                 :: temperaturePointsPerDecade                    =100
+    double precision                                            , parameter                 :: coolingFunctionMinimum                        =1.0d-300
+    double precision                                            , allocatable, dimension(:) :: logTemperatures                                        , temperaturesThousand
     integer                                                                                 :: countTemperatures
     double precision                                                                        :: logarithmic10Temperature
 
@@ -556,40 +559,46 @@ contains
           ! Rotational and vibrational cooling functions from Hollenbach & McKee (1979; their equations 6.37 and 6.38).          
           call self%interpolatorCoolingFunctionCommon%populate(                                                                  &
                &                                               log(                                                              &
-               &                                                   +rotationalLambda1                                            &
-               &                                                   *temperaturesThousand**rotationalExponent1                    &
-               &                                                   /(                                                            &
-               &                                                     +1.0d0                                                      &
-               &                                                     +rotationalCoefficient1                                     &
-               &                                                     *temperaturesThousand**rotationalExponent2                  &
-               &                                                    )                                                            &
-               &                                                   *exp(                                                         &
-               &                                                        -(                                                       &
-               &                                                          +rotationalTemperature1                                &
-               &                                                          /temperaturesThousand                                  &
-               &                                                         )**3                                                    &
-               &                                                       )                                                         &
-               &                                                   +rotationalLambda2                                            &
-               &                                                   *exp(                                                         &
-               &                                                        -rotationalTemperature2                                  &
-               &                                                        /temperaturesThousand                                    &
-               &                                                       )                                                         &
+               &                                                   max(                                                          &
+               &                                                       +coolingFunctionMinimum                                 , &
+               &                                                       +rotationalLambda1                                        &
+               &                                                       *temperaturesThousand**rotationalExponent1                &
+               &                                                       /(                                                        &
+               &                                                         +1.0d0                                                  &
+               &                                                         +rotationalCoefficient1                                 &
+               &                                                         *temperaturesThousand**rotationalExponent2              &
+               &                                                        )                                                        &
+               &                                                       *exp(                                                     &
+               &                                                            -(                                                   &
+               &                                                              +rotationalTemperature1                            &
+               &                                                              /temperaturesThousand                              &
+               &                                                             )**3                                                &
+               &                                                           )                                                     &
+               &                                                       +rotationalLambda2                                        &
+               &                                                       *exp(                                                     &
+               &                                                            -rotationalTemperature2                              &
+               &                                                            /temperaturesThousand                                &
+               &                                                           )                                                     &
+               &                                                      )                                                          &
                &                                                  )                                                            , &
                &                                               table=2                                                           &
                &                                              )
           call self%interpolatorCoolingFunctionCommon%populate(                                                                  &
                &                                               log(                                                              &
-               &                                                   +vibrationalLambda1                                           &
-               &                                                   *exp(                                                         &
-               &                                                        -vibrationalTemperature1                                 &
-               &                                                        /temperaturesThousand                                    &
-               &                                                       )                                                         &
-               &                                                   +vibrationalLambda2                                           &
-               &                                                   *exp(                                                         &
-               &                                                        -vibrationalTemperature2                                 &
-               &                                                        /temperaturesThousand                                    &
-               &                                                       )                                                         &
-               &                                                  )                                                            , &
+               &                                                   max(                                                          &
+               &                                                       +coolingFunctionMinimum                                 , &
+               &                                                       +vibrationalLambda1                                       &
+               &                                                       *exp(                                                     &
+               &                                                            -vibrationalTemperature1                             &
+               &                                                            /temperaturesThousand                                &
+               &                                                           )                                                     &
+               &                                                       +vibrationalLambda2                                       &
+               &                                                       *exp(                                                     &
+               &                                                            -vibrationalTemperature2                             &
+               &                                                            /temperaturesThousand                                &
+               &                                                           )                                                     &
+               &                                                      )                                                          &
+               &                                                  )                                                            , &                                             
                &                                               table=3                                                           &
                &                                              )
        end if
