@@ -246,7 +246,7 @@ contains
     class           (nodeComponentHotHalo       ), pointer       :: hotHalo
     class           (massDistributionClass      ), pointer       :: massDistribution_
     class           (kinematicsDistributionClass), pointer       :: kinematicsDistribution_
-    type            (coordinateSpherical      )                  :: coordinates
+    type            (coordinateSpherical        )                :: coordinates
     double precision                                             :: coolingRadius                   , coolingTimeAvailable      , &
          &                                                          coolingTimeAvailableIncreaseRate, coolingTimeDensityLogSlope, &
          &                                                          coolingTimeTemperatureLogSlope  , density                   , &
