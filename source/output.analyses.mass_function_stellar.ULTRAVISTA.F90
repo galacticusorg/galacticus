@@ -382,7 +382,8 @@ contains
     type(outputAnalysisMassFunctionStellarULTRAVISTA), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%galacticStructure_"/>
+    <objectDestructor name="self%galacticStructure_"   />
+    <objectDestructor name="self%gravitationalLensing_"/>
     !!]
     return
   end subroutine massFunctionStellarULTRAVISTADestructor
