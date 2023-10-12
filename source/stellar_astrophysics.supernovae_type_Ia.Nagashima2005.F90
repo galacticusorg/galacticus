@@ -39,10 +39,17 @@
      class           (stellarAstrophysicsClass), pointer                   :: stellarAstrophysics_ => null()
      double precision                                                      :: totalYield
      double precision                          , allocatable, dimension(:) :: elementYield
+     logical                                                               :: initialized
    contains
-     final     ::           nagashima2005Destructor
-     procedure :: number => nagashima2005Number
-     procedure :: yield  => nagashima2005Yield
+     !![
+     <methods>
+       <method method="initialize" description="Initialize yield data."/>
+     </methods>
+     !!]
+     final     ::               nagashima2005Destructor
+     procedure :: number     => nagashima2005Number
+     procedure :: yield      => nagashima2005Yield
+     procedure :: initialize => nagashima2005Initialize
   end type supernovaeTypeIaNagashima2005
 
   interface supernovaeTypeIaNagashima2005
@@ -80,25 +87,50 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily nagashima2005} supernovae type Ia class.
     !!}
-    use :: Atomic_Data      , only : Atom_Lookup                   , Atomic_Data_Atoms_Count
-    use :: FoX_dom          , only : destroy                       , node                             , extractDataContent
-    use :: Error            , only : Error_Report
-    use :: Input_Paths      , only : inputPath                     , pathTypeDataStatic
-    use :: IO_XML           , only : XML_Count_Elements_By_Tag_Name, XML_Get_First_Element_By_Tag_Name                    , XML_Get_Elements_By_Tag_Name, xmlNodeList, &
-         &                           XML_Parse
     implicit none
-    type            (supernovaeTypeIaNagashima2005)                              :: self
-    class           (stellarAstrophysicsClass     ), intent(in   ), target       :: stellarAstrophysics_
-    type            (node                         ), pointer                     :: doc                 , atom        , &
-         &                                                                          isotope             , yield
-    type            (xmlNodeList                  ), allocatable  , dimension(:) :: isotopesList
-    integer                                                                      :: atomicIndex         , atomicNumber, &
-         &                                                                          iIsotope            , ioErr
-    double precision                                                             :: isotopeYield
+    type (supernovaeTypeIaNagashima2005)                        :: self
+    class(stellarAstrophysicsClass     ), intent(in   ), target :: stellarAstrophysics_
     !![
     <constructorAssign variables="*stellarAstrophysics_"/>
     !!]
 
+    self%initialized =.false.
+    return
+  end function nagashima2005ConstructorInternal
+
+  subroutine nagashima2005Destructor(self)
+    !!{
+    Destructor for the {\normalfont \ttfamily nagashima2005} supernovae type Ia class.
+    !!}
+    implicit none
+    type(supernovaeTypeIaNagashima2005), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%stellarAstrophysics_"/>
+    !!]
+    return
+  end subroutine nagashima2005Destructor
+
+  subroutine nagashima2005Initialize(self)
+    !!{
+    Read data for the {\normalfont \ttfamily nagashima2005} supernovae type Ia class.
+    !!}
+    use :: Atomic_Data      , only : Atom_Lookup                   , Atomic_Data_Atoms_Count
+    use :: FoX_dom          , only : destroy                       , node                             , extractDataContent
+    use :: Error            , only : Error_Report
+    use :: Input_Paths      , only : inputPath                     , pathTypeDataStatic
+    use :: IO_XML           , only : XML_Count_Elements_By_Tag_Name, XML_Get_First_Element_By_Tag_Name, XML_Get_Elements_By_Tag_Name, xmlNodeList, &
+         &                           XML_Parse
+    implicit none
+    class           (supernovaeTypeIaNagashima2005), intent(inout)               :: self
+    type            (node                         ), pointer                     :: doc         , atom        , &
+         &                                                                          isotope     , yield
+    type            (xmlNodeList                  ), allocatable  , dimension(:) :: isotopesList
+    integer                                                                      :: atomicIndex , atomicNumber, &
+         &                                                                          iIsotope    , ioErr
+    double precision                                                             :: isotopeYield
+    
+    if (self%initialized) return
     ! Allocate an array to store individual element yields.
     allocate(self%elementYield(Atomic_Data_Atoms_Count()))
     self%elementYield=0.0d0
@@ -125,22 +157,10 @@ contains
     end do
     call destroy(doc)
     !$omp end critical (FoX_DOM_Access)
+    self%initialized=.true.
     return
-  end function nagashima2005ConstructorInternal
-
-  subroutine nagashima2005Destructor(self)
-    !!{
-    Destructor for the {\normalfont \ttfamily nagashima2005} supernovae type Ia class.
-    !!}
-    implicit none
-    type(supernovaeTypeIaNagashima2005), intent(inout) :: self
-
-    !![
-    <objectDestructor name="self%stellarAstrophysics_"/>
-    !!]
-    return
-  end subroutine nagashima2005Destructor
-
+  end subroutine nagashima2005Initialize
+  
   double precision function nagashima2005Number(self,initialMass,age,metallicity)
     !!{
     Compute the cumulative number of Type Ia supernovae originating per unit mass of stars that form with given {\normalfont \ttfamily
@@ -150,8 +170,9 @@ contains
     !!}
     implicit none
     class           (supernovaeTypeIaNagashima2005), intent(inout) :: self
-    double precision                               , intent(in   ) :: age          , initialMass, metallicity
-    double precision                                               :: dyingStarMass, muMinimum
+    double precision                               , intent(in   ) :: age                     , initialMass               , &
+         &                                                            metallicity
+    double precision                                               :: dyingStarMass           , muMinimum
     ! Parameters of the distribution of binaries from Nagashima et al. (2005; MNRAS; 358; 1427; eqn. 17).
     double precision                               , parameter     :: binaryMassMaximum=12.0d0, binaryMassMinimum  =3.00d0
     double precision                               , parameter     :: gamma            = 2.0d0, typeIaNormalization=0.07d0
@@ -184,10 +205,12 @@ contains
     !!}
     implicit none
     class           (supernovaeTypeIaNagashima2005), intent(inout)           :: self
-    double precision                               , intent(in   )           :: age      , initialMass, metallicity
+    double precision                               , intent(in   )           :: age        , initialMass, &
+         &                                                                      metallicity
     integer                                        , intent(in   ), optional :: atomIndex
     double precision                                                         :: yield
 
+    call self%initialize()
     if (present(atomIndex)) then
        ! Return yield for requested atomic index.
        yield=self%elementYield(atomIndex)
