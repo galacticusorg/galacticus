@@ -217,11 +217,17 @@ contains
     use :: Root_Finder             , only : rangeExpandMultiplicative   , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
     use :: Statistics_Distributions, only : distributionFunction1DVoight
     use :: Virial_Density_Contrast , only : fixedDensityTypeCritical
+    use :: File_Utilities          , only : Directory_Make              , File_Exists                  , File_Lock                    , File_Path, &
+          &                                 File_Unlock                 , lockDescriptor
+    use :: Input_Paths             , only : inputPath                   , pathTypeDataDynamic
+    use :: HDF5_Access             , only : hdf5Access
+    use :: IO_HDF5                 , only : hdf5Object
+    use :: String_Handling         , only : operator(//)
     implicit none
     type            (virialOrbitJiang2014        )                                :: self
-    double precision                              , intent(in   ), dimension(3  ) :: bRatioLow                          , bRatioIntermediate                   , bRatioHigh                          , &
-         &                                                                           gammaRatioLow                      , gammaRatioIntermediate               , gammaRatioHigh                      , &
-         &                                                                           sigmaRatioLow                      , sigmaRatioIntermediate               , sigmaRatioHigh                      , &
+    double precision                              , intent(in   ), dimension(3  ) :: bRatioLow                          , bRatioIntermediate                   , bRatioHigh          , &
+         &                                                                           gammaRatioLow                      , gammaRatioIntermediate               , gammaRatioHigh      , &
+         &                                                                           sigmaRatioLow                      , sigmaRatioIntermediate               , sigmaRatioHigh      , &
          &                                                                           muRatioLow                         , muRatioIntermediate                  , muRatioHigh
     class           (darkMatterHaloScaleClass    ), intent(in   ), target         :: darkMatterHaloScale_
     class           (cosmologyParametersClass    ), intent(in   ), target         :: cosmologyParameters_
@@ -231,16 +237,16 @@ contains
     integer                                       , parameter                     :: tableCount                 =1000
     integer                                                                       :: i                                  , j                                    , k
     type            (distributionFunction1DVoight)                                :: voightDistribution
-    logical                                       , save        , dimension(3,3)  :: previousInitialized        =.false.
-    double precision                              , save        , dimension(3,3)  :: previousB                          , previousGamma                        , previousSigma                       , &
-         &                                                                           previousMu                         , previousVelocityTangentialMean       , previousVelocityTotalRootMeanSquared
-    type            (table1DLinearLinear         ), save        , dimension(3,3)  :: previousVoightDistributions
     double precision                              , parameter                     :: toleranceAbsolute           =0.0d+0, toleranceRelative             =1.0d-3
-    double precision                                                              :: limitLower                         , limitUpper                           , halfWidthHalfMaximum                , &
+    double precision                              , allocatable  , dimension(:,:) :: distribution_
+    double precision                                                              :: limitLower                         , limitUpper                           , halfWidthHalfMaximum,  &
          &                                                                           fullWidthHalfMaximumLorentzian     , fullWidthHalfMaximumGaussian
-    logical                                                                       :: reUse                              , limitFound
+    logical                                                                       :: limitFound
     type            (integrator                  )                                :: integratorTangential               , integratorTotal
-    !![
+    type            (varying_string              )                                :: fileName
+    type            (hdf5Object                  )                                :: file
+    type            (lockDescriptor              )                                :: fileLock
+     !![
     <constructorAssign variables="*darkMatterHaloScale_, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterProfileDMO_, *virialDensityContrast_, bRatioLow, bRatioIntermediate, bRatioHigh, gammaRatioLow, gammaRatioIntermediate, gammaRatioHigh, sigmaRatioLow, sigmaRatioIntermediate, sigmaRatioHigh, muRatioLow, muRatioIntermediate , muRatioHigh"/>
     !!]
 
@@ -257,32 +263,38 @@ contains
     self%mu   (:,1)=   muRatioLow
     self%mu   (:,2)=   muRatioIntermediate
     self%mu   (:,3)=   muRatioHigh
-    ! Tabulate Voight distribution functions for speed.
-    integratorTangential=integrator(jiang2014DistributionVelocityTangential  ,toleranceRelative=1.0d-6,integrationRule=GSL_Integ_Gauss61)
-    integratorTotal     =integrator(jiang2014DistributionVelocityTotalSquared,toleranceRelative=1.0d-6,integrationRule=GSL_Integ_Gauss61)
-    ! Build the distribution function for total velocity.
-    do i=1,3
-       do j=1,3
-          ! Check if this distribution was built previously.
-          !$omp critical(virialOrbitJiang2014ReUse)
-          reuse  =                                             &
-               &                      previousInitialized(i,j) &
-               &  .and.                                        &
-               &   self%B    (i,j) == previousB          (i,j) &
-               &  .and.                                        &
-               &   self%gamma(i,j) == previousGamma      (i,j) &
-               &  .and.                                        &
-               &   self%sigma(i,j) == previousSigma      (i,j) &
-               &  .and.                                        &
-               &   self%mu   (i,j) == previousMu         (i,j)
-          if (reuse) then
-             self%voightDistributions          (i,j)=previousVoightDistributions         (i,j)
-             self%velocityTangentialMean_      (i,j)=previousVelocityTangentialMean      (i,j)
-             self%velocityTotalRootMeanSquared_(i,j)=previousVelocityTotalRootMeanSquared(i,j)
-          end if
-          !$omp end critical(virialOrbitJiang2014ReUse)
-          ! Build the distribution.
-          if (.not.reuse) then
+    ! Construct a file name for the table.
+    fileName=inputPath(pathTypeDataDynamic)// &
+         &   'satellites/'                 // &
+         &   self%objectType()             // &
+         &   '.hdf5'
+    call Directory_Make(char(File_Path(char(fileName))))
+    ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
+    call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
+    if (File_Exists(fileName)) then
+       !$ call hdf5Access%set()
+       call file%openFile         (char(fileName)                                                   )
+       call file%readAttribute    ('limitLower'                  ,     limitLower                   ) 
+       call file%readAttribute    ('limitUpper'                  ,     limitUpper                   ) 
+       call file%readDatasetStatic('velocityTangentialMean'      ,self%velocityTangentialMean_      )
+       call file%readDatasetStatic('velocityTotalRootMeanSquared',self%velocityTotalRootMeanSquared_)
+       do i=1,3
+          do j=1,3
+             call file%readDataset(char(var_str('distribution_')//i//'_'//j) , distribution_)
+             call self%voightDistributions(i,j)%create  (limitLower        ,limitUpper,tableCount)
+             call self%voightDistributions(i,j)%populate(distribution_(:,1)                      )
+          end do
+       end do
+       call    file      %close()
+       !$ call hdf5Access%unset()
+    else
+       ! Tabulate Voight distribution functions for speed.
+       integratorTangential=integrator(jiang2014DistributionVelocityTangential  ,toleranceRelative=1.0d-6,integrationRule=GSL_Integ_Gauss61)
+       integratorTotal     =integrator(jiang2014DistributionVelocityTotalSquared,toleranceRelative=1.0d-6,integrationRule=GSL_Integ_Gauss61)
+       ! Build the distribution function for total velocity.
+       do i=1,3
+          do j=1,3
+             ! Build the distribution.
              ! Set the lower and upper limit of the distribution to +/-5 times the half-width at half-maximum below/above the mean
              ! (limited also to 0). This avoids attempting to evaluate the distribution far from the mean (where it is small, but
              ! the numerical evaluation of the hypergeometric function used in the CDF is unstable). The half-width at
@@ -335,20 +347,23 @@ contains
              self%velocityTangentialMean_      (i,j)=     integratorTangential%integrate(limitLower,limitUpper)
              ! Compute the root mean squared total velocity.
              self%velocityTotalRootMeanSquared_(i,j)=sqrt(integratorTotal     %integrate(limitLower,limitUpper))
-             ! Store this table for later reuse.
-             !$omp critical(virialOrbitJiang2014ReUse)
-             previousInitialized                 (i,j)=.true.
-             previousB                           (i,j)=self%B                            (i,j)
-             previousGamma                       (i,j)=self%gamma                        (i,j)
-             previousSigma                       (i,j)=self%sigma                        (i,j)
-             previousMu                          (i,j)=self%mu                           (i,j)
-             previousVoightDistributions         (i,j)=self%voightDistributions          (i,j)
-             previousVelocityTangentialMean      (i,j)=self%velocityTangentialMean_      (i,j)
-             previousVelocityTotalRootMeanSquared(i,j)=self%velocityTotalRootMeanSquared_(i,j)
-             !$omp end critical(virialOrbitJiang2014ReUse)
-          end if
+          end do
        end do
-    end do
+       !$ call hdf5Access%set()
+       call file%openFile      (char(fileName                     )                               ,overWrite=.true.,readOnly=.false.)
+       call file%writeAttribute(     limitLower                    ,'limitLower'                                                    ) 
+       call file%writeAttribute(     limitUpper                    ,'limitUpper'                                                    ) 
+       call file%writeDataset  (self%velocityTangentialMean_       ,'velocityTangentialMean'                                        )
+       call file%writeDataset  (self%velocityTotalRootMeanSquared_ ,'velocityTotalRootMeanSquared'                                  )
+       do i=1,3
+          do j=1,3
+             call file%writeDataset(self%voightDistributions(i,j)%ys(),char(var_str('distribution_')//i//'_'//j))
+          end do
+       end do
+       call    file      %close()
+       !$ call hdf5Access%unset()
+    end if
+    call File_Unlock(fileLock)
     ! Create virial density contrast definition.
     allocate(self%virialDensityContrastDefinition_)
     !![
