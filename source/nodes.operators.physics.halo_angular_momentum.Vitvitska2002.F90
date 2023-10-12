@@ -269,7 +269,7 @@ contains
           angularMomentumSubresolutionFactor=+1.0d0
        else
           b                                 =+massFunctionSlopeLogarithmic                                         &
-               &                             +self%exponentMAss                                                    &
+               &                             +self%exponentMass                                                    &
                &                             -2.0d0
           angularMomentumSubresolutionFactor=+Beta_Function_Incomplete_Normalized(a,b,massRatio/(1.0d0+massRatio)) &
                &                             *Beta_Function                      (a,b                            ) &
