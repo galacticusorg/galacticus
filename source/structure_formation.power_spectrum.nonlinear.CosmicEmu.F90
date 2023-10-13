@@ -261,41 +261,41 @@ contains
           end if
           ! Generate the power spectrum.
           call System_Command_Do(inputPath(pathTypeDataDynamic)//"CosmicEmu_v1.1/emu.exe < "//parameterFile)
-          ! Read the data file.
-          self%wavenumberCount=Count_Lines_In_File(powerSpectrumFile,"#")
-          if (allocated(self%wavenumberTable   )) deallocate(self%wavenumberTable   )
-          if (allocated(self%powerSpectrumTable)) deallocate(self%powerSpectrumTable)
-          allocate(self%wavenumberTable   (self%wavenumberCount))
-          allocate(self%powerSpectrumTable(self%wavenumberCount))
-          open(newunit=powerSpectrumUnit,file=char(powerSpectrumFile),status='old',form='formatted')
-          iWavenumber=0
-          do while (iWavenumber < self%wavenumberCount)
-             read (powerSpectrumUnit,'(a)') powerSpectrumLine
-             if (powerSpectrumLine(1:1) == "#") then
-                if (powerSpectrumLine(1:33) == "# dimensionless Hubble parameter") then
-                   read (powerSpectrumLine(index(powerSpectrumLine,":")+1:),*) littleHubbleCMB
-                   if (Values_Differ(littleHubbleCMB,self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH),relTol=1.0d-2)) &
-                        & call Error_Report(                                                                           &
-                        &                              'values of H₀ in Galacticus and CosmicEmu are significantly different' //  &
-                        &                               {introspection:location}                                                  &
-                        &                             )
-                end if
-             else
-                iWavenumber=iWavenumber+1
-                read (powerSpectrumLine,*) self%wavenumberTable(iWavenumber),self%powerSpectrumTable(iWavenumber)
-             end if
-          end do
-          close(powerSpectrumUnit)
-          ! Convert to logarithmic values.
-          self%wavenumberTable   =log(self%wavenumberTable   )
-          self%powerSpectrumTable=log(self%powerSpectrumTable)
-          ! Build the interpolator.
-          if (allocated(self%interpolator_)) deallocate(self%interpolator_)
-          allocate(self%interpolator_)
-          self%interpolator_=interpolator(self%wavenumberTable,self%powerSpectrumTable,extrapolationType=extrapolationTypeExtrapolate)
           ! Destroy the parameter file.
           call File_Remove(char(parameterFile))
        end if
+       ! Read the data file.
+       self%wavenumberCount=Count_Lines_In_File(powerSpectrumFile,"#")
+       if (allocated(self%wavenumberTable   )) deallocate(self%wavenumberTable   )
+       if (allocated(self%powerSpectrumTable)) deallocate(self%powerSpectrumTable)
+       allocate(self%wavenumberTable   (self%wavenumberCount))
+       allocate(self%powerSpectrumTable(self%wavenumberCount))
+       open(newunit=powerSpectrumUnit,file=char(powerSpectrumFile),status='old',form='formatted')
+       iWavenumber=0
+       do while (iWavenumber < self%wavenumberCount)
+          read (powerSpectrumUnit,'(a)') powerSpectrumLine
+          if (powerSpectrumLine(1:1) == "#") then
+             if (powerSpectrumLine(1:33) == "# dimensionless Hubble parameter") then
+                read (powerSpectrumLine(index(powerSpectrumLine,":")+1:),*) littleHubbleCMB
+                if (Values_Differ(littleHubbleCMB,self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH),relTol=1.0d-2)) &
+                     & call Error_Report(                                                                                      &
+                     &                   'values of H₀ in Galacticus and CosmicEmu are significantly different'//              &
+                     &                    {introspection:location}                                                             &
+                     &                  )
+             end if
+          else
+             iWavenumber=iWavenumber+1
+             read (powerSpectrumLine,*) self%wavenumberTable(iWavenumber),self%powerSpectrumTable(iWavenumber)
+          end if
+       end do
+       close(powerSpectrumUnit)
+       ! Convert to logarithmic values.
+       self%wavenumberTable   =log(self%wavenumberTable   )
+       self%powerSpectrumTable=log(self%powerSpectrumTable)
+       ! Build the interpolator.
+       if (allocated(self%interpolator_)) deallocate(self%interpolator_)
+       allocate(self%interpolator_)
+       self%interpolator_=interpolator(self%wavenumberTable,self%powerSpectrumTable,extrapolationType=extrapolationTypeExtrapolate)
        call File_Unlock(self%fileLock)
     end if
     ! Interpolate in the tabulated data to get the power spectrum.
