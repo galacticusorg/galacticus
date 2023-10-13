@@ -7,10 +7,12 @@ use warnings;
 use Cwd;
 use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use XML::LibXML;
+use XML::LibXML::XPathContext;
 use XML::Simple;
 use XML::Twig;
 use Data::Dumper;
 use Clone qw(clone);
+use File::Copy;
 use List::Util;
 use List::ExtraUtils;
 use Galacticus::Launch::Hooks;
@@ -332,6 +334,191 @@ sub applyCommandLineParameters {
 	    (my $parameter, my $valueIndex) = &parameterFind($parameters,$parameterName);
 	    &parameterValueSet($parameter,$valueIndex,$options{$argument});
 	}
+    }
+}
+
+sub parameterVectorUpdate {
+    # Use a PDL vector of parameters to update parameter files in-place. Handles parameter files included via xi:include elements.
+    my $config          =   shift() ;
+    my $model           =   shift() ;
+    my $parameterVector =   shift() ;
+    my %options         = %{shift()};
+    # Parse parameter file and any included files, gathering DOMs in a dictionary.
+    my $fileName        = exists($options{'baseParameters'}) ? $options{'baseParameters'} : $model->{'posteriorSampleLikelihood'}->{'baseParametersFileName'}->{'value'};
+    my $parser          = XML::LibXML           ->new(                                      );
+    my $ns              = XML::LibXML::Namespace->new('http://www.w3.org/2001/XInclude','xi');
+    my @stack           = ( "base" );
+    my %doms;
+    $doms{'base'}       = {fileName => $fileName, dom => $parser->load_xml(location => $fileName)};
+    while ( scalar(@stack) > 0 ) {
+	# Process the stack of DOMs until all included files have been found.
+	my $file = pop(@stack);
+	my $dom  = $doms{$file}->{'dom'};
+	(my $fileNameBase = $doms{$file}->{'fileName'}) =~ s/\/[^\/]+$//;
+	my $xpc = XML::LibXML::XPathContext->new($dom);
+	$xpc->registerNs('xi','http://www.w3.org/2001/XInclude');
+	my @includes = $xpc->findnodes( '//xi:include' );
+	foreach my $include ( @includes ) {
+	    # Parse each included parameter file, and push onto the stack.
+	    my $fileName = $fileNameBase."/".$include->getAttribute('href');
+	    $doms{$fileName} =
+	    {
+		fileName => $fileName,
+		dom =>  $parser->load_xml(location => $fileName)
+	    };
+	    push(@stack,$fileName);
+	}
+    }
+    # Apply vector of parameter values to parameter DOMs.
+    my $i = -1;  
+    foreach my $modelParameter ( &List::ExtraUtils::as_array($config->{'posteriorSampleSimulation'}->{'modelParameter'}) ) {
+	# Determine the value to set.
+	my $parameterValue;
+	if      ( $modelParameter->{'value'} eq "active" ) {
+	    ++$i;
+	    $parameterValue = $parameterVector->(($i))->sclr();
+	} elsif ( $modelParameter->{'value'} eq "derived") {
+	    $parameterValue = $modelParameter->{'definition'}->{'value'};
+	} else {
+	    die('Galacticus::Constraints::Parameters::parameterVectorUpdate(): unknown parameter type');
+	}
+	# Find the parameter and set its value.
+	(my $node, my $valueIndex) = &parameterFindInDOMs($modelParameter->{'name'}->{'value'},\%doms);
+	&parameterValueSetInDOM($node,$valueIndex,$parameterValue);
+    }
+    # Find any derived parameters specified as options.
+    my @derivedParameters;
+    if ( exists($options{'derivedParameter'}) ) {	
+    	foreach my $derivedParameter ( &List::ExtraUtils::as_array($options{'derivedParameter'}) ) {
+    	    if ( $derivedParameter =~ m/(.*)=(.*)/ ) {
+    		my $parameter = {
+    		    value      => "derived",
+    		    name       => {value => $1},
+    		    definition => {value => $2}
+    		};
+    		push(@derivedParameters,$parameter);
+    		(my $nodeDependent, my $valueIndexDependent) = &parameterFindInDOMs($parameter->{'name'}->{'value'},\%doms);
+    		my $valueDependent = &parameterValueGetInDOM($nodeDependent,$valueIndexDependent);
+    		&parameterValueSetInDOM($nodeDependent,$valueIndexDependent,$parameter->{'definition'}->{'value'});
+    	    } else {
+    		die("Galacticus::Constraints::Parameters::parameterVectorUpdate(): Can not parse derived parameter definition '".$derivedParameter."'");
+    	    }
+    	}
+    }
+    # Resolve any derived parameters.
+    my $dependenciesResolved = 0;
+    while ( ! $dependenciesResolved ) {
+    	my $progress = 0;
+    	$dependenciesResolved = 1;
+    	foreach my $modelParameter ( &List::ExtraUtils::as_array($config->{'posteriorSampleSimulation'}->{'modelParameter'}), @derivedParameters ) {
+	    # Skip parameters not applicable to this model.
+    	    next
+    		unless (
+		    ! exists($model->{'parameters'})
+		    ||
+    		    ( grep {$modelParameter->{'name'}->{'value'} eq $_                     }  @{$model->{'parameters'}} )
+    		    ||  
+    		    ( grep {$modelParameter->{'name'}->{'value'} eq $_->{'name'}->{'value'}}  @derivedParameters        )
+    		);
+	    # Skip non-defined parameters.
+    	    next
+    		unless ( $modelParameter->{'value'} eq "derived" );
+    	    # Find the parameter.
+	    (my $nodeDerived, my $valueIndexDerived) = &parameterFindInDOMs($modelParameter->{'name'}->{'value'},\%doms);
+    	    my $definition = &parameterValueGetInDOM($nodeDerived,$valueIndexDerived);
+    	    # Look for names of dependencies.
+    	    if ( $definition =~ m/\%\[([^\%]+)\]/ ) {
+    		# Get the dependent parameter name.
+    		my $parameterDependentName = $1;
+    		# First replace any constants (which are known to the libmatheval library, see: https://www.gnu.org/software/libmatheval/manual/libmatheval.html#evaluator_005fcreate).
+    		my $ln10    = log(10.0);
+    		$definition =~ s/(^|\W)ln10(\W|$)/$1$ln10$2/g;
+                # Extract the value of the dependent parameter.
+    		(my $nodeDependent, my $valueIndexDependent) = &parameterFindInDOMs($parameterDependentName,\%doms);
+    		my $valueDependent = &parameterValueGetInDOM($nodeDependent,$valueIndexDependent);
+    		# Check if the dependent parameter is resolved.
+    		if ( $valueDependent !~ m/\%\[/ ) {
+    		    # Replace the dependent parameter name with the value in the target.
+    		    $definition =~ s/\%\[$parameterDependentName\]/$valueDependent/g;
+    		    $progress   = 1;
+    		}
+    		# Check if target can now be evaluated.
+    		if ( $definition  !~ m/\%\[/ ) {
+    		    $definition = eval($definition);
+    		} else {
+    		    $dependenciesResolved = 0;
+    		}
+    		# Store the definition.
+    		&parameterValueSetInDOM($nodeDerived,$valueIndexDerived,$definition);
+    	    }
+    	}
+    	die('Galacticus::Constraints::Parameters::parameterVectorApply(): unable to resolve parameter dependencies')
+    	    unless ( $progress || $dependenciesResolved );
+    }
+    # Write new files.
+    foreach my $fileName ( sort(keys(%doms)) ) {
+	copy($doms{$fileName}->{'fileName'},$doms{$fileName}->{'fileName'}.".bak")
+	    or die "Galacticus::Constraints::Parameters::parameterVectorUpdate(): Copy of '".$doms{$fileName}->{'fileName'}."' failed: $!";
+	my $serialized = $doms{$fileName}->{'dom'}->toString();
+	open(my $fileNew,">",$doms{$fileName}->{'fileName'});
+	print $fileNew $serialized;
+	close($fileNew);
+    }
+}
+
+sub parameterFindInDOMs {
+    my $modelParameter = shift();
+    my %doms = %{shift()};
+    my $xPath = "/parameters/".$modelParameter;
+    my $index;
+    if ( $xPath =~ m/\{(\d+)\}/ ) {
+	$index = $1;
+	$xPath =~ s/\{\d+\}//;
+    }
+    $xPath =~ s/::/\//g;
+    $xPath =~ s/\[(\d+)\]/"[".($1+1)."]"/ge;
+    my $node;
+    foreach my $fileName ( sort(keys(%doms)) ) {
+	my $dom = $doms{$fileName}->{'dom'};
+	my @nodes = $dom->findnodes($xPath);
+	if ( scalar(@nodes) == 1 ) {
+	    $node = $nodes[0];
+	    last;
+	} elsif ( scalar(@nodes) > 1 ) {
+	    die('ambiguous parameter');
+	}
+    }
+    die('could not find parameter')
+	unless (
+	    defined($node) );
+    return $node, $index;
+}
+
+sub parameterValueGetInDOM {
+    # Get a value from a parameter.
+    my $node  = shift();
+    my $valueIndex = shift();
+    my $value               ;
+    if ( defined($valueIndex) ) {
+	my @values = split(" ",$node->getAttribute('value'));
+	$value  = $values[$valueIndex];
+    } else {
+	$value  = $node->getAttribute('value');
+    }
+    return $value;
+}
+
+sub parameterValueSetInDOM {
+    # Set a value in a parameter;
+    my $node  = shift();
+    my $valueIndex = shift();
+    my $value      = shift();
+    if ( defined($valueIndex) ) {
+	my @values = split(" ",$node->getAttribute('value'));
+	$values[$valueIndex] = $value ;
+	$node->setAttribute('value',join(" ",@values));
+    } else {
+	$node->setAttribute('value',$value);
     }
 }
 

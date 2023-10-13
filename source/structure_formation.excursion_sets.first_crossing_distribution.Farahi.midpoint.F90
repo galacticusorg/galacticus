@@ -790,9 +790,9 @@ contains
                    if (varianceProgenitorRateQuad(1)+varianceCurrentRateQuad(iVariance) >= varianceMaximumRateLimit) then
                       firstCrossingRateQuad(1)= 0.0_kind_quad
                    else
-                      offsetEffective              =self%offsetEffective (self%timeRate(iTime),varianceCurrentRateQuad(iVariance),varianceProgenitorRateQuad(1),varianceMidpointRateQuad(1),0.0_kind_quad,barrierRateQuad(1),barrierMidpointRateQuad(1),cosmologicalMassVariance_)
-                      varianceResidual             =self%varianceResidual(self%timeRate(iTime),varianceCurrentRateQuad(iVariance),varianceProgenitorRateQuad(1),varianceMidpointRateQuad(1)                                                            ,cosmologicalMassVariance_)
-                      integralKernelRate_=integralKernelRate(varianceResidual,offsetEffective)
+                      offsetEffective         =+self%offsetEffective (self%timeRate(iTime),varianceCurrentRateQuad(iVariance),varianceProgenitorRateQuad(1),varianceMidpointRateQuad(1),0.0_kind_quad,barrierRateQuad(1),barrierMidpointRateQuad(1),cosmologicalMassVariance_)
+                      varianceResidual        =+self%varianceResidual(self%timeRate(iTime),varianceCurrentRateQuad(iVariance),varianceProgenitorRateQuad(1),varianceMidpointRateQuad(1)                                                            ,cosmologicalMassVariance_)
+                      integralKernelRate_     =+integralKernelRate(varianceResidual,offsetEffective)
                       ! If the integral kernel is zero (to machine precision) then simply assume no crossing rate.
                       if (integralKernelRate_ <= 0.0d0) then
                          firstCrossingRateQuad=0.0d0
@@ -801,11 +801,8 @@ contains
                       ! Compute the first crossing rate at the first grid point.
                       offsetEffective         =+self%offsetEffective (self%timeRate(iTime),varianceCurrentRateQuad(iVariance),varianceProgenitorRateQuad(1),0.0_kind_quad,0.0_kind_quad,barrierRateQuad(1),barrier,cosmologicalMassVariance_)
                       varianceResidual        =+self%varianceResidual(self%timeRate(iTime),varianceCurrentRateQuad(iVariance),varianceProgenitorRateQuad(1),0.0_kind_quad                                         ,cosmologicalMassVariance_)
-                      firstCrossingRateQuad(1)=+Error_Function_Complementary(                                      &
-                           &                                                 +offsetEffective                      &
-                           &                                                 /sqrt(2.0_kind_quad*varianceResidual) &
-                           &                                                )                                      &
-                           &                   /varianceStepRate                                                   &
+                      firstCrossingRateQuad(1)=+integralKernelRate(varianceResidual,offsetEffective) &
+                           &                   /varianceStepRate                                     &
                            &                   /integralKernelRate_
                    end if
                    varianceStepRate=+varianceProgenitorRateQuad(1) &
@@ -830,30 +827,18 @@ contains
                             do j=1,i-1
                                offsetEffective        =self%offsetEffective (self%timeRate(iTime),varianceCurrentRateQuad(iVariance),varianceProgenitorRateQuad(i),varianceMidpointRateQuad(j),barrier,effectiveBarrierInitial,barrierMidpointRateQuad(j)-barrier,cosmologicalMassVariance_)
                                varianceResidual       =self%varianceResidual(self%timeRate(iTime),varianceCurrentRateQuad(iVariance),varianceProgenitorRateQuad(i),varianceMidpointRateQuad(j)                                                                   ,cosmologicalMassVariance_)
-                               erfcArgumentNumerator  =offsetEffective
-                               erfcArgumentDenominator=sqrt(2.0_kind_quad*varianceResidual)
-                               if (erfcArgumentNumerator == 0.0_kind_quad .or. exponent(erfcArgumentNumerator)-exponent(erfcArgumentDenominator) > maxExponent(0.0_kind_quad)) then
-                                  erfcValue=1.0_kind_quad
-                               else
-                                  erfcValue              =Error_Function_Complementary(erfcArgumentNumerator/erfcArgumentDenominator)
-                               end if
-                               if (erfcValue > 0.0_kind_quad) then
-                                  varianceStepRate        =+varianceProgenitorRateQuad(j  ) &
-                                       &                   -varianceProgenitorRateQuad(j-1)
-                                  probabilityCrossingPrior=+probabilityCrossingPrior        &
-                                       &                   +firstCrossingRateQuad     (j  ) &
-                                       &                   *varianceStepRate                &
-                                       &                   *erfcValue
-                               end if
+                               varianceStepRate        =+varianceProgenitorRateQuad(j  )                      &
+                                    &                   -varianceProgenitorRateQuad(j-1)
+                               probabilityCrossingPrior=+probabilityCrossingPrior                             &
+                                    &                   +firstCrossingRateQuad     (j  )                      &
+                                    &                   *varianceStepRate                                     &
+                                    &                   *integralKernelRate(varianceResidual,offsetEffective)
                             end do
                             varianceStepRate        =+varianceProgenitorRateQuad(i  ) &
                                  &                   -varianceProgenitorRateQuad(i-1)
                             offsetEffective         =+self%offsetEffective (self%timeRate(iTime),varianceCurrentRateQuad(iVariance),varianceProgenitorRateQuad(i),0.0_kind_quad,barrier,effectiveBarrierInitial,0.0_kind_quad,cosmologicalMassVariance_)
                             varianceResidual        =+self%varianceResidual(self%timeRate(iTime),varianceCurrentRateQuad(iVariance),varianceProgenitorRateQuad(i),0.0_kind_quad                                              ,cosmologicalMassVariance_)
-                            firstCrossingRateQuad(i)=+Error_Function_Complementary(                                      &
-                                 &                                                 +offsetEffective                      &
-                                 &                                                 /sqrt(2.0_kind_quad*varianceResidual) &
-                                 &                                                )                                      &
+                            firstCrossingRateQuad(i)=+integralKernelRate(varianceResidual,offsetEffective) &
                                  &                   -probabilityCrossingPrior
                             if     (                                                                                                                          &
                                  &   firstCrossingRateQuad(i)                                                                   > 0.0d0                       &
@@ -1032,6 +1017,7 @@ contains
     implicit none
     real(kind_quad)                :: integralKernelRate
     real(kind_quad), intent(in   ) :: varianceResidual  , offsetEffective
+    real(kind_quad)                :: denominator
 
     if      (varianceResidual <  0.0_kind_quad) then
        integralKernelRate=0.0_kind_quad
@@ -1040,13 +1026,18 @@ contains
        if (offsetEffective > 0.0_kind_quad) then
           integralKernelRate=0.0_kind_quad
        else
-          integralKernelRate=1.0_kind_quad
+          integralKernelRate=2.0_kind_quad
        end if
     else
-       integralKernelRate   =Error_Function_Complementary(                                      &
-            &                                             +offsetEffective                      &
-            &                                             /sqrt(2.0_kind_quad*varianceResidual) &
-            &                                            )
+       denominator=sqrt(2.0_kind_quad*varianceResidual)
+       if (offsetEffective == 0.0_kind_quad .or. exponent(offsetEffective)-exponent(denominator) > maxExponent(0.0_kind_quad)) then
+          integralKernelRate=1.0_kind_quad
+       else
+          integralKernelRate=Error_Function_Complementary(                 &
+               &                                          +offsetEffective &
+               &                                          /denominator     &
+               &                                         )
+       end if
     end if
     return
   end function integralKernelRate

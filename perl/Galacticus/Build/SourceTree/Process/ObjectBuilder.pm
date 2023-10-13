@@ -117,7 +117,7 @@ sub Process_ObjectBuilder {
 		    $defaultXML                 =~ s/\s*\n\s*//g;
 		    $defaultXML                 =~ s/\s{2,}/ /g;
 		    $builderCode               .=  "   if (.not.parametersCurrent%isPresent('".$parameterName."')) then\n";
-		    $builderCode               .=  "    parametersDefault=inputParameters(var_str('".$defaultXML."'),allowedParameterNames=['".$parameterName."'],noOutput=.true.)\n";
+		    $builderCode               .=  "    parametersDefault=inputParameters(var_str('".$defaultXML."'),allowedParameterNames=[var_str('".$parameterName."')],noOutput=.true.)\n";
 		    $builderCode               .=  "    parametersCurrent => parametersDefault\n";
 		    $builderCode               .=  "    parametersDefaultCreated=.true.\n";
 		    $builderCode               .=  "  else\n";
@@ -348,6 +348,19 @@ sub Process_ObjectBuilder {
 		     }
 		    );
 		&Galacticus::Build::SourceTree::Parse::Declarations::AddDeclarations($node->{'parent'},\@declarations);
+		my $usesNode =
+		{
+		    type      => "moduleUse",
+		    moduleUse =>
+		    {
+			ISO_Varying_String =>
+			{
+			    intrinsic => 0,
+			    only      => {"varying_string" => 1, "assignment(=)" => 1}
+			}
+		    }
+		};
+		&Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$usesNode);
 		# Record that we have added the necessary declarations to the parent.
 		$node->{'parent'}->{'objectBuilderDefaultDeclarations'} = 1;
 	    }

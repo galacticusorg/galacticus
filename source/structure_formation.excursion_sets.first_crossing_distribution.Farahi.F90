@@ -1581,7 +1581,7 @@ contains
     return
   end function farahiVarianceLimit
 
-  function farahiVarianceResidual(self,time,varianceCurrent,varianceIntermediate,varianceProgenitor,cosmologicalMassVariance_) result(varianceResidual)
+  function farahiVarianceResidual(self,time,varianceCurrent,varianceProgenitor,varianceIntermediate,cosmologicalMassVariance_) result(varianceResidual)
     !!{
     Return the residual variance between two points for a standard Weiner process.
     !!}
@@ -1625,12 +1625,12 @@ contains
     !   "Current"      - refers to the current halo being considered for branching, i.e. the halo existing at point (S₁,δ₁);
     !   "Progenitor"   - refers to the potential progenitor halo being considered, i.e. the halo corresponding to some variance S > S₁;
     !   "Intermediate" - refers to the intermediate variance, S̃ (with S₁ < S̃ < S).
-    varianceResidual=+varianceIntermediate &
-         &           -varianceProgenitor
+    varianceResidual=+varianceProgenitor   &
+         &           -varianceIntermediate
     return
   end function farahiVarianceResidual
 
-  function farahiOffsetEffective(self,time,varianceCurrent,varianceIntermediate,varianceProgenitor,deltaCurrent,deltaIntermediate,deltaProgenitor,cosmologicalMassVariance_) result(offsetEffective)
+  function farahiOffsetEffective(self,time,varianceCurrent,varianceProgenitor,varianceIntermediate,deltaCurrent,deltaProgenitor,deltaIntermediate,cosmologicalMassVariance_) result(offsetEffective)
     !!{
     Return the residual variance between two points for a standard Weiner process.
     !!}
@@ -1672,7 +1672,7 @@ contains
     !   "Current"      - refers to the current halo being considered for branching, i.e. the halo existing at point (S₁,δ₁);
     !   "Progenitor"   - refers to the potential progenitor halo being considered, i.e. the halo corresponding to some variance S > S₁;
     !   "Intermediate" - refers to the intermediate variance, S̃ (with S₁ < S̃ < S).
-    offsetEffective=+deltaIntermediate &
-         &          -deltaProgenitor
+    offsetEffective=+deltaProgenitor   &
+         &          -deltaIntermediate
     return
   end function farahiOffsetEffective

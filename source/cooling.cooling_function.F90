@@ -40,7 +40,11 @@ module Cooling_Functions
    </description>
    <default>atomicCIECloudy</default>
    <method name="coolingFunction" >
-    <description>Return the cooling function at the given temperature and hydrogen density for the specified set of abundances and radiation field. Units of the returned cooling function are the traditional ergs cm$^3$ s$^{-1}$.</description>
+     <description>
+       Return the cooling function at the given temperature and hydrogen density for the specified set of abundances and radiation
+       field. Units of the returned cooling function are the traditional ergs cm$^{-3}$ s$^{-1}$. Note that the cooling function
+       here is defined per unit volume, rather than per unit hydrogen as is often the case.
+     </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type            (treeNode           ), intent(inout) :: node</argument>

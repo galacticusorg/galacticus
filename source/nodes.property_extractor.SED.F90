@@ -473,7 +473,6 @@ contains
     double precision                          , intent(inout), dimension(:), allocatable :: values 
     type            (varying_string          ), intent(  out)                            :: valuesDescription
     double precision                          , intent(  out)                            :: valuesUnitsInSI
-    double precision                          , dimension(:) , allocatable               :: wavelengths
     integer         (c_size_t                )                                           :: i
     character       (len=18                  )                                           :: label
     

@@ -47,7 +47,7 @@
      double precision                   , allocatable, dimension(:,:) :: property
      double precision                                                 :: toleranceAbsolute, toleranceRelative
      type            (interpolator     )                              :: interpolatorAge  , interpolatorMetallicity
-     logical                                                          :: computed
+     logical                                                          :: computed         , instantaneousApproximation
   end type populationTable
 
   interface populationTable
@@ -67,10 +67,11 @@
      A standard stellar population class.
      !!}
      private
-     logical                                                                    :: instantaneousRecyclingApproximation          , metalYieldInitialized, &
+     logical                                                                    :: instantaneousRecyclingApproximation          , instantaneousYieldApproximation, &
+         &                                                                         instantaneousEnergyInputApproximation        , metalYieldInitialized          , &
           &                                                                        recycledFractionInitialized
-     double precision                                                           :: massLongLived                                , ageEffective         , &
-          &                                                                        recycledFraction_                            , metalYield_          , &
+     double precision                                                           :: massLongLived                                , ageEffective                   , &
+          &                                                                        recycledFraction_                            , metalYield_                    , &
           &                                                                        recycledFraction                             , metalYield
      class           (stellarAstrophysicsClass     ), pointer                   :: stellarAstrophysics_                => null()
      class           (initialMassFunctionClass     ), pointer                   :: initialMassFunction_                => null()
@@ -114,7 +115,8 @@
   class           (initialMassFunctionClass ), pointer   :: initialMassFunction_
   class           (stellarFeedbackClass     ), pointer   :: stellarFeedback_
   class           (supernovaeTypeIaClass    ), pointer   :: supernovaeTypeIa_
-  !$omp threadprivate(indexElement_,self_,lifetime_,metallicity_,stellarAstrophysics_,initialMassFunction_,stellarFeedback_,supernovaeTypeIa_)
+  logical                                                :: instantaneousApproximation
+  !$omp threadprivate(indexElement_,self_,lifetime_,metallicity_,stellarAstrophysics_,initialMassFunction_,stellarFeedback_,supernovaeTypeIa_,instantaneousApproximation)
 
   ! Tabulation resolution.
   integer                                    , parameter :: tableMetallicityCount  =10
@@ -129,7 +131,7 @@
 
 contains
 
-  function populationTableConstructor(label,integrand,toleranceAbsolute,toleranceRelative) result(self)
+  function populationTableConstructor(label,integrand,toleranceAbsolute,toleranceRelative,instantaneousApproximation) result(self)
     !!{
     Constructor for the {\normalfont \ttfamily standard} stellar population class which takes a parameter list as input.
     !!}
@@ -137,9 +139,10 @@ contains
     type            (populationTable)                :: self
     character       (len=*          ), intent(in   ) :: label
     double precision                 , external      :: integrand
-    double precision                 , intent(in   ) :: toleranceAbsolute, toleranceRelative
+    double precision                 , intent(in   ) :: toleranceAbsolute         , toleranceRelative
+    logical                          , intent(in   ) :: instantaneousApproximation
     !![
-    <constructorAssign variables="label, *integrand, toleranceAbsolute, toleranceRelative"/>
+    <constructorAssign variables="label, *integrand, toleranceAbsolute, toleranceRelative, instantaneousApproximation"/>
     !!]
 
     self%computed=.false.
@@ -159,16 +162,29 @@ contains
     class           (stellarFeedbackClass         ), pointer       :: stellarFeedback_
     class           (supernovaeTypeIaClass        ), pointer       :: supernovaeTypeIa_
     class           (stellarPopulationSpectraClass), pointer       :: stellarPopulationSpectra_
-    logical                                                        :: instantaneousRecyclingApproximation
-    double precision                                               :: massLongLived                      , ageEffective           , &
-         &                                                            recycledFraction                   , metalYield
+    logical                                                        :: instantaneousRecyclingApproximation  , instantaneousYieldApproximation, &
+         &                                                            instantaneousEnergyInputApproximation
+    double precision                                               :: massLongLived                        , ageEffective                   , &
+         &                                                            recycledFraction                     , metalYield
     !$GLC attributes initialized :: self
 
     !![
     <inputParameter>
       <name>instantaneousRecyclingApproximation</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true, then use an instantaneous recycling approximation when computing recycling, yield, and energy input rates.</description>
+      <description>If true, then use an instantaneous recycling approximation when computing recycling rates.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>instantaneousYieldApproximation</name>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, then use an instantaneous recycling approximation when computing yield rates.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>instantaneousEnergyInputApproximation</name>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, then use an instantaneous recycling approximation when computing energy input rates.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -190,7 +206,6 @@ contains
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
-
       <name>metalYield</name>
       <defaultValue>0.0d0</defaultValue>
       <description>The metal yield to use in the instantaneous stellar evolution approximation. (If not specified it will be computed internally.)</description>
@@ -203,16 +218,18 @@ contains
     <objectBuilder class="stellarPopulationSpectra" name="stellarPopulationSpectra_" source="parameters"/>
     <conditionalCall>
     <call>
-     self=stellarPopulationStandard(                                                                &amp;
-      &amp;                                                    instantaneousRecyclingApproximation, &amp;
-      &amp;                                                    massLongLived                      , &amp;
-      &amp;                                                    ageEffective                       , &amp;
-      &amp;                          initialMassFunction_     =initialMassFunction_               , &amp;
-      &amp;                          stellarAstrophysics_     =stellarAstrophysics_               , &amp;
-      &amp;                          stellarFeedback_         =stellarFeedback_                   , &amp;
-      &amp;                          supernovaeTypeIa_        =supernovaeTypeIa_                  , &amp;
-      &amp;                          stellarPopulationSpectra_=stellarPopulationSpectra_            &amp;
-      &amp;                          {conditions}                                                   &amp;
+     self=stellarPopulationStandard(                                                                  &amp;
+      &amp;                                                    instantaneousRecyclingApproximation  , &amp;
+      &amp;                                                    instantaneousYieldApproximation      , &amp;
+      &amp;                                                    instantaneousEnergyInputApproximation, &amp;
+      &amp;                                                    massLongLived                        , &amp;
+      &amp;                                                    ageEffective                         , &amp;
+      &amp;                          initialMassFunction_     =initialMassFunction_                 , &amp;
+      &amp;                          stellarAstrophysics_     =stellarAstrophysics_                 , &amp;
+      &amp;                          stellarFeedback_         =stellarFeedback_                     , &amp;
+      &amp;                          supernovaeTypeIa_        =supernovaeTypeIa_                    , &amp;
+      &amp;                          stellarPopulationSpectra_=stellarPopulationSpectra_              &amp;
+      &amp;                          {conditions}                                                     &amp;
       &amp;                         )
      </call>
      <argument name="recycledFraction" value="recycledFraction" parameterPresent="parameters"/>
@@ -228,24 +245,25 @@ contains
     return
   end function standardConstructorParameters
 
-  function standardConstructorInternal(instantaneousRecyclingApproximation,massLongLived,ageEffective,recycledFraction,metalYield,initialMassFunction_,stellarAstrophysics_,stellarFeedback_,supernovaeTypeIa_,stellarPopulationSpectra_) result(self)
+  function standardConstructorInternal(instantaneousRecyclingApproximation,instantaneousYieldApproximation,instantaneousEnergyInputApproximation,massLongLived,ageEffective,recycledFraction,metalYield,initialMassFunction_,stellarAstrophysics_,stellarFeedback_,supernovaeTypeIa_,stellarPopulationSpectra_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily standard} stellar population.
     !!}
     use :: Abundances_Structure, only : Abundances_Names, Abundances_Property_Count
     implicit none
     type            (stellarPopulationStandard    )                          :: self
-    logical                                        , intent(in   )           :: instantaneousRecyclingApproximation
-    double precision                               , intent(in   )           :: massLongLived                      , ageEffective
-    double precision                               , intent(in   ), optional :: recycledFraction                   , metalYield
+    logical                                        , intent(in   )           :: instantaneousRecyclingApproximation  , instantaneousYieldApproximation, &
+         &                                                                      instantaneousEnergyInputApproximation
+    double precision                               , intent(in   )           :: massLongLived                        , ageEffective
+    double precision                               , intent(in   ), optional :: recycledFraction                     , metalYield
     class           (initialMassFunctionClass     ), intent(in   ), target   :: initialMassFunction_
     class           (stellarAstrophysicsClass     ), intent(in   ), target   :: stellarAstrophysics_
     class           (stellarFeedbackClass         ), intent(in   ), target   :: stellarFeedback_
     class           (supernovaeTypeIaClass        ), intent(in   ), target   :: supernovaeTypeIa_
     class           (stellarPopulationSpectraClass), intent(in   ), target   :: stellarPopulationSpectra_
-    integer                                                                  :: i                                  , countElements
+    integer                                                                  :: i                                    , countElements
     !![
-    <constructorAssign variables="instantaneousRecyclingApproximation, massLongLived, ageEffective, *initialMassFunction_, *stellarAstrophysics_, *stellarFeedback_, *supernovaeTypeIa_, *stellarPopulationSpectra_"/>
+    <constructorAssign variables="instantaneousRecyclingApproximation, instantaneousYieldApproximation, instantaneousEnergyInputApproximation, massLongLived, ageEffective, *initialMassFunction_, *stellarAstrophysics_, *stellarFeedback_, *supernovaeTypeIa_, *stellarPopulationSpectra_"/>
     !!]
 
     self%recycledFractionInitialized=present(recycledFraction)
@@ -265,11 +283,11 @@ contains
        self%metalYield       = huge(0.0d0)
     end if
     countElements=Abundances_Property_Count()
-    self   %recycleFraction   =populationTable('recycledFraction'                ,standardIntegrandRecycledFraction,toleranceAbsolute=1.0d-3,toleranceRelative=1.0d-4)
-    self   %energyOutput      =populationTable('energyOutput'                    ,standardIntegrandEnergyOutput    ,toleranceAbsolute=0.0d+0,toleranceRelative=1.0d-3)
+    self   %recycleFraction   =populationTable('recycledFraction'                ,standardIntegrandRecycledFraction,toleranceAbsolute=1.0d-3,toleranceRelative=1.0d-4,instantaneousApproximation=instantaneousRecyclingApproximation  )
+    self   %energyOutput      =populationTable('energyOutput'                    ,standardIntegrandEnergyOutput    ,toleranceAbsolute=0.0d+0,toleranceRelative=1.0d-3,instantaneousApproximation=instantaneousEnergyInputApproximation)
     allocate(self%yield(countElements))
     do i=1,countElements
-       self%yield          (i)=populationTable('yield'//char(Abundances_Names(i)),standardIntegrandYield           ,toleranceAbsolute=1.0d-4,toleranceRelative=1.0d-5)
+       self%yield          (i)=populationTable('yield'//char(Abundances_Names(i)),standardIntegrandYield           ,toleranceAbsolute=1.0d-4,toleranceRelative=1.0d-5,instantaneousApproximation=instantaneousYieldApproximation      )
     end do
     return
   end function standardConstructorInternal
@@ -443,10 +461,11 @@ contains
           ! Loop over ages and metallicities and compute the property.
           call displayIndent('Tabulating property: '//char(property%label),verbosityLevelWorking)
           call displayCounter(0,.true.,verbosityLevelWorking)
-          loopCountTotal =  +tableMetallicityCount &
-               &            *tableAgeCount
-          loopCount      =   0
-          self_          =>  self
+          loopCountTotal             =  +tableMetallicityCount &
+               &                        *tableAgeCount
+          loopCount                  =   0
+          self_                      =>  self
+          instantaneousApproximation =   property%instantaneousApproximation
           !$omp parallel private (iAge,iMetallicity,progressMessage,minimumMass,maximumMass,integrator_) copyin(self_,indexElement_)
           allocate(stellarAstrophysics_,mold=self%stellarAstrophysics_)
           allocate(initialMassFunction_,mold=self%initialMassFunction_)
@@ -469,9 +488,9 @@ contains
           do i=0,loopCountTotal-1
              iMetallicity=mod( i                  ,tableMetallicityCount)+1
              iAge        =    (i-(iMetallicity-1))/tableMetallicityCount +1
-             lifetime_=property%age(iAge)
+             lifetime_   =property%age(iAge)
              ! Set the metallicity. If using the instantaneous recycling approximation, assume Solar metallicity always.
-             if (self%instantaneousRecyclingApproximation) then
+             if (instantaneousApproximation) then
                 metallicity_=metallicitySolar
              else
                 metallicity_=property%metallicity(iMetallicity)
@@ -594,7 +613,7 @@ contains
        standardIntegrandYield=0.0d0
     end if
     ! Include yield from Type Ia supernovae.
-    if (self_%instantaneousRecyclingApproximation) then
+    if (self_%instantaneousYieldApproximation) then
        ! In the instantaneous stellar evolution approximation use the effective age to compute the SneIa yield.
        sneIaLifetime=self_%ageEffective
     else
@@ -622,7 +641,7 @@ contains
     double precision, intent(in   ) :: massInitial
     double precision                :: lifetime
 
-    if (self_%instantaneousRecyclingApproximation) then
+    if (self_%instantaneousEnergyInputApproximation) then
        ! In the instantaneous stellar evolution approximation, assume stars more massive than the long-lived star cut off
        ! contribute to the energy input (with an age equal to the specified effective age), while less massive stars contribute
        ! nothing.
@@ -645,11 +664,11 @@ contains
     Returns true if the specified star is evolved by the given {\normalfont \ttfamily age}.
     !!}
     implicit none
-    class          (stellarPopulationStandard), intent(inout) :: self
-    double precision                          , intent(in   ) :: age        , massInitial, &
-         &                                                       metallicity
+    class           (stellarPopulationStandard), intent(inout) :: self
+    double precision                           , intent(in   ) :: age        , massInitial, &
+         &                                                        metallicity
 
-    if (self%instantaneousRecyclingApproximation) then
+    if (instantaneousApproximation) then
        ! Instantaneous calculation - star is evolved if it is more massive that the specified mass of long-lived stars.
        standardStarIsEvolved=                                      massInitial              > self%massLongLived
     else
