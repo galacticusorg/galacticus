@@ -141,7 +141,7 @@ contains
     <constructorAssign variables="fileName"/>
     !!]
 
-    self%initialized =.false.
+    self%initialized=.false.
     return
   end function fileConstructorInternal
 
@@ -166,7 +166,7 @@ contains
       type     (hdf5Object    ) :: ageDataset             , massGroup              , &
            &                       metallicityGroup       , stellarTracks
       logical                   :: foundMassGroup         , foundMetallicityGroup
-      
+
       ! Open the HDF5 file.
       !$ call hdf5Access%set()
       call stellarTracks%openFile(char(self%fileName),readOnly=.true.)
@@ -327,16 +327,16 @@ contains
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
      class           (stellarTracksFile), intent(inout)    :: self
-    double precision                   , intent(in   )    :: age                            , initialMass   , &
-         &                                                   metallicity
-    integer         (c_size_t         ), dimension(2,2,2) :: interpolationIndicesAge
-    integer         (c_size_t         ), dimension(2,2  ) :: interpolationIndicesMass
-    integer         (c_size_t         ), dimension(2    ) :: interpolationIndicesMetallicity
-    double precision                   , dimension(2,2,2) :: interpolationFactorsAge
-    double precision                   , dimension(2,2  ) :: interpolationFactorsMass
-    double precision                    ,dimension(2    ) :: interpolationFactorsMetallicity
-    logical                                               :: ageOutOfRange                  , massOutOfRange, &
-         &                                                   metallicityOutOfRange
+    double precision                    , intent(in   )    :: age                            , initialMass   , &
+         &                                                    metallicity
+    integer         (c_size_t          ), dimension(2,2,2) :: interpolationIndicesAge
+    integer         (c_size_t          ), dimension(2,2  ) :: interpolationIndicesMass
+    integer         (c_size_t          ), dimension(2    ) :: interpolationIndicesMetallicity
+    double precision                    , dimension(2,2,2) :: interpolationFactorsAge
+    double precision                    , dimension(2,2  ) :: interpolationFactorsMass
+    double precision                     ,dimension(2    ) :: interpolationFactorsMetallicity
+    logical                                                :: ageOutOfRange                  , massOutOfRange, &
+         &                                                    metallicityOutOfRange
 
     ! Get the interpolating factors.
     call self%interpolationCompute(                                 &
@@ -375,6 +375,7 @@ contains
     Using precomputed factors, interpolate in metallicity, mass and age in the given {\normalfont \ttfamily stellarTracks}.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
+    use            :: Error        , only : Error_Report
     implicit none
     class           (stellarTracksFile), intent(inout)                   :: self
     integer         (c_size_t         ), intent(in   ), dimension(2,2,2) :: interpolationIndicesAge
@@ -393,10 +394,13 @@ contains
     fileInterpolate=0.0d0
     do iMetallicity=1,2
        jMetallicity=interpolationIndicesMetallicity(iMetallicity)
+       if       (jMetallicity < 1 .or. jMetallicity > size(stellarTracks,dim=3)                ) call Error_Report('metallicity index out of range'//{introspection:location})
        do iMass=1,2
           jMass=interpolationIndicesMass(iMetallicity,iMass)
+          if    (jMass        < 1 .or. jMass        > self%countMassInitial(      jMetallicity)) call Error_Report('mass index out of range'       //{introspection:location})
           do iAge=1,2
              jAge=interpolationIndicesAge(iMetallicity,iMass,iAge)
+             if (jAge         < 1 .or. jAge         > self%countAge        (jMass,jMetallicity)) call Error_Report('age index out of range'        //{introspection:location})
              fileInterpolate=+fileInterpolate                                          &
                   &          +stellarTracks                  (jAge,jMass,jMetallicity) &
                   &          *interpolationFactorsMetallicity(iMetallicity           ) &
@@ -481,7 +485,7 @@ contains
              interpolationFactorsAge(iMetallicity,iMass,:)=[0.0d0,1.0d0]
              ageOutOfRange=.true.
           else
-             call self%interpolatorAge(iMass,iMetallicity)%linearFactors(age,interpolationIndicesAge(iMetallicity,iMass,1),interpolationFactorsAge(iMetallicity,iMass,:))
+             call self%interpolatorAge(jMass,jMetallicity)%linearFactors(age,interpolationIndicesAge(iMetallicity,iMass,1),interpolationFactorsAge(iMetallicity,iMass,:))
              interpolationIndicesAge(iMetallicity,iMass,2)=interpolationIndicesAge(iMetallicity,iMass,1)+1
           end if
        end do
