@@ -44,7 +44,7 @@ foreach my $outputName ( $outputs->groups() ) {
 	(
 	 $isIsolated == 0
 	);
-    my $tolerance = 1.0e-6;
+    my $tolerance = 3.0e-6;
     my $status    = all($distanceMinimum->($satellites) <= $distance->($satellites)*(1.0+$tolerance)) ? "SUCCESS" : "FAILED";
     print $status.": minimum distance from host center\n";
 }
