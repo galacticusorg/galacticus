@@ -255,7 +255,7 @@ contains
              end if
              ! Build the code.
              call displayMessage("compiling CosmicEmu code....",verbosityLevelWorking)
-             call System_Command_Do("cd "//inputPath(pathTypeDataDynamic)//"CosmicEmu_v1.1; sed -i~ -r s/""^(\s*gcc.*\-lm)\s*$""/""\1 \-I\`gsl\-config \-\-prefix\`\n\n%.o: %.c\n\tgcc -c \$< -o \$\*\.o \-I\`gsl\-config \-\-prefix\`\n""/ makefile; make");
+             call System_Command_Do("cd "//inputPath(pathTypeDataDynamic)//"CosmicEmu_v1.1; sed -i~ -r s/""^(\s*gcc.*\-lm)\s*$""/""\1 \-I\`gsl\-config \-\-prefix\`\n\n%.o: %.c\n\tgcc -c \$< -o \$\*\.o \-I\`gsl\-config \-\-prefix\`\n""/ makefile; sed -i~ -r s/""\-lgsl\s+\-lgslcblas\s+\-lm""/""\`gsl\-config \-\-libs\`""/ makefile; make");
              if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"CosmicEmu_v1.1/emu.exe")) &
                   & call Error_Report("failed to build Cosmic_Emu code"//{introspection:location})
           end if
