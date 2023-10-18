@@ -112,7 +112,7 @@ contains
        end if
        tries=tries+1
        if (File_Exists(outputFileName)) call File_Remove(outputFileName)
-       call sleep(retryWait)
+       call sleep(retryWait_)
     end do
     if (     present(status)                   )  status=status_
     if (.not.present(status) .and. status_ /= 0) call Error_Report('failed to download "'//trim(url)//'"'//{introspection:location})
