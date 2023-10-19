@@ -927,8 +927,7 @@ CODE
 					# $allowedParametersCode .= "       if (.not.any(trim(allowedParameters) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}->[$i]."')) countNew=countNew+1\n";
 					$allowedParametersCode .= "       isNew=.true.\n";
 					$allowedParametersCode .= "       do j=1,size(allowedParameters)\n";
-					$allowedParametersCode .= "          allowedParameter=trim(allowedParameters(j))\n";
-					$allowedParametersCode .= "          if (allowedParameter == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}->[$i]."') then\n";
+					$allowedParametersCode .= "          if (allowedParameters(j) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}->[$i]."') then\n";
 					$allowedParametersCode .= "             isNew=.false.\n";
 					$allowedParametersCode .= "             exit\n";
 					$allowedParametersCode .= "          end if\n";
@@ -949,8 +948,7 @@ CODE
 					# $allowedParametersCode .= "         if (.not.any(trim(allowedParameters(1:size(allowedParameters)-countNew)) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}->[$i]."')) then\n";
 					$allowedParametersCode .= "       isNew=.true.\n";
 					$allowedParametersCode .= "       do j=1,size(allowedParameters)-countNew\n";
-					$allowedParametersCode .= "          allowedParameter=trim(allowedParameters(j))\n";
-					$allowedParametersCode .= "          if (allowedParameter == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}->[$i]."') then\n";
+					$allowedParametersCode .= "          if (allowedParameters(j) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}->[$i]."') then\n";
 					$allowedParametersCode .= "             isNew=.false.\n";
 					$allowedParametersCode .= "             exit\n";
 					$allowedParametersCode .= "          end if\n";
@@ -987,8 +985,7 @@ CODE
 					# $allowedParametersCode .= "       if (.not.any(trim(allowedParameters) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'all'}->[$i]."')) countNew=countNew+1\n";
 					$allowedParametersCode .= "       isNew=.true.\n";
 					$allowedParametersCode .= "       do j=1,size(allowedParameters)\n";
-					$allowedParametersCode .= "          allowedParameter=trim(allowedParameters(j))\n";
-					$allowedParametersCode .= "          if (allowedParameter == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'all'}->[$i]."') then\n";
+					$allowedParametersCode .= "          if (allowedParameters(j) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'all'}->[$i]."') then\n";
 					$allowedParametersCode .= "             isNew=.false.\n";
 					$allowedParametersCode .= "             exit\n";
 					$allowedParametersCode .= "          end if\n";
@@ -1008,8 +1005,7 @@ CODE
 					# $allowedParametersCode .= "         if (.not.any(trim(allowedParameters(1:size(allowedParameters)-countNew)) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'all'}->[$i]."')) then\n";
 					$allowedParametersCode .= "       isNew=.true.\n";
 					$allowedParametersCode .= "       do j=1,size(allowedParameters)-countNew\n";
-					$allowedParametersCode .= "          allowedParameter=trim(allowedParameters(j))\n";
-					$allowedParametersCode .= "          if (allowedParameter == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'all'}->[$i]."') then\n";
+					$allowedParametersCode .= "          if (allowedParameters(j) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'all'}->[$i]."') then\n";
 					$allowedParametersCode .= "             isNew=.false.\n";
 					$allowedParametersCode .= "             exit\n";
 					$allowedParametersCode .= "          end if\n";
@@ -1055,7 +1051,6 @@ CODE
 		$allowedParametersCode = "type   (varying_string), allocatable, dimension(:) :: allowedParametersTmp\n".$directive->{'name'}."DsblVldtn=".$directive->{'name'}."DsblVldtn\n".$allowedParametersCode;
 		$allowedParametersCode = "integer                                            :: countNew, j\n"                                                                              .$allowedParametersCode;
 		$allowedParametersCode = "logical                                            :: isNew\n"                                                                                    .$allowedParametersCode;
-		$allowedParametersCode = "type   (varying_string)                            :: allowedParameter\n"                                                                         .$allowedParametersCode;
 	    } else {
 		$allowedParametersCode = "!\$GLC attributes unused :: self, allowedParameters, sourceName\n".$directive->{'name'}."DsblVldtn=".$directive->{'name'}."DsblVldtn\n";
 	    }
