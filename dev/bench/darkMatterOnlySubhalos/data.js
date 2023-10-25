@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1698177445285,
+  "lastUpdate": 1698265227626,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "b844981ce953c7b895be99c7f94b98e28367e81c",
-          "message": "feat: Add a polynomial systematic in halo mass for the COSMO SHMR output analysis",
-          "timestamp": "2023-03-10T17:44:20Z",
-          "tree_id": "8b2468ff0a9d8e851babf87d6303135bf488f42d",
-          "url": "https://github.com/galacticusorg/galacticus/commit/b844981ce953c7b895be99c7f94b98e28367e81c"
-        },
-        "date": 1678483317094,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 51.542,
-            "unit": "seconds",
-            "range": 0.109332520322458
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8748,6 +8718,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 23972.8691141465,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "a09c88e66393e68cbb03588ca637e41f5468fd02",
+          "message": "feat: Update to use the new standard stellar properties compilation file",
+          "timestamp": "2023-10-25T09:49:56-07:00",
+          "tree_id": "ccd6ce8b65c9969b45d8d3f9181f717a656f9eba",
+          "url": "https://github.com/galacticusorg/galacticus/commit/a09c88e66393e68cbb03588ca637e41f5468fd02"
+        },
+        "date": 1698265226040,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 57.35,
+            "unit": "seconds",
+            "range": 0.147932417001665
           }
         ]
       }
