@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1698177449189,
+  "lastUpdate": 1698265231032,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "b844981ce953c7b895be99c7f94b98e28367e81c",
-          "message": "feat: Add a polynomial systematic in halo mass for the COSMO SHMR output analysis",
-          "timestamp": "2023-03-10T17:44:20Z",
-          "tree_id": "8b2468ff0a9d8e851babf87d6303135bf488f42d",
-          "url": "https://github.com/galacticusorg/galacticus/commit/b844981ce953c7b895be99c7f94b98e28367e81c"
-        },
-        "date": 1678483321713,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 213.056,
-            "unit": "seconds",
-            "range": 0.122304537930657
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10668,6 +10638,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 8.48823833888572,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "a09c88e66393e68cbb03588ca637e41f5468fd02",
+          "message": "feat: Update to use the new standard stellar properties compilation file",
+          "timestamp": "2023-10-25T09:49:56-07:00",
+          "tree_id": "ccd6ce8b65c9969b45d8d3f9181f717a656f9eba",
+          "url": "https://github.com/galacticusorg/galacticus/commit/a09c88e66393e68cbb03588ca637e41f5468fd02"
+        },
+        "date": 1698265230368,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 232.965,
+            "unit": "seconds",
+            "range": 2.97990108896267
           }
         ]
       }
