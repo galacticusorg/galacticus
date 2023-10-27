@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   use :: Kind_Numbers, only : kind_int8
-  use :: Hashes      , only : doubleHash
+  use :: Hashes      , only : doubleHash, rank1DoubleHash
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorIntegerScalar" abstract="yes">
@@ -86,14 +86,16 @@ contains
     return
   end function integerScalarUnitsInSI
 
-  subroutine integerScalarMetaData(self,metaData)
+  subroutine integerScalarMetaData(self,node,metaDataRank0,metaDataRank1)
     !!{
     Interface for integerScalar property meta-data.
     !!}
     implicit none
     class(nodePropertyExtractorIntegerScalar), intent(inout) :: self
-    type (doubleHash                        ), intent(inout) :: metaData
-    !$GLC attributes unused :: self, metaData
+    type (treeNode                          ), intent(inout) :: node
+    type (doubleHash                        ), intent(inout) :: metaDataRank0
+    type (rank1DoubleHash                   ), intent(inout) :: metaDataRank1
+    !$GLC attributes unused :: self, node, metaDataRank0, metaDataRank1
     
     return
   end subroutine integerScalarMetaData
