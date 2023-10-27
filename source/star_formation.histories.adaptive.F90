@@ -82,11 +82,6 @@
      double precision                  , allocatable, dimension(:,:,:,:) :: starFormationHistoryBuffer
      integer         (c_size_t        ), allocatable, dimension(:      ) :: indexOutputBuffer                   , indexOutput
    contains
-     !![
-     <methods>
-      <method description="Output all star formation history data accumulated in the output buffers." method="outputBuffers"/>
-     </methods>
-     !!]
      final     ::                                adaptiveDestructor
      procedure :: create                      => adaptiveCreate
      procedure :: rate                        => adaptiveRate
