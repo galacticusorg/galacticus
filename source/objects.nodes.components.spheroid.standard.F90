@@ -353,9 +353,9 @@ contains
     implicit none
 
     if (defaultSpheroidComponent%standardIsActive()) then
-       if (postEvolveEvent           %isAttached(thread,postEvolve     )) call postEvolveEvent           %detach(thread,postEvolve           )
-       if (satelliteMergerEvent      %isAttached(thread,satelliteMerger)) call satelliteMergerEvent      %detach(thread,satelliteMerger      )
-       if (mergerTreeExtraOutputEvent%isAttached(thread,postEvolve     )) call mergerTreeExtraOutputEvent%detach(thread,mergerTreeExtraOutput)
+       if (postEvolveEvent           %isAttached(thread,postEvolve           )) call postEvolveEvent           %detach(thread,postEvolve           )
+       if (satelliteMergerEvent      %isAttached(thread,satelliteMerger      )) call satelliteMergerEvent      %detach(thread,satelliteMerger      )
+       if (mergerTreeExtraOutputEvent%isAttached(thread,mergerTreeExtraOutput)) call mergerTreeExtraOutputEvent%detach(thread,mergerTreeExtraOutput)
        !![
        <objectDestructor name="stellarPopulationProperties_"/>
        <objectDestructor name="darkMatterHaloScale_"        />

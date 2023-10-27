@@ -384,9 +384,9 @@ contains
     implicit none
 
     if (defaultDiskComponent%standardIsActive()) then
-       if (satelliteMergerEvent      %isAttached(thread,satelliteMerger)) call satelliteMergerEvent      %detach(thread,satelliteMerger      )
-       if (postEvolveEvent           %isAttached(thread,postEvolve     )) call postEvolveEvent           %detach(thread,postEvolve           )
-       if (mergerTreeExtraOutputEvent%isAttached(thread,postEvolve     )) call mergerTreeExtraOutputEvent%detach(thread,mergerTreeExtraOutput)
+       if (satelliteMergerEvent      %isAttached(thread,satelliteMerger      )) call satelliteMergerEvent      %detach(thread,satelliteMerger      )
+       if (postEvolveEvent           %isAttached(thread,postEvolve           )) call postEvolveEvent           %detach(thread,postEvolve           )
+       if (mergerTreeExtraOutputEvent%isAttached(thread,mergerTreeExtraOutput)) call mergerTreeExtraOutputEvent%detach(thread,mergerTreeExtraOutput)
        !![
        <objectDestructor name="darkMatterHaloScale_"        />
        <objectDestructor name="stellarPopulationProperties_"/>
