@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import os
+import subprocess
 import sys
 import h5py
 import numpy as np
@@ -7,22 +7,23 @@ import numpy as np
 # Check internal self-consistency of adaptive star formation histories.
 # Andrew Benson (25-March-2021)
 
-# Run the model and check for completion
+# Run the model and check for completion                                                                                                                                                                                 
 print("Running model...")
-status = os.system("mkdir -p outputs/test-star-formation-histories-adapative; cd ..; ./Galacticus.exe testSuite/parameters/test-star-formation-histories-adaptive.xml") # >& testSuite/outputs/test-star-formation-histories-adapative/galacticus.log")
+log = open("outputs/test-star-formation-histories-adapative/galacticus.log","w")
+status = subprocess.run("mkdir -p outputs/test-star-formation-histories-adapative; cd ..; ./Galacticus.exe testSuite/parameters/test-star-formation-histories-adaptive.xml",stdout=log,stderr=log,shell=True)
+log.close()
 print("...done ("+str(status)+")")
-if status != 0:
+if status.returncode != 0:
     print("FAILED: model run:")
-    os.system("pwd")
-#    os.system("cat outputs/test-star-formation-histories-adapative/galacticus.log")
+    subprocess.run("cat outputs/test-star-formation-histories-adapative/galacticus.log",shell=True)
     sys.exit()
 print("Checking for errors...")
-status = os.system("grep -q -i -e fatal -e aborted -e \"Galacticus experienced an error in the GSL library\" outputs/test-star-formation-histories-adapative/galacticus.log")
+status = subprocess.run("grep -q -i -e fatal -e aborted -e \"Galacticus experienced an error in the GSL library\" outputs/test-star-formation-histories-adapative/galacticus.log",shell=True)
 print("...done ("+str(status)+")")
-if status == 0:
+if status.returncode == 0:
     print("FAILED: model run (errors):")
-    os.system("cat outputs/test-star-formation-histories-adapative/galacticus.log")
-    sys.exit()    
+    subprocess.run("cat outputs/test-star-formation-histories-adapative/galacticus.log",shell=True)
+    sys.exit()
 print("SUCCESS: model run")
 
 # Open the model and extract the recycled fraction.
