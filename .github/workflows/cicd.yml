@@ -7229,9 +7229,6 @@ jobs:
           cd testSuite
           chmod u=wrx ./test-star-formation-histories-adaptive.py
           set -o pipefail
-          mkdir -p outputs/test-star-formation-histories-adapative
-          cd ..
-          ./Galacticus.exe testSuite/parameters/test-star-formation-histories-adaptive.xml
           ./test-star-formation-histories-adaptive.py
       - run: echo "This job's status is ${{ job.status }}."
   Test-State-Restore:

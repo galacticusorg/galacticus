@@ -8,16 +8,21 @@ import numpy as np
 # Andrew Benson (25-March-2021)
 
 # Run the model and check for completion
-if os.system("mkdir -p outputs/test-star-formation-histories-adapative; cd ..; ./Galacticus.exe testSuite/parameters/test-star-formation-histories-adaptive.xml >& testSuite/outputs/test-star-formation-histories-adapative/galacticus.log"):
+print("Running model...")
+status = os.system("mkdir -p outputs/test-star-formation-histories-adapative; cd ..; ./Galacticus.exe testSuite/parameters/test-star-formation-histories-adaptive.xml >& testSuite/outputs/test-star-formation-histories-adapative/galacticus.log")
+print("...done ("+str(status)+")")
+if status != 0:
     print("FAILED: model run:")
     os.system("cat outputs/test-star-formation-histories-adapative/galacticus.log")
     sys.exit()
-elif not os.system("grep -q -i -e fatal -e aborted -e \"Galacticus experienced an error in the GSL library\" outputs/test-star-formation-histories-adapative/galacticus.log"):
+print("Checking for errors...")
+status = os.system("grep -q -i -e fatal -e aborted -e \"Galacticus experienced an error in the GSL library\" outputs/test-star-formation-histories-adapative/galacticus.log")
+print("...done ("+str(status)+")")
+if status == 0:
     print("FAILED: model run (errors):")
     os.system("cat outputs/test-star-formation-histories-adapative/galacticus.log")
     sys.exit()    
-else:
-    print("SUCCESS: model run")
+print("SUCCESS: model run")
 
 # Open the model and extract the recycled fraction.
 model             = h5py.File('outputs/test-star-formation-histories-adapative/galacticus.hdf5','r')
