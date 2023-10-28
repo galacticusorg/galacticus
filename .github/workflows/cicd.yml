@@ -7225,7 +7225,7 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          chmod u=wrx ./Galactizcus.exe
+          chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-star-formation-histories-adaptive.py
           set -o pipefail
