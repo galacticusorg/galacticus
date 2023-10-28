@@ -7225,10 +7225,13 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          chmod u=wrx ./Galacticus.exe
+          chmod u=wrx ./Galactizcus.exe
           cd testSuite
           chmod u=wrx ./test-star-formation-histories-adaptive.py
           set -o pipefail
+          mkdir -p outputs/test-star-formation-histories-adapative
+          cd ..
+          ./Galacticus.exe testSuite/parameters/test-star-formation-histories-adaptive.xml
           ./test-star-formation-histories-adaptive.py
       - run: echo "This job's status is ${{ job.status }}."
   Test-State-Restore:
