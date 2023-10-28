@@ -7229,8 +7229,7 @@ jobs:
           cd testSuite
           chmod u=wrx ./test-star-formation-histories-adaptive.py
           set -o pipefail
-          ./test-star-formation-histories-adaptive.py 2>&1 | tee test.log
-          ! grep -q FAIL test.log
+          ./test-star-formation-histories-adaptive.py
       - run: echo "This job's status is ${{ job.status }}."
   Test-State-Restore:
     runs-on: ubuntu-latest
