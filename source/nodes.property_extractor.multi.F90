@@ -21,7 +21,7 @@
   Contains a module which implements a multi node property extractor class.
   !!}
 
-  use :: Hashes, only : doubleHash
+  use :: Hashes, only : doubleHash, rank1DoubleHash
 
   type, public :: multiExtractorList
      class(nodePropertyExtractorClass), pointer :: extractor_ => null()
@@ -179,15 +179,19 @@ contains
        class is (nodePropertyExtractorScalar       )
           if (elementType == elementTypeDouble ) multiElementCount=multiElementCount+1
        class is (nodePropertyExtractorTuple        )
-          if (elementType == elementTypeDouble ) multiElementCount=multiElementCount+extractor_%elementCount(time)
+          if (elementType == elementTypeDouble ) multiElementCount=multiElementCount+extractor_%elementCount(            time)
        class is (nodePropertyExtractorIntegerScalar)
           if (elementType == elementTypeInteger) multiElementCount=multiElementCount+1
        class is (nodePropertyExtractorIntegerTuple )
-          if (elementType == elementTypeInteger) multiElementCount=multiElementCount+extractor_%elementCount(time)
+          if (elementType == elementTypeInteger) multiElementCount=multiElementCount+extractor_%elementCount(            time)
        class is (nodePropertyExtractorArray        )
-          if (elementType == elementTypeDouble ) multiElementCount=multiElementCount+extractor_%elementCount(time)
+          if (elementType == elementTypeDouble ) multiElementCount=multiElementCount+extractor_%elementCount(            time)
        class is (nodePropertyExtractorList         )
-          if (elementType == elementTypeDouble ) multiElementCount=multiElementCount+extractor_%elementCount(    )
+          if (elementType == elementTypeDouble ) multiElementCount=multiElementCount+extractor_%elementCount(                )
+       class is (nodePropertyExtractorList2D       )
+          if (elementType == elementTypeDouble ) multiElementCount=multiElementCount+extractor_%elementCount(                )
+       class is (nodePropertyExtractorMulti        )
+          multiElementCount                                       =multiElementCount+extractor_%elementCount(elementType,time)
        class default
           call Error_Report('unsupported property extractor type'//{introspection:location})
        end select
@@ -203,17 +207,19 @@ contains
     use :: Error     , only : Error_Report
     use :: Poly_Ranks, only : polyRankDouble
     implicit none
-    type            (polyRankDouble            )                         , allocatable, dimension(:  ) :: multiExtractDouble
-    class           (nodePropertyExtractorMulti), intent(inout)                                        :: self
-    type            (treeNode                  ), intent(inout)                                        :: node
-    double precision                            , intent(in   )                                        :: time
-    type            (multiCounter              ), intent(inout), optional                              :: instance
-    integer                                     , intent(  out), optional, allocatable, dimension(:  ) :: ranks
-    type            (multiExtractorList        ), pointer                                              :: extractor_
-    double precision                                                     , allocatable, dimension(:  ) :: rank0
-    double precision                                                     , allocatable, dimension(:,:) :: rank1
-    integer                                                                                            :: offset            , elementCount, &
-         &                                                                                                i
+    type            (polyRankDouble            )                         , allocatable, dimension(:    ) :: multiExtractDouble
+    class           (nodePropertyExtractorMulti), intent(inout)                                          :: self
+    type            (treeNode                  ), intent(inout)                                          :: node
+    double precision                            , intent(in   )                                          :: time
+    type            (multiCounter              ), intent(inout), optional                                :: instance
+    integer                                     , intent(  out), optional, allocatable, dimension(:    ) :: ranks
+    type            (multiExtractorList        ), pointer                                                :: extractor_
+    double precision                                                     , allocatable, dimension(:    ) :: rank0
+    double precision                                                     , allocatable, dimension(:,:  ) :: rank1
+    double precision                                                     , allocatable, dimension(:,:,:) :: rank2
+    integer                                                              , allocatable, dimension(:    ) :: ranks_
+    integer                                                                                              :: offset            , elementCount, &
+         &                                                                                                  i
 
     allocate(multiExtractDouble(self%elementCount(elementTypeDouble,time)))
     if (present(ranks)) allocate(ranks(self%elementCount(elementTypeDouble,time)))
@@ -249,6 +255,26 @@ contains
              if (present(ranks)) ranks(offset+i)=-1
           end do
           deallocate(rank1)
+       class is (nodePropertyExtractorList2D       )
+          elementCount=extractor_%elementCount()
+          rank2=extractor_%extract(node     ,instance)
+          do i=1,elementCount
+             multiExtractDouble(offset+i)=polyRankDouble(rank2(:,:,i))
+             if (present(ranks)) ranks(offset+i)=-2
+          end do
+          deallocate(rank2)
+       class is (nodePropertyExtractorMulti        )
+          elementCount=extractor_%elementCount(elementTypeDouble,time)
+          !![
+	  <conditionalCall>
+	    <call>multiExtractDouble(offset+1:offset+elementCount)=extractor_%extractDouble(node,time,instance{conditions})</call>
+	    <argument name="ranks" value="ranks_" condition="present(ranks)"/>
+	  </conditionalCall>
+          !!]
+          if (present(ranks)) then
+             ranks(offset+1:offset+elementCount)=ranks_
+             deallocate(ranks_)
+          end if
        class is (nodePropertyExtractorIntegerScalar)
           elementCount=0
        class is (nodePropertyExtractorIntegerTuple )
@@ -293,6 +319,8 @@ contains
           elementCount=0
        class is (nodePropertyExtractorList         )
           elementCount=0
+       class is (nodePropertyExtractorList2D       )
+          elementCount=0
        class is (nodePropertyExtractorIntegerScalar)
           elementCount=1
           multiExtractInteger(offset+1)=polyRankInteger(extractor_%extract(node,time,instance))
@@ -303,6 +331,9 @@ contains
              multiExtractInteger(offset+i)=polyRankInteger(rank0(i))
           end do
           deallocate(rank0)
+       class is (nodePropertyExtractorMulti        )
+          elementCount=extractor_%elementCount(elementTypeInteger,time)
+          multiExtractInteger(offset+1:offset+elementCount)=extractor_%extractInteger(node,time,instance)
        class default
           elementCount=0
           call Error_Report('unsupported property extractor type'//{introspection:location})
@@ -397,6 +428,22 @@ contains
                 deallocate(namesTmp)
              end if
           end if
+       class is (nodePropertyExtractorList2D       )
+          if (elementType == elementTypeDouble ) then
+             elementCount=extractor_%elementCount()
+             if (elementCount > 0) then
+                call extractor_%names(namesTmp     )
+                names(offset+1:offset+elementCount)=namesTmp
+                deallocate(namesTmp)
+             end if
+          end if
+       class is (nodePropertyExtractorMulti        )
+          elementCount=extractor_%elementCount(elementType,time)
+          if (elementCount > 0) then
+             call extractor_%names(elementType,time,namesTmp)
+             names(offset+1:offset+elementCount)=namesTmp
+             deallocate(namesTmp)
+          end if
        class default
           call Error_Report('unsupported property extractor type'//{introspection:location})
        end select
@@ -476,6 +523,20 @@ contains
                 return
              end if
           end if
+       class is (nodePropertyExtractorList2D       )
+          if (elementType == elementTypeDouble ) then
+             elementCount=extractor_%elementCount()
+             if (offset+elementCount >= i) then
+                allocate(descriptions(0))
+                return
+             end if
+          end if
+       class is (nodePropertyExtractorMulti        )
+          elementCount=extractor_%elementCount(elementType,time)
+          if (offset+elementCount >= i) then
+             allocate(descriptions(0))
+             return
+          end if
        class default
           call Error_Report('unsupported property extractor type'//{introspection:location})
        end select
@@ -551,6 +612,22 @@ contains
                 deallocate(descriptionsTmp)
              end if
           end if
+       class is (nodePropertyExtractorList2D       )
+          if (elementType == elementTypeDouble ) then
+             elementCount=extractor_%elementCount()
+             if (elementCount > 0) then
+                call extractor_%descriptions(descriptionsTmp)
+                descriptions(offset+1:offset+elementCount)=descriptionsTmp
+                deallocate(descriptionsTmp)
+             end if
+          end if
+       class is (nodePropertyExtractorMulti        )
+          elementCount=extractor_%elementCount(elementType,time)
+          if (elementCount > 0) then
+             call extractor_%descriptions(elementType,time,descriptionsTmp)
+             descriptions(offset+1:offset+elementCount)=descriptionsTmp
+             deallocate(descriptionsTmp)
+          end if
        class default
           call Error_Report('unsupported property extractor type'//{introspection:location})
        end select
@@ -609,6 +686,14 @@ contains
              elementCount=extractor_%elementCount()
              multiUnitsInSI(offset+1:offset+elementCount)=extractor_%unitsInSI(    )
           end if
+       class is (nodePropertyExtractorList2D       )
+          if (elementType == elementTypeDouble ) then
+             elementCount=extractor_%elementCount()
+             multiUnitsInSI(offset+1:offset+elementCount)=extractor_%unitsInSI(    )
+          end if
+       class is (nodePropertyExtractorMulti        )
+          elementCount=extractor_%elementCount(elementType,time)
+          multiUnitsInSI(offset+1:offset+elementCount)=extractor_%unitsInSI(elementType,time)
        class default
           call Error_Report('unsupported property extractor type'//{introspection:location})
        end select
@@ -667,6 +752,14 @@ contains
              elementCount=extractor_%elementCount()
              multiRanks(offset+1:offset+elementCount)=-1
           end if
+       class is (nodePropertyExtractorList2D      )
+          if (elementType == elementTypeDouble ) then
+             elementCount=extractor_%elementCount()
+             multiRanks(offset+1:offset+elementCount)=-2
+          end if
+       class is (nodePropertyExtractorMulti       )
+          elementCount=extractor_%elementCount(elementType,time)
+          multiRanks(offset+1:offset+elementCount)=extractor_%ranks(elementType,time)
        class default
           call Error_Report('unsupported property extractor type'//{introspection:location})
        end select
@@ -676,55 +769,65 @@ contains
     return
   end function multiRanks
 
-  subroutine multiMetaData(self,elementType,time,iProperty,metaData)
+  subroutine multiMetaData(self,node,elementType,time,iProperty,metaDataRank0,metaDataRank1)
     !!{
     Populate multiple property meta-data.
     !!}
     use :: Error, only : Error_Report
     implicit none
     class           (nodePropertyExtractorMulti), intent(inout) :: self
+    type            (treeNode                  ), intent(inout) :: node
     type            (enumerationElementTypeType), intent(in   ) :: elementType
     double precision                            , intent(in   ) :: time
     integer                                     , intent(in   ) :: iProperty
-    type            (doubleHash                ), intent(inout) :: metaData
+    type            (doubleHash                ), intent(inout) :: metaDataRank0
+    type            (rank1DoubleHash           ), intent(inout) :: metaDataRank1
     type            (multiExtractorList        ), pointer       :: extractor_
-    integer                                                     :: offset    , elementCount
+    integer                                                     :: offset       , elementCount
 
     offset     =  0
     extractor_ => self%extractors
     do while (associated(extractor_))
        elementCount=0
-       select type (extractor_ => extractor_%extractor_)
+              select type (extractor_ => extractor_%extractor_)
        class is (nodePropertyExtractorScalar       )
           if (elementType == elementTypeDouble ) then
              elementCount=1
-             if (offset+1 <= iProperty .and. offset+elementCount >= iProperty) call extractor_%metaData(                 metaData)
+             if (offset+1 <= iProperty .and. offset+elementCount >= iProperty) call extractor_%metaData(node                                  ,metaDataRank0,metaDataRank1)
           end if
        class is (nodePropertyExtractorTuple        )
           if (elementType == elementTypeDouble ) then
              elementCount=extractor_%elementCount(time)
-             if (offset+1 <= iProperty .and. offset+elementCount >= iProperty) call extractor_%metaData(iProperty-offset,metaData)
+             if (offset+1 <= iProperty .and. offset+elementCount >= iProperty) call extractor_%metaData(node                 ,iProperty-offset,metaDataRank0,metaDataRank1)
           end if
        class is (nodePropertyExtractorIntegerScalar)
           if (elementType == elementTypeInteger) then
              elementCount=1
-             if (offset+1 <= iProperty .and. offset+elementCount >= iProperty) call extractor_%metaData(                 metaData)
+             if (offset+1 <= iProperty .and. offset+elementCount >= iProperty) call extractor_%metaData(node                                  ,metaDataRank0,metaDataRank1)
           end if
        class is (nodePropertyExtractorIntegerTuple )
           if (elementType == elementTypeInteger) then
              elementCount=extractor_%elementCount(time)
-             if (offset+1 <= iProperty .and. offset+elementCount >= iProperty) call extractor_%metaData(iProperty-offset,metaData)
+             if (offset+1 <= iProperty .and. offset+elementCount >= iProperty) call extractor_%metaData(node                 ,iProperty-offset,metaDataRank0,metaDataRank1)
           end if
        class is (nodePropertyExtractorArray        )
           if (elementType == elementTypeDouble ) then
              elementCount=extractor_%elementCount(time)
-             if (offset+1 <= iProperty .and. offset+elementCount >= iProperty) call extractor_%metaData(iProperty-offset,metaData)
+             if (offset+1 <= iProperty .and. offset+elementCount >= iProperty) call extractor_%metaData(node                 ,iProperty-offset,metaDataRank0,metaDataRank1)
           end if
        class is (nodePropertyExtractorList         )
           if (elementType == elementTypeDouble ) then
              elementCount=extractor_%elementCount()
-             if (offset+1 <= iProperty .and. offset+elementCount >= iProperty) call extractor_%metaData(                 metaData)
+             if (offset+1 <= iProperty .and. offset+elementCount >= iProperty) call extractor_%metaData(node                                  ,metaDataRank0,metaDataRank1)
           end if
+       class is (nodePropertyExtractorList2D       )
+          if (elementType == elementTypeDouble ) then
+             elementCount=extractor_%elementCount()
+             if (offset+1 <= iProperty .and. offset+elementCount >= iProperty) call extractor_%metaData(node                                  ,metaDataRank0,metaDataRank1)
+          end if
+       class is (nodePropertyExtractorMulti        )
+          elementCount=extractor_%elementCount(elementType,time)
+          if    (offset+1 <= iProperty .and. offset+elementCount >= iProperty) call extractor_%metaData(node,elementType,time,iProperty-offset,metaDataRank0,metaDataRank1)
        class default
           call Error_Report('unsupported property extractor type'//{introspection:location})
        end select

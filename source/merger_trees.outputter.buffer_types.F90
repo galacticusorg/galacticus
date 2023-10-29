@@ -26,8 +26,8 @@ module Merger_Tree_Outputter_Buffer_Types
   Provides buffer types for merger tree outputters.
   !!}
   use :: Kind_Numbers      , only : kind_int8
-  use :: Hashes            , only : doubleHash
-  use :: IO_HDF5           , only : hdf5VarDouble
+  use :: Hashes            , only : doubleHash    , rank1DoubleHash
+  use :: IO_HDF5           , only : hdf5VarDouble , hdf5VarDouble2D
   use :: ISO_Varying_String, only : varying_string
   public
 
@@ -40,7 +40,8 @@ module Merger_Tree_Outputter_Buffer_Types
      !!}
      character       (len=propertyNameLengthMax   )                              :: name
      character       (len=propertyCommentLengthMax)                              :: comment
-     type            (doubleHash                  ), allocatable                 :: metaData
+     type            (doubleHash                  ), allocatable                 :: metaDataRank0
+     type            (rank1DoubleHash             ), allocatable                 :: metaDataRank1
      double precision                                                            :: unitsInSI
      integer         (kind_int8                   ), allocatable, dimension(:  ) :: scalar
      integer         (kind_int8                   ), allocatable, dimension(:,:) :: rank1
@@ -53,11 +54,13 @@ module Merger_Tree_Outputter_Buffer_Types
      !!}
      character       (len=propertyNameLengthMax   )                              :: name
      character       (len=propertyCommentLengthMax)                              :: comment
-     type            (doubleHash                  ), allocatable                 :: metaData
+     type            (doubleHash                  ), allocatable                 :: metaDataRank0
+     type            (rank1DoubleHash             ), allocatable                 :: metaDataRank1
      double precision                                                            :: unitsInSI
      double precision                              , allocatable, dimension(:  ) :: scalar
      double precision                              , allocatable, dimension(:,:) :: rank1
      type            (hdf5VarDouble               ), allocatable, dimension(:  ) :: rank1VarLen
+     type            (hdf5VarDouble2D             ), allocatable, dimension(:  ) :: rank2VarLen
      type            (varying_string              ), allocatable, dimension(:  ) :: rank1Descriptors
      double precision                              , allocatable, dimension(:  ) :: rank1DescriptorValues
      type            (varying_string               )                             :: rank1DescriptorComment

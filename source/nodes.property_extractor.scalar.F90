@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  use :: Hashes, only : doubleHash
+  use :: Hashes, only : doubleHash, rank1DoubleHash
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorScalar" abstract="yes">
@@ -81,14 +81,16 @@
 
 contains
   
-  subroutine scalarMetaData(self,metaData)
+  subroutine scalarMetaData(self,node,metaDataRank0,metaDataRank1)
     !!{
     Interface for scalar property meta-data.
     !!}
     implicit none
     class(nodePropertyExtractorScalar), intent(inout) :: self
-    type (doubleHash                 ), intent(inout) :: metaData
-    !$GLC attributes unused :: self, metaData
+    type (treeNode                   ), intent(inout) :: node
+    type (doubleHash                 ), intent(inout) :: metaDataRank0
+    type (rank1DoubleHash            ), intent(inout) :: metaDataRank1
+    !$GLC attributes unused :: self, node, metaDataRank0, metaDataRank1
     
     return
   end subroutine scalarMetaData
