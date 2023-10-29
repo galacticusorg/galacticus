@@ -9,8 +9,9 @@ import numpy as np
 
 # Run the model and check for completion                                                                                                                                                                                 
 print("Running model...")
+status = subprocess.run("mkdir -p outputs/test-star-formation-histories-adapative",shell=True)
 log = open("outputs/test-star-formation-histories-adapative/galacticus.log","w")
-status = subprocess.run("mkdir -p outputs/test-star-formation-histories-adapative; cd ..; ./Galacticus.exe testSuite/parameters/test-star-formation-histories-adaptive.xml",stdout=log,stderr=log,shell=True)
+status = subprocess.run("cd ..; ./Galacticus.exe testSuite/parameters/test-star-formation-histories-adaptive.xml",stdout=log,stderr=log,shell=True)
 log.close()
 print("...done ("+str(status)+")")
 if status.returncode != 0:
