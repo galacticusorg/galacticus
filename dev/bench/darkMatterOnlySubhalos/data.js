@@ -1,36 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1698265234833,
+  "lastUpdate": 1698607994420,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "committer": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "id": "2b7e265e029d5d690719f32c67055d03deb4a843",
-          "message": "feat: Use `massDistribution` directly in several `galacticStructure` methods",
-          "timestamp": "2023-03-11T06:29:37Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/2b7e265e029d5d690719f32c67055d03deb4a843"
-        },
-        "date": 1678527946441,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 50.826,
-            "unit": "seconds",
-            "range": 0.0281496003524077
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8748,6 +8720,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 23918.6861604503,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": false,
+          "id": "4ddb03adabf45de3bb5c89c7cb693bc68a546c2d",
+          "message": "Merge pull request #501 from galacticusorg/sfhNodeDataOutput\n\nRefactor star formation histories to output to the `nodeData` group",
+          "timestamp": "2023-10-29T14:35:51Z",
+          "tree_id": "ea57bcf4d22d255988a2928904548c0550e2bd55",
+          "url": "https://github.com/galacticusorg/galacticus/commit/4ddb03adabf45de3bb5c89c7cb693bc68a546c2d"
+        },
+        "date": 1698607991810,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 48.367,
+            "unit": "seconds",
+            "range": 0.0313065488351839
           }
         ]
       }
