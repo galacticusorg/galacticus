@@ -236,23 +236,15 @@ contains
             &                                                   )
        starFormationHistoryDisk    =disk    %starFormationHistory()
        starFormationHistorySpheroid=spheroid%starFormationHistory()
-       call self%starFormationHistory_%output                   (                                                   &
+       call self%starFormationHistory_%update                   (                                                   &
             &                                                    node                =node                        , &
-            &                                                    nodePassesFilter    =.false.                     , &
-            &                                                    historyStarFormation=starFormationHistoryDisk    , &
             &                                                    indexOutput         =i                           , &
-            &                                                    indexTree           =1_c_size_t                  , &
-            &                                                    componentType       =componentTypeDisk           , &
-            &                                                    treeLock            =treeLock                      &
+            &                                                    historyStarFormation=starFormationHistoryDisk      &
             &                                                   )
-       call self%starFormationHistory_%output                   (                                                   &
+       call self%starFormationHistory_%update                   (                                                   &
             &                                                    node                =node                        , &
-            &                                                    nodePassesFilter    =.false.                     , &
-            &                                                    historyStarFormation=starFormationHistorySpheroid, &
             &                                                    indexOutput         =i                           , &
-            &                                                    indexTree           =1_c_size_t                  , &
-            &                                                    componentType       =componentTypeSpheroid       , &
-            &                                                    treeLock            =treeLock                      &
+            &                                                    historyStarFormation=starFormationHistorySpheroid  &
             &                                                   )
        starFormationHistoryDisk    %data=1.0d0
        starFormationHistorySpheroid%data=1.0d0

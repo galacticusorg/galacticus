@@ -68,33 +68,21 @@ module Star_Formation_Histories
     <argument>type            (abundances), intent(in   ) :: abundancesFuel</argument>
     <argument>double precision            , intent(in   ) :: rateStarFormation</argument>
    </method>
-   <method name="output" >
-    <description>Output the star formation history.</description>
-    <type>void</type>
-    <pass>yes</pass>
-    <argument>type   (treeNode                    ), intent(inout), target :: node</argument>
-    <argument>logical                              , intent(in   )         :: nodePassesFilter</argument>
-    <argument>type   (history                     ), intent(inout)         :: historyStarFormation</argument>
-    <argument>integer(c_size_t                    ), intent(in   )         :: indexOutput</argument>
-    <argument>integer(kind=kind_int8              ), intent(in   )         :: indexTree</argument>
-    <argument>type   (enumerationComponentTypeType), intent(in   )         :: componentType</argument>
-    <argument>type   (ompLock                     ), intent(inout)         :: treeLock</argument>
-   </method>
-   <method name="outputFlush" >
-    <description>Flush any buffered output.</description>
-    <type>void</type>
-    <pass>yes</pass>
-    <argument>type(enumerationComponentTypeType), intent(in   ) :: componentType</argument>
-    <argument>type(ompLock                     ), intent(inout) :: treeLock</argument>
-    <code>
-     !$GLC attributes unused :: self, componentType
-     ! Do nothing by default.
-    </code>
-   </method>
    <method name="metallicityBoundaries" >
     <description>Return a (zero-indexed) array of metallicity boundaries for this history.</description>
     <type>double precision, allocatable, dimension(:)</type>
     <pass>yes</pass>
+   </method>
+   <method name="times" >
+    <description>Return an array of times for this history \emph{if} the tabulation in time is static per output.</description>
+    <type>double precision, allocatable, dimension(:)</type>
+    <pass>yes</pass>
+    <argument>integer(c_size_t), intent(in   ) :: indexOutput</argument>
+    <modules>Error</modules>
+    <code>
+      allocate(starFormationHistoryTimes(0))
+      call Error_Report('times are not static'//{introspection:location})
+    </code>
    </method>
    <method name="perOutputTabulationIsStatic" >
     <description>Return true if the tabulation (in time and metallicity) is static (independent of node) per output.</description>
@@ -104,6 +92,17 @@ module Star_Formation_Histories
      !$GLC attributes unused :: self
      starFormationHistoryPerOutputTabulationIsStatic=.false.
     </code>
+   </method>
+   <method name="update">
+     <description>Update the star formation history after an output time is reached.</description>
+     <type>void</type>
+     <pass>yes</pass>
+     <argument>type   (treeNode), intent(inout), target :: node                </argument>
+     <argument>integer(c_size_t), intent(in   )         :: indexOutput         </argument>
+     <argument>type   (history ), intent(inout)         :: historyStarFormation</argument>
+     <code>
+       !$GLC attributes unused :: self, node, indexOutput, historyStarFormation
+     </code>
    </method>
   </functionClass>
   !!]

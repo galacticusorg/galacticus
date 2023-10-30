@@ -445,11 +445,11 @@ contains
             &                                 /atomicMassHydrogen          &
             &                                )
        ! Compute logarithm of Lyman continuum luminosity.
-       luminosityLymanContinuum       =+log10(                                                                                luminosityIonizing(ionizingContinuumHydrogen%ID,:))
+       luminosityLymanContinuum       =+log10(                                                                                    luminosityIonizing(ionizingContinuumHydrogen%ID,:)                           )
        ! Compute helium to Lyman continuum luminosity logarithmic ratio.
-       ratioLuminosityHeliumToHydrogen=+log10(max(luminosityIonizing(ionizingContinuumHelium%ID,:),luminosityIonizingMinimum)/luminosityIonizing(ionizingContinuumHydrogen%ID,:))
+       ratioLuminosityHeliumToHydrogen=+log10(max(luminosityIonizing(ionizingContinuumHelium%ID,:),luminosityIonizingMinimum)/    luminosityIonizing(ionizingContinuumHydrogen%ID,:)                           )
        ! Compute oxygen to helium continuum luminosity logarithmic ratio.
-       ratioLuminosityOxygenToHelium  =+log10(max(luminosityIonizing(ionizingContinuumOxygen%ID,:),luminosityIonizingMinimum)/luminosityIonizing(ionizingContinuumHelium  %ID,:))
+       ratioLuminosityOxygenToHelium  =+log10(max(luminosityIonizing(ionizingContinuumOxygen%ID,:),luminosityIonizingMinimum)/max(luminosityIonizing(ionizingContinuumHelium  %ID,:),luminosityIonizingMinimum))
        ! Compute number of HII regions.
        countHIIRegion                 =+rateStarFormation   &
             &                          *lifetimeHIIRegion   &

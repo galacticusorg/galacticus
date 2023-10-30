@@ -128,7 +128,7 @@ call Directory_Make(char(inputPath(pathTypeDataDynamic))//'stellarPopulations/SS
        &                                                                                 sigma                                =+0.69d0                                                                                                      &
        &                                                                                )
   stellarAstrophysics_                   =stellarAstrophysicsFile                       (                                                                                                                                                   &
-       &                                                                                 fileName                             =char(inputPath(pathTypeDataStatic))//'stellarAstrophysics/Stellar_Properties_Compilation.xml'                &
+       &                                                                                 fileName                             =char(inputPath(pathTypeDataStatic))//'stellarAstrophysics/stellarPropertiesCompilationStandard.xml'          &
        &                                                                                )
   stellarTracks_                         =stellarTracksFile                             (                                                                                                                                                   &
        &                                                                                 fileName                             =char(inputPath(pathTypeDataStatic))//'stellarAstrophysics/Stellar_Tracks_Padova.hdf5'                        &

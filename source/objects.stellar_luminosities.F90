@@ -997,8 +997,8 @@ contains
              doubleProperties(doubleProperty)%name     =trim(prefix )// ':'//trim(luminosityName(i))
              doubleProperties(doubleProperty)%comment  =trim(comment)//' ['//trim(luminosityName(i))//']'
              doubleProperties(doubleProperty)%unitsInSI=unitsInSI
-             call doubleProperties(doubleProperty)%metaData%set('wavelengthEffective',luminosityWavelengthEffective(i))
-             call doubleProperties(doubleProperty)%metaData%set('vegaOffset'         ,luminosityVegaOffset         (i))
+             call doubleProperties(doubleProperty)%metaDataRank0%set('wavelengthEffective',luminosityWavelengthEffective(i))
+             call doubleProperties(doubleProperty)%metaDataRank0%set('vegaOffset'         ,luminosityVegaOffset         (i))
           end if
        end do
     end if

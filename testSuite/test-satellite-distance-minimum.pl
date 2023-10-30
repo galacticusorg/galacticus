@@ -28,10 +28,11 @@ foreach my $outputName ( $outputs->groups() ) {
     my $output            = $outputs ->group  ($outputName               )       ;
     my $nodeData          = $output  ->group  ('nodeData'                )       ;
     my $isIsolated        = $nodeData->dataset('nodeIsIsolated'          )->get();
+    my $nodeIndex         = $nodeData->dataset('nodeIndex'               )->get();
     my $distanceMinimum   = $nodeData->dataset('satelliteDistanceMinimum')->get();
-    my $positionX         = $nodeData->dataset('positionOrbitalX'        )->get();
-    my $positionY         = $nodeData->dataset('positionOrbitalY'        )->get();
-    my $positionZ         = $nodeData->dataset('positionOrbitalZ'        )->get();
+    my $positionX         = $nodeData->dataset('satellitePositionX'      )->get();
+    my $positionY         = $nodeData->dataset('satellitePositionY'      )->get();
+    my $positionZ         = $nodeData->dataset('satellitePositionZ'      )->get();
     my $distance          =
 	sqrt
 	(
@@ -46,6 +47,8 @@ foreach my $outputName ( $outputs->groups() ) {
 	);
     my $tolerance = 1.0e-6;
     my $status    = all($distanceMinimum->($satellites) <= $distance->($satellites)*(1.0+$tolerance)) ? "SUCCESS" : "FAILED";
+    my $offset    = $distanceMinimum->($satellites)/$distance->($satellites)-1.0;
+    print "Maximum fractional offset: ".$offset->maximum()."\n";
     print $status.": minimum distance from host center\n";
 }
 

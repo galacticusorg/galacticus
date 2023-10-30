@@ -401,9 +401,8 @@ contains
          &                                                           chemicalDensitiesCold
     !$omp threadprivate(chemicalDensities,chemicalDensitiesCold,chemicalDensitiesHot)
     double precision                                              :: massToDensityConversion, numberDensityHydrogen, &
-         &                                                           temperature            , temperatureHot       , &
-         &                                                           temperatureCold        , fractionCold         , &
-         &                                                           fractionHot
+         &                                                           temperatureHot         , temperatureCold      , &
+         &                                                           fractionHot            , fractionCold
 
     ! Get the basic component.
     basic                => node%basic()

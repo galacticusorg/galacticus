@@ -276,6 +276,12 @@
   <nodePropertyExtractor value="multi">    
     <nodePropertyExtractor value="nodeIndices"/>
     <nodePropertyExtractor value="indicesTree"/>
+    <nodePropertyExtractor value="starFormationHistory">
+      <component value="disk"/>
+    </nodePropertyExtractor>
+    <nodePropertyExtractor value="starFormationHistory">
+      <component value="spheroid"/>
+    </nodePropertyExtractor>
   </nodePropertyExtractor>
 
   <!-- Star formation history -->
