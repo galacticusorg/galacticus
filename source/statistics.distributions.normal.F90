@@ -116,6 +116,7 @@ contains
       <argument name="limitUpper" value="limitUpper" parameterPresent="parameters"/>
     </conditionalCall>
     <inputParametersValidate source="parameters"/>
+    <objectDestructor name="randomNumberGenerator_"/>
     !!]
     return
   end function normalConstructorParameters

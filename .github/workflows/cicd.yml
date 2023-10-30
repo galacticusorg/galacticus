@@ -71,7 +71,6 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_FCFLAGS=$GALACTICUS_FCFLAGS -static" >> $GITHUB_ENV
           echo "GALACTICUS_ANALYSIS_PERL_PATH=$GITHUB_WORKSPACE/analysis-perl" >> $GITHUB_ENV
-          echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
       - name: Build the code
         run: |
           cd $GALACTICUS_EXEC_PATH
@@ -118,7 +117,6 @@ jobs:
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_ANALYSIS_PERL_PATH=$GITHUB_WORKSPACE/analysis-perl" >> $GITHUB_ENV
-          echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
       - name: Build the code
         run: |
           cd $GALACTICUS_EXEC_PATH
@@ -237,8 +235,6 @@ jobs:
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "NODE_OPTIONS=--max-old-space-size=5120" >> $GITHUB_ENV
-          echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
       - name: Build the code
         run: |
           cd $GALACTICUS_EXEC_PATH
@@ -309,7 +305,6 @@ jobs:
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
       - name: Build the docs
         run: |
           cd $GALACTICUS_EXEC_PATH
@@ -347,7 +342,6 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
           echo "GALACTICUS_FCFLAGS+=\ -static" >> $GITHUB_ENV
-          echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v3
         with:
@@ -403,7 +397,6 @@ jobs:
           echo "GALACTICUS_FCFLAGS=\"$GALACTICUS_FCFLAGS -fintrinsic-modules-path /usr/local/finclude -fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/local/include/gfortran -fintrinsic-modules-path /usr/local/lib/gfortran/modules -L/usr/local/lib\"" >> $GITHUB_ENV
           echo "PATH=$PATH:/opt/local/bin:/usr/local/bin" >> $GITHUB_ENV
           echo "PERL_MM_USE_DEFAULT=1" >> $GITHUB_ENV
-          echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
       - name: Install MacPorts
         run: |
           curl -L https://github.com/macports/macports-base/releases/download/v2.7.1/MacPorts-2.7.1-11-BigSur.pkg --output MacPorts-2.7.1-11-BigSur.pkg
@@ -590,8 +583,6 @@ jobs:
           echo "GALACTICUS_FCFLAGS=\"$GALACTICUS_FCFLAGS -fintrinsic-modules-path /usr/local/finclude -fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/local/include/gfortran -fintrinsic-modules-path /usr/local/lib/gfortran/modules -L/usr/local/lib\"" >> $GITHUB_ENV
           echo "PATH=$PATH:/opt/local/bin:/usr/local/bin" >> $GITHUB_ENV
           echo "PERL_MM_USE_DEFAULT=1" >> $GITHUB_ENV
-          echo "NODE_OPTIONS=--max-old-space-size=5120" >> $GITHUB_ENV
-          echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
       - name: Install MacPorts
         run: |
           curl -L https://github.com/macports/macports-base/releases/download/v2.7.1/MacPorts-2.7.1-11-BigSur.pkg --output MacPorts-2.7.1-11-BigSur.pkg
@@ -786,7 +777,6 @@ jobs:
           echo "GALACTICUS_FCFLAGS=\"$GALACTICUS_FCFLAGS -static -fintrinsic-modules-path /usr/local/finclude -fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/local/include/gfortran -fintrinsic-modules-path /usr/local/lib/gfortran/modules -L/usr/local/lib\"" >> $GITHUB_ENV
           echo "PATH=$PATH:/opt/local/bin:/usr/local/bin" >> $GITHUB_ENV
           echo "PERL_MM_USE_DEFAULT=1" >> $GITHUB_ENV
-          echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
       - name: Install MacPorts
         run: |
           curl -L https://github.com/macports/macports-base/releases/download/v2.7.1/MacPorts-2.7.1-11-BigSur.pkg --output MacPorts-2.7.1-11-BigSur.pkg
@@ -7221,6 +7211,10 @@ jobs:
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+      - name: Install tools
+        run: |
+          apt -y update && apt -y upgrade
+          apt -y install python3-numpy python3-h5py
       - name: Download executables
         uses: actions/download-artifact@v3
         with:
@@ -7233,10 +7227,9 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           cd testSuite
-          chmod u=wrx ./test-star-formation-histories-adaptive.pl
+          chmod u=wrx ./test-star-formation-histories-adaptive.py
           set -o pipefail
-          ./test-star-formation-histories-adaptive.pl 2>&1 | tee test.log
-          ! grep -q FAIL test.log
+          ./test-star-formation-histories-adaptive.py
       - run: echo "This job's status is ${{ job.status }}."
   Test-State-Restore:
     runs-on: ubuntu-latest
@@ -8858,6 +8851,43 @@ jobs:
           ./Galacticus.exe testSuite/regressions/barInstabilityFPE.xml 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
+  Regressions-CosmicEmu:
+    runs-on: ubuntu-latest
+    container: ghcr.io/galacticusorg/buildenv:latest
+    needs: Build-Executable-Linux
+    steps:
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: Check out repository datasets
+        uses: actions/checkout@v4      
+        with:
+          repository: galacticusorg/datasets
+          path: datasets
+      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+      - name: Download executables
+        uses: actions/download-artifact@v3
+        with:
+          name: galacticus-exec
+      - name: Create test suite output directory
+        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
+      - name: Run test
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
+          chmod u=wrx ./Galacticus.exe
+          mkdir -p testSuite/outputs/regressions
+          chmod u=wrx ./testSuite/regressions/cosmicEmu.pl
+          set -o pipefail
+          ./testSuite/regressions/cosmicEmu.pl 2>&1 | tee test.log
+          ! grep -q FAIL test.log
+      - run: echo "This job's status is ${{ job.status }}."
   ### Methods
   Test-Methods-01:
     runs-on: ubuntu-latest
@@ -9886,8 +9916,6 @@ jobs:
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "PYTHONPATH=$GITHUB_WORKSPACE/galacticus/python" >> $GITHUB_ENV
-          echo "NODE_OPTIONS=--max-old-space-size=5120" >> $GITHUB_ENV
-          echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
       - name: Install Python2
         run: |
           apt -y update && apt -y upgrade
@@ -9957,8 +9985,6 @@ jobs:
           echo "CPPCOMPILER=g++-11" >> $GITHUB_ENV
           echo "PATH=$PATH:/opt/local/bin:/usr/local/bin" >> $GITHUB_ENV
           echo "PERL_MM_USE_DEFAULT=1" >> $GITHUB_ENV
-          echo "NODE_OPTIONS=--max-old-space-size=5120" >> $GITHUB_ENV
-          echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
       - name: Install MacPorts
         run: |
           curl -L https://github.com/macports/macports-base/releases/download/v2.7.1/MacPorts-2.7.1-11-BigSur.pkg --output MacPorts-2.7.1-11-BigSur.pkg

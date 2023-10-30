@@ -75,17 +75,20 @@
      type            (interpolator  )                                :: interpolatorMetallicity
      type            (interpolator  ), allocatable, dimension(:,:  ) :: interpolatorAge
      type            (interpolator  ), allocatable, dimension(:    ) :: interpolatorMass
+     logical                                                         :: initialized
    contains
      !![
      <methods>
        <method description="\textcolor{red}{\textless integer(c\_size\_t)(2)\textgreater} interpolationIndicesMetallicity\argout, {\textless integer(c\_size\_t)(2,2)\textgreater} interpolationIndicesMass\argout, {\textless integer(c\_size\_t)(2,2,2)\textgreater} interpolationIndicesAge\argout, {\textless double(2)\textgreater} interpolationFactorsMetallicity\argout, {\textless double(2,2)\textgreater} interpolationFactorsMass\argout, {\textless double(2,2,2)\textgreater} interpolationFactorsAge\argout, \logicalzero\ metallicityOutOfRange\argout, \logicalzero\ massOutOfRange\argout, \logicalzero\ ageOutOfRange\argout" method="interpolationCompute" />
        <method description="\textcolor{red}{\textless integer(c\_size\_t)(2)\textgreater} interpolationIndicesMetallicity\argin, {\textless integer(c\_size\_t)(2,2)\textgreater} interpolationIndicesMass\argin, {\textless integer(c\_size\_t)(2,2,2)\textgreater} interpolationIndicesAge\argin, {\textless double(2)\textgreater} interpolationFactorsMetallicity\argin, {\textless double(2,2)\textgreater} interpolationFactorsMass\argin, {\textless double(2,2,2)\textgreater} interpolationFactorsAge\argin, {\textless double(:,:,:)\textgreater} stellarTracks\argin" method="interpolate" />
+       <method method="initialize" description="Initialize stellar data."/>
      </methods>
      !!]
      procedure :: luminosity           => fileLuminosity
      procedure :: temperatureEffective => fileTemperatureEffective
      procedure :: interpolationCompute => fileInterpolationCompute
      procedure :: interpolate          => fileInterpolate
+     procedure :: initialize           => fileInitialize
   end type stellarTracksFile
 
   interface stellarTracksFile
@@ -131,125 +134,141 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily file} stellar tracks class.
     !!}
+    implicit none
+    type     (stellarTracksFile)                :: self
+    character(len=*            ), intent(in   ) :: fileName
+    !![
+    <constructorAssign variables="fileName"/>
+    !!]
+
+    self%initialized=.false.
+    return
+  end function fileConstructorInternal
+
+  subroutine fileInitialize(self)
+    !!{
+    Read data for the {\normalfont \ttfamily file} stellar tracks class.
+    !!}
     use :: Error             , only : Error_Report
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : hdf5Object
     use :: ISO_Varying_String, only : assignment(=), operator(//), varying_string
     use :: String_Handling   , only : operator(//)
     implicit none
-    type     (stellarTracksFile)                :: self
-    character(len=*            ), intent(in   ) :: fileName
-    type     (varying_string   )                :: groupName
-    integer                                     :: ageCountMaximum        , fileFormatVersion      , &
-         &                                         initialMassCount       , initialMassCountMaximum, &
-         &                                         metallicityCountMaximum, metallicityCount
-    type     (hdf5Object       )                :: ageDataset             , massGroup              , &
-         &                                         metallicityGroup       , stellarTracks
-    logical                                     :: foundMassGroup         , foundMetallicityGroup
-    !![
-    <constructorAssign variables="fileName"/>
-    !!]
+    class(stellarTracksFile), intent(inout) :: self
 
-    ! Open the HDF5 file.
-    !$ call hdf5Access%set()
-    call stellarTracks%openFile(fileName,readOnly=.true.)
-    ! Check that this file has the correct format.
-    call stellarTracks%readAttribute('fileFormat',fileFormatVersion,allowPseudoScalar=.true.)
-    if (fileFormatVersion /= fileFormatVersionCurrent) call Error_Report('format of stellar tracks file is out of date'//{introspection:location})
-    ! Count up number of metallicities present, the number of stellar masses tabulated and the number of ages tabulated.
-    metallicityCountMaximum=0
-    initialMassCountMaximum=0
-    ageCountMaximum        =0
-    ! Count metallicity groups.
-    foundMetallicityGroup=.true.
-    do while (foundMetallicityGroup)
-       groupName="metallicity"
-       groupName=groupName//(metallicityCountMaximum+1)
-       foundMetallicityGroup=stellarTracks%hasGroup(char(groupName))
-       if (foundMetallicityGroup) then
-          metallicityCountMaximum=metallicityCountMaximum+1
-          metallicityGroup=stellarTracks%openGroup(char(groupName))
-          ! Find mass groups.
-          foundMassGroup=.true.
-          do while (foundMassGroup)
-             groupName="mass"
-             groupName=groupName//(initialMassCountMaximum+1)
-             foundMassGroup=metallicityGroup%hasGroup(char(groupName))
-             if (foundMassGroup) then
-                initialMassCountMaximum=initialMassCountMaximum+1
-                massGroup=metallicityGroup%openGroup(char(groupName))
-                ageDataset=massGroup%openDataset('age')
-                ageCountMaximum=max(ageCountMaximum,int(ageDataset%size(1)))
-                call ageDataset%close()
-                call massGroup%close()
-             end if
-          end do
-          call metallicityGroup%close()
-       end if
-    end do
-    ! Allocate storage space for data.
-    allocate(self%metallicityLogarithmic(metallicityCountMaximum))
-    allocate(self%countMassInitial      (metallicityCountMaximum))
-    allocate(self%massInitial           (initialMassCountMaximum,metallicityCountMaximum))
-    allocate(self%countAge              (initialMassCountMaximum,metallicityCountMaximum))
-    allocate(self%age                   (ageCountMaximum,initialMassCountMaximum,metallicityCountMaximum))
-    allocate(self%luminosityTrack       (ageCountMaximum,initialMassCountMaximum,metallicityCountMaximum))
-    allocate(self%temperatureTrack      (ageCountMaximum,initialMassCountMaximum,metallicityCountMaximum))
-    ! Read in all data.
-    do metallicityCount=1,metallicityCountMaximum
-       ! Open the metallicity group.
-       groupName="metallicity"
-       groupName=groupName//metallicityCount
-       metallicityGroup=stellarTracks%openGroup(char(groupName))
-       ! Get the metallicity.
-       call metallicityGroup%readDatasetStatic('metallicity', self%metallicityLogarithmic(metallicityCount:metallicityCount))
-       ! Count how many masses are tabulated at this metallicity.
-       initialMassCount=0
-       foundMassGroup=.true.
-       do while (foundMassGroup)
-          groupName="mass"
-          groupName=groupName//(initialMassCount+1)
-          foundMassGroup=metallicityGroup%hasGroup(char(groupName))
-          if (foundMassGroup) initialMassCount=initialMassCount+1
-       end do
-       self%countMassInitial(metallicityCount)=initialMassCount
-       ! Loop through all tabulated masses.
-       do initialMassCount=1,self%countMassInitial(metallicityCount)
-          ! Open the mass group.
-          groupName="mass"
-          groupName=groupName//initialMassCount
-          massGroup=metallicityGroup%openGroup(char(groupName))
-          ! Get initial mass.
-          call massGroup%readDatasetStatic('mass',self%massInitial(initialMassCount:initialMassCount,metallicityCount))
-          ! Read tracks.
-          ageDataset=massGroup%openDataset('age')
-          self%countAge(initialMassCount,metallicityCount)=int(ageDataset%size(1))
-          call ageDataset%close()
-          call massGroup%readDatasetStatic('age'                 ,self%age             (1:self%countAge(initialMassCount,metallicityCount),initialMassCount,metallicityCount))
-          call massGroup%readDatasetStatic('luminosity'          ,self%luminosityTrack (1:self%countAge(initialMassCount,metallicityCount),initialMassCount,metallicityCount))
-          call massGroup%readDatasetStatic('effectiveTemperature',self%temperatureTrack(1:self%countAge(initialMassCount,metallicityCount),initialMassCount,metallicityCount))
-          call massGroup%close()
-       end do
-       call metallicityGroup%close()
-    end do
-    ! Convert metallicities to logarithmic scale.
-    self%metallicityLogarithmic=log(self%metallicityLogarithmic)
-    self%countMetallicity=metallicityCountMaximum
-    ! Close the file.
-    call stellarTracks%close()
-    !$ call hdf5Access%unset()
-    ! Initialize interpolators.
-    allocate(self%interpolatorMass(                        metallicityCountMaximum))
-    allocate(self%interpolatorAge (initialMassCountMaximum,metallicityCountMaximum))
-    self%interpolatorMetallicity=interpolator(self%metallicityLogarithmic)
-    do metallicityCount=1,metallicityCountMaximum
-       self%interpolatorMass(metallicityCount)=interpolator(self%massInitial(1:self%countMassInitial(metallicityCount),metallicityCount))
-       do initialMassCount=1,self%countMassInitial(metallicityCount)
-          self%interpolatorAge(initialMassCount,metallicityCount)=interpolator(self%age(1:self%countAge(initialMassCount,metallicityCount),initialMassCount,metallicityCount))
-       end do
-    end do
+    if (self%initialized) return
+    block
+      type     (varying_string) :: groupName
+      integer                   :: ageCountMaximum        , fileFormatVersion      , &
+           &                       initialMassCount       , initialMassCountMaximum, &
+           &                       metallicityCountMaximum, metallicityCount
+      type     (hdf5Object    ) :: ageDataset             , massGroup              , &
+           &                       metallicityGroup       , stellarTracks
+      logical                   :: foundMassGroup         , foundMetallicityGroup
+
+      ! Open the HDF5 file.
+      !$ call hdf5Access%set()
+      call stellarTracks%openFile(char(self%fileName),readOnly=.true.)
+      ! Check that this file has the correct format.
+      call stellarTracks%readAttribute('fileFormat',fileFormatVersion,allowPseudoScalar=.true.)
+      if (fileFormatVersion /= fileFormatVersionCurrent) call Error_Report('format of stellar tracks file is out of date'//{introspection:location})
+      ! Count up number of metallicities present, the number of stellar masses tabulated and the number of ages tabulated.
+      metallicityCountMaximum=0
+      initialMassCountMaximum=0
+      ageCountMaximum        =0
+      ! Count metallicity groups.
+      foundMetallicityGroup=.true.
+      do while (foundMetallicityGroup)
+         groupName="metallicity"
+         groupName=groupName//(metallicityCountMaximum+1)
+         foundMetallicityGroup=stellarTracks%hasGroup(char(groupName))
+         if (foundMetallicityGroup) then
+            metallicityCountMaximum=metallicityCountMaximum+1
+            metallicityGroup=stellarTracks%openGroup(char(groupName))
+            ! Find mass groups.
+            foundMassGroup=.true.
+            do while (foundMassGroup)
+               groupName="mass"
+               groupName=groupName//(initialMassCountMaximum+1)
+               foundMassGroup=metallicityGroup%hasGroup(char(groupName))
+               if (foundMassGroup) then
+                  initialMassCountMaximum=initialMassCountMaximum+1
+                  massGroup=metallicityGroup%openGroup(char(groupName))
+                  ageDataset=massGroup%openDataset('age')
+                  ageCountMaximum=max(ageCountMaximum,int(ageDataset%size(1)))
+                  call ageDataset%close()
+                  call massGroup%close()
+               end if
+            end do
+            call metallicityGroup%close()
+         end if
+      end do
+      ! Allocate storage space for data.
+      allocate(self%metallicityLogarithmic(metallicityCountMaximum))
+      allocate(self%countMassInitial      (metallicityCountMaximum))
+      allocate(self%massInitial           (initialMassCountMaximum,metallicityCountMaximum))
+      allocate(self%countAge              (initialMassCountMaximum,metallicityCountMaximum))
+      allocate(self%age                   (ageCountMaximum,initialMassCountMaximum,metallicityCountMaximum))
+      allocate(self%luminosityTrack       (ageCountMaximum,initialMassCountMaximum,metallicityCountMaximum))
+      allocate(self%temperatureTrack      (ageCountMaximum,initialMassCountMaximum,metallicityCountMaximum))
+      ! Read in all data.
+      do metallicityCount=1,metallicityCountMaximum
+         ! Open the metallicity group.
+         groupName="metallicity"
+         groupName=groupName//metallicityCount
+         metallicityGroup=stellarTracks%openGroup(char(groupName))
+         ! Get the metallicity.
+         call metallicityGroup%readDatasetStatic('metallicity', self%metallicityLogarithmic(metallicityCount:metallicityCount))
+         ! Count how many masses are tabulated at this metallicity.
+         initialMassCount=0
+         foundMassGroup=.true.
+         do while (foundMassGroup)
+            groupName="mass"
+            groupName=groupName//(initialMassCount+1)
+            foundMassGroup=metallicityGroup%hasGroup(char(groupName))
+            if (foundMassGroup) initialMassCount=initialMassCount+1
+         end do
+         self%countMassInitial(metallicityCount)=initialMassCount
+         ! Loop through all tabulated masses.
+         do initialMassCount=1,self%countMassInitial(metallicityCount)
+            ! Open the mass group.
+            groupName="mass"
+            groupName=groupName//initialMassCount
+            massGroup=metallicityGroup%openGroup(char(groupName))
+            ! Get initial mass.
+            call massGroup%readDatasetStatic('mass',self%massInitial(initialMassCount:initialMassCount,metallicityCount))
+            ! Read tracks.
+            ageDataset=massGroup%openDataset('age')
+            self%countAge(initialMassCount,metallicityCount)=int(ageDataset%size(1))
+            call ageDataset%close()
+            call massGroup%readDatasetStatic('age'                 ,self%age             (1:self%countAge(initialMassCount,metallicityCount),initialMassCount,metallicityCount))
+            call massGroup%readDatasetStatic('luminosity'          ,self%luminosityTrack (1:self%countAge(initialMassCount,metallicityCount),initialMassCount,metallicityCount))
+            call massGroup%readDatasetStatic('effectiveTemperature',self%temperatureTrack(1:self%countAge(initialMassCount,metallicityCount),initialMassCount,metallicityCount))
+            call massGroup%close()
+         end do
+         call metallicityGroup%close()
+      end do
+      ! Convert metallicities to logarithmic scale.
+      self%metallicityLogarithmic=log(self%metallicityLogarithmic)
+      self%countMetallicity=metallicityCountMaximum
+      ! Close the file.
+      call stellarTracks%close()
+      !$ call hdf5Access%unset()
+      ! Initialize interpolators.
+      allocate(self%interpolatorMass(                        metallicityCountMaximum))
+      allocate(self%interpolatorAge (initialMassCountMaximum,metallicityCountMaximum))
+      self%interpolatorMetallicity=interpolator(self%metallicityLogarithmic)
+      do metallicityCount=1,metallicityCountMaximum
+         self%interpolatorMass(metallicityCount)=interpolator(self%massInitial(1:self%countMassInitial(metallicityCount),metallicityCount))
+         do initialMassCount=1,self%countMassInitial(metallicityCount)
+            self%interpolatorAge(initialMassCount,metallicityCount)=interpolator(self%age(1:self%countAge(initialMassCount,metallicityCount),initialMassCount,metallicityCount))
+         end do
+      end do
+      self%initialized=.true.
+    end block
     return
-  end function fileConstructorInternal
+  end subroutine fileInitialize
 
   double precision function fileLuminosity(self,initialMass,metallicity,age)
     !!{
@@ -308,16 +327,16 @@ contains
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
      class           (stellarTracksFile), intent(inout)    :: self
-    double precision                   , intent(in   )    :: age                            , initialMass   , &
-         &                                                   metallicity
-    integer         (c_size_t         ), dimension(2,2,2) :: interpolationIndicesAge
-    integer         (c_size_t         ), dimension(2,2  ) :: interpolationIndicesMass
-    integer         (c_size_t         ), dimension(2    ) :: interpolationIndicesMetallicity
-    double precision                   , dimension(2,2,2) :: interpolationFactorsAge
-    double precision                   , dimension(2,2  ) :: interpolationFactorsMass
-    double precision                    ,dimension(2    ) :: interpolationFactorsMetallicity
-    logical                                               :: ageOutOfRange                  , massOutOfRange, &
-         &                                                   metallicityOutOfRange
+    double precision                    , intent(in   )    :: age                            , initialMass   , &
+         &                                                    metallicity
+    integer         (c_size_t          ), dimension(2,2,2) :: interpolationIndicesAge
+    integer         (c_size_t          ), dimension(2,2  ) :: interpolationIndicesMass
+    integer         (c_size_t          ), dimension(2    ) :: interpolationIndicesMetallicity
+    double precision                    , dimension(2,2,2) :: interpolationFactorsAge
+    double precision                    , dimension(2,2  ) :: interpolationFactorsMass
+    double precision                     ,dimension(2    ) :: interpolationFactorsMetallicity
+    logical                                                :: ageOutOfRange                  , massOutOfRange, &
+         &                                                    metallicityOutOfRange
 
     ! Get the interpolating factors.
     call self%interpolationCompute(                                 &
@@ -356,6 +375,7 @@ contains
     Using precomputed factors, interpolate in metallicity, mass and age in the given {\normalfont \ttfamily stellarTracks}.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
+    use            :: Error        , only : Error_Report
     implicit none
     class           (stellarTracksFile), intent(inout)                   :: self
     integer         (c_size_t         ), intent(in   ), dimension(2,2,2) :: interpolationIndicesAge
@@ -374,10 +394,13 @@ contains
     fileInterpolate=0.0d0
     do iMetallicity=1,2
        jMetallicity=interpolationIndicesMetallicity(iMetallicity)
+       if       (jMetallicity < 1 .or. jMetallicity > size(stellarTracks,dim=3)                ) call Error_Report('metallicity index out of range'//{introspection:location})
        do iMass=1,2
           jMass=interpolationIndicesMass(iMetallicity,iMass)
+          if    (jMass        < 1 .or. jMass        > self%countMassInitial(      jMetallicity)) call Error_Report('mass index out of range'       //{introspection:location})
           do iAge=1,2
              jAge=interpolationIndicesAge(iMetallicity,iMass,iAge)
+             if (jAge         < 1 .or. jAge         > self%countAge        (jMass,jMetallicity)) call Error_Report('age index out of range'        //{introspection:location})
              fileInterpolate=+fileInterpolate                                          &
                   &          +stellarTracks                  (jAge,jMass,jMetallicity) &
                   &          *interpolationFactorsMetallicity(iMetallicity           ) &
@@ -410,6 +433,7 @@ contains
     integer         (c_size_t         )                                  :: jMass                          , jMetallicity
     double precision                                                     :: logMetallicity
 
+    call self%initialize()
     ! Assume everything is in range initially.
     metallicityOutOfRange=.false.
     massOutOfRange       =.false.
@@ -461,7 +485,7 @@ contains
              interpolationFactorsAge(iMetallicity,iMass,:)=[0.0d0,1.0d0]
              ageOutOfRange=.true.
           else
-             call self%interpolatorAge(iMass,iMetallicity)%linearFactors(age,interpolationIndicesAge(iMetallicity,iMass,1),interpolationFactorsAge(iMetallicity,iMass,:))
+             call self%interpolatorAge(jMass,jMetallicity)%linearFactors(age,interpolationIndicesAge(iMetallicity,iMass,1),interpolationFactorsAge(iMetallicity,iMass,:))
              interpolationIndicesAge(iMetallicity,iMass,2)=interpolationIndicesAge(iMetallicity,iMass,1)+1
           end if
        end do

@@ -220,6 +220,7 @@ contains
     <objectDestructor name="cosmologyFunctions_"       />
     <objectDestructor name="excursionSetFirstCrossing_"/>
     <objectDestructor name="criticalOverdensity_"      />
+    <objectDestructor name="linearGrowth_"             />
     !!]
     return
   end function linearBarrierBrownianBridgeConstructorParameters

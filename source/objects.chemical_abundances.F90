@@ -51,6 +51,7 @@ module Chemical_Abundances_Structure
      !![
      <methods>
        <method description="Multiply a chemical abundance by a scalar." method="operator(*)" />
+       <method description="Multiply (in-place) a chemical abundance by a scalar." method="scale" />
        <method description="Divide a chemical abundance by a scalar." method="operator(/)" />
        <method description="Add two chemical abundances." method="operator(+)" />
        <method description="Subtract one chemical abundance from another." method="operator(-)" />

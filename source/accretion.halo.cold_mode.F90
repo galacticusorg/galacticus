@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+ Contributions to this file made by: Sachi Weerasooriya
+
   !!{
   An implementation of accretion from the \gls{igm} onto halos using simple truncation to
   mimic the effects of reionization and accounting for cold mode accretion.
@@ -399,9 +401,8 @@ contains
          &                                                           chemicalDensitiesCold
     !$omp threadprivate(chemicalDensities,chemicalDensitiesCold,chemicalDensitiesHot)
     double precision                                              :: massToDensityConversion, numberDensityHydrogen, &
-         &                                                           temperature            , temperatureHot       , &
-         &                                                           temperatureCold        , fractionCold         , &
-         &                                                           fractionHot
+         &                                                           temperatureHot         , temperatureCold      , &
+         &                                                           fractionHot            , fractionCold
 
     ! Get the basic component.
     basic                => node%basic()
@@ -410,7 +411,7 @@ contains
     ! Compute the temperature and density of accreting material, assuming accreted has is at the virial temperature and that the
     ! overdensity is one third of the mean overdensity of the halo.
     temperatureHot            =  self%darkMatterHaloScale_     %temperatureVirial(node        )
-    temperature               =  self%intergalacticMediumState_%temperature      (basic%time())
+    temperatureCold           =  self%intergalacticMediumState_%temperature      (basic%time())
     numberDensityHydrogen     =  hydrogenByMassPrimordial                  &
          &                       /atomicMassHydrogen                       &
          &                       *self %cosmologyParameters_%omegaBaryon() &
