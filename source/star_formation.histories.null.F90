@@ -34,7 +34,6 @@ Contains a module which implements a null star formation histories class.
    contains
      procedure :: create                => nullCreate
      procedure :: rate                  => nullRate
-     procedure :: output                => nullOutput
      procedure :: scales                => nullScales
      procedure :: metallicityBoundaries => nullMetallicityBoundaries
   end type starFormationHistoryNull
@@ -95,25 +94,6 @@ contains
     call historyStarFormation%destroy()
     return
   end subroutine nullRate
-
-  subroutine nullOutput(self,node,nodePassesFilter,historyStarFormation,indexOutput,indexTree,componentType,treeLock)
-    !!{
-    Output the star formation history for {\normalfont \ttfamily node}.
-    !!}
-    implicit none
-    class  (starFormationHistoryNull    ), intent(inout)         :: self
-    type   (treeNode                    ), intent(inout), target :: node
-    logical                              , intent(in   )         :: nodePassesFilter
-    type   (history                     ), intent(inout)         :: historyStarFormation
-    integer(c_size_t                    ), intent(in   )         :: indexOutput
-    integer(kind=kind_int8              ), intent(in   )         :: indexTree
-    type   (enumerationComponentTypeType), intent(in   )         :: componentType
-    type   (ompLock                     ), intent(inout)         :: treeLock
-    !$GLC attributes unused :: self, node, nodePassesFilter, historyStarFormation, indexOutput, indexTree, componentType, treeLock
-
-    ! Do nothing.
-    return
-  end subroutine nullOutput
 
   subroutine nullScales(self,historyStarFormation,massStellar,abundancesStellar)
     !!{

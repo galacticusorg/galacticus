@@ -28,9 +28,7 @@ Contains a module which implements a star formation histories class which record
    <description>
     A star formation histories class which records \emph{in situ} star formation. The star formation history is tabulated on a
     grid of time and is split between in-situ and accreted star formation. The time grid is the same as (and controlled by the
-    same parameters) are for the {\normalfont \ttfamily metallicitySplit} method. Output follows the conventional format, with
-    2D star formation history datasets to represent the history as a function of time and origin. The first element in the
-    origin dimension records in-situ star formation, while the second element records total star formation.
+    same parameters) are for the {\normalfont \ttfamily metallicitySplit} method.
    </description>
   </starFormationHistory>
   !!]
@@ -51,7 +49,7 @@ Contains a module which implements a star formation histories class which record
      final     ::                          inSituDestructor
      procedure :: create                => inSituCreate
      procedure :: rate                  => inSituRate
-     procedure :: output                => inSituOutput
+     procedure :: update                => inSituUpdate
      procedure :: scales                => inSituScales
      procedure :: make                  => inSituMake
      procedure :: autoHook              => inSituAutoHook
@@ -212,52 +210,22 @@ contains
     return
   end subroutine inSituRate
 
-  subroutine inSituOutput(self,node,nodePassesFilter,historyStarFormation,indexOutput,indexTree,componentType,treeLock)
+  subroutine inSituUpdate(self,node,indexOutput,historyStarFormation)
     !!{
-    Output the star formation history for {\normalfont \ttfamily node}.
+    Update the star formation history after outputting.
     !!}
-    use :: Output_HDF5               , only : outputFile
-    use :: Galacticus_Nodes          , only : mergerTree                    , nodeComponentBasic, treeNode
-    use :: Galactic_Structure_Options, only : enumerationComponentTypeDecode
-    use :: HDF5_Access               , only : hdf5Access
-    use :: IO_HDF5                   , only : hdf5Object
-    use :: String_Handling           , only : operator(//)
+    use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (starFormationHistoryInSitu  ), intent(inout)         :: self
     type            (treeNode                    ), intent(inout), target :: node
-    logical                                       , intent(in   )         :: nodePassesFilter
     type            (history                     ), intent(inout)         :: historyStarFormation
     integer         (c_size_t                    ), intent(in   )         :: indexOutput
-    integer         (kind=kind_int8              ), intent(in   )         :: indexTree
-    type            (enumerationComponentTypeType), intent(in   )         :: componentType
-    type            (ompLock                     ), intent(inout)         :: treeLock
     class           (nodeComponentBasic          ), pointer               :: basicParent
     type            (treeNode                    ), pointer               :: nodeParent
     double precision                                                      :: timeBegin           , timeEnd
-    type            (varying_string              )                        :: groupName
-    type            (hdf5Object                  )                        :: historyGroup        , outputGroup, &
-         &                                                                   treeGroup
     type            (history                     )                        :: newHistory
-    !$GLC attributes unused :: treeLock
 
     if (.not.historyStarFormation%exists()) return
-    if (nodePassesFilter) then
-       !$ call hdf5Access%set()
-       historyGroup=outputFile%openGroup("starFormationHistories","Star formation history data.")
-       groupName   ="Output"
-       groupName   =groupName//indexOutput
-       outputGroup =historyGroup%openGroup(char(groupName),"Star formation histories for all trees at each output.")
-       groupName   ="mergerTree"
-       groupName   =groupName//indexTree
-       treeGroup   =outputGroup %openGroup(char(groupName),"Star formation histories for each tree."               )
-       groupName   =enumerationComponentTypeDecode(componentType,includePrefix=.false.)//"Time"
-       groupname   =groupName           //node%index()
-       call treeGroup%writeDataset(historyStarFormation%time,char(groupName),"Star formation history times of the "         //char(enumerationComponentTypeDecode(componentType,includePrefix=.false.))//" component.")
-       groupName   =enumerationComponentTypeDecode(componentType,includePrefix=.false.)//"SFH"
-       groupname   =groupName//node%index()
-       call treeGroup%writeDataset(historyStarFormation%data,char(groupName),"Star formation history stellar masses of the "//char(enumerationComponentTypeDecode(componentType,includePrefix=.false.))//" component.")
-       !$ call hdf5Access%unset()
-    end if
     timeBegin=historyStarFormation%time(1)
     if (indexOutput < self%outputTimes_%count()) then
        timeEnd=self%outputTimes_%time(indexOutput+1)
@@ -275,7 +243,7 @@ contains
     historyStarFormation=newHistory
     call newHistory%destroy()
     return
-  end subroutine inSituOutput
+  end subroutine inSituUpdate
 
   subroutine inSituScales(self,historyStarFormation,massStellar,abundancesStellar)
     !!{

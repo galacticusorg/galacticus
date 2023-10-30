@@ -31,8 +31,9 @@ die("FAILED: LMCs not found in all trees")
     unless ( nelem($lmcs) >= nelem($hosts) );
 die("FAILED: LMCs labelled prior to infall time")
     if ( any($data->{'basicTimeLastIsolated'              }->($lmcs) < 11.8) );
+# Allow some tolerance in Vₘₐₓ test as peak velocities are determined numerically for tidally-heated subhalos.
 die("FAILED: LMCs labelled at low Vₘₐₓ")
-    if ( any($data->{'darkMatterProfileDMOVelocityMaximum'}->($lmcs) < 55.0) );
+    if ( any($data->{'darkMatterProfileDMOVelocityMaximum'}->($lmcs) < 54.0) );
 print "SUCCESS: filtered tree labeling\n";
 
 exit;

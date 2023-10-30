@@ -122,7 +122,7 @@ contains
     !![
     <inputParameter>
       <name>fileName</name>
-      <defaultValue>inputPath(pathTypeDataStatic)//'stellarAstrophysics/Stellar_Properties_Compilation.xml'</defaultValue>
+      <defaultValue>inputPath(pathTypeDataStatic)//'stellarAstrophysics/stellarPropertiesCompilationStandard.xml'</defaultValue>
       <description>The name of the XML file from which to read stellar properties (ejected masses, yields, etc.).</description>
       <source>parameters</source>
     </inputParameter>

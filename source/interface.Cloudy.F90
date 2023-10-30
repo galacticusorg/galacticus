@@ -79,7 +79,11 @@ contains
           if (.not.File_Exists(cloudyPath//".tar.gz")) then
              call displayMessage("downloading Cloudy code....",verbosityLevelWorking)
              call download('"http://data.nublado.org/cloudy_releases/c'//char(cloudyVersionMajor)//'/'//char(cloudyVersion)//'.tar.gz"',char(cloudyPath)//'.tar.gz',status=status)
-             if (status /= 0) call Error_Report("failed to download Cloudy code"//{introspection:location})
+             if (status /= 0) then
+                ! Try the "old/" subdirectory. Sometimes the source is moved to this path prior to a new release.
+                call download('"http://data.nublado.org/cloudy_releases/c'//char(cloudyVersionMajor)//'/old/'//char(cloudyVersion)//'.tar.gz"',char(cloudyPath)//'.tar.gz',status=status)
+                if (status /= 0) call Error_Report("failed to download Cloudy code"//{introspection:location})
+             end if
           end if
           ! Unpack and patch the code.
           call displayMessage("unpacking and patching Cloudy code....",verbosityLevelWorking)

@@ -181,8 +181,9 @@ module IO_HDF5
      procedure :: IO_HDF5_Write_Dataset_Double_6D
      procedure :: IO_HDF5_Write_Dataset_Character_1D
      procedure :: IO_HDF5_Write_Dataset_VarString_1D
+     procedure :: IO_HDF5_Write_Dataset_VarDouble_1D
+     procedure :: IO_HDF5_Write_Dataset_VarVarDouble_1D
      procedure :: IO_HDF5_Write_Dataset_VarDouble_2D
-     procedure :: IO_HDF5_Write_Dataset_VarDouble_3D
      procedure :: IO_HDF5_Write_Dataset_VarInteger8_2D
      generic   :: writeDataset        => IO_HDF5_Write_Dataset_Integer_1D        , &
           &                              IO_HDF5_Write_Dataset_Integer_2D        , &
@@ -198,8 +199,9 @@ module IO_HDF5
           &                              IO_HDF5_Write_Dataset_Double_6D         , &
           &                              IO_HDF5_Write_Dataset_Character_1D      , &
           &                              IO_HDF5_Write_Dataset_VarString_1D      , &
+          &                              IO_HDF5_Write_Dataset_VarDouble_1D      , &
+          &                              IO_HDF5_Write_Dataset_VarVarDouble_1D   , &
           &                              IO_HDF5_Write_Dataset_VarDouble_2D      , &
-          &                              IO_HDF5_Write_Dataset_VarDouble_3D      , &
           &                              IO_HDF5_Write_Dataset_VarInteger8_2D
      procedure :: IO_HDF5_Read_Attribute_Integer_Scalar
      procedure :: IO_HDF5_Read_Attribute_Integer_1D_Array_Allocatable
@@ -256,36 +258,38 @@ module IO_HDF5
      procedure :: IO_HDF5_Read_Dataset_Character_1D_Array_Static
      procedure :: IO_HDF5_Read_Dataset_VarString_1D_Array_Allocatable
      procedure :: IO_HDF5_Read_Dataset_VarString_1D_Array_Static
+     procedure :: IO_HDF5_Read_Dataset_VarDouble_1D_Array_Allocatable
+     procedure :: IO_HDF5_Read_Dataset_VarVarDouble_1D_Array_Allocatable
      procedure :: IO_HDF5_Read_Dataset_VarDouble_2D_Array_Allocatable
-     procedure :: IO_HDF5_Read_Dataset_VarDouble_3D_Array_Allocatable
      procedure :: IO_HDF5_Read_Dataset_VarInteger8_2D_Array_Allocatable
-     generic   :: readDataset         => IO_HDF5_Read_Dataset_Integer_1D_Array_Allocatable    , &
-          &                              IO_HDF5_Read_Dataset_Integer_2D_Array_Allocatable    , &
-          &                              IO_HDF5_Read_Dataset_Integer8_1D_Array_Allocatable   , &
-          &                              IO_HDF5_Read_Dataset_Integer8_2D_Array_Allocatable   , &
-          &                              IO_HDF5_Read_Dataset_Integer8_3D_Array_Allocatable   , &
-          &                              IO_HDF5_Read_Dataset_Double_1D_Array_Allocatable     , &
-          &                              IO_HDF5_Read_Dataset_Double_2D_Array_Allocatable     , &
-          &                              IO_HDF5_Read_Dataset_Double_3D_Array_Allocatable     , &
-          &                              IO_HDF5_Read_Dataset_Double_4D_Array_Allocatable     , &
-          &                              IO_HDF5_Read_Dataset_Double_5D_Array_Allocatable     , &
-          &                              IO_HDF5_Read_Dataset_Double_6D_Array_Allocatable     , &
-          &                              IO_HDF5_Read_Dataset_Character_1D_Array_Allocatable  , &
-          &                              IO_HDF5_Read_Dataset_VarString_1D_Array_Allocatable  , &
-          &                              IO_HDF5_Read_Dataset_VarDouble_2D_Array_Allocatable  , &
-          &                              IO_HDF5_Read_Dataset_VarDouble_3D_Array_Allocatable  , &
+     generic   :: readDataset         => IO_HDF5_Read_Dataset_Integer_1D_Array_Allocatable     , &
+          &                              IO_HDF5_Read_Dataset_Integer_2D_Array_Allocatable     , &
+          &                              IO_HDF5_Read_Dataset_Integer8_1D_Array_Allocatable    , &
+          &                              IO_HDF5_Read_Dataset_Integer8_2D_Array_Allocatable    , &
+          &                              IO_HDF5_Read_Dataset_Integer8_3D_Array_Allocatable    , &
+          &                              IO_HDF5_Read_Dataset_Double_1D_Array_Allocatable      , &
+          &                              IO_HDF5_Read_Dataset_Double_2D_Array_Allocatable      , &
+          &                              IO_HDF5_Read_Dataset_Double_3D_Array_Allocatable      , &
+          &                              IO_HDF5_Read_Dataset_Double_4D_Array_Allocatable      , &
+          &                              IO_HDF5_Read_Dataset_Double_5D_Array_Allocatable      , &
+          &                              IO_HDF5_Read_Dataset_Double_6D_Array_Allocatable      , &
+          &                              IO_HDF5_Read_Dataset_Character_1D_Array_Allocatable   , &
+          &                              IO_HDF5_Read_Dataset_VarString_1D_Array_Allocatable   , &
+          &                              IO_HDF5_Read_Dataset_VarDouble_1D_Array_Allocatable   , &
+          &                              IO_HDF5_Read_Dataset_VarVarDouble_1D_Array_Allocatable, &
+          &                              IO_HDF5_Read_Dataset_VarDouble_2D_Array_Allocatable   , &
           &                              IO_HDF5_Read_Dataset_VarInteger8_2D_Array_Allocatable
-     generic   :: readDatasetStatic   => IO_HDF5_Read_Dataset_Integer_1D_Array_Static         , &
-          &                              IO_HDF5_Read_Dataset_Integer_2D_Array_Static         , &
-          &                              IO_HDF5_Read_Dataset_Integer8_1D_Array_Static        , &
-          &                              IO_HDF5_Read_Dataset_Integer8_2D_Array_Static        , &
-          &                              IO_HDF5_Read_Dataset_Double_1D_Array_Static          , &
-          &                              IO_HDF5_Read_Dataset_Double_2D_Array_Static          , &
-          &                              IO_HDF5_Read_Dataset_Double_3D_Array_Static          , &
-          &                              IO_HDF5_Read_Dataset_Double_4D_Array_Static          , &
-          &                              IO_HDF5_Read_Dataset_Double_5D_Array_Static          , &
-          &                              IO_HDF5_Read_Dataset_Double_6D_Array_Static          , &
-          &                              IO_HDF5_Read_Dataset_Character_1D_Array_Static       , &
+     generic   :: readDatasetStatic   => IO_HDF5_Read_Dataset_Integer_1D_Array_Static          , &
+          &                              IO_HDF5_Read_Dataset_Integer_2D_Array_Static          , &
+          &                              IO_HDF5_Read_Dataset_Integer8_1D_Array_Static         , &
+          &                              IO_HDF5_Read_Dataset_Integer8_2D_Array_Static         , &
+          &                              IO_HDF5_Read_Dataset_Double_1D_Array_Static           , &
+          &                              IO_HDF5_Read_Dataset_Double_2D_Array_Static           , &
+          &                              IO_HDF5_Read_Dataset_Double_3D_Array_Static           , &
+          &                              IO_HDF5_Read_Dataset_Double_4D_Array_Static           , &
+          &                              IO_HDF5_Read_Dataset_Double_5D_Array_Static           , &
+          &                              IO_HDF5_Read_Dataset_Double_6D_Array_Static           , &
+          &                              IO_HDF5_Read_Dataset_Character_1D_Array_Static        , &
           &                              IO_HDF5_Read_Dataset_VarString_1D_Array_Static
      procedure :: IO_HDF5_Read_Table_Real_1D_Array_Allocatable
      procedure :: IO_HDF5_Read_Table_Integer_1D_Array_Allocatable
@@ -14471,9 +14475,9 @@ contains
     return
   end subroutine IO_HDF5_Read_Dataset_VarString_1D_Array_Static_Do_Read
 
-  subroutine IO_HDF5_Read_Dataset_VarDouble_2D_Array_Allocatable(self,datasetName,datasetValue,readBegin,readCount,readSelection)
+  subroutine IO_HDF5_Read_Dataset_VarDouble_1D_Array_Allocatable(self,datasetName,datasetValue,readBegin,readCount,readSelection)
     !!{
-    Open and read a double scalar dataset in {\normalfont \ttfamily self}.
+    Open and read a varying-length 1D double dataset in {\normalfont \ttfamily self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F       , H5S_ALL_F            , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
@@ -14575,7 +14579,7 @@ contains
           call Error_Report(message//{introspection:location})
        end if
        ! Open the dataset.
-       datasetObject=self%openDataset(datasetName)
+       datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
     end if
 
     ! Check if the dataset is a reference.
@@ -14834,22 +14838,25 @@ contains
     end if
 
     ! Determine how to close the object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeDataset .and. datasetObject%isReference()) then
-       ! It was, so close the referenced dataset.
-       call h5dclose_f(datasetObject%objectID,errorCode)
-       if (errorCode < 0) then
-          message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+    if (self%hdf5ObjectType == hdf5ObjectTypeDataset) then
+       ! Input was a dataset object. Test if it was a reference.
+       if (datasetObject%isReference()) then
+          ! It was, so close the referenced dataset.
+          call h5dclose_f(datasetObject%objectID,errorCode)
+          if (errorCode < 0) then
+             message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
+             call Error_Report(message//{introspection:location})
+          end if
+          ! Restore the object ID of the original dataset.
+          self%objectID=storedDatasetID
        end if
-       ! Restore the object ID of the original dataset.
-       self%objectID=storedDatasetID
     end if
     return
-  end subroutine IO_HDF5_Read_Dataset_VarDouble_2D_Array_Allocatable
+  end subroutine IO_HDF5_Read_Dataset_VarDouble_1D_Array_Allocatable
 
-  subroutine IO_HDF5_Read_Dataset_VarDouble_3D_Array_Allocatable(self,datasetName,datasetValue,readBegin,readCount,readSelection)
+  subroutine IO_HDF5_Read_Dataset_VarVarDouble_1D_Array_Allocatable(self,datasetName,datasetValue,readBegin,readCount,readSelection)
     !!{
-    Open and read a double scalar dataset in {\normalfont \ttfamily self}.
+    Open and read a varying-length $\times$ varying-length 1D double dataset in {\normalfont \ttfamily self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F       , H5S_ALL_F            , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
@@ -14876,7 +14883,7 @@ contains
     type            (hdset_reg_ref_t_f), save       , target                                  :: referencedRegion
     integer                                                                                   :: errorCode
     integer         (kind=HSIZE_T     )                                                       :: i                 , j
-    integer         (kind=HID_T       )                                                       :: datasetDataspaceID, dereferencedObjectID, &
+    integer         (kind=HID_T       )                                                       :: datasetDataspaceID, dereferencedObjectID    , &
          &                                                                                       memorySpaceID     , storedDatasetID
     logical                                                                                   :: isReference       , readSubsection
     type            (hdf5Object       )                                                       :: datasetObject
@@ -15222,6 +15229,384 @@ contains
     end if
 
     ! Determine how to close the object.
+    if (self%hdf5ObjectType /= hdf5ObjectTypeDataset .and. datasetObject%isReference()) then
+       ! It was, so close the referenced dataset.
+       call h5dclose_f(datasetObject%objectID,errorCode)
+       if (errorCode < 0) then
+          message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
+          call Error_Report(message//{introspection:location})
+       end if
+       ! Restore the object ID of the original dataset.
+       self%objectID=storedDatasetID
+    end if
+    return
+  end subroutine IO_HDF5_Read_Dataset_VarVarDouble_1D_Array_Allocatable
+
+  subroutine IO_HDF5_Read_Dataset_VarDouble_2D_Array_Allocatable(self,datasetName,datasetValue,readBegin,readCount,readSelection)
+    !!{
+    Open and read a varying-length 2D double dataset in {\normalfont \ttfamily self}.
+    !!}
+    use            :: Error             , only : Error_Report
+    use            :: HDF5              , only : H5P_DEFAULT_F       , H5S_ALL_F            , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
+          &                                      H5T_STD_REF_DSETREG , HID_T                , HSIZE_T               , h5dclose_f                 , &
+          &                                      h5dget_space_f      , h5dread_f            , h5rdereference_f      , h5rget_region_f            , &
+          &                                      h5sclose_f          , h5screate_simple_f   , h5sget_select_bounds_f, h5sget_simple_extent_dims_f, &
+          &                                      h5sselect_elements_f, h5sselect_hyperslab_f, hdset_reg_ref_t_f     , hsize_t                    , &
+          &                                      size_t
+    use, intrinsic :: ISO_C_Binding     , only : c_f_pointer         , c_loc
+    use            :: ISO_Varying_String, only : assignment(=)       , operator(//)         , trim
+    implicit none
+    type            (hdf5VarDouble    ), allocatable, dimension(:,:), intent(  out)           :: datasetValue
+    class           (hdf5Object       )                             , intent(inout)           :: self
+    character       (len=*            )                             , intent(in   ), optional :: datasetName
+    integer         (kind=HSIZE_T     )             , dimension(2  ), intent(in   ), optional :: readBegin         , readCount
+    integer         (kind=HSIZE_T     )             , dimension(:  ), intent(in   ), optional :: readSelection
+    integer         (kind=HSIZE_T     )             , dimension(2  )                          :: datasetDimensions , datasetMaximumDimensions, &
+         &                                                                                       referenceEnd      , referenceStart
+    integer         (kind=HSIZE_T     ), allocatable, dimension(:,:)                          :: readSelectionMap
+    ! <HDF5> Why is "referencedRegion" saved? Because if it is not then it gets dynamically allocated on the stack, which results
+    ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
+    ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
+    ! deallocated. This is not an elegant solution, but it works.
+    type            (hdset_reg_ref_t_f), save       , target                                  :: referencedRegion
+    integer                                                                                   :: errorCode
+    integer         (kind=HSIZE_T     )                                                       :: i                 , j
+    integer         (kind=HID_T       )                                                       :: datasetDataspaceID, dereferencedObjectID, &
+         &                                                                                       memorySpaceID     , storedDatasetID
+    logical                                                                                   :: isReference       , readSubsection
+    type            (hdf5Object       )                                                       :: datasetObject
+    type            (varying_string   )                                                       :: datasetNameActual , message
+    type            (c_ptr            )                                                       :: dataBuffer
+    type            (hdf5VlenC        ), allocatable, dimension(:,:), target                  :: datasetValueC
+
+    ! Check that this module is initialized.
+    call IO_HDF_Assert_Is_Initialized
+
+    ! Get the name of the dataset.
+    if (present(datasetName)) then
+       datasetNameActual=datasetName
+    else
+       datasetNameActual=self%objectName
+    end if
+
+    ! Check that the object is already open.
+    if (.not.self%isOpenValue) then
+       message="attempt to read dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
+       call Error_Report(message//{introspection:location})
+    end if
+
+    ! Check that the object is already open.
+    if (.not.self%isOpenValue) then
+       message="attempt to read dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
+       call Error_Report(message//{introspection:location})
+    end if
+
+    ! If a subsection is to be read, we need both start and count values.
+    if (present(readBegin)) then
+       if (.not.present(readCount)) then
+          message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
+          call Error_Report(message//{introspection:location})
+       end if
+       readSubsection=.true.
+    else
+       if (present(readCount)) then
+          message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
+          call Error_Report(message//{introspection:location})
+       end if
+       readSubsection=.false.
+    end if
+    ! Only one of a subsection and a selection can be present.
+    if (readSubsection.and.present(readSelection)) then
+       message="can not specify both a subsection and selection of dataset '"//trim(datasetNameActual)//"' for reading"
+       call Error_Report(message//{introspection:location})
+    end if
+
+    ! Check if the object is an dataset, or something else.
+    if (self%hdf5ObjectType == hdf5ObjectTypeDataset) then
+       ! Object is the dataset.
+       select type (self)
+       type is (hdf5Object)
+          datasetObject=self
+       end select
+
+       ! No name should be supplied in this case.
+       if (present(datasetName)) then
+          message="dataset name was supplied for dataset object '"//trim(datasetNameActual)//"'"
+          call Error_Report(message//{introspection:location})
+       end if
+    else
+       ! Require that an dataset name was supplied.
+       if (.not.present(datasetName)) then
+          message="dataset name was not supplied for object '"//self%objectName//"'"
+          call Error_Report(message//{introspection:location})
+       end if
+       ! Check that the dataset exists.
+       if (.not.self%hasDataset(datasetName)) then
+          message="dataset '"//trim(datasetName)//"' does not exist in '"//self%objectName//"'"
+          call Error_Report(message//{introspection:location})
+       end if
+       ! Open the dataset.
+       datasetObject=self%openDataset(datasetName)
+    end if
+
+    ! Check if the dataset is a reference.
+    storedDatasetID=0
+    if (datasetObject%isReference()) then
+       ! Mark as a reference.
+       isReference=.true.
+       ! It is, so read the reference.
+       dataBuffer=c_loc(referencedRegion)
+       errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
+       if (errorCode /= 0) then
+          message="unable to read reference in dataset '"//datasetObject%objectName//"'"
+          call Error_Report(message//{introspection:location})
+       end if
+       ! Now dereference the pointer.
+       call h5rdereference_f(datasetObject%objectID,referencedRegion,dereferencedObjectID,errorCode)
+       if (errorCode < 0) then
+          message="unable to dereference pointer in dataset '"//datasetObject%objectName//"'"
+          call Error_Report(message//{introspection:location})
+       end if
+       ! If the dataset object was opened internally, then close it.
+       if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
+          call h5dclose_f(datasetObject%objectID,errorCode)
+          if (errorCode < 0) then
+             message="unable to close pointer dataset '"//datasetObject%objectName//"'"
+             call Error_Report(message//{introspection:location})
+          end if
+       else
+          ! Store the ID of this dataset so that we can replace it later.
+          storedDatasetID=datasetObject%objectID
+       end if
+       ! The dataset object ID is now replaced with the referenced region ID.
+       datasetObject%objectID=dereferencedObjectID
+       ! Get the dataspace for this referenced region.
+       call h5rget_region_f(dereferencedObjectID,referencedRegion,datasetDataspaceID,errorCode)
+       if (errorCode /= 0) then
+          message="unable to get dataspace of referenced region in dataset '"//datasetObject%objectName//"'"
+          call Error_Report(message//{introspection:location})
+       end if
+    else
+       ! Mark as not reference.
+       isReference=.false.
+       ! Not a reference, so simply get the dataspace.
+       call h5dget_space_f(datasetObject%objectID,datasetDataspaceID,errorCode)
+       if (errorCode /= 0) then
+          message="unable to get dataspace of dataset '"//datasetObject%objectName//"'"
+          call Error_Report(message//{introspection:location})
+       end if
+    end if
+
+    ! Check that the object is a 1D double array.
+    call datasetObject%assertDatasetType(H5T_VLEN_DOUBLE,2)
+
+    ! Get the dimensions of the array to be read.
+    if (isReference) then
+       ! This is a reference, so get the extent of the referenced region.
+       call h5sget_select_bounds_f(datasetDataspaceID,referenceStart,referenceEnd,errorCode)
+       if (errorCode < 0) then
+          message="unable to get bounds of referenced region for dataset '"//datasetObject%objectName//"'"
+          call Error_Report(message//{introspection:location})
+       end if
+       ! Compute the dimensions of the referenced region.
+       datasetDimensions=referenceEnd-referenceStart+1
+       ! If only a subsection is to be read, then select the appropriate hyperslab.
+       if (readSubsection) then
+          ! Check that subsection start values are legal.
+          if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
+             message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
+             call Error_Report(message//{introspection:location})
+          end if
+          ! Check that subsection extent is legal.
+          if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
+             message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
+             call Error_Report(message//{introspection:location})
+          end if
+          ! Select hyperslab.
+          call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,referenceStart-1+readBegin-1,readCount,errorCode)
+          if (errorCode < 0) then
+             message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
+             call Error_Report(message//{introspection:location})
+          end if
+          ! Set the size of the data to read in.
+          datasetDimensions=readCount
+          ! Construct a suitable memory space ID to read this data into.
+          call h5screate_simple_f(1,readCount,memorySpaceID,errorCode)
+          if (errorCode < 0) then
+             message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
+             call Error_Report(message//{introspection:location})
+          end if
+          ! Select hyperslab to read to.
+          referenceStart=0
+          call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
+          if (errorCode < 0) then
+             message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
+             call Error_Report(message//{introspection:location})
+          end if
+       else if (present(readSelection)) then
+          ! A selection is to be read - create a suitable dataspace selection.
+          ! Check that the selection is valid.
+          if (any(readSelection < 1 .or. readSelection > datasetDimensions(1))) then
+             message="requested selection extends outside of bounds of dataset '"//datasetObject%objectName//"'"
+             call Error_Report(message//{introspection:location})
+          end if
+          ! Create a map for selecting elements if necessary.
+          allocate(readSelectionMap(1,size(readSelection)))
+          forall(i=1:size(readSelection))
+             readSelectionMap(:,i)=[readSelection(i)]
+          end forall
+          ! Create selection.
+          call h5sselect_elements_f(datasetDataspaceID,H5S_SELECT_SET_F,1,size(readSelectionMap,dim=2,kind=size_t),readSelectionMap,errorCode)
+          if (errorCode < 0) then
+             message="could not select filespace selection for dataset '"//datasetObject%objectName//"'"
+             call Error_Report(message//{introspection:location})
+          end if
+          deallocate(readSelectionMap)
+          ! Set the size of the data to read in.
+          datasetDimensions(1)=size(readSelection)
+          ! Construct a suitable memory space ID to read this data into.
+          call h5screate_simple_f(1,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
+          if (errorCode < 0) then
+             message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
+             call Error_Report(message//{introspection:location})
+          end if
+          ! Select hyperslab to read to.
+          referenceStart=0
+          call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
+          if (errorCode < 0) then
+             message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
+             call Error_Report(message//{introspection:location})
+          end if
+       else
+          ! Construct a suitable memory space ID to read this data into.
+          call h5screate_simple_f(2,datasetDimensions,memorySpaceID,errorCode)
+          if (errorCode < 0) then
+             message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
+             call Error_Report(message//{introspection:location})
+          end if
+          ! Select hyperslab to read to.
+          referenceStart=0
+          call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
+          if (errorCode < 0) then
+             message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
+             call Error_Report(message//{introspection:location})
+          end if
+       end if
+    else
+       ! Not a reference, so get the extent of the entire dataset.
+       call h5sget_simple_extent_dims_f(datasetDataspaceID,datasetDimensions,datasetMaximumDimensions,errorCode)
+       if (errorCode < 0) then
+          message="unable to get dimensions of dataset '"//datasetObject%objectName//"'"
+          call Error_Report(message//{introspection:location})
+       end if
+       ! If only a subsection is to be read, then select the appropriate hyperslab.
+       if (readSubsection) then
+          ! Check that subsection start values are legal.
+          if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
+             message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
+             call Error_Report(message//{introspection:location})
+          end if
+          ! Check that subsection extent is legal.
+          if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
+             message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
+             call Error_Report(message//{introspection:location})
+          end if
+          ! Select hyperslab.
+          call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,readBegin-1,readCount,errorCode)
+          if (errorCode < 0) then
+             message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
+             call Error_Report(message//{introspection:location})
+          end if
+          ! Set the size of the data to read in.
+          datasetDimensions=readCount
+          ! Construct a suitable memory space ID to read this data into.
+          call h5screate_simple_f(2,readCount,memorySpaceID,errorCode)
+          if (errorCode < 0) then
+             message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
+             call Error_Report(message//{introspection:location})
+          end if
+          ! Select hyperslab to read to.
+          referenceStart=0
+          call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
+          if (errorCode < 0) then
+             message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
+             call Error_Report(message//{introspection:location})
+          end if
+       else if (present(readSelection)) then
+          ! A selection is to be read - create a suitable dataspace selection.
+          ! Check that the selection is valid.
+          if (any(readSelection < 1 .or. readSelection > datasetDimensions(1))) then
+             message="requested selection extends outside of bounds of dataset '"//datasetObject%objectName//"'"
+             call Error_Report(message//{introspection:location})
+          end if
+          ! Create a map for selecting elements if necessary.
+          allocate(readSelectionMap(1,size(readSelection)))
+          forall(i=1:size(readSelection))
+             readSelectionMap(:,i)=[readSelection(i)]
+          end forall
+          ! Create selection.
+          call h5sselect_elements_f(datasetDataspaceID,H5S_SELECT_SET_F,1,size(readSelectionMap,dim=2,kind=size_t),readSelectionMap,errorCode)
+          if (errorCode < 0) then
+             message="could not select filespace selection for dataset '"//datasetObject%objectName//"'"
+             call Error_Report(message//{introspection:location})
+          end if
+          deallocate(readSelectionMap)
+          ! Set the size of the data to read in.
+          datasetDimensions(1)=size(readSelection)
+          ! Construct a suitable memory space ID to read this data into.
+          call h5screate_simple_f(2,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
+          if (errorCode < 0) then
+             message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
+             call Error_Report(message//{introspection:location})
+          end if
+          ! Select hyperslab to read to.
+          referenceStart=0
+          call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
+          if (errorCode < 0) then
+             message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
+             call Error_Report(message//{introspection:location})
+          end if
+       else
+          ! Set the default memory space ID.
+          memorySpaceID=H5S_ALL_F
+       end if
+    end if
+
+    ! Allocate the array to the appropriate size.
+    if (allocated(datasetValue)) deallocate(datasetValue)
+    allocate(datasetValue (datasetDimensions(1),datasetDimensions(2)))
+    allocate(datasetValueC(datasetDimensions(1),datasetDimensions(2)))
+    ! Read the dataset.
+    dataBuffer=c_loc(datasetValueC)
+    errorCode=h5dread(datasetObject%objectID,H5T_VLEN_DOUBLE(1),memorySpaceID,datasetDataspaceID,H5P_DEFAULT_F,dataBuffer)
+    if (errorCode /= 0) then
+       message="unable to read dataset '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
+       call Error_Report(message//{introspection:location})
+    end if
+    do i=1,datasetDimensions(1)
+       do j=1,datasetDimensions(2)
+          call c_f_pointer(datasetValueC(i,j)%p,datasetValue(i,j)%row,shape=[datasetValueC(i,j)%length])
+       end do
+    end do
+    deallocate(datasetValueC)
+
+    ! Close the dataspace.
+    call h5sclose_f(datasetDataspaceID,errorCode)
+    if (errorCode /= 0) then
+       message="unable to close dataspace of dataset '"//datasetObject%objectName//"'"
+       call Error_Report(message//{introspection:location})
+    end if
+
+    ! Close the memory dataspace if necessary.
+    if (memorySpaceID /= H5S_ALL_F) then
+       call h5sclose_f(memorySpaceID,errorCode)
+       if (errorCode /= 0) then
+          message="unable to close memory dataspace for dataset '"//datasetObject%objectName//"'"
+          call Error_Report(message//{introspection:location})
+       end if
+    end if
+
+    ! Determine how to close the object.
     if (self%hdf5ObjectType == hdf5ObjectTypeDataset .and. datasetObject%isReference()) then
        ! It was, so close the referenced dataset.
        call h5dclose_f(datasetObject%objectID,errorCode)
@@ -15233,11 +15618,11 @@ contains
        self%objectID=storedDatasetID
     end if
     return
-  end subroutine IO_HDF5_Read_Dataset_VarDouble_3D_Array_Allocatable
-  
-  subroutine IO_HDF5_Write_Dataset_VarDouble_2D(self,datasetValue,datasetName,commentText,appendTo,chunkSize,compressionLevel,datasetReturned)
+  end subroutine IO_HDF5_Read_Dataset_VarDouble_2D_Array_Allocatable
+
+  subroutine IO_HDF5_Write_Dataset_VarDouble_1D(self,datasetValue,datasetName,commentText,appendTo,chunkSize,compressionLevel,datasetReturned)
     !!{
-    Open and write a double 2-D array dataset in {\normalfont \ttfamily self}.
+    Open and write a varying-length double 1-D array dataset in {\normalfont \ttfamily self}.
     !!}
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: Error             , only : Error_Report
@@ -15410,11 +15795,11 @@ contains
     ! Copy the dataset to return if necessary.
     if (present(datasetReturned)) datasetReturned=datasetObject
     return
-  end subroutine IO_HDF5_Write_Dataset_VarDouble_2D
+  end subroutine IO_HDF5_Write_Dataset_VarDouble_1D
   
-  subroutine IO_HDF5_Write_Dataset_VarDouble_3D(self,datasetValue,datasetName,commentText,appendTo,chunkSize,compressionLevel,datasetReturned)
+  subroutine IO_HDF5_Write_Dataset_VarVarDouble_1D(self,datasetValue,datasetName,commentText,appendTo,chunkSize,compressionLevel,datasetReturned)
     !!{
-    Open and write a double 3-D array dataset in {\normalfont \ttfamily self}.
+    Open and write a varying-length $\times$ varying-length 1D double array dataset in {\normalfont \ttfamily self}.
     !!}
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: Error             , only : Error_Report
@@ -15595,8 +15980,187 @@ contains
     ! Copy the dataset to return if necessary.
     if (present(datasetReturned)) datasetReturned=datasetObject
     return
-  end subroutine IO_HDF5_Write_Dataset_VarDouble_3D
+  end subroutine IO_HDF5_Write_Dataset_VarVarDouble_1D
 
+  subroutine IO_HDF5_Write_Dataset_VarDouble_2D(self,datasetValue,datasetName,commentText,appendTo,chunkSize,compressionLevel,datasetReturned)
+    !!{
+    Open and write a varying-length double 2-D array dataset in {\normalfont \ttfamily self}.
+    !!}
+    use, intrinsic :: ISO_C_Binding     , only : c_loc
+    use            :: Error             , only : Error_Report
+    use            :: HDF5              , only : H5P_DEFAULT_F, H5S_SELECT_SET_F  , H5T_NATIVE_DOUBLE          , HID_T                , &
+          &                                      HSIZE_T      , h5dget_space_f    , h5dset_extent_f            , h5dwrite_vl_f        , &
+          &                                      h5sclose_f   , h5screate_simple_f, h5sget_simple_extent_dims_f, h5sselect_hyperslab_f, &
+          &                                      hsize_t
+    use            :: ISO_Varying_String, only : assignment(=), operator(//)      , trim
+    implicit none
+    class           (hdf5Object    ), intent(inout)                         :: self
+    character       (len=*         ), intent(in   ), optional               :: commentText                , datasetName
+    type            (hdf5VarDouble ), intent(in   ), dimension(:,:)         :: datasetValue
+    logical                         , intent(in   ), optional               :: appendTo
+    integer         (hsize_t       ), intent(in   ), optional               :: chunkSize
+    integer                         , intent(in   ), optional               :: compressionLevel
+    type            (hdf5Object    ), intent(  out), optional               :: datasetReturned
+    integer         (kind=HSIZE_T  )               , dimension(2  )         :: datasetDimensions          , hyperslabCount      , &
+         &                                                                   hyperslabStart             , newDatasetDimensions, &
+         &                                                                   newDatasetDimensionsMaximum
+    type            (hdf5VlenC     ), allocatable  , dimension(:,:), target :: datasetValueC
+    type            (c_ptr         )                                        :: datasetValueC_
+    integer         (kind=HSIZE_T  )                                        :: i                          , j
+    integer                                                                 :: datasetRank                , errorCode
+    integer         (kind=HID_T    )                                        :: dataspaceID                , newDataspaceID
+    logical                                                                 :: appendToActual             , preExisted
+    type            (hdf5Object    )                                        :: datasetObject
+    type            (varying_string)                                        :: datasetNameActual          , message
+
+    ! Check that this module is initialized.
+    call IO_HDF_Assert_Is_Initialized()
+
+    ! Get the name of the dataset.
+    if (present(datasetName)) then
+       datasetNameActual=     datasetName
+    else
+       datasetNameActual=self% objectName
+    end if
+
+    ! Check that the object is already open.
+    if (.not.self%isOpenValue) then
+       message="attempt to write dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
+       call Error_Report(message//{introspection:location})
+    end if
+
+    ! Determine append status.
+    if (present(appendTo)) then
+       appendToActual=appendTo
+    else
+       appendToActual=.false.
+    end if
+    ! Determine dataset dimensions
+    datasetDimensions=shape(datasetValue)
+    ! Check if the object is a dataset, or something else.
+    if (self%hdf5ObjectType == hdf5ObjectTypeDataset) then
+       ! If this dataset if not overwritable, report an error.
+       if (.not.(self%isOverwritable.or.appendToActual)) then
+          message="dataset '"//trim(datasetNameActual)//"' is not overwritable"
+          call Error_Report(message//{introspection:location})
+       else
+          ! Check that the object is a 1D vlen double.
+          call self%assertDatasetType(H5T_VLEN_DOUBLE,2)
+       end if
+       select type (self)
+       type is (hdf5Object)
+          datasetObject=self
+       end select
+       datasetNameActual=self%objectName
+       preExisted       =.true.
+    else
+       ! Check that an dataset name was supplied.
+       if (.not.present(datasetName)) then
+          message="no name was supplied for dataset in '"//self%objectName//"'"
+          call Error_Report(message//{introspection:location})
+       end if
+       ! Record if dataset already exists.
+       preExisted=self%hasDataset(datasetName)
+       ! Open the dataset.
+       datasetObject=IO_HDF5_Open_Dataset(self,datasetName,commentText,hdf5DataTypeVlenDouble,datasetDimensions,appendTo&
+            &=appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel)
+       ! Check that pre-existing object is a 1D double.
+       if (preExisted) call datasetObject%assertDatasetType(H5T_VLEN_DOUBLE,2)
+       ! If this dataset if not overwritable, report an error.
+       if (preExisted.and..not.(datasetObject%isOverwritable.or.appendToActual)) then
+          message="dataset '"//trim(datasetName)//"' is not overwritable"
+          call Error_Report(message//{introspection:location})
+       end if
+    end if
+
+    ! If appending is requested, get the size of the existing dataset.
+    if (appendToActual.and.preExisted) then
+       ! Get size of existing dataset here.
+       call h5dget_space_f(datasetObject%objectID,dataspaceID,errorCode)
+       if (errorCode < 0) then
+          message="could not get dataspace for dataset '"//trim(datasetNameActual)//"'"
+          call Error_Report(message//{introspection:location})
+       end if
+       call h5sget_simple_extent_dims_f(dataspaceID,newDatasetDimensions,newDatasetDimensionsMaximum,errorCode)
+       if (errorCode < 0) then
+          message="could not get dataspace extent for dataset '"//trim(datasetNameActual)//"'"
+          call Error_Report(message//{introspection:location})
+       end if
+       call h5sclose_f(dataspaceID,errorCode)
+       if (errorCode < 0) then
+          message="could not close dataspace for dataset '"//trim(datasetNameActual)//"'"
+          call Error_Report(message//{introspection:location})
+       end if
+       hyperslabStart      =newDatasetDimensions
+       hyperslabCount      =dataSetDimensions
+       newDatasetDimensions=newDatasetDimensions+datasetDimensions
+    else
+       newDatasetDimensions=datasetDimensions
+       hyperslabStart      =0
+       hyperslabCount      =datasetDimensions
+    end if
+
+    ! Set extent of the dataset.
+    if (datasetObject%chunkSize /= -1) then
+       call h5dset_extent_f(datasetObject%objectID,newDatasetDimensions,errorCode)
+       if (errorCode < 0) then
+          message="could not set extent of dataset '"//trim(datasetNameActual)//"'"
+          call Error_Report(message//{introspection:location})
+       end if
+    end if
+    ! Get the dataspace for the dataset.
+    call h5dget_space_f(datasetObject%objectID,dataspaceID,errorCode)
+    if (errorCode < 0) then
+       message="could not get dataspace for dataset '"//trim(datasetNameActual)//"'"
+       call Error_Report(message//{introspection:location})
+    end if
+    ! Select hyperslab to write.
+    call h5sselect_hyperslab_f(dataspaceID,H5S_SELECT_SET_F,hyperslabStart,hyperslabCount,errorCode)
+    if (errorCode < 0) then
+       message="could not select hyperslab for dataset '"//trim(datasetNameActual)//"'"
+       call Error_Report(message//{introspection:location})
+    end if
+    ! Create a dataspace for the data to be written.
+    datasetRank=2
+    call h5screate_simple_f(datasetRank,datasetDimensions,newDataspaceID,errorCode)
+    if (errorCode < 0) then
+       message="could not create dataspace for data to be written to dataset '"//trim(datasetNameActual)//"'"
+       call Error_Report(message//{introspection:location})
+    end if
+
+    ! Write the dataset.
+    allocate(datasetValueC(datasetDimensions(1),datasetDimensions(2)))
+    do i=1,datasetDimensions(1)
+       do j=1,datasetDimensions(2)
+          datasetValueC(i,j)%length=size (datasetValue(i,j)%row,kind=c_size_t)
+          datasetValueC(i,j)%p     =c_loc(datasetValue(i,j)%row              )
+       end do
+    end do
+    datasetValueC_=c_loc(datasetValueC)
+    errorCode     =H5Dwrite(datasetObject%objectID,H5T_VLEN_DOUBLE(1),newDataspaceID,dataspaceID,H5P_DEFAULT_F,datasetValueC_)
+    if (errorCode /= 0) then
+       message="unable to write dataset '"//datasetNameActual//"' in object '"//self%objectName//"'"
+       call Error_Report(message//{introspection:location})
+    end if
+    deallocate(datasetValueC)
+
+    ! Close the dataspaces.
+    call h5sclose_f(dataspaceID,errorCode)
+    if (errorCode < 0) then
+       message="unable to close dataspace for dataset '"//trim(datasetNameActual)//"'"
+       call Error_Report(message//{introspection:location})
+    end if
+    call h5sclose_f(newDataspaceID,errorCode)
+    if (errorCode < 0) then
+       message="unable to close new dataspace for dataset '"//trim(datasetNameActual)//"'"
+       call Error_Report(message//{introspection:location})
+    end if
+
+    ! Copy the dataset to return if necessary.
+    if (present(datasetReturned)) datasetReturned=datasetObject
+    return
+  end subroutine IO_HDF5_Write_Dataset_VarDouble_2D
+  
   subroutine IO_HDF5_Read_Dataset_VarInteger8_2D_Array_Allocatable(self,datasetName,datasetValue,readBegin,readCount,readSelection)
     !!{
     Open and read a variable-length integer-8 2D array dataset in {\normalfont \ttfamily self}.

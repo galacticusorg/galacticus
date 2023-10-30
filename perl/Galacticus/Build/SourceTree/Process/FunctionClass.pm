@@ -927,8 +927,7 @@ CODE
 					# $allowedParametersCode .= "       if (.not.any(trim(allowedParameters) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}->[$i]."')) countNew=countNew+1\n";
 					$allowedParametersCode .= "       isNew=.true.\n";
 					$allowedParametersCode .= "       do j=1,size(allowedParameters)\n";
-					$allowedParametersCode .= "          allowedParameter=trim(allowedParameters(j))\n";
-					$allowedParametersCode .= "          if (allowedParameter == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}->[$i]."') then\n";
+					$allowedParametersCode .= "          if (allowedParameters(j) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}->[$i]."') then\n";
 					$allowedParametersCode .= "             isNew=.false.\n";
 					$allowedParametersCode .= "             exit\n";
 					$allowedParametersCode .= "          end if\n";
@@ -949,8 +948,7 @@ CODE
 					# $allowedParametersCode .= "         if (.not.any(trim(allowedParameters(1:size(allowedParameters)-countNew)) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}->[$i]."')) then\n";
 					$allowedParametersCode .= "       isNew=.true.\n";
 					$allowedParametersCode .= "       do j=1,size(allowedParameters)-countNew\n";
-					$allowedParametersCode .= "          allowedParameter=trim(allowedParameters(j))\n";
-					$allowedParametersCode .= "          if (allowedParameter == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}->[$i]."') then\n";
+					$allowedParametersCode .= "          if (allowedParameters(j) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}->[$i]."') then\n";
 					$allowedParametersCode .= "             isNew=.false.\n";
 					$allowedParametersCode .= "             exit\n";
 					$allowedParametersCode .= "          end if\n";
@@ -987,8 +985,7 @@ CODE
 					# $allowedParametersCode .= "       if (.not.any(trim(allowedParameters) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'all'}->[$i]."')) countNew=countNew+1\n";
 					$allowedParametersCode .= "       isNew=.true.\n";
 					$allowedParametersCode .= "       do j=1,size(allowedParameters)\n";
-					$allowedParametersCode .= "          allowedParameter=trim(allowedParameters(j))\n";
-					$allowedParametersCode .= "          if (allowedParameter == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'all'}->[$i]."') then\n";
+					$allowedParametersCode .= "          if (allowedParameters(j) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'all'}->[$i]."') then\n";
 					$allowedParametersCode .= "             isNew=.false.\n";
 					$allowedParametersCode .= "             exit\n";
 					$allowedParametersCode .= "          end if\n";
@@ -1008,8 +1005,7 @@ CODE
 					# $allowedParametersCode .= "         if (.not.any(trim(allowedParameters(1:size(allowedParameters)-countNew)) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'all'}->[$i]."')) then\n";
 					$allowedParametersCode .= "       isNew=.true.\n";
 					$allowedParametersCode .= "       do j=1,size(allowedParameters)-countNew\n";
-					$allowedParametersCode .= "          allowedParameter=trim(allowedParameters(j))\n";
-					$allowedParametersCode .= "          if (allowedParameter == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'all'}->[$i]."') then\n";
+					$allowedParametersCode .= "          if (allowedParameters(j) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'all'}->[$i]."') then\n";
 					$allowedParametersCode .= "             isNew=.false.\n";
 					$allowedParametersCode .= "             exit\n";
 					$allowedParametersCode .= "          end if\n";
@@ -1055,7 +1051,6 @@ CODE
 		$allowedParametersCode = "type   (varying_string), allocatable, dimension(:) :: allowedParametersTmp\n".$directive->{'name'}."DsblVldtn=".$directive->{'name'}."DsblVldtn\n".$allowedParametersCode;
 		$allowedParametersCode = "integer                                            :: countNew, j\n"                                                                              .$allowedParametersCode;
 		$allowedParametersCode = "logical                                            :: isNew\n"                                                                                    .$allowedParametersCode;
-		$allowedParametersCode = "type   (varying_string)                            :: allowedParameter\n"                                                                         .$allowedParametersCode;
 	    } else {
 		$allowedParametersCode = "!\$GLC attributes unused :: self, allowedParameters, sourceName\n".$directive->{'name'}."DsblVldtn=".$directive->{'name'}."DsblVldtn\n";
 	    }
@@ -1108,7 +1103,7 @@ CODE
 		    last
 			unless ( $node );
 		    # Handle linked lists.
-		    (my $linkedListCode, my $linkedListResetCode, my $linkedListFinalizeCode) = &deepCopyLinkedList($nonAbstractClass,$linkedListVariables,$linkedListResetVariables,$linkedListFinalizeVariables,$debugging);
+		    (my $linkedListCode, my $linkedListResetCode, my $linkedListFinalizeCode) = &deepCopyLinkedList($class,$nonAbstractClass,$linkedListVariables,$linkedListResetVariables,$linkedListFinalizeVariables,$debugging);
 		    $deepCopy->{'assignments' } .= $linkedListCode;
 		    $deepCopy->{'resetCode'   } .= $linkedListResetCode;
 		    $deepCopy->{'finalizeCode'} .= $linkedListFinalizeCode;
@@ -1300,7 +1295,7 @@ CODE
 			$node = $node->{'type'} eq "contains" ? $node->{'firstChild'} : $node->{'sibling'};
 		    }
 		    # Handle linked lists.
-		    (my $linkedListInputCode, my $linkedListOutputCode) = &stateStoreLinkedList($nonAbstractClass,$stateLinkedListVariables);
+		    (my $linkedListInputCode, my $linkedListOutputCode) = &stateStoreLinkedList($class,$nonAbstractClass,$stateLinkedListVariables);
 		    $stateStore->{'inputCode'}  .= $linkedListInputCode;
 		    $stateStore->{'outputCode'} .= $linkedListOutputCode;
 		    # Handle explicit state store functions.
@@ -2624,14 +2619,15 @@ sub striplc {
 
 sub deepCopyLinkedList {
     # Create deep-copy instructions for linked list objects.
+    my $class                       = shift();
     my $nonAbstractClass            = shift();
     my $linkedListVariables         = shift();
     my $linkedListResetVariables    = shift();
     my $linkedListFinalizeVariables = shift();
     my $debugging                   = shift();
     return ("","","")
-	unless ( exists($nonAbstractClass->{'linkedList'}) );
-    my $linkedList = $nonAbstractClass->{'linkedList'};
+	unless ( exists($class->{'linkedList'}) );
+    my $linkedList = $class->{'linkedList'};
     # Add variables needed for linked list processing.
     push(
 	@{$linkedListVariables},
@@ -2669,8 +2665,8 @@ sub deepCopyLinkedList {
     $code::objectType      =                                            $linkedList->{'objectType'     }          ;
     $code::objectIntrinsic = exists($linkedList->{'objectIntrinsic'}) ? $linkedList->{'objectIntrinsic'} : "class";
     $code::next            =                                            $linkedList->{'next'           }          ;
-    $code::location        = &Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'});
-    $code::debugCode       = $debugging ? "if (debugReporting.and.mpiSelf\%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): [".$code::objectType."] : ".$code::object." : ')//loc(itemNew_)//' : '//loc(itemNew_%".$code::object.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'},compact => 1).",verbosityLevelSilent)\n" : "";
+    $code::location        = &Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($class->{'node'},$class->{'node'}->{'line'});
+    $code::debugCode       = $debugging ? "if (debugReporting.and.mpiSelf\%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): [".$code::objectType."] : ".$code::object." : ')//loc(itemNew_)//' : '//loc(itemNew_%".$code::object.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($class->{'node'},$class->{'node'}->{'line'},compact => 1).",verbosityLevelSilent)\n" : "";
     my $deepCopyCode = fill_in_string(<<'CODE', PACKAGE => 'code');
 destination%{$variable} => null            ()
 destination_            => null            ()
@@ -2724,11 +2720,12 @@ CODE
 
 sub stateStoreLinkedList {
     # Create state store/restore instructions for linked list objects.
+    my $class               = shift();
     my $nonAbstractClass    = shift();
     my $linkedListVariables = shift();
     return ("","","")
-	unless ( exists($nonAbstractClass->{'linkedList'}) );
-    my $linkedList = $nonAbstractClass->{'linkedList'};
+	unless ( exists($class->{'linkedList'}) );
+    my $linkedList = $class->{'linkedList'};
     # Add variables needed for linked list processing.
     push(
 	@{$linkedListVariables},
