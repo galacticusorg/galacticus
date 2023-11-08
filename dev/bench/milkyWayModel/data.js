@@ -1,36 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1698608008261,
+  "lastUpdate": 1699476975674,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "committer": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "id": "7fd32e0c9ba487562e5f59c37469bbf00fcb2e90",
-          "message": "fix: Correct iterator limit for allowed parameters",
-          "timestamp": "2023-03-14T17:30:11Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/7fd32e0c9ba487562e5f59c37469bbf00fcb2e90"
-        },
-        "date": 1678827302057,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 312.955,
-            "unit": "seconds",
-            "range": 0.247484342937196
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10672,6 +10644,34 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 13.7879671075113,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abensonca@gmail.com"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "f9e67cd1dde359d0864c04813883ea8618ad1bc4",
+          "message": "Merge pull request #502 from galacticusorg/dependabot/github_actions/tj-actions/changed-files-40\n\nbuild(deps): bump tj-actions/changed-files from 39 to 40",
+          "timestamp": "2023-10-30T14:28:00Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/f9e67cd1dde359d0864c04813883ea8618ad1bc4"
+        },
+        "date": 1699476974752,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 145.618,
+            "unit": "seconds",
+            "range": 0.15230101772584
           }
         ]
       }
