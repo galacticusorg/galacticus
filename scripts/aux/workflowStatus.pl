@@ -4,6 +4,8 @@ use warnings;
 use JSON;
 use Data::Dumper;
 
+my $repo = "galacticus";
+
 my @workflows =
     (
      {
@@ -37,7 +39,7 @@ foreach my $workflow ( @workflows ) {
 	last
 	    unless ( $status eq ":question:" );
     }
-    system("curl -X POST -H 'Content-type: application/json' --data '{\"repo\":\"galacticus\",\"workflow\":\"".$workflow->{'name'}."\",\"status\":\"".$status."\",\"url\":\"https://github.com/galacticusorg/galacticus/actions/workflows/".$workflow->{'file'}."\"}' ".$ENV{'SLACK_WEBHOOK_STATUS_URL'});
+    system("curl -X POST -H 'Content-type: application/json' --data '{\"repo\":\"".$repo."\",\"workflow\":\"".$workflow->{'name'}."\",\"status\":\"".$status."\",\"url\":\"https://github.com/galacticusorg/".$repo."/actions/workflows/".$workflow->{'file'}."\"}' ".$ENV{'SLACK_WEBHOOK_STATUS_URL'});
 
 }
 
