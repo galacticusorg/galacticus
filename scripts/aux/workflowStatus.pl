@@ -37,7 +37,7 @@ foreach my $workflow ( @workflows ) {
 	last
 	    unless ( $status eq ":question:" );
     }
-    system("curl -X POST -H 'Content-type: application/json' --data '{\"workflow\":\"".$workflow->{'name'}."\",\"status\":\"".$status."\"}' ".$ENV{'SLACK_WEBHOOK_STATUS_URL'});
+    system("curl -X POST -H 'Content-type: application/json' --data '{\"repo\":\"galacticus\",\"workflow\":\"".$workflow->{'name'}."\",\"status\":\"".$status."\",\"url\":\"https://github.com/galacticusorg/galacticus/actions/workflows/".$workflow->{'file'}."\"}' ".$ENV{'SLACK_WEBHOOK_STATUS_URL'});
 
 }
 
