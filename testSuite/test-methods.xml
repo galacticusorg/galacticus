@@ -650,6 +650,15 @@
     <version>0.9.4</version>
     <componentBlackHole value="standard">
     <outputData value="true"/>
+    <nodePropertyExtractor value="multi" parameterLevel="top">
+      <nodePropertyExtractor value="nodeIndices"                   iterable="no"/>
+      <nodePropertyExtractor value="massBlackHoles"                iterable="no"/>
+      <nodePropertyExtractor value="spinBlackHoles"                iterable="no"/>
+      <nodePropertyExtractor value="radiativeEfficiencyBlackHoles" iterable="no"/>
+      <nodePropertyExtractor value="radiusBlackHoles"              iterable="no"/>
+      <nodePropertyExtractor value="massAccretionRateBlackHoles"   iterable="no"/>
+      <nodePropertyExtractor value="jetPowerBlackHoles"            iterable="no"/>
+    </nodePropertyExtractor>
   </componentBlackHole>
 
   </parameters>
