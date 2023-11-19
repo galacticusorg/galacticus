@@ -43,7 +43,7 @@
      private
      double precision :: efficiency      , exponentVelocity , &
           &              timescaleMinimum
-     logical          :: diskSupported   , spheroidSupported
+     logical          :: diskSupported   , spheroidSupported, NSCSupported
    contains
      procedure :: timescale => dynamicalTimeTimescale
   end type starFormationTimescaleDynamicalTime
@@ -101,7 +101,7 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily dynamicalTime} timescale for star formation class.
     !!}
-    use :: Galacticus_Nodes, only : defaultDiskComponent, defaultSpheroidComponent
+    use :: Galacticus_Nodes, only : defaultDiskComponent, defaultSpheroidComponent, defaultNSCComponent
     implicit none
     type            (starFormationTimescaleDynamicalTime)                :: self
     double precision                                     , intent(in   ) :: efficiency      , exponentVelocity, &
@@ -110,12 +110,15 @@ contains
     <constructorAssign variables="efficiency, exponentVelocity, timescaleMinimum"/>
     !!]
     
-    self%diskSupported    = defaultDiskComponent    %velocityIsGettable() &
-         &                 .and.                                          &
-         &                  defaultDiskComponent    %  radiusIsGettable() 
-    self%spheroidSupported= defaultSpheroidComponent%velocityIsGettable() &
-         &                 .and.                                          &
-         &                  defaultSpheroidComponent%  radiusIsGettable() 
+    self%diskSupported              = defaultDiskComponent    %velocityIsGettable() &
+         &                            .and.                                         &
+         &                            defaultDiskComponent    %  radiusIsGettable() 
+    self%spheroidSupported          = defaultSpheroidComponent%velocityIsGettable() &
+         &                            .and.                                         &
+         &                            defaultSpheroidComponent%  radiusIsGettable() 
+    self%NSCSupported               = defaultNSCComponent     %velocityIsGettable() &
+         &                            .and.                                         &
+         &                            defaultNSCComponent     %  radiusIsGettable() 
     return
   end function dynamicalTimeConstructorInternal
 
@@ -133,8 +136,8 @@ contains
     !!}
     use :: Array_Utilities                 , only : operator(.intersection.)
     use :: Error                           , only : Error_Report
-    use :: Galacticus_Nodes                , only : defaultDiskComponent    , defaultSpheroidComponent, nodeComponent, nodeComponentDisk, &
-          &                                         nodeComponentSpheroid
+    use :: Galacticus_Nodes                , only : defaultDiskComponent    , defaultSpheroidComponent, defaultNSCComponent, nodeComponent, nodeComponentDisk, &
+          &                                         nodeComponentSpheroid   , nodeComponentNSC
     use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
     implicit none
     class           (starFormationTimescaleDynamicalTime), intent(inout) :: self
@@ -144,8 +147,8 @@ contains
          &                                                                  timeDynamical
 
     select type (component)
-    class is (nodeComponentDisk    )
-       if (.not.self%diskSupported) then
+    class is (nodeComponentDisk              )
+       if (.not.self%diskSupported              ) then
           call Error_Report(                                                                                          &
                &            'disk component must have gettable radius and velocity properties.'                    // &
                &            Component_List(                                                                           &
@@ -159,8 +162,8 @@ contains
        end if
        velocity=component%velocity()
        radius  =component%radius  ()
-    class is (nodeComponentSpheroid)
-       if (.not.self%spheroidSupported) then
+    class is (nodeComponentSpheroid          )
+       if (.not.self%spheroidSupported          ) then
           call Error_Report(                                                                                          &
                &            'spheroid component must have gettable radius and velocity properties.'                // &
                &            Component_List(                                                                           &
@@ -168,6 +171,21 @@ contains
                &                            defaultSpheroidComponent%velocityAttributeMatch(requireGettable=.true.)   &
                &                           .intersection.                                                             &
                &                            defaultSpheroidComponent%  radiusAttributeMatch(requireGettable=.true.)   &
+               &                          )                                                                        // &
+               &            {introspection:location}                                                                  &
+               &           )
+       end if
+       velocity=component%velocity()
+       radius  =component%radius  ()
+    class is (nodeComponentNSC)
+       if (.not.self%NSCSupported) then
+          call Error_Report(                                                                                          &
+               &            'nuclear star cluster component must have gettable radius and velocity properties.'    // &
+               &            Component_List(                                                                           &
+               &                           'NSC'                                                    ,  &
+               &                            defaultNSCComponent%velocityAttributeMatch(requireGettable=.true.)   &
+               &                           .intersection.                                                             &
+               &                            defaultNSCComponent%radiusAttributeMatch(requireGettable=.true.)   &
                &                          )                                                                        // &
                &            {introspection:location}                                                                  &
                &           )

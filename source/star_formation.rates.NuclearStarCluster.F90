@@ -18,33 +18,30 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a class for black hole accretion rates.
+Contains a module which provides a class that implements rates of star formation in nuclear star cluster.
 !!}
 
-module Black_Hole_Accretion_Rates
+module Star_Formation_Rates_NSC
   !!{
-  Implements a class for black hole accretion rates.
+  Provides a class that implements calculations of rates of formation in nuclear star cluster.
   !!}
-  use :: Galacticus_Nodes, only : nodeComponentBlackHole
-  implicit none
+  use :: Galacticus_Nodes, only : treeNode
   private
 
   !![
   <functionClass>
-   <name>blackHoleAccretionRate</name>
-   <descriptiveName>Black Hole Accretion Rates</descriptiveName>
-   <description>
-    Class providing models of black hole accretion.
-   </description>
-   <default>standard</default>
-   <method name="rateAccretion" >
-    <description>Computes the mass accretion rate onto a black hole.</description>
-    <type>void</type>
+   <name>starFormationRateNSC</name>
+   <descriptiveName>Rates for star formation in nuclear star cluster.</descriptiveName>
+   <description>Class providing models of rates of star formation in nuclear star cluster.</description>
+   <default>Krumholz2009</default>
+   <method name="rate" >
+    <description>Returns the rate (in units of $\mathrm{M}_\odot$ Gyr$^{-1}$) for star formation in the nuclear star cluster component of {\normalfont \ttfamily node}.</description>
+    <type>double precision</type>
     <pass>yes</pass>
-    <argument>class           (nodeComponentBlackHole), intent(inout) :: blackHole                                          </argument>
-    <argument>double precision                        , intent(  out) :: rateMassAccretionSpheroid, rateMassAccretionHotHalo</argument>
+    <selfTarget>yes</selfTarget>
+    <argument>type(treeNode)  , intent(inout) :: node</argument>
    </method>
   </functionClass>
   !!]
 
-end module Black_Hole_Accretion_Rates
+end module Star_Formation_Rates_NSC

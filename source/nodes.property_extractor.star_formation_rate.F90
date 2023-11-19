@@ -29,7 +29,7 @@ Contains a module which implements a star formation rate property extractor clas
    <description>
     A node property extractor which extracts the star formation rate in a galaxy. The type of star formation rate is controlled
     by the {\normalfont \ttfamily [component]} parameter, which can be either ``{\normalfont \ttfamily disk}'', ``{\normalfont
-    \ttfamily spheroid}'', or ``{\normalfont \ttfamily total}''. The corresponding star formation rate is extracted as
+    \ttfamily spheroid}'', ``{\normalfont \ttfamily nsc}'' or ``{\normalfont \ttfamily total}''. The corresponding star formation rate is extracted as
     {\normalfont \ttfamily \textless\ component\textgreater\ StarFormationRate} in units of $M_\odot$/Gyr.
    </description>
   </nodePropertyExtractor>
@@ -187,7 +187,7 @@ contains
     Return a description of the starFormationRate property.
     !!}
     implicit none
-    type (varying_string                      )                  :: starFormationRateDescription
+    type (varying_string                        )                :: starFormationRateDescription
     class(nodePropertyExtractorStarFormationRate), intent(inout) :: self
 
     starFormationRateDescription=self%description_

@@ -24,7 +24,7 @@ Contains a module which implements a galactic high-pass filter for total stellar
   !![
   <galacticFilter name="galacticFilterStellarMass">
    <description>
-   A galactic high-pass filter for stellar mass. Galaxies with a combined disk plus spheroid stellar mass greater than or equal
+   A galactic high-pass filter for stellar mass. Galaxies with a combined disk, spheroid plus nuclear star cluster stellar mass greater than or equal
    to a fixed threshold, $M_{\star,0}=${\normalfont \ttfamily [massThreshold]}.
    </description>
   </galacticFilter>
@@ -91,18 +91,21 @@ contains
     !!{
     Implement a  stellar mass high-pass galactic filter.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid, treeNode
+    use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid, nodeComponentNSC ,treeNode
     implicit none
     class           (galacticFilterStellarMass), intent(inout)         :: self
     type            (treeNode                 ), intent(inout), target :: node
     class           (nodeComponentDisk        ), pointer               :: disk
     class           (nodeComponentSpheroid    ), pointer               :: spheroid
+    class           (nodeComponentNSC         ), pointer               :: NSC
     double precision                                                   :: stellarMass
 
     disk              => node    %disk       ()
     spheroid          => node    %spheroid   ()
+    NSC               => node    %NSC        ()
     stellarMass       = +disk    %massStellar() &
-         &              +spheroid%massStellar()
+         &              +spheroid%massStellar() &
+         &              +NSC     %massStellar()
     stellarMassPasses =  stellarMass            &
          &              >=                      &
          &               self%massThreshold

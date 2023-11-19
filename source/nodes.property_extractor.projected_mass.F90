@@ -47,7 +47,7 @@
      type   (varying_string          ), allocatable, dimension(:) :: radiusSpecifiers
      type   (radiusSpecifier         ), allocatable, dimension(:) :: radii
      logical                                                      :: darkMatterScaleRadiusIsNeeded          , diskIsNeeded        , &
-          &                                                          spheroidIsNeeded                       , virialRadiusIsNeeded
+          &                                                          spheroidIsNeeded                       , NSCIsNeeded         , virialRadiusIsNeeded
    contains
      final     ::                       projectedMassDestructor
      procedure :: columnDescriptions => projectedMassColumnDescriptions
@@ -137,6 +137,7 @@ contains
          &                                          self%radii                        , &
          &                                          self%diskIsNeeded                 , &
          &                                          self%spheroidIsNeeded             , &
+         &                                          self%NSCIsNeeded                  , &
          &                                          self%virialRadiusIsNeeded         , &
          &                                          self%darkMatterScaleRadiusIsNeeded  &
          &                                         )
@@ -191,8 +192,9 @@ contains
     use :: Galactic_Structure_Options          , only : componentTypeAll               , massTypeGalactic            , massTypeStellar
     use :: Galactic_Structure_Radii_Definitions, only : radiusTypeDarkMatterScaleRadius, radiusTypeDiskHalfMassRadius, radiusTypeDiskRadius            , radiusTypeGalacticLightFraction, &
           &                                             radiusTypeGalacticMassFraction , radiusTypeRadius            , radiusTypeSpheroidHalfMassRadius, radiusTypeSpheroidRadius       , &
-          &                                             radiusTypeStellarMassFraction  , radiusTypeVirialRadius
-    use :: Galacticus_Nodes                    , only : nodeComponentDarkMatterProfile , nodeComponentDisk           , nodeComponentSpheroid           , treeNode
+          &                                             radiusTypeNSCHalfMassRadius    , radiusTypeNSCRadius         , radiusTypeStellarMassFraction   , radiusTypeVirialRadius         
+    use :: Galacticus_Nodes                    , only : nodeComponentDarkMatterProfile , nodeComponentDisk           , nodeComponentSpheroid           , nodeComponentNSC               , &
+          &                                             treeNode
     use :: Numerical_Integration               , only : integrator, GSL_Integ_Gauss15
     use :: Numerical_Comparison                , only : Values_Agree
     implicit none
@@ -203,6 +205,7 @@ contains
     type            (multiCounter                      ), intent(inout) , optional    :: instance
     class           (nodeComponentDisk                 ), pointer                     :: disk
     class           (nodeComponentSpheroid             ), pointer                     :: spheroid
+    class           (nodeComponentNSC                  ), pointer                     :: NSC
     class           (nodeComponentDarkMatterProfile    ), pointer                     :: darkMatterProfile
     double precision                                    , parameter                   :: toleranceRelative   =1.0d-2
     type            (integrator                        )                              :: integrator_
@@ -216,6 +219,7 @@ contains
     radiusVirial                                              =  self%darkMatterHaloScale_%radiusVirial(node                    )
     if (self%                 diskIsNeeded) disk              =>                                        node%disk             ()
     if (self%             spheroidIsNeeded) spheroid          =>                                        node%spheroid         ()
+    if (self%                  NSCIsNeeded) NSC               =>                                        node%NSC              ()
     if (self%darkMatterScaleRadiusIsNeeded) darkMatterProfile =>                                        node%darkMatterProfile()
     integrator_=integrator(projectedMassIntegrand,toleranceRelative=1.0d-3,hasSingularities=.true.,integrationRule=GSL_Integ_Gauss15)
     do i=1,self%radiiCount
@@ -231,10 +235,14 @@ contains
           radius_=+radius_*disk             %        radius()
        case   (radiusTypeSpheroidRadius        %ID)
           radius_=+radius_*spheroid         %        radius()
+       case   (radiusTypeNSCRadius             %ID)
+          radius_=+radius_*NSC              %        radius() 
        case   (radiusTypeDiskHalfMassRadius    %ID)
           radius_=+radius_*disk             %halfMassRadius()
        case   (radiusTypeSpheroidHalfMassRadius%ID)
           radius_=+radius_*spheroid         %halfMassRadius()
+       case   (radiusTypeNSCHalfMassRadius     %ID)
+          radius_=+radius_*NSC              %halfMassRadius()
        case   (radiusTypeGalacticMassFraction  %ID,  &
             &  radiusTypeGalacticLightFraction %ID)
           radius_=+radius_                                         &

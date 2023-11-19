@@ -41,9 +41,11 @@ module Galactic_Structure_Radii_Definitions
    <entry label="virialRadius"          />
    <entry label="darkMatterScaleRadius" />
    <entry label="diskRadius"            />
+   <entry label="NSCRadius"             />
    <entry label="spheroidRadius"        />
    <entry label="diskHalfMassRadius"    />
    <entry label="spheroidHalfMassRadius"/>
+   <entry label="NSCHalfMassRadius"     />
    <entry label="galacticMassFraction"  />
    <entry label="galacticLightFraction" />
    <entry label="stellarMassFraction"   />
@@ -80,14 +82,15 @@ module Galactic_Structure_Radii_Definitions
 
 contains
 
-  subroutine Galactic_Structure_Radii_Definition_Decode(descriptors,specifiers,diskRequired,spheroidRequired,radiusVirialRequired,radiusScaleRequired)
+  subroutine Galactic_Structure_Radii_Definition_Decode(descriptors,specifiers,diskRequired,spheroidRequired,NSCRequired,radiusVirialRequired,radiusScaleRequired)
     !!{
     Decode a set of radii descriptors and return the corresponding specifiers.
     !!}
     use :: Galactic_Structure_Options    , only : enumerationComponentTypeEncode   , enumerationMassTypeEncode, weightByLuminosity      , weightByMass , &
           &                                       weightIndexNull
     use :: Error                         , only : Component_List                   , Error_Report
-    use :: Galacticus_Nodes              , only : defaultDarkMatterProfileComponent, defaultDiskComponent     , defaultSpheroidComponent, treeNode
+    use :: Galacticus_Nodes              , only : defaultDarkMatterProfileComponent, defaultDiskComponent     , defaultSpheroidComponent, defaultNSCComponent, &
+         &                                        treeNode     
     use :: ISO_Varying_String            , only : char                             , extract                  , operator(==)            , assignment(=), &
          &                                        operator(//)
     use :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
@@ -95,7 +98,7 @@ contains
     implicit none
     type     (varying_string ), intent(in   ), dimension(:)              :: descriptors
     type     (radiusSpecifier), intent(inout), dimension(:), allocatable :: specifiers
-    logical                   , intent(  out)                            :: diskRequired        , spheroidRequired   , &
+    logical                   , intent(  out)                            :: diskRequired        , spheroidRequired   , NSCRequired, &
          &                                                                  radiusVirialRequired, radiusScaleRequired
     type     (varying_string  )              , dimension(5)              :: radiusDefinition
     type     (varying_string  )              , dimension(3)              :: fractionDefinition
@@ -107,6 +110,7 @@ contains
 
     diskRequired        =.false.
     spheroidRequired    =.false.
+    NSCRequired         =.false.
     radiusVirialRequired=.false.
     radiusScaleRequired =.false.
     radiiCount          =size(descriptors)
@@ -175,6 +179,19 @@ contains
                &                       )                                                                             // &
                &       {introspection:location}                                                                         &
                &                             )
+       case ('NSCRadius'            )
+          specifiers(i)%type=radiusTypeNSCRadius
+          NSCRequired                 =.true.
+          if (.not.defaultNSCComponent             %radiusIsGettable        ())                                        &
+               & call Error_Report                                                                                      &
+               &(                                                                                                       &
+               &                              'nuclear star cluster radius is not gettable.'//                                          &
+               &        Component_List(                                                                                 &
+               &                       'NSC'                                                                        ,  &
+               &                        defaultNSCComponent    %        radiusAttributeMatch(requireGettable=.true.)   &
+               &                       )                                                                             // &
+               &       {introspection:location}                                                                         &
+               &                             )
        case ('diskHalfMassRadius'    )
           specifiers(i)%type=radiusTypeDiskHalfMassRadius
           diskRequired                 =.true.
@@ -198,6 +215,19 @@ contains
                &        Component_List(                                                                                 &
                &                       'spheroid'                                                                    ,  &
                &                        defaultSpheroidComponent%halfMassRadiusAttributeMatch(requireGettable=.true.)   &
+               &                       )                                                                             // &
+               &       {introspection:location}                                                                         &
+               &                             )
+       case ('NSCHalfMassRadius')
+          specifiers(i)%type=radiusTypeNSCHalfMassRadius
+          NSCRequired   =.true.
+          if (.not.defaultNSCComponent         %halfMassRadiusIsGettable())                                        &
+               & call Error_Report                                                                                      &
+               &(                                                                                                       &
+               &                              'nuclear star cluster half-mass radius is not gettable.'//                            &
+               &        Component_List(                                                                                 &
+               &                       'NSC'                                                                    ,  &
+               &                        defaultNSCComponent%halfMassRadiusAttributeMatch(requireGettable=.true.)   &
                &                       )                                                                             // &
                &       {introspection:location}                                                                         &
                &                             )

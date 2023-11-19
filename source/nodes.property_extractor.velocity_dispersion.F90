@@ -58,7 +58,8 @@
      type   (varying_string          ), allocatable, dimension(:) :: radiusSpecifiers
      type   (radiusSpecifier         ), allocatable, dimension(:) :: radii
      logical                                                      :: darkMatterScaleRadiusIsNeeded          , diskIsNeeded        , &
-          &                                                          spheroidIsNeeded                       , virialRadiusIsNeeded
+          &                                                          spheroidIsNeeded                       , NSCIsNeeded         , &
+          &                                                          virialRadiusIsNeeded
    contains
      final     ::                       velocityDispersionDestructor
      procedure :: columnDescriptions => velocityDispersionColumnDescriptions
@@ -168,6 +169,7 @@ contains
          &                                          self%radii                        , &
          &                                          self%diskIsNeeded                 , &
          &                                          self%spheroidIsNeeded             , &
+         &                                          self%NSCIsNeeded                  , &
          &                                          self%virialRadiusIsNeeded         , &
          &                                          self%darkMatterScaleRadiusIsNeeded  &
          &                                         )
@@ -224,8 +226,9 @@ contains
     use :: Galactic_Structure_Radii_Definitions, only : directionLambdaR               , directionLineOfSight        , directionLineOfSightInteriorAverage, directionRadial                , &
           &                                             radiusTypeDarkMatterScaleRadius, radiusTypeDiskHalfMassRadius, radiusTypeDiskRadius               , radiusTypeGalacticLightFraction, &
           &                                             radiusTypeGalacticMassFraction , radiusTypeRadius            , radiusTypeSpheroidHalfMassRadius   , radiusTypeSpheroidRadius       , &
-          &                                             radiusTypeStellarMassFraction  , radiusTypeVirialRadius
-    use :: Galacticus_Nodes                    , only : nodeComponentDarkMatterProfile , nodeComponentDisk           , nodeComponentSpheroid              , treeNode
+          &                                             radiusTypeStellarMassFraction  , radiusTypeVirialRadius      , radiusTypeNSCHalfMassRadius        , radiusTypeNSCRadius
+    use :: Galacticus_Nodes                    , only : nodeComponentDarkMatterProfile , nodeComponentDisk           , nodeComponentSpheroid              , nodeComponentNSC               , &
+          &                                             treeNode
     use :: Numerical_Integration               , only : integrator
     implicit none
     double precision                                         , dimension(:,:), allocatable :: velocityDispersionExtract
@@ -235,6 +238,7 @@ contains
     type            (multiCounter                           ), intent(inout) , optional    :: instance
     class           (nodeComponentDisk                      ), pointer                     :: disk
     class           (nodeComponentSpheroid                  ), pointer                     :: spheroid
+    class           (nodeComponentNSC                       ), pointer                     :: NSC
     class           (nodeComponentDarkMatterProfile         ), pointer                     :: darkMatterProfile
     double precision                                         , parameter                   :: outerRadiusMultiplier           =10.0d0
     integer                                                                                :: i
@@ -257,6 +261,7 @@ contains
     if (self%         virialRadiusIsNeeded) radiusVirial      =  self%darkMatterHaloScale_%radiusVirial(node                    )
     if (self%                 diskIsNeeded) disk              =>                                        node%disk             ()
     if (self%             spheroidIsNeeded) spheroid          =>                                        node%spheroid         ()
+    if (self%                  NSCIsNeeded) NSC               =>                                        node%NSC              ()
     if (self%darkMatterScaleRadiusIsNeeded) darkMatterProfile =>                                        node%darkMatterProfile()
     do i=1,self%radiiCount
        scaleIsZero=.false.
@@ -278,6 +283,10 @@ contains
           radius                       =    radius*spheroid         %        radius()
           radiusOuter_=max(radius,spheroid         %        radius())*outerRadiusMultiplier
           scaleIsZero                  =(spheroid                   %        radius() <= 0.0d0)
+       case   (radiusTypeNSCRadius             %ID)
+          radius                       =    radius*NSC              %        radius()
+          radiusOuter_=max(radius,NSC              %        radius())*outerRadiusMultiplier
+          scaleIsZero                  =(NSC                        %        radius() <= 0.0d0)
        case   (radiusTypeDiskHalfMassRadius    %ID)
           radius                       =    radius*disk             %halfMassRadius()
           radiusOuter_=max(radius,disk             %halfMassRadius())*outerRadiusMultiplier
@@ -286,6 +295,10 @@ contains
           radius                       =    radius*spheroid         %halfMassRadius()
           radiusOuter_=max(radius,spheroid         %halfMassRadius())*outerRadiusMultiplier
           scaleIsZero                  =(spheroid                   %halfMassRadius() <= 0.0d0)
+       case   (radiusTypeNSCHalfMassRadius     %ID)
+          radius                       =    radius*NSC              %halfMassRadius()
+          radiusOuter_=max(radius,NSC              %halfMassRadius())*outerRadiusMultiplier
+          scaleIsZero                  =(NSC                        %halfMassRadius() <= 0.0d0)
        case   (radiusTypeGalacticMassFraction  %ID,  &
             &  radiusTypeGalacticLightFraction %ID )
           radiusFromFraction=+self%galacticStructure_%radiusEnclosingMass(                                                &

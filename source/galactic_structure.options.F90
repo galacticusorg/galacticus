@@ -55,6 +55,7 @@ module Galactic_Structure_Options
    <entry label="all"       />
    <entry label="disk"      />
    <entry label="spheroid"  />
+   <entry label="NSC"       />
    <entry label="hotHalo"   />
    <entry label="coldHalo"  />
    <entry label="darkHalo"  />

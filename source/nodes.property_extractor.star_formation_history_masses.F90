@@ -93,7 +93,7 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily starFormationHistoryMass} property extractor class.
     !!}
-    use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid
+    use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid, componentTypeNSC
     use :: Error                     , only : Error_Report
     implicit none
     type (nodePropertyExtractorStarFormationHistoryMass)                        :: self
@@ -108,6 +108,8 @@ contains
          &   component /= componentTypeDisk                                                                     &
          &  .and.                                                                                               &
          &   component /= componentTypeSpheroid                                                                 &
+         &  .and.                                                                                               &
+         &   component /= componentTypeNSC                                                                      &
          & ) call Error_Report("only 'disk' and 'spheroid' components are supported"//{introspection:location})    
     return
   end function starFormationHistoryMassConstructorInternal
@@ -141,8 +143,8 @@ contains
     !!{
     Implement a {\normalfont \ttfamily starFormationHistoryMass} property extractor.
     !!}
-    use :: Galacticus_Nodes          , only : nodeComponentDisk, nodeComponentSpheroid
-    use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid
+    use :: Galacticus_Nodes          , only : nodeComponentDisk, nodeComponentSpheroid, nodeComponentNSC
+    use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid, componentTypeNSC
     use :: Histories                 , only : history
     implicit none
     double precision                                               , dimension(:,: ,: ), allocatable :: starFormationHistoryMassExtract
@@ -151,6 +153,7 @@ contains
     type            (multiCounter                                 ), intent(inout)     , optional    :: instance
     class           (nodeComponentDisk                            )                    , pointer     :: disk
     class           (nodeComponentSpheroid                        )                    , pointer     :: spheroid
+    class           (nodeComponentNSC                             )                    , pointer     :: NSC
     type            (history                                      )                                  :: starFormationHistory
     !$GLC attributes unustarFormationHistoryMass :: instance
 
@@ -162,7 +165,11 @@ contains
     case (componentTypeSpheroid%ID)
        spheroid             => node    %spheroid            ()
        starFormationHistory =  spheroid%starFormationHistory()
+    case (componentTypeNSC     %ID)
+       NSC                  => node    %NSC                 ()
+       starFormationHistory =  NSC     %starFormationHistory()
     end select
+    
     if (starFormationHistory%exists()) then
        allocate(starFormationHistoryMassExtract(size(starFormationHistory%data,dim=1),size(starFormationHistory%data,dim=2),1))
        starFormationHistoryMassExtract(:,:,1)=starFormationHistory%data
