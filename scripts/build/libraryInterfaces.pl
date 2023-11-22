@@ -188,7 +188,10 @@ foreach my $className ( sort(keys(%{$code})) ) {
 $python->{'units'}->{'init'}->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'ext');
 from ctypes import *
 # Load the shared library into ctypes.
-libname = "./galacticus/lib/libgalacticus.so"
+import os
+# Load the shared library into ctypes.
+cwd = os.getcwd()
+libname = os.path.join(cwd,"galacticus/lib/libgalacticus.so")
 c_lib = CDLL(libname)
 c_lib.libGalacticusInitL()
 CODE
