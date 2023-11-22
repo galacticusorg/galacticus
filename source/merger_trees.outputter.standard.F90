@@ -227,14 +227,6 @@ contains
     use            :: IO_HDF5            , only : hdf5Object
     use, intrinsic :: ISO_C_Binding      , only : c_size_t
     use            :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
-    use omp_lib
-    !![
-    <include directive="mergerTreeExtraOutputTask" type="moduleUse">
-    !!]
-    include 'merger_trees.outputter.tasks.extra.modules.inc'
-    !![
-    </include>
-    !!]
     implicit none
     class           (mergerTreeOutputterStandard), intent(inout)          :: self
     type            (mergerTree                 ), intent(inout), target  :: tree
@@ -274,14 +266,8 @@ contains
              if (basic%time() == time) then
                 ! Perform our output.
                 call self%output(node,time)
-                ! Perform an extra output tasks.
+                ! Perform an extra output.
                 !![
-                <include directive="mergerTreeExtraOutputTask" type="functionCall" functionType="void">
-                 <functionArgs>node,indexOutput,node%hostTree%index,self%galacticFilter_%passes(node),treeLock</functionArgs>
-                !!]
-		include 'merger_trees.outputter.tasks.extra.inc'
-                !![
-                </include>
                 <eventHook name="mergerTreeExtraOutput">
 		 <callWith>node,indexOutput,node%hostTree,self%galacticFilter_%passes(node),treeLock</callWith>
                 </eventHook>  
@@ -396,13 +382,6 @@ contains
          &                                  nodePropertyExtractorMulti, nodePropertyExtractorNull, nodePropertyExtractorScalar       , nodePropertyExtractorTuple       , &
          &                                  nodePropertyExtractorArray, nodePropertyExtractorList, nodePropertyExtractorList2D
     use :: Poly_Ranks              , only : polyRankInteger           , polyRankDouble           , assignment(=)
-    !![
-    <include directive="mergerTreeOutputTask" type="moduleUse">
-    !!]
-    include 'output.merger_tree.tasks.modules.inc'
-    !![
-    </include>
-    !!]
     implicit none
     class           (mergerTreeOutputterStandard), intent(inout)                   :: self
     type            (treeNode                   ), intent(inout)                   :: node
@@ -448,14 +427,6 @@ contains
        ! Populate the output buffers with properties. We first populate with any "extra" properties that may be
        ! being computed, and then call the standard treeNode output method to populate with all "standard"
        ! properties.
-       !![
-       <include directive="mergerTreeOutputTask" type="functionCall" functionType="void">
-        <functionArgs>node,integerProperty,self%integerBufferCount,self%integerProperty,doubleProperty,self%doubleBufferCount,self%doubleProperty,time,instance</functionArgs>
-       !!]
-       include 'output.merger_tree.tasks.inc'
-       !![
-       </include>
-       !!]
        call node%output(integerProperty,self%integerBufferCount,self%integerProperty,doubleProperty,self%doubleBufferCount,self%doubleProperty,time,instance)
        ! Handle any extracted properties.
        select type (extractor_ => self%nodePropertyExtractor_)
@@ -858,13 +829,6 @@ contains
     use :: Node_Property_Extractors, only : elementTypeDouble         , elementTypeInteger       , nodePropertyExtractorIntegerScalar, nodePropertyExtractorIntegerTuple, &
          &                                  nodePropertyExtractorMulti, nodePropertyExtractorNull, nodePropertyExtractorScalar       , nodePropertyExtractorTuple       , &
          &                                  nodePropertyExtractorArray, nodePropertyExtractorList, nodePropertyExtractorList2D
-    !![
-    <include directive="mergerTreeOutputPropertyCount" type="moduleUse">
-    !!]
-    include 'output.merger_tree.property_count.modules.inc'
-    !![
-    </include>
-    !!]
     implicit none
     class           (mergerTreeOutputterStandard), intent(inout) :: self
     double precision                             , intent(in   ) :: time
@@ -872,14 +836,6 @@ contains
 
     self%integerPropertyCount=0
     self%doublePropertyCount =0
-    !![
-    <include directive="mergerTreeOutputPropertyCount" type="functionCall" functionType="void">
-     <functionArgs>node,self%integerPropertyCount,self%doublePropertyCount,time</functionArgs>
-    !!]
-    include 'output.merger_tree.property_count.inc'
-    !![
-    </include>
-    !!]
     call node%outputCount(self%integerPropertyCount,self%doublePropertyCount,time)
     self%integerScalarCount=self%integerPropertyCount
     self% doubleScalarCount=self% doublePropertyCount
@@ -948,13 +904,6 @@ contains
     use :: Node_Property_Extractors, only : elementTypeDouble         , elementTypeInteger       , nodePropertyExtractorIntegerScalar, nodePropertyExtractorIntegerTuple, &
          &                                  nodePropertyExtractorMulti, nodePropertyExtractorNull, nodePropertyExtractorScalar       , nodePropertyExtractorTuple       , &
          &                                  nodePropertyExtractorArray, nodePropertyExtractorList, nodePropertyExtractorList2D
-    !![
-    <include directive="mergerTreeOutputNames" type="moduleUse">
-    !!]
-    include 'output.merger_tree.names.modules.inc'
-    !![
-    </include>
-    !!]
     implicit none
     class           (mergerTreeOutputterStandard), intent(inout)               :: self
     double precision                             , intent(in   )               :: time
@@ -982,14 +931,6 @@ contains
     end if
     integerProperty=0
     doubleProperty =0
-    !![
-    <include directive="mergerTreeOutputNames" type="functionCall" functionType="void">
-     <functionArgs>node,integerProperty,self%integerProperty,doubleProperty,self%doubleProperty,time</functionArgs>
-    !!]
-    include 'output.merger_tree.names.inc'
-    !![
-    </include>
-    !!]
     call node%outputNames(integerProperty,self%integerProperty,doubleProperty,self%doubleProperty,time)
     ! Handle extracted properties.
     select type (extractor_ => self%nodePropertyExtractor_)
