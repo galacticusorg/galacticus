@@ -42,7 +42,8 @@
           &                                                                          massRangeMinimum                            , massRangeMaximum         , &
           &                                                                          countConversionFactor                       , redshift                 , &
           &                                                                          varianceFractionalModelDiscrepancy
-     logical                                                                      :: likelihoodPoisson                           , includeDiscrepancyChecked
+     logical                                                                      :: likelihoodPoisson                           , includeDiscrepancyChecked, &
+          &                                                                          report
      integer                                                                      :: binCountMinimum                             , indexDiscrepancy
      type            (vector                       )                              :: means
      type            (matrix                       )                              :: covariance
@@ -72,11 +73,11 @@ contains
     implicit none
     type            (posteriorSampleLikelihoodHaloMassFunction)                :: self
     type            (inputParameters                          ), intent(inout) :: parameters
-    type            (varying_string                           )                :: fileName            , baseParametersFileName
-    double precision                                                           :: redshift            , massRangeMinimum                  , &
-         &                                                                        massRangeMaximum    , varianceFractionalModelDiscrepancy
+    type            (varying_string                           )                :: fileName           , baseParametersFileName
+    double precision                                                           :: redshift           , massRangeMinimum                  , &
+         &                                                                        massRangeMaximum   , varianceFractionalModelDiscrepancy
     integer                                                                    :: binCountMinimum
-    logical                                                                    :: likelihoodPoisson
+    logical                                                                    :: likelihoodPoisson  , report
     type            (inputParameters                          ), pointer       :: parametersModel
     class           (cosmologyFunctionsClass                  ), pointer       :: cosmologyFunctions_
 
@@ -124,13 +125,19 @@ contains
       <description>The fractional variance due to model discrepancy.</description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter>
+      <name>report</name>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, give detailed reporting on likelihood calculations.</description>
+      <source>parameters</source>
+    </inputParameter>
     !!]
     allocate(parametersModel)
     parametersModel=inputParameters(baseParametersFileName,noOutput=.true.)
     !![
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parametersModel"/>
     !!]
-    self=posteriorSampleLikelihoodHaloMassFunction(char(fileName),redshift,massRangeMinimum,massRangeMaximum,binCountMinimum,likelihoodPoisson,varianceFractionalModelDiscrepancy,parametersModel,cosmologyFunctions_)
+    self=posteriorSampleLikelihoodHaloMassFunction(char(fileName),redshift,massRangeMinimum,massRangeMaximum,binCountMinimum,likelihoodPoisson,varianceFractionalModelDiscrepancy,report,parametersModel,cosmologyFunctions_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_" />
@@ -140,7 +147,7 @@ contains
     return
   end function haloMassFunctionConstructorParameters
 
-  function haloMassFunctionConstructorInternal(fileName,redshift,massRangeMinimum,massRangeMaximum,binCountMinimum,likelihoodPoisson,varianceFractionalModelDiscrepancy,parametersModel,cosmologyFunctions_) result(self)
+  function haloMassFunctionConstructorInternal(fileName,redshift,massRangeMinimum,massRangeMaximum,binCountMinimum,likelihoodPoisson,varianceFractionalModelDiscrepancy,report,parametersModel,cosmologyFunctions_) result(self)
     !!{
     Constructor for ``haloMassFunction'' posterior sampling likelihood class.
     !!}
@@ -158,7 +165,7 @@ contains
     double precision                                           , intent(in   )                 :: redshift                      , massRangeMinimum                  , &
          &                                                                                        massRangeMaximum              , varianceFractionalModelDiscrepancy
     integer                                                    , intent(in   )                 :: binCountMinimum
-    logical                                                    , intent(in   )                 :: likelihoodPoisson
+    logical                                                    , intent(in   )                 :: likelihoodPoisson             , report
     type            (inputParameters                          ), intent(inout), target         :: parametersModel
     class           (cosmologyFunctionsClass                  ), intent(inout), target         :: cosmologyFunctions_
     double precision                                           , allocatable  , dimension(:  ) :: eigenValueArray               , massOriginal                      , &
@@ -174,7 +181,7 @@ contains
     type            (matrix                                   )                                :: eigenVectors
     type            (vector                                   )                                :: eigenValues
     !![
-    <constructorAssign variables="fileName, redshift, binCountMinimum, massRangeMinimum, massRangeMaximum, likelihoodPoisson, varianceFractionalModelDiscrepancy, *parametersModel, *cosmologyFunctions_"/>
+    <constructorAssign variables="fileName, redshift, binCountMinimum, massRangeMinimum, massRangeMaximum, likelihoodPoisson, varianceFractionalModelDiscrepancy, report, *parametersModel, *cosmologyFunctions_"/>
     !!]
 
     ! Convert redshift to time.
@@ -195,7 +202,7 @@ contains
     call simulationGroup %readDataset("count"       ,massFunctionCountOriginal)
     call simulationGroup %close      (                                        )
     call massFunctionFile%close      (                                        )
-    !$ call hdf5Access%unset()
+    !$ call hdf5Access%unset()    
     ! Compute quantities needed for likelihood calculations.
     if (self%likelihoodPoisson) then
        ! Find a reduced mass function excluding bins below the mass threshold.
@@ -329,7 +336,8 @@ contains
     Return the log-likelihood for the halo mass function likelihood function. If {\normalfont \ttfamily [likelihoodPoisson]=false}
     then Gaussian statistics are assumed, otherwise, Poisson statistics are assumed. No covariance between bins is assumed.
     !!}
-    use :: Error                            , only : errorStatusSuccess
+    use :: Error                            , only : Error_Report
+    use :: Display                          , only : displayMessage                 , displayIndent             , displayUnindent
     use :: Halo_Mass_Functions              , only : haloMassFunctionClass
     use :: Linear_Algebra                   , only : assignment(=)                  , operator(*)
     use :: Models_Likelihoods_Constants     , only : logImpossible                  , logImprobable
@@ -349,7 +357,8 @@ contains
     real                                                       , intent(inout)               :: timeEvaluate
     double precision                                           , intent(  out), optional     :: logLikelihoodVariance
     logical                                                    , intent(inout), optional     :: forceAcceptance
-    double precision                                           , allocatable  , dimension(:) :: stateVector                              , massFunction
+    double precision                                           , allocatable  , dimension(:) :: stateVector                              , massFunction            , &
+         &                                                                                      likelihoodPerBin                         , countHalosMeanPerBin
     double precision                                           , parameter                   :: errorFractionalMaximum            =1.0d+1
     class           (haloMassFunctionClass                    ), pointer                     :: haloMassFunction_
     type            (vector                                   )                              :: difference
@@ -358,7 +367,9 @@ contains
     logical                                                                                  :: evaluationFailed
     integer                                                                                  :: i                                        , status
     double precision                                                                         :: countHalosMean                           , stoppingTimeParameter   , &
-         &                                                                                      varianceFractionalModelDiscrepancy
+         &                                                                                      varianceFractionalModelDiscrepancy       , logLikelihood
+    type            (varying_string                           )                              :: message
+    character       (len=16                                   )                              :: label
     !$GLC attributes unused :: simulationConvergence, temperature, timeEvaluate, logLikelihoodCurrent, logPriorCurrent, modelParametersInactive_, forceAcceptance
 
     ! There is no variance in our likelihood estimate.
@@ -430,39 +441,52 @@ contains
     ! Evaluate the log-likelihood.
     if (.not.evaluationFailed) then
        if (self%likelihoodPoisson) then
+          ! Allocate array for per bin likelihood if needed.
+          if (self%report) then
+             allocate(likelihoodPerBin    (size(self%mass)))
+             allocate(countHalosMeanPerBin(size(self%mass)))
+          else
+             allocate(likelihoodPerBin    (             0 ))
+             allocate(countHalosMeanPerBin(             0 ))
+          end if
           ! Assume Poisson statistics. We treat each bin as independent with a pure Poisson/negative binomial distribution.
           haloMassFunctionEvaluate=0.0d0
           do i=1,size(self%mass)
              ! Find the mean number of halos expected in this bin based on our model mass function.
              countHalosMean          =+                          self%countConversionFactor         &
                   &                   *                               massFunction            (i)
+             if (self%report) countHalosMeanPerBin(i) =countHalosMean
              ! If the expected mean is zero, and the measured number is non-zero, this is impossible.
              if (countHalosMean <= 0.0d0) then
                 if (self%countHalos(i) > 0) then
                    haloMassFunctionEvaluate=logImprobable
+                   if (self%report) likelihoodPerBin=logImprobable
                    exit
                 end if
              else
                 if (varianceFractionalModelDiscrepancy <= 0.0d0) then
                    ! Evaluate the Poisson likelihood (zero model discrepancy term).
-                   haloMassFunctionEvaluate=+                               haloMassFunctionEvaluate      &
-                        &                   +dble                 (    self%countHalos              (i))  &
-                        &                   *log                  (         countHalosMean             )  &
-                        &                   -                               countHalosMean                &
-                        &                   -Logarithmic_Factorial(int(self%countHalos              (i)))
+                   logLikelihood=+dble                 (    self%countHalos    (i))  &
+                        &        *log                  (         countHalosMean   )  &
+                        &        -                               countHalosMean      &
+                        &        -Logarithmic_Factorial(int(self%countHalos    (i)))
                 else
                    ! Evaluate the negative binomial likelihood (non-zero model discrepancy term). Here the negative binomial
                    ! distribution (which is used in the alternative parameterization as given by, e.g.,
                    ! https://en.wikipedia.org/wiki/Negative_binomial_distribution#Poisson_distribution) represents an
                    ! over-dispersed Poisson distribution.
-                   haloMassFunctionEvaluate=+haloMassFunctionEvaluate                                                                                                          &
-                        &                   +dble(self%countHalos           (i))*log                       (                                               countHalosMean    ) &
-                        &                   -                                    Logarithmic_Factorial     (                                    +int (self%countHalos    (i))) &
-                        &                   +                                    Gamma_Function_Logarithmic(               stoppingTimeParameter+dble(self%countHalos    (i))) &
-                        &                   -                                    Gamma_Function_Logarithmic(               stoppingTimeParameter                             ) &
-                        &                   -dble(self%countHalos           (i))*log                       (               stoppingTimeParameter+          countHalosMean    ) &
-                        &                   -          stoppingTimeParameter    *log                       (countHalosMean/stoppingTimeParameter+1.0d0                       )
+                   logLikelihood=+dble(self%countHalos           (i))*log                       (                                               countHalosMean    ) &
+                        &        -                                    Logarithmic_Factorial     (                                    +int (self%countHalos    (i))) &
+                        &        +                                    Gamma_Function_Logarithmic(               stoppingTimeParameter+dble(self%countHalos    (i))) &
+                        &        -                                    Gamma_Function_Logarithmic(               stoppingTimeParameter                             ) &
+                        &        -dble(self%countHalos           (i))*log                       (               stoppingTimeParameter+          countHalosMean    ) &
+                        &        -          stoppingTimeParameter    *log                       (countHalosMean/stoppingTimeParameter+1.0d0                       )
+                   if (self%report) likelihoodPerBin(i)=logLikelihood
                 end if
+                haloMassFunctionEvaluate=+haloMassFunctionEvaluate      &
+                     &                   +logLikelihood
+                &                   
+                     if (self%report) likelihoodPerBin(i)=logLikelihood
              end if
           end do
        else
@@ -472,6 +496,38 @@ contains
           haloMassFunctionEvaluate=-0.5d0                                         &
                &                   *self%covariance%covarianceProduct(difference)
        end if
+    end if
+    if (self%report) then
+       call displayIndent("Likelihood report for: "//char(self%fileName))
+       write (label,'(e16.10)') haloMassFunctionEvaluate
+       if (self%likelihoodPoisson) then
+          if (varianceFractionalModelDiscrepancy <= 0.0d0) then
+             call displayMessage("Likelihood model: Poisson"          )
+          else
+             call displayMessage("Likelihood model: Negative binomial")
+          end if
+       else
+          call    displayMessage("Likelihood model: normal"           )
+       end if
+       call displayMessage("logℒ = "//trim(label))
+       if (self%likelihoodPoisson) then 
+          call displayIndent("per bin likelihoods")
+          do i=1,size(self%mass)
+             write (label,'(i4)') i
+             message=trim(label)//": "
+             write (label,'(e16.10)') log10(self%mass                (i))
+             message=message//"log₁₀(M/M☉) = " //trim(label)//"; "
+             write (label,'(e16.10)')            likelihoodPerBin    (i)
+             message=message//"logℒ = "        //trim(label)//"; "
+             write (label,'(i07)'   )       self%countHalos          (i)
+             message=message//"Nhalo(target) = "//trim(label)//"; "
+             write (label,'(e16.10)')            countHalosMeanPerBin(i)
+             message=message//"Nhalo(model) = " //trim(label)
+             call displayMessage(message)
+          end do
+          call displayUnindent("done")
+       end if
+       call displayUnindent("done")
     end if
     ! Clean up.
     !![
