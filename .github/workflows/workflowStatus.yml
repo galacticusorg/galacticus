@@ -1,0 +1,30 @@
+name: Workflow-Status
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '00 15 * * 1,2,3,4,5'
+jobs:
+  Report-Status:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: workflowStatus-${{ github.ref }}
+      cancel-in-progress: true
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Install tools
+        run: |
+          sudo apt -y update
+          sudo apt install -y libjson-pp-perl
+      - name: Retrieve and report status
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SLACK_WEBHOOK_STATUS_URL: ${{ secrets.SLACK_WEBHOOK_STATUS_URL }}
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
+          ./scripts/aux/workflowStatus.pl

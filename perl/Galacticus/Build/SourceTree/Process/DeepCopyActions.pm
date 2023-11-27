@@ -37,10 +37,21 @@ sub Process_DeepCopyActions {
 	# Capture derived type definitions.
 	if ( $node->{'type'} eq "type" ) {
 	    # Parse class openers to find dependencies.
-	    if ( $node->{'opener'} =~ m/^\s*type\s*(,\s*(abstract)\s*|,\s*public\s*|,\s*private\s*|,\s*extends\s*\(([a-zA-Z0-9_]+)\)\s*)*(::)??\s*([a-z0-9_]+)\s*$/i ) {
-		my $type     = $5;
-		my $extends  = $3;
-		my $abstract = defined($2);
+	    if ( my @matches = $node->{'opener'} =~ m/^\s*type\s*((,\s*abstract\s*|,\s*public\s*|,\s*private\s*|,\s*extends\s*\([a-zA-Z0-9_]+\)\s*)*)(::)??\s*([a-zA-Z0-9_]+)\s*$/i ) {
+		my $type     = $4;
+		$matches[0] =~ s/^\s*,\s*//;
+		$matches[0] =~ s/\s*$//;
+		my @attributes = split(/\s*,\s*/,$matches[0]);
+		my $extends;
+		my $abstract = 0;
+		foreach my $attribute ( @attributes ) {
+		    if ( $attribute eq "abstract" ) {
+			$abstract = 1;
+		    }
+		    if ( $attribute =~ m/extends\(([a-zA-Z0-9_]+)\)/ ) {
+			$extends  = $1;
+		    }
+		}
 		$classes{$type} =
 		{
 		     node     => $node   ,
