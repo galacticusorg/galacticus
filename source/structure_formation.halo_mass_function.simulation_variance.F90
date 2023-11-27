@@ -150,10 +150,11 @@ contains
     !!{
     Return the differential halo mass function at the given time and mass.
     !!}
+    use :: Display       , only : displayIndent, displayUnindent    , displayMessage, verbosityLevelWorking
     use :: HDF5_Access   , only : hdf5Access
     use :: IO_HDF5       , only : hdf5Object
-    use :: File_Utilities, only : File_Exists   , File_Lock          , File_Unlock, lockDescriptor
-    use :: Input_Paths   , only : inputPath     , pathTypeDataDynamic
+    use :: File_Utilities, only : File_Exists  , File_Lock          , File_Unlock   , lockDescriptor
+    use :: Input_Paths   , only : inputPath    , pathTypeDataDynamic
     implicit none
     class           (haloMassFunctionSimulationVariance), intent(inout), target   :: self
     double precision                                    , intent(in   )           :: time                             , mass
@@ -186,6 +187,9 @@ contains
           !$ call hdf5Access%unset()
           call File_Unlock(fileLock)
        else
+          call displayIndent('computing simulation variance',verbosityLevelWorking)
+          call displayMessage('                time = '//timeLabel      //' Gyr',verbosityLevelWorking)
+          call displayMessage('lengthSimulationCube = '//lengthCubeLabel//' Mpc',verbosityLevelWorking)
           powerSpectrum_         => self%powerSpectrum_
           time_                   =       time
           lengthSimulationCube_   =  self%lengthSimulationCube
@@ -202,6 +206,7 @@ contains
           call varianceFile%close         (                                                            )
           !$ call hdf5Access%unset()
           call File_Unlock(fileLock)
+          call displayUnindent('done',verbosityLevelWorking)
        end if
     end if
     ! Modify the mass function by the perturbation.
