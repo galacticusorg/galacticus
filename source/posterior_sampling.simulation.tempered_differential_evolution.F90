@@ -137,7 +137,7 @@ contains
     return
   end function temperedDifferentialEvolutionConstructorParameters
 
-  function temperedDifferentialEvolutionConstructorInternal(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,posteriorSampleDffrntlEvltnPrpslSzTmpExp_,randomNumberGenerator_,stepsMaximum,acceptanceAverageCount,stateSwapCount,recomputeCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot,appendLogs,loadBalance,ignoreChainNumberAdvice,temperingLevelCount,untemperedStepCount,stepsPerLevel,temperatureMaximum) result(self)
+  function temperedDifferentialEvolutionConstructorInternal(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,posteriorSampleDffrntlEvltnPrpslSzTmpExp_,randomNumberGenerator_,stepsMaximum,acceptanceAverageCount,stateSwapCount,slowStepCount,recomputeCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot,appendLogs,loadBalance,ignoreChainNumberAdvice,temperingLevelCount,untemperedStepCount,stepsPerLevel,temperatureMaximum) result(self)
     !!{
     Internal constructor for the ``temperedDifferentialEvolution'' simulation class.
     !!}
@@ -157,13 +157,13 @@ contains
          &                                                                                                  stateSwapCount                           , logFlushCount           , &
          &                                                                                                  reportCount                              , temperingLevelCount     , &
          &                                                                                                  untemperedStepCount                      , stepsPerLevel           , &
-         &                                                                                                  recomputeCount
+         &                                                                                                  recomputeCount                           , slowStepCount
     character       (len=*                                        ), intent(in   )                       :: logFileRoot                              , interactionRoot
     logical                                                        , intent(in   )                       :: sampleOutliers                           , appendLogs              , &
          &                                                                                                  loadBalance                              , ignoreChainNumberAdvice
     double precision                                               , intent(in   )                       :: temperatureMaximum
 
-    self%posteriorSampleSimulationDifferentialEvolution=posteriorSampleSimulationDifferentialEvolution(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,randomNumberGenerator_,stepsMaximum,acceptanceAverageCount,stateSwapCount,recomputeCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot,appendLogs,loadBalance,ignoreChainNumberAdvice)
+    self%posteriorSampleSimulationDifferentialEvolution=posteriorSampleSimulationDifferentialEvolution(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,randomNumberGenerator_,stepsMaximum,acceptanceAverageCount,stateSwapCount,slowStepCount,recomputeCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot,appendLogs,loadBalance,ignoreChainNumberAdvice)
     call self%initialize(posteriorSampleDffrntlEvltnPrpslSzTmpExp_,temperingLevelCount,untemperedStepCount,stepsPerLevel,temperatureMaximum)
     return
   end function temperedDifferentialEvolutionConstructorInternal
@@ -240,11 +240,11 @@ contains
     implicit none
     class           (posteriorSampleSimulationTemperedDffrntlEvltn), intent(inout)                                 :: self
     double precision                                               , intent(in   ), dimension(self%parameterCount) :: stateVector
+    double precision                                                              , dimension(self%parameterCount) :: stepSize
     logical                                                        , allocatable  , dimension(:                  ) :: outlierMask
     integer                                                                                                        :: i             , temperingLevelSaved
     logical                                                                                                        :: levelChanged  , forceAcceptance
-    double precision                                                                                               :: acceptanceRate, temperature        , &
-         &                                                                                                            stepSize
+    double precision                                                                                               :: acceptanceRate, temperature
     character       (len=30                                       )                                                :: label
     type            (varying_string                               )                                                :: message
 
@@ -292,8 +292,8 @@ contains
           if (displayVerbosity() >= verbosityLevelInfo) then
              if (mpiSelf%isMaster()) then
                 call displayIndent('Acceptance rates in tempered levels')
-                call displayMessage('Level Temperature  Gamma  Rate')
-                call displayMessage('------------------------------')
+                call displayMessage('Level Temperature  Gamma         Rate')
+                call displayMessage('-------------------------------------')
              end if
              ! Store the current tempering level so that we can restore it below.
              temperingLevelSaved=self%temperingLevelMonotonic
@@ -304,7 +304,7 @@ contains
                 temperature    =                self                  %temperature   (               )
                 stepSize       =                self                  %stepSize      (forceAcceptance)
                 if (mpiSelf%isMaster())  then
-                   write (label,'(2x,i3,4x,f8.1,1x,f6.3,1x,f5.3)') i,temperature,stepSize,acceptanceRate
+                   write (label,'(2x,i3,4x,f8.1,1x,f6.3,a1,f6.3,1x,f5.3)') i,temperature,minval(stepSize),'–',maxval(stepSize),acceptanceRate
                    call displayMessage(label)
                 end if
              end do
@@ -335,25 +335,32 @@ contains
     return
   end function temperedDifferentialEvolutionLevel
 
-  double precision function temperedDifferentialEvolutionStepSize(self,forceAcceptance)
+  function temperedDifferentialEvolutionStepSize(self,forceAcceptance) result(stepSize)
     !!{
     Return the step size parameter, $\gamma$, for a differential evolution step.
     !!}
     implicit none
-    class           (posteriorSampleSimulationTemperedDffrntlEvltn), intent(inout) :: self
-    logical                                                        , intent(inout) :: forceAcceptance
-    double precision                                                               :: gammaBoostFactor
+    class           (posteriorSampleSimulationTemperedDffrntlEvltn), intent(inout)                  :: self
+    logical                                                        , intent(inout)                  :: forceAcceptance
+    double precision                                               , dimension(self%parameterCount) :: stepSize
+    double precision                                                                                :: gammaBoostFactor
 
     if (self%recomputeCount > 0 .and. mod(self%posteriorSampleState_%count(),self%recomputeCount) == 0) then
        ! Every self%recomputeCount steps, set γ=0 and force likelihood to be recomputed in the current state.
-       temperedDifferentialEvolutionStepSize=0.0d0
-       forceAcceptance                      =.true.
+       stepSize        =0.0d0
+       forceAcceptance =.true.
     else if (mod(self%posteriorSampleState_%count(),self%stateSwapCount) == 0 .and. self%level() == 0) then
        ! Every self%stateSwapCount steps, set γ=1 to allow interchange of chains.
-       temperedDifferentialEvolutionStepSize=1.0d0
+       stepSize        =1.0d0
     else
        gammaBoostFactor=self%temperature()**self%posteriorSampleDffrntlEvltnPrpslSzTmpExp_%exponent(self%temperedStates,self%temperatures,self%posteriorSampleState_,self%posteriorSampleConvergence_)
-       temperedDifferentialEvolutionStepSize=gammaBoostFactor *self%posteriorSampleSimulationDifferentialEvolution%stepSize(forceAcceptance)
+       stepSize        =gammaBoostFactor *self%posteriorSampleSimulationDifferentialEvolution%stepSize(forceAcceptance)
+    end if
+    ! Disable steps in slow parameters, except for on slow steps.
+    if (mod(self%posteriorSampleState_%count(),self%slowStepCount) /= 0) then
+       where (self%modelParametersActiveIsSlow)
+          stepSize=0.0d0
+       end where
     end if
     return
   end function temperedDifferentialEvolutionStepSize

@@ -34,10 +34,16 @@
      Implementation of an active model parameter class.
      !!}
      private
-     class(distributionFunction1DClass), pointer :: prior  => null(), perturber => null()
-     class(operatorUnaryClass         ), pointer :: mapper => null()
-     type (varying_string             )          :: name_
+     class  (distributionFunction1DClass), pointer :: prior  => null(), perturber => null()
+     class  (operatorUnaryClass         ), pointer :: mapper => null()
+     type   (varying_string             )          :: name_
+     logical                                       :: slow
    contains
+     !![
+     <methods>
+       <method method="isSlow" description="Return true if changes in this paper may lead to slow likelihood evaluation."/>
+     </methods>
+     !!]
      final     ::                       activeDestructor
      procedure :: name               => activeName
      procedure :: logPrior           => activeLogPrior
@@ -48,6 +54,7 @@
      procedure :: randomPerturbation => activeRandomPerturbation
      procedure :: map                => activeMap
      procedure :: unmap              => activeUnmap
+     procedure :: isSlow             => activeIsSlow
   end type modelParameterActive
 
   interface modelParameterActive
@@ -66,12 +73,13 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type (modelParameterActive       )                :: self
-    type (inputParameters            ), intent(inout) :: parameters
-    class(distributionFunction1DClass), pointer       :: prior     , perturber
-    class(operatorUnaryClass         ), pointer       :: mapper
-    type (varying_string             )                :: name
-
+    type   (modelParameterActive       )                :: self
+    type   (inputParameters            ), intent(inout) :: parameters
+    class  (distributionFunction1DClass), pointer       :: prior     , perturber
+    class  (operatorUnaryClass         ), pointer       :: mapper
+    type   (varying_string             )                :: name
+    logical                                             :: slow
+    
     !![
     <inputParameter>
       <name>name</name>
@@ -79,11 +87,17 @@ contains
       <defaultValue>var_str('')</defaultValue>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter>
+      <name>slow</name>
+      <description>If true, changes in the parameter are considered to result in slow likelihood evaluations.</description>
+      <defaultValue>.false.</defaultValue>
+      <source>parameters</source>
+    </inputParameter>
     <objectBuilder class="distributionFunction1D" parameterName="distributionFunction1DPrior"     name="prior"     source="parameters"/>
     <objectBuilder class="distributionFunction1D" parameterName="distributionFunction1DPerturber" name="perturber" source="parameters"/>
     <objectBuilder class="operatorUnary"          parameterName="operatorUnaryMapper"             name="mapper"    source="parameters"/>
     !!]
-    self=modelParameterActive(name,prior,perturber,mapper)
+    self=modelParameterActive(name,slow,prior,perturber,mapper)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="prior"    />
@@ -93,17 +107,18 @@ contains
     return
   end function activeConstructorParameters
 
-  function activeConstructorInternal(name_,prior,perturber,mapper) result(self)
+  function activeConstructorInternal(name_,slow,prior,perturber,mapper) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily active} model parameter class.
     !!}
     implicit none
-    type (modelParameterActive       )                        :: self
-    class(distributionFunction1DClass), intent(in   ), target :: prior , perturber
-    class(operatorUnaryClass         ), intent(in   ), target :: mapper
-    type (varying_string             ), intent(in   )         :: name_
+    type   (modelParameterActive       )                        :: self
+    class  (distributionFunction1DClass), intent(in   ), target :: prior , perturber
+    class  (operatorUnaryClass         ), intent(in   ), target :: mapper
+    type   (varying_string             ), intent(in   )         :: name_
+    logical                             , intent(in   )         :: slow
     !![
-    <constructorAssign variables="name_, *prior, *perturber, *mapper"/>
+    <constructorAssign variables="name_, slow, *prior, *perturber, *mapper"/>
     !!]
 
     return
@@ -233,4 +248,15 @@ contains
     activeUnmap=self%mapper%unoperate(x)
     return
   end function activeUnmap
+
+  logical function activeIsSlow(self)
+    !!{
+    Return true if changes in this parameter may result in slow likelihood evaluation.
+    !!}
+    implicit none
+    class(modelParameterActive), intent(inout) :: self
+
+    activeIsSlow=self%slow
+    return
+  end function activeIsSlow
 
