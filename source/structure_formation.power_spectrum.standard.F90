@@ -43,6 +43,7 @@ primordial power spectrum correctly normalized to $z=0$.
      procedure :: power                      => standardPower
      procedure :: powerLogarithmicDerivative => standardPowerLogarithmicDerivative
      procedure :: powerDimensionless         => standardPowerDimensionless
+     procedure :: descriptor                 => standardDescriptor
   end type powerSpectrumStandard
 
   interface powerSpectrumStandard
@@ -81,7 +82,7 @@ contains
 
   function standardConstructorInternal(cosmologicalMassVariance_,powerSpectrumPrimordialTransferred_) result(self)
     !!{
-    Internal constructor for the standard nonstandard power spectrum class.
+    Internal constructor for the standard power spectrum class.
     !!}
     implicit none
     type (powerSpectrumStandard)                                          :: self
@@ -96,7 +97,7 @@ contains
 
   subroutine standardDestructor(self)
     !!{
-    Destructor for the standard nonstandard power spectrum class.
+    Destructor for the standard power spectrum class.
     !!}
     implicit none
     type(powerSpectrumStandard), intent(inout) :: self
@@ -154,3 +155,24 @@ contains
          &                      )**3
     return
   end function standardPowerDimensionless
+
+  subroutine standardDescriptor(self,descriptor,includeClass)
+      !!{
+      Generate a descriptor for the standard power spectrum class.
+      !!}
+      use Input_Parameters, only : inputParameters
+      implicit none
+      class  (powerSpectrumStandard), intent(inout)           :: self
+      type   (inputParameters      ), intent(inout)           :: descriptor
+      logical                       , intent(in   ), optional :: includeClass
+      type   (inputParameters      )                          :: parameters
+      !![
+      <optionalArgument name="includeClass" defaultsTo=".true." />
+      !!]
+      
+      if (includeClass_) call descriptor%addParameter('powerSpectrum','standard')
+      parameters=descriptor%subparameters('powerSpectrum')
+      if (associated(self%cosmologicalMassVariance_          )) call self%cosmologicalMassVariance_          %descriptorNormalizationOnly(parameters)
+      if (associated(self%powerSpectrumPrimordialTransferred_)) call self%powerSpectrumPrimordialTransferred_%descriptor                 (parameters)
+      return      
+    end subroutine standardDescriptor
