@@ -130,6 +130,7 @@
      procedure :: fileRead                            => filteredPowerFileRead
      procedure :: remakeTable                         => filteredPowerRemakeTable
      procedure :: descriptor                          => filteredPowerDescriptor
+     procedure :: descriptorNormalizationOnly         => filteredPowerDescriptorNormalizationOnly
   end type cosmologicalMassVarianceFilteredPower
 
   interface cosmologicalMassVarianceFilteredPower
@@ -1433,6 +1434,25 @@ contains
     character(len=18                               )                          :: parameterLabel
     type     (inputParameters                      )                          :: parameters    , referenceParameters
 
+    call self%descriptorNormalizationOnly(descriptor,includeClass)
+    parameters=descriptor%subparameters('cosmologicalMassVariance')
+    call self%powerSpectrumWindowFunction_%descriptor(parameters)
+    return
+  end subroutine filteredPowerDescriptor
+
+  subroutine filteredPowerDescriptorNormalizationOnly(self,descriptor,includeClass)
+    !!{
+    Return an input parameter list descriptor which could be used to recreate this object, for power spectrum normalization usage
+    only (i.e. we exclude the window function).
+    !!}
+    use :: Input_Parameters, only : inputParameters
+    implicit none
+    class    (cosmologicalMassVarianceFilteredPower), intent(inout)           :: self
+    type     (inputParameters                      ), intent(inout)           :: descriptor
+    logical                                         , intent(in   ), optional :: includeClass
+    character(len=18                               )                          :: parameterLabel
+    type     (inputParameters                      )                          :: parameters    , referenceParameters
+
     if (.not.present(includeClass).or.includeClass) call descriptor%addParameter('cosmologicalMassVariance','filteredPower')
     parameters=descriptor%subparameters('cosmologicalMassVariance')
     if (self%normalizationSigma8) then
@@ -1458,7 +1478,6 @@ contains
     call    self%cosmologyFunctions_                        %descriptor(parameters)
     call    self%powerSpectrumPrimordialTransferred_        %descriptor(parameters)
     call    self%linearGrowth_                              %descriptor(parameters)
-    call    self%powerSpectrumWindowFunction_               %descriptor(parameters)
     call    self%transferFunction_                          %descriptor(parameters)
     return
-  end subroutine filteredPowerDescriptor
+  end subroutine filteredPowerDescriptorNormalizationOnly
