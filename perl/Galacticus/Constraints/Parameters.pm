@@ -416,6 +416,9 @@ sub parameterVectorUpdate {
 	} else {
 	    die('Galacticus::Constraints::Parameters::parameterVectorUpdate(): unknown parameter type');
 	}
+	# Skip parameters that are not mapped for this model.
+	next
+	    if ( exists($options{'parameterMap'}) && ! grep {$_ eq $modelParameter->{'name'}->{'value'}} @{$options{'parameterMap'}} );
 	# Find the parameter and set its value.
 	(my $node, my $valueIndex) = &parameterFindInDOMs($modelParameter->{'name'}->{'value'},\%doms);
 	&parameterValueSetInDOM($node,$valueIndex,$parameterValue);
