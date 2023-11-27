@@ -30,7 +30,7 @@
      type   (varying_string                ), dimension(:), allocatable :: parameterMapNames                , parameterMapNamesInactive
      type   (posteriorSampleLikelihoodList ), pointer                   :: next                    => null()
      type   (posteriorSampleStateSimple    )                            :: simulationState
-     logical                                                            :: parameterMapInitialized
+     logical                                                            :: parameterMapInitialized          , report
   end type posteriorSampleLikelihoodList
 
   !![
@@ -46,6 +46,7 @@
      private
      type            (posteriorSampleLikelihoodList), pointer :: modelLikelihoods    => null()
      double precision                                         :: logLikelihoodAccept
+     logical                                                  :: report
    contains
      final     ::                    independentLikelihoodsDestructor
      procedure :: evaluate        => independentLikelihoodsEvaluate
@@ -78,6 +79,7 @@ contains
     integer                                                                 :: i                 , parameterMapCount
     type   (enumerationInputParameterErrorStatusType       )                :: errorStatus
     type   (varying_string                                 )                :: parameterMapJoined
+    logical                                                                 :: report
 
     !![
     <inputParameter>
@@ -85,6 +87,13 @@ contains
       <variable>self%logLikelihoodAccept</variable>
       <defaultValue>huge(0.0d0)</defaultValue>
       <description>The log-likelihood which should be ``accepted''---once the log-likelihood reaches this value (or larger) no further updates to the chain will be made.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>report</name>
+      <variable>self%report</variable>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, report on the log-likelihood obtained.</description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -135,7 +144,7 @@ contains
     return
   end function independentLikelihoodsConstructorParameters
 
-  function independentLikelihoodsConstructorInternal(modelLikelihoods,logLikelihoodAccept) result(self)
+  function independentLikelihoodsConstructorInternal(modelLikelihoods,logLikelihoodAccept,report) result(self)
     !!{
     Constructor for ``independentLikelihoods'' posterior sampling likelihood class.
     !!}
@@ -143,8 +152,9 @@ contains
     type            (posteriorSampleLikelihoodIndependentLikelihoods)                        :: self
     type            (posteriorSampleLikelihoodList                  ), target, intent(in   ) :: modelLikelihoods
     double precision                                                         , intent(in   ) :: logLikelihoodAccept
+    logical                                                                  , intent(in   ) :: report
     !![
-    <constructorAssign variables="*modelLikelihoods, logLikelihoodAccept"/>
+    <constructorAssign variables="*modelLikelihoods, logLikelihoodAccept, report"/>
     !!]
 
     return
@@ -187,6 +197,7 @@ contains
     !!{
     Return the log-likelihood for the halo mass function likelihood function.
     !!}
+    use :: Display                     , only : displayMessage
     use :: Error                       , only : Error_Report
     use :: Models_Likelihoods_Constants, only : logImpossible
     implicit none
@@ -204,6 +215,7 @@ contains
     real                                                                                           :: timeEvaluate_
     double precision                                                                               :: logLikelihoodVariance_, logPriorProposed_
     integer                                                                                        :: i                     , j
+    character       (len=16                                         )                              :: label
     !$GLC attributes unused :: forceAcceptance
 
     allocate(stateVector      (simulationState%dimension()))
@@ -289,6 +301,10 @@ contains
             &                                                        +timeEvaluate
        modelLikelihood_                                           =>  modelLikelihood_%next
     end do
+    if (self%report) then
+       write (label,'(e16.10)') independentLikelihoodsEvaluate
+       call displayMessage("logℒ (total) = "//trim(label))
+    end if
     return
   end function independentLikelihoodsEvaluate
 
