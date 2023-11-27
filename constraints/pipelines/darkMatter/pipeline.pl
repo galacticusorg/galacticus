@@ -1776,8 +1776,9 @@ foreach my $task ( @tasks ) {
 	$base->{'outputFileName'}->{'value'} = $options{'outputDirectory'}."/".$task->{'label'}.$suffix.".hdf5";
     }
     if ( defined($config) ) {
-	$config->{'outputFileName'           }                 ->{'value'} = $options{'outputDirectory'}."/".$task->{'label'}.".hdf5" ;
-	$config->{'posteriorSampleSimulation'}->{'logFileRoot'}->{'value'} = $options{'outputDirectory'}."/".$task->{'label'}."Chains";
+	$config->{'outputFileName'           }                                                 ->{'value'} = $options{'outputDirectory'}."/".$task->{'label'}.".hdf5" ;
+	$config->{'posteriorSampleSimulation'}                                ->{'logFileRoot'}->{'value'} = $options{'outputDirectory'}."/".$task->{'label'}."Chains";
+	$config->{'posteriorSampleSimulation'}->{'posteriorSampleConvergence'}->{'logFileName'}->{'value'} = $options{'outputDirectory'}."/".$task->{'label'}."Convergence.log";
 	my $i = -1;
 	# Set base file names in the config file.
 	foreach my $base ( @bases ) {
