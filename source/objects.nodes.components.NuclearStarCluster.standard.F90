@@ -227,18 +227,13 @@ module Node_Component_NSC_Standard
   integer                                     :: abundancesCount
 
   ! Parameters controlling the physical implementation.
-  double precision                            :: toleranceAbsoluteMass               , radiusStructureSolver     , &
-       &                                         toleranceRelativeMetallicity          
-  logical                                     :: NSCNegativeAngularMomentumAllowed   , inactiveLuminositiesStellar
+  double precision                            :: toleranceAbsoluteMass      , toleranceRelativeMetallicity          
+  logical                                     :: inactiveLuminositiesStellar, NSCNegativeAngularMomentumAllowed
 
   ! The largest and smallest angular momentum, in units of that of a circular orbit at the virial radius, considered to be physically plausible for a nuclear star cluster.
   double precision, parameter                 :: angularMomentumMaximum                    =1.0d+1
   double precision, parameter                 :: angularMomentumMinimum                    =1.0d-6
 
-  ! nuclear star cluster structural parameters.
-  double precision                            :: NSCStructureSolverSpecificAngularMomentum, NSCRadiusSolverFlatVsSphericalFactor
-  !$omp threadprivate(NSCStructureSolverSpecificAngularMomentum,NSCRadiusSolverFlatVsSphericalFactor)
-  
   ! A threadprivate object used to track to which thread events are attached.
   integer :: thread
   !$omp threadprivate(thread)
@@ -288,12 +283,6 @@ contains
          <source>subParameters</source>
        </inputParameter>
        <inputParameter>
-         <name>radiusStructureSolver</name>
-         <defaultValue>1.0d0</defaultValue>
-         <description>The radius (in units of the standard scale length) to use in solving for the size of the nuclear star cluster.</description>
-         <source>subParameters</source>
-       </inputParameter>
-       <inputParameter>
          <name>NSCNegativeAngularMomentumAllowed</name>
          <defaultValue>.true.</defaultValue>
          <description>Specifies whether or not negative angular momentum is allowed for the nuclear star cluster.</description>
@@ -335,8 +324,6 @@ contains
     implicit none
     type            (inputParameters), intent(inout) :: parameters
     type            (dependencyRegEx), dimension(1)  :: dependencies
-    double precision                                 :: massDistributionNSCDensityMoment1, massDistributionNSCDensityMoment2
-    logical                                          :: surfaceDensityMoment1IsInfinite  , surfaceDensityMoment2IsInfinite
     type            (inputParameters)                :: subParameters
 
     ! Check if this implementation is selected. If so, initialize the mass distribution.
@@ -378,24 +365,6 @@ contains
           call Error_Report('only cylindrically symmetric mass distributions are allowed'//{introspection:location})
        end select
        if (.not.massDistributionNSC%isDimensionless()) call Error_Report('Nuclear star cluster mass distribution must be dimensionless'//{introspection:location})
-       ! Compute the specific angular momentum of the nuclear star cluster at this structure solver radius in units of the mean specific angular
-       ! momentum of the nuclear star cluster assuming a flat rotation curve.
-       !! Determine the specific angular momentum at the size solver radius in units of the mean specific angular
-       !! momentum of the nuclear star cluster. This is equal to the ratio of the 1st to 2nd radial moments of the surface density
-       !! distribution (assuming a flat rotation curve).
-       massDistributionNSCDensityMoment1=massDistributionNSC%surfaceDensityRadialMoment(1.0d0,isInfinite=surfaceDensityMoment1IsInfinite)
-       massDistributionNSCDensityMoment2=massDistributionNSC%surfaceDensityRadialMoment(2.0d0,isInfinite=surfaceDensityMoment2IsInfinite)
-       if (surfaceDensityMoment1IsInfinite.or.surfaceDensityMoment2IsInfinite) then
-          ! One or both of the moments are infinite. Simply assume a value of 0.5 as a default.
-          NSCStructureSolverSpecificAngularMomentum=0.5d0
-       else
-          NSCStructureSolverSpecificAngularMomentum=  &
-               & +radiusStructureSolver               &
-               & /(                                   &
-               &   +massDistributionNSCDensityMoment2 &
-               &   /massDistributionNSCDensityMoment1 &
-               &  )
-       end if
     end if
     return
   end subroutine Node_Component_NSC_Standard_Thread_Initialize
@@ -1153,7 +1122,6 @@ contains
      <description>Internal file I/O in gfortran can be non-thread safe.</description>
     </workaround>
     !!]
-    write (stateFile) NSCStructureSolverSpecificAngularMomentum,NSCRadiusSolverFlatVsSphericalFactor
     return
   end subroutine Node_Component_NSC_Standard_State_Store
 
@@ -1181,7 +1149,6 @@ contains
      <description>Internal file I/O in gfortran can be non-thread safe.</description>
     </workaround>
     !!]
-    read (stateFile) NSCStructureSolverSpecificAngularMomentum,NSCRadiusSolverFlatVsSphericalFactor
     return
   end subroutine Node_Component_NSC_Standard_State_Retrieve
   
@@ -1190,10 +1157,10 @@ contains
     Computes the gravitational acceleration at a given position for a standard nuclear star cluster.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentNSCStandard, treeNode
-    use :: Galactic_Structure_Options      , only : componentTypeAll                       , componentTypeNSC, massTypeAll            , weightByMass         , &
-         &                                          weightIndexNull                        , enumerationComponentTypeType   , enumerationMassTypeType
+    use :: Galactic_Structure_Options      , only : componentTypeAll                       , componentTypeNSC            , massTypeAll            , weightByMass         , &
+         &                                          weightIndexNull                        , enumerationComponentTypeType, enumerationMassTypeType
     use :: Numerical_Constants_Math        , only : Pi
-    use :: Coordinates                     , only : assignment(=)                          , coordinateSpherical            , coordinateCartesian    , coordinateCylindrical
+    use :: Coordinates                     , only : assignment(=)                          , coordinateSpherical         , coordinateCartesian    , coordinateCylindrical
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     use :: Mass_Distributions              , only : massDistributionGaussianEllipsoid
     use :: Linear_Algebra                  , only : vector                                 , matrix                         , assignment(=)

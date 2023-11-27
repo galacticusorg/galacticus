@@ -139,7 +139,7 @@ contains
     \ttfamily baugh2005} timescale model.
     !!}
     use :: Error           , only : Error_Report
-    use :: Galacticus_Nodes, only : nodeComponent, nodeComponentBasic, nodeComponentDisk, nodeComponentSpheroid, nodeComponentNSC
+    use :: Galacticus_Nodes, only : nodeComponent, nodeComponentBasic, nodeComponentDisk, nodeComponentSpheroid
     implicit none
     class           (starFormationTimescaleBaugh2005), intent(inout) :: self
     class           (nodeComponent                  ), intent(inout) :: component
@@ -151,8 +151,6 @@ contains
     class is (nodeComponentDisk    )
        velocity=component%velocity()
     class is (nodeComponentSpheroid)
-       velocity=component%velocity()
-    class is (nodeComponentNSC     )
        velocity=component%velocity()
     class default
        velocity=0.0d0

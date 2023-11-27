@@ -187,7 +187,7 @@ contains
                &      -massTimeStellarNSC &
                &      /massStellarNSC
 
-          call NSC%AgeSet(ageNSC)                                       !pc
+          call NSC%AgeSet(ageNSC)                                       !Gyr
           if (ageNSC <= 0.0d0) return 
           Theta         = 9.54 *     (self%Mstar   / self%Rstar)*(vel/NSCvelocity)**2.0 !Adimensional
           CrossSection  = 16.0 * sqrt(Pi)*(1+Theta)*(self%Rstar *sun_rad_to_pc)   **2.0 !pc^2
