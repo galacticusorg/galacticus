@@ -33,7 +33,8 @@ my @types =
 	 suite        => "Symphony",
 	 transfer     => "CDM",
 	 name         => "Milky Way",
-	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984 ],
+#	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984 ],
+	 redshifts    => [ 0.000, 2.031 ],
 	 massParticle => 4.02830e05
      },
      {
@@ -42,169 +43,173 @@ my @types =
 	 suite        => "Symphony",
 	 transfer     => "WDM3",
 	 name         => "Milky Way 3 keV WDM",
-	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984 ],
+#	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984 ],
+	 redshifts    => [ 0.000, 2.031 ],
 	 massParticle => 4.02830e05
      },
-     {
-	 label        => "MilkyWay_WDM4",
-	 simulation   => "MilkyWay",
-	 suite        => "Symphony",
-	 transfer     => "WDM4",
-	 name         => "Milky Way 4 keV WDM",
-	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984 ],
-	 massParticle => 4.02830e05
-     },
-     {
-	 label        => "MilkyWay_WDM5",
-	 simulation   => "MilkyWay",
-	 suite        => "Symphony",
-	 transfer     => "WDM5",
-	 name         => "Milky Way 5 keV WDM",
-	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984 ],
-	 massParticle => 4.02830e05
-     },
-     {
-	 label        => "MilkyWay_WDM6",
-	 simulation   => "MilkyWay",
-	 suite        => "Symphony",
-	 transfer     => "WDM6",
-	 name         => "Milky Way 6 keV WDM",
-	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984 ],
-	 massParticle => 4.02830e05
-     },
-     {
-	 label        => "MilkyWay_WDM6.5",
-	 simulation   => "MilkyWay",
-	 suite        => "Symphony",
-	 transfer     => "WDM6.5",
-	 name         => "Milky Way 6.5 keV WDM",
-	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984 ],
-	 massParticle => 4.02830e05
-     },
-     {
-	 label        => "MilkyWay_WDM10",
-	 simulation   => "MilkyWay",
-	 suite        => "Symphony",
-	 transfer     => "WDM10",
-	 name         => "Milky Way 10 keV WDM",
-	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
-	 massParticle => 4.02830e05
-     },
+     # {
+     # 	 label        => "MilkyWay_WDM4",
+     # 	 simulation   => "MilkyWay",
+     # 	 suite        => "Symphony",
+     # 	 transfer     => "WDM4",
+     # 	 name         => "Milky Way 4 keV WDM",
+     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984 ],
+     # 	 massParticle => 4.02830e05
+     # },
+     # {
+     # 	 label        => "MilkyWay_WDM5",
+     # 	 simulation   => "MilkyWay",
+     # 	 suite        => "Symphony",
+     # 	 transfer     => "WDM5",
+     # 	 name         => "Milky Way 5 keV WDM",
+     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984 ],
+     # 	 massParticle => 4.02830e05
+     # },
+     # {
+     # 	 label        => "MilkyWay_WDM6",
+     # 	 simulation   => "MilkyWay",
+     # 	 suite        => "Symphony",
+     # 	 transfer     => "WDM6",
+     # 	 name         => "Milky Way 6 keV WDM",
+     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984 ],
+     # 	 massParticle => 4.02830e05
+     # },
+     # {
+     # 	 label        => "MilkyWay_WDM6.5",
+     # 	 simulation   => "MilkyWay",
+     # 	 suite        => "Symphony",
+     # 	 transfer     => "WDM6.5",
+     # 	 name         => "Milky Way 6.5 keV WDM",
+     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984 ],
+     # 	 massParticle => 4.02830e05
+     # },
+     # {
+     # 	 label        => "MilkyWay_WDM10",
+     # 	 simulation   => "MilkyWay",
+     # 	 suite        => "Symphony",
+     # 	 transfer     => "WDM10",
+     # 	 name         => "Milky Way 10 keV WDM",
+     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
+     # 	 massParticle => 4.02830e05
+     # },
      {
 	 label        => "MilkyWay_IDM1GeV_envelope",
 	 simulation   => "MilkyWay",
 	 suite        => "Symphony",
 	 transfer     => "IDM1GeV_envelope",
 	 name         => "Milky Way IDM 1 GeV envelope",
-	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
+#	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
+	 redshifts    => [ 0.000, 2.031  ],
 	 massParticle => 4.02830e05
      },
-     {
-	 label        => "MilkyWay_IDM1GeV_halfmode",
-	 simulation   => "MilkyWay",
-	 suite        => "Symphony",
-	 transfer     => "IDM1GeV_halfmode",
-	 name         => "Milky Way IDM 1 GeV half-mode",
-	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
-	 massParticle => 4.02830e05
-     },
-     {
-	 label        => "MilkyWay_IDM1e-2GeV_envelope",
-	 simulation   => "MilkyWay",
-	 suite        => "Symphony",
-	 transfer     => "IDM1e-2GeV_envelope",
-	 name         => "Milky Way IDM 10^{-2} GeV envelope",
-	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
-	 massParticle => 4.02830e05
-     },
-     {
-	 label        => "MilkyWay_IDM1e-2GeV_halfmode",
-	 simulation   => "MilkyWay",
-	 suite        => "Symphony",
-	 transfer     => "IDM1e-2GeV_halfmode",
-	 name         => "Milky Way IDM 10^{-2} GeV half-mode",
-	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
-	 massParticle => 4.02830e05
-     },
-     {
-	 label        => "MilkyWay_IDM1e-4GeV_envelope",
-	 simulation   => "MilkyWay",
-	 suite        => "Symphony",
-	 transfer     => "IDM1e-4GeV_envelope",
-	 name         => "Milky Way IDM 10^{-4} GeV envelope",
-	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
-	 massParticle => 4.02830e05
-     },
-     {
-	 label        => "MilkyWay_IDM1e-4GeV_halfmode",
-	 simulation   => "MilkyWay",
-	 suite        => "Symphony",
-	 transfer     => "IDM1e-4GeV_halfmode",
-	 name         => "Milky Way IDM 10^{-4} GeV half-mode",
-	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
-	 massParticle => 4.02830e05
-     },
+     # {
+     # 	 label        => "MilkyWay_IDM1GeV_halfmode",
+     # 	 simulation   => "MilkyWay",
+     # 	 suite        => "Symphony",
+     # 	 transfer     => "IDM1GeV_halfmode",
+     # 	 name         => "Milky Way IDM 1 GeV half-mode",
+     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
+     # 	 massParticle => 4.02830e05
+     # },
+     # {
+     # 	 label        => "MilkyWay_IDM1e-2GeV_envelope",
+     # 	 simulation   => "MilkyWay",
+     # 	 suite        => "Symphony",
+     # 	 transfer     => "IDM1e-2GeV_envelope",
+     # 	 name         => "Milky Way IDM 10^{-2} GeV envelope",
+     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
+     # 	 massParticle => 4.02830e05
+     # },
+     # {
+     # 	 label        => "MilkyWay_IDM1e-2GeV_halfmode",
+     # 	 simulation   => "MilkyWay",
+     # 	 suite        => "Symphony",
+     # 	 transfer     => "IDM1e-2GeV_halfmode",
+     # 	 name         => "Milky Way IDM 10^{-2} GeV half-mode",
+     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
+     # 	 massParticle => 4.02830e05
+     # },
+     # {
+     # 	 label        => "MilkyWay_IDM1e-4GeV_envelope",
+     # 	 simulation   => "MilkyWay",
+     # 	 suite        => "Symphony",
+     # 	 transfer     => "IDM1e-4GeV_envelope",
+     # 	 name         => "Milky Way IDM 10^{-4} GeV envelope",
+     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
+     # 	 massParticle => 4.02830e05
+     # },
+     # {
+     # 	 label        => "MilkyWay_IDM1e-4GeV_halfmode",
+     # 	 simulation   => "MilkyWay",
+     # 	 suite        => "Symphony",
+     # 	 transfer     => "IDM1e-4GeV_halfmode",
+     # 	 name         => "Milky Way IDM 10^{-4} GeV half-mode",
+     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
+     # 	 massParticle => 4.02830e05
+     # },
      {
 	 label        => "MilkyWay_fdm_25.9e-22eV",
 	 simulation   => "MilkyWay",
 	 suite        => "Symphony",
 	 transfer     => "fdm_25.9e-22eV",
 	 name         => "Milky Way FDM 25.9*10^{-22} eV",
-	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
+#	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
+	 redshifts    => [ 0.000, 2.031  ],
 	 massParticle => 4.02830e05
      },
-     {
-	 label        => "MilkyWay_fdm_69.4e-22eV",
-	 simulation   => "MilkyWay",
-	 suite        => "Symphony",
-	 transfer     => "fdm_69.4e-22eV",
-	 name         => "Milky Way FDM 69.4*10^{-22} eV",
-	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
-	 massParticle => 4.02830e05
-     },
-     {
-	 label        => "MilkyWay_fdm_113e-22eV",
-	 simulation   => "MilkyWay",
-	 suite        => "Symphony",
-	 transfer     => "fdm_113e-22eV",
-	 name         => "Milky Way FDM 113*10^{-22} eV",
-	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
-	 massParticle => 4.02830e05
-     },
-     {
-	 label        => "MilkyWay_fdm_151e-22eV",
-	 simulation   => "MilkyWay",
-	 suite        => "Symphony",
-	 transfer     => "fdm_151e-22eV",
-	 name         => "Milky Way FDM 151*10^{-22} eV",
-	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
-	 massParticle => 4.02830e05
-     },
-     {
-	 label        => "MilkyWay_fdm_185e-22eV",
-	 simulation   => "MilkyWay",
-	 suite        => "Symphony",
-	 transfer     => "fdm_185e-22eV",
-	 name         => "Milky Way FDM 185*10^{-22} eV",
-	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
-	 massParticle => 4.02830e05
-     },
-     {
-	 label        => "MilkyWay_fdm_490e-22eV",
-	 simulation   => "MilkyWay",
-	 suite        => "Symphony",
-	 transfer     => "fdm_490e-22eV",
-	 name         => "Milky Way FDM 490*10^{-22} eV",
-	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
-	 massParticle => 4.02830e05
-     },
+     # {
+     # 	 label        => "MilkyWay_fdm_69.4e-22eV",
+     # 	 simulation   => "MilkyWay",
+     # 	 suite        => "Symphony",
+     # 	 transfer     => "fdm_69.4e-22eV",
+     # 	 name         => "Milky Way FDM 69.4*10^{-22} eV",
+     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
+     # 	 massParticle => 4.02830e05
+     # },
+     # {
+     # 	 label        => "MilkyWay_fdm_113e-22eV",
+     # 	 simulation   => "MilkyWay",
+     # 	 suite        => "Symphony",
+     # 	 transfer     => "fdm_113e-22eV",
+     # 	 name         => "Milky Way FDM 113*10^{-22} eV",
+     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
+     # 	 massParticle => 4.02830e05
+     # },
+     # {
+     # 	 label        => "MilkyWay_fdm_151e-22eV",
+     # 	 simulation   => "MilkyWay",
+     # 	 suite        => "Symphony",
+     # 	 transfer     => "fdm_151e-22eV",
+     # 	 name         => "Milky Way FDM 151*10^{-22} eV",
+     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
+     # 	 massParticle => 4.02830e05
+     # },
+     # {
+     # 	 label        => "MilkyWay_fdm_185e-22eV",
+     # 	 simulation   => "MilkyWay",
+     # 	 suite        => "Symphony",
+     # 	 transfer     => "fdm_185e-22eV",
+     # 	 name         => "Milky Way FDM 185*10^{-22} eV",
+     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
+     # 	 massParticle => 4.02830e05
+     # },
+     # {
+     # 	 label        => "MilkyWay_fdm_490e-22eV",
+     # 	 simulation   => "MilkyWay",
+     # 	 suite        => "Symphony",
+     # 	 transfer     => "fdm_490e-22eV",
+     # 	 name         => "Milky Way FDM 490*10^{-22} eV",
+     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
+     # 	 massParticle => 4.02830e05
+     # },
      {
 	 label        => "MilkyWay_hires",
 	 simulation   => "MilkyWay",
 	 suite        => "Symphony",
 	 transfer     => "CDM",
 	 name         => "Milky Way",
-	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984 ],
+#	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984 ],
+	 redshifts    => [ 0.000, 2.031 ],
 	 massParticle => 5.03538e04
      },
      {
@@ -213,169 +218,173 @@ my @types =
 	 suite        => "Symphony",
 	 transfer     => "WDM3",
 	 name         => "Milky Way 3 keV WDM",
-	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984 ],
+#	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984 ],
+	 redshifts    => [ 0.000, 2.031 ],
 	 massParticle => 5.03538e04
      },
-     {
-	 label        => "MilkyWay_WDM4_hires",
-	 simulation   => "MilkyWay",
-	 suite        => "Symphony",
-	 transfer     => "WDM4",
-	 name         => "Milky Way 4 keV WDM",
-	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984 ],
-	 massParticle => 5.03538e04
-     },
-     {
-	 label        => "MilkyWay_WDM5_hires",
-	 simulation   => "MilkyWay",
-	 suite        => "Symphony",
-	 transfer     => "WDM5",
-	 name         => "Milky Way 5 keV WDM",
-	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984 ],
-	 massParticle => 5.03538e04
-     },
-     {
-	 label        => "MilkyWay_WDM6_hires",
-	 simulation   => "MilkyWay",
-	 suite        => "Symphony",
-	 transfer     => "WDM6",
-	 name         => "Milky Way 6 keV WDM",
-	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984 ],
-	 massParticle => 5.03538e04
-     },
-     {
-	 label        => "MilkyWay_WDM6.5_hires",
-	 simulation   => "MilkyWay",
-	 suite        => "Symphony",
-	 transfer     => "WDM6.5",
-	 name         => "Milky Way 6.5 keV WDM",
-	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984 ],
-	 massParticle => 5.03538e04
-     },
-     {
-	 label        => "MilkyWay_WDM10_hires",
-	 simulation   => "MilkyWay",
-	 suite        => "Symphony",
-	 transfer     => "WDM10",
-	 name         => "Milky Way 10 keV WDM",
-	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
-	 massParticle => 5.03538e04
-     },
+     # {
+     # 	 label        => "MilkyWay_WDM4_hires",
+     # 	 simulation   => "MilkyWay",
+     # 	 suite        => "Symphony",
+     # 	 transfer     => "WDM4",
+     # 	 name         => "Milky Way 4 keV WDM",
+     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984 ],
+     # 	 massParticle => 5.03538e04
+     # },
+     # {
+     # 	 label        => "MilkyWay_WDM5_hires",
+     # 	 simulation   => "MilkyWay",
+     # 	 suite        => "Symphony",
+     # 	 transfer     => "WDM5",
+     # 	 name         => "Milky Way 5 keV WDM",
+     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984 ],
+     # 	 massParticle => 5.03538e04
+     # },
+     # {
+     # 	 label        => "MilkyWay_WDM6_hires",
+     # 	 simulation   => "MilkyWay",
+     # 	 suite        => "Symphony",
+     # 	 transfer     => "WDM6",
+     # 	 name         => "Milky Way 6 keV WDM",
+     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984 ],
+     # 	 massParticle => 5.03538e04
+     # },
+     # {
+     # 	 label        => "MilkyWay_WDM6.5_hires",
+     # 	 simulation   => "MilkyWay",
+     # 	 suite        => "Symphony",
+     # 	 transfer     => "WDM6.5",
+     # 	 name         => "Milky Way 6.5 keV WDM",
+     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984 ],
+     # 	 massParticle => 5.03538e04
+     # },
+     # {
+     # 	 label        => "MilkyWay_WDM10_hires",
+     # 	 simulation   => "MilkyWay",
+     # 	 suite        => "Symphony",
+     # 	 transfer     => "WDM10",
+     # 	 name         => "Milky Way 10 keV WDM",
+     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
+     # 	 massParticle => 5.03538e04
+     # },
      {
 	 label        => "MilkyWay_IDM1GeV_envelope_hires",
 	 simulation   => "MilkyWay",
 	 suite        => "Symphony",
 	 transfer     => "IDM1GeV_envelope",
 	 name         => "Milky Way IDM 1 GeV envelope",
-	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
+#	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
+	 redshifts    => [ 0.000, 2.031  ],
 	 massParticle => 5.03538e04
      },
-     {
-	 label        => "MilkyWay_IDM1GeV_halfmode_hires",
-	 simulation   => "MilkyWay",
-	 suite        => "Symphony",
-	 transfer     => "IDM1GeV_halfmode",
-	 name         => "Milky Way IDM 1 GeV half-mode",
-	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
-	 massParticle => 5.03538e04
-     },
-     {
-	 label        => "MilkyWay_IDM1e-2GeV_envelope_hires",
-	 simulation   => "MilkyWay",
-	 suite        => "Symphony",
-	 transfer     => "IDM1e-2GeV_envelope",
-	 name         => "Milky Way IDM 10^{-2} GeV envelope",
-	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
-	 massParticle => 5.03538e04
-     },
-     {
-	 label        => "MilkyWay_IDM1e-2GeV_halfmode_hires",
-	 simulation   => "MilkyWay",
-	 suite        => "Symphony",
-	 transfer     => "IDM1e-2GeV_halfmode",
-	 name         => "Milky Way IDM 10^{-2} GeV half-mode",
-	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
-	 massParticle => 5.03538e04
-     },
-     {
-	 label        => "MilkyWay_IDM1e-4GeV_envelope_hires",
-	 simulation   => "MilkyWay",
-	 suite        => "Symphony",
-	 transfer     => "IDM1e-4GeV_envelope",
-	 name         => "Milky Way IDM 10^{-4} GeV envelope",
-	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
-	 massParticle => 5.03538e04
-     },
-     {
-	 label        => "MilkyWay_IDM1e-4GeV_halfmode_hires",
-	 simulation   => "MilkyWay",
-	 suite        => "Symphony",
-	 transfer     => "IDM1e-4GeV_halfmode",
-	 name         => "Milky Way IDM 10^{-4} GeV half-mode",
-	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
-	 massParticle => 5.03538e04
-     },
+     # {
+     # 	 label        => "MilkyWay_IDM1GeV_halfmode_hires",
+     # 	 simulation   => "MilkyWay",
+     # 	 suite        => "Symphony",
+     # 	 transfer     => "IDM1GeV_halfmode",
+     # 	 name         => "Milky Way IDM 1 GeV half-mode",
+     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
+     # 	 massParticle => 5.03538e04
+     # },
+     # {
+     # 	 label        => "MilkyWay_IDM1e-2GeV_envelope_hires",
+     # 	 simulation   => "MilkyWay",
+     # 	 suite        => "Symphony",
+     # 	 transfer     => "IDM1e-2GeV_envelope",
+     # 	 name         => "Milky Way IDM 10^{-2} GeV envelope",
+     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
+     # 	 massParticle => 5.03538e04
+     # },
+     # {
+     # 	 label        => "MilkyWay_IDM1e-2GeV_halfmode_hires",
+     # 	 simulation   => "MilkyWay",
+     # 	 suite        => "Symphony",
+     # 	 transfer     => "IDM1e-2GeV_halfmode",
+     # 	 name         => "Milky Way IDM 10^{-2} GeV half-mode",
+     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
+     # 	 massParticle => 5.03538e04
+     # },
+     # {
+     # 	 label        => "MilkyWay_IDM1e-4GeV_envelope_hires",
+     # 	 simulation   => "MilkyWay",
+     # 	 suite        => "Symphony",
+     # 	 transfer     => "IDM1e-4GeV_envelope",
+     # 	 name         => "Milky Way IDM 10^{-4} GeV envelope",
+     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
+     # 	 massParticle => 5.03538e04
+     # },
+     # {
+     # 	 label        => "MilkyWay_IDM1e-4GeV_halfmode_hires",
+     # 	 simulation   => "MilkyWay",
+     # 	 suite        => "Symphony",
+     # 	 transfer     => "IDM1e-4GeV_halfmode",
+     # 	 name         => "Milky Way IDM 10^{-4} GeV half-mode",
+     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
+     # 	 massParticle => 5.03538e04
+     # },
      {
 	 label        => "MilkyWay_fdm_25.9e-22eV_hires",
 	 simulation   => "MilkyWay",
 	 suite        => "Symphony",
 	 transfer     => "fdm_25.9e-22eV",
 	 name         => "Milky Way FDM 25.9*10^{-22} eV",
-	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
+#	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
+	 redshifts    => [ 0.000, 2.031  ],
 	 massParticle => 5.03538e04
      },
-     {
-	 label        => "MilkyWay_fdm_69.4e-22eV_hires",
-	 simulation   => "MilkyWay",
-	 suite        => "Symphony",
-	 transfer     => "fdm_69.4e-22eV",
-	 name         => "Milky Way FDM 69.4*10^{-22} eV",
-	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
-	 massParticle => 5.03538e04
-     },
-     {
-	 label        => "MilkyWay_fdm_113e-22eV_hires",
-	 simulation   => "MilkyWay",
-	 suite        => "Symphony",
-	 transfer     => "fdm_113e-22eV",
-	 name         => "Milky Way FDM 113*10^{-22} eV",
-	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
-	 massParticle => 5.03538e04
-     },
-     {
-	 label        => "MilkyWay_fdm_151e-22eV_hires",
-	 simulation   => "MilkyWay",
-	 suite        => "Symphony",
-	 transfer     => "fdm_151e-22eV",
-	 name         => "Milky Way FDM 151*10^{-22} eV",
-	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
-	 massParticle => 5.03538e04
-     },
-     {
-	 label        => "MilkyWay_fdm_185e-22eV_hires",
-	 simulation   => "MilkyWay",
-	 suite        => "Symphony",
-	 transfer     => "fdm_185e-22eV",
-	 name         => "Milky Way FDM 185*10^{-22} eV",
-	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
-	 massParticle => 5.03538e04
-     },
-     {
-	 label        => "MilkyWay_fdm_490e-22eV_hires",
-	 simulation   => "MilkyWay",
-	 suite        => "Symphony",
-	 transfer     => "fdm_490e-22eV",
-	 name         => "Milky Way FDM 490*10^{-22} eV",
-	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
-	 massParticle => 5.03538e04
-     },
+     # {
+     # 	 label        => "MilkyWay_fdm_69.4e-22eV_hires",
+     # 	 simulation   => "MilkyWay",
+     # 	 suite        => "Symphony",
+     # 	 transfer     => "fdm_69.4e-22eV",
+     # 	 name         => "Milky Way FDM 69.4*10^{-22} eV",
+     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
+     # 	 massParticle => 5.03538e04
+     # },
+     # {
+     # 	 label        => "MilkyWay_fdm_113e-22eV_hires",
+     # 	 simulation   => "MilkyWay",
+     # 	 suite        => "Symphony",
+     # 	 transfer     => "fdm_113e-22eV",
+     # 	 name         => "Milky Way FDM 113*10^{-22} eV",
+     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
+     # 	 massParticle => 5.03538e04
+     # },
+     # {
+     # 	 label        => "MilkyWay_fdm_151e-22eV_hires",
+     # 	 simulation   => "MilkyWay",
+     # 	 suite        => "Symphony",
+     # 	 transfer     => "fdm_151e-22eV",
+     # 	 name         => "Milky Way FDM 151*10^{-22} eV",
+     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
+     # 	 massParticle => 5.03538e04
+     # },
+     # {
+     # 	 label        => "MilkyWay_fdm_185e-22eV_hires",
+     # 	 simulation   => "MilkyWay",
+     # 	 suite        => "Symphony",
+     # 	 transfer     => "fdm_185e-22eV",
+     # 	 name         => "Milky Way FDM 185*10^{-22} eV",
+     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
+     # 	 massParticle => 5.03538e04
+     # },
+     # {
+     # 	 label        => "MilkyWay_fdm_490e-22eV_hires",
+     # 	 simulation   => "MilkyWay",
+     # 	 suite        => "Symphony",
+     # 	 transfer     => "fdm_490e-22eV",
+     # 	 name         => "Milky Way FDM 490*10^{-22} eV",
+     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
+     # 	 massParticle => 5.03538e04
+     # },
      {
 	 label        => "LMC",
 	 simulation   => "LMC",
 	 suite        => "Symphony",
 	 transfer     => "CDM",
 	 name         => "LMC",
-	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984 ],
+#	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984 ],
+	 redshifts    => [ 0.000, 2.031 ],
 	 massParticle => 5.03538e04
      }
     );
@@ -383,25 +392,8 @@ my @lengths = map {length($_->{'label'})} @types;
 my $labelLengthMaximum = &List::Util::max(@lengths);
 open(my $configFile  ,">haloMassFunctionConfig.xml");
 my $pipelineBase   = "";
-my $pipelineSuffix = "";
-
-my %countsByTransferFunction;
-my %temperatureByTransferFunction;
-foreach my $type ( @types ) {
-    die("Directory '".$options{'simulationDataPath'}."/ZoomIns/".$type->{'label'}."' does not exist")
-	unless ( -e $options{'simulationDataPath'}."/ZoomIns/".$type->{'label'} );
-    opendir(my $dir,$options{'simulationDataPath'}."/ZoomIns/".$type->{'label'});
-    my @halos = sort map {$_ =~ m/^Halo\d+/ ? $_ : ()} readdir($dir);
-    closedir($dir);    
-    $countsByTransferFunction{$type->{'transfer'}} += scalar(@halos);
-}
-my $countsMinimum = &List::Util::min(map {$countsByTransferFunction{$_}} keys(%countsByTransferFunction));
-foreach ( keys(%countsByTransferFunction) ) {
-    $temperatureByTransferFunction{$_} = $countsByTransferFunction{$_}/$countsMinimum;
-}
 
 foreach my $type ( @types ) {
-    $code::temperature = $temperatureByTransferFunction{$type->{'transfer'}};
     die("Directory '".$options{'simulationDataPath'}."/ZoomIns/".$type->{'label'}."' does not exist")
 	unless ( -e $options{'simulationDataPath'}."/ZoomIns/".$type->{'label'} );
     opendir(my $dir,$options{'simulationDataPath'}."/ZoomIns/".$type->{'label'});
@@ -427,7 +419,6 @@ foreach my $type ( @types ) {
 	    $code::massMaximum = sprintf("%11.5e",$haloTarget->{'mc'}/10.0);
 	    # Add entries for the pipeline file.
 	    $pipelineBase   .= '	      "haloMassFunctionBase_'.$type->{'label'}.'_'.$halo.'_z'.$code::redshiftShort.'.xml"'.(" " x (8+$labelLengthMaximum-length($type->{'label'})-length($halo))).",\n";
-	    $pipelineSuffix .= '	      "'.$type->{'label'}.'_'.$halo.'_z'.$code::redshiftShort.'"'.(" " x (8+$labelLengthMaximum-length($type->{'label'})-length($halo))).",\n";
 	    # Make the base file.
 	    my $hmfFileName = $ENV{'GALACTICUS_DATA_PATH'}."/static/darkMatter/haloMassFunction_".$type->{'label'}."_".$halo."_z".$code::redshiftShort.".hdf5";
 	    if ( -e $hmfFileName ) {
@@ -447,30 +438,26 @@ foreach my $type ( @types ) {
 		    # Make the XML for the config file.
 		    my $config = fill_in_string(<<'CODE', PACKAGE => 'code');
     <!-- Zoom-in: {$name} {$halo} -->
-    <parameterMap value="haloMassFunctionParameters::a                        haloMassFunctionParameters::p
-                         haloMassFunctionParameters::normalization            haloMassFunctionParameters::q
-                         haloMassFunctionParameters::b
-                         haloMassFunctionParameters::normalizationPseudoHalos haloMassFunctionParameters::exponentMassParticlePseudoHalos
-                         haloMassFunctionParameters::exponentMassPseudoHalos  haloMassFunctionParameters::exponentRedshiftPseudoHalos
-                                                                              haloMassFunctionParameters::exponentOverdensityPseudoHalos
-                         haloMassFunctionParameters::cW                       haloMassFunctionParameters::beta
-                         haloMassFunctionParameters::alpha                    varianceFractionalModelDiscrepancy"/>
+    <parameterMap value="haloMassFunctionParameters::a                                haloMassFunctionParameters::p
+                         haloMassFunctionParameters::normalization                    haloMassFunctionParameters::q
+                         haloMassFunctionParameters::b                                haloMassFunctionParameters::c
+                         haloMassFunctionParameters::massMinimumParticleCountSymphony haloMassFunctionParameters::efficiencyAtMassMinimumSymphony
+                         haloMassFunctionParameters::exponentMassDetectionSymphony    haloMassFunctionParameters::exponentRedshiftDetectionSymphony
+                         haloMassFunctionParameters::cW                               haloMassFunctionParameters::beta
+                         haloMassFunctionParameters::normalizationPseudoHalos         haloMassFunctionParameters::exponentMassParticlePseudoHalos
+                         haloMassFunctionParameters::exponentMassPseudoHalos          haloMassFunctionParameters::exponentRedshiftPseudoHalos
+                         haloMassFunctionParameters::exponentOverdensityPseudoHalos   haloMassFunctionParameters::exponentNormalizationPseudoHalos
+                         haloMassFunctionParameters::isolationBias{$simulation}       haloMassFunctionParameters::isolationBiasExponent{$simulation}"/>
     <parameterInactiveMap value="" ignoreWarnings="true"/>
-    <posteriorSampleLikelihood value="heated">
-      <temperature value="{$temperature}"/>
-      <posteriorSampleLikelihood value="haloMassFunction">
-        <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
-        <baseParametersFileName value="constraints/pipelines/darkMatter/haloMassFunctionBase_{$label}_{$halo}_z{$redshiftShort}.xml"/>
-        <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_{$label}_{$halo}_z{$redshiftShort}.hdf5"/>
-        <redshift               value="{$redshift}"       />
-        <massRangeMinimum       value="{$massMinimum}"    /> <!-- 100 times zoom-in {$name} particle mass -->
-        <massRangeMaximum       value="{$massMaximum}"    /> <!-- 1/10 of the target halo mass            -->
-        <binCountMinimum        value="0"                 />    
-        <likelihoodPoisson      value="true"              />
-        <likelihoodModel        value="simulationSphere"  />
-        <massSphere             value="{$massEnvironment}"/>
-        <truncatePower          value="true"              />
-      </posteriorSampleLikelihood>
+    <posteriorSampleLikelihood value="haloMassFunction">
+      <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
+      <baseParametersFileName value="constraints/pipelines/darkMatter/haloMassFunctionBase_{$label}_{$halo}_z{$redshiftShort}.xml"/>
+      <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_{$label}_{$halo}_z{$redshiftShort}.hdf5"/>
+      <redshift               value="{$redshift}"   />
+      <massRangeMinimum       value="{$massMinimum}"/> <!-- 100 times zoom-in {$name} particle mass -->
+      <massRangeMaximum       value="{$massMaximum}"/> <!-- 1/10 of the target halo mass            -->
+      <binCountMinimum        value="0"             />    
+      <likelihoodPoisson      value="true"          />
     </posteriorSampleLikelihood>
 CODE
 		    print $configFile $config;
@@ -492,6 +479,10 @@ CODE
     <overdensity     value="{$overdensityEnvironment}"/>
     <redshift        value="{$redshiftShort}" ignoreWarnings="true"/>
   </haloEnvironment>
+
+  <!-- Isolation bias -->
+  <isolationBias         value="=[haloMassFunctionParameters::isolationBias{$simulation}]"         ignoreWarnings="true"/>
+  <isolationBiasExponent value="=[haloMassFunctionParameters::isolationBiasExponent{$simulation}]" ignoreWarnings="true"/>
 
   <!-- Include Milky Way cosmology and mass function parameters -->
   <xi:include href="haloMassFunctionParameters.xml"                xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
@@ -516,10 +507,5 @@ close($configFile);
 open(my $pipelineBaseFile,">pipeline.base.pl");
 print $pipelineBaseFile $pipelineBase;
 close($pipelineBaseFile);
-
-# Write suffix array for pipeline file.
-open(my $pipelineSuffixFile,">pipeline.suffix.pl");
-print $pipelineSuffixFile $pipelineSuffix;
-close($pipelineSuffixFile);
 
 exit;
