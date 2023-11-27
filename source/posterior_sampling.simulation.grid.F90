@@ -84,9 +84,9 @@ contains
     class  (modelParameterClass           ), pointer                     :: modelParameter_
     class  (posteriorSampleLikelihoodClass), pointer                     :: posteriorSampleLikelihood_
     class  (posteriorSampleStateClass     ), pointer                     :: posteriorSampleState_
-    type   (varying_string                )                              :: logFileRoot, message
-    integer                                                              :: inactiveParameterCount    , activeParameterCount  , &
-         &                                                                  iInactive                 , iActive, &
+    type   (varying_string                )                              :: logFileRoot               , message
+    integer                                                              :: inactiveParameterCount    , activeParameterCount    , &
+         &                                                                  iInactive                 , iActive                 , &
          &                                                                  logFlushCount             , i
     integer(c_size_t                      )                              :: countGrid
     logical                                                              :: appendLogs
