@@ -67,30 +67,6 @@ double precision function Node_Component_NSC_Standard_Radius(self)
    return
 end function Node_Component_NSC_Standard_Radius
 
-double precision function Node_Component_NSC_Standard_Temperature(self)
-  !!{
-   Return the virial temperature of the nuclear star cluster.
-  !!}
-  use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
-  use :: Numerical_Constants_Physical    , only : boltzmannsConstant
-
-  implicit none 
-  class(nodeComponentNSCStandard), intent(inout) :: self
-  double precision                               :: radiusNSC, dynMass
-  
-  radiusNSC= self%radius ()
-  dynMass  = self%massGas()+self%massStellar()
-  
-  if (dynMass >0.0d0) then
-      Node_Component_NSC_Standard_Temperature=1.0/3.0*(gravitationalConstantGalacticus*dynMass/boltzmannsConstant*radiusNSC)
-!Boltzmann is in J/K 
-  else
-      Node_Component_NSC_Standard_Temperature=0.0d0
-  end if 
-  return
-end function Node_Component_NSC_Standard_Temperature
-
-
 double precision function Node_Component_NSC_Standard_Half_Mass_Radius(self)
   !!{
   Return the half-mass radius of the standard nuclear star cluster.

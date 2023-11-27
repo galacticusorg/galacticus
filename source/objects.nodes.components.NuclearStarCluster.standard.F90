@@ -157,13 +157,6 @@ module Node_Component_NSC_Standard
       <output unitsInSI="kilo" comment="Circular velocity of the standard nuclear star cluster at scale length."/>    
     </property>
     <property>
-      <name>temperature</name>
-      <type>double</type>
-      <rank>0</rank>
-      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-      <getFunction>Node_Component_NSC_Standard_Temperature</getFunction>
-    </property>
-    <property>
       <name>luminositiesStellar</name>
       <type>stellarLuminosities</type>
       <rank>0</rank>
