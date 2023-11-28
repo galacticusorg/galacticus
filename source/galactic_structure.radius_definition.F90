@@ -86,20 +86,21 @@ contains
     !!{
     Decode a set of radii descriptors and return the corresponding specifiers.
     !!}
-    use :: Galactic_Structure_Options    , only : enumerationComponentTypeEncode   , enumerationMassTypeEncode, weightByLuminosity      , weightByMass , &
-          &                                       weightIndexNull
+    use :: Galactic_Structure_Options    , only : enumerationComponentTypeEncode   , enumerationMassTypeEncode, weightByLuminosity      , weightByMass       , &
+         &                                        weightIndexNull
     use :: Error                         , only : Component_List                   , Error_Report
     use :: Galacticus_Nodes              , only : defaultDarkMatterProfileComponent, defaultDiskComponent     , defaultSpheroidComponent, defaultNSCComponent, &
          &                                        treeNode     
-    use :: ISO_Varying_String            , only : char                             , extract                  , operator(==)            , assignment(=), &
+    use :: ISO_Varying_String            , only : char                             , extract                  , operator(==)            , assignment(=)      , &
          &                                        operator(//)
     use :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
     use :: String_Handling               , only : String_Count_Words               , String_Split_Words       , char
     implicit none
     type     (varying_string ), intent(in   ), dimension(:)              :: descriptors
     type     (radiusSpecifier), intent(inout), dimension(:), allocatable :: specifiers
-    logical                   , intent(  out)                            :: diskRequired        , spheroidRequired   , NSCRequired, &
-         &                                                                  radiusVirialRequired, radiusScaleRequired
+    logical                   , intent(  out)                            :: diskRequired        , spheroidRequired    , &
+         &                                                                  NSCRequired         , radiusVirialRequired, &
+         &                                                                  radiusScaleRequired
     type     (varying_string  )              , dimension(5)              :: radiusDefinition
     type     (varying_string  )              , dimension(3)              :: fractionDefinition
     type     (varying_string  )              , dimension(2)              :: weightingDefinition
@@ -182,13 +183,13 @@ contains
        case ('NSCRadius'            )
           specifiers(i)%type=radiusTypeNSCRadius
           NSCRequired                 =.true.
-          if (.not.defaultNSCComponent             %radiusIsGettable        ())                                        &
+          if (.not.defaultNSCComponent             %radiusIsGettable        ())                                         &
                & call Error_Report                                                                                      &
                &(                                                                                                       &
-               &                              'nuclear star cluster radius is not gettable.'//                                          &
+               &                              'nuclear star cluster radius is not gettable.'//                          &
                &        Component_List(                                                                                 &
-               &                       'NSC'                                                                        ,  &
-               &                        defaultNSCComponent    %        radiusAttributeMatch(requireGettable=.true.)   &
+               &                       'NSC'                                                                        ,   &
+               &                        defaultNSCComponent    %        radiusAttributeMatch(requireGettable=.true.)    &
                &                       )                                                                             // &
                &       {introspection:location}                                                                         &
                &                             )
@@ -221,13 +222,13 @@ contains
        case ('NSCHalfMassRadius')
           specifiers(i)%type=radiusTypeNSCHalfMassRadius
           NSCRequired   =.true.
-          if (.not.defaultNSCComponent         %halfMassRadiusIsGettable())                                        &
+          if (.not.defaultNSCComponent         %halfMassRadiusIsGettable())                                             &
                & call Error_Report                                                                                      &
                &(                                                                                                       &
-               &                              'nuclear star cluster half-mass radius is not gettable.'//                            &
+               &                              'nuclear star cluster half-mass radius is not gettable.'//                &
                &        Component_List(                                                                                 &
-               &                       'NSC'                                                                    ,  &
-               &                        defaultNSCComponent%halfMassRadiusAttributeMatch(requireGettable=.true.)   &
+               &                       'NSC'                                                                         ,  &
+               &                        defaultNSCComponent     %halfMassRadiusAttributeMatch(requireGettable=.true.)   &
                &                       )                                                                             // &
                &       {introspection:location}                                                                         &
                &                             )

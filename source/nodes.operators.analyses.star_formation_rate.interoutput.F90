@@ -239,7 +239,7 @@ contains
     class           (nodeComponentBasic                      ), pointer                :: basic
     class           (nodeComponentDisk                       ), pointer                :: disk
     class           (nodeComponentSpheroid                   ), pointer                :: spheroid
-    class           (nodeComponentNSC                       ), pointer                :: NSC
+    class           (nodeComponentNSC                        ), pointer                :: NSC
     double precision                                                                   :: timeInterval
     
     ! Return immediately if inactive variables are requested.

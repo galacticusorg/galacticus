@@ -20,10 +20,12 @@
   !!{
   Implements a node operator class that handle the collapse of nuclear star clusters into a black hole.
   !!}
-  use :: Cosmology_Functions, only : cosmologyFunctionsClass
   !![
   <nodeOperator name="nodeOperatorNSCCollapse">
-   <description>A node operator class that handle the collapse of nuclear star clusters into a black hole.</description>
+   <description>
+     A node operator class that handle the collapse of nuclear star clusters into a black hole. 
+     Based on the model of \cite{Vergara_2023} and \cite{Escala_2021}.
+   </description>
   </nodeOperator>
   !!]
 
@@ -32,8 +34,9 @@
      A node operator class that handle the collapse of nuclear star clusters into a black hole.
      !!}
      private
-     class  (cosmologyFunctionsClass), pointer :: cosmologyFunctions_       => null()
-     double precision                          :: Mstar                 , Rstar, Mefficiency, Refficiency, MThreshold
+     double precision                          :: Mstar                 , Rstar                     , &
+         &                                        Mefficiency           , Refficiency               , &
+         &                                        MThreshold
      integer                                   :: stellarMassFormedNSCID, timeStellarMassFormedNSCID     
 
    contains
@@ -60,8 +63,9 @@ contains
     implicit none
     type (nodeOperatorNSCCollapse  )                :: self
     type (inputParameters          ), intent(inout) :: parameters
-    class(cosmologyFunctionsClass  ), pointer       :: cosmologyFunctions_
-    double precision                                :: Mstar, Rstar, Mefficiency, Refficiency, MThreshold
+    double precision                                :: Mstar              , Rstar      , &
+       &                                               Mefficiency        , Refficiency, &
+       &                                               MThreshold
 
     !![
     <inputParameter>
@@ -94,24 +98,21 @@ contains
       <description>Specifies the minimum mass to apply the operator</description>
       <source>parameters</source>
     </inputParameter>
-    <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     !!]
-    self=nodeOperatorNSCCollapse(Mstar, Rstar, Mefficiency, Refficiency, MThreshold, cosmologyFunctions_)
+    self=nodeOperatorNSCCollapse(Mstar, Rstar, Mefficiency, Refficiency, MThreshold)
 
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="cosmologyFunctions_"/>
     !!]
     return
   end function NSCCollapseConstructorParameters
   
-  function NSCCollapseConstructorInternal(Mstar, Rstar, Mefficiency, Refficiency, MThreshold, cosmologyFunctions_) result(self)
+  function NSCCollapseConstructorInternal(Mstar, Rstar, Mefficiency, Refficiency, MThreshold) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily NSCCollapse} node operator class.
     !!}
     implicit none
     type            (nodeOperatorNSCCollapse)                        :: self
-    class           (cosmologyFunctionsClass), intent(in   ), target :: cosmologyFunctions_
     double precision                         , intent(in   )         :: Mstar
     double precision                         , intent(in   )         :: Rstar
     double precision                         , intent(in   )         :: Mefficiency
@@ -119,9 +120,11 @@ contains
     double precision                         , intent(in   )         :: MThreshold
 
     !![
-    <addMetaProperty component="NSC"      name="agesStellarMassFormed"     id="self%stellarMassFormedNSCID"     isEvolvable="yes" isCreator="no" />
-    <addMetaProperty component="NSC"      name="agesTimeStellarMassFormed" id="self%timeStellarMassFormedNSCID" isEvolvable="yes" isCreator="no" />
-    <constructorAssign variables="Mstar, Rstar, Mefficiency, Refficiency, MThreshold, *cosmologyFunctions_"/>
+    <constructorAssign variables="Mstar, Rstar, Mefficiency, Refficiency, MThreshold"/>
+    !!]
+    !![
+    <addMetaProperty   component="NSC" name="agesStellarMassFormed"     id="self%stellarMassFormedNSCID"     isEvolvable="yes" isCreator="no" />
+    <addMetaProperty   component="NSC" name="agesTimeStellarMassFormed" id="self%timeStellarMassFormedNSCID" isEvolvable="yes" isCreator="no" />
     !!]
     return
   end function NSCCollapseConstructorInternal
@@ -133,9 +136,6 @@ contains
     implicit none
     type(nodeOperatorNSCCollapse), intent(inout) :: self
 
-    !![
-    <objectDestructor name="self%cosmologyFunctions_"/>
-    !!]
     return
   end subroutine NSCCollapseDestructor
 
@@ -156,53 +156,65 @@ contains
     integer                        , intent(in   )         :: propertyType
     class(nodeComponentNSC        )               , pointer:: NSC
     class(nodeComponentBasic      )               , pointer:: basic
-    double precision                                       :: NSCradius, NSCvelocity, NSCStellar
-    double precision                                       :: Mcrit    , Theta      , CrossSection, Mseed
-    double precision                                       :: vel           = 100.0    !!km s^-1
-    double precision                                       :: sun_rad_to_pc = 2.2567d-8  ! 
-    double precision                                       :: massStellarNSC, massTimeStellarNSC, ageNSC, time
-    ! Return immediately if inactive variables are requested.
+    double precision                                       :: radiusNSC        , velocityNSC       , &
+        &                                                     massStellarNSC   , massCriticalNSC   , &
+        &                                                     Theta            , crossSectionNSC   , &
+        &                                                     massFormedSeedNSC, massTimeStellarNSC, &
+        &                                                     ageNSC           , time
+    double precision                                       :: velocity        = 100.0d0              !km s¯¹
+    !Usar Numerical_Constants_Astronomical para cambiar unidades
+    double precision                                       :: sun_rad_to_pc = 2.2567d-8  
 
+    ! Return immediately if inactive variables are requested.
     if (propertyInactive(propertyType)) return
     
     ! Get the nuclear star cluster component.
-    NSC => node%NSC()
-
-    NSCradius   = self%Refficiency*1.0d6*NSC%radius     () !pc
-    NSCvelocity =                        NSC%velocity   ()
-    NSCStellar  =                        NSC%massStellar() 
+    NSC         => node%NSC()
+    radiusNSC   =  self%Refficiency*1.0d6*NSC%radius     () !pc
+    velocityNSC =                         NSC%velocity   () !km s¯¹
 
     ! Detect nuclear star cluster component type.
     select type (NSC)
+      
       type is (nodeComponentNSC)
-      return
+          return
+      
       class is (nodeComponentNSCStandard)
+          if (NSC%massStellar()<= 0.0d0  .or.  NSC%radius() <= 0.0d0) return
 
-          if (NSC%massStellar()<= 0.0d0  .or.  NSC%radius() <= 0.0d0 .or. NSC%Collapse() ) return
-          massStellarNSC        =NSC    %floatRank0MetaPropertyGet(self%    stellarMassFormedNSCID)
-          massTimeStellarNSC    =NSC    %floatRank0MetaPropertyGet(self%timeStellarMassFormedNSCID)
+          massStellarNSC        = NSC%floatRank0MetaPropertyGet(self%    stellarMassFormedNSCID)
+          massTimeStellarNSC    = NSC%floatRank0MetaPropertyGet(self%timeStellarMassFormedNSCID)
           basic => node %basic()
           time  =  basic%time ()
-          ageNSC=+time                    &
-               &      -massTimeStellarNSC &
-               &      /massStellarNSC
+          ageNSC= +time               &
+               &  -massTimeStellarNSC &
+               &  /massStellarNSC
 
-          call NSC%AgeSet(ageNSC)                                       !Gyr
+          call NSC%AgeSet(ageNSC)        !Gyr
+
           if (ageNSC <= 0.0d0) return 
-          Theta         = 9.54 *     (self%Mstar   / self%Rstar)*(vel/NSCvelocity)**2.0 !Adimensional
-          CrossSection  = 16.0 * sqrt(Pi)*(1+Theta)*(self%Rstar *sun_rad_to_pc)   **2.0 !pc^2
-          Mcrit         = NSCradius**(7.0/3.0)*((4.0*Pi*self%Mstar)/(3.0*CrossSection*ageNSC*sqrt(1.0d6*gravitationalConstantGalacticus*(3.2408d-14)**2/(3.1710d-17)**2)))**(2.0/3.0)
-          Mseed         = self%Mefficiency*NSCStellar
 
-          call NSC%CriticalMassSet(Mcrit)
+          ! Safronov number defined by Binney & Tremaine (2008, https://ui.adsabs.harvard.edu/abs/2008gady.book.....B/abstract)
+          Theta            = 9.54d0*(self%Mstar/self%Rstar)*(velocity/velocityNSC)**2.0d0                                      !Adimensional
+          
+          ! Probabilistic mean free path defined as in Landau & Lifshitz (1980, https://ui.adsabs.harvard.edu/abs/1981PhT....34a..74L/abstract) and Shu (1991, https://ui.adsabs.harvard.edu/abs/1991pav..book.....S/abstract)
+          CrossSectionNSC  = 16.0d0* sqrt(Pi)*(1+Theta)*(self%Rstar *sun_rad_to_pc        )**2.0d0      !pc^2
+
+          ! Critical mass computation using equation (3) in the model of M.C. Vergara, A. Escala, D.R.G. Schleicher and B. Reinoso. (2023, https://ui.adsabs.harvard.edu/abs/2023MNRAS.522.4224V/abstract)
+          massCriticalNSC  = radiusNSC**(7.0d0/3.0d0)*((4.0*Pi*self%Mstar)/(3.0d0*CrossSectionNSC*ageNSC*sqrt(1.0d6*gravitationalConstantGalacticus*(3.2408d-14)**2/(3.1710d-17)**2)))**(2.0d0/3.0d0)
+          massFormedSeedNSC= self%Mefficiency*NSC%massStellar()
+
+          !Falta modificar unidades para usar la convención de Galacticus.
+
+          call NSC%CriticalMassSet(massCriticalNSC)
           ! Generic type - interrupt and create a standard Black Hole if Nuclear Star Cluster mass is greater than the critical mass.
-          if (0.0 <= Mcrit .and. Mcrit <= NSCStellar .and. self%MThreshold < NSCStellar) then
-            call NSC%massSeedSet   ( Mseed)
+          if (0.0 <= massCriticalNSC .and. massCriticalNSC <= NSC%massStellar() .and. self%MThreshold < NSC%massStellar()) then
+            call NSC%massSeedSet   ( massFormedSeedNSC)
             interrupt=.true.
             functionInterrupt => BlackHoleStandardCreate
-            call NSC%massStellarset(NSCStellar-Mseed                                           )
-            call NSC%CollapseSet   (.true.                                                     )
-            call Collapse_Output   (node, NSCradius, NSCvelocity, NSCStellar, Mcrit, ageNSC, Mseed)
+            call NSC%massStellarset(                                                        NSC%massStellar()-massFormedSeedNSC)
+            call NSC%CollapseSet   (                                                                                     .true.)
+            call Collapse_Output   (node, radiusNSC, velocityNSC, NSC%massStellar(), massCriticalNSC, ageNSC, massFormedSeedNSC)
             return
           end if 
     end select
@@ -240,7 +252,9 @@ contains
     use :: IO_HDF5         , only : hdf5Object
     implicit none
     type            (treeNode          ), intent(inout) :: node
-    double precision                    , intent(in   ) :: radius     , velocity, massStellar, massCritical, ageNSC, MSeed
+    double precision                    , intent(in   ) :: radius     , velocity    , &
+        &                                                  massStellar, massCritical, &
+        &                                                  ageNSC     , MSeed
     class           (nodeComponentBasic), pointer       :: basic
     type            (hdf5Object        )                :: NSCCollapse
 
