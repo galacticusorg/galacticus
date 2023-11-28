@@ -427,14 +427,12 @@ contains
              end do
              ! Accumulate the histogram of rescalings.
              if (nodeBranches) then
-                !$omp critical (Augment_Statistics)
                 self        %retryHistogram(min(rescaleCount,ubound(self%retryHistogram)))= &
                      & +self%retryHistogram(min(rescaleCount,ubound(self%retryHistogram)))  &
                      & +1
                 self        %trialCount    (min(rescaleCount,ubound(self%retryHistogram)))= &
                      & +self%trialCount    (min(rescaleCount,ubound(self%retryHistogram)))  &
                      & +max(1,1+retryCount)
-                !$omp end critical (Augment_Statistics)
              end if
              ! Clean up the best tree if one exists.
              if (associated(treeBest%nodeBase)) then

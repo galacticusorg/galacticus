@@ -1503,8 +1503,9 @@ contains
     !!{
     Output a set of merger trees to an HDF5 file.
     !!}
-    use :: Error, only : Error_Report
-    use :: HDF5 , only : hsize_t
+    use :: Error         , only : Error_Report
+    use :: HDF5          , only : hsize_t
+    use :: File_Utilities, only : lockDescriptor, File_Lock, File_Unlock
     implicit none
     integer  (kind=hsize_t                   ), intent(in   )           :: hdfChunkSize
     integer                                   , intent(in   )           :: hdfCompressionLevel
@@ -1512,6 +1513,7 @@ contains
     class    (mergerTreeData                 ), intent(inout)           :: mergerTrees
     character(len=*                          ), intent(in   )           :: outputFileName
     logical                                   , intent(in   ), optional :: append
+    type     (lockDescriptor                 )                          :: fileLock
 
     ! Validate the merger tree.
     call Merger_Tree_Data_Validate_Trees            (mergerTrees)
@@ -1519,6 +1521,7 @@ contains
     ! If we have most-bound particle indices and particle data has been read, construct arrays giving position of particle data for each node.
     call Merger_Tree_Data_Construct_Particle_Indices(mergerTrees)
 
+    call File_Lock(outputFileName,fileLock,lockIsShared=.false.)
     select case (outputFormat%ID)
     case (mergerTreeFormatGalacticus%ID)
        call Merger_Tree_Data_Structure_Export_Galacticus(mergerTrees,outputFileName,hdfChunkSize,hdfCompressionLevel,append)
@@ -1527,6 +1530,7 @@ contains
     case default
        call Error_Report('output format is not recognized'//{introspection:location})
     end select
+    call File_Unlock(fileLock)
     return
   end subroutine Merger_Tree_Data_Structure_Export
 
