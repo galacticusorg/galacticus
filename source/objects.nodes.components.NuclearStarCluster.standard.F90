@@ -307,8 +307,8 @@ contains
     !!{
       Initializes the standard nuclear star cluster component module for each thread.
     !!}
-    use :: Events_Hooks                    , only : dependencyDirectionAfter   , dependencyRegEx           , openMPThreadBindingAtLevel, postEvolveEvent, &
-          &                                         satelliteMergerEvent       , mergerTreeExtraOutputEvent
+    use :: Events_Hooks                    , only : dependencyDirectionAfter   , dependencyRegEx     , openMPThreadBindingAtLevel, &
+          &                                         postEvolveEvent            , satelliteMergerEvent, mergerTreeExtraOutputEvent
     use :: Error                           , only : Error_Report
     use :: Galacticus_Nodes                , only : defaultNSCComponent
     use :: Input_Parameters                , only : inputParameter             , inputParameters
@@ -328,11 +328,11 @@ contains
        ! Find our parameters.
        subParameters=parameters%subParameters('componentNSC')
        !![
-       <objectBuilder class="darkMatterHaloScale"         name="darkMatterHaloScale_"                                                                    source="subParameters"                    />
-       <objectBuilder class="stellarPopulationProperties" name="stellarPopulationProperties_"                                                            source="subParameters"                    />
-       <objectBuilder class="starFormationHistory"        name="starFormationHistory_"                                                                   source="subParameters"                    />
-       <objectBuilder class="mergerMassMovements"         name="mergerMassMovements_"                                                                    source="subParameters"                    />
-       <objectBuilder class="galacticStructure"           name="galacticStructure_"                                                                      source="subParameters"                    />
+       <objectBuilder class="darkMatterHaloScale"         name="darkMatterHaloScale_"                                      source="subParameters"                    />
+       <objectBuilder class="stellarPopulationProperties" name="stellarPopulationProperties_"                              source="subParameters"                    />
+       <objectBuilder class="starFormationHistory"        name="starFormationHistory_"                                     source="subParameters"                    />
+       <objectBuilder class="mergerMassMovements"         name="mergerMassMovements_"                                      source="subParameters"                    />
+       <objectBuilder class="galacticStructure"           name="galacticStructure_"                                        source="subParameters"                    />
        <objectBuilder class="massDistribution"            name="massDistributionNSC_" parameterName="massDistributionNSC"  source="subParameters" threadPrivate="yes" >
         <default>
          <massDistributionNSC value="exponentialDisk">
@@ -482,7 +482,7 @@ contains
     use :: Display                       , only : displayMessage     , verbosityLevelWarn
     use :: Error                         , only : Error_Report
     use :: Galacticus_Nodes              , only : defaultNSCComponent, nodeComponentNSC   , nodeComponentNSCStandard, &
-                                                  nodeComponentSpin  , nodeComponentBasic , treeNode
+          &                                       nodeComponentSpin  , nodeComponentBasic , treeNode
     use :: Interface_GSL                 , only : GSL_Success        , GSL_Continue
     use :: ISO_Varying_String            , only : assignment(=)      , operator(//)       , varying_string
     use :: Stellar_Luminosities_Structure, only : abs                , stellarLuminosities

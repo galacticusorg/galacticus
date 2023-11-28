@@ -202,6 +202,12 @@ contains
       <description>Determines whether accretion from the hot halo should only occur if the halo is in the hot accretion mode.</description>
       <source>subParameters</source>
     </inputParameter>
+    <inputParameter>
+      <name>bondiHoyleAccretionEnhancementNSC</name>
+      <defaultValue>5.0d0</defaultValue>
+      <description> The factor by which the Bondi-Hoyle accretion rate of the NSC onto black holes in enhanced.</description>
+      <source>subParameters</source>
+    </inputParameter>
     !!]
     ! Get temperature of accreting gas.
     !![
@@ -209,6 +215,12 @@ contains
       <name>bondiHoyleAccretionTemperatureSpheroid</name>
       <defaultValue>1.0d2</defaultValue>
       <description>The assumed temperature (in Kelvin) of gas in the spheroid when computing Bondi-Hoyle accretion rates onto black holes.</description>
+      <source>subParameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>bondiHoyleAccretionTemperatureNSC</name>
+      <defaultValue>1.0d2</defaultValue>
+      <description>The assumed temperature (in Kelvin) of gas in the NSC when computing Bondi-Hoyle accretion rates onto black holes.</description>
       <source>subParameters</source>
     </inputParameter>
     !!]
