@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1701124471740,
+  "lastUpdate": 1701162178752,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "2217d31cd95e04211fa073ad037d35a67ea0b552",
-          "message": "fix: Correct units and description for SED output",
-          "timestamp": "2023-03-21T15:37:44-07:00",
-          "tree_id": "bdc526d57e50154546203f74d0c0476f4068b6bc",
-          "url": "https://github.com/galacticusorg/galacticus/commit/2217d31cd95e04211fa073ad037d35a67ea0b552"
-        },
-        "date": 1679448281063,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 50.916,
-            "unit": "seconds",
-            "range": 0.0385019480018966
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8764,6 +8734,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 24167.8090118702,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "60145e5c93a38a9103221c0ec80bf246656c0410",
+          "message": "Merge pull request #507 from galacticusorg/openMPCriticals\n\nRemove some OpenMP critical sections",
+          "timestamp": "2023-11-28T06:39:05Z",
+          "tree_id": "5e51b48d4c733f98b344864c6d99eccd1adbcef1",
+          "url": "https://github.com/galacticusorg/galacticus/commit/60145e5c93a38a9103221c0ec80bf246656c0410"
+        },
+        "date": 1701162177394,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 42.847,
+            "unit": "seconds",
+            "range": 0.0532550467097593
           }
         ]
       }
