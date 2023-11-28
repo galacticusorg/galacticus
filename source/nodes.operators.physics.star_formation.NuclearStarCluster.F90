@@ -39,12 +39,10 @@
      class           (stellarPopulationPropertiesClass), pointer :: stellarPopulationProperties_  => null()
      class           (starFormationHistoryClass       ), pointer :: starFormationHistory_         => null()
      logical                                                     :: luminositiesStellarInactive
-     double precision                                            :: fractionMassRetainedInitial            , fractionMassRetainedFinal
    contains
      final     ::                                        starFormationNSCDestructor
-     procedure :: differentialEvolutionPre            => starFormationNSCDifferentialEvolutionPre
      procedure :: differentialEvolution               => starFormationNSCDifferentialEvolution
-     procedure :: differentialEvolutionStepFinalState => starFormationNSCDifferentialEvolutionStepFinalState
+     procedure :: differentialEvolutionStepFinalState => starFormationNSCDifferentialEvolutionAnalytics
   end type nodeOperatorStarFormationNSC
   
   interface nodeOperatorStarFormationNSC
@@ -104,10 +102,6 @@ contains
     !![
     <constructorAssign variables="luminositiesStellarInactive, *starFormationRateNSC_, *stellarPopulationProperties_, *starFormationHistory_"/>
     !!]
-
-    ! Initialize values.
-    self%fractionMassRetainedInitial=1.0d0
-    self%fractionMassRetainedFinal  =1.0d0
     return
   end function starFormationNSCConstructorInternal
 
@@ -126,34 +120,9 @@ contains
     return
   end subroutine starFormationNSCDestructor
   
-  subroutine starFormationNSCDifferentialEvolutionPre(self,node)
+  subroutine starFormationNSCDifferentialEvolutionAnalytics(self,node)
     !!{
-    Initialize the mass transfer fraction.
-    !!}
-    use :: Galacticus_Nodes, only : nodeComponentNSC
-    implicit none
-    class(nodeOperatorStarFormationNSC), intent(inout) :: self
-    type (treeNode                    ), intent(inout) :: node
-    class(nodeComponentNSC            ), pointer       :: NSC
-
-    ! Initialize the mass transferred fraction to unity. The value is arbitrary as only ratios of this quantity are used, but
-    ! must be non-zero.
-    NSC => node%NSC()
-    select type (NSC)
-    type is (nodeComponentNSC)
-       ! NSC does not yet exist.
-    class default
-       self%fractionMassRetainedInitial=1.0d0
-       self%fractionMassRetainedFinal  =1.0d0
-       if (NSC%fractionMassRetainedIsSettable()) call NSC%fractionMassRetainedSet(1.0d0)
-    end select
-    return
-  end subroutine starFormationNSCDifferentialEvolutionPre
-
-  subroutine starFormationNSCDifferentialEvolutionStepFinalState(self,node)
-    !!{
-    Record the final state of the Nuclear Star Cluster at the end of the timestep prior to begin evaluation of integrals for inactive
-    properties.
+    Initialize the mass transfer fraction.    
     !!}
     use :: Galacticus_Nodes            , only : nodeComponentNSC
     implicit none
@@ -161,21 +130,26 @@ contains
     type (treeNode                    ), intent(inout) :: node
     class(nodeComponentNSC            ), pointer       :: NSC
 
-    ! The retained mass fraction at the start of this step is just the fraction at the end of the previous step. Then update the
-    ! retained fraction at the end of the current step.
-    NSC                              =>           node%NSC                      ()
-    self%fractionMassRetainedInitial =            self%fractionMassRetainedFinal
-    self%fractionMassRetainedFinal   =  max(0.0d0,NSC %fractionMassRetained     ())
+    ! Mark the formed stellar mass as analytically-solvable (it is always zero) if we are not solving for luminosities as inactive
+    ! properties.
+    if (.not.self%luminositiesStellarInactive) then
+       NSC => node%NSC()
+       select type (NSC)
+       type is (nodeComponentNSC)
+          ! NSC does not yet exist.
+       class default
+          call NSC%massStellarFormedAnalytic()
+       end select
+    end if  
     return
-  end subroutine starFormationNSCDifferentialEvolutionStepFinalState
+  end subroutine starFormationNSCDifferentialEvolutionAnalytics
 
   subroutine starFormationNSCDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
     !!{
     Perform star formation in a nuclear star cluster.
     !!}
     use :: Abundances_Structure          , only : abundances
-    use :: Galacticus_Nodes              , only : propertyInactive     , propertyTypeActive, propertyEvaluate, nodeComponentNSC, &
-         &                                        nodeComponentSpheroid
+    use :: Galacticus_Nodes              , only : propertyInactive     , propertyTypeActive, propertyEvaluate, nodeComponentNSC
     use :: Histories                     , only : history
     use :: Stellar_Luminosities_Structure, only : stellarLuminosities
     implicit none
@@ -185,16 +159,14 @@ contains
     procedure       (interruptTask               ), intent(inout), pointer :: functionInterrupt
     integer                                       , intent(in   )          :: propertyType
     class           (nodeComponentNSC            )               , pointer :: NSC
-    class           (nodeComponentSpheroid       )               , pointer :: spheroid
     double precision                                                       :: rateStarFormation       , massFuel                , &
          &                                                                    rateMassStellar         , rateEnergyInput         , &
-         &                                                                    rateMassFuel            , fractionMassRetained    , &
-         &                                                                    fractionMassRetainedRate
+         &                                                                    rateMassFuel            
     logical                                                                :: luminositiesCompute
     type            (abundances                  )                         :: abundancesFuel          , rateAbundancesFuels     , &
          &                                                                    rateAbundancesStellar
     type            (history                     )                         :: rateHistoryStarFormation, ratePropertiesStellar
-    type            (stellarLuminosities         )                         :: rateLuminositiesStellar , rateLuminositiesTransfer
+    type            (stellarLuminosities         )                         :: rateLuminositiesStellar 
     
     ! Check for a realistic nuclear star cluster, return immediately if nuclear star cluster is unphysical.
     NSC => node%NSC()
@@ -210,6 +182,7 @@ contains
        ! stellar mass to other components.
        rateStarFormation=self%starFormationRateNSC_%rate(node)   
        call NSC%massStellarFormedRate(rateStarFormation)
+       if (self%luminositiesStellarInactive) call NSC%massStellarFormedRate(rateStarFormation)
     end if
     ! Compute abundances of star forming gas.
     massFuel      =NSC%massGas      ()
@@ -237,54 +210,18 @@ contains
     if (propertyEvaluate(propertyTypeActive,propertyIsInactive=.false.)) then
        rateHistoryStarFormation=NSC%starFormationHistory()
        call        rateHistoryStarFormation%reset                      (                                                              )
-       call self  %starFormationHistory_  %                        rate(node,rateHistoryStarFormation,abundancesFuel,rateStarFormation)
-       call        NSC                    %             massStellarRate(     rateMassStellar                                          )
-       call        NSC                    %                 massGasRate(     rateMassFuel                                             )
-       call        NSC                    %       abundancesStellarRate(     rateAbundancesStellar                                    )
-       call        NSC                    %           abundancesGasRate(     rateAbundancesFuels                                      )
+       call self  %starFormationHistory_   %                        rate(node,rateHistoryStarFormation,abundancesFuel,rateStarFormation)
+       call        NSC                     %             massStellarRate(     rateMassStellar                                          )
+       call        NSC                     %                 massGasRate(     rateMassFuel                                             )
+       call        NSC                     %       abundancesStellarRate(     rateAbundancesStellar                                    )
+       call        NSC                     %           abundancesGasRate(     rateAbundancesFuels                                      )
        if (ratePropertiesStellar   %exists())                                                                                            &
-            & call NSC                    %stellarPropertiesHistoryRate(     ratePropertiesStellar                                    )
+            & call NSC                     %stellarPropertiesHistoryRate(     ratePropertiesStellar                                    )
        if (rateHistoryStarFormation%exists())                                                                                            &
-            & call NSC                    %    starFormationHistoryRate(     rateHistoryStarFormation                                 )
+            & call NSC                     %    starFormationHistoryRate(     rateHistoryStarFormation                                 )
     end if
-    if (luminositiesCompute) then
-       ! For inactive property calculations we must check if any mass (and, therefore, light) is being transferred to the
-       ! spheroid component. If it is, our integrand must account for this mass transfer. The fractions of mass retained and
-       ! transferred are determined from the "fractionMassRetained" property which is computed during differential evolution.
-       if (propertyInactive(propertyType) .and. self%fractionMassRetainedFinal < self%fractionMassRetainedInitial) then
-          spheroid => node%spheroid()
-          ! Determine the fraction of mass (and light) formed at this time which will be retained in the NSC at the final time in the step.
-          if      (self%fractionMassRetainedFinal   == 0.0d0                      ) then
-             ! The retained fraction reached zero by the end of the step, so no mass is retained.
-             fractionMassRetained    =                                                                          0.0d0
-          else if (self%fractionMassRetainedFinal   >  NSC%fractionMassRetained()) then
-             fractionMassRetained    =                                                                          1.0d0
-          else
-             ! Limit the retained fraction to unity (to avoid any rounding errors).
-             fractionMassRetained    =    self%fractionMassRetainedFinal    /NSC%fractionMassRetained       ()
-          end if
-          ! Determine the rate at which mass (and light) that was pre-existing at the start of this timestep is being transferred.
-          if      (self%fractionMassRetainedInitial == 0.0d0                      ) then
-             ! The initial retained fraction was zero, so there should be no light to transfer - set a transfer rate of zero.
-             fractionMassRetainedRate=                                                                        0.0d0
-          else
-             ! Limit the transfer rate of pre-existing light to be negative - it is not possible to transfer light *to* the
-             ! NSC, so any positive value here can arise only via rounding errors.
-             fractionMassRetainedRate=min(NSC%fractionMassRetainedRateGet()/self%fractionMassRetainedInitial  ,0.0d0)
-          end if
-          ! Find the rate of transfer of pre-existing light.
-          rateLuminositiesTransfer=+NSC%luminositiesStellar() &
-               &                   *fractionMassRetainedRate
-          ! Evaluate the integrand for the NSC, and the corresponding one for the spheroid to account for the transfer of light.
-          call    NSC  %luminositiesStellarRate(rateLuminositiesStellar*       fractionMassRetained +rateLuminositiesTransfer                            )
-          call spheroid%luminositiesStellarRate(rateLuminositiesStellar*(1.0d0-fractionMassRetained)-rateLuminositiesTransfer,interrupt,functionInterrupt)
-       else
-          ! In this case we do not need to account for transfer of light to the spheroid because either:
-          !  a) there is none, or;
-          !  b) we are solving for luminosities as active properties in which case transfer to the spheroid is handled directly in the ODE.
-          call     NSC%luminositiesStellarRate(rateLuminositiesStellar                                                                                  )
-       end if
-    end if
+    if (luminositiesCompute                 )                                                                                            &
+        & call NSC                         %luminositiesStellarRate(rateLuminositiesStellar                                            )
     return
   end subroutine starFormationNSCDifferentialEvolution
   
