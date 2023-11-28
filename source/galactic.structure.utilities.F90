@@ -60,7 +60,7 @@ contains
     type (inputParameters)               , pointer :: parametersCurrent
 
     parametersCurrent => parameters
-    do while (.not.parametersCurrent%isPresent('galacticStructurw').and.associated(parametersCurrent%parent))
+    do while (.not.parametersCurrent%isPresent('galacticStructure').and.associated(parametersCurrent%parent))
        parametersCurrent => parametersCurrent%parent
     end do
     if (.not.parametersCurrent%isPresent('galacticStructure')) parametersCurrent => parameters
