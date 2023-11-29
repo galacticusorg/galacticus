@@ -86,12 +86,12 @@ contains
     </inputParameter>
     <inputParameter>
       <name>radius</name>
-      <description>The radius in the tabualted correlation function.</description>
+      <description>The radius in the tabulated correlation function.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>correlationFunction</name>
-      <description>The correlation in the tabualted correlation function.</description>
+      <description>The correlation in the tabulated correlation function.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
