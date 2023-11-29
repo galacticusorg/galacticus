@@ -192,7 +192,7 @@ contains
 
           call NSC%AgeSet(ageNSC)        !Gyr
 
-          if (ageNSC <= 0.0d0) return 
+          if (ageNSC <= 0.0d0 .or. NSC%Collapse()) return 
 
           ! Safronov number defined by Binney & Tremaine (2008, https://ui.adsabs.harvard.edu/abs/2008gady.book.....B/abstract)
           Theta            = 9.54d0*(self%Mstar/self%Rstar)*(velocity/velocityNSC)**2.0d0                                      !Adimensional

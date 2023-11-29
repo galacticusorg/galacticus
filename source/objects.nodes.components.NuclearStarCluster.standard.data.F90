@@ -26,7 +26,7 @@ module Node_Component_NSC_Standard_Data
   Stores data for the standard nuclear star cluster node component.
   !!}
   use :: Kind_Numbers      , only : kind_int8
-  use :: Mass_Distributions, only : massDistributionClass, massDistributionCylindrical
+  use :: Mass_Distributions, only : massDistributionClass
   implicit none
   public
   ! Record of unique ID of node which we last computed results for.
@@ -50,9 +50,8 @@ module Node_Component_NSC_Standard_Data
   !$omp threadprivate(radiusScaleNSC)
 
   ! The mass distribution object.
-  class           (massDistributionClass      ), pointer :: massDistributionNSC_
-  class           (massDistributionCylindrical), pointer :: massDistributionNSC
-  !$omp threadprivate(massDistributionNSC_,massDistributionNSC)
+  class           (massDistributionClass      ), pointer :: massDistributionNSC
+  !$omp threadprivate(massDistributionNSC)
 
 contains
 

@@ -72,11 +72,18 @@ double precision function Node_Component_NSC_Standard_Half_Mass_Radius(self)
   Return the half-mass radius of the standard nuclear star cluster.
   !!}
   use :: Error                           , only : Error_Report
+  use :: Mass_Distributions              , only : massDistributionSpherical
   use :: Node_Component_NSC_Standard_Data, only : massDistributionNSC
   implicit none
   class(nodeComponentNSCStandard), intent(inout) :: self
 
-   Node_Component_NSC_Standard_Half_Mass_Radius=self%radius()*massDistributionNSC%radiusHalfMass()
+ select type (massDistributionNSC)
+  class is (massDistributionSpherical)
+     Node_Component_NSC_Standard_Half_Mass_Radius=self%radius()*massDistributionNSC%radiusHalfMass()
+  class default
+     Node_Component_NSC_Standard_Half_Mass_Radius=0.0d0
+     call Error_Report('mass distribution should be spherical'//{introspection:location})
+  end select
   return
 end function Node_Component_NSC_Standard_Half_Mass_Radius
 
@@ -283,54 +290,68 @@ double precision function Node_Component_NSC_Standard_Density(self,positionSpher
    return
 end function Node_Component_NSC_Standard_Density
 
+
 double precision function Node_Component_NSC_Standard_Density_Spherical_Average(self,radius,componentType,massType,weightBy,weightIndex)
   !!{
-  Computes the density at a given position for an standard nuclear star cluster.
+  Computes the spherically-averaged density at a given radius for an standard NSC.
   !!}
-  use :: Galactic_Structure_Options      , only : componentTypeAll   , componentTypeNSC            , massTypeAll            , massTypeBaryonic       , &
-          &                                       massTypeGalactic   , massTypeGaseous             , massTypeStellar        , weightByLuminosity     , &
-          &                                       weightByMass       , enumerationComponentTypeType, enumerationMassTypeType, enumerationWeightByType
+  use :: Coordinates                     , only : assignment(=)           , coordinateSpherical
+  use :: Galactic_Structure_Options      , only : componentTypeAll        , componentTypeNSC            , massTypeAll            , massTypeBaryonic       , &
+          &                                       massTypeGalactic        , massTypeGaseous             , massTypeStellar        , weightByLuminosity     , &
+          &                                       weightByMass            , enumerationComponentTypeType, enumerationMassTypeType, enumerationWeightByType
   use :: Node_Component_NSC_Standard_Data, only : massDistributionNSC
   implicit none
-  class           (nodeComponentNSCStandard    ), intent(inout) :: self
-  type            (enumerationComponentTypeType), intent(in   ) :: componentType
-  type            (enumerationMassTypeType     ), intent(in   ) :: massType
-  type            (enumerationWeightByType     ), intent(in   ) :: weightBy
-  integer                                       , intent(in   ) :: weightIndex
-  double precision                              , intent(in   ) :: radius
-  type            (stellarLuminosities         ), save          :: luminositiesNSC
+  class           (nodeComponentNSCStandard     ), intent(inout) :: self
+  type            (enumerationComponentTypeType ), intent(in   ) :: componentType
+  type            (enumerationMassTypeType      ), intent(in   ) :: massType
+  type            (enumerationWeightByType      ), intent(in   ) :: weightBy
+  integer                                        , intent(in   ) :: weightIndex
+  double precision                               , intent(in   ) :: radius
+  double precision                               , parameter     :: radiusHuge          =1.0d+100
+  type            (coordinateSpherical          )                :: position
+  type            (stellarLuminosities          ), save          :: luminositiesNSC
   !$omp threadprivate(luminositiesNSC)
 
-  ! Return immediately if NSC component is not requested.
   Node_Component_NSC_Standard_Density_Spherical_Average=0.0d0
   if (.not.(componentType == componentTypeAll .or. componentType == componentTypeNSC)) return
-  ! Determine mass/luminosity type.
-  select case (weightBy%ID)
-  case (weightByMass      %ID)
-     select case (massType%ID)
-     case (massTypeAll%ID,massTypeBaryonic%ID,massTypeGalactic%ID)
-        Node_Component_NSC_Standard_Density_Spherical_Average=self%massGas()+self%massStellar()
-     case (massTypeGaseous%ID)
-        Node_Component_NSC_Standard_Density_Spherical_Average=self%massGas()
-     case (massTypeStellar%ID)
-        Node_Component_NSC_Standard_Density_Spherical_Average=               self%massStellar()
+
+  ! Get the spheroid component and check that it is of the standard class.
+  select type (self)
+     class is (nodeComponentNSCStandard)
+
+     if (self%radius() <= 0.0d0 .or. self%radius() > radiusHuge) return
+     select case (weightBy%ID)
+     case (weightByMass      %ID)
+        select case (massType%ID)
+        case (massTypeAll%ID,massTypeBaryonic%ID,massTypeGalactic%ID)
+           Node_Component_NSC_Standard_Density_Spherical_Average=self%massGas()+self%massStellar()
+        case (massTypeGaseous%ID)
+           Node_Component_NSC_Standard_Density_Spherical_Average=self%massGas()
+        case (massTypeStellar%ID)
+           Node_Component_NSC_Standard_Density_Spherical_Average=               self%massStellar()
+        end select
+     case (weightByLuminosity%ID)
+        select case (massType%ID)
+        case (massTypeAll%ID,massTypeBaryonic%ID,massTypeGalactic%ID,massTypeStellar%ID)
+           luminositiesNSC=self%luminositiesStellar()
+           Node_Component_NSC_Standard_Density_Spherical_Average=luminositiesNSC%luminosity(weightIndex)
+        end select
      end select
-  case (weightByLuminosity%ID)
-     select case (massType%ID)
-     case (massTypeAll%ID,massTypeBaryonic%ID,massTypeGalactic%ID,massTypeStellar%ID)
-        luminositiesNSC=self%luminositiesStellar()
-        Node_Component_NSC_Standard_Density_Spherical_Average=luminositiesNSC%luminosity(weightIndex)
-     end select
+     ! Return if density is zero.
+     if (Node_Component_NSC_Standard_Density_Spherical_Average <= 0.0d0) then
+         Node_Component_NSC_Standard_Density_Spherical_Average=0.0d0
+        return
+     end if
+     ! Compute actual density.
+     position=[radius/self%radius(),0.0d0,0.0d0]
+     Node_Component_NSC_Standard_Density_Spherical_Average       =+Node_Component_NSC_Standard_Density_Spherical_Average     &
+          &                                                            *massDistributionNSC            %density(position)
+     if (Node_Component_NSC_Standard_Density_Spherical_Average > 0.0d0)                                                      &
+          & Node_Component_NSC_Standard_Density_Spherical_Average=+Node_Component_NSC_Standard_Density_Spherical_Average     &
+          &                                                             /self                          %radius (        )**3
   end select
-  ! Skip further calculation if mass or radius is zero.
-  if (Node_Component_NSC_Standard_Density_Spherical_Average > 0.0d0 .and. self%radius() > 0.0d0) then
-     ! Compute the actual density.
-      Node_Component_NSC_Standard_Density_Spherical_Average=+Node_Component_NSC_Standard_Density_Spherical_Average                &
-           &                                                 /self                %radius                 (                    )**3 &
-           &                                                 *massDistributionNSC%densitySphericalAverage(radius/self%radius())
-   end if
-   return
- end function Node_Component_NSC_Standard_Density_Spherical_Average
+  return
+end function Node_Component_NSC_Standard_Density_Spherical_Average
 
 double precision function Node_Component_NSC_Standard_Potential(self,radius,componentType,massType,status)
   !!{
@@ -393,20 +414,14 @@ double precision function Node_Component_NSC_Standard_Rotation_Curve(self,radius
 
   ! Set to zero by default.
   Node_Component_NSC_Standard_Rotation_Curve=0.0d0
-  ! Get the mass of the nuclear star cluster.
+
+  ! Return inmediately for non-positive radius.
+  if (radius <= 0.0d0) return
+
+  ! Gompute if a NSC is present.
   componentMass=self%enclosedMass(radiusLarge,componentType,massType,weightByMass,weightIndexNull)
-  if (componentMass <= 0.0d0) return
-  ! Compute the actual velocity.
-  radiusNSC=self%radius()
-  if (radiusNSC > 0.0d0) then
-     fractionalRadius=radius/radiusNSC
-     Node_Component_NSC_Standard_Rotation_Curve=+sqrt(                                                 &
-          &                                            +gravitationalConstantGalacticus                &
-          &                                            *componentMass                                  &
-          &                                            /radiusNSC                                      &
-          &                                           )                                                &
-          &                                      *massDistributionNSC%rotationCurve(fractionalRadius)
-  end if
+  if (componentMass > 0.0d0) Node_Component_NSC_Standard_Rotation_Curve=sqrt(gravitationalConstantGalacticus&
+       &*componentMass)/sqrt(radius)
   return
 end function Node_Component_NSC_Standard_Rotation_Curve
 
@@ -416,111 +431,84 @@ double precision function Node_Component_NSC_Standard_Rotation_Curve_Gradient(se
   !!}
   use :: Galactic_Structure_Options      , only : radiusLarge                    , weightByMass, weightIndexNull, enumerationComponentTypeType, &
        &                                          enumerationMassTypeType
-  use :: Node_Component_NSC_Standard_Data, only : massDistributionNSC
   use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+  use :: Numerical_Constants_Math        , only : Pi
+
   implicit none
   class           (nodeComponentNSCStandard    ), intent(inout) :: self
   type            (enumerationComponentTypeType), intent(in   ) :: componentType
   type            (enumerationMassTypeType     ), intent(in   ) :: massType
   double precision                              , intent(in   ) :: radius
-  double precision                                              :: radiusNSC    , fractionalRadius, &
-       &                                                           componentMass
+  double precision                                              :: componentDensity, componentMass, positionSpherical(3)
 
   ! Set to zero by default.
   Node_Component_NSC_Standard_Rotation_Curve_Gradient=0.0d0
+  
   ! Return if radius is zero.
   if (radius <= 0.0d0) return
+  
   ! Get the mass of the nuclear star cluster.
-  componentMass=self%enclosedMass(radiusLarge,componentType,massType,weightByMass,weightIndexNull)
-  if (componentMass <= 0.0d0) return
-  ! Compute the rotation curve gradient.
-  radiusNSC=self%radius()
-  if (radiusNSC > 0.0d0) then
-     fractionalRadius=radius/radiusNSC
-     Node_Component_NSC_Standard_Rotation_Curve_Gradient=+gravitationalConstantGalacticus                              &
-          &                                               *componentMass                                                &
-          &                                               /radiusNSC**2                                                &
-          &                                               *massDistributionNSC%rotationCurveGradient(fractionalRadius)
-  end if
+  positionSpherical= [radius,0.0d0,0.0d0]
+  componentMass    =self%enclosedMass(radius           ,componentType,massType,weightByMass,weightIndexNull)
+  componentDensity =self%density     (positionSpherical,componentType,massType,weightByMass,weightIndexNull)
+  if (componentMass == 0.0d0 .or. componentDensity == 0.0d0) return
+  Node_Component_NSC_Standard_Rotation_Curve_Gradient=       &
+       &                  gravitationalConstantGalacticus    &
+       &                 *(                                  &
+       &                   -componentMass/radius**2          &
+       &                   +4.0d0*Pi*radius*componentDensity &
+       &                  )
   return
 end function Node_Component_NSC_Standard_Rotation_Curve_Gradient
 
-double precision function Node_Component_NSC_Standard_Surface_Density(self,positionCylindrical,componentType,massType,weightBy,weightIndex)
+function Node_Component_NSC_Standard_Chandrasekhar_Integral(self,nodeSatellite,positionCartesian,velocityCartesian,componentType,massType)
   !!{
-  Computes the surface density at a given position for an standard nuclear star cluster.
+  Computes the gravitational acceleration at a given position for a standard NSC.
   !!}
-  use :: Coordinates                     , only : coordinateCylindrical
-  use :: Galactic_Structure_Options      , only : componentTypeAll                    , componentTypeNSC            , massTypeAll                       , massTypeBaryonic             , &
-          &                                       massTypeGalactic                    , massTypeGaseous             , massTypeStellar                   , weightByLuminosity           , &
-          &                                       weightByMass                        , enumerationComponentTypeType, enumerationMassTypeType           , enumerationWeightByType
-  use :: Node_Component_NSC_Standard_Data, only : Node_Component_NSC_Standard_Reset   , massDistributionNSC         , lastUniqueID                      , radiusScaleNSC               , &
-          &                                       radiusScaleNSCComputed              , surfaceDensityCentralGas    , surfaceDensityCentralGasComputed  , surfaceDensityCentralStellar , &
-          &                                       surfaceDensityCentralStellarComputed, surfaceDensityCentralTotal  , surfaceDensityCentralTotalComputed
-  use :: Numerical_Constants_Math        , only : Pi
+  use :: Galactic_Structure_Options, only : componentTypeAll            , componentTypeNSC       , weightByMass, weightIndexNull, &
+       &                                    enumerationComponentTypeType, enumerationMassTypeType
+  use :: Numerical_Constants_Math  , only : Pi
   implicit none
-  class           (nodeComponentNSCStandard    ), intent(inout) :: self
-  type            (enumerationComponentTypeType), intent(in   ) :: componentType
-  type            (enumerationMassTypeType     ), intent(in   ) :: massType
-  type            (enumerationWeightByType     ), intent(in   ) :: weightBy
-  integer                                       , intent(in   ) :: weightIndex
-  double precision                              , intent(in   ) :: positionCylindrical(3)
-  type            (treeNode                    ), pointer       :: selfNode
-  type            (stellarLuminosities         ), save          :: luminositiesNSC
-  !$omp threadprivate(luminositiesNSC)
-  type            (coordinateCylindrical       )                :: position
-
-  ! Return immediately if nuclear star cluster component is not requested.
-  Node_Component_NSC_Standard_Surface_Density=0.0d0
+  double precision                                             , dimension(3) :: Node_Component_NSC_Standard_Chandrasekhar_Integral
+  class           (nodeComponentNSCStandard    ), intent(inout)               :: self
+  type            (treeNode                    ), intent(inout)               :: nodeSatellite
+  double precision                              , intent(in   ), dimension(3) :: positionCartesian                                 , velocityCartesian
+  type            (enumerationComponentTypeType), intent(in   )               :: componentType
+  type            (enumerationMassTypeType     ), intent(in   )               :: massType
+  double precision                                             , dimension(3) :: positionSpherical
+  double precision                              , parameter                   :: XvMaximum                                         =10.0d0
+  double precision                                                            :: radius                                            , velocity          , &
+       &                                                                         density                                           , xV                , &
+       &                                                                         velocityRotation                                  , velocityDispersion
+  !$GLC attributes unused :: nodeSatellite
+  
+  ! Return if the spheroid component is not selected.
+  Node_Component_NSC_Standard_Chandrasekhar_Integral=0.0d0
   if (.not.(componentType == componentTypeAll .or. componentType == componentTypeNSC)) return
-  ! Check whether this is a new node.
-  selfNode => self%host()
-  if (selfNode%uniqueID() /= lastUniqueID) call Node_Component_NSC_Standard_Reset(selfNode%uniqueID())
-  ! Determine NSC radius.
-  if (.not.radiusScaleNSCComputed) then
-     radiusScaleNSC        =self%radius()
-     radiusScaleNSCComputed=.true.
-  end if
-  ! Return zero if the nuclear star cluster has unphysical size.
-  if (radiusScaleNSC <= 0.0d0) then
-     Node_Component_NSC_Standard_Surface_Density=0.0d0
-     return
-  end if
-  ! Determine mass type.
-  select case (weightBy%ID)
-  case (weightByMass      %ID)
-     select case (massType%ID)
-     case (massTypeAll%ID,massTypeBaryonic%ID,massTypeGalactic%ID)
-        if (.not.surfaceDensityCentralTotalComputed  ) then
-           surfaceDensityCentralTotal          =(self%massGas()+self%massStellar())/radiusScaleNSC**2
-           surfaceDensityCentralTotalComputed  =.true.
-        end if
-        Node_Component_NSC_Standard_Surface_Density=surfaceDensityCentralTotal
-     case (massTypeGaseous%ID)
-        if (.not.surfaceDensityCentralGasComputed    ) then
-           surfaceDensityCentralGas            = self%massGas()                    /radiusScaleNSC**2
-           surfaceDensityCentralGasComputed    =.true.
-        end if
-        Node_Component_NSC_Standard_Surface_Density=surfaceDensityCentralGas
-     case (massTypeStellar%ID)
-        if (.not.surfaceDensityCentralStellarComputed) then
-           surfaceDensityCentralStellar        =                self%massStellar() /radiusScaleNSC**2
-           surfaceDensityCentralStellarComputed=.true.
-        end if
-        Node_Component_NSC_Standard_Surface_Density=surfaceDensityCentralStellar
-     end select
-  case (weightByLuminosity%ID)
-     select case (massType%ID)
-     case (massTypeAll%ID,massTypeBaryonic%ID,massTypeGalactic%ID,massTypeStellar%ID)
-        luminositiesNSC=self%luminositiesStellar()
-        Node_Component_NSC_Standard_Surface_Density=luminositiesNSC%luminosity(weightIndex)/2.0d0/Pi/radiusScaleNSC**2
-     end select
-  end select
-  ! Return if no surface density.
-  if (Node_Component_NSC_Standard_Surface_Density <= 0.0d0) return
-  ! Compute the surface density.
-  call position%rSet(positionCylindrical(1)/radiusScaleNSC)
-  Node_Component_NSC_Standard_Surface_Density=         &
-       & +Node_Component_NSC_Standard_Surface_Density  &
-       & *massDistributionNSC%surfaceDensity(position)
+  ! Compute the integral.
+  radius                                             =  sqrt(sum(positionCartesian**2))
+  velocity                                           =  sqrt(sum(velocityCartesian**2))
+  if (velocity <= 0.0d0) return
+  positionSpherical                                  =  [radius,0.0d0,0.0d0]
+  velocityRotation                                   =  Node_Component_NSC_Standard_Rotation_Curve(self,radius           ,componentType,massType                             )
+  density                                            =  Node_Component_NSC_Standard_Density       (self,positionSpherical,componentType,massType,weightByMass,weightIndexNull)
+  if (density  <= 0.0d0) return
+  velocityDispersion                                 = +velocityRotation   &
+       &                                               /sqrt(2.0d0)
+  xV                                                 = +velocity           &
+       &                                               /velocityDispersion &
+       &                                               /sqrt(2.0d0)
+  Node_Component_NSC_Standard_Chandrasekhar_Integral = -density              &
+       &                                               *velocityCartesian    &
+       &                                               /velocity         **3
+  if (Xv <= XvMaximum)                                                                                          &
+       & Node_Component_NSC_Standard_Chandrasekhar_Integral=+Node_Component_NSC_Standard_Chandrasekhar_Integral &
+       &                                                         *(                                             &
+       &                                                           +erf ( xV   )                                &
+       &                                                           -2.0d0                                       &
+       &                                                           *      xV                                    &
+       &                                                           *exp (-xV**2)                                &
+       &                                                           /sqrt( Pi   )                                &
+       &                                                         )
   return
-end function Node_Component_NSC_Standard_Surface_Density
+end function Node_Component_NSC_Standard_Chandrasekhar_Integral
