@@ -193,6 +193,8 @@ contains
     use :: Ideal_Gases_Thermodynamics      , only : Ideal_Gas_Jeans_Length                , Ideal_Gas_Sound_Speed
     use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr               , gigaYear                            , megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
+    use :: Mass_Distributions              , only : massDistributionClass                 , kinematicsDistributionClass
+    use :: Coordinates                     , only : coordinateSpherical                   , assignment(=)
     implicit none
     class           (blackHoleAccretionRateStandard), intent(inout) :: self
     class           (nodeComponentBlackHole        ), intent(inout) :: blackHole
@@ -200,6 +202,9 @@ contains
     type            (treeNode                      ), pointer       :: node
     class           (nodeComponentSpheroid         ), pointer       :: spheroid
     class           (nodeComponentHotHalo          ), pointer       :: hotHalo
+    class           (massDistributionClass         ), pointer       :: massDistribution_
+    class           (kinematicsDistributionClass   ), pointer       :: kinematicsDistribution_
+    type            (coordinateSpherical           )                :: coordinates
     ! Lowest gas density to consider when computing accretion rates onto black hole (in units of M☉/Mpc³).
     double precision                                , parameter     :: densityGasMinimum        =1.0d0
     double precision                                , dimension(3)  :: position
@@ -208,7 +213,6 @@ contains
          &                                                             temperatureHotHalo             , fractionHotMode         , &
          &                                                             lengthJeans                    , fractionColdMode        , &
          &                                                             efficiencyRadiative            , velocityRelative
-         &                                                             
 
     ! Get the host node.
     node          => blackHole%host()
@@ -265,7 +269,14 @@ contains
        ! Get the hot halo component.
        hotHalo => node%hotHalo()
        ! Get halo gas temperature.
-       temperatureHotHalo=self%hotHaloTemperatureProfile_%temperature(node,radius=0.0d0)
+       massDistribution_       => node             %massDistribution      (                                                           )
+       kinematicsDistribution_ => massDistribution_%kinematicsDistribution(componentType=componentTypeHotHalo,massType=massTypeGaseous)      
+       coordinates             =  [0.0d0,0.0d0,0.0d0]
+       temperatureHotHalo      =  kinematicsDistribution_%temperature(coordinates)
+       !![
+       <objectDestructor name="massDistribution_"      />
+       <objectDestructor name="kinematicsDistribution_"/>
+       !!]          
        ! Get the accretion radius.
        radiusAccretion=Bondi_Hoyle_Lyttleton_Accretion_Radius(massBlackHole,temperatureHotHalo)
        radiusAccretion=min(radiusAccretion,hotHalo%outerRadius())
