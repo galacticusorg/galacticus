@@ -18,43 +18,40 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Implementation of the \cite{krumholz_star_2009} star formation rate law for galactic NSCs.
+  Implementation of the \cite{Antonini_2015} star formation rate law for galactic NSCs.
   !!}
   use :: Abundances_Structure, only : abundances
 
   !![
   <starFormationRateNSC name="starFormationRateNSCKrumholz2009">
    <description>
-    A star formation rate surface density class implementing the model of \citep{krumholz_star_2009}:
+    A star formation rate implementing the model of \citep{Antonini_2015} for galactic NSCs.
     \begin{equation}
-     \dot{\Sigma}_\star(R) = \nu_\mathrm{SF} f_\mathrm{H_2}(R)\Sigma_\mathrm{HI, NSC}(R) \left\{ \begin{array}{ll}
-     (\Sigma_\mathrm{HI}/\Sigma_0)^{-1/3}, &amp; \hbox{ if } \Sigma_\mathrm{HI}/\Sigma_0 \le 1 \\
-     (\Sigma_\mathrm{HI}/\Sigma_0)^{1/3}, &amp; \hbox{ if } \Sigma_\mathrm{HI}/\Sigma_0 &gt; 1 \end{array} \right. ,
+     \dot{M}_\star^\mathrm{NSC} = f_c\frac{M_\mathrm{gas}^\mathrm{gas}}{t_{SF}},
     \end{equation}
-    where $\nu_\mathrm{SF}=${\normalfont \ttfamily [frequencyStarFormation]} is a frequency and $\Sigma_0=85 M_\odot
-    \hbox{pc}^{-2}$. The molecular fraction is given by
+    where $f_c$ is the fraction of cold gas available for star formation given by
     \begin{equation}
-     f_\mathrm{H_2} = 1 - \left( 1 + \left[ { 3 s \over 4 (1+\delta)} \right]^{-5} \right)^{-1/5},
+     f_c = 1 - \left( 1 + \left[ { 3 s \over 4 (1+\delta)} \right]^{-5} \right)^{-1/5},
     \end{equation}
-    where
+     if $f_c > 0.02$ and $f_c = 0.02 $ otherwise, with 
     \begin{equation}
      \delta = 0.0712 \left[ 0.1 s^{-1} + 0.675 \right]^{-2.8},
     \end{equation}
     and
     \begin{equation}
-     s = {\ln(1+0.6\chi+0.01\chi^2) \over 0.04 \Sigma_\mathrm{comp,0} Z^\prime},
+     s = {\ln(1+0.6\chi+0.01\chi) \over 0.04 \Sigma_1 Z^\prime},
     \end{equation}
     with
     \begin{equation}
      \chi = 0.77 \left[ 1 + 3.1 Z^{\prime 0.365} \right],
     \end{equation}
-    and $\Sigma_\mathrm{comp,0}=c \Sigma_\mathrm{HI}/M_\odot \hbox{pc}^{-2}$ where $c=${\normalfont \ttfamily
-    [clumpingFactorMolecularComplex]} is a density enhancement factor relating the surface density of molecular complexes to
-    the gas density on larger scales. Alternatively, if {\normalfont \ttfamily [molecularFractionFast]} is set to true, the
-    molecular fraction will be computed using the faster (but less accurate at low molecular fraction) formula
+    and $\Sigma_1= \Sigma_\mathrm{res}/M_\odot \hbox{pc}^{-2}$ where $\Sigma_\mathrm{res}=\frac{M_\mathrm{gas}^{NSC}}{2\pi r^\mathrm{NSC}$.
+    The timescale is given by 
     \begin{equation}
-     f_\mathrm{H_2} = 1 - { 3s/4 \over (1 + s/4)}.
+    t_\mathrm{SF}^{-1} = (2.6~\mathrm{Gyr})^{-1}\times \left\{ \begin{array}{cc} \left(\frac{\Sigma_\mathrm{res}}{\Sigma_\mathrm{th}} \right) ^{-0.33}, &amp;
+    \Sigma_\mathrm{res} \le \Sigma_\mathrm{th} \\  \left(\frac{\Sigma_\mathrm{res}}{\Sigma_\mathrm{th}} \right) ^{0.34}, &amp; \Sigma_\mathrm{res} &gt; \Sigma_\mathrm{th} \end{array}  \right. ,
     \end{equation}
+    with $\Sigma_\mathrm{th}=85M_\odot\,\box{pc}^{-2}$
    </description>
   </starFormationRateNSC>
   !!]
@@ -63,8 +60,8 @@
      Implementation of the \cite{krumholz_star_2009} star formation rate surface density law for galactic NSCs.
      !!}
      private
-     double precision                                          ::  metallicityRelativeToSolar, frequencyStarFormation, &
-          &                                                        s                         , chi                            
+     double precision   ::  metallicityRelativeToSolar, frequencyStarFormation, &
+          &                 s                         , chi                            
      contains
      procedure :: rate                  => krumholz2009Rate
   end type starFormationRateNSCKrumholz2009
@@ -94,7 +91,7 @@ contains
       <name>frequencyStarFormation</name>
       <defaultSource>\citep{krumholz_star_2009}</defaultSource>
       <defaultValue>2.36d0</defaultValue>
-      <description>The star formation frequency (in units of Gyr) in the ``Krumholz-McKee-Tumlinson'' star formation timescale calculation.</description>
+      <description>The star formation frequency (in units of Gyr).</description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -141,7 +138,7 @@ contains
 
     NSC       => node%NSC    ()
     massGas   =  NSC %massGas()
-    radiusNSC =  NSC %radius ()*10d6 !pc
+    radiusNSC =  NSC %radius ()*1.0d6 !pc
 
     if     (                                             &
          &   massGas                            <= 0.0d0 &
@@ -187,10 +184,10 @@ contains
     !!{
     Compute surface density of the NSC.
     !!}
-    use :: Numerical_Constants_Math , only : Pi
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
-    double precision                , intent(in   ) :: radius, massGas
-    ! Get gas surface density in units of M☉/Mpc²
+    double precision               , intent(in   ) :: radius, massGas
+    ! Get gas surface density in units of M☉/pc²
     SurfaceDensityGas = massGas / (2.0d0*Pi*radius**2.0)
     return
   end function SurfaceDensityGas
