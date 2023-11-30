@@ -179,7 +179,7 @@ contains
     return
   end subroutine topHatSharpKHybridDestructor
 
-  double precision function topHatSharpKHybridValue(self,wavenumber,smoothingMass)
+  double precision function topHatSharpKHybridValue(self,wavenumber,smoothingMass,time)
     !!{
     Computes a window function for calculations of the variance in the power spectrum. Specifically, uses a convolution of
     top-hat real-space and sharp $k$-space window functions. The top-hat radius is $r_\mathrm{th}$, while the $k$-space
@@ -189,12 +189,14 @@ contains
     !!}
     implicit none
     class           (powerSpectrumWindowFunctionTopHatSharpKHybrid), intent(inout) :: self
-    double precision                                               , intent(in   ) :: smoothingMass              , wavenumber
+    double precision                                               , intent(in   ) :: smoothingMass              , wavenumber               , &
+         &                                                                            time
     double precision                                               , parameter     :: xSeriesMaximum      =1.0d-3
     double precision                                                               :: radiusKSpaceSharp          , radiusTopHat             , &
          &                                                                            topHatWindowFunction       , kSpaceSharpWindowFunction, &
          &                                                                            wavenumberCutOff           , x                        , &
          &                                                                            xSquared
+    !$GLC attributes unused :: time
 
     ! Find radii for both filters and cut-off wavenumber for the sharp k-space filter.
     call self%radii(smoothingMass,radiusTopHat,radiusKSpaceSharp)

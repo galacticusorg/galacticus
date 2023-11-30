@@ -120,7 +120,7 @@ contains
     return
   end subroutine smoothKSpaceDestructor
 
-  double precision function smoothKSpaceValue(self,wavenumber,smoothingMass)
+  double precision function smoothKSpaceValue(self,wavenumber,smoothingMass,time)
     !!{
     Smooth-$k$ space power spectrum window function proposed in \cite{leo_new_2018}.
     spectrum.
@@ -128,8 +128,10 @@ contains
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (powerSpectrumWindowFunctionSmoothKSpace), intent(inout) :: self
-    double precision                                         , intent(in   ) :: smoothingMass, wavenumber
+    double precision                                         , intent(in   ) :: smoothingMass, wavenumber, &
+         &                                                                      time
     double precision                                                         :: smoothRadius , x
+    !$GLC attributes unused :: time
 
     smoothRadius=+(                                             &
          &         +3.0d0                                       &

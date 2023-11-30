@@ -121,15 +121,17 @@ contains
     return
   end subroutine hyperbolicTangentDestructor
 
-  double precision function hyperbolicTangentValue(self,wavenumber,smoothingMass)
+  double precision function hyperbolicTangentValue(self,wavenumber,smoothingMass,time)
     !!{
     Hyperbolic tangent window function used in computing the variance of the power spectrum.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (powerSpectrumWindowFunctionHyperbolicTangent), intent(inout) :: self
-    double precision                                              , intent(in   ) :: smoothingMass, wavenumber
+    double precision                                              , intent(in   ) :: smoothingMass, wavenumber, &
+         &                                                                           time
     double precision                                                              :: radius
+    !$GLC attributes unused :: time
 
     radius =+(                                             &
          &    +3.0d0                                       &

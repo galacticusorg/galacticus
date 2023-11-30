@@ -114,7 +114,7 @@ contains
     return
   end subroutine topHatGeneralizedDestructor
 
-  double precision function topHatGeneralizedValue(self,wavenumber,smoothingMass)
+  double precision function topHatGeneralizedValue(self,wavenumber,smoothingMass,time)
     !!{
     Generalized top hat in real space window function Fourier transformed into $k$-space used in computing the variance of the
     power spectrum.
@@ -122,10 +122,12 @@ contains
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (powerSpectrumWindowFunctionTopHatGeneralized), intent(inout) :: self
-    double precision                                              , intent(in   ) :: smoothingMass        , wavenumber
+    double precision                                              , intent(in   ) :: smoothingMass        , wavenumber, &
+         &                                                                           time
     double precision                                              , parameter     :: xSeriesMaximum=1.0d-3
     double precision                                                              :: topHatRadius         , x         , &
          &                                                                           xSquared
+    !$GLC attributes unused :: time
 
     topHatRadius=+(                                             &
          &         +3.0d0                                       &

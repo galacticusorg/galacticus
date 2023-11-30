@@ -375,10 +375,10 @@ contains
 
       ! Return power spectrum multiplied by window function and volume element in k-space. Factors of 2 and Pi are included
       ! elsewhere.
-      varianceIntegrand=+  self%powerSpectrumNonlinear_     %value(wavenumber,epochTime(iOutput    )) &
-           &            *(                                                                            &
-           &              +self%powerSpectrumWindowFunction_%value(wavenumber,massScale(iWavenumber)) &
-           &              *                                        wavenumber                         &
+      varianceIntegrand=+  self%powerSpectrumNonlinear_     %value(wavenumber                       ,epochTime(iOutput)) &
+           &            *(                                                                                               &
+           &              +self%powerSpectrumWindowFunction_%value(wavenumber,massScale(iWavenumber),epochTime(iOutput)) &
+           &              *                                        wavenumber                                            &
            &             )**2
       return
     end function varianceIntegrand

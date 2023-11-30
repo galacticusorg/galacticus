@@ -109,7 +109,7 @@ contains
     return
   end subroutine lagrangianChan2017Destructor
 
-  double precision function lagrangianChan2017Value(self,wavenumber,smoothingMass)
+  double precision function lagrangianChan2017Value(self,wavenumber,smoothingMass,time)
     !!{
     Smooth-$k$ space power spectrum window function proposed in \cite{leo_new_2018}.
     spectrum.
@@ -117,11 +117,13 @@ contains
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (powerSpectrumWindowFunctionLagrangianChan2017), intent(inout) :: self
-    double precision                                               , intent(in   ) :: smoothingMass          , wavenumber
+    double precision                                               , intent(in   ) :: smoothingMass          , wavenumber, &
+         &                                                                            time
     double precision                                               , parameter     :: xSeriesMaximum  =1.0d-3
     double precision                                                               :: radiusLagrangian       , x          , &
          &                                                                            xSquared               , valueTopHat, &
          &                                                                            valueGaussian
+    !$GLC attributes unused :: time
 
     radiusLagrangian=+(                                             &
          &             +3.0d0                                       &

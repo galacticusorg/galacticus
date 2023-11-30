@@ -159,14 +159,16 @@ contains
     return
   end subroutine sharpKSpaceDestructor
 
-  double precision function sharpKSpaceValue(self,wavenumber,smoothingMass)
+  double precision function sharpKSpaceValue(self,wavenumber,smoothingMass,time)
     !!{
     Sharp $k$-space window function used in computing the variance of the power spectrum.
     !!}
     implicit none
     class           (powerSpectrumWindowFunctionSharpKSpace), intent(inout) :: self
-    double precision                                        , intent(in   ) :: smoothingMass   , wavenumber
+    double precision                                        , intent(in   ) :: smoothingMass   , wavenumber, &
+         &                                                                     time
     double precision                                                        :: wavenumberCutOff
+    !$GLC attributes unused :: time
 
     wavenumberCutOff=self%wavenumberMaximum(smoothingMass)
     if      (wavenumber <=            0.0d0) then
