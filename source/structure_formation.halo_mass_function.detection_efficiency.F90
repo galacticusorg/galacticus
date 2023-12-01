@@ -21,6 +21,8 @@
 Implements a dark matter halo mass function class which modifies another mass function by account for halo-finder detection efficiency.
 !!}
 
+  use :: Cosmology_Functions, only : cosmologyFunctionsClass
+
   !![
   <haloMassFunction name="haloMassFunctionDetectionEfficiency">
    <description>
@@ -33,9 +35,10 @@ Implements a dark matter halo mass function class which modifies another mass fu
      A halo mass function class that modifies another mass function by the halo-finder detection efficiency.
      !!}
      private
-     double precision                                 :: massMinimum            , efficiencyAtMassMinimum, &
-          &                                              exponentMass
-     class           (haloMassFunctionClass), pointer :: massFunction_ => null()
+     double precision                                   :: massMinimum                  , efficiencyAtMassMinimum, &
+          &                                                exponentMass                 , exponentRedshift
+     class           (haloMassFunctionClass  ), pointer :: massFunction_       => null()
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
    contains
      final     ::                 detectionEfficiencyDestructor
      procedure :: differential => detectionEfficiencyDifferential
@@ -61,8 +64,9 @@ contains
     type            (inputParameters                    ), intent(inout) :: parameters
     class           (haloMassFunctionClass              ), pointer       :: massFunction_
     class           (cosmologyParametersClass           ), pointer       :: cosmologyParameters_
+    class           (cosmologyFunctionsClass            ), pointer       :: cosmologyFunctions_
     double precision                                                     :: massMinimum         , efficiencyAtMassMinimum, &
-         &                                                                  exponentMass
+         &                                                                  exponentMass        , exponentRedshift
 
     !![
     <inputParameter>
@@ -78,21 +82,28 @@ contains
     <inputParameter>
       <name>exponentMass</name>
       <source>parameters</source>
-      <description>The exponent $\alpha$ in the detection efficiency, $f(M) = 1 - (1-\epsilon) (M/M_\mathrm{min})^\alpha$.</description>
+      <description>The exponent $\alpha$ in the detection efficiency, $f(M) = 1 - (1-\epsilon) (M/M_\mathrm{min})^\alpha (1+z)^\beta$.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>exponentRedshift</name>
+      <source>parameters</source>
+      <description>The exponent $\beta$ in the detection efficiency, $f(M) = 1 - (1-\epsilon) (M/M_\mathrm{min})^\alpha (1+z)^\beta$.</description>
     </inputParameter>
     <objectBuilder class="haloMassFunction"    name="massFunction_"        source="parameters"/>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     !!]
-    self=haloMassFunctionDetectionEfficiency(massMinimum,efficiencyAtMassMinimum,exponentMass,massFunction_,cosmologyParameters_)
+    self=haloMassFunctionDetectionEfficiency(massMinimum,efficiencyAtMassMinimum,exponentMass,exponentRedshift,massFunction_,cosmologyParameters_,cosmologyFunctions_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="massFunction_"       />
     <objectDestructor name="cosmologyParameters_"/>
+    <objectDestructor name="cosmologyFunctions_" />
     !!]
     return
   end function detectionEfficiencyConstructorParameters
 
-  function detectionEfficiencyConstructorInternal(massMinimum,efficiencyAtMassMinimum,exponentMass,massFunction_,cosmologyParameters_) result(self)
+  function detectionEfficiencyConstructorInternal(massMinimum,efficiencyAtMassMinimum,exponentMass,exponentRedshift,massFunction_,cosmologyParameters_,cosmologyFunctions_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily detectionEfficiency} halo mass function class.
     !!}
@@ -100,10 +111,11 @@ contains
     type            (haloMassFunctionDetectionEfficiency)                        :: self
     class           (haloMassFunctionClass              ), target, intent(in   ) :: massFunction_
     class           (cosmologyParametersClass           ), target, intent(in   ) :: cosmologyParameters_
+    class           (cosmologyFunctionsClass            ), target, intent(in   ) :: cosmologyFunctions_
     double precision                                             , intent(in   ) :: massMinimum         , efficiencyAtMassMinimum, &
-         &                                                                          exponentMass
+         &                                                                          exponentMass        , exponentRedshift
     !![
-    <constructorAssign variables="massMinimum, efficiencyAtMassMinimum, exponentMass, *cosmologyParameters_, *massFunction_"/>
+    <constructorAssign variables="massMinimum, efficiencyAtMassMinimum, exponentMass, exponentRedshift, *cosmologyParameters_, *cosmologyFunctions_, *massFunction_"/>
     !!]
 
     return
@@ -119,6 +131,7 @@ contains
     !![
     <objectDestructor name="self%massFunction_"       />
     <objectDestructor name="self%cosmologyParameters_"/>
+    <objectDestructor name="self%cosmologyFunctions_" />
     !!]
     return
   end subroutine detectionEfficiencyDestructor
@@ -129,24 +142,31 @@ contains
     !!}
     implicit none
     class           (haloMassFunctionDetectionEfficiency), intent(inout), target   :: self
-    double precision                                     , intent(in   )           :: time, mass
+    double precision                                     , intent(in   )           :: time               , mass
     type            (treeNode                           ), intent(inout), optional :: node
+    double precision                                                               :: efficiencyDetection
 
     if (mass >= self%massMinimum) then
-       massFunction=+(                                               &
-            &         +  1.0d0                                       &
-            &         -(                                             &
-            &           +1.0d0                                       &
-            &           -self%efficiencyAtMassMinimum                &
-            &          )                                             &
-            &         *(                                             &
-            &           +     mass                                   &
-            &           /self%massMinimum                            &
-            &          )**self%exponentMass                          &
-            &        )                                               &
-            &       *self%massFunction_%differential(time,mass,node)
+       efficiencyDetection=min(                                                                            &
+            &                      +  1.0d0                                                              , &
+            &                  max(                                                                        &
+            &                      +  0.0d0                                                              , &
+            &                      +  1.0d0                                                                &
+            &                      -(                                                                      &
+            &                        +1.0d0                                                                &
+            &                        -self%efficiencyAtMassMinimum                                         &
+            &                       )                                                                      &
+            &                      *(                                                                      &
+            &                        +     mass                                                            &
+            &                        /self%massMinimum                                                     &
+            &                       )**self%exponentMass                                                   &
+            &                      /self%cosmologyFunctions_%expansionFactor(time)**self%exponentRedshift  &
+            &                     )                                                                        &
+            &                 )
+       massFunction       =+efficiencyDetection                                                            &
+            &              *self%massFunction_%differential(time,mass,node)
     else
-       massFunction=+0.0d0
+       massFunction       =+0.0d0
     end if
     return
   end function detectionEfficiencyDifferential
