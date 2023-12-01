@@ -151,10 +151,6 @@ contains
     ! Get the satellite component.
     satellite            =>  node%satellite()
     ! Compute orbital position and velocity.
-
-    !! AJB HACK
-if (any(abs(satellite%position()) > 1.0d100)) write (0,*) node%index(),satellite%position()
-
     radiusOrbital        =  +Vector_Magnitude(satellite%position())
     velocityOrbital      =  +Vector_Magnitude(satellite%velocity())
     ! Find the ram pressure force at this orbital radius.

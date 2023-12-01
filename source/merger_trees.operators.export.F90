@@ -302,9 +302,7 @@ contains
        end if
        if (self%snapshotsRequired) call mergerTrees%setProperty(propertyTypeSnapshot,nodeSnapshot)
        ! Write the tree to file.
-       !$omp critical (Merger_Tree_Write)
        call mergerTrees%export(char(self%outputFileName),self%exportFormat,hdfChunkSize,hdfCompressionLevel,append=.true.)
-       !$omp end critical (Merger_Tree_Write)
        ! Deallocate arrays.
        deallocate(treeIndex      )
        deallocate(treeWeight     )
