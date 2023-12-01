@@ -37,12 +37,13 @@
      class           (criticalOverdensityClass     ), pointer :: criticalOverdensity_      => null()
      double precision                                         :: a_                                 , p_, &
           &                                                      normalization_                     , q_, &
-          &                                                      b_
+          &                                                      b_                                 , c_
    contains
      !![
      <methods>
        <method description="Return the parameter $\bar{a}$ in the \cite{bhattacharya_mass_2011} halo mass function fit." method="a" />
-       <method description="Return the parameter $\bar{b}$ in the \cite{bhattacharya_mass_2011} halo mass function fit." method="b" />
+       <method description="Return the parameter $\bar{b}$ in the \cite{bhattacharya_mass_2011} halo mass function fit." method="c" />
+       <method description="Return the parameter $\bar{c}$ in the \cite{bhattacharya_mass_2011} halo mass function fit." method="b" />
        <method description="Return the parameter $\bar{p}$ in the \cite{bhattacharya_mass_2011} halo mass function fit." method="p" />
        <method description="Return the parameter $\bar{q}$ in the \cite{bhattacharya_mass_2011} halo mass function fit." method="q" />
        <method description="Return the parameter $\bar{A}$ in the \cite{bhattacharya_mass_2011} halo mass function fit." method="normalization" />
@@ -52,6 +53,7 @@
      procedure :: differential  => bhattacharya2011Differential
      procedure :: a             => bhattacharya2011A
      procedure :: b             => bhattacharya2011B
+     procedure :: c             => bhattacharya2011C
      procedure :: p             => bhattacharya2011P
      procedure :: q             => bhattacharya2011Q
      procedure :: normalization => bhattacharya2011Normalization
@@ -80,7 +82,7 @@ contains
     class           (criticalOverdensityClass        ), pointer       :: criticalOverdensity_
     double precision                                                  :: a                        , p, &
          &                                                               normalization            , q, &
-         &                                                               b
+         &                                                               b                        , c
 
     ! Check and read parameters.
     !![
@@ -99,6 +101,12 @@ contains
       <source>parameters</source>
       <defaultValue>1.000d0</defaultValue>
       <description>The parameter $\bar{b}$ in the \cite{bhattacharya_mass_2011} halo mass function fit.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>c</name>
+      <source>parameters</source>
+      <defaultValue>1.000d0</defaultValue>
+      <description>The parameter $\bar{c}$ in the \cite{bhattacharya_mass_2011} halo mass function fit.</description>
     </inputParameter>
     <inputParameter>
       <name>p</name>
@@ -122,7 +130,7 @@ contains
       <description>The normalization parameter $\bar{A}$ in the \cite{bhattacharya_mass_2011} halo mass function fit.</description>
     </inputParameter>
     !!]
-    self=haloMassFunctionBhattacharya2011(cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,a,b,p,q,normalization)
+    self=haloMassFunctionBhattacharya2011(cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,a,b,c,p,q,normalization)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"     />
@@ -132,7 +140,7 @@ contains
     return
   end function bhattacharya2011ConstructorParameters
 
-  function bhattacharya2011ConstructorInternal(cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,a,b,p,q,normalization) result(self)
+  function bhattacharya2011ConstructorInternal(cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,a,b,c,p,q,normalization) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily bhattacharya2011} halo mass function class.
     !!}
@@ -143,13 +151,14 @@ contains
     class           (criticalOverdensityClass        ), target, intent(in   ) :: criticalOverdensity_
     double precision                                          , intent(in   ) :: a                        , p, &
          &                                                                       normalization            , q, &
-         &                                                                       b
+         &                                                                       b                        , c
     !![
     <constructorAssign variables="*cosmologyParameters_, *cosmologicalMassVariance_, *criticalOverdensity_"/>
     !!]
 
     self%            a_=a
     self%            b_=b
+    self%            c_=c
     self%            p_=p
     self%            q_=q
     self%normalization_=normalization
@@ -215,6 +224,7 @@ contains
          &                       )                                            &
          &                       *exp(                                        &
          &                            -0.5d0                                  &
+         &                            *self%c(time,mass)                      &
          &                            *nuPrime**self%b(time,mass)             &
          &                       )
     return
@@ -245,6 +255,19 @@ contains
     bhattacharya2011B=self%b_
     return
   end function bhattacharya2011B
+
+  double precision function bhattacharya2011C(self,time,mass)
+    !!{
+    Return the parameter $\bar{c}$ in the {\normalfont \ttfamily bhattacharya2011} halo mass function at the given time and mass.
+    !!}
+    implicit none
+    class           (haloMassFunctionBhattacharya2011), intent(inout) :: self
+    double precision                                  , intent(in   ) :: time , mass
+    !$GLC attributes unused :: time, mass
+
+    bhattacharya2011C=self%c_
+    return
+  end function bhattacharya2011C
 
   double precision function bhattacharya2011P(self,time,mass)
     !!{
