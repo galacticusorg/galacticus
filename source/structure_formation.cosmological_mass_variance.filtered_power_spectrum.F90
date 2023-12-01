@@ -82,28 +82,30 @@
      A cosmological mass variance class computing variance from a filtered power spectrum.
      !!}
      private
-     class           (cosmologyParametersClass               ), pointer                   :: cosmologyParameters_                => null()
-     class           (cosmologyFunctionsClass                ), pointer                   :: cosmologyFunctions_                 => null()
-     class           (powerSpectrumPrimordialTransferredClass), pointer                   :: powerSpectrumPrimordialTransferred_ => null() , powerSpectrumPrimordialTransferredReference => null()
-     class           (cosmologicalMassVarianceClass          ), pointer                   :: cosmologicalMassVarianceReference   => null()
-     class           (linearGrowthClass                      ), pointer                   :: linearGrowth_                       => null()
-     class           (transferFunctionClass                  ), pointer                   :: transferFunction_                   => null()
-     class           (powerSpectrumWindowFunctionClass       ), pointer                   :: powerSpectrumWindowFunction_        => null() , powerSpectrumWindowFunctionTopHat_          => null()
-     logical                                                                              :: initialized                         =  .false., nonMonotonicIsFatal
-     double precision                                                                     :: tolerance                                     , toleranceTopHat                                      , &
-          &                                                                                  sigma8Value                                   , sigmaNormalization                                   , &
-          &                                                                                  massMinimum                                   , massMaximum                                          , &
-          &                                                                                  timeMinimum                                   , timeMaximum                                          , &
-          &                                                                                  timeMinimumLogarithmic                        , timeLogarithmicDeltaInverse                          , &
-          &                                                                                  wavenumberReference                           , wavenumberHalfMode
+     class           (cosmologyParametersClass               ), pointer                   :: cosmologyParameters_                     => null()
+     class           (cosmologyFunctionsClass                ), pointer                   :: cosmologyFunctions_                      => null()
+     class           (powerSpectrumPrimordialTransferredClass), pointer                   :: powerSpectrumPrimordialTransferred_      => null() , powerSpectrumPrimordialTransferredReference => null()
+     class           (cosmologicalMassVarianceClass          ), pointer                   :: cosmologicalMassVarianceReference        => null()
+     class           (linearGrowthClass                      ), pointer                   :: linearGrowth_                            => null()
+     class           (transferFunctionClass                  ), pointer                   :: transferFunction_                        => null()
+     class           (powerSpectrumWindowFunctionClass       ), pointer                   :: powerSpectrumWindowFunction_             => null() , powerSpectrumWindowFunctionTopHat_          => null()
+     logical                                                                              :: initialized                              =  .false., nonMonotonicIsFatal                                  , &
+          &                                                                                  integrationFailureIsFatal
+     double precision                                                                     :: tolerance                                          , toleranceTopHat                                      , &
+          &                                                                                  sigma8Value                                        , sigmaNormalization                                   , &
+          &                                                                                  massMinimum                                        , massMaximum                                          , &
+          &                                                                                  timeMinimum                                        , timeMaximum                                          , &
+          &                                                                                  timeMinimumLogarithmic                             , timeLogarithmicDeltaInverse                          , &
+          &                                                                                  wavenumberReference                                , wavenumberHalfMode                                   , &
+          &                                                                                  rootVarianceLogarithmicGradientTolerance
      double precision                                         , allocatable, dimension(:) :: times
      class           (table1DLinearCSpline                   ), allocatable, dimension(:) :: rootVarianceTable
      type            (varying_string                         )                            :: fileName
      type            (lockDescriptor                         )                            :: fileLock
      ! Unique values in the variance table and their corresponding indices.
      type            (uniqueTable                            ), allocatable, dimension(:) :: rootVarianceUniqueTable
-     logical                                                                              :: monotonicInterpolation                        , growthIsMassDependent_                               , &
-          &                                                                                  normalizationSigma8                   =.false., truncateAtParticleHorizon                            , &
+     logical                                                                              :: monotonicInterpolation                             , growthIsMassDependent_                               , &
+          &                                                                                  normalizationSigma8                        =.false., truncateAtParticleHorizon                            , &
           &                                                                                  storeTabulations
    contains
      !![
@@ -163,14 +165,16 @@ contains
     class           (cosmologicalMassVarianceClass          ), pointer       :: cosmologicalMassVarianceReference
     class           (cosmologyParametersClass               ), pointer       :: cosmologyParameters_
     class           (cosmologyFunctionsClass                ), pointer       :: cosmologyFunctions_
-    class           (powerSpectrumPrimordialTransferredClass), pointer       :: powerSpectrumPrimordialTransferred_, powerSpectrumPrimordialTransferredReference
-    class           (powerSpectrumWindowFunctionClass       ), pointer       :: powerSpectrumWindowFunction_       , powerSpectrumWindowFunctionTopHat_
+    class           (powerSpectrumPrimordialTransferredClass), pointer       :: powerSpectrumPrimordialTransferred_     , powerSpectrumPrimordialTransferredReference
+    class           (powerSpectrumWindowFunctionClass       ), pointer       :: powerSpectrumWindowFunction_            , powerSpectrumWindowFunctionTopHat_
     class           (linearGrowthClass                      ), pointer       :: linearGrowth_
     class           (transferFunctionClass                  ), pointer       :: transferFunction_
-    double precision                                                         :: sigma8Value                        , tolerance                                  , &
-         &                                                                      toleranceTopHat                    , wavenumberReference
-    logical                                                                  :: monotonicInterpolation             , nonMonotonicIsFatal                        , &
-         &                                                                      truncateAtParticleHorizon          , storeTabulations
+    double precision                                                         :: sigma8Value                             , tolerance                                  , &
+         &                                                                      toleranceTopHat                         , wavenumberReference                        , &
+         &                                                                      rootVarianceLogarithmicGradientTolerance
+    logical                                                                  :: monotonicInterpolation                  , nonMonotonicIsFatal                        , &
+         &                                                                      truncateAtParticleHorizon               , storeTabulations                           , &
+         &                                                                      integrationFailureIsFatal
 
     !![
     <objectBuilder    class="cosmologyParameters"                name="cosmologyParameters_"                        source="parameters"                                                  />
@@ -234,10 +238,22 @@ contains
       <description>If true any non-monotonicity in the tabulated $\sigma(M)$ is treated as a fatal error. Otherwise a only a warning is issued.</description>
     </inputParameter>
     <inputParameter>
+      <name>integrationFailureIsFatal</name>
+      <source>parameters</source>
+      <defaultValue>.true.</defaultValue>
+      <description>If true any failed integrals when evaluating $\sigma(M)$ are treated as fatal errors. Otherwise a only a warning is issued.</description>
+    </inputParameter>
+    <inputParameter>
       <name>monotonicInterpolation</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
       <description>If true use a monotonic cubic spline interpolator to interpolate in the $\sigma(M)$ table. Otherwise use a standard cubic spline interpolator. Use of the monotonic interpolator can be helpful is $\sigma(M)$ must be strictly monotonic but becomes a very weak function of $M$ at low masses.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>rootVarianceLogarithmicGradientTolerance</name>
+      <source>parameters</source>
+      <defaultValue>1.0d-12</defaultValue>
+      <description>The tolerance in $\mathrm{d}\log\sigma/\mathrm{d}\log M$ to allow before reporting errors when monotonic interpolation is used..</description>
     </inputParameter>
     <inputParameter>
       <name>truncateAtParticleHorizon</name>
@@ -253,20 +269,22 @@ contains
     </inputParameter>
     <conditionalCall>
      <call>
-      self=filteredPowerConstructorInternal(                                                                         &amp;
-       &amp;                                tolerance                          =tolerance                          , &amp;
-       &amp;                                toleranceTopHat                    =toleranceTopHat                    , &amp;
-       &amp;                                nonMonotonicIsFatal                =nonMonotonicIsFatal                , &amp;
-       &amp;                                monotonicInterpolation             =monotonicInterpolation             , &amp;
-       &amp;                                truncateAtParticleHorizon          =truncateAtParticleHorizon          , &amp;
-       &amp;                                storeTabulations                   =storeTabulations                   , &amp;
-       &amp;                                cosmologyParameters_               =cosmologyParameters_               , &amp;
-       &amp;                                cosmologyFunctions_                =cosmologyFunctions_                , &amp;
-       &amp;                                linearGrowth_                      =linearGrowth_                      , &amp;
-       &amp;                                transferFunction_                  =transferFunction_                  , &amp;
-       &amp;                                powerSpectrumPrimordialTransferred_=powerSpectrumPrimordialTransferred_, &amp;
-       &amp;                                powerSpectrumWindowFunction_       =powerSpectrumWindowFunction_         &amp;
-       &amp;                                {conditions}                                                             &amp;
+      self=filteredPowerConstructorInternal(                                                                                   &amp;
+       &amp;                                tolerance                               =tolerance                               , &amp;
+       &amp;                                toleranceTopHat                         =toleranceTopHat                         , &amp;
+       &amp;                                nonMonotonicIsFatal                     =nonMonotonicIsFatal                     , &amp;
+       &amp;                                integrationFailureIsFatal               =integrationFailureIsFatal               , &amp;
+       &amp;                                monotonicInterpolation                  =monotonicInterpolation                  , &amp;
+       &amp;                                rootVarianceLogarithmicGradientTolerance=rootVarianceLogarithmicGradientTolerance, &amp;
+       &amp;                                truncateAtParticleHorizon               =truncateAtParticleHorizon               , &amp;
+       &amp;                                storeTabulations                        =storeTabulations                        , &amp;
+       &amp;                                cosmologyParameters_                    =cosmologyParameters_                    , &amp;
+       &amp;                                cosmologyFunctions_                     =cosmologyFunctions_                     , &amp;
+       &amp;                                linearGrowth_                           =linearGrowth_                           , &amp;
+       &amp;                                transferFunction_                       =transferFunction_                       , &amp;
+       &amp;                                powerSpectrumPrimordialTransferred_     =powerSpectrumPrimordialTransferred_     , &amp;
+       &amp;                                powerSpectrumWindowFunction_            =powerSpectrumWindowFunction_              &amp;
+       &amp;                                {conditions}                                                                       &amp;
        &amp;                               )
      </call>
      <argument name="sigma8"                                      value="sigma8Value"                                 condition=".not.parameters%isPresent('wavenumberReference')"                   />
@@ -299,7 +317,7 @@ contains
     return
   end function filteredPowerConstructorParameters
 
-  function filteredPowerConstructorInternal(sigma8,cosmologicalMassVarianceReference,powerSpectrumPrimordialTransferredReference,wavenumberReference,tolerance,toleranceTopHat,nonMonotonicIsFatal,monotonicInterpolation,truncateAtParticleHorizon,storeTabulations,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,transferFunction_,powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_,powerSpectrumWindowFunctionTopHat_) result(self)
+  function filteredPowerConstructorInternal(sigma8,cosmologicalMassVarianceReference,powerSpectrumPrimordialTransferredReference,wavenumberReference,tolerance,toleranceTopHat,nonMonotonicIsFatal,integrationFailureIsFatal,monotonicInterpolation,rootVarianceLogarithmicGradientTolerance,truncateAtParticleHorizon,storeTabulations,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,transferFunction_,powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_,powerSpectrumWindowFunctionTopHat_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily filteredPower} linear growth class.
     !!}
@@ -311,10 +329,12 @@ contains
     use :: Numerical_Constants_Math       , only : Pi
     implicit none
     type            (cosmologicalMassVarianceFilteredPower  )                                  :: self
-    double precision                                         , intent(in   )                   :: tolerance                                  , toleranceTopHat
+    double precision                                         , intent(in   )                   :: tolerance                                  , toleranceTopHat       , &
+         &                                                                                        rootVarianceLogarithmicGradientTolerance
     double precision                                         , intent(in   )        , optional :: wavenumberReference                        , sigma8
     logical                                                  , intent(in   )                   :: nonMonotonicIsFatal                        , monotonicInterpolation, &
-         &                                                                                        truncateAtParticleHorizon                  , storeTabulations
+         &                                                                                        truncateAtParticleHorizon                  , storeTabulations      , &
+         &                                                                                        integrationFailureIsFatal
     class           (cosmologyParametersClass               ), intent(in   ), target           :: cosmologyParameters_
     class           (cosmologyFunctionsClass                ), intent(in   ), target           :: cosmologyFunctions_
     class           (powerSpectrumPrimordialTransferredClass), intent(in   ), target           :: powerSpectrumPrimordialTransferred_
@@ -327,7 +347,7 @@ contains
     double precision                                                                           :: halfModeMass
     integer                                                                                    :: status
     !![
-    <constructorAssign variables="tolerance, toleranceTopHat, nonMonotonicIsFatal, monotonicInterpolation, truncateAtParticleHorizon, storeTabulations, *cosmologyParameters_, *cosmologyFunctions_, *linearGrowth_, *transferFunction_, *powerSpectrumPrimordialTransferred_, *powerSpectrumWindowFunction_, *powerSpectrumWindowFunctionTopHat_"/>
+    <constructorAssign variables="tolerance, toleranceTopHat, nonMonotonicIsFatal, integrationFailureIsFatal, monotonicInterpolation, rootVarianceLogarithmicGradientTolerance, truncateAtParticleHorizon, storeTabulations, *cosmologyParameters_, *cosmologyFunctions_, *linearGrowth_, *transferFunction_, *powerSpectrumPrimordialTransferred_, *powerSpectrumWindowFunction_, *powerSpectrumWindowFunctionTopHat_"/>
     !!]
 
     if (.not.present(powerSpectrumWindowFunctionTopHat_)) then
@@ -522,17 +542,16 @@ contains
     use :: String_Handling         , only : operator(//)
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
-    double precision                                       , intent(in   ) :: mass                                            , time
-    double precision                                       , intent(  out) :: rootVariance                                    , rootVarianceLogarithmicGradient
-    double precision                                       , parameter     :: rootVarianceLogarithmicGradientTolerance=1.0d-12
+    double precision                                       , intent(in   ) :: mass         , time
+    double precision                                       , intent(  out) :: rootVariance , rootVarianceLogarithmicGradient
     type            (hdf5Object                           ), save          :: errorFile
     type            (varying_string                       ), save          :: errorFileName
     !$omp threadprivate(errorFile,errorFileName)
     character       (len=1                                )                :: label
-    double precision                                                       :: wavenumber                                      , rootVarianceGradient           , &
-         &                                                                    interpolant                                     , h                              , &
+    double precision                                                       :: wavenumber   , rootVarianceGradient           , &
+         &                                                                    interpolant  , h                              , &
          &                                                                    linearGrowth
-    integer                                                                :: i                                               , j
+    integer                                                                :: i            , j
     
     call self%retabulate(mass,time)
     if (self%growthIsMassDependent_) then
@@ -552,14 +571,14 @@ contains
        if (interpolant == 0.0d0) cycle
        if (self%powerSpectrumWindowFunction_%amplitudeIsMassIndependent()) then
           ! For the case of a constant window function amplitude the logarithmic gradient can be found analytically.
-          wavenumber          =+self%powerSpectrumWindowFunction_       %wavenumberMaximum(                mass    )
-          rootVarianceGradient=+rootVarianceGradient                                                                    &
-               &               -self%powerSpectrumPrimordialTransferred_%power            (wavenumber,self%times(j))    &
-               &               *self%sigmaNormalization                                                             **2 &
-               &               *self%powerSpectrumWindowFunction_       %value            (wavenumber,     mass    )**2 &
-               &               *                                                           wavenumber               **3 &
-               &               /12.0d0                                                                                  &
-               &               /Pi                                                                                  **2 &
+          wavenumber          =+self%powerSpectrumWindowFunction_       %wavenumberMaximum(                mass         )
+          rootVarianceGradient=+rootVarianceGradient                                                                         &
+               &               -self%powerSpectrumPrimordialTransferred_%power            (wavenumber,self%times(j)     )    &
+               &               *self%sigmaNormalization                                                                  **2 &
+               &               *self%powerSpectrumWindowFunction_       %value            (wavenumber,     mass    ,time)**2 &
+               &               *                                                           wavenumber                    **3 &
+               &               /12.0d0                                                                                       &
+               &               /Pi                                                                                       **2 &
                &               *interpolant
        else
           ! Compute the gradient by interpolation in the tabulated relation.
@@ -584,7 +603,7 @@ contains
          &                                             *self%linearGrowth_%value(time)
     ! Validate the logarithmic gradient.
     if (rootVarianceLogarithmicGradient > 0.0d0) then
-       if (rootVarianceLogarithmicGradient < rootVarianceLogarithmicGradientTolerance) then
+       if (rootVarianceLogarithmicGradient < self%rootVarianceLogarithmicGradientTolerance) then
           ! Ignore small positive gradients which can occur due to rounding errors.
           rootVarianceLogarithmicGradient=0.0d0
           return
@@ -986,10 +1005,13 @@ contains
       Compute the root-variance of mass in spheres enclosing the given {\normalfont \ttfamily mass} from the power spectrum.
       !!}
       use, intrinsic :: ISO_C_Binding           , only : c_size_t
-      use            :: Interface_GSL           , only : GSL_EBadTol      , GSL_ETol  , GSL_ERound, GSL_Success, &
-           &                                             GSL_EMaxIter
+      use            :: Display                 , only : displayIndent     , displayUnindent              , displayMessage, verbosityLevelStandard, &
+           &                                             verbosityLevelWarn, enumerationVerbosityLevelType
+      use            :: Error                   , only : Error_Report      , Warn
+      use            :: Interface_GSL           , only : GSL_EBadTol       , GSL_ETol                     , GSL_ERound    , GSL_Success           , &
+           &                                             GSL_EMaxIter      , GSL_ESing
       use            :: Numerical_Constants_Math, only : Pi
-      use            :: Numerical_Integration   , only : GSL_Integ_Gauss15, integrator
+      use            :: Numerical_Integration   , only : GSL_Integ_Gauss15 , integrator
       use            :: Sorting                 , only : sort
       implicit none
       double precision                         , intent(in   ) :: time_
@@ -1091,7 +1113,7 @@ contains
          else if (status /= GSL_Success) then
             ! Integration failed for some other reason, report an error.
             computeLogarithmically=.false.
-            call Error_Report('integration over interval failed'//{introspection:location})
+            if (self%integrationFailureIsFatal) call Error_Report('integration over interval failed'//{introspection:location})
          else if (integrandInterval <= 0.0d0 .and. wavenumberLower > 0.0d0) then
             ! Integration gave a zero result, and the lower limit is non-zero. This may be because the upper limit is large and
             ! the power is confined to small wavenumbers near the lower limit. This can happen, for example, if attempting to
@@ -1115,23 +1137,75 @@ contains
                ! problem. Otherwise, the power in this interval seems to be actually zero, so proceed.
                if (varianceIntegrand(wavenumberLower) > 0.0d0) then
                   if (varianceIntegrand(wavenumberUpper) > 0.0d0) then
-                     ! The integrand is non-zero at the upper limit also - we expect a non-zero integrand in this case. As we
-                     ! didn't get one, this is a problem.
-                     call Error_Report('no power in interval integrand - unexpected'//{introspection:location})
+                     ! The integrand is non-zero at the upper limit also. A zero integral should therefore not be possible. First,
+                     ! check if the integrand is so small that, when multiplied by the typical step size, it underflows to
+                     ! zero. If it is, this is acceptable, and no error needs to be emitted. If such underflow did not occur, then
+                     ! the integral should, definitely be positive. As it is not, this is an error situation.
+                     if     (                                                                                            &
+                          &   +max(                                                                                      &
+                          &        +varianceIntegrandLogarithmic(log(wavenumberUpper)),                                  &
+                          &        +varianceIntegrandLogarithmic(log(wavenumberLower))                                   &
+                          &        )                                                                                     &
+                          &   *    (                                                                                     &
+                          &         +                            log(wavenumberUpper)                                    &
+                          &         -                            log(wavenumberLower)                                    &
+                          &        )                                                                                     &
+                          &   /10.0d0                                                                                    &
+                          &  >                                                                                           &
+                          &   + 0.0d0                                                                                    &
+                          & ) call Error_Report('no power in interval integrand - unexpected'//{introspection:location})
                   else
                      ! The integrand is zero at the upper limit - try reducing the upper limit until we get a non-zero result.
                      do while (wavenumberUpper > wavenumberLower .and. varianceIntegrand(wavenumberUpper) <= 0.0d0)
                         integrandInterval=integratorLogarithmic_%integrate(log(wavenumberLower),log(wavenumberUpper),status=status)
-                        if (status == GSL_Success) then
-                           if (integrandInterval > 0.0d0) exit
-                        else
-                           call Error_Report('variance integration failed - unexpected'//{introspection:location})
-                        end if
+                        if (status == GSL_Success .and. integrandInterval > 0.0d0) exit                       
                         wavenumberUpper=sqrt(wavenumberUpper*wavenumberLower)
                      end do
-                     ! We still failed to get a non-zero power - there's nothing more we can do.
-                     if (integrandInterval <= 0.0d0) &
-                          & call Error_Report('no power in interval integrand - unexpected'//{introspection:location})
+                     ! If we still failed to get a non-zero power (or if the integral failed) - there's nothing more we can do.
+                     if (integrandInterval <= 0.0d0 .or. status /= GSL_Success) then
+                        block
+                          type     (varying_string               ) :: message
+                          character(len=13                       ) :: label
+                          integer                                  :: j
+                          type     (enumerationVerbosityLevelType) :: verbosityLevel
+                          if (self%integrationFailureIsFatal) then
+                             verbosityLevel=verbosityLevelStandard
+                          else
+                             verbosityLevel=verbosityLevelWarn
+                          end if
+                          call displayIndent ('Integration report:'  ,verbosityLevel)
+                          call displayIndent ('Wavenumber intervals:',verbosityLevel)
+                          call displayMessage('i    kₘᵢₙ,ᵢ  kₘₐₓ,ᵢ'    ,verbosityLevel)
+                          do j=1,size(wavenumbersRestricted)
+                             wavenumberLower=wavenumbersRestricted(j)
+                             if (j < size(wavenumbersRestricted)) then
+                                wavenumberUpper=wavenumbersRestricted(j+1)
+                             else
+                                wavenumberUpper=wavenumberMaximum
+                             end if
+                             write (label,'(i4)') j
+                             message=trim(label)
+                             write (label,'(e13.6)') wavenumberLower
+                             message=message//" "//label
+                             write (label,'(e13.6)') wavenumberUpper
+                             message=message//" "//label
+                             if (j == i) message=message//" ← failed"
+                             call displayMessage(message,verbosityLevel)
+                          end do
+                          call displayUnindent('done' ,verbosityLevel)
+                          write (label,'(e13.6)') topHatRadius
+                          message="Top-hat radius integral = "//label
+                          call displayMessage (message,verbosityLevel)
+                          message="Current integral = "//label
+                          call displayMessage (message,verbosityLevel)
+                          call displayUnindent('done' ,verbosityLevel)
+                        end block
+                        if (self%integrationFailureIsFatal) then
+                           call Error_Report('variance integration failed - unexpected'//{introspection:location})
+                        else
+                           call Warn        ('variance integration failed - unexpected'                          )
+                        end if
+                     end if
                   end if
                end if
             end if
@@ -1157,10 +1231,10 @@ contains
 
       ! Return power spectrum multiplied by window function and volume element in k-space. Factors of 2 and π are included
       ! elsewhere.
-      varianceIntegrand=+  self%powerSpectrumPrimordialTransferred_%power(wavenumber,time__       ) &
-           &            *(                                                                          &
-           &              +self%powerSpectrumWindowFunction_       %value(wavenumber,smoothingMass) &
-           &              *                                               wavenumber                &
+      varianceIntegrand=+  self%powerSpectrumPrimordialTransferred_%power(wavenumber              ,time__) &
+           &            *(                                                                                 &
+           &              +self%powerSpectrumWindowFunction_       %value(wavenumber,smoothingMass,time  ) &
+           &              *                                               wavenumber                       &
            &             )**2
       return
     end function varianceIntegrand
@@ -1177,11 +1251,11 @@ contains
       ! Return power spectrum multiplied by window function and volume element in k-space. Factors of 2 and π are included
       ! elsewhere.
       wavenumber                  =+exp(wavenumberLogarithmic)
-      varianceIntegrandLogarithmic=+  self%powerSpectrumPrimordialTransferred_%power(wavenumber,time__       ) &
-           &                       *(                                                                          &
-           &                         +self%powerSpectrumWindowFunction_       %value(wavenumber,smoothingMass) &
-           &                         *                                               wavenumber                &
-           &                        )**2                                                                       &
+      varianceIntegrandLogarithmic=+  self%powerSpectrumPrimordialTransferred_%power(wavenumber              ,time__) &
+           &                       *(                                                                                 &
+           &                         +self%powerSpectrumWindowFunction_       %value(wavenumber,smoothingMass,time  ) &
+           &                         *                                               wavenumber                       &
+           &                        )**2                                                                              &
            &                       *                                                 wavenumber
       return
     end function varianceIntegrandLogarithmic
@@ -1195,10 +1269,10 @@ contains
 
       ! Return power spectrum multiplied by window function and volume element in k-space. Factors of 2 and π are included
       ! elsewhere.
-      varianceIntegrandTopHat=+  self%powerSpectrumPrimordialTransferred_%power(wavenumber,time__       ) &
-           &                  *(                                                                          &
-           &                    +self%powerSpectrumWindowFunctionTopHat_ %value(wavenumber,smoothingMass) &
-           &                    *                                               wavenumber                &
+      varianceIntegrandTopHat=+  self%powerSpectrumPrimordialTransferred_%power(wavenumber              ,time__) &
+           &                  *(                                                                                 &
+           &                    +self%powerSpectrumWindowFunctionTopHat_ %value(wavenumber,smoothingMass,time  ) &
+           &                    *                                               wavenumber                       &
            &                   )**2
       return
     end function varianceIntegrandTopHat
@@ -1214,11 +1288,11 @@ contains
       ! Return power spectrum multiplied by window function and volume element in k-space. Factors of 2 and π are included
       ! elsewhere.
       wavenumber                        =+exp(wavenumberLogarithmic)
-      varianceIntegrandTopHatLogarithmic=+  self%powerSpectrumPrimordialTransferred_%power(wavenumber,time__       ) &
-           &                             *(                                                                          &
-           &                               +self%powerSpectrumWindowFunctionTopHat_ %value(wavenumber,smoothingMass) &
-           &                               *                                               wavenumber                &
-           &                              )**2                                                                       &
+      varianceIntegrandTopHatLogarithmic=+  self%powerSpectrumPrimordialTransferred_%power(wavenumber              ,time__) &
+           &                             *(                                                                                 &
+           &                               +self%powerSpectrumWindowFunctionTopHat_ %value(wavenumber,smoothingMass,time  ) &
+           &                               *                                               wavenumber                       &
+           &                              )**2                                                                              &
            &                             *                                                 wavenumber
       return
     end function varianceIntegrandTopHatLogarithmic
@@ -1431,8 +1505,7 @@ contains
     class    (cosmologicalMassVarianceFilteredPower), intent(inout)           :: self
     type     (inputParameters                      ), intent(inout)           :: descriptor
     logical                                         , intent(in   ), optional :: includeClass
-    character(len=18                               )                          :: parameterLabel
-    type     (inputParameters                      )                          :: parameters    , referenceParameters
+    type     (inputParameters                      )                          :: parameters
 
     call self%descriptorNormalizationOnly(descriptor,includeClass)
     parameters=descriptor%subparameters('cosmologicalMassVariance')
