@@ -17,19 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which implements a dark matter halo mass function class which modifies another mass function by adding in a
-population of pseudo-halos.
-!!}
+  !!{
+  Contains a module which implements a dark matter halo mass function class which modifies another mass function by adding in a
+  population of pseudo-halos.
+  !!}
 
-use :: Cosmology_Functions       , only : cosmologyFunctionsClass
-use :: Cosmological_Density_Field, only : haloEnvironmentClass
+  use :: Cosmology_Functions       , only : cosmologyFunctionsClass
+  use :: Cosmological_Density_Field, only : haloEnvironmentClass
 
   !![
   <haloMassFunction name="haloMassFunctionPseudoHalos">
-   <description>
-    The halo mass function is computed by adding a population of pseudo-halos to another halo mass function.
-   </description>
+    <description>
+      The halo mass function is computed by adding a population of pseudo-halos to another halo mass function.
+    </description>
   </haloMassFunction>
   !!]
   type, extends(haloMassFunctionClass) :: haloMassFunctionPseudoHalos
@@ -37,18 +37,26 @@ use :: Cosmological_Density_Field, only : haloEnvironmentClass
      A halo mass function class that modifies another mass function by adding in a population of pseudo-halos.
      !!}
      private
-     double precision                                   :: massZeroPointReference          , normalization       , &
-          &                                                exponentMass                    , exponentRedshift    , &
-          &                                                massParticleReference           , exponentMassParticle, &
-          &                                                massParticle                    , massZeroPoint       , &
-          &                                                exponentOverdensity
-     class           (haloMassFunctionClass  ), pointer :: massFunction_          => null()
-     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_    => null()
-     class           (haloEnvironmentClass   ), pointer :: haloEnvironment_       => null()
+     double precision                                   :: massZeroPointReference                , normalization            , &
+          &                                                exponentMass                          , exponentRedshift         , &
+          &                                                massParticleReference                 , exponentMassParticle     , &
+          &                                                massParticle                          , massZeroPoint            , &
+          &                                                exponentOverdensity                   , exponentNormalization    , &
+          &                                                countParticleMinimum                  , fractionVolumeUnoccupied_, &
+          &                                                fractionVolumeUnoccupiedTime
+     class           (haloMassFunctionClass  ), pointer :: massFunction_                => null()
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_          => null()
+     class           (haloEnvironmentClass   ), pointer :: haloEnvironment_             => null()
    contains
+     !![
+     <methods>
+       <method method="fractionVolumeUnoccupied" description="Return the fraction of volume unoccupied by real halos."/>
+     </methods>
+     !!]
      final     ::                 pseudoHalosDestructor
      procedure :: differential => pseudoHalosDifferential
      procedure :: integrated   => pseudoHalosIntegrated
+     procedure :: fractionVolumeUnoccupied => pseudoHalosFractionVolumeUnoccupied
   end type haloMassFunctionPseudoHalos
 
   interface haloMassFunctionPseudoHalos
@@ -76,7 +84,8 @@ contains
     double precision                                             :: massZeroPointReference, normalization       , &
          &                                                          exponentMass          , exponentRedshift    , &
          &                                                          massParticleReference , exponentMassParticle, &
-         &                                                          massParticle          , exponentOverdensity
+         &                                                          massParticle          , exponentOverdensity , &
+         &                                                          exponentNormalization , countParticleMinimum
 
     !![
     <inputParameter>
@@ -95,24 +104,34 @@ contains
       <description>The particle mass $m_\mathrm{p}$ in the relation $M_0(m_\mathrm{p}) = M^\prime_0 (m_\mathrm{p}/m^\prime_\mathrm{p})^\gamma$.</description>
     </inputParameter>
     <inputParameter>
+      <name>countParticleMinimum</name>
+      <source>parameters</source>
+      <description>The minimum number of particles in a detectable halo.</description>
+    </inputParameter>
+    <inputParameter>
       <name>exponentMassParticle</name>
       <source>parameters</source>
       <description>The exponent $\gamma$ in the relation $M_0(m_\mathrm{p}) = M^\prime_0 (m_\mathrm{p}/m^\prime_\mathrm{p})^\gamma$.</description>
     </inputParameter>
     <inputParameter>
+      <name>exponentNormalization</name>
+      <source>parameters</source>
+      <description>The exponent $\xi$ in the relation $n(M) = n_0 [M^\prime_0/M_0(m_\mathrm{p})]^\xi [M/M_0(m_\mathrm{p})])^\alpha (1+z)^\beta (1+\delta_\mathrm{c})^\mu$.</description>
+    </inputParameter>
+    <inputParameter>
       <name>normalization</name>
       <source>parameters</source>
-      <description>The normalization $n_0$ in the pseudo-halo mass function $n(M) = n_0 [M/M_0(m_\mathrm{p})])^\alpha (1+z)^\beta (1+\delta_\mathrm{c})^\mu$.</description>
+      <description>The normalization $n_0$ in the pseudo-halo mass function $n(M) = n_0 [M^\prime_0/M_0(m_\mathrm{p})]^\xi [M^\prime_0/M_0(m_\mathrm{p})]^\xi [M/M_0(m_\mathrm{p})])^\alpha (1+z)^\beta (1+\delta_\mathrm{c})^\mu$.</description>
     </inputParameter>
     <inputParameter>
       <name>exponentMass</name>
       <source>parameters</source>
-      <description>The exponent $\alpha$ in the pseudo-halo mass function $n(M) = n_0 [M/M_0(m_\mathrm{p})])^\alpha (1+z)^\beta (1+\delta_\mathrm{c})^\mu$.</description>
+      <description>The exponent $\alpha$ in the pseudo-halo mass function $n(M) = n_0 [M^\prime_0/M_0(m_\mathrm{p})]^\xi [M/M_0(m_\mathrm{p})])^\alpha (1+z)^\beta (1+\delta_\mathrm{c})^\mu$.</description>
     </inputParameter>
     <inputParameter>
       <name>exponentRedshift</name>
       <source>parameters</source>
-      <description>The exponent $\beta$ in the pseudo-halo mass function $n(M) = n_0 [M/M_0(m_\mathrm{p})])^\alpha (1+z)^\beta (1+\delta_\mathrm{c})^\mu$.</description>
+      <description>The exponent $\beta$ in the pseudo-halo mass function $n(M) = n_0 [M^\prime_0/M_0(m_\mathrm{p})]^\xi [M/M_0(m_\mathrm{p})])^\alpha (1+z)^\beta (1+\delta_\mathrm{c})^\mu$.</description>
     </inputParameter>
     <inputParameter>
       <name>exponentOverdensity</name>
@@ -124,7 +143,7 @@ contains
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     <objectBuilder class="haloEnvironment"     name="haloEnvironment_"     source="parameters"/>
     !!]
-    self=haloMassFunctionPseudoHalos(normalization,exponentMass,exponentRedshift,exponentOverdensity,massZeroPointReference,massParticleReference,massParticle,exponentMassParticle,massFunction_,cosmologyParameters_,cosmologyFunctions_,haloEnvironment_)
+    self=haloMassFunctionPseudoHalos(normalization,exponentMass,exponentRedshift,exponentOverdensity,massZeroPointReference,massParticleReference,massParticle,countParticleMinimum,exponentMassParticle,exponentNormalization,massFunction_,cosmologyParameters_,cosmologyFunctions_,haloEnvironment_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="massFunction_"       />
@@ -135,7 +154,7 @@ contains
     return
   end function pseudoHalosConstructorParameters
 
-  function pseudoHalosConstructorInternal(normalization,exponentMass,exponentRedshift,exponentOverdensity,massZeroPointReference,massParticleReference,massParticle,exponentMassParticle,massFunction_,cosmologyParameters_,cosmologyFunctions_,haloEnvironment_) result(self)
+  function pseudoHalosConstructorInternal(normalization,exponentMass,exponentRedshift,exponentOverdensity,massZeroPointReference,massParticleReference,massParticle,countParticleMinimum,exponentMassParticle,exponentNormalization,massFunction_,cosmologyParameters_,cosmologyFunctions_,haloEnvironment_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily pseudoHalos} halo mass function class.
     !!}
@@ -148,9 +167,10 @@ contains
     double precision                                     , intent(in   ) :: massZeroPointReference, normalization       , &
          &                                                                  exponentMass          , exponentRedshift    , &
          &                                                                  massParticleReference , exponentMassParticle, &
-         &                                                                  massParticle          , exponentOverdensity
+         &                                                                  massParticle          , exponentOverdensity , &
+         &                                                                  exponentNormalization , countParticleMinimum
     !![
-    <constructorAssign variables="normalization, exponentMass, exponentRedshift, exponentOverdensity, massZeroPointReference, massParticleReference, massParticle, exponentMassParticle, *cosmologyParameters_, *cosmologyFunctions_, *massFunction_, *haloEnvironment_"/>
+    <constructorAssign variables="normalization, exponentMass, exponentRedshift, exponentOverdensity, massZeroPointReference, massParticleReference, massParticle, countParticleMinimum, exponentMassParticle, exponentNormalization, *cosmologyParameters_, *cosmologyFunctions_, *massFunction_, *haloEnvironment_"/>
     !!]
 
     self%massZeroPoint=+  massZeroPointReference &
@@ -158,6 +178,7 @@ contains
          &               +massParticle           &
          &               /massParticleReference  &
          &              )**exponentMassParticle
+    self%fractionVolumeUnoccupiedTime=-huge(0.0d0)
     return
   end function pseudoHalosConstructorInternal
 
@@ -187,6 +208,11 @@ contains
     type            (treeNode                   ), intent(inout), optional :: node
 
     massFunction=+   self%normalization                                                                            &
+         &       *   self%fractionVolumeUnoccupied(time,node)                                                      &
+         &       *(                                                                                                &
+         &          +self%massZeroPointReference                                                                   &
+         &          /self%massZeroPoint                                                                            &
+         &        )**self%exponentNormalization                                                                    &
          &       *(                                                                                                &
          &         +      mass                                                                                     &
          &         / self%massZeroPoint                                                                            &
@@ -196,7 +222,7 @@ contains
          &       +        self%massFunction_      %differential        (time,mass,node)
     return
   end function pseudoHalosDifferential
-
+  
   double precision function pseudoHalosIntegrated(self,time,massLow,massHigh,node,status) result(massFunction)
     !!{
     Return the integrated halo mass function at the given time and mass.
@@ -212,7 +238,12 @@ contains
     integralLow =+(massLow /self%massZeroPoint)**(self%exponentMass+1.0d0)
     integralHigh=+(massHigh/self%massZeroPoint)**(self%exponentMass+1.0d0)
     massFunction=+self%normalization                                                                                                  &
+         &       *self%fractionVolumeUnoccupied(time,node)                                                                            &
          &       *self%massZeroPoint                                                                                                  &
+         &       *(                                                                                                                   &
+         &         +self%massZeroPointReference                                                                                       &
+         &         /self%massZeroPoint                                                                                                &
+         &        )**self%exponentNormalization                                                                                       &
          &       *(                                                                                                                   &
          &         +integralHigh                                                                                                      &
          &         -integralLow                                                                                                       &
@@ -226,4 +257,30 @@ contains
          &       +        self%massFunction_      %integrated          (time,massLow,massHigh,node,status)
     return
   end function pseudoHalosIntegrated
+  
+  double precision function pseudoHalosFractionVolumeUnoccupied(self,time,node) result(fractionVolumeUnoccupied)
+    !!{
+    Compute the fraction of the volume not occupied by resolve halos.
+    !!}
+    implicit none
+    class           (haloMassFunctionPseudoHalos), intent(inout), target           :: self
+    double precision                             , intent(in   )                   :: time 
+    type            (treeNode                   ), intent(inout), target, optional :: node 
+    double precision                             , parameter                       :: massInfinity=1.0d16
+    double precision                                                               :: massMinimum
+    
+    if (time /= self%fractionVolumeUnoccupiedTime) then
+       self%fractionVolumeUnoccupiedTime=time
+       massMinimum=+self%massParticle         &
+            &      *self%countParticleMinimum
+       if (massMinimum < massInfinity) then
+          self%fractionVolumeUnoccupied_=+1.0d0                                                               &
+               &                         -self%massFunction_%massFraction(time,massMinimum,massInfinity,node)
+       else
+          self%fractionVolumeUnoccupied_=+1.0d0
+       end if
+    end if
+    fractionVolumeUnoccupied=self%fractionVolumeUnoccupied_
+    return
+  end function pseudoHalosFractionVolumeUnoccupied
   
