@@ -428,7 +428,7 @@ contains
     else
        rateMassAccretionSpheroid=0.0d0
        rateMassAccretionHotHalo =0.0d0
-       rateMassAccretionNSC =0.0d0
+       rateMassAccretionNSC     =0.0d0
     end if
     end select
     return

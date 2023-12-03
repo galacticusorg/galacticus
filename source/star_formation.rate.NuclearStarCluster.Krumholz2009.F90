@@ -25,7 +25,8 @@
   !![
   <starFormationRateNSC name="starFormationRateNSCKrumholz2009">
    <description>
-    A star formation rate implementing the model of \citep{Antonini_2015} for galactic NSCs.
+    A star formation rate implementing the model of \citep{Antonini_2015} for galactic NSCs. This model
+    uses the \citep{krumholz_star_2009} star formation rule, with minor modifications.
     \begin{equation}
      \dot{M}_\star^\mathrm{NSC} = f_c\frac{M_\mathrm{gas}^\mathrm{gas}}{t_{SF}},
     \end{equation}
@@ -45,8 +46,8 @@
     \begin{equation}
      \chi = 0.77 \left[ 1 + 3.1 Z^{\prime 0.365} \right],
     \end{equation}
-    and $\Sigma_1= \Sigma_\mathrm{res}/M_\odot \hbox{pc}^{-2}$ where $\Sigma_\mathrm{res}=\frac{M_\mathrm{gas}^{NSC}}{2\pi r^\mathrm{NSC}$.
-    The timescale is given by 
+    and $\Sigma_1= \Sigma_\mathrm{gas}^\mathrm{NSC}/M_\odot \hbox{pc}^{-2}$ where $\Sigma_\mathrm{gas}^\mathrm{NSC}=\frac{M_\mathrm{gas}^{NSC}}{2\pi r^\mathrm{NSC}$
+    is the surface density of the NSC gas reservoir. The timescale is given by 
     \begin{equation}
     t_\mathrm{SF}^{-1} = (2.6~\mathrm{Gyr})^{-1}\times \left\{ \begin{array}{cc} \left(\frac{\Sigma_\mathrm{res}}{\Sigma_\mathrm{th}} \right) ^{-0.33}, &amp;
     \Sigma_\mathrm{res} \le \Sigma_\mathrm{th} \\  \left(\frac{\Sigma_\mathrm{res}}{\Sigma_\mathrm{th}} \right) ^{0.34}, &amp; \Sigma_\mathrm{res} &gt; \Sigma_\mathrm{th} \end{array}  \right. ,
@@ -128,20 +129,20 @@ contains
     type            (treeNode                        ), intent(inout)         :: node
     class           (nodeComponentNSC                ), pointer               :: NSC
     type            (abundances                      ), save                  :: abundancesFuel
-    double precision                                                          :: molecularFractiona, radiusNSC, &
-         &                                                                       massGas           , t_SF                           
-    double precision                                  , parameter             :: Sigma_th = 85.0d0
-    double precision                                                          :: Sigma_res, Sigma_1
+    double precision                                                          :: molecularGasFraction, radiusNSC   , &
+         &                                                                       massGasNSC          , timescale_SF                       
+    double precision                                  , parameter             :: Sigma_th = 85.0d0                   !M⊙ pc⁻²
+    double precision                                                          :: surfaceDensityGasNSC, Sigma_1
                         
     !$omp threadprivate(abundancesFuel)
 
 
     NSC       => node%NSC    ()
-    massGas   =  NSC %massGas()
+    massGasNSC=  NSC %massGas()
     radiusNSC =  NSC %radius ()*1.0d6 !pc
 
     if     (                                             &
-         &   massGas                            <= 0.0d0 &
+         &   massGasNSC                         <= 0.0d0 &
          &  .or.                                         &
          &   radiusNSC                          <= 0.0d0 &
          & ) then
@@ -149,46 +150,46 @@ contains
        krumholz2009Rate=0.0d0
        return
     else 
-       Sigma_res = SurfaceDensityGas(radiusNSC,massGas)
-       Sigma_1   = Sigma_res/1.0d0
+       surfaceDensityGasNSC = SurfaceDensityGas(radiusNSC,massGasNSC)
+       Sigma_1              = surfaceDensityGasNSC/1.0d0
 
        ! Find the hydrogen fraction in the NSC gas of the fuel supply.
        abundancesFuel=NSC%abundancesGas()
-       
-       call abundancesFuel%massToMassFraction(massGas)
+       call abundancesFuel%massToMassFraction(massGasNSC)
 
        ! Get the metallicity in Solar units, and related quantities.
        self%metallicityRelativeToSolar=abundancesFuel%metallicity(metallicityTypeLinearByMassSolar)
        if (self%metallicityRelativeToSolar /= 0.0d0) then
-           self%chi                        = 0.77d0*(1.0d0+3.1d0*self%metallicityRelativeToSolar**0.365d0)
-           self%s                          = log(1.0d0+0.6d0*self%chi)/(0.04d0*self%metallicityRelativeToSolar*Sigma_1)
+           self%chi                         = 0.77d0*(1.0d0+3.1d0*self%metallicityRelativeToSolar**0.365d0)
+           self%s                           = log(1.0d0+0.6d0*self%chi)/(0.04d0*self%metallicityRelativeToSolar*Sigma_1)
        else
             krumholz2009Rate=0.0d0
        end if 
- 
-       if (Sigma_res > Sigma_th ) then 
-           t_SF = (1.0d0/self%frequencyStarFormation)*(Sigma_res/Sigma_th)**(-0.33d0)  !t_sf^-1
+       
+       !Computation of the timescale given by Krumholz et al. (2009; https://ui.adsabs.harvard.edu/abs/2009ApJ...699..850K/abstract)
+       !and Sesana et al. (2014, https://ui.adsabs.harvard.edu/abs/2014ApJ...794..104S/abstract)
+       if (surfaceDensityGasNSC > Sigma_th ) then 
+           timescale_SF = (1.0d0/self%frequencyStarFormation)*(surfaceDensityGasNSC/Sigma_th)**(-0.33d0)  
        else
-           t_SF = (1.0d0/self%frequencyStarFormation)*(Sigma_res/Sigma_th)**0.34d0 !t_sf^-1
+           timescale_SF = (1.0d0/self%frequencyStarFormation)*(surfaceDensityGasNSC/Sigma_th)**0.34d0 
        end if 
       ! Compute the molecular fraction.
-       molecularFractiona  = MolecularFraction(self%s)
+       molecularGasFraction = MolecularFraction(self%s)
        !Compute the star formation rate density.
-       krumholz2009Rate= +massGas          &
-            &            *molecularFractiona*t_SF
+       krumholz2009Rate     = +massGasNSC*molecularGasFraction*timescale_SF
     end if
     return
   end function krumholz2009Rate
   
-  double precision function SurfaceDensityGas(radius,massGas)
+  double precision function SurfaceDensityGas(radiusNSC,massGasNSC)
     !!{
     Compute surface density of the NSC.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    double precision               , intent(in   ) :: radius, massGas
-    ! Get gas surface density in units of M☉/pc²
-    SurfaceDensityGas = massGas / (2.0d0*Pi*radius**2.0)
+    double precision               , intent(in   ) :: radiusNSC, massGasNSC
+    ! Return the surface gas density in units of M☉/pc² of the NSC
+    SurfaceDensityGas = massGasNSC / (2.0d0*Pi*radiusNSC**2.0d0)
     return
   end function SurfaceDensityGas
 
@@ -213,17 +214,17 @@ contains
        MolecularFraction=0.0d0
     else if (s >= sMaximum) then
        ! Simplified form for very large s.
-       MolecularFraction=1.0d0/(0.75d0/(1.0d0+deltaInfinity))**5/5.0d0/s**5
+       MolecularFraction=1.0d0/(0.75d0/(1.0d0+deltaInfinity))**5.0d0/5.0d0/s**5.0d0
     else
        ! Full expression.
        delta            =0.0712d0/((0.1d0/s+0.675d0)**2.8d0)
        MolecularFraction=1.0d0-1.0d0/((1.0d0+(((1.0d0+delta)/0.75d0/s)**5))**0.2d0)
     end if
 
-    if (MolecularFraction > 0.02) then
+    if (MolecularFraction > 0.02d0) then
         return
     else 
-       MolecularFraction = 0.02
+       MolecularFraction = 0.02d0
     end if 
     return
-  end function MolecularFraction 
+  end function MolecularFraction
