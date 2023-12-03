@@ -90,11 +90,6 @@ contains
     ! Ensure the requested file format version is compatible.
     if (versionFileFormat /= versionFileFormatCurrent) call Error_Report(var_str("this interface supports file format version ")//versionFileFormatCurrent//" but version "//versionFileFormat//" was requested"//{introspection:location})
     ! Determine if we need to compute cooling functions.
-
-
-    do a read lock first, then a write lock if we need to update, checking for update each time
-       then we also need to lock in the cooling.cooling_function_CIE_file.F90 code (read lock) and same for the corresponding chemical state file
-    
     computeCoolingFunctions=.false.
     call File_Lock(char(fileNameCoolingFunction),fileLockCoolingFunction)
     call File_Lock(char(fileNameChemicalState  ),fileLockChemicalState  )
