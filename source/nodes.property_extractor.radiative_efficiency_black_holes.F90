@@ -82,7 +82,7 @@ contains
     !!{		
     Internal constructor for the {\normalfont \ttfamily radiativeEfficiencyBlackHoles} node operator class.		
     !!}		
-    use :: Galacticus_Nodes, only : defaultBasicComponent		
+    use :: Galacticus_Nodes, only : defaultBasicComponent
     implicit none		
     type (nodePropertyExtractorRadiativeEfficiencyBlackHoles)                        :: self		
     class(accretionDisksClass                               ), intent(in   ), target :: accretionDisks_		
@@ -123,7 +123,7 @@ contains
     !!{		
     Implement an output extractor for the radiative efficiencies of all supermassive black holes.		
     !!}		
-    use :: Galacticus_Nodes, only : nodeComponentBlackHole		
+    use :: Galacticus_Nodes, only : nodeComponentBlackHole
     implicit none		
     double precision                                                    , dimension(:,:), allocatable :: radiativeEfficiency		
     class           (nodePropertyExtractorRadiativeEfficiencyBlackHoles), intent(inout)               :: self		
