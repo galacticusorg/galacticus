@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+  
+  <!-- Task and output -->
+  <task value="haloMassFunction">
+   <haloMassMinimum                     value=" 1.122018454e06"/>
+   <haloMassMaximum                     value=" 1.122018454e16"/>
+   <pointsPerDecade                     value="10.0"           />
+   <includeMassAccretionRate            value="false"          />
+   <includeUnevolvedSubhaloMassFunction value="false"          />
+  </task>
+
+  <!-- N-body error model -->
+  <nbodyHaloMassError value="trenti2010">
+    <massParticle value="=[simulation::massParticle]"/>
+  </nbodyHaloMassError>
+
+  <!-- Halo mass function -->
+  <disabled ignoreWarnings="yes">
+    <haloMassFunction value="errorConvolved">
+      <errorFractionalMaximum value="1.0e+0"/>
+      <toleranceRelative      value="1.0e-5"/>
+    </haloMassFunction>
+  </disabled>
+  <haloMassFunction value="detectionEfficiency">
+    <massMinimum             value="=[haloMassFunctionParameters::massMinimumParticleCountMDPL:Rockstar4]*[simulation::massParticle]"/>
+    <efficiencyAtMassMinimum value="=[haloMassFunctionParameters::efficiencyAtMassMinimumMDPL:Rockstar4]"                                   />
+    <exponentMass            value="=[haloMassFunctionParameters::exponentMassDetectionMDPL:Rockstar4]"                                     />
+    <exponentRedshift            value="=[haloMassFunctionParameters::exponentRedshiftDetectionMDPL:Rockstar4]"                                     />
+    <haloMassFunction value="pseudoHalos">
+      <!-- Pseudo-halo mass function -->
+      <massZeroPointReference value="1.00000e07"                                                     /> <!-- Arbitrary, but convenient mass scale                               -->
+      <massParticleReference  value="5.03538e04"                                                     /> <!-- Chosen to equal the particle mass for hi-res Milky Way simulations -->
+      <massParticle           value="=[simulation::massParticle]"                                    />
+      <countParticleMinimum   value="=100*[simulation::massParticle]"                                />
+      <normalization          value="=[haloMassFunctionParameters::normalizationPseudoHalos]"        />
+      <exponentMassParticle   value="=[haloMassFunctionParameters::exponentMassParticlePseudoHalos]" />
+      <exponentNormalization  value="=[haloMassFunctionParameters::exponentNormalizationPseudoHalos]"/>
+      <exponentMass           value="=[haloMassFunctionParameters::exponentMassPseudoHalos]"         />
+      <exponentRedshift       value="=[haloMassFunctionParameters::exponentRedshiftPseudoHalos]"     />
+      <exponentOverdensity    value="=[haloMassFunctionParameters::exponentOverdensityPseudoHalos]"  />
+      <haloMassFunction value="simulationVariance">
+	<lengthSimulationCube value="=[simulation::lengthCube]"/>
+	<perturbationFractional value="=[perturbationFractional]"/>
+	<haloMassFunction value="bhattacharya2011">
+	  <a             value="=[haloMassFunctionParameters::a]"            />
+	  <b             value="=[haloMassFunctionParameters::b]"            />
+	  <c             value="=[haloMassFunctionParameters::c]"            />
+	  <p             value="=[haloMassFunctionParameters::p]"            />
+	  <q             value="=[haloMassFunctionParameters::q]"            />
+	  <normalization value="=[haloMassFunctionParameters::normalization]"/>
+	</haloMassFunction>
+      </haloMassFunction>
+    </haloMassFunction>
+  </haloMassFunction>
+  
+</parameters>
