@@ -29,6 +29,9 @@ module Interfaces_Cloudy_CIE
   private
   public :: Interface_Cloudy_CIE_Tabulate
 
+  ! Global file locks.
+  type(lockDescriptor) :: fileLockCoolingFunction, fileLockChemicalState
+
 contains
 
   subroutine Interface_Cloudy_CIE_Tabulate(metallicityMaximumLogarithmic,fileNameCoolingFunction,fileNameChemicalState,versionFileFormat,includeContinuum)
@@ -82,17 +85,15 @@ contains
     double precision                                                  :: dummy                                  , abundanceHelium                      , &
          &                                                               energy                                 , intensity                            , &
          &                                                               powerTotal
-    type            (lockDescriptor)                                  :: fileLockCoolingFunction                , fileLockChemicalState
     !![
     <optionalArgument name="includeContinuum" defaultsTo=".false."/>
     !!]
     
+    !$omp critical(cloudyCIEFileLock)
     ! Ensure the requested file format version is compatible.
     if (versionFileFormat /= versionFileFormatCurrent) call Error_Report(var_str("this interface supports file format version ")//versionFileFormatCurrent//" but version "//versionFileFormat//" was requested"//{introspection:location})
     ! Determine if we need to compute cooling functions.
     computeCoolingFunctions=.false.
-    call File_Lock(char(fileNameCoolingFunction),fileLockCoolingFunction)
-    call File_Lock(char(fileNameChemicalState  ),fileLockChemicalState  )
     if (File_Exists(fileNameCoolingFunction)) then
        !$ call hdf5Access%set     (                                             )
        call    outputFile%openFile(char(fileNameCoolingFunction),readOnly=.true.)
@@ -312,6 +313,7 @@ contains
        ! Write message.
        call displayUnindent("...done",verbosityLevelWorking)
     end if
+    !$omp end critical(cloudyCIEFileLock)
     return
   end subroutine Interface_Cloudy_CIE_Tabulate
 
