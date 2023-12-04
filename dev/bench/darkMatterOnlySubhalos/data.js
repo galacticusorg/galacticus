@@ -1,36 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1701216785567,
+  "lastUpdate": 1701733336266,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "committer": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "id": "9a481bc04207a47828a92ae6485f377a2f2794fa",
-          "message": "feat: Refactor density, spherically-averaged-density, and surface density in `galacticStructure` class\n\nThese now make use of the `massDistribution` object.",
-          "timestamp": "2023-03-23T21:52:10Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/9a481bc04207a47828a92ae6485f377a2f2794fa"
-        },
-        "date": 1679619742612,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 55.094,
-            "unit": "seconds",
-            "range": 0.0616636035278551
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8764,6 +8736,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 24167.8090118703,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "3c8c9887321041b96ff0eb07f87090ec375bc042",
+          "message": "fix: Revert incorrectly committed code",
+          "timestamp": "2023-12-04T13:19:10-08:00",
+          "tree_id": "8f1b01cd479346b1dea9a0db53dfd4747b137a17",
+          "url": "https://github.com/galacticusorg/galacticus/commit/3c8c9887321041b96ff0eb07f87090ec375bc042"
+        },
+        "date": 1701733333569,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 41.682,
+            "unit": "seconds",
+            "range": 0.0651889561197301
           }
         ]
       }
