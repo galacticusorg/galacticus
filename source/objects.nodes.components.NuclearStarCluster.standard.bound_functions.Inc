@@ -25,7 +25,6 @@ double precision function Node_Component_NSC_Standard_Velocity(self)
    !!{
    Return the circular velocity of the standard nuclear star cluster.
    !!}
-   use :: Error                           , only : Error_Report
    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
    implicit none
    class(nodeComponentNSCStandard), intent(inout) :: self
@@ -44,23 +43,41 @@ double precision function Node_Component_NSC_Standard_Velocity(self)
    return
 end function Node_Component_NSC_Standard_Velocity
 
+double precision function Node_Component_NSC_Standard_Angular_Momentum(self)
+   !!{
+   Return the specific angular momentum of the standard nuclear star cluster at a given radius.
+   !!}
+   implicit none
+   class (nodeComponentNSCStandard), intent(inout) :: self
+   double precision                                :: dynamicalMassNSC          , velocityNSC, &
+         &                                            specificAngularMomentumNSC
+
+   !Get the velocity and the dunamical mass of the nuclear star cluster.
+   velocityNSC      = self%velocity()
+   dynamicalMassNSC = self%massGas ()+self%massStellar()
+
+   if (dynamicalMassNSC > 0.0d0) then
+       Node_Component_NSC_Standard_Angular_Momentum = dynamicalMassNSC * velocityNSC
+   else
+       Node_Component_NSC_Standard_Angular_Momentum = 0.0d0
+   end if
+   return
+end function Node_Component_NSC_Standard_Angular_Momentum
+
 double precision function Node_Component_NSC_Standard_Radius(self)
    !!{
       Return the radius of the standard nuclear star cluster.
    !!}
-   use :: Error                           , only: Error_Report
    use :: Node_Component_NSC_Standard_Data, only: radiusNorm
    implicit none 
    class(nodeComponentNSCStandard), intent(inout) :: self 
    double precision               , save          :: M_0 = 1.0d6
-   double precision                               :: dynMass
+   double precision                               :: dynamicalMassNSC
 
-   dynMass = self%massGas()+self%massStellar()
-   !Here I'm not sure, but I think is the dynamical mass and not only the stellar mass.
-   !In principle this approximation is valid just for NSC with mass greater than 10^6 M\_odot ...
-   !The radius is retunerd in Mpc unit.
-   if (dynMass >0.0d0) then
-      Node_Component_NSC_Standard_Radius = radiusNorm*sqrt(dynMass/M_0)
+   dynamicalMassNSC = self%massGas()+self%massStellar()
+   !The radius is retunerd in Mpc units.
+   if (dynamicalMassNSC >0.0d0) then
+      Node_Component_NSC_Standard_Radius = radiusNorm*sqrt(dynamicalMassNSC/M_0)
    else
       Node_Component_NSC_Standard_Radius = 0.0d0
    end if
