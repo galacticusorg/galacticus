@@ -52,13 +52,6 @@ module Node_Component_NSC_Standard
       <attributes isSettable="true" isGettable="true" isEvolvable="false" />
     </property>
     <property>
-      <name>CreationTime</name>
-      <type>double</type>
-      <rank>0</rank>
-      <attributes isSettable="true" isGettable="true" isEvolvable="false"/>
-      <output unitsInSI="gigaYear" comment="Time (in Gyr) at nuclear star cluster was created."/>
-    </property>
-    <property>
       <name>Age</name>
       <type>double</type>
       <rank>0</rank>
@@ -719,7 +712,6 @@ contains
        end if
        call starFormationHistory_%create(node,historyStarFormation,timeBegin)
        call NSC%starFormationHistorySet(historyStarFormation )
-       call NSC%CreationTimeSet        (timeBegin            )
     end if
     ! Record that the nuclear star cluster has been initialized.
     call NSC%isInitializedSet(.true.  )
@@ -897,10 +889,6 @@ contains
                &                                                        NSCHost    %angularMomentum    ()                         &
                &                                                       +NSC        %massGas            ()*specificAngularMomentum &
                &                                                      )
-          call NSCHost    %CreationTimeSet   ( min(                     NSCHost    %CreationTime       (),         &
-               &                                                        NSC        %CreationTime       ()          & 
-               &                                   )                                                               &                          
-               &                                                      )
           call NSCHost    %AgeSet            ( max(                     NSCHost    %Age                (),         &
                                                                         NSC        %Age                ()          &                          
                &                                   )                                                               &
@@ -917,10 +905,6 @@ contains
           call NSCHost    %angularMomentumSet(                                                                     &
                &                                                        NSCHost    %angularMomentum    ()                         &
                &                                                       +NSC        %massGas            ()*specificAngularMomentum &
-               &                                                      )
-          call NSCHost    %CreationTimeSet   ( min(                     NSCHost    %CreationTime       (),         &
-               &                                                        NSC        %CreationTime       ()          & 
-               &                                   )                                                               &                          
                &                                                      )
           call NSCHost    %AgeSet            ( max(                     NSCHost    %Age                (),         &
                                                                         NSC        %Age                ()          &                          
@@ -1019,7 +1003,6 @@ contains
        call NSC%  abundancesStellarSet(         zeroAbundances)
        call NSC%luminositiesStellarSet(zeroStellarLuminosities)
        call NSC%    angularMomentumSet(                  0.0d0)
-       call NSC%       CreationTimeSet(                  0.0d0)
        call NSC%                AgeSet(                  0.0d0)
        call NSC%           massSeedSet(                  0.0d0)
        call NSC%           CollapseSet(                .false.)
