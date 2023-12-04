@@ -1,36 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1701216788902,
+  "lastUpdate": 1701733339993,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "committer": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "id": "9a481bc04207a47828a92ae6485f377a2f2794fa",
-          "message": "feat: Refactor density, spherically-averaged-density, and surface density in `galacticStructure` class\n\nThese now make use of the `massDistribution` object.",
-          "timestamp": "2023-03-23T21:52:10Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/9a481bc04207a47828a92ae6485f377a2f2794fa"
-        },
-        "date": 1679619746928,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 222.957,
-            "unit": "seconds",
-            "range": 0.212250088337337
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10684,6 +10656,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 8.49237622660232,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "3c8c9887321041b96ff0eb07f87090ec375bc042",
+          "message": "fix: Revert incorrectly committed code",
+          "timestamp": "2023-12-04T13:19:10-08:00",
+          "tree_id": "8f1b01cd479346b1dea9a0db53dfd4747b137a17",
+          "url": "https://github.com/galacticusorg/galacticus/commit/3c8c9887321041b96ff0eb07f87090ec375bc042"
+        },
+        "date": 1701733339128,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 195.966,
+            "unit": "seconds",
+            "range": 0.108519122733185
           }
         ]
       }
