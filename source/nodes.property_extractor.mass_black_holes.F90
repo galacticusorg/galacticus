@@ -56,11 +56,11 @@ contains
     type(nodePropertyExtractorMassBlackHoles)                :: self		
     type(inputParameters                    ), intent(inout) :: parameters		
 
-    self=nodePropertyExtractorMassBlackHoles()		
+    self=nodePropertyExtractorMassBlackHoles()
     !![		
     <inputParametersValidate source="parameters"/>		
     !!]		
-    return		
+    return
   end function massBlackHolesConstructorParameters		
 
   integer function massBlackHolesElementCount(self)		
@@ -70,15 +70,15 @@ contains
     implicit none		
     class(nodePropertyExtractorMassBlackHoles), intent(inout) :: self		
 
-    massBlackHolesElementCount=1		
-    return		
+    massBlackHolesElementCount=1
+    return
   end function massBlackHolesElementCount		
 
   function massBlackHolesExtract(self,node,instance) result(mass)		
     !!{		
     Implement an output extractor for the masses of all supermassive black holes.		
     !!}		
-    use :: Galacticus_Nodes, only : nodeComponentBlackHole		
+    use :: Galacticus_Nodes, only : nodeComponentBlackHole
     implicit none		
     double precision                                     , dimension(:,:), allocatable :: mass		
     class           (nodePropertyExtractorMassBlackHoles), intent(inout)               :: self		
@@ -88,13 +88,13 @@ contains
     integer                                                                            :: i        , countBlackHoles		
     !$GLC attributes unused :: instance		
 
-    countBlackHoles=node%blackHoleCount()		
-    allocate(mass(countBlackHoles,1))		
-    do i=1,countBlackHoles		
-       blackHole      => node     %blackHole(instance=i)		
-       mass     (i,1) =  blackHole%mass     (          )		
-    end do		
-    return		
+    countBlackHoles=node%blackHoleCount()
+    allocate(mass(countBlackHoles,1))
+    do i=1,countBlackHoles
+       blackHole      => node     %blackHole(instance=i)
+       mass     (i,1) =  blackHole%mass     (          )
+    end do
+    return
   end function massBlackHolesExtract		
 
   subroutine massBlackHolesNames(self,names)		
@@ -106,9 +106,9 @@ contains
     type (varying_string                     ), intent(inout), dimension(:) , allocatable :: names		
     !$GLC attributes unused :: self		
 
-    allocate(names(1))		
-    names(1)=var_str('massBlackHoles')		
-    return		
+    allocate(names(1))
+    names(1)=var_str('massBlackHoles')
+    return
   end subroutine massBlackHolesNames		
 
   subroutine massBlackHolesDescriptions(self,descriptions)		
@@ -120,8 +120,8 @@ contains
     type (varying_string                     ), intent(inout), dimension(:) , allocatable :: descriptions		
     !$GLC attributes unused :: self		
 
-    allocate(descriptions(1))		
-    descriptions(1)=var_str('Masses of super-massive black holes in this galaxy.')		
+    allocate(descriptions(1))
+    descriptions(1)=var_str('Masses of super-massive black holes in this galaxy.')
     return		
   end subroutine massBlackHolesDescriptions		
 
@@ -129,13 +129,13 @@ contains
     !!{		
     Return the units of the {\normalfont \ttfamily massBlackHoles} properties in the SI system.		
     !!}		
-    use :: Numerical_Constants_Astronomical, only : massSolar		
+    use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none		
     double precision                                     , dimension(:) , allocatable :: unitsInSI		
     class           (nodePropertyExtractorMassBlackHoles), intent(inout)              :: self		
     !$GLC attributes unused :: self		
 
-    allocate(unitsInSI(1))		
-    unitsInSI(1)=massSolar		
-    return		
+    allocate(unitsInSI(1))
+    unitsInSI(1)=massSolar
+    return
   end function massBlackHolesUnitsInSI

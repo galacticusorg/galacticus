@@ -669,15 +669,17 @@ contains
     !!{
     Create properties in an standard nuclear star cluster component.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentNSC, nodeComponentSpheroid, treeNode
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentNSC, nodeComponentSpheroid, &
+         &                          nodeComponentDisk , treeNode
     use :: Histories       , only : history
     implicit none
     type   (treeNode             ), intent(inout) , target  :: node
     class  (nodeComponentNSC     )                , pointer :: NSC
     class  (nodeComponentSpheroid)                , pointer :: spheroid
     class  (nodeComponentBasic   )                , pointer :: basic
+    class  (nodeComponentDisk    )                , pointer :: disk
     type   (history              )                          :: historyStarFormation        , stellarPropertiesHistory      , &
-         &                                                     spheroidStarFormationHistory
+         &                                                     spheroidStarFormationHistory, diskStarFormationHistory
     logical                                                 :: createStarFormationHistory  , createStellarPropertiesHistory
     double precision                                        :: timeBegin
 
@@ -703,9 +705,14 @@ contains
     ! Create the star formation history.
     if (createStarFormationHistory    ) then
        spheroid => node%spheroid()
+       disk     => node%disk    ()
        spheroidStarFormationHistory=spheroid%starFormationHistory()
-       if (spheroidStarFormationHistory%exists()) then
-          timeBegin=  spheroidStarFormationHistory%time(1)
+       diskStarFormationHistory    =disk    %starFormationHistory()
+       if (spheroidStarFormationHistory%exists() .and. diskStarFormationHistory%exists()) then
+          timeBegin= min(                                       &
+                          spheroidStarFormationHistory%time(1), &
+            &             diskStarFormationHistory    %time(1)  &
+            &            )               
        else
           basic    => node %basic()
           timeBegin=  basic%time ()
@@ -877,38 +884,30 @@ contains
        ! Move the gas component of the standard nuclear star cluster to the host.
        select case (destinationGasSatellite%ID)
        case (destinationMergerNSC%ID)
-          call NSCHost    %massGasSet        (                                                                     &
-               &                                                        NSCHost    %massGas            ()                         &
-               &                                                       +NSC        %massGas            ()                         &
+          call NSCHost     %massGasSet        (                                                                                    &
+               &                                                        NSCHost     %massGas            ()                         &
+               &                                                       +NSC         %massGas            ()                         &
                &                                                      )
-          call NSCHost    %abundancesGasSet  (                                                                     &
-               &                                                        NSCHost    %abundancesGas      ()                         &
-               &                                                       +NSC        %abundancesGas      ()                         &
+          call NSCHost     %abundancesGasSet  (                                                                                    &
+               &                                                        NSCHost     %abundancesGas      ()                         &
+               &                                                       +NSC         %abundancesGas      ()                         &
                &                                                      )
-          call NSCHost    %angularMomentumSet(                                                                     &
-               &                                                        NSCHost    %angularMomentum    ()                         &
-               &                                                       +NSC        %massGas            ()*specificAngularMomentum &
-               &                                                      )
-          call NSCHost    %AgeSet            ( max(                     NSCHost    %Age                (),         &
-                                                                        NSC        %Age                ()          &                          
-               &                                   )                                                               &
+          call NSCHost     %angularMomentumSet(                                                                                    &
+               &                                                        NSCHost     %angularMomentum    ()                         &
+               &                                                       +NSC         %massGas            ()*specificAngularMomentum &
                &                                                      )
        case (destinationMergerSpheroid%ID)
-          call NSCHost    %massGasSet        (                                                                     &
-               &                                                        NSCHost    %massGas            ()                         &
-               &                                                       +NSC        %massGas            ()                         &
+          call spheroidHost%massGasSet        (                                                                                    &
+               &                                                        spheroidHost%massGas            ()                         &
+               &                                                       +NSC         %massGas            ()                         &
                &                                                      )
-          call NSCHost    %abundancesGasSet  (                                                                     &
-               &                                                        NSCHost    %abundancesGas      ()                         &
-               &                                                       +NSC        %abundancesGas      ()                         &
+          call spheroidHost%abundancesGasSet  (                                                                                    &
+               &                                                        spheroidHost%abundancesGas      ()                         &
+               &                                                       +NSC         %abundancesGas      ()                         &
                &                                                      )
-          call NSCHost    %angularMomentumSet(                                                                     &
-               &                                                        NSCHost    %angularMomentum    ()                         &
-               &                                                       +NSC        %massGas            ()*specificAngularMomentum &
-               &                                                      )
-          call NSCHost    %AgeSet            ( max(                     NSCHost    %Age                (),         &
-                                                                        NSC        %Age                ()          &                          
-               &                                   )                                                               &
+          call spheroidHost%angularMomentumSet(                                                                                    &
+               &                                                        spheroidHost%angularMomentum    ()                         &
+               &                                                       +NSC         %massGas            ()*specificAngularMomentum &
                &                                                      )
        case default
           call Error_Report('unrecognized movesTo descriptor'//{introspection:location})
@@ -934,8 +933,8 @@ contains
                &                                                            NSCHost    %angularMomentum    ()                         &
                &                                                           +NSC        %massStellar        ()*specificAngularMomentum &
                &                                                          )
-          call NSCHost    %massSeedSet       (                   0.0d0)
-          call NSCHost    %CollapseSet       (                 .false.)
+          call NSCHost    %massSeedSet           (                   0.0d0)
+          call NSCHost    %CollapseSet           (                 .false.)
           ! Also add stellar properties histories.
           historyNode=NSC    %stellarPropertiesHistory()
           historyHost=NSCHost%stellarPropertiesHistory()
@@ -955,31 +954,16 @@ contains
        case (destinationMergerSpheroid%ID)
           call spheroidHost%massStellarSet        (                                                                    &
                &                                            spheroidHost%massStellar        ()                         &
-               &                                            )
+               &                                           +NSC         %massStellar        ()                         &
+               &                                          )
           call spheroidHost%abundancesStellarSet  (                                                                    &
                &                                            spheroidHost%abundancesStellar  ()                         &
-               &                                            )
+               &                                           +NSC         %abundancesStellar  ()                         &
+               &                                          )
           call spheroidHost%luminositiesStellarSet(                                                                    &
                &                                            spheroidHost%luminositiesStellar()                         &
-               &                                            )
-          call NSCHost    %massStellarSet        (                                                                    &
-               &                                            NSCHost    %massStellar        ()                         &
-               &                                           +NSC        %massStellar        ()                         &
-               &                                                          )
-          call NSCHost    %abundancesStellarSet  (                                                                    &
-               &                                            NSCHost    %abundancesStellar  ()                         &
-                                                           +NSC        %abundancesStellar  ()                         &
-               &                                                          )
-          call NSCHost    %luminositiesStellarSet(                                                                    &
-               &                                            NSCHost    %luminositiesStellar()                         &
-               &                                           +NSC        %luminositiesStellar()                         &
-               &                                                          )
-          call NSCHost    %angularMomentumSet    (                                                                    &
-               &                                            NSCHost    %angularMomentum    ()                         &
-               &                                           +NSC        %massStellar        ()*specificAngularMomentum &
-               &                                                          )
-          call NSCHost    %massSeedSet       (                   0.0d0)
-          call NSCHost    %CollapseSet       (                 .false.)
+               &                                           +NSC         %luminositiesStellar()                         &
+               &                                          )
           ! Also add stellar properties histories.
           historyNode=NSC    %stellarPropertiesHistory()
           historyHost=NSCHost%stellarPropertiesHistory()

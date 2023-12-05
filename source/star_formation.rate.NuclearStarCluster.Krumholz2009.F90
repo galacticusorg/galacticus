@@ -167,7 +167,7 @@ contains
        end if 
        
        !Computation of the timescale given by Krumholz et al. (2009; https://ui.adsabs.harvard.edu/abs/2009ApJ...699..850K/abstract)
-       !and Sesana et al. (2014, https://ui.adsabs.harvard.edu/abs/2014ApJ...794..104S/abstract)
+       !and Sesana et al. (2014, https://ui.adsabs.harvard.edu/abs/2014ApJ...794..104S/abstract) This variable is in units of Gyr⁻¹
        if (surfaceDensityGasNSC > Sigma_th ) then 
            timescale_SF = (1.0d0/self%frequencyStarFormation)*(surfaceDensityGasNSC/Sigma_th)**(-0.33d0)  
        else
@@ -218,7 +218,7 @@ contains
     else
        ! Full expression.
        delta            =0.0712d0/((0.1d0/s+0.675d0)**2.8d0)
-       MolecularFraction=1.0d0-1.0d0/((1.0d0+(((1.0d0+delta)/0.75d0/s)**5))**0.2d0)
+       MolecularFraction=1.0d0-1.0d0/((1.0d0+(((1.0d0+delta)/0.75d0/s)**5.0d0))**0.2d0)
     end if
 
     if (MolecularFraction > 0.02d0) then

@@ -47,7 +47,7 @@
      class  (starFormationRateNSCClass      ), pointer :: starFormationRateNSC_              => null()
 
      integer                                           :: starFormationRateDiskInterOutputID   , starFormationRateSpheroidInterOutputID, &
-          &                                               starFormationRateNSCInterOutputID    ,  starFormationRateInterOutputNextID
+          &                                               starFormationRateNSCInterOutputID    , starFormationRateInterOutputNextID
    contains
      final     ::                                starFormationRateInterOutputDestructor
      procedure :: galaxiesMerge               => starFormationRateInterOutputGalaxiesMerge

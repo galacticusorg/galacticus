@@ -515,8 +515,8 @@ function Node_Component_NSC_Standard_Chandrasekhar_Integral(self,nodeSatellite,p
   xV                                                 = +velocity           &
        &                                               /velocityDispersion &
        &                                               /sqrt(2.0d0)
-  Node_Component_NSC_Standard_Chandrasekhar_Integral = -density              &
-       &                                               *velocityCartesian    &
+  Node_Component_NSC_Standard_Chandrasekhar_Integral = -density            &
+       &                                               *velocityCartesian  &
        &                                               /velocity         **3
   if (Xv <= XvMaximum)                                                                                          &
        & Node_Component_NSC_Standard_Chandrasekhar_Integral=+Node_Component_NSC_Standard_Chandrasekhar_Integral &
