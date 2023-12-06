@@ -315,43 +315,47 @@ contains
        call diskHost    %floatRank0MetaPropertySet(                                        self%timeStellarMassFormedDiskID     , &
             &                                      +diskHost    %floatRank0MetaPropertyGet(self%timeStellarMassFormedDiskID    )  &
             &                                      +spheroidHost%floatRank0MetaPropertyGet(self%timeStellarMassFormedSpheroidID)  &
+            &                                      +NSCHost     %floatRank0MetaPropertyGet(self%timeStellarMassFormedNSCID     )  &
             &                                     )
        call spheroidHost%floatRank0MetaPropertySet(                                        self%timeStellarMassFormedSpheroidID , &
             &                                      +0.0d0                                                                         &
             &                                     )
        call NSCHost     %floatRank0MetaPropertySet(                                        self%timeStellarMassFormedNSCID      , &
-            &                                       NSCHost     %floatRank0MetaPropertyGet(self%timeStellarMassFormedNSCID     )  & 
+            &                                      +0.0d0                                                                         & 
             &                                     )
        call diskHost    %floatRank0MetaPropertySet(                                        self%    stellarMassFormedDiskID     , &
             &                                      +diskHost    %floatRank0MetaPropertyGet(self%    stellarMassFormedDiskID    )  &
             &                                      +spheroidHost%floatRank0MetaPropertyGet(self%    stellarMassFormedSpheroidID)  &
+            &                                      +NSCHost     %floatRank0MetaPropertyGet(self%    stellarMassFormedNSCID     )  &
             &                                     )
        call spheroidHost%floatRank0MetaPropertySet(                                        self%    stellarMassFormedSpheroidID , &
             &                                      +0.0d0                                                                         &
             &                                     )
        call NSCHost     %floatRank0MetaPropertySet(                                        self%    stellarMassFormedNSCID      , &
-            &                                       NSCHost     %floatRank0MetaPropertyGet(self%    stellarMassFormedNSCID     )  &
+            &                                      +0.0d0                                                                         &
             &                                     )
     case (destinationMergerSpheroid%ID)
        call spheroidHost%floatRank0MetaPropertySet(                                        self%timeStellarMassFormedDiskID     , &
             &                                      +diskHost    %floatRank0MetaPropertyGet(self%timeStellarMassFormedDiskID    )  &
             &                                      +spheroidHost%floatRank0MetaPropertyGet(self%timeStellarMassFormedSpheroidID)  &
+            &                                      +NSCHost     %floatRank0MetaPropertyGet(self%timeStellarMassFormedNSCID     )  &
             &                                     )
        call diskHost    %floatRank0MetaPropertySet(                                        self%timeStellarMassFormedSpheroidID , &
             &                                      +0.0d0                                                                         &
             &                                     )
        call NSCHost    %floatRank0MetaPropertySet(                                         self%timeStellarMassFormedNSCID      , &
-            &                                       NSCHost     %floatRank0MetaPropertyGet(self%timeStellarMassFormedNSCID     )  &
+            &                                      +0.0d0                                                                         &
             &                                     )
        call spheroidHost%floatRank0MetaPropertySet(                                        self%    stellarMassFormedDiskID     , &
             &                                      +diskHost    %floatRank0MetaPropertyGet(self%    stellarMassFormedDiskID    )  &
             &                                      +spheroidHost%floatRank0MetaPropertyGet(self%    stellarMassFormedSpheroidID)  &
+            &                                      +NSCHost     %floatRank0MetaPropertyGet(self%    stellarMassFormedNSCID     )  &
             &                                     )
        call diskHost    %floatRank0MetaPropertySet(                                        self%    stellarMassFormedSpheroidID , &
             &                                      +0.0d0                                                                         &
             &                                     )
        call NSCHost     %floatRank0MetaPropertySet(                                        self%    stellarMassFormedNSCID      , &
-            &                                       NSCHost     %floatRank0MetaPropertyGet(self%    stellarMassFormedNSCID     )  &
+            &                                      +0.0d0                                                                         &
             &                                     )
     case (destinationMergerUnmoved%ID)
        ! Do nothing.
@@ -365,18 +369,12 @@ contains
             &                                      +diskHost    %floatRank0MetaPropertyGet(self%timeStellarMassFormedDiskID    )  &
             &                                      +disk        %floatRank0MetaPropertyGet(self%timeStellarMassFormedDiskID    )  &
             &                                      +spheroid    %floatRank0MetaPropertyGet(self%timeStellarMassFormedSpheroidID)  &
-            &                                     )
-       call NSCHost     %floatRank0MetaPropertySet(                                        self%timeStellarMassFormedNSCID      , &
-            &                                      +NSCHost     %floatRank0MetaPropertyGet(self%timeStellarMassFormedNSCID     )  &
             &                                      +NSC         %floatRank0MetaPropertyGet(self%timeStellarMassFormedNSCID     )  &
-            &                                     ) 
+            &                                     )
        call diskHost    %floatRank0MetaPropertySet(                                        self%    stellarMassFormedDiskID     , &
             &                                      +diskHost    %floatRank0MetaPropertyGet(self%    stellarMassFormedDiskID    )  &
             &                                      +disk        %floatRank0MetaPropertyGet(self%    stellarMassFormedDiskID    )  &
             &                                      +spheroid    %floatRank0MetaPropertyGet(self%    stellarMassFormedSpheroidID)  &
-            &                                     )
-       call NSCHost     %floatRank0MetaPropertySet(                                        self%    stellarMassFormedNSCID      , &
-            &                                      +NSCHost     %floatRank0MetaPropertyGet(self%    stellarMassFormedNSCID     )  &
             &                                      +NSC         %floatRank0MetaPropertyGet(self%    stellarMassFormedNSCID     )  &
             &                                     )
     case (destinationMergerSpheroid%ID)
@@ -384,18 +382,12 @@ contains
             &                                      +spheroidHost%floatRank0MetaPropertyGet(self%timeStellarMassFormedSpheroidID)  &
             &                                      +disk        %floatRank0MetaPropertyGet(self%timeStellarMassFormedDiskID    )  &
             &                                      +spheroid    %floatRank0MetaPropertyGet(self%timeStellarMassFormedSpheroidID)  &
-            &                                     )
-      call NSCHost     %floatRank0MetaPropertySet(                                        self%timeStellarMassFormedNSCID      ,  &
-            &                                      +NSCHost     %floatRank0MetaPropertyGet(self%timeStellarMassFormedNSCID     )  &
             &                                      +NSC         %floatRank0MetaPropertyGet(self%timeStellarMassFormedNSCID     )  &
-            &                                     ) 
+            &                                     )
        call spheroidHost%floatRank0MetaPropertySet(                                        self%    stellarMassFormedSpheroidID , &
             &                                      +spheroidHost%floatRank0MetaPropertyGet(self%    stellarMassFormedSpheroidID)  &
             &                                      +disk        %floatRank0MetaPropertyGet(self%    stellarMassFormedDiskID    )  &
             &                                      +spheroid    %floatRank0MetaPropertyGet(self%    stellarMassFormedSpheroidID)  &
-            &                                     )
-       call NSCHost     %floatRank0MetaPropertySet(                                        self%    stellarMassFormedNSCID      , &
-            &                                      +NSCHost     %floatRank0MetaPropertyGet(self%    stellarMassFormedNSCID     )  &
             &                                      +NSC         %floatRank0MetaPropertyGet(self%    stellarMassFormedNSCID     )  &
             &                                     )
     case default
