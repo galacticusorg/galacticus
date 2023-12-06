@@ -49,9 +49,7 @@ double precision function Node_Component_NSC_Standard_Angular_Momentum(self)
    !!}
    implicit none
    class (nodeComponentNSCStandard), intent(inout) :: self
-   double precision                                :: dynamicalMassNSC          , velocityNSC, &
-         &                                            specificAngularMomentumNSC
-
+   double precision                                :: dynamicalMassNSC, velocityNSC
    !Get the velocity and the dunamical mass of the nuclear star cluster.
    velocityNSC      = self%velocity()
    dynamicalMassNSC = self%massGas ()+self%massStellar()
@@ -420,15 +418,13 @@ double precision function Node_Component_NSC_Standard_Rotation_Curve(self,radius
   !!}
   use :: Galactic_Structure_Options      , only : radiusLarge            , weightByMass, weightIndexNull, enumerationComponentTypeType, &
        &                                          enumerationMassTypeType
-  use :: Node_Component_NSC_Standard_Data, only : massDistributionNSC
   use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
   implicit none
   class           (nodeComponentNSCStandard    ), intent(inout) :: self
   type            (enumerationComponentTypeType), intent(in   ) :: componentType
   type            (enumerationMassTypeType     ), intent(in   ) :: massType
   double precision                              , intent(in   ) :: radius
-  double precision                                              :: componentMass, radiusNSC, fractionalRadius
-
+  double precision                                              :: componentMass
   ! Set to zero by default.
   Node_Component_NSC_Standard_Rotation_Curve=0.0d0
 
