@@ -458,7 +458,8 @@ contains
           close(cambTransferFile)
        end do
        ! Remove temporary files.
-       call File_Remove(parameterFile)
+       call File_Remove(parameterFile    )
+       call File_Remove('camb_params.ini')
        do i=1,countRedshiftsUnique
           call File_Remove('camb_transfer_'   //trim(adjustl(redshiftLabelsCombined(i)))//trim(adjustl(fileSuffix))//'.dat')
           call File_Remove('camb_matterpower_'//trim(adjustl(redshiftLabelsCombined(i)))//trim(adjustl(fileSuffix))//'.dat')
