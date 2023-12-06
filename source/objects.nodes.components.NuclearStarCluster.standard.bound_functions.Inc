@@ -33,7 +33,7 @@ double precision function Node_Component_NSC_Standard_Velocity(self)
    radiusNSC= self%radius()
 
    massNSC  = self%massGas()+self%massStellar()
-   !Units corrected, G in galacticus is in units of Mpc \cdot M_\odot^{-1} \cdot (km/s)^2.
+   !Units corrected, G in galacticus is in units of Mpc M⊙⁻¹km²s⁻².
    !The velocity is returned in km/s units
    if (massNSC > 0.0d0 .and. radiusNSC >0.0d0) then
       Node_Component_NSC_Standard_Velocity = sqrt(gravitationalConstantGalacticus*massNSC/radiusNSC)
