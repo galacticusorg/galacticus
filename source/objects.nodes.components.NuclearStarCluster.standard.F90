@@ -632,7 +632,7 @@ contains
 
   subroutine Node_Component_NSC_Standard_Mass_Gas_Sink_Rate(self,rate,interrupt,interruptProcedure)
     !!{
-    Account for a sink of gaseous material in the standard spheroid.
+    Account for a sink of gaseous material in the standard nuclear star cluster.
     !!}
     use :: Abundances_Structure, only : operator(*)
     use :: Error               , only : Error_Report
@@ -838,9 +838,9 @@ contains
     implicit none
     class           (*                               ), intent(inout) :: self
     type            (treeNode                        ), intent(inout) :: node
-    class           (nodeComponentNSC                ), pointer       :: NSCHost , NSC
+    class           (nodeComponentNSC                ), pointer       :: NSC
     class           (nodeComponentSpheroid           ), pointer       :: spheroidHost           , spheroid
-    class           (nodeComponentDisk               ), pointer       :: diskHost               , disk
+    class           (nodeComponentDisk               ), pointer       :: diskHost               
     type            (treeNode                        ), pointer       :: nodeHost
     type            (history                         )                :: historyHost            , historyNode
     double precision                                                  :: specificAngularMomentum
@@ -853,7 +853,6 @@ contains
     NSC => node%NSC()
     select type (NSC)
     class is (nodeComponentNSCStandard)
-       spheroid => node%spheroid()
        ! Find the node to merge with.
        nodeHost    => node%mergesWith  (                 )
        spheroidHost=> nodeHost%spheroid(autoCreate=.true.)

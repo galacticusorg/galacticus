@@ -190,7 +190,7 @@ contains
                &  -massTimeStellarNSC &
                &  /massStellarNSC
 
-          call NSC%AgeSet(ageNSC) !Gyr
+          call NSC%AgeSet(ageNSC)      !Gyr
 
           if (ageNSC <= 0.0d0 .or. NSC%Collapse()) return 
 
