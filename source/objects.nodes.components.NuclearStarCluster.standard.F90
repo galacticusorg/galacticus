@@ -669,17 +669,13 @@ contains
     !!{
     Create properties in an standard nuclear star cluster component.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentNSC, nodeComponentSpheroid, &
-         &                          nodeComponentDisk , treeNode
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentNSC, treeNode
     use :: Histories       , only : history
     implicit none
     type   (treeNode             ), intent(inout) , target  :: node
     class  (nodeComponentNSC     )                , pointer :: NSC
-    class  (nodeComponentSpheroid)                , pointer :: spheroid
     class  (nodeComponentBasic   )                , pointer :: basic
-    class  (nodeComponentDisk    )                , pointer :: disk
-    type   (history              )                          :: historyStarFormation        , stellarPropertiesHistory      , &
-         &                                                     spheroidStarFormationHistory, diskStarFormationHistory
+    type   (history              )                          :: historyStarFormation        , stellarPropertiesHistory      
     logical                                                 :: createStarFormationHistory  , createStellarPropertiesHistory
     double precision                                        :: timeBegin
 
@@ -703,23 +699,10 @@ contains
        call NSC%stellarPropertiesHistorySet(stellarPropertiesHistory)
     end if
     ! Create the star formation history.
-    if (createStarFormationHistory    ) then
-       spheroid => node%spheroid()
-       disk     => node%disk    ()
-       spheroidStarFormationHistory=spheroid%starFormationHistory()
-       diskStarFormationHistory    =disk    %starFormationHistory()
-       if (spheroidStarFormationHistory%exists() .and. diskStarFormationHistory%exists()) then
-          timeBegin= min(                                       &
-                          spheroidStarFormationHistory%time(1), &
-            &             diskStarFormationHistory    %time(1)  &
-            &            )               
-       else
-          basic    => node %basic()
-          timeBegin=  basic%time ()
-       end if
-       call starFormationHistory_%create(node,historyStarFormation,timeBegin)
-       call NSC%starFormationHistorySet(historyStarFormation )
-    end if
+    basic    => node %basic()
+    timeBegin=  basic%time ()
+    call starFormationHistory_%create(node,historyStarFormation,timeBegin)
+    call NSC%starFormationHistorySet(historyStarFormation )
     ! Record that the nuclear star cluster has been initialized.
     call NSC%isInitializedSet(.true.  )
     call NSC%CollapseSet     (.false. )
@@ -847,15 +830,17 @@ contains
     !!}
     use :: Abundances_Structure            , only : zeroAbundances
     use :: Error                           , only : Error_Report
-    use :: Galacticus_Nodes                , only : nodeComponentNSC      , nodeComponentNSCStandard , nodeComponentSpheroid           , treeNode
+    use :: Galacticus_Nodes                , only : nodeComponentNSC         , nodeComponentNSCStandard        , nodeComponentSpheroid           , &
+         &                                          nodeComponentDisk        , treeNode
     use :: Histories                       , only : history
-    use :: Satellite_Merging_Mass_Movements, only : destinationMergerNSC  , destinationMergerSpheroid, enumerationDestinationMergerType
+    use :: Satellite_Merging_Mass_Movements, only : destinationMergerSpheroid, destinationMergerDisk           , enumerationDestinationMergerType
     use :: Stellar_Luminosities_Structure  , only : zeroStellarLuminosities
     implicit none
     class           (*                               ), intent(inout) :: self
     type            (treeNode                        ), intent(inout) :: node
     class           (nodeComponentNSC                ), pointer       :: NSCHost , NSC
     class           (nodeComponentSpheroid           ), pointer       :: spheroidHost           , spheroid
+    class           (nodeComponentDisk               ), pointer       :: diskHost               , disk
     type            (treeNode                        ), pointer       :: nodeHost
     type            (history                         )                :: historyHost            , historyNode
     double precision                                                  :: specificAngularMomentum
@@ -871,8 +856,9 @@ contains
        spheroid => node%spheroid()
        ! Find the node to merge with.
        nodeHost    => node%mergesWith  (                 )
-       NSCHost     => nodeHost%NSC     (autoCreate=.true.)
        spheroidHost=> nodeHost%spheroid(autoCreate=.true.)
+       diskHost    => nodeHost%disk    (autoCreate=.true.)
+
        ! Get specific angular momentum of the nuclear star cluster material.
        if (                                               NSC%massGas()+NSC%massStellar() > 0.0d0) then
           specificAngularMomentum=NSC%angularMomentum()/ (NSC%massGas()+NSC%massStellar())
@@ -883,17 +869,17 @@ contains
        call mergerMassMovements_%get(node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
        ! Move the gas component of the standard nuclear star cluster to the host.
        select case (destinationGasSatellite%ID)
-       case (destinationMergerNSC%ID)
-          call NSCHost     %massGasSet        (                                                                                    &
-               &                                                        NSCHost     %massGas            ()                         &
+       case (destinationMergerDisk%ID)
+          call diskHost%massGasSet            (                                                                                    &
+               &                                                        diskHost    %massGas            ()                         &
                &                                                       +NSC         %massGas            ()                         &
                &                                                      )
-          call NSCHost     %abundancesGasSet  (                                                                                    &
-               &                                                        NSCHost     %abundancesGas      ()                         &
+          call diskHost%abundancesGasSet      (                                                                                    &
+               &                                                        diskHost    %abundancesGas      ()                         &
                &                                                       +NSC         %abundancesGas      ()                         &
                &                                                      )
-          call NSCHost     %angularMomentumSet(                                                                                    &
-               &                                                        NSCHost     %angularMomentum    ()                         &
+          call diskHost%angularMomentumSet    (                                                                                    &
+               &                                                        diskHost    %angularMomentum    ()                         &
                &                                                       +NSC         %massGas            ()*specificAngularMomentum &
                &                                                      )
        case (destinationMergerSpheroid%ID)
@@ -916,38 +902,36 @@ contains
        call NSC%abundancesGasSet(zeroAbundances)
        ! Move the stellar component of the standard nuclear star cluster to the host.
        select case (destinationStarsSatellite%ID)
-       case (destinationMergerNSC%ID)
-          call NSCHost    %massStellarSet        (                                                                     &
-               &                                                            NSCHost    %massStellar        ()                         &
-               &                                                           +NSC        %massStellar        ()                         &
+       case (destinationMergerDisk%ID)
+          call diskHost   %massStellarSet        (                                                                                 &
+               &                                                            diskHost %massStellar        ()                        &
+               &                                                           +NSC      %massStellar        ()                        &
                &                                                          )
-          call NSCHost    %abundancesStellarSet  (                                                                     &
-               &                                                            NSCHost    %abundancesStellar  ()                         &
-               &                                                           +NSC        %abundancesStellar  ()                         &
+          call diskHost   %abundancesStellarSet  (                                                                                 &
+               &                                                            diskHost %abundancesStellar  ()                        &
+               &                                                           +NSC      %abundancesStellar  ()                        &
                &                                                          )
-          call NSCHost    %luminositiesStellarSet(                                                                     &
-               &                                                            NSCHost    %luminositiesStellar()                         &
-               &                                                           +NSC        %luminositiesStellar()                         &
+          call diskHost   %luminositiesStellarSet(                                                                                 &
+               &                                                            diskHost %luminositiesStellar()                        &
+               &                                                           +NSC      %luminositiesStellar()                        &
                &                                                          )
-          call NSCHost    %angularMomentumSet    (                                                                     &
-               &                                                            NSCHost    %angularMomentum    ()                         &
-               &                                                           +NSC        %massStellar        ()*specificAngularMomentum &
+          call diskHost   %angularMomentumSet    (                                                                                 &
+               &                                                            diskHost %angularMomentum    ()                        &
+               &                                                           +NSC      %massStellar        ()*specificAngularMomentum& 
                &                                                          )
-          call NSCHost    %massSeedSet           (                   0.0d0)
-          call NSCHost    %CollapseSet           (                 .false.)
           ! Also add stellar properties histories.
-          historyNode=NSC    %stellarPropertiesHistory()
-          historyHost=NSCHost%stellarPropertiesHistory()
+          historyNode=NSC     %stellarPropertiesHistory()
+          historyHost=diskHost%stellarPropertiesHistory()
           call historyHost%interpolatedIncrement      (historyNode)
           call historyNode%reset                      (           )
-          call NSCHost    %stellarPropertiesHistorySet(historyHost)
+          call diskHost   %stellarPropertiesHistorySet(historyHost)
           call NSC        %stellarPropertiesHistorySet(historyNode)
           ! Also add star formation histories.
-          historyNode=NSC    %starFormationHistory    ()
-          historyHost=NSCHost%starFormationHistory    ()
+          historyNode=NSC     %starFormationHistory    ()
+          historyHost=diskHost%starFormationHistory    ()
           call historyHost%increment              (historyNode,autoExtend  =.true. )
           call historyNode%reset                  (                                )
-          call NSCHost    %starFormationHistorySet(historyHost                     )
+          call diskHost   %starFormationHistorySet(historyHost                     )
           call NSC        %starFormationHistorySet(historyNode                     )
           call historyNode%destroy                (                                )
           call historyHost%destroy                (                                )
@@ -965,21 +949,21 @@ contains
                &                                           +NSC         %luminositiesStellar()                         &
                &                                          )
           ! Also add stellar properties histories.
-          historyNode=NSC    %stellarPropertiesHistory()
-          historyHost=NSCHost%stellarPropertiesHistory()
-          call historyHost%interpolatedIncrement      (historyNode)
-          call historyNode%reset                      (           )
-          call NSCHost   %stellarPropertiesHistorySet(historyHost)
-          call NSC       %stellarPropertiesHistorySet(historyNode)
+          historyNode=NSC         %stellarPropertiesHistory()
+          historyHost=spheroidHost%stellarPropertiesHistory()
+          call historyHost %interpolatedIncrement      (historyNode)
+          call historyNode %reset                      (           )
+          call spheroidHost%stellarPropertiesHistorySet(historyHost)
+          call NSC         %stellarPropertiesHistorySet(historyNode)
           ! Also add star formation histories.
-          historyNode=NSC    %starFormationHistory    ()
-          historyHost=NSCHost%starFormationHistory    ()
-          call historyHost%increment              (historyNode,autoExtend  =.true. )
-          call historyNode%reset                  (                                )
-          call NSCHost    %starFormationHistorySet(historyHost                     )
-          call NSC        %starFormationHistorySet(historyNode                     )
-          call historyNode%destroy                (                                )
-          call historyHost%destroy                (                                )
+          historyNode=NSC         %starFormationHistory    ()
+          historyHost=spheroidHost%starFormationHistory    ()
+          call historyHost %increment              (historyNode,autoExtend  =.true. )
+          call historyNode %reset                  (                                )
+          call spheroidHost%starFormationHistorySet(historyHost                     )
+          call NSC         %starFormationHistorySet(historyNode                     )
+          call historyNode %destroy                (                                )
+          call historyHost %destroy                (                                )
        case default
           call Error_Report('unrecognized movesTo descriptor'//{introspection:location})
        end select

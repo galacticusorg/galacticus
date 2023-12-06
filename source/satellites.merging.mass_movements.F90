@@ -58,7 +58,6 @@ module Satellite_Merging_Mass_Movements
    <entry label="dominant"/>
    <entry label="disk"    />
    <entry label="spheroid"/>
-   <entry label="NSC"     />
   </enumeration>
   !!]
 
