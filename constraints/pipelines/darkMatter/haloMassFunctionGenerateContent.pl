@@ -8,504 +8,713 @@ use XML::Simple;
 use PDL;
 use PDL::IO::HDF5;
 use Galacticus::Options;
+use Galacticus::Constraints::HaloMassFunctions qw(iterate selectSimulations matchSelection);
 use List::Util;
+use List::ExtraUtils;
 use Data::Dumper;
 
-# Script to generate content for halo mass function pipeline.
+# Script to generate content for halo mass function constraint pipeline.
 # Andrew Benson 8-April-2022
 
-# Generates XML fragments for inclusion in haloMassFunctionConfig.xml
-# Also generates haloMassFunctionBase_*.xml files for all completed halo mass functions (including inserting the measured environment properties)
+# Generates the haloMassFunctionConfig.xml file.
+# Also generates haloMassFunctionBase_*.xml files for all halo mass functions (including inserting the measured environment properties).
 
 # Get command line options.
 my %options;
 &Galacticus::Options::Parse_Options(\@ARGV,\%options);
+die("no `--pipelinePath` option given")
+    unless ( exists($options{'pipelinePath'}) );
+die("no `--outputDirectory` option given")
+    unless ( exists($options{'outputDirectory'}) );
 
-# Validate required parameters are present.
-die('simulationDataPath is required but is not present')
-    unless ( exists($options{'simulationDataPath'}) );
+# Ensure paths are correctly suffixed.
+foreach my $path ( 'pipelinePath', 'outputDirectory' ) {
+    $options{$path} .= "/"
+	unless ( $options{$path} =~ m/\/$/ );
+}
 
-my @types =
-    (
-     {
-	 label        => "MilkyWay",
-	 simulation   => "MilkyWay",
-	 suite        => "Symphony",
-	 transfer     => "CDM",
-	 name         => "Milky Way",
-#	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984 ],
-	 redshifts    => [ 0.000, 2.031 ],
-	 massParticle => 4.02830e05
-     },
-     {
-	 label        => "MilkyWay_WDM3",
-	 simulation   => "MilkyWay",
-	 suite        => "Symphony",
-	 transfer     => "WDM3",
-	 name         => "Milky Way 3 keV WDM",
-#	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984 ],
-	 redshifts    => [ 0.000, 2.031 ],
-	 massParticle => 4.02830e05
-     },
-     # {
-     # 	 label        => "MilkyWay_WDM4",
-     # 	 simulation   => "MilkyWay",
-     # 	 suite        => "Symphony",
-     # 	 transfer     => "WDM4",
-     # 	 name         => "Milky Way 4 keV WDM",
-     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984 ],
-     # 	 massParticle => 4.02830e05
-     # },
-     # {
-     # 	 label        => "MilkyWay_WDM5",
-     # 	 simulation   => "MilkyWay",
-     # 	 suite        => "Symphony",
-     # 	 transfer     => "WDM5",
-     # 	 name         => "Milky Way 5 keV WDM",
-     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984 ],
-     # 	 massParticle => 4.02830e05
-     # },
-     # {
-     # 	 label        => "MilkyWay_WDM6",
-     # 	 simulation   => "MilkyWay",
-     # 	 suite        => "Symphony",
-     # 	 transfer     => "WDM6",
-     # 	 name         => "Milky Way 6 keV WDM",
-     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984 ],
-     # 	 massParticle => 4.02830e05
-     # },
-     # {
-     # 	 label        => "MilkyWay_WDM6.5",
-     # 	 simulation   => "MilkyWay",
-     # 	 suite        => "Symphony",
-     # 	 transfer     => "WDM6.5",
-     # 	 name         => "Milky Way 6.5 keV WDM",
-     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984 ],
-     # 	 massParticle => 4.02830e05
-     # },
-     # {
-     # 	 label        => "MilkyWay_WDM10",
-     # 	 simulation   => "MilkyWay",
-     # 	 suite        => "Symphony",
-     # 	 transfer     => "WDM10",
-     # 	 name         => "Milky Way 10 keV WDM",
-     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
-     # 	 massParticle => 4.02830e05
-     # },
-     {
-	 label        => "MilkyWay_IDM1GeV_envelope",
-	 simulation   => "MilkyWay",
-	 suite        => "Symphony",
-	 transfer     => "IDM1GeV_envelope",
-	 name         => "Milky Way IDM 1 GeV envelope",
-#	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
-	 redshifts    => [ 0.000, 2.031  ],
-	 massParticle => 4.02830e05
-     },
-     # {
-     # 	 label        => "MilkyWay_IDM1GeV_halfmode",
-     # 	 simulation   => "MilkyWay",
-     # 	 suite        => "Symphony",
-     # 	 transfer     => "IDM1GeV_halfmode",
-     # 	 name         => "Milky Way IDM 1 GeV half-mode",
-     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
-     # 	 massParticle => 4.02830e05
-     # },
-     # {
-     # 	 label        => "MilkyWay_IDM1e-2GeV_envelope",
-     # 	 simulation   => "MilkyWay",
-     # 	 suite        => "Symphony",
-     # 	 transfer     => "IDM1e-2GeV_envelope",
-     # 	 name         => "Milky Way IDM 10^{-2} GeV envelope",
-     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
-     # 	 massParticle => 4.02830e05
-     # },
-     # {
-     # 	 label        => "MilkyWay_IDM1e-2GeV_halfmode",
-     # 	 simulation   => "MilkyWay",
-     # 	 suite        => "Symphony",
-     # 	 transfer     => "IDM1e-2GeV_halfmode",
-     # 	 name         => "Milky Way IDM 10^{-2} GeV half-mode",
-     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
-     # 	 massParticle => 4.02830e05
-     # },
-     # {
-     # 	 label        => "MilkyWay_IDM1e-4GeV_envelope",
-     # 	 simulation   => "MilkyWay",
-     # 	 suite        => "Symphony",
-     # 	 transfer     => "IDM1e-4GeV_envelope",
-     # 	 name         => "Milky Way IDM 10^{-4} GeV envelope",
-     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
-     # 	 massParticle => 4.02830e05
-     # },
-     # {
-     # 	 label        => "MilkyWay_IDM1e-4GeV_halfmode",
-     # 	 simulation   => "MilkyWay",
-     # 	 suite        => "Symphony",
-     # 	 transfer     => "IDM1e-4GeV_halfmode",
-     # 	 name         => "Milky Way IDM 10^{-4} GeV half-mode",
-     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
-     # 	 massParticle => 4.02830e05
-     # },
-     {
-	 label        => "MilkyWay_fdm_25.9e-22eV",
-	 simulation   => "MilkyWay",
-	 suite        => "Symphony",
-	 transfer     => "fdm_25.9e-22eV",
-	 name         => "Milky Way FDM 25.9*10^{-22} eV",
-#	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
-	 redshifts    => [ 0.000, 2.031  ],
-	 massParticle => 4.02830e05
-     },
-     # {
-     # 	 label        => "MilkyWay_fdm_69.4e-22eV",
-     # 	 simulation   => "MilkyWay",
-     # 	 suite        => "Symphony",
-     # 	 transfer     => "fdm_69.4e-22eV",
-     # 	 name         => "Milky Way FDM 69.4*10^{-22} eV",
-     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
-     # 	 massParticle => 4.02830e05
-     # },
-     # {
-     # 	 label        => "MilkyWay_fdm_113e-22eV",
-     # 	 simulation   => "MilkyWay",
-     # 	 suite        => "Symphony",
-     # 	 transfer     => "fdm_113e-22eV",
-     # 	 name         => "Milky Way FDM 113*10^{-22} eV",
-     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
-     # 	 massParticle => 4.02830e05
-     # },
-     # {
-     # 	 label        => "MilkyWay_fdm_151e-22eV",
-     # 	 simulation   => "MilkyWay",
-     # 	 suite        => "Symphony",
-     # 	 transfer     => "fdm_151e-22eV",
-     # 	 name         => "Milky Way FDM 151*10^{-22} eV",
-     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
-     # 	 massParticle => 4.02830e05
-     # },
-     # {
-     # 	 label        => "MilkyWay_fdm_185e-22eV",
-     # 	 simulation   => "MilkyWay",
-     # 	 suite        => "Symphony",
-     # 	 transfer     => "fdm_185e-22eV",
-     # 	 name         => "Milky Way FDM 185*10^{-22} eV",
-     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
-     # 	 massParticle => 4.02830e05
-     # },
-     # {
-     # 	 label        => "MilkyWay_fdm_490e-22eV",
-     # 	 simulation   => "MilkyWay",
-     # 	 suite        => "Symphony",
-     # 	 transfer     => "fdm_490e-22eV",
-     # 	 name         => "Milky Way FDM 490*10^{-22} eV",
-     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
-     # 	 massParticle => 4.02830e05
-     # },
-     {
-	 label        => "MilkyWay_hires",
-	 simulation   => "MilkyWay",
-	 suite        => "Symphony",
-	 transfer     => "CDM",
-	 name         => "Milky Way",
-#	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984 ],
-	 redshifts    => [ 0.000, 2.031 ],
-	 massParticle => 5.03538e04
-     },
-     {
-	 label        => "MilkyWay_WDM3_hires",
-	 simulation   => "MilkyWay",
-	 suite        => "Symphony",
-	 transfer     => "WDM3",
-	 name         => "Milky Way 3 keV WDM",
-#	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984 ],
-	 redshifts    => [ 0.000, 2.031 ],
-	 massParticle => 5.03538e04
-     },
-     # {
-     # 	 label        => "MilkyWay_WDM4_hires",
-     # 	 simulation   => "MilkyWay",
-     # 	 suite        => "Symphony",
-     # 	 transfer     => "WDM4",
-     # 	 name         => "Milky Way 4 keV WDM",
-     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984 ],
-     # 	 massParticle => 5.03538e04
-     # },
-     # {
-     # 	 label        => "MilkyWay_WDM5_hires",
-     # 	 simulation   => "MilkyWay",
-     # 	 suite        => "Symphony",
-     # 	 transfer     => "WDM5",
-     # 	 name         => "Milky Way 5 keV WDM",
-     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984 ],
-     # 	 massParticle => 5.03538e04
-     # },
-     # {
-     # 	 label        => "MilkyWay_WDM6_hires",
-     # 	 simulation   => "MilkyWay",
-     # 	 suite        => "Symphony",
-     # 	 transfer     => "WDM6",
-     # 	 name         => "Milky Way 6 keV WDM",
-     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984 ],
-     # 	 massParticle => 5.03538e04
-     # },
-     # {
-     # 	 label        => "MilkyWay_WDM6.5_hires",
-     # 	 simulation   => "MilkyWay",
-     # 	 suite        => "Symphony",
-     # 	 transfer     => "WDM6.5",
-     # 	 name         => "Milky Way 6.5 keV WDM",
-     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984 ],
-     # 	 massParticle => 5.03538e04
-     # },
-     # {
-     # 	 label        => "MilkyWay_WDM10_hires",
-     # 	 simulation   => "MilkyWay",
-     # 	 suite        => "Symphony",
-     # 	 transfer     => "WDM10",
-     # 	 name         => "Milky Way 10 keV WDM",
-     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
-     # 	 massParticle => 5.03538e04
-     # },
-     {
-	 label        => "MilkyWay_IDM1GeV_envelope_hires",
-	 simulation   => "MilkyWay",
-	 suite        => "Symphony",
-	 transfer     => "IDM1GeV_envelope",
-	 name         => "Milky Way IDM 1 GeV envelope",
-#	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
-	 redshifts    => [ 0.000, 2.031  ],
-	 massParticle => 5.03538e04
-     },
-     # {
-     # 	 label        => "MilkyWay_IDM1GeV_halfmode_hires",
-     # 	 simulation   => "MilkyWay",
-     # 	 suite        => "Symphony",
-     # 	 transfer     => "IDM1GeV_halfmode",
-     # 	 name         => "Milky Way IDM 1 GeV half-mode",
-     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
-     # 	 massParticle => 5.03538e04
-     # },
-     # {
-     # 	 label        => "MilkyWay_IDM1e-2GeV_envelope_hires",
-     # 	 simulation   => "MilkyWay",
-     # 	 suite        => "Symphony",
-     # 	 transfer     => "IDM1e-2GeV_envelope",
-     # 	 name         => "Milky Way IDM 10^{-2} GeV envelope",
-     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
-     # 	 massParticle => 5.03538e04
-     # },
-     # {
-     # 	 label        => "MilkyWay_IDM1e-2GeV_halfmode_hires",
-     # 	 simulation   => "MilkyWay",
-     # 	 suite        => "Symphony",
-     # 	 transfer     => "IDM1e-2GeV_halfmode",
-     # 	 name         => "Milky Way IDM 10^{-2} GeV half-mode",
-     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
-     # 	 massParticle => 5.03538e04
-     # },
-     # {
-     # 	 label        => "MilkyWay_IDM1e-4GeV_envelope_hires",
-     # 	 simulation   => "MilkyWay",
-     # 	 suite        => "Symphony",
-     # 	 transfer     => "IDM1e-4GeV_envelope",
-     # 	 name         => "Milky Way IDM 10^{-4} GeV envelope",
-     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
-     # 	 massParticle => 5.03538e04
-     # },
-     # {
-     # 	 label        => "MilkyWay_IDM1e-4GeV_halfmode_hires",
-     # 	 simulation   => "MilkyWay",
-     # 	 suite        => "Symphony",
-     # 	 transfer     => "IDM1e-4GeV_halfmode",
-     # 	 name         => "Milky Way IDM 10^{-4} GeV half-mode",
-     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
-     # 	 massParticle => 5.03538e04
-     # },
-     {
-	 label        => "MilkyWay_fdm_25.9e-22eV_hires",
-	 simulation   => "MilkyWay",
-	 suite        => "Symphony",
-	 transfer     => "fdm_25.9e-22eV",
-	 name         => "Milky Way FDM 25.9*10^{-22} eV",
-#	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
-	 redshifts    => [ 0.000, 2.031  ],
-	 massParticle => 5.03538e04
-     },
-     # {
-     # 	 label        => "MilkyWay_fdm_69.4e-22eV_hires",
-     # 	 simulation   => "MilkyWay",
-     # 	 suite        => "Symphony",
-     # 	 transfer     => "fdm_69.4e-22eV",
-     # 	 name         => "Milky Way FDM 69.4*10^{-22} eV",
-     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
-     # 	 massParticle => 5.03538e04
-     # },
-     # {
-     # 	 label        => "MilkyWay_fdm_113e-22eV_hires",
-     # 	 simulation   => "MilkyWay",
-     # 	 suite        => "Symphony",
-     # 	 transfer     => "fdm_113e-22eV",
-     # 	 name         => "Milky Way FDM 113*10^{-22} eV",
-     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
-     # 	 massParticle => 5.03538e04
-     # },
-     # {
-     # 	 label        => "MilkyWay_fdm_151e-22eV_hires",
-     # 	 simulation   => "MilkyWay",
-     # 	 suite        => "Symphony",
-     # 	 transfer     => "fdm_151e-22eV",
-     # 	 name         => "Milky Way FDM 151*10^{-22} eV",
-     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
-     # 	 massParticle => 5.03538e04
-     # },
-     # {
-     # 	 label        => "MilkyWay_fdm_185e-22eV_hires",
-     # 	 simulation   => "MilkyWay",
-     # 	 suite        => "Symphony",
-     # 	 transfer     => "fdm_185e-22eV",
-     # 	 name         => "Milky Way FDM 185*10^{-22} eV",
-     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
-     # 	 massParticle => 5.03538e04
-     # },
-     # {
-     # 	 label        => "MilkyWay_fdm_490e-22eV_hires",
-     # 	 simulation   => "MilkyWay",
-     # 	 suite        => "Symphony",
-     # 	 transfer     => "fdm_490e-22eV",
-     # 	 name         => "Milky Way FDM 490*10^{-22} eV",
-     # 	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984  ],
-     # 	 massParticle => 5.03538e04
-     # },
-     {
-	 label        => "LMC",
-	 simulation   => "LMC",
-	 suite        => "Symphony",
-	 transfer     => "CDM",
-	 name         => "LMC",
-#	 redshifts    => [ 0.000, 0.504, 0.990, 2.031, 3.984 ],
-	 redshifts    => [ 0.000, 2.031 ],
-	 massParticle => 5.03538e04
-     }
+# Extract simulation select from command line options.
+my @selections = &selectSimulations(\%options);
+
+# Set global parameters.
+$content::countParticlesMinimum = 100  ;
+$content::fractionMassPrimary   =   0.1;
+$content::pipelinePath          = $options{'pipelinePath'  };
+$content::outputDirectory       = $options{'outputDirectory'};
+
+# Parse the simulations definition file.
+my $xml = new XML::Simple();
+my $simulations = $xml->XMLin(
+    $options{'pipelinePath'}."haloMassFunctionSimulations.xml",
+    ForceArray => [ "suite"         , "group"         , "simulation"          ],
+    KeyAttr    => {  suite => "name",  group => "name",  simulation => "name" }
     );
-my @lengths = map {length($_->{'label'})} @types;
-my $labelLengthMaximum = &List::Util::max(@lengths);
-open(my $configFile  ,">haloMassFunctionConfig.xml");
-my $pipelineBase   = "";
 
-foreach my $type ( @types ) {
-    die("Directory '".$options{'simulationDataPath'}."/ZoomIns/".$type->{'label'}."' does not exist")
-	unless ( -e $options{'simulationDataPath'}."/ZoomIns/".$type->{'label'} );
-    opendir(my $dir,$options{'simulationDataPath'}."/ZoomIns/".$type->{'label'});
-    my @halos = sort map {$_ =~ m/^Halo\d+/ ? $_ : ()} readdir($dir);
-    closedir($dir);    
-    foreach my $halo ( @halos ) {
-	$code::label       = $type->{'label'     }                              ;
-	$code::name        = $type->{'name'      }                              ;
-	$code::suite       = $type->{'suite'     }                              ;
-	$code::simulation  = $type->{'simulation'}                              ;
-	$code::hires       = $type->{'label'     } =~ m/_hires$/ ? "_hires" : "";
-	$code::transfer    = $type->{'transfer'  }                              ;
-	$code::halo        = $halo;
-	$code::massMinimum = sprintf("%11.5e",100.0*$type->{'massParticle'});
-	foreach my $redshift ( @{$type->{'redshifts'}} ) {
-	    $code::redshift      = sprintf("%11.5e",$redshift);
-	    $code::redshiftShort = sprintf( "%5.3f",$redshift);
-	    next
-		unless ( -e $options{'simulationDataPath'}."/ZoomIns/".$type->{'label'}."/".$halo."/primaryHalo_z".$code::redshiftShort.".xml" );
-	    # Extract the target halo properties.
-	    my $xml = new XML::Simple();
-	    my $haloTarget = $xml->XMLin($options{'simulationDataPath'}."/ZoomIns/".$type->{'label'}."/".$halo."/primaryHalo_z".$code::redshiftShort.".xml");
-	    $code::massMaximum = sprintf("%11.5e",$haloTarget->{'mc'}/10.0);
-	    # Add entries for the pipeline file.
-	    $pipelineBase   .= '	      "haloMassFunctionBase_'.$type->{'label'}.'_'.$halo.'_z'.$code::redshiftShort.'.xml"'.(" " x (8+$labelLengthMaximum-length($type->{'label'})-length($halo))).",\n";
-	    # Make the base file.
-	    my $hmfFileName = $ENV{'GALACTICUS_DATA_PATH'}."/static/darkMatter/haloMassFunction_".$type->{'label'}."_".$halo."_z".$code::redshiftShort.".hdf5";
-	    if ( -e $hmfFileName ) {
-		my $hmfFile = new PDL::IO::HDF5($hmfFileName);
-		my $hmf     = $hmfFile->group('simulation0001');
-		my $status  = 0;
-		foreach my $attributeName ( 'massEnvironment', 'overdensityEnvironment' ) {
-		    unless ( grep {$_ eq $attributeName} $hmf->attrs() ) {
-			print "Attribute '".$attributeName."' is missing in file '".$hmfFileName."'\n";
-			$status = 1;
-		    }
-		}
-		if ( $status == 0 ) {
-		    (my $massEnvironment, my $overdensityEnvironment) = $hmf->attrGet('massEnvironment', 'overdensityEnvironment');
-		    $code::massEnvironment        = sprintf("%13.6e",       $massEnvironment);
-		    $code::overdensityEnvironment = sprintf("%+9.6f",$overdensityEnvironment);
-		    # Make the XML for the config file.
-		    my $config = fill_in_string(<<'CODE', PACKAGE => 'code');
-    <!-- Zoom-in: {$name} {$halo} -->
-    <parameterMap value="haloMassFunctionParameters::a                                haloMassFunctionParameters::p
-                         haloMassFunctionParameters::normalization                    haloMassFunctionParameters::q
-                         haloMassFunctionParameters::b                                haloMassFunctionParameters::c
-                         haloMassFunctionParameters::massMinimumParticleCountSymphony haloMassFunctionParameters::efficiencyAtMassMinimumSymphony
-                         haloMassFunctionParameters::exponentMassDetectionSymphony    haloMassFunctionParameters::exponentRedshiftDetectionSymphony
-                         haloMassFunctionParameters::cW                               haloMassFunctionParameters::beta
-                         haloMassFunctionParameters::normalizationPseudoHalos         haloMassFunctionParameters::exponentMassParticlePseudoHalos
-                         haloMassFunctionParameters::exponentMassPseudoHalos          haloMassFunctionParameters::exponentRedshiftPseudoHalos
+# Initialize hashes of isolationBias and perturbation parameters needed.
+my %isolationBiases;
+my %perturbations ;
+
+# Iterate over simulation suites/groups building isolation bias and perturbation parameters as needed.
+print "Creating parameters...\n";
+foreach my $entry ( &iterate($simulations,\%options, stopAfter => "group") ) {
+    print
+	"  ".
+	$entry->{'suite'}->{'name'}."\t".
+	$entry->{'group'}->{'name'}."\n";
+    # Generate isolation bias parameters.
+    if ( $entry->{'suite'}->{'includeIsolationBias'}->{'value'} eq "true" ) {
+	$entry->{'group'}->{'labelIsolationBias'} = $entry->{'suite'}->{'name'}.$entry->{'group'}->{'name'};
+	$entry->{'group'}->{'isolationBias'     } =
+	    "haloMassFunctionParameters::isolationBias"          .$entry->{'group'}->{'labelIsolationBias'}.
+	    "  haloMassFunctionParameters::isolationBiasExponent".$entry->{'group'}->{'labelIsolationBias'};
+	++$isolationBiases{$entry->{'group'}->{'labelIsolationBias'}};
+    } else {
+	$entry->{'group'}->{'labelIsolationBias'} = "";
+    }
+    # Generate perturbation parameters.
+    if ( $entry->{'suite'}->{'includePerturbation'}->{'value'} eq "true" ) {
+	$entry->{'group'}->{'labelPerturbation'} = $entry->{'suite'}->{'name'}.$entry->{'group'}->{'name'};
+	$entry->{'group'}->{'perturbation'     } = "haloMassFunctionParameters::perturbation".$entry->{'group'}->{'labelPerturbation'};
+	++$perturbations{$entry->{'group'}->{'labelPerturbation'}};
+    } else {
+	$entry->{'group'}->{'perturbation'} = "";
+    }
+}
+
+# Iterate over all suites/groups/simulations/redshifts/realizations generating parameter files and config entries.
+print "Generating base parameter files...\n";
+my $configLikelihood;
+my %detectionEfficiencyClasses;
+foreach $content::entry ( &iterate($simulations,\%options) ) {
+    print
+	"  ".
+	     $content::entry->{'suite'      }->{'name'}."\t".
+     	     $content::entry->{'group'      }->{'name'}."\t".
+	     $content::entry->{'simulation' }->{'name'}."\t".
+	"z=".$content::entry->{'redshift'   }          ."\t".
+	     $content::entry->{'realization'}          ."\n";
+    # Determine the minimum and maximum halo masses.
+    $content::massHaloMinimum = sprintf("%11.5e",$content::countParticlesMinimum*$content::entry->{'group'}->{'massParticle'});
+    $content::massHaloMaximum = sprintf("%11.5e",$content::fractionMassPrimary  *$content::entry           ->{'massPrimary' })
+	if ( $content::entry->{'suite'}->{'limitMassMaximum'}->{'value'} eq "primaryFraction" );
+    # Generate file names.
+    $content::fileNameBase   = $options{'outputDirectory'}  ."haloMassFunctionBase_".$content::entry->{'suite'}->{'name'}."_".$content::entry->{'group'}->{'name'}."_".$content::entry->{'simulation'}->{'name'}."_".$content::entry->{'realization'}."_z".$content::entry->{'redshift'}.".xml" ;
+    $content::fileNameTarget = "\%DATASTATICPATH\%/darkMatter/haloMassFunction_"    .$content::entry->{'suite'}->{'name'}."_".$content::entry->{'group'}->{'name'}."_".$content::entry->{'simulation'}->{'name'}."_".$content::entry->{'realization'}."_z".$content::entry->{'redshift'}.".hdf5";
+    # Determine detection efficiency class.
+    (my $suiteName = $content::entry->{'suite'}->{'name'}) =~ s/://g;
+    $content::class = $suiteName.(exists($content::entry->{'group'}->{'detectionEfficiencyClass'}) ? $content::entry->{'group'}->{'detectionEfficiencyClass'} : "");
+    ++$detectionEfficiencyClasses{$content::class};
+    # Generate XML for the model likelihood entry for this simulation.
+    $configLikelihood .= fill_in_string(<<'CODE', PACKAGE => 'content');
+    <!-- Suite: {$entry->{'suite'}->{'name'}}; Group: {$entry->{'group'}->{'name'}}; Simulation: {$entry->{'simulation'}->{'name'}} -->
+    <parameterMap value="haloMassFunctionParameters::a                                haloMassFunctionParameters::b
+                         haloMassFunctionParameters::c                                haloMassFunctionParameters::p
+                         haloMassFunctionParameters::q                                haloMassFunctionParameters::normalization 
+
+                         haloMassFunctionParameters::cW0                              haloMassFunctionParameters::beta0
+                         haloMassFunctionParameters::cW1                              haloMassFunctionParameters::beta1
+
+			 haloMassFunctionParameters::normalizationPseudoHalos         haloMassFunctionParameters::exponentMassParticlePseudoHalos
+			 haloMassFunctionParameters::exponentMassPseudoHalos          haloMassFunctionParameters::exponentRedshiftPseudoHalos
                          haloMassFunctionParameters::exponentOverdensityPseudoHalos   haloMassFunctionParameters::exponentNormalizationPseudoHalos
-                         haloMassFunctionParameters::isolationBias{$simulation}       haloMassFunctionParameters::isolationBiasExponent{$simulation}"/>
-    <parameterInactiveMap value="" ignoreWarnings="true"/>
+
+                         haloMassFunctionParameters::massMinimumParticleCount{$class} haloMassFunctionParameters::efficiencyAtMassMinimum{$class}
+                         haloMassFunctionParameters::exponentMassDetection{$class}    haloMassFunctionParameters::exponentRedshiftDetection{$class}
+ 
+                         {$perturbation}
+                         {$isolationBias}
+                        "/>
+    <parameterInactiveMap value=""     ignoreWarnings="true"/>
+    <isActive             value="true"                      />
     <posteriorSampleLikelihood value="haloMassFunction">
       <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
-      <baseParametersFileName value="constraints/pipelines/darkMatter/haloMassFunctionBase_{$label}_{$halo}_z{$redshiftShort}.xml"/>
-      <fileName               value="%DATASTATICPATH%/darkMatter/haloMassFunction_{$label}_{$halo}_z{$redshiftShort}.hdf5"/>
-      <redshift               value="{$redshift}"   />
-      <massRangeMinimum       value="{$massMinimum}"/> <!-- 100 times zoom-in {$name} particle mass -->
-      <massRangeMaximum       value="{$massMaximum}"/> <!-- 1/10 of the target halo mass            -->
-      <binCountMinimum        value="0"             />    
-      <likelihoodPoisson      value="true"          />
+      <baseParametersFileName value="{$fileNameBase}"   />
+      <fileName               value="{$fileNameTarget}" />
+      <redshift               value="{$redshift}"       />
+      <massRangeMinimum       value="{$massHaloMinimum}"/> <!-- {$countParticlesMinimum} times zoom-in {$entry->{'suite'}->{'name'}} {$entry->{'group'}->{'name'}} particle mass -->
+CODE
+    if ( $content::entry->{'suite'}->{'limitMassMaximum'}->{'value'} eq "primaryFraction" ) {
+	$configLikelihood .= fill_in_string(<<'CODE', PACKAGE => 'content');
+      <massRangeMaximum       value="{$massHaloMaximum}"/> <!-- {$fractionMassPrimary} of the target halo mass                                                                   -->
+CODE
+    }
+    $configLikelihood .= fill_in_string(<<'CODE', PACKAGE => 'content');
+      <binCountMinimum        value="0"                 />    
+      <likelihoodPoisson      value="true"              />
     </posteriorSampleLikelihood>
 CODE
-		    print $configFile $config;
-		    my $base = fill_in_string(<<'CODE', PACKAGE => 'code');
+
+    # Generate the base parameter file for this instance.
+    my $base = fill_in_string(<<'CODE', PACKAGE => 'content');
 <?xml version="1.0" encoding="UTF-8"?>
 <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
 
   <!-- Output control -->
-  <outputFileName value="haloMassFunction_{$label}_{$halo}_z{$redshiftShort}.hdf5"/>
+  <outputFileName value="{$outputDirectory}haloMassFunction_{$entry->{'suite'}->{'name'}}_{$entry->{'group'}->{'name'}}_{$entry->{'simulation'}->{'name'}}_{$entry->{'realization'}}_z{$entry->{'redshift'}}.hdf5"/>
   <outputTimes value="list">
-    <redshifts value="{$redshiftShort}"/>
+    <redshifts value="{$entry->{'redshift'}}"/>
   </outputTimes>  
+
+  <!-- Include cosmology and mass function parameters -->
+  <xi:include href="haloMassFunctionParameters.xml"                                                                       xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="{$pipelinePath}simulation_{$entry->{'suite'}->{'name'}}_{$entry->{'group'}->{'name'}}.xml"            xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="{$pipelinePath}cosmology_{$entry->{'suite'}->{'name'}}.xml"                                           xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="{$pipelinePath}haloMassFunction_{$entry->{'suite'}->{'name'}}.xml"                                    xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="{$pipelinePath}transferFunction_{$entry->{'suite'}->{'name'}}_{$entry->{'simulation'}->{'name'}}.xml" xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+
+  <!-- Detection effiency -->
+  <detectionMassMinimumParticleCount value="=[haloMassFunctionParameters::massMinimumParticleCount{$class}]" />
+  <detectionEfficiencyAtMassMinimum  value="=[haloMassFunctionParameters::efficiencyAtMassMinimum{$class}]"  />
+  <detectionExponentMass             value="=[haloMassFunctionParameters::exponentMassDetection{$class}]"    />
+  <detectionExponentRedshift         value="=[haloMassFunctionParameters::exponentRedshiftDetection{$class}]"/>
+CODE
+    if ( $content::entry->{'suite'}->{'includePerturbation'}->{'value'} eq "true" ) {
+	$base .= fill_in_string(<<'CODE', PACKAGE => 'content');
+
+  <!-- Use the simulation variance perturbation relevant to this simulation -->
+  <perturbationFractional value="=[haloMassFunctionParameters::perturbation{$entry->{'group'}->{'labelPerturbation'}}]"/>
+CODE
+    }
+    if ( $content::entry->{'suite'}->{'includeIsolationBias'}->{'value'} eq "true" ) {
+	$base .= fill_in_string(<<'CODE', PACKAGE => 'content');
+
+  <!-- Isolation bias -->
+  <isolationBias         value="=[haloMassFunctionParameters::isolationBias{$entry->{'group'}->{'labelIsolationBias'}}]"        />
+  <isolationBiasExponent value="=[haloMassFunctionParameters::isolationBiasExponent{$entry->{'group'}->{'labelIsolationBias'}}]"/>
+
+CODE
+    }
+    if ( $content::entry->{'suite'}->{'includeEnvironment'}->{'value'} eq "true" ) {
+	$base .= fill_in_string(<<'CODE', PACKAGE => 'content');
 
   <!-- Halo environments -->
   <haloEnvironment value="fixed">
-    <massEnvironment value="{$massEnvironment}"/>
-    <overdensity     value="{$overdensityEnvironment}"/>
-    <redshift        value="{$redshiftShort}" ignoreWarnings="true"/>
+    <massEnvironment value="{$entry->{'environment'}->{'massEnvironment'       }}"                      />
+    <overdensity     value="{$entry->{'environment'}->{'overdensityEnvironment'}}"                      />
+    <redshift        value="{$entry                 ->{'redshift'              }}" ignoreWarnings="true"/>
   </haloEnvironment>
-
-  <!-- Isolation bias -->
-  <isolationBias         value="=[haloMassFunctionParameters::isolationBias{$simulation}]"         ignoreWarnings="true"/>
-  <isolationBiasExponent value="=[haloMassFunctionParameters::isolationBiasExponent{$simulation}]" ignoreWarnings="true"/>
-
-  <!-- Include Milky Way cosmology and mass function parameters -->
-  <xi:include href="haloMassFunctionParameters.xml"                xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
-  <xi:include href="simulation_{$suite}_{$simulation}{$hires}.xml" xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
-  <xi:include href="cosmology_{$suite}.xml"                        xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
-  <xi:include href="haloMassFunction_{$suite}.xml"                 xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
-  <xi:include href="transferFunction_{$suite}_{$transfer}.xml"     xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+CODE
+    }
+    $base .= fill_in_string(<<'CODE', PACKAGE => 'content');
 
 </parameters>
 CODE
-		    open(my $baseFile,">constraints/pipelines/darkMatter/haloMassFunctionBase_".$type->{'label'}."_".$halo."_z".$code::redshiftShort.".xml");
-		    print $baseFile $base;
-		    close($baseFile);
-		}
-	    }
-	}
+
+    # Generate the base parameter file.
+    open(my $baseFile,">".$content::fileNameBase);
+    print $baseFile $base;
+    close($baseFile);
+}
+print "...done\n";
+
+# Generate openers and closers for the config and parameter files.
+my $configOpener = fill_in_string(<<'CODE', PACKAGE => 'content');
+<?xml version="1.0" encoding="UTF-8"?>
+<parameters>
+  <!-- Posterior sampling simulation parameter file for constraining to dark matter halo mass functions. -->
+  <!-- Andrew Benson (17-September-2020)                                                                 -->  
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+
+  <verbosityLevel value="standard"/>
+
+  <task value="posteriorSample">
+    <initializeNodeClassHierarchy value="true"/>
+  </task>
+
+  <outputFileName value="{$outputDirectory}haloMassFunction.hdf5"/>
+
+  <!-- Likelihood -->
+  <posteriorSampleLikelihood value="independentLikelihoods">
+CODE
+my $configCloser = fill_in_string(<<'CODE', PACKAGE => 'content');
+  </posteriorSampleLikelihood>
+
+  <!-- MCMC -->
+  <posteriorSampleSimulation value="differentialEvolution">
+    <stepsMaximum           value="  4000"/>
+    <acceptanceAverageCount value="    10"/>
+    <stateSwapCount         value="    10"/>
+    <slowStepCount          value="    11"/>
+    <logFileRoot            value="{$outputDirectory}haloMassFunctionChains"/>
+    <reportCount            value="    10"/>
+    <sampleOutliers         value="false" />
+    <logFlushCount          value="     1"/>
+
+    <posteriorSampleState value="correlation">
+      <acceptedStateCount value="100"/>
+    </posteriorSampleState>
+
+    <posteriorSampleStateInitialize value="latinHypercube">
+      <maximinTrialCount value="100"/>
+    </posteriorSampleStateInitialize>
+    
+    <posteriorSampleConvergence value="gelmanRubin">
+      <thresholdHatR              value=" 1.20"/>
+      <burnCount                  value="10"   />
+      <testCount                  value="20"   />
+      <outlierCountMaximum        value=" 3"   />
+      <outlierSignificance        value=" 0.95"/>
+      <outlierLogLikelihoodOffset value="60"   />
+      <reportCount                value=" 1"   />
+      <logFileName                value="{$outputDirectory}haloMassFunctionConvergence.log"/>
+    </posteriorSampleConvergence>
+    
+    <posteriorSampleStoppingCriterion value="correlationLength">
+      <stopAfterCount value="1000"/>
+    </posteriorSampleStoppingCriterion>
+
+    <posteriorSampleDffrntlEvltnRandomJump   value="adaptive"/>
+
+    <posteriorSampleDffrntlEvltnProposalSize value="adaptive" >
+      <gammaInitial          value="0.50e+0"/>
+      <gammaAdjustFactor     value="1.10e+0"/>
+      <gammaMinimum          value="1.00e-2"/>
+      <gammaMaximum          value="3.00e+0"/>
+      <acceptanceRateMinimum value="0.10e+0"/>
+      <acceptanceRateMaximum value="0.90e+0"/>
+      <updateCount           value="10"     />
+    </posteriorSampleDffrntlEvltnProposalSize>
+
+    <!-- Parameters of the dark matter halo mass function. -->
+    <modelParameter value="active">
+      <name value="haloMassFunctionParameters::a"/>
+      <distributionFunction1DPrior value="uniform">
+	<limitLower value="0.03"/>
+	<limitUpper value="3.00"/>
+      </distributionFunction1DPrior>
+      <operatorUnaryMapper value="identity"/>
+      <distributionFunction1DPerturber value="cauchy">
+	<median value="0.0"/>
+	<scale value="1.0e-4"/>
+      </distributionFunction1DPerturber>
+    </modelParameter>
+    <modelParameter value="active">
+      <name value="haloMassFunctionParameters::b"/>
+      <distributionFunction1DPrior value="uniform">
+	<limitLower value="-3.00"/>
+	<limitUpper value="+3.00"/>
+      </distributionFunction1DPrior>
+      <operatorUnaryMapper value="identity"/>
+      <distributionFunction1DPerturber value="cauchy">
+	<median value="0.0"/>
+	<scale value="1.0e-4"/>
+      </distributionFunction1DPerturber>
+    </modelParameter>
+     <modelParameter value="active">
+      <name value="haloMassFunctionParameters::c" />
+      <distributionFunction1DPerturber value="cauchy">
+        <median value="0.0" />
+        <scale value="1.0e-4" />
+      </distributionFunction1DPerturber>
+      <distributionFunction1DPrior value="uniform">
+        <limitLower value="+0.10" />
+        <limitUpper value="+5.00" />
+      </distributionFunction1DPrior>
+      <operatorUnaryMapper value="identity" />
+    </modelParameter>
+    <modelParameter value="active">
+      <name value="haloMassFunctionParameters::p"/>
+      <distributionFunction1DPrior value="uniform">
+	<limitLower value="-3.0"/>
+	<limitUpper value="+3.0"/>
+      </distributionFunction1DPrior>
+      <operatorUnaryMapper value="identity"/>
+      <distributionFunction1DPerturber value="cauchy">
+	<median value="0.0"/>
+	<scale value="1.0e-4"/>
+      </distributionFunction1DPerturber>
+    </modelParameter>
+    <modelParameter value="active">
+      <name value="haloMassFunctionParameters::q"/>
+      <distributionFunction1DPrior value="uniform">
+	<limitLower value="-3.00"/>
+	<limitUpper value="+3.00"/>
+      </distributionFunction1DPrior>
+      <operatorUnaryMapper value="identity"/>
+      <distributionFunction1DPerturber value="cauchy">
+	<median value="0.0"/>
+	<scale value="1.0e-4"/>
+      </distributionFunction1DPerturber>
+    </modelParameter>
+    <modelParameter value="active">
+      <name value="haloMassFunctionParameters::normalization"/>
+      <distributionFunction1DPrior value="uniform">
+	<limitLower value="0.00"/>
+	<limitUpper value="1.00"/>
+      </distributionFunction1DPrior>
+      <operatorUnaryMapper value="identity"/>
+      <distributionFunction1DPerturber value="cauchy">
+	<median value="0.0"/>
+	<scale value="1.0e-4"/>
+      </distributionFunction1DPerturber>
+    </modelParameter>
+
+    <!-- Pseudo-halo model parameters -->
+    <modelParameter value="active">
+      <name value="haloMassFunctionParameters::normalizationPseudoHalos"/>
+      <distributionFunction1DPrior value="logUniform">
+	<limitLower value="1.0e-8"/>
+	<limitUpper value="1.0e-5"/>
+      </distributionFunction1DPrior>
+      <operatorUnaryMapper value="logarithm"/>
+      <distributionFunction1DPerturber value="cauchy">
+	<median value="0.0"/>
+	<scale value="1.0e-4"/>
+      </distributionFunction1DPerturber>
+    </modelParameter>
+    <modelParameter value="active">
+      <name value="haloMassFunctionParameters::exponentMassParticlePseudoHalos"/>
+      <distributionFunction1DPrior value="uniform">
+	<limitLower value="+0.00"/>
+	<limitUpper value="+4.00"/>
+      </distributionFunction1DPrior>
+      <operatorUnaryMapper value="identity"/>
+      <distributionFunction1DPerturber value="cauchy">
+	<median value="0.0"/>
+	<scale value="1.0e-4"/>
+      </distributionFunction1DPerturber>
+    </modelParameter>
+    <modelParameter value="active">
+      <name value="haloMassFunctionParameters::exponentNormalizationPseudoHalos" />
+      <distributionFunction1DPerturber value="cauchy">
+        <median value="0.0" />
+        <scale value="1.0e-4" />
+      </distributionFunction1DPerturber>
+      <distributionFunction1DPrior value="uniform">
+        <limitLower value="-3.00" />
+        <limitUpper value="+3.00" />
+      </distributionFunction1DPrior>
+      <operatorUnaryMapper value="identity" />
+    </modelParameter>
+    <modelParameter value="active">
+      <name value="haloMassFunctionParameters::exponentMassPseudoHalos"/>
+      <distributionFunction1DPrior value="uniform">
+	<limitLower value="-5.00"/>
+	<limitUpper value="-1.00"/>
+      </distributionFunction1DPrior>
+      <operatorUnaryMapper value="identity"/>
+      <distributionFunction1DPerturber value="cauchy">
+	<median value="0.0"/>
+	<scale value="1.0e-4"/>
+      </distributionFunction1DPerturber>
+    </modelParameter>
+    <modelParameter value="active">
+      <name value="haloMassFunctionParameters::exponentRedshiftPseudoHalos"/>
+      <distributionFunction1DPrior value="uniform">
+	<limitLower value="-3.00"/>
+	<limitUpper value="+0.00"/>
+      </distributionFunction1DPrior>
+      <operatorUnaryMapper value="identity"/>
+      <distributionFunction1DPerturber value="cauchy">
+	<median value="0.0"/>
+	<scale value="1.0e-4"/>
+      </distributionFunction1DPerturber>
+    </modelParameter>
+    <modelParameter value="active">
+      <name value="haloMassFunctionParameters::exponentOverdensityPseudoHalos"/>
+      <distributionFunction1DPrior value="uniform">
+	<limitLower value="-3.00"/>
+	<limitUpper value="+3.00"/>
+      </distributionFunction1DPrior>
+      <operatorUnaryMapper value="identity"/>
+      <distributionFunction1DPerturber value="cauchy">
+	<median value="0.0"/>
+	<scale value="1.0e-4"/>
+      </distributionFunction1DPerturber>
+    </modelParameter>
+
+    <!-- Window function parameters -->
+    <modelParameter value="active">
+      <name value="haloMassFunctionParameters::cW0" />
+      <distributionFunction1DPerturber value="cauchy">
+        <median value="0.0" />
+        <scale value="1.0e-4" />
+      </distributionFunction1DPerturber>
+      <distributionFunction1DPrior value="uniform">
+        <limitLower value="1.00" />
+        <limitUpper value="6.00" />
+      </distributionFunction1DPrior>
+      <operatorUnaryMapper value="identity" />
+      <slow value="true" />
+    </modelParameter>
+    <modelParameter value="active">
+      <name value="haloMassFunctionParameters::beta0" />
+      <distributionFunction1DPerturber value="cauchy">
+        <median value="0.0" />
+        <scale value="1.0e-4" />
+      </distributionFunction1DPerturber>
+      <distributionFunction1DPrior value="uniform">
+        <limitLower value=" 0.50" />
+        <limitUpper value="10.00" />
+      </distributionFunction1DPrior>
+      <operatorUnaryMapper value="identity" />
+      <slow value="true" />
+    </modelParameter>
+    <modelParameter value="active">
+      <name value="haloMassFunctionParameters::cW1" />
+      <distributionFunction1DPerturber value="cauchy">
+        <median value="0.0" />
+        <scale value="1.0e-4" />
+      </distributionFunction1DPerturber>
+      <distributionFunction1DPrior value="logUniform">
+        <limitLower value="0.1" />
+        <limitUpper value="5.0" />
+      </distributionFunction1DPrior>
+      <operatorUnaryMapper value="logarithm" />
+      <slow value="true" />
+    </modelParameter>
+    <modelParameter value="active">
+      <name value="haloMassFunctionParameters::beta1" />
+      <distributionFunction1DPerturber value="cauchy">
+        <median value="0.0" />
+        <scale value="1.0e-4" />
+      </distributionFunction1DPerturber>
+      <distributionFunction1DPrior value="uniform">
+        <limitLower value="0.1" />
+        <limitUpper value="5.0" />
+      </distributionFunction1DPrior>
+      <operatorUnaryMapper value="logarithm" />
+      <slow value="true" />
+    </modelParameter>
+
+    <!-- <modelParameter value="active"> -->
+    <!--   <name value="haloMassFunctionParameters::alpha"/> -->
+    <!--   <distributionFunction1DPrior value="logUniform"> -->
+    <!-- 	<limitLower value="  1.00"/> -->
+    <!-- 	<limitUpper value="100.00"/> -->
+    <!--   </distributionFunction1DPrior> -->
+    <!--   <operatorUnaryMapper value="logarithm"/> -->
+    <!--   <distributionFunction1DPerturber value="cauchy"> -->
+    <!-- 	<median value="0.0"/> -->
+    <!-- 	<scale value="1.0e-4"/> -->
+    <!--   </distributionFunction1DPerturber> -->
+    <!-- </modelParameter> -->
+
+    <!-- <modelParameter value="active"> -->
+    <!--   <name value="varianceFractionalModelDiscrepancy"/> -->
+    <!--   <distributionFunction1DPrior value="logUniform"> -->
+    <!-- 	<limitLower value="1.0e-6"/> -->
+    <!-- 	<limitUpper value="1.0e+0"/> -->
+    <!--   </distributionFunction1DPrior> -->
+    <!--   <operatorUnaryMapper value="logarithm"/> -->
+    <!--   <distributionFunction1DPerturber value="cauchy"> -->
+    <!-- 	<median value="0.0"/> -->
+    <!-- 	<scale value="1.0e-4"/> -->
+    <!--   </distributionFunction1DPerturber> -->
+    <!-- </modelParameter> -->
+CODE
+
+my $parametersOpener = fill_in_string(<<'CODE', PACKAGE => 'content');
+<?xml version="1.0" encoding="UTF-8"?>
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+
+  <!-- Controllable parameters of the halo mass function -->
+  <haloMassFunctionParameters value="" ignoreWarnings="true">
+    <!-- Halo mass function -->
+    <a                                value="+0.75"/>
+    <b                                value="+0.84"/>
+    <c                                value="+2.26"/>
+    <p                                value="-1.09"/>
+    <q                                value="+0.51"/>
+    <normalization                    value="+0.57"/>
+    <!-- Pseudo-halo mass function -->
+    <normalizationPseudoHalos         value="+9.88e-7"/>
+    <exponentMassPseudoHalos          value="-1.56e+0"/>
+    <exponentRedshiftPseudoHalos      value="-0.39e+0"/>
+    <exponentOverdensityPseudoHalos   value="+0.50e+0"/>
+    <exponentMassParticlePseudoHalos  value="+2.00e+0"/>
+    <exponentNormalizationPseudoHalos value="+1.58e+0"/>
+    <!-- ETHOS window function -->
+    <cW0                              value="+2.59"/>
+    <beta0                            value="+3.51"/>
+    <cW1                              value="+0.74"/>
+    <beta1                            value="+4.83"/>
+CODE
+my $parametersCloser;
+
+# Add perturbation parameters as needed.
+if ( %perturbations ) {
+    $configCloser .= fill_in_string(<<'CODE', PACKAGE => 'content');
+
+    <!-- Perturbation model parameters -->
+CODE
+    $parametersCloser .= fill_in_string(<<'CODE', PACKAGE => 'content');
+    <!-- Perturbation model parameters -->
+CODE
+    foreach $content::perturbationLabel ( sort(keys(%perturbations)) ) {
+	$configCloser .= fill_in_string(<<'CODE', PACKAGE => 'content');
+    <modelParameter value="active">
+      <name value="haloMassFunctionParameters::perturbation{$perturbationLabel}" />
+      <distributionFunction1DPerturber value="cauchy">
+        <median value="0.0" />
+        <scale value="1.0e-4" />
+      </distributionFunction1DPerturber>
+      <distributionFunction1DPrior value="normal">
+        <limitLower value="-10.0" />
+        <limitUpper value="+10.0" />
+        <mean value="0.0" />
+        <variance value="1.0" />
+      </distributionFunction1DPrior>
+      <operatorUnaryMapper value="identity" />
+    </modelParameter>
+CODE
+	$parametersCloser .= fill_in_string(<<'CODE', PACKAGE => 'content');
+    <perturbation{$perturbationLabel} value="0.0"/>
+CODE
     }
 }
+
+# Add isolation bias parameters as needed.
+if ( %isolationBiases ) {
+    $configCloser .= fill_in_string(<<'CODE', PACKAGE => 'content');
+
+    <!-- Isolation bias model parameters -->
+CODE
+    $parametersCloser .= fill_in_string(<<'CODE', PACKAGE => 'content');
+    <!-- Isolation bias model parameters -->
+CODE
+    foreach $content::isolationBiasLabel ( sort(keys(%isolationBiases)) ) {
+	$configCloser .= fill_in_string(<<'CODE', PACKAGE => 'content');
+    <modelParameter value="active">
+      <name value="haloMassFunctionParameters::isolationBias{$isolationBiasLabel}" />
+      <distributionFunction1DPerturber value="cauchy">
+        <median value="0.0" />
+        <scale value="1.0e-4" />
+      </distributionFunction1DPerturber>
+      <distributionFunction1DPrior value="logNormal">
+        <limitLower value="1.0e-1" />
+        <limitUpper value="1.0e+1" />
+        <mean value="1.0" />
+        <variance value="0.25" />
+      </distributionFunction1DPrior>
+      <operatorUnaryMapper value="identity" />
+    </modelParameter>    
+    <modelParameter value="active">
+      <name value="haloMassFunctionParameters::isolationBiasExponent{$isolationBiasLabel}" />
+      <distributionFunction1DPerturber value="cauchy">
+        <median value="0.0" />
+        <scale value="1.0e-4" />
+      </distributionFunction1DPerturber>
+      <distributionFunction1DPrior value="uniform">
+        <limitLower value="-3.0" />
+        <limitUpper value="+0.0" />
+      </distributionFunction1DPrior>
+      <operatorUnaryMapper value="identity" />
+    </modelParameter>
+CODE
+	$parametersCloser .= fill_in_string(<<'CODE', PACKAGE => 'content');
+    <isolationBias{$isolationBiasLabel}         value="1.0"/>
+    <isolationBiasExponent{$isolationBiasLabel} value="0.0"/>
+CODE
+    }
+}
+
+# Add detection efficiency model parameters.
+$configCloser .= fill_in_string(<<'CODE', PACKAGE => 'content');
+
+    <!-- Detection efficiency model parameters -->
+CODE
+$parametersCloser .= fill_in_string(<<'CODE', PACKAGE => 'content');
+    <!-- Detection efficiency model parameters -->
+CODE
+# Generate parameters for each detection effiency class.
+foreach $content::class ( sort(keys(%detectionEfficiencyClasses)) ) {
+    $configCloser .= fill_in_string(<<'CODE', PACKAGE => 'content');
+    <modelParameter value="active">
+      <name value="haloMassFunctionParameters::massMinimumParticleCount{$class}" />
+      <distributionFunction1DPerturber value="cauchy">
+        <median value="0.0" />
+        <scale value="1.0e-4" />
+      </distributionFunction1DPerturber>
+      <distributionFunction1DPrior value="logUniform">
+        <limitLower value="  1.00" />
+        <limitUpper value="100.00" />
+      </distributionFunction1DPrior>
+      <operatorUnaryMapper value="logarithm" />
+    </modelParameter>
+    <modelParameter value="active">
+      <name value="haloMassFunctionParameters::efficiencyAtMassMinimum{$class}" />
+      <distributionFunction1DPerturber value="cauchy">
+        <median value="0.0" />
+        <scale value="1.0e-4" />
+      </distributionFunction1DPerturber>
+      <distributionFunction1DPrior value="uniform">
+        <limitLower value="+0.00" />
+        <limitUpper value="+1.00" />
+      </distributionFunction1DPrior>
+      <operatorUnaryMapper value="identity" />
+    </modelParameter>
+    <modelParameter value="active">
+      <name value="haloMassFunctionParameters::exponentMassDetection{$class}" />
+      <distributionFunction1DPerturber value="cauchy">
+        <median value="0.0" />
+        <scale value="1.0e-4" />
+      </distributionFunction1DPerturber>
+      <distributionFunction1DPrior value="uniform">
+        <limitLower value="-3.00" />
+        <limitUpper value="+0.00" />
+      </distributionFunction1DPrior>
+      <operatorUnaryMapper value="identity" />
+    </modelParameter>
+    <modelParameter value="active">
+      <name value="haloMassFunctionParameters::exponentRedshiftDetection{$class}" />
+      <distributionFunction1DPerturber value="cauchy">
+        <median value="0.0" />
+        <scale value="1.0e-4" />
+      </distributionFunction1DPerturber>
+      <distributionFunction1DPrior value="uniform">
+        <limitLower value="-3.00" />
+        <limitUpper value="+3.00" />
+      </distributionFunction1DPrior>
+      <operatorUnaryMapper value="identity" />
+    </modelParameter>
+CODE
+    $parametersCloser .= fill_in_string(<<'CODE', PACKAGE => 'content');
+    <massMinimumParticleCount{$class}  value="10.0"/>
+    <efficiencyAtMassMinimum{$class}   value=" 1.0"/>
+    <exponentMassDetection{$class}     value=" 0.0"/>
+    <exponentRedshiftDetection{$class} value=" 0.0"/>
+CODE
+}
+
+# Finish the closers.
+$configCloser .= fill_in_string(<<'CODE', PACKAGE => 'content');
+
+  </posteriorSampleSimulation>
+
+  <!-- Random seed -->
+  <randomNumberGenerator value="GSL">
+    <seed          value="219" />
+    <mpiRankOffset value="true"/>
+  </randomNumberGenerator>
+
+</parameters>
+CODE
+$parametersCloser .= fill_in_string(<<'CODE', PACKAGE => 'content');
+  </haloMassFunctionParameters>
+
+  <!-- Parameter controlling the fractional variance due to model discrepancy -->
+  <varianceFractionalModelDiscrepancy value="0.0"/>
+
+</parameters>
+CODE
+    
+# Generate the config file.
+open(my $configFile,">",$options{'outputDirectory'}."haloMassFunctionConfig.xml");
+print $configFile $configOpener;
+print $configFile $configLikelihood;
+print $configFile $configCloser;
 close($configFile);
 
-# Write base array for pipeline file.
-open(my $pipelineBaseFile,">pipeline.base.pl");
-print $pipelineBaseFile $pipelineBase;
-close($pipelineBaseFile);
+# Generate the parameters file.
+open(my $parametersFile,">",$options{'outputDirectory'}."haloMassFunctionParameters.xml");
+print $parametersFile $parametersOpener;
+print $parametersFile $parametersCloser;
+close($parametersFile);
 
 exit;
