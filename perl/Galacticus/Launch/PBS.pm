@@ -425,7 +425,8 @@ sub SubmitJobs {
 		    die("Galacticus::Launch::PBS::SubmitJobs: unknown resource model");
 		}
 		print $scriptFile "#PBS -j oe\n";
-		print $scriptFile "#PBS -o ".$newJob->{'logFile'}."\n";
+		(my $logFileName = $newJob->{'logFile'}) =~ s/:/_/g;
+		print $scriptFile "#PBS -o ".$logFileName."\n";
 		print $scriptFile "#PBS -V\n";
 		# Find the working directory - we support either PBS or SLURM environment variables here.
 		print $scriptFile "if [ ! -z \${PBS_O_WORKDIR+x} ]; then\n";
