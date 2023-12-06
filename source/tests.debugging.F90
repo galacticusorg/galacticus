@@ -27,27 +27,32 @@ program Test_Debugging
   !!}
   use :: Display                 , only : displayVerbositySet, verbosityLevelStandard
   use :: Test_Debugging_Functions, only : dummyCaller
-  use :: ISO_Varying_String      , only : varying_string     , char                  , var_str
-#ifdef DEBUGGING
+  use :: ISO_Varying_String      , only : varying_string     , char                  , var_str             , char
+  use :: Interface_GSL           , only : gslErrorDecode     , GSL_EDom
   use :: Unit_Tests              , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
-#else
-  use :: Unit_Tests              , only : Skip               , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
+#ifndef DEBUGGING
+  use :: Unit_Tests              , only : Skip
 #endif  
   implicit none
 #ifdef DEBUGGING
   type(varying_string) :: caller
 #endif
-
+  type(varying_string) :: description
+  
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Debugging")
+  ! Stack traces.
 #ifdef DEBUGGING
   call dummyCaller(caller)
   call Assert("Identify calling function",caller,var_str("main")      )
 #else
   call Skip  ("Identify calling function","not compiled for debugging")
 #endif
+  ! GSL error messages.
+  description=gslErrorDecode(GSL_EDom)
+  call Assert("GSL error decode",char(description),"input domain error")
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()

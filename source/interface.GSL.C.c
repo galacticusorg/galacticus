@@ -24,6 +24,7 @@
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_rng.h>
 #include <errno.h>
+#include <string.h>
 
 void gslRngDefault() {
   gsl_rng_env_setup();
@@ -69,4 +70,9 @@ gsl_function_fdf *gslFunctionFdFConstructor(double (*f) (double x, void * params
 void gslFunctionDestructor(gsl_function *f) {
   /* Destroy a gsl_function object. */
   free(f);
+}
+
+void gslErrorDecoder(const int gsl_errno, char *gsl_str, size_t gsl_strlen) {
+  /* Return a GSL error code description */
+  strncpy(gsl_str,(char *)gsl_strerror(gsl_errno),gsl_strlen);  
 }
