@@ -235,9 +235,6 @@ module Input_Parameters
      end subroutine knownParameterNames
   end interface
 
-  ! Set of globally-allowed parameter names.
-  type(varying_string), dimension(:), allocatable :: allowedParameterNamesGlobal
-
 contains
 
   function inputParametersConstructorNull() result(self)
@@ -316,10 +313,12 @@ contains
     Constructor for the {\normalfont \ttfamily inputParameters} class from an XML file
     specified as a character variable.
     !!}
-    use :: File_Utilities, only : File_Exists
-    use :: FoX_dom       , only : node
-    use :: Error         , only : Error_Report
-    use :: IO_XML        , only : XML_Get_First_Element_By_Tag_Name, XML_Parse
+    use :: File_Utilities    , only : File_Exists
+    use :: FoX_DOM           , only : node                             , getExceptionCode, inException, DOMException
+    use :: Error             , only : Error_Report
+    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Parse
+    use :: ISO_Varying_String, only : assignment(=)                    , operator(//)
+    use :: String_Handling   , only : operator(//)
     implicit none
     type     (inputParameters)                                        :: self
     character(len=*          )              , intent(in   )           :: fileName
@@ -327,20 +326,35 @@ contains
     type     (hdf5Object     ), target      , intent(in   ), optional :: outputParametersGroup
     logical                                 , intent(in   ), optional :: noOutput
     type     (node           ), pointer                               :: doc                  , parameterNode
-    integer                                                           :: errorStatus
+    integer                                                           :: errorStatus          , exceptionCode
+    type     (DOMException   )                                        :: exception
+    type     (varying_string )                                        :: errorMessage         , fileNameFailed
+    logical                                                           :: parseSuccess         , isException
 
     ! Check that the file exists.
     if (.not.File_Exists(fileName)) call Error_Report("parameter file '"//trim(fileName)//"' does not exist"//{introspection:location})
     ! Open and parse the data file.
     !$omp critical (FoX_DOM_Access)
-    doc => XML_Parse(fileName,iostat=errorStatus)
+    doc           => XML_Parse(fileName,iostat=errorStatus,ex=exception,fileNameCurrent=fileNameFailed)
+    isException   =  inException(exception)
+    exceptionCode =  getExceptionCode(exception)
+    !$omp end critical (FoX_DOM_Access)
+    parseSuccess  =  .true.
+    errorMessage  =  ''
+    if (isException) then
+       parseSuccess=.false.
+       errorMessage=errorMessage//char(10)//'exception raised [code='//exceptionCode//']'
+    end if
     if (errorStatus /= 0) then
        if (File_Exists(fileName)) then
-          call Error_Report('Unable to parse parameter file: "'//trim(fileName)//'"'//{introspection:location})
+          parseSuccess=.false.
+          errorMessage=errorMessage//char(10)//'I/O error [code='//errorStatus//']'
        else
           call Error_Report('Unable to find parameter file: "' //trim(fileName)//'"'//{introspection:location})
        end if
     end if
+    if (.not.parseSuccess) call Error_Report('Unable to parse parameter file: "'//trim(fileName)//'" {"'//fileNameFailed//'"}: '//errorMessage//{introspection:location})
+    !$omp critical (FoX_DOM_Access)
     parameterNode => XML_Get_First_Element_By_Tag_Name(              &
          &                                             doc         , &
          &                                             'parameters'  &
