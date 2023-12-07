@@ -14,38 +14,48 @@
     <limitMassMaximum     value="false"/>
     <group name="HugeMDPL" detectionEfficiencyClass="Rockstar1">
       <simulation name="CDM">
-	<label            value="HugeMDPL"               />
-	<transferFunction value="CDM"                    />
-	<redshifts        value="0.000 0.490 0.987 2.028"/>
+	<label            value="HugeMDPL"/>
+	<transferFunction value="CDM"     />
       </simulation>
+      <haloMassFunction>
+         <expansionFactors value="1.00000 0.67120 0.50320 0.33030 0.24770"/>
+      </haloMassFunction>
     </group>
     <group name="BigMDPL" detectionEfficiencyClass="Rockstar2">
       <simulation name="CDM">
-	<label            value="BigMDPL"                      />
-	<transferFunction value="CDM"                          />
-	<redshifts        value="0.000 0.492 1.000 2.145 2.891"/>
+	<label            value="BigMDPL"/>
+	<transferFunction value="CDM"    />
       </simulation>
+      <haloMassFunction>
+         <expansionFactors value="1.00000 0.67040 0.50000 0.31800 0.25700"/>
+      </haloMassFunction>
     </group>
     <group name="MDPL2" detectionEfficiencyClass="Rockstar3">
       <simulation name="CDM">
-	<label            value="MDPL2"                        />
-	<transferFunction value="CDM"                          />
-	<redshifts        value="0.000 0.490 0.987 2.028 3.127"/>
+	<label            value="MDPL2"/>
+	<transferFunction value="CDM"  />
       </simulation>
+      <haloMassFunction>
+         <expansionFactors value="1.00000 0.67120 0.50320 0.33030 0.24230"/>
+      </haloMassFunction>
     </group>
     <group name="SMDPL" detectionEfficiencyClass="Rockstar3">
       <simulation name="CDM">
-	<label            value="SMDPL"                        />
-	<transferFunction value="CDM"                          />
-	<redshifts        value="0.000 0.505 1.000 2.021 3.032"/>
+	<label            value="SMDPL"/>
+	<transferFunction value="CDM"  />
       </simulation>
+      <haloMassFunction>
+         <expansionFactors value="1.00000 0.66430 0.50000 0.33100 0.24800"/>
+      </haloMassFunction>
     </group>
     <group name="VSMDPL" detectionEfficiencyClass="Rockstar4">
       <simulation name="CDM">
-	<label            value="VSMDPL"                       />
-	<transferFunction value="CDM"                          />
-	<redshifts        value="0.000 0.490 0.990 2.030 3.040"/>
+	<label            value="VSMDPL"/>
+	<transferFunction value="CDM"   />
       </simulation>
+      <haloMassFunction>
+	<expansionFactors value="1.00000 0.67110 0.50250 0.33000 0.24750"/>
+      </haloMassFunction>
     </group>
   </suite>
 
@@ -57,9 +67,8 @@
     <limitMassMaximum     value="primaryFraction"/>
     <group name="LMC">
       <simulation name="CDM">
-	<label            value="Large Magellanic Cloud"       />
-	<transferFunction value="CDM"                          />
-	<redshifts        value="0.000 0.504 0.990 2.031 3.984"/>
+	<label            value="Large Magellanic Cloud"/>
+	<transferFunction value="CDM"                   />
 	<realizations     value="Halo032 Halo059  Halo0662 Halo083 Halo088 
 				 Halo097 Halo104  Halo110  Halo202 Halo208
 				 Halo218 Halo296  Halo301  Halo303 Halo340 
@@ -69,12 +78,17 @@
 				 Halo721 Halo767  Halo802  Halo824 Halo850 
 				 Halo853 Halo914  Halo932  Halo933        "/>
       </simulation>
+      <haloMassFunction>
+    	 <expansionFactors value="   1.0000   0.66503   0.50239   0.32987   0.20064"/>
+     	 <snapshots        value=" 235      203       181       148       109      "/>
+     	 <massHostLogMin   value="  10.95                                          "/>
+     	 <massHostLogMax   value="  11.50                                          "/>
+      </haloMassFunction>
     </group>
     <group name="MilkyWay">
       <simulation name="CDM">
-	<label            value="Milky Way"                    />
-	<transferFunction value="CDM"                          />
-	<redshifts        value="0.000 0.504 0.990 2.031 3.984"/>
+	<label            value="Milky Way"/>
+	<transferFunction value="CDM"      />
 	<realizations     value="Halo023 Halo088 Halo119  Halo188  Halo247 
 				 Halo268 Halo270 Halo288  Halo327  Halo349 
 				 Halo364 Halo374 Halo414  Halo415  Halo416 
@@ -87,230 +101,205 @@
 				 Halo004 Halo113                          "/>
       </simulation>
       <simulation name="WDM:3keV">
-	<label            value="Milky Way"                    />
-	<transferFunction value="WDM:3keV"                     />
-	<redshifts        value="0.000 0.504 0.990 2.031 3.984"/>
-	<realizations     value= "Halo004 Halo113 Halo023"     />
+	<label            value="Milky Way"               />
+	<transferFunction value="WDM:3keV"                />
+	<realizations     value= "Halo004 Halo113 Halo023"/>
       </simulation>
       <simulation name="WDM:4keV">
-	<label            value="Milky Way"                    />
-	<transferFunction value="WDM:4keV"                     />
-	<redshifts        value="0.000 0.504 0.990 2.031 3.984"/>
-	<realizations     value= "Halo004 Halo113 Halo023"     />
+	<label            value="Milky Way"               />
+	<transferFunction value="WDM:4keV"                />
+	<realizations     value= "Halo004 Halo113 Halo023"/>
       </simulation>
       <simulation name="WDM:5keV">
-	<label            value="Milky Way"                    />
-	<transferFunction value="WDM:5keV"                     />
-	<redshifts        value="0.000 0.504 0.990 2.031 3.984"/>
-	<realizations     value= "Halo004 Halo113 Halo023"     />
+	<label            value="Milky Way"               />
+	<transferFunction value="WDM:5keV"                />
+	<realizations     value= "Halo004 Halo113 Halo023"/>
       </simulation>
       <simulation name="WDM:6keV">
-	<label            value="Milky Way"                    />
-	<transferFunction value="WDM:6keV"                     />
-	<redshifts        value="0.000 0.504 0.990 2.031 3.984"/>
-	<realizations     value= "Halo004 Halo113 Halo023"     />
+	<label            value="Milky Way"               />
+	<transferFunction value="WDM:6keV"                />
+	<realizations     value= "Halo004 Halo113 Halo023"/>
       </simulation>
       <simulation name="WDM:6.5keV">
-	<label            value="Milky Way"                    />
-	<transferFunction value="WDM:6.5keV"                   />
-	<redshifts        value="0.000 0.504 0.990 2.031 3.984"/>
-	<realizations     value= "Halo004 Halo113 Halo023"     />
+	<label            value="Milky Way"               />
+	<transferFunction value="WDM:6.5keV"              />
+	<realizations     value= "Halo004 Halo113 Halo023"/>
       </simulation>
       <simulation name="WDM:10keV">
-	<label            value="Milky Way"                    />
-	<transferFunction value="WDM:10keV"                     />
-	<redshifts        value="0.000 0.504 0.990 2.031 3.984"/>
-	<realizations     value= "Halo004 Halo113 Halo023"     />
+	<label            value="Milky Way"               />
+	<transferFunction value="WDM:10keV"               />
+	<realizations     value= "Halo004 Halo113 Halo023"/>
       </simulation>
       <simulation name="IDM:1e-4GeV:envelope">
-	<label            value="Milky Way"                    />
-	<transferFunction value="IDM:1e-4GeV:envelope"         />
-	<redshifts        value="0.000 0.504 0.990 2.031 3.984"/>
-	<realizations     value= "Halo004 Halo113 Halo023"     />
+	<label            value="Milky Way"               />
+	<transferFunction value="IDM:1e-4GeV:envelope"    />
+	<realizations     value= "Halo004 Halo113 Halo023"/>
       </simulation>
       <simulation name="IDM:1e-4GeV:halfmode">
-	<label            value="Milky Way"                    />
-	<transferFunction value="IDM:1e-4GeV:halfmode"         />
-	<redshifts        value="0.000 0.504 0.990 2.031 3.984"/>
-	<realizations     value= "Halo004 Halo113 Halo023"     />
+	<label            value="Milky Way"               />
+	<transferFunction value="IDM:1e-4GeV:halfmode"    />
+	<realizations     value= "Halo004 Halo113 Halo023"/>
       </simulation>
       <simulation name="IDM:1e-2GeV:envelope">
-	<label            value="Milky Way"                    />
-	<transferFunction value="IDM:1e-2GeV:envelope"         />
-	<redshifts        value="0.000 0.504 0.990 2.031 3.984"/>
-	<realizations     value= "Halo004 Halo113 Halo023"     />
+	<label            value="Milky Way"               />
+	<transferFunction value="IDM:1e-2GeV:envelope"    />
+	<realizations     value= "Halo004 Halo113 Halo023"/>
       </simulation>
       <simulation name="IDM:1e-2GeV:halfmode">
-	<label            value="Milky Way"                    />
-	<transferFunction value="IDM:1e-2GeV:halfmode"         />
-	<redshifts        value="0.000 0.504 0.990 2.031 3.984"/>
-	<realizations     value= "Halo004 Halo113 Halo023"     />
+	<label            value="Milky Way"               />
+	<transferFunction value="IDM:1e-2GeV:halfmode"    />
+	<realizations     value= "Halo004 Halo113 Halo023"/>
       </simulation>
       <simulation name="IDM:1GeV:envelope">
-	<label            value="Milky Way"                    />
-	<transferFunction value="IDM:1GeV:envelope"            />
-	<redshifts        value="0.000 0.504 0.990 2.031 3.984"/>
-	<realizations     value= "Halo004 Halo113 Halo023"     />
+	<label            value="Milky Way"               />
+	<transferFunction value="IDM:1GeV:envelope"       />
+	<realizations     value= "Halo004 Halo113 Halo023"/>
       </simulation>
       <simulation name="IDM:1GeV:halfmode">
-	<label            value="Milky Way"                    />
-	<transferFunction value="IDM:1GeV:halfmode"            />
-	<redshifts        value="0.000 0.504 0.990 2.031 3.984"/>
-	<realizations     value= "Halo004 Halo113 Halo023"     />
+	<label            value="Milky Way"               />
+	<transferFunction value="IDM:1GeV:halfmode"       />
+	<realizations     value= "Halo004 Halo113 Halo023"/>
       </simulation>
       <simulation name="FDM:25.9e-22eV">
-	<label            value="Milky Way"                    />
-	<transferFunction value="FDM:25.9e-22eV"               />
-	<redshifts        value="0.000 0.504 0.990 2.031 3.984"/>
-	<realizations     value= "Halo004 Halo113 Halo023"     />
+	<label            value="Milky Way"               />
+	<transferFunction value="FDM:25.9e-22eV"          />
+	<realizations     value= "Halo004 Halo113 Halo023"/>
       </simulation>
       <simulation name="FDM:69.4e-22eV">
-	<label            value="Milky Way"                    />
-	<transferFunction value="FDM:69.4e-22eV"               />
-	<redshifts        value="0.000 0.504 0.990 2.031 3.984"/>
-	<realizations     value= "Halo004 Halo113 Halo023"     />
+	<label            value="Milky Way"               />
+	<transferFunction value="FDM:69.4e-22eV"          />
+	<realizations     value= "Halo004 Halo113 Halo023"/>
       </simulation>
       <simulation name="FDM:113e-22eV">
-	<label            value="Milky Way"                    />
-	<transferFunction value="FDM:113e-22eV"                />
-	<redshifts        value="0.000 0.504 0.990 2.031 3.984"/>
-	<realizations     value= "Halo004 Halo113 Halo023"     />
+	<label            value="Milky Way"               />
+	<transferFunction value="FDM:113e-22eV"           />
+	<realizations     value= "Halo004 Halo113 Halo023"/>
       </simulation>
       <simulation name="FDM:151e-22eV">
-	<label            value="Milky Way"                    />
-	<transferFunction value="FDM:151e-22eV"                />
-	<redshifts        value="0.000 0.504 0.990 2.031 3.984"/>
-	<realizations     value= "Halo004 Halo113 Halo023"     />
+	<label            value="Milky Way"               />
+	<transferFunction value="FDM:151e-22eV"           />
+	<realizations     value= "Halo004 Halo113 Halo023"/>
       </simulation>
       <simulation name="FDM:185e-22eV">
-	<label            value="Milky Way"                    />
-	<transferFunction value="FDM:185e-22eV"                />
-	<redshifts        value="0.000 0.504 0.990 2.031 3.984"/>
-	<realizations     value= "Halo004 Halo113 Halo023"     />
+	<label            value="Milky Way"               />
+	<transferFunction value="FDM:185e-22eV"           />
+	<realizations     value= "Halo004 Halo113 Halo023"/>
       </simulation>
       <simulation name="FDM:490e-22eV">
-	<label            value="Milky Way"                    />
-	<transferFunction value="FDM:490e-22eV"                />
-	<redshifts        value="0.000 0.504 0.990 2.031 3.984"/>
-	<realizations     value= "Halo004 Halo113 Halo023"     />
+	<label            value="Milky Way"               />
+	<transferFunction value="FDM:490e-22eV"           />
+	<realizations     value= "Halo004 Halo113 Halo023"/>
       </simulation>
+      <haloMassFunction>
+     	 <expansionFactors value="   1.0000   0.66503   0.50239   0.32987   0.20064"/>
+     	 <snapshots        value=" 235      203       181       148       109      "/>
+     	 <massHostLogMin   value="  12.0                                           "/>
+     	 <massHostLogMax   value="  12.3                                           "/>
+      </haloMassFunction>
     </group>
     <group name="MilkyWay:hires">
       <simulation name="CDM">
-	<label            value="Milky Way"                    />
-	<transferFunction value="CDM"                          />
-	<redshifts        value="0.000 0.504 0.990 2.031 3.984"/>
-	<realizations     value="Halo004"                      />
+	<label            value="Milky Way"           />
+	<transferFunction value="CDM"                 />
+	<realizations     value="Halo004"             />
       </simulation>
       <simulation name="WDM:3keV">
-	<label            value="Milky Way"                    />
-	<transferFunction value="WDM:3keV"                     />
-	<redshifts        value="0.000 0.504 0.990 2.031 3.984"/>
-	<realizations     value="Halo004"                      />
+	<label            value="Milky Way"           />
+	<transferFunction value="WDM:3keV"            />
+	<realizations     value="Halo004"             />
       </simulation>
       <simulation name="WDM:4keV">
-	<label            value="Milky Way"                    />
-	<transferFunction value="WDM:4keV"                     />
-	<redshifts        value="0.000 0.504 0.990 2.031 3.984"/>
-	<realizations     value="Halo004"                      />
+	<label            value="Milky Way"           />
+	<transferFunction value="WDM:4keV"            />
+	<realizations     value="Halo004"             />
       </simulation>
       <simulation name="WDM:5keV">
-	<label            value="Milky Way"                    />
-	<transferFunction value="WDM:5keV"                     />
-	<redshifts        value="0.000 0.504 0.990 2.031 3.984"/>
-	<realizations     value="Halo004"                      />
+	<label            value="Milky Way"           />
+	<transferFunction value="WDM:5keV"            />
+	<realizations     value="Halo004"             />
       </simulation>
       <simulation name="WDM:6keV">
-	<label            value="Milky Way"                    />
-	<transferFunction value="WDM:6keV"                     />
-	<redshifts        value="0.000 0.504 0.990 2.031 3.984"/>
-	<realizations     value="Halo004"                      />
+	<label            value="Milky Way"           />
+	<transferFunction value="WDM:6keV"            />
+	<realizations     value="Halo004"             />
       </simulation>
       <simulation name="WDM:6.5keV">
-	<label            value="Milky Way"                    />
-	<transferFunction value="WDM:6.5keV"                   />
-	<redshifts        value="0.000 0.504 0.990 2.031 3.984"/>
-	<realizations     value="Halo004"                      />
+	<label            value="Milky Way"           />
+	<transferFunction value="WDM:6.5keV"          />
+	<realizations     value="Halo004"             />
       </simulation>
       <simulation name="WDM:10keV">
-	<label            value="Milky Way"                    />
-	<transferFunction value="WDM:10keV"                     />
-	<redshifts        value="0.000 0.504 0.990 2.031 3.984"/>
-	<realizations     value="Halo004"                      />
+	<label            value="Milky Way"           />
+	<transferFunction value="WDM:10keV"           />
+	<realizations     value="Halo004"             />
       </simulation>
       <simulation name="IDM:1e-4GeV:envelope">
-	<label            value="Milky Way"                    />
-	<transferFunction value="IDM:1e-4GeV:envelope"         />
-	<redshifts        value="0.000 0.504 0.990 2.031 3.984"/>
-	<realizations     value="Halo004"                      />
+	<label            value="Milky Way"           />
+	<transferFunction value="IDM:1e-4GeV:envelope"/>
+	<realizations     value="Halo004"             />
       </simulation>
       <simulation name="IDM:1e-4GeV:halfmode">
-	<label            value="Milky Way"                    />
-	<transferFunction value="IDM:1e-4GeV:halfmode"         />
-	<redshifts        value="0.000 0.504 0.990 2.031 3.984"/>
-	<realizations     value="Halo004"                      />
+	<label            value="Milky Way"           />
+	<transferFunction value="IDM:1e-4GeV:halfmode"/>
+	<realizations     value="Halo004"             />
       </simulation>
       <simulation name="IDM:1e-2GeV:envelope">
-	<label            value="Milky Way"                    />
-	<transferFunction value="IDM:1e-2GeV:envelope"         />
-	<redshifts        value="0.000 0.504 0.990 2.031 3.984"/>
-	<realizations     value="Halo004"                      />
+	<label            value="Milky Way"           />
+	<transferFunction value="IDM:1e-2GeV:envelope"/>
+	<realizations     value="Halo004"             />
       </simulation>
       <simulation name="IDM:1e-2GeV:halfmode">
-	<label            value="Milky Way"                    />
-	<transferFunction value="IDM:1e-2GeV:halfmode"         />
-	<redshifts        value="0.000 0.504 0.990 2.031 3.984"/>
-	<realizations     value="Halo004"                      />
+	<label            value="Milky Way"           />
+	<transferFunction value="IDM:1e-2GeV:halfmode"/>
+	<realizations     value="Halo004"             />
       </simulation>
       <simulation name="IDM:1GeV:envelope">
-	<label            value="Milky Way"                    />
-	<transferFunction value="IDM:1GeV:envelope"            />
-	<redshifts        value="0.000 0.504 0.990 2.031 3.984"/>
-	<realizations     value="Halo004"                      />
+	<label            value="Milky Way"           />
+	<transferFunction value="IDM:1GeV:envelope"   />
+	<realizations     value="Halo004"             />
       </simulation>
       <simulation name="IDM:1GeV:halfmode">
-	<label            value="Milky Way"                    />
-	<transferFunction value="IDM:1GeV:halfmode"            />
-	<redshifts        value="0.000 0.504 0.990 2.031 3.984"/>
-	<realizations     value="Halo004"                      />
+	<label            value="Milky Way"           />
+	<transferFunction value="IDM:1GeV:halfmode"   />
+	<realizations     value="Halo004"             />
       </simulation>
       <simulation name="FDM:25.9e-22eV">
-	<label            value="Milky Way"                    />
-	<transferFunction value="FDM:25.9e-22eV"               />
-	<redshifts        value="0.000 0.504 0.990 2.031 3.984"/>
-	<realizations     value="Halo004"                      />
+	<label            value="Milky Way"           />
+	<transferFunction value="FDM:25.9e-22eV"      />
+	<realizations     value="Halo004"             />
       </simulation>
       <simulation name="FDM:69.4e-22eV">
-	<label            value="Milky Way"                    />
-	<transferFunction value="FDM:69.4e-22eV"               />
-	<redshifts        value="0.000 0.504 0.990 2.031 3.984"/>
-	<realizations     value="Halo004"                      />
+	<label            value="Milky Way"           />
+	<transferFunction value="FDM:69.4e-22eV"      />
+	<realizations     value="Halo004"             />
       </simulation>
       <simulation name="FDM:113e-22eV">
-	<label            value="Milky Way"                    />
-	<transferFunction value="FDM:113e-22eV"                />
-	<redshifts        value="0.000 0.504 0.990 2.031 3.984"/>
-	<realizations     value="Halo004"                      />
+	<label            value="Milky Way"           />
+	<transferFunction value="FDM:113e-22eV"       />
+	<realizations     value="Halo004"             />
       </simulation>
       <simulation name="FDM:151e-22eV">
-	<label            value="Milky Way"                    />
-	<transferFunction value="FDM:151e-22eV"                />
-	<redshifts        value="0.000 0.504 0.990 2.031 3.984"/>
-	<realizations     value="Halo004"                      />
+	<label            value="Milky Way"           />
+	<transferFunction value="FDM:151e-22eV"       />
+	<realizations     value="Halo004"             />
       </simulation>
       <simulation name="FDM:185e-22eV">
-	<label            value="Milky Way"                    />
-	<transferFunction value="FDM:185e-22eV"                />
-	<redshifts        value="0.000 0.504 0.990 2.031 3.984"/>
-	<realizations     value="Halo004"                      />
+	<label            value="Milky Way"           />
+	<transferFunction value="FDM:185e-22eV"       />
+	<realizations     value="Halo004"             />
       </simulation>
       <simulation name="FDM:490e-22eV">
-	<label            value="Milky Way"                    />
-	<transferFunction value="FDM:490e-22eV"                />
-	<redshifts        value="0.000 0.504 0.990 2.031 3.984"/>
-	<realizations     value="Halo004"                      />
+	<label            value="Milky Way"           />
+	<transferFunction value="FDM:490e-22eV"       />
+	<realizations     value="Halo004"             />
       </simulation>
-    </group>
+      <haloMassFunction>
+     	 <expansionFactors value="   1.0000   0.66503   0.50239   0.32987   0.20064"/>
+     	 <snapshots        value=" 235      203       181       148       109      "/>
+     	 <massHostLogMin   value="  12.0                                           "/>
+     	 <massHostLogMax   value="  12.3                                           "/>
+      </haloMassFunction>
+     </group>
   </suite>
 
 </simulations>
