@@ -271,8 +271,8 @@ contains
        call spheroid%floatRank0MetaPropertyRate(self%    stellarMassFormedSpheroidID,rateStarFormationSpheroid     )
     end select
 
-    select type (NSC    )
-    type is (nodeComponentNSC)
+    select type (NSC     )
+    type is (nodeComponentNSC     )
        ! NSC does not yet exist - nothing to do here.
     class default
        call NSC     %floatRank0MetaPropertyRate(self%timeStellarmassFormedNSCID     ,rateStarFormationNSC     *time)
@@ -335,23 +335,23 @@ contains
             &                                      +0.0d0                                                                         &
             &                                     )
     case (destinationMergerSpheroid%ID)
-       call spheroidHost%floatRank0MetaPropertySet(                                        self%timeStellarMassFormedDiskID     , &
+       call spheroidHost%floatRank0MetaPropertySet(                                        self%timeStellarMassFormedSpheroidID , &
             &                                      +diskHost    %floatRank0MetaPropertyGet(self%timeStellarMassFormedDiskID    )  &
             &                                      +spheroidHost%floatRank0MetaPropertyGet(self%timeStellarMassFormedSpheroidID)  &
             &                                      +NSCHost     %floatRank0MetaPropertyGet(self%timeStellarMassFormedNSCID     )  &
             &                                     )
-       call diskHost    %floatRank0MetaPropertySet(                                        self%timeStellarMassFormedSpheroidID , &
+       call diskHost    %floatRank0MetaPropertySet(                                        self%timeStellarMassFormedDiskID     , &
             &                                      +0.0d0                                                                         &
             &                                     )
-       call NSCHost    %floatRank0MetaPropertySet(                                         self%timeStellarMassFormedNSCID      , &
+       call NSCHost     %floatRank0MetaPropertySet(                                        self%timeStellarMassFormedNSCID      , &
             &                                      +0.0d0                                                                         &
             &                                     )
-       call spheroidHost%floatRank0MetaPropertySet(                                        self%    stellarMassFormedDiskID     , &
+       call spheroidHost%floatRank0MetaPropertySet(                                        self%    stellarMassFormedSpheroidID , &
             &                                      +diskHost    %floatRank0MetaPropertyGet(self%    stellarMassFormedDiskID    )  &
             &                                      +spheroidHost%floatRank0MetaPropertyGet(self%    stellarMassFormedSpheroidID)  &
             &                                      +NSCHost     %floatRank0MetaPropertyGet(self%    stellarMassFormedNSCID     )  &
             &                                     )
-       call diskHost    %floatRank0MetaPropertySet(                                        self%    stellarMassFormedSpheroidID , &
+       call diskHost    %floatRank0MetaPropertySet(                                        self%    stellarMassFormedDiskID     , &
             &                                      +0.0d0                                                                         &
             &                                     )
        call NSCHost     %floatRank0MetaPropertySet(                                        self%    stellarMassFormedNSCID      , &
@@ -400,7 +400,7 @@ contains
     call    spheroid    %floatRank0MetaPropertySet(                              self%timeStellarMassFormedSpheroidID , &
          &                                         +0.0d0                                                               &
          &                                        )
-    call    NSC         %floatRank0MetaPropertySet(                              self%timeStellarMassFormedDiskID     , &
+    call    NSC         %floatRank0MetaPropertySet(                              self%timeStellarMassFormedNSCID      , &
          &                                         +0.0d0                                                               &
          &                                        )
     call    disk        %floatRank0MetaPropertySet(                              self%    stellarMassFormedDiskID     , &

@@ -169,7 +169,7 @@ contains
     if (propertyInactive(propertyType)) return
     
     ! Get the nuclear star cluster component.
-    NSC         => node%NSC()
+    NSC         => node%NSC  ()
     radiusNSC   =  self%radiusEfficiency*1.0d6*NSC%radius     () !pc
     velocityNSC =                              NSC%velocity   () !km s¯¹
 
@@ -183,9 +183,9 @@ contains
 
           massStellarNSC        = NSC%floatRank0MetaPropertyGet(self%    stellarMassFormedNSCID)
           massTimeStellarNSC    = NSC%floatRank0MetaPropertyGet(self%timeStellarMassFormedNSCID)
-
-          basic => node %basic()
-          time  =  basic%time ()
+          
+          basic => node%basic()
+          time  =  basic%time() 
           ageNSC= +time               &
                &  -massTimeStellarNSC &
                &  /massStellarNSC
