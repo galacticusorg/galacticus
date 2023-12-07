@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1701733348018,
+  "lastUpdate": 1701925341277,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "d6f6c31b9dbba869c7d30ffcc0db1bec2a58640d",
-          "message": "feat: Add an option to make ram pressure stripping radius solver failures non-fatal\n\nAlso removes debugging code.",
-          "timestamp": "2023-03-24T00:02:11Z",
-          "tree_id": "12af966ee52995c3ba0684884d2c1ea0e7905571",
-          "url": "https://github.com/galacticusorg/galacticus/commit/d6f6c31b9dbba869c7d30ffcc0db1bec2a58640d"
-        },
-        "date": 1679628779334,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 214.689,
-            "unit": "seconds",
-            "range": 0.235080624467007
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10688,6 +10658,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 7.65174618830223,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1b4ef685df687dd6710fb5fdbdca360fcb841464",
+          "message": "Merge pull request #510 from galacticusorg/agesFix\n\nCorrect indexing of meta-properties when computing stellar mass-weighted ages of disk and spheroid.",
+          "timestamp": "2023-12-07T02:45:19Z",
+          "tree_id": "e517388542a5d8e2423d2734ecdd285dbdc673b0",
+          "url": "https://github.com/galacticusorg/galacticus/commit/1b4ef685df687dd6710fb5fdbdca360fcb841464"
+        },
+        "date": 1701925340287,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 175.287,
+            "unit": "seconds",
+            "range": 0.431476650585494
           }
         ]
       }
