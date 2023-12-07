@@ -284,18 +284,18 @@ contains
             &                                      +0.0d0                                                                         &
             &                                     )
     case (destinationMergerSpheroid%ID)
-       call spheroidHost%floatRank0MetaPropertySet(                                        self%timeStellarMassFormedDiskID     , &
+       call spheroidHost%floatRank0MetaPropertySet(                                        self%timeStellarMassFormedSpheroidID , &
             &                                      +diskHost    %floatRank0MetaPropertyGet(self%timeStellarMassFormedDiskID    )  &
             &                                      +spheroidHost%floatRank0MetaPropertyGet(self%timeStellarMassFormedSpheroidID)  &
             &                                     )
-       call diskHost    %floatRank0MetaPropertySet(                                        self%timeStellarMassFormedSpheroidID , &
+       call diskHost    %floatRank0MetaPropertySet(                                        self%timeStellarMassFormedDiskID     , &
             &                                      +0.0d0                                                                         &
             &                                     )
-       call spheroidHost%floatRank0MetaPropertySet(                                        self%    stellarMassFormedDiskID     , &
+       call spheroidHost%floatRank0MetaPropertySet(                                        self%    stellarMassFormedSpheroidID , &
             &                                      +diskHost    %floatRank0MetaPropertyGet(self%    stellarMassFormedDiskID    )  &
             &                                      +spheroidHost%floatRank0MetaPropertyGet(self%    stellarMassFormedSpheroidID)  &
             &                                     )
-       call diskHost    %floatRank0MetaPropertySet(                                        self%    stellarMassFormedSpheroidID , &
+       call diskHost    %floatRank0MetaPropertySet(                                        self%    stellarMassFormedDiskID     , &
             &                                      +0.0d0                                                                         &
             &                                     )
     case (destinationMergerUnmoved%ID)
