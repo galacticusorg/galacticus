@@ -185,10 +185,16 @@ contains
           massTimeStellarNSC    = NSC%floatRank0MetaPropertyGet(self%timeStellarMassFormedNSCID)
           
           basic => node%basic()
-          time  =  basic%time() 
-          ageNSC= +time               &
-               &  -massTimeStellarNSC &
-               &  /massStellarNSC
+          time  =  basic%time()
+
+          !Trap cases after merger
+          if (massStellarNSC <= 0.0d0) then 
+              ageNSC= +time               &
+                   &  -massTimeStellarNSC &
+                   &  /massStellarNSC
+          else 
+              ageNSC= 0.0d0
+          end if 
 
           call NSC%AgeSet(ageNSC)      !Gyr
 
