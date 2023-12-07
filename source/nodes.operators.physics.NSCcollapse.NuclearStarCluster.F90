@@ -188,7 +188,7 @@ contains
           time  =  basic%time()
 
           !Trap cases after merger
-          if (massStellarNSC <= 0.0d0) then 
+          if ( 0.0d0 < masStellarNSC) then 
               ageNSC= +time               &
                    &  -massTimeStellarNSC &
                    &  /massStellarNSC
