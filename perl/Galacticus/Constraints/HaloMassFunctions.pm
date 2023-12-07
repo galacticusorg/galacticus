@@ -5,6 +5,7 @@ use strict;
 use warnings;
 use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use XML::Simple;
+use PDL;
 use Storable qw(dclone);
 use Exporter 'import';
 our @EXPORT_OK = qw(iterate selectSimulations matchSelection);
@@ -18,9 +19,9 @@ sub iterate {
     my (%optionsExtra) = @_
 	if ( $#_ >= 1 );
     # Validate the 'stopAfter' option.
-    $optionsExtra{'stopAfter'} = "realization"
+    $optionsExtra{'stopAfter'} = "redshift"
 	unless ( exists($optionsExtra{'stopAfter'}) );
-    my @allowedStopAfter = ( 'suite', 'group', 'simulation', 'redshift', 'realization' );
+    my @allowedStopAfter = ( 'suite', 'group', 'simulation', 'realization', 'redshift' );
     die('unrecognized "stopAfter" option - allowed choices are: '.join(", ",map {'"'.$_.'"'} @allowedStopAfter))
 	unless ( grep {$_ eq $optionsExtra{'stopAfter'}} @allowedStopAfter );
     # Build the list of selections if we do not yet have it.
@@ -32,11 +33,12 @@ sub iterate {
     foreach my $suite ( &List::ExtraUtils::hashList($simulations->{'suite'}, keyAs => "name") ) {
 	next
 	    unless ( &matchSelection($simulations->{'selections'},$suite->{'name'}) );
-	# Find the Hubble parameter for this suite.
-	unless ( exists($suite->{'cosmology'}->{'HubbleParameter'}) ) {
+	# Find the cosmological parameters for this suite.
+	unless ( exists($suite->{'cosmology'}) ) {
 	    my $xml = new XML::Simple();
 	    my $cosmologyParameters = $xml->XMLin($options{'pipelinePath'}."cosmology_".$suite->{'name'}.".xml");
-	    $suite->{'cosmology'}->{'HubbleParameter'} = $cosmologyParameters->{'cosmologyParameters'}->{'HubbleConstant'}->{'value'};
+	    $suite->{'cosmology'}->{$_} = $cosmologyParameters->{'cosmologyParameters'}->{$_}->{'value'}
+	        foreach ( 'HubbleConstant', 'OmegaMatter', 'OmegaDarkEnergy', 'OmegaBaryon' );
 	}
 	# Push to the list and move on if we are to stop after the "suite" stage.  
 	if ( $optionsExtra{'stopAfter'} eq "suite" ) {
@@ -60,6 +62,26 @@ sub iterate {
 		}
 		$group->{'massParticle'} = $massParticle;
 	    }
+	    # Find the number of subvolumes for this group.
+	    unless ( exists($group->{'subvolumes'}) ) {
+		my $xml = new XML::Simple();
+		my $simulationParameters = $xml->XMLin($options{'pipelinePath'}."simulation_".$suite->{'name'}."_".$group->{'name'}.".xml");	
+		$group->{'subvolumes'}   = $simulationParameters->{'simulation'}->{'subvolumes'}->{'value'};;
+	    }
+	    # Find metadata.
+	    unless ( exists($group->{'metaData'}) ) {
+		my $xml = new XML::Simple();
+		my $simulationParameters = $xml->XMLin($options{'pipelinePath'}."simulation_".$suite->{'name'}."_".$group->{'name'}.".xml");
+		$group->{'reference'} = $simulationParameters->{'simulation'}->{'simulationReference'}->{'value'};
+		$group->{'url'      } = $simulationParameters->{'simulation'}->{'simulationURL'      }->{'value'};
+	    }
+	    # Extract lists of redshifts.
+	    my $expansionFactors = pdl split(" ",$group->{'haloMassFunction'}->{'expansionFactors'}->{'value'});
+	    @{$group->{'expansionFactors'}} = list(    $expansionFactors    );
+	    @{$group->{'redshifts'       }} = list(1.0/$expansionFactors-1.0);
+	    # Extract lists of snapshots.
+	    @{$group->{'snapshots'       }} = split(" ",$group->{'haloMassFunction'}->{'snapshots'}->{'value'})
+		if ( exists($group->{'haloMassFunction'}->{'snapshots'}) );
 	    # Push to the list and move on if we are to stop after the "group" stage.  	    
 	    if ( $optionsExtra{'stopAfter'} eq "group" ) {
 		push(@simulationList,{suite => $suite, group => $group});
@@ -69,29 +91,28 @@ sub iterate {
 	    foreach my $simulation ( &List::ExtraUtils::hashList($group->{'simulation'}, keyAs => "name") ) {
 		next
 		    unless ( &matchSelection($simulations->{'selections'},$suite->{'name'},$group->{'name'},$simulation->{'name'}) );
+		# Extract lists of realizations.
+		@{$simulation->{'realizationsList'}} = exists($simulation->{'realizations'}) ? split(" ",$simulation->{'realizations'}->{'value'}) : ( "only" );
 		# Push to the list and move on if we are to stop after the "simulation" stage.  	    
 		if ( $optionsExtra{'stopAfter'} eq "simulation" ) {
 		    push(@simulationList,{suite => $suite, group => $group, simulation => $simulation});
 		    next;
 		}		
-		# Extract lists of redshifts and realizations.
-		my @redshifts    =                                         split(" ",$simulation->{'redshifts'   }->{'value'})             ;
-		my @realizations = exists($simulation->{'realizations'}) ? split(" ",$simulation->{'realizations'}->{'value'}) : ( "only" );
-		# Iterate over redshifts in the simulation.
-		foreach my $redshift ( @redshifts ) {
-		    my $redshiftShort = sprintf("%5.3f",$redshift);
+		# Iterate over realizations in the simulation.
+		foreach my $realization ( @{$simulation->{'realizationsList'}} ) {
 		    next
-			unless ( &matchSelection($simulations->{'selections'},$suite->{'name'},$group->{'name'},$simulation->{'name'},$redshiftShort) );
-		    # Push to the list and move on if we are to stop after the "redshift" stage.  	    
-		    if ( $optionsExtra{'stopAfter'} eq "redshift" ) {
-			push(@simulationList,{suite => $suite, group => $group, simulation => $simulation, redshift => $redshiftShort});
+			unless ( &matchSelection($simulations->{'selections'},$suite->{'name'},$group->{'name'},$simulation->{'name'},$realization) );
+		    # Push to the list and move on if we are to stop after the "realization" stage.  	    
+		    if ( $optionsExtra{'stopAfter'} eq "realization" ) {
+			push(@simulationList,{suite => $suite, group => $group, simulation => $simulation, realization => $realization});
 			next;
 		    }
-		    # Iterate over realizations in the simulation.
-		    foreach my $realization ( @realizations ) {
-			next
-			    unless ( &matchSelection($simulations->{'selections'},$suite->{'name'},$group->{'name'},$simulation->{'name'},$redshiftShort,$realization) );
-			# Begin constructing the complete entry that will be pushed to the list.
+		# Iterate over redshifts in the simulation.
+		foreach my $redshift ( @{$group->{'redshifts'}} ) {
+		    my $redshiftShort = sprintf("%5.3f",$redshift);
+		    next
+			unless ( &matchSelection($simulations->{'selections'},$suite->{'name'},$group->{'name'},$simulation->{'name'},$realization,$redshiftShort) );
+		    # Begin constructing the complete entry that will be pushed to the list.
 			my $entry = {suite => $suite, group => $group, simulation => $simulation, redshift => $redshiftShort, realization => $realization};
 			# Set the target data file.
 			$entry->{'fileTargetData'} = 
@@ -119,8 +140,8 @@ sub iterate {
 				($entry->{'environment'}->{$attributeName}) = $simulationTarget->attrGet($attributeName);
 			    }
 			}
-			# Push to the list and move on if we are to stop after the "realization" stage.  	    
-			if ( $optionsExtra{'stopAfter'} eq "realization" ) {
+			# Push to the list and move on if we are to stop after the "redshift" stage.  	    
+			if ( $optionsExtra{'stopAfter'} eq "redshift" ) {
 			    push(@simulationList,$entry);
 			    next;
 			}
@@ -150,8 +171,8 @@ sub selectSimulations {
 		suite       => $subselections[0],
 		group       => $subselections[1],
 		simulation  => $subselections[2],
-		redshift    => $subselections[3],
-		realization => $subselections[4],
+		realization => $subselections[3],
+		redshift    => $subselections[4]
 	    }
 	    );
     }
@@ -164,8 +185,8 @@ sub matchSelection {
     my $suite       =   shift() ;
     my $group       =   shift() ;
     my $simulation  =   shift() ;
-    my $redshift    =   shift() ;
     my $realization =   shift() ;
+    my $redshift    =   shift() ;
     # If there are no selections, everything is a match.
     return 1
 	if ( scalar(@selections) == 0 );
@@ -173,8 +194,8 @@ sub matchSelection {
 	next unless ( ! defined($selection->{'suite'      }) || ! defined($suite      ) || grep {$_ eq $suite       || $_ eq "*"} @{$selection->{'suite'      }} );
 	next unless ( ! defined($selection->{'group'      }) || ! defined($group      ) || grep {$_ eq $group       || $_ eq "*"} @{$selection->{'group'      }} );
 	next unless ( ! defined($selection->{'simulation' }) || ! defined($simulation ) || grep {$_ eq $simulation  || $_ eq "*"} @{$selection->{'simulation' }} );
-	next unless ( ! defined($selection->{'redshift'   }) || ! defined($redshift   ) || grep {$_ eq $redshift    || $_ eq "*"} @{$selection->{'redshift'   }} );
 	next unless ( ! defined($selection->{'realization'}) || ! defined($realization) || grep {$_ eq $realization || $_ eq "*"} @{$selection->{'realization'}} );
+	next unless ( ! defined($selection->{'redshift'   }) || ! defined($redshift   ) || grep {$_ eq $redshift    || $_ eq "*"} @{$selection->{'redshift'   }} );
 	return 1;
     }
     return 0
