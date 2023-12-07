@@ -128,9 +128,9 @@ foreach $content::entry ( &iterate($simulations,\%options) ) {
     <isActive             value="true"                      />
     <posteriorSampleLikelihood value="haloMassFunction">
       <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
-      <baseParametersFileName value="{$fileNameBase}"   />
-      <fileName               value="{$fileNameTarget}" />
-      <redshift               value="{$redshift}"       />
+      <baseParametersFileName value="{$fileNameBase}"       />
+      <fileName               value="{$fileNameTarget}"     />
+      <redshift               value="{$entry->{'redshift'}}"/>
       <massRangeMinimum       value="{$massHaloMinimum}"/> <!-- {$countParticlesMinimum} times zoom-in {$entry->{'suite'}->{'name'}} {$entry->{'group'}->{'name'}} particle mass -->
 CODE
     if ( $content::entry->{'suite'}->{'limitMassMaximum'}->{'value'} eq "primaryFraction" ) {
