@@ -32,7 +32,7 @@
       <rangeHigh     value="1.5"/>
     </nbodyOperator>
     <nbodyOperator value="deleteProperties">
-      <propertyNames value="alwaysIsolated descendentID isolatedHostID hostID hostedRootID expansionFactor isMostMassiveProgenitor virialRatio"/>
+      <propertyNames value="alwaysIsolated descendantID isolatedHostID hostID hostedRootID expansionFactor isMostMassiveProgenitor virialRatio"/>
     </nbodyOperator>
     <nbodyOperator value="exportIRATE">
       <fileName value="alwaysIsolated_spinConcentration_subVolume0_0_0.hdf5"/>
