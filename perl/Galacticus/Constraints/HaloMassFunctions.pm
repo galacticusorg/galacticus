@@ -39,6 +39,7 @@ sub iterate {
 	    my $cosmologyParameters = $xml->XMLin($options{'pipelinePath'}."cosmology_".$suite->{'name'}.".xml");
 	    $suite->{'cosmology'}->{$_} = $cosmologyParameters->{'cosmologyParameters'}->{$_}->{'value'}
 	        foreach ( 'HubbleConstant', 'OmegaMatter', 'OmegaDarkEnergy', 'OmegaBaryon' );
+	    $suite->{'cosmology'}->{'hubbleConstant'} = $suite->{'cosmology'}->{'HubbleConstant'}/100.0;
 	}
 	# Push to the list and move on if we are to stop after the "suite" stage.  
 	if ( $optionsExtra{'stopAfter'} eq "suite" ) {
@@ -57,7 +58,7 @@ sub iterate {
 		# Handle any Hubble parameter scaling.
 		if ( $massParticle =~ m/^=/ ) {
 		    $massParticle =~ s/^=//;
-		    $massParticle =~ s/\[cosmologyParameters::HubbleConstant\]/$suite->{'cosmology'}->{'HubbleParameter'}/;
+		    $massParticle =~ s/\[cosmologyParameters::HubbleConstant\]/$suite->{'cosmology'}->{'HubbleConstant'}/;
 		    $massParticle = eval($massParticle);
 		}
 		$group->{'massParticle'} = $massParticle;
@@ -160,7 +161,7 @@ sub selectSimulations {
     my @selections;
     foreach my $selection ( &List::ExtraUtils::as_array($options{'select'}) ) {
 	# Split the selection into sub-selections.
-	my @subselections = split(/:/,$selection);
+	my @subselections = split(/::/,$selection);
 	foreach my $subselection ( @subselections ) {
 	    my @splitSelection = split(/,/,$subselection);
 	    $subselection = \@splitSelection;
