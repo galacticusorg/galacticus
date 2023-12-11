@@ -79,4 +79,14 @@ sub Parse_Options {
     return %argumentsSeen;
 }
 
+sub Serialize_Options {
+    # Serialize options back to command line arguments.
+    my %options = %{shift()};
+    my $commandLine;
+    foreach my $name ( sort(keys(%options)) ) {
+	$commandLine .= " ".join(" ",map {"--".$name." ".$_} &List::ExtraUtils::as_array($options{$name}));
+    }
+    return $commandLine;
+}
+
 1;
