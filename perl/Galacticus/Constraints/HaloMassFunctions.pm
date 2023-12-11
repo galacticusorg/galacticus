@@ -177,6 +177,8 @@ sub selectSimulations {
 	    }
 	    );
     }
+    die("No entries matched the provided selections")
+	if ( exists($options{'select'}) && scalar(@selections) == 0 );
     return @selections;
 }
 
