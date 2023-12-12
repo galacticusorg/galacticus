@@ -1,36 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1701925349274,
+  "lastUpdate": 1702406251814,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "committer": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "id": "09d0c2ca3c666123da18e8fd807809e23f8ae7fa",
-          "message": "fix: Workaround perturber extent calculation until dark matter profiles are implemented as `massDistributionClass` objects",
-          "timestamp": "2023-03-30T19:38:09Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/09d0c2ca3c666123da18e8fd807809e23f8ae7fa"
-        },
-        "date": 1680216441954,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 205.8,
-            "unit": "seconds",
-            "range": 0.10509995242446
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10688,6 +10660,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 8.49489246491281,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "303504a414be4a532d36d27139be8ad3eadc6ded",
+          "message": "fix: Merge branch 'agesFix'",
+          "timestamp": "2023-12-12T08:12:47-08:00",
+          "tree_id": "a1e796c7988ac1a0613cbad11bd9db6658e95d71",
+          "url": "https://github.com/galacticusorg/galacticus/commit/303504a414be4a532d36d27139be8ad3eadc6ded"
+        },
+        "date": 1702406249893,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 149.374,
+            "unit": "seconds",
+            "range": 0.16238965484094
           }
         ]
       }
