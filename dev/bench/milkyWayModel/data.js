@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1702406258566,
+  "lastUpdate": 1702500854209,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "0f60eb30a53a2afeac453171d801e6dd63621bae",
-          "message": "fix: Remove FFTW3 library from linker if not available",
-          "timestamp": "2023-03-30T19:23:34-07:00",
-          "tree_id": "e009512541cfffe168d7818f2e8653403017b5b0",
-          "url": "https://github.com/galacticusorg/galacticus/commit/0f60eb30a53a2afeac453171d801e6dd63621bae"
-        },
-        "date": 1680250301033,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 226.093,
-            "unit": "seconds",
-            "range": 0.30597075023678
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10692,6 +10662,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 8.55556967366192,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "075e1183f4ca07ec9125497e850e9e918b97629c",
+          "message": "fix: Update repo for codespaces image",
+          "timestamp": "2023-12-13T10:30:27-08:00",
+          "tree_id": "05128dc37177b9cb445c74cfe7ad63027c0941b3",
+          "url": "https://github.com/galacticusorg/galacticus/commit/075e1183f4ca07ec9125497e850e9e918b97629c"
+        },
+        "date": 1702500853010,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 201.295,
+            "unit": "seconds",
+            "range": 0.182286861840554
           }
         ]
       }
