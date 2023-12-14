@@ -10561,6 +10561,7 @@ jobs:
              Regressions-Tree-With-Initial-Satellite-In-Progenitorless-Host,
              Regressions-Tree-With-No-Primary-Progenitor,
              Regressions-Bar-Instability-FPE,
+             Regressions-Output-Rank2VarLen-SegFault,
              Test-Methods-01,
              Test-Methods-02,
              Test-Methods-03,
