@@ -107,7 +107,8 @@ program Benchmark_Stellar_Populations_Luminosities
        &                                                                                 stellarTracks_                      =stellarTracks_                                                                                                &
        &                                                                                )
   supernovaeTypeIa_                     =supernovaeTypeIaNagashima2005                  (                                                                                                                                                   &
-       &                                                                                 stellarAstrophysics_                =stellarAstrophysics_                                                                                          &
+       &                                                                                 stellarAstrophysics_                =stellarAstrophysics_                                                                                        , &
+       &                                                                                 initialMassFunction_                =initialMassFunction_                                                                                          &
        &                                                                                )
   supernovaePopulationIII_              =supernovaePopulationIIIHegerWoosley2002        (                                                                                                                                                   &
        &                                                                                 stellarAstrophysics_                =stellarAstrophysics_                                                                                          &
