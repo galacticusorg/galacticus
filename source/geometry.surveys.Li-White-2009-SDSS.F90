@@ -29,8 +29,8 @@ Implements the survey geometry of the SDSS sample used by \cite{li_distribution_
     A survey geometry class that describes the survey geometry of \cite{li_distribution_2009}. 
     
     For the angular mask, we make use of the catalog of random points within the survey footprint provided by the
-    NYU-VAGC\footnote{Specifically,
-    \href{http://sdss.physics.nyu.edu/lss/dr72/random/lss_random-0.dr72.dat}{http://sdss.physics.nyu.edu/lss/dr72/random/lss\_random-0.dr72.dat}.}
+    NYU-VAGC\footnote{Specifically, \href{https://zenodo.org/records/10257229/files/lss_random-0.dr72.dat}{https://zenodo.org/records/10257229/files/lss\_random-0.dr72.dat}
+     (which is a copy of the dataset originally found at the, now defunct, URL {\normalfont \ttfamily http://sdss.physics.nyu.edu/lss/dr72/random/lss\_random-0.dr72.dat}).}
     (\citealt{blanton_new_2005}; see also
     \citealt{adelman-mccarthy_sixth_2008,padmanabhan_improved_2008}). \cite{li_distribution_2009} consider only the main,
     contiguous region and so we keep only those points which satisfy RA$>100^\circ$, RA$&lt;300^\circ$, and RA$&lt;247^\circ$ or
@@ -283,7 +283,7 @@ contains
     ! Randoms file obtained from:  http://sdss.physics.nyu.edu/lss/dr72/random/
     if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"surveyGeometry/lss_random-0.dr72.dat")) then
        call Directory_Make(inputPath(pathTypeDataDynamic)//"surveyGeometry")
-       call download("http://sdss.physics.nyu.edu/lss/dr72/random/lss_random-0.dr72.dat",char(inputPath(pathTypeDataDynamic))//"surveyGeometry/lss_random-0.dr72.dat",status=status)
+       call download("https://zenodo.org/records/10257229/files/lss_random-0.dr72.dat",char(inputPath(pathTypeDataDynamic))//"surveyGeometry/lss_random-0.dr72.dat",status=status)
        if (status /= 0 .or. .not.File_Exists(inputPath(pathTypeDataDynamic)//"surveyGeometry/lss_random-0.dr72.dat")) call Error_Report('unable to download SDSS survey geometry randoms file'//{introspection:location})
     end if
     randomsCount=Count_Lines_In_File(inputPath(pathTypeDataDynamic)//"surveyGeometry/lss_random-0.dr72.dat")

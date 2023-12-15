@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use System::Redirect;
+use Regexp::Common;
 
 # Check for broken links in Galacticus documentation.
 # Andrew Benson (21-September-2020)
@@ -100,15 +101,17 @@ sub scanWiki {
     my $fileName   = shift();
     my $path       = shift();
     my $lineNumber = 0;
+    my $bracket    = $RE{balanced}{-parens=>'[]'};
+    my $parens     = $RE{balanced}{-parens=>'()'};
     open(my $file,$path."/".$fileName);
     while ( my $line = <$file> ) {
 	++$lineNumber;
-	while ( $line =~ m/\[[^\]]+\]\(([^\)]+)\)/ ) {
-	    my $url = $1;
+	while ( $line =~ m/$bracket$parens/ ) {
+	    (my $url = $2) =~ s/^\((.*)\)$/$1/;
 	    $line =~ s/\[[^\]]+\]\(([^\)]+)\)//;
 	    unless ( &checkLink($url) ) {
-		print "Broken link: \"".$url."\" in ".$path."/".$fileName." line ".$lineNumber." (see preceededing log)\n";
-		push(@brokenURLs,$url." in ".$path."/".$fileName." line ".$lineNumber);
+	    	print "Broken link: \"".$url."\" in ".$path."/".$fileName." line ".$lineNumber." (see preceededing log)\n";
+	    	push(@brokenURLs,$url." in ".$path."/".$fileName." line ".$lineNumber);
 	    }
 	}
     }
