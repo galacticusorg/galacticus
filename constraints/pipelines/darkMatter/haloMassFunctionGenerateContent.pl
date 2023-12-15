@@ -63,7 +63,7 @@ foreach my $entry ( &iterate($simulations,\%options, stopAfter => "group") ) {
 	$entry->{'group'}->{'name'}."\n";
     # Generate isolation bias parameters.
     if ( $entry->{'suite'}->{'includeIsolationBias'}->{'value'} eq "true" ) {
-	$entry->{'group'}->{'labelIsolationBias'} = $entry->{'suite'}->{'name'}.$entry->{'group'}->{'name'};
+	($entry->{'group'}->{'labelIsolationBias'} = $entry->{'suite'}->{'name'}.$entry->{'group'}->{'name'}) =~ s/:/_/g;
 	$entry->{'group'}->{'isolationBias'     } =
 	    "haloMassFunctionParameters::isolationBias"          .$entry->{'group'}->{'labelIsolationBias'}.
 	    "  haloMassFunctionParameters::isolationBiasExponent".$entry->{'group'}->{'labelIsolationBias'};
@@ -91,8 +91,8 @@ foreach $content::entry ( &iterate($simulations,\%options) ) {
 	     $content::entry->{'suite'      }->{'name'}."\t".
      	     $content::entry->{'group'      }->{'name'}."\t".
 	     $content::entry->{'simulation' }->{'name'}."\t".
-	"z=".$content::entry->{'redshift'   }          ."\t".
-	     $content::entry->{'realization'}          ."\n";
+	     $content::entry->{'realization'}          ."\t".
+	"z=".$content::entry->{'redshift'   }          ."\n";
     # Determine the minimum and maximum halo masses.
     $content::massHaloMinimum = sprintf("%11.5e",$content::countParticlesMinimum*$content::entry->{'group'}->{'massParticle'});
     $content::massHaloMaximum = sprintf("%11.5e",$content::fractionMassPrimary  *$content::entry           ->{'massPrimary' })
@@ -121,8 +121,8 @@ foreach $content::entry ( &iterate($simulations,\%options) ) {
                          haloMassFunctionParameters::massMinimumParticleCount{$class} haloMassFunctionParameters::efficiencyAtMassMinimum{$class}
                          haloMassFunctionParameters::exponentMassDetection{$class}    haloMassFunctionParameters::exponentRedshiftDetection{$class}
  
-                         {$perturbation}
-                         {$isolationBias}
+                         {$entry->{'group'}->{'perturbation' }}
+                         {$entry->{'group'}->{'isolationBias'}}
                         "/>
     <parameterInactiveMap value=""     ignoreWarnings="true"/>
     <isActive             value="true"                      />
