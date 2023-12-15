@@ -153,8 +153,8 @@ contains
     if (wavenumber <= 0.0d0) then
        ETHOSValue=+0.0d0
     else
-       cW  =self%cW  (radius,wavenumber,time)
-       beta=self%beta(radius,wavenumber,time)
+       cW  =self%cW  (wavenumber,time)
+       beta=self%beta(wavenumber,time)
        if (cW > 0.0d0 .and. exponent(wavenumber)+exponent(radius)-exponent(cw) < maxExponent(0.0d0)) then
           wavenumberScaled=+wavenumber &
                &           *radius     &
@@ -177,7 +177,7 @@ contains
 
   double precision function ETHOSWavenumberMaximum(self,smoothingMass)
     !!{
-    Sets maximum wavenumber to effectively infinity (really large number)
+    Sets maximum wavenumber to effectively infinity (really large number).
     !!}
     implicit none
     class           (powerSpectrumWindowFunctionETHOS), intent(inout) :: self
@@ -189,29 +189,27 @@ contains
     return
   end function ETHOSWavenumberMaximum
 
-  double precision function ETHOSCW(self,radius,wavenumber,time) result(cW)
+  double precision function ETHOSCW(self,wavenumber,time) result(cW)
     !!{
-    Sets maximum wavenumber to effectively infinity (really large number)
+    Compute the $c_\mathrm{W}$ parameter for the ETHOS window function.
     !!}
     implicit none
     class           (powerSpectrumWindowFunctionETHOS), intent(inout) :: self
-    double precision                                  , intent(in   ) :: radius, wavenumber, &
-         &                                                               time
-    !$GLC attributes unused :: radius, wavenumber, time
+    double precision                                  , intent(in   ) :: wavenumber, time
+    !$GLC attributes unused :: wavenumber, time
 
     cW=self%cW_
     return
   end function ETHOSCW
   
-  double precision function ETHOSBeta(self,radius,wavenumber,time) result(beta)
+  double precision function ETHOSBeta(self,wavenumber,time) result(beta)
     !!{
-    Sets maximum wavenumber to effectively infinity (really large number)
+    Compute the $\beta$ parameter for the ETHOS window function.
     !!}
     implicit none
     class           (powerSpectrumWindowFunctionETHOS), intent(inout) :: self
-    double precision                                  , intent(in   ) :: radius, wavenumber, &
-         &                                                               time
-    !$GLC attributes unused :: radius, wavenumber, time
+    double precision                                  , intent(in   ) :: wavenumber, time
+    !$GLC attributes unused :: wavenumber, time
 
     beta=self%beta_
     return
