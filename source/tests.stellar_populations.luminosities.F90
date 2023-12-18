@@ -137,13 +137,14 @@ call Directory_Make(char(inputPath(pathTypeDataDynamic))//'stellarPopulations/SS
        &                                                                                 stellarTracks_                       =stellarTracks_                                                                                               &
        &                                                                                )
   supernovaeTypeIa_                      =supernovaeTypeIaNagashima2005                 (                                                                                                                                                   &
-       &                                                                                 stellarAstrophysics_                 =stellarAstrophysics_                                                                                         &
+       &                                                                                 stellarAstrophysics_                 =stellarAstrophysics_                                                                                       , &
+       &                                                                                 initialMassFunction_                 =initialMassFunction_                                                                                         &
        &                                                                                )
   supernovaePopulationIII_               =supernovaePopulationIIIHegerWoosley2002       (                                                                                                                                                   &
        &                                                                                 stellarAstrophysics_                 =stellarAstrophysics_                                                                                         &
        &                                                                                )
   stellarFeedback_                       =stellarFeedbackStandard                       (                                                                                                                                                   &
-       &                                                                                 initialMassForSupernovaeTypeII        =8.0d00                                                                                                    , &
+       &                                                                                 initialMassForSupernovaeTypeII       =8.0d00                                                                                                     , &
        &                                                                                 supernovaEnergy                      =1.0d51                                                                                                     , &
        &                                                                                 supernovaeTypeIa_                    =supernovaeTypeIa_                                                                                          , &
        &                                                                                 supernovaePopulationIII_             =supernovaePopulationIII_                                                                                   , &
@@ -151,7 +152,7 @@ call Directory_Make(char(inputPath(pathTypeDataDynamic))//'stellarPopulations/SS
        &                                                                                 stellarAstrophysics_                 =stellarAstrophysics_                                                                                         &
        &                                                                                )
   stellarPopulationSpectra_              =stellarPopulationSpectraFile                  (                                                                                                                                                   &
-       &                                                                                 forceZeroMetallicity                   =.false.                                                                                                  , &
+       &                                                                                 forceZeroMetallicity                 =.false.                                                                                                    , &
        &                                                                                 fileName                             =char(inputPath(pathTypeDataStatic))//'stellarPopulations/SSP_Spectra_BC2003_lowResolution_imfSalpeter.hdf5'  &
        &                                                                                )
   stellarPopulation_                     =stellarPopulationStandard                     (                                                                                                                                                   &
