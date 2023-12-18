@@ -142,6 +142,9 @@ sub checkLink {
 	    unless ( $url =~ m/^https:\/\/www\.drdobbs\.com\// );
 	$options .= " --user-agent \"Mozilla\""
 	    if ( $url =~ m/sharepoint\.com/ );
+	# docker.com issues a 403 unless we make cURL pretend to be wget...
+	$options .= " --user-agent \"Wget/1.21.2\""
+	    if ( $url =~ m/docker\.com/ );
 	$options .= " --compressed"
 	    if ( $url =~ m/docs\.github\.com/ );
 	$options .= " --http1.1"
