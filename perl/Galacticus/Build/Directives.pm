@@ -3,6 +3,7 @@
 package Galacticus::Build::Directives;
 use strict;
 use warnings;
+use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use XML::Simple;
 use Data::Dumper;
 use File::Names;
