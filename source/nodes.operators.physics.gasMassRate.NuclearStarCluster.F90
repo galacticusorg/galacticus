@@ -21,7 +21,6 @@
   Implements a node operator class that handle the gass mass rate in the nuclear star cluster.
   !!}
   use :: Star_Formation_Rates_Spheroids , only : starFormationRateSpheroidsClass
-  use :: Star_Formation_Rates_Disks     , only : starFormationRateDisksClass
 
   !![
   <nodeOperator name="nodeOperatorGasMassRateNSC">
@@ -35,7 +34,6 @@
      !!}
      private
      class(starFormationRateSpheroidsClass), pointer :: starFormationRateSpheroids_ => null()
-     class(starFormationRateDisksClass    ), pointer :: starFormationRateDisks_     => null()
      double precision                                :: Ares
 
 
@@ -63,7 +61,6 @@ contains
     type (nodeOperatorGasMassRateNSC     )                :: self
     type (inputParameters                ), intent(inout) :: parameters
     class(starFormationRateSpheroidsClass), pointer       :: starFormationRateSpheroids_
-    class(starFormationRateDisksClass    ), pointer       :: starFormationRateDisks_
     double precision                                      :: Ares
 
 
@@ -75,33 +72,29 @@ contains
     <source>parameters</source>
     </inputParameter>
     <objectBuilder class="starFormationRateSpheroids" name="starFormationRateSpheroids_" source="parameters"/>
-    <objectBuilder class="starFormationRateDisks"     name="starFormationRateDisks_"     source="parameters"/>
     !!]
 
-    self=nodeOperatorGasMassRateNSC(Ares,starFormationRateSpheroids_, starFormationRateDisks_)
+    self=nodeOperatorGasMassRateNSC(Ares,starFormationRateSpheroids_)
 
     !![
     <inputParametersValidate source="parameters"        />
     <objectDestructor name="starFormationRateSpheroids_"/>
-    <objectDestructor name="starFormationRateDisks_"    />
     !!]
     return
   end function GasMassRateNSCConstructorParameters
   
-  function GasMassRateNSCConstructorInternal(Ares, starFormationRateSpheroids_,starFormationRateDisks_) result(self)
+  function GasMassRateNSCConstructorInternal(Ares, starFormationRateSpheroids_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily GasMassRateNSC} node operator class.
     !!}
     implicit none
     type (nodeOperatorGasMassRateNSC     )                        :: self
     class(starFormationRateSpheroidsClass), intent(in   ), target :: starFormationRateSpheroids_
-    class(starFormationRateDisksClass    ), intent(in   ), target :: starFormationRateDisks_
     double precision                      , intent(in   ), target :: Ares
 
     !![
     <constructorAssign variables="Ares"                        />
     <constructorAssign variables="*starFormationRateSpheroids_"/>
-    <constructorAssign variables="*starFormationRateDisks_"     />
     !!]
     return
   end function GasMassRateNSCConstructorInternal
@@ -114,7 +107,6 @@ contains
     type(nodeOperatorGasMassRateNSC), intent(inout) :: self
     !![
     <objectDestructor name="self%starFormationRateSpheroids_"/>
-    <objectDestructor name="self%starFormationRateDisks_"    />
     !!]
     return
   end subroutine GasMassRateNSCDestructor
@@ -123,8 +115,8 @@ contains
       !!{
         Compute the nuclear star cluster gas mass rate change.
       !!}
-    use :: Galacticus_Nodes , only : interruptTask        , nodeComponentNSC  , nodeComponentNSCStandard, &
-                                 &   nodeComponentSpheroid, nodeComponentDisk , propertyInactive  , treeNode
+    use :: Galacticus_Nodes , only : interruptTask        , nodeComponentNSC, nodeComponentNSCStandard, &
+                                 &   nodeComponentSpheroid, propertyInactive, treeNode
     implicit none
     class(nodeOperatorGasMassRateNSC), intent(inout), target :: self
     type (treeNode                  ), intent(inout), target :: node
@@ -133,9 +125,8 @@ contains
     integer                          , intent(in   )         :: propertyType
     class (nodeComponentNSC         ),                pointer:: NSC
     class (nodeComponentSpheroid    )               , pointer:: spheroid
-    class (nodeComponentDisk        )               , pointer:: disk
-    double precision                                         :: gasMassAccretionRate , rateStarFormationSpheroid, &
-          &                                                     rateStarFormationDisk
+    double precision                                         :: gasMassAccretionRate , rateStarFormationSpheroid
+
     gasMassAccretionRate = 0.0d0
 
     ! Return immediately if inactive variables are requested.
@@ -143,20 +134,13 @@ contains
 
     ! Get the spheroid component.
     spheroid => node%spheroid()
-    disk     => node%disk()
-
   
     rateStarFormationSpheroid =  self%starFormationRateSpheroids_%rate(node)   
-    rateStarFormationDisk     =  self%starFormationRateDisks_    %rate(node) 
 
    ! Find the rate of  mass accretion onto the nuclear star cluster.
-    if      (rateStarFormationSpheroid <= 0.0d0.and. rateStarFormationDisk <= 0.0d0) then
+    if  (rateStarFormationSpheroid <= 0.0d0) then
       gasMassAccretionRate = 0.0d0
-    else if (rateStarFormationSpheroid > 0.0d0 .and. rateStarFormationDisk > 0.0d0)  then
-      gasMassAccretionRate = self%Ares*rateStarFormationSpheroid
-    else if (rateStarFormationSpheroid <= 0.0d0.and. rateStarFormationDisk > 0.0d0) then
-      gasMassAccretionRate = self%Ares*rateStarFormationDisk
-    else if (rateStarFormationSpheroid >0.0d0  .and. rateStarFormationDisk <= 0.0d0) then
+    else
       gasMassAccretionRate = self%Ares*rateStarFormationSpheroid
     end if 
     

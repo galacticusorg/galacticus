@@ -839,7 +839,7 @@ contains
     class           (*                               ), intent(inout) :: self
     type            (treeNode                        ), intent(inout) :: node
     class           (nodeComponentNSC                ), pointer       :: NSC
-    class           (nodeComponentSpheroid           ), pointer       :: spheroidHost           , spheroid
+    class           (nodeComponentSpheroid           ), pointer       :: spheroidHost           
     class           (nodeComponentDisk               ), pointer       :: diskHost               
     type            (treeNode                        ), pointer       :: nodeHost
     type            (history                         )                :: historyHost            , historyNode
