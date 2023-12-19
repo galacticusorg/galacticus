@@ -5,6 +5,7 @@ use strict;
 use warnings;
 use XML::Simple;
 use Data::Dumper;
+use File::Names;
 
 sub Extract_Directive {
     # Extract a named directive from a given file handle.
@@ -35,7 +36,13 @@ sub Extract_Directive {
 	    if ( defined($xmlText) && $depth == 0 ) {
 		# Parse the XML.
 		my $xml    = new XML::Simple(KeepRoot => 1);
-		$directive = $xml->XMLin($xmlText);
+		$directive = eval{$xml->XMLin($xmlText)};
+		if ( $@ ) {
+		    print "Extract_Directive: while extracting directive '".$directiveName."' from line ".$fileHandle->input_line_number()." of file '".&File::Names::Get_Name($fileHandle)."' failed parsing with message:\n".$@."\n";
+		    print " XML content was:\n";
+		    print $xmlText;
+		    die();
+		}
 		if ( $directiveName eq "*" || exists($directive->{$directiveName}) ) {
 		    my $matchedDirectiveName = (keys(%{$directive}))[0];
 		    $directive = $directive->{$matchedDirectiveName};
