@@ -10,18 +10,18 @@ import numpy as np
 
 # Run the model and check for completion.
 print("Running model...")
-status = subprocess.run("mkdir -p outputs/regressions",shell=True)
-log = open("outputs/regressions/adaptiveSFHLengths.log","w")
-status = subprocess.run("cd ..; ./Galacticus.exe testSuite/regressions/adaptiveSFHLengths.xml",stdout=log,stderr=log,shell=True)
+status = subprocess.run("mkdir -p testSuite/outputs/regressions",shell=True)
+log = open("testSuite/outputs/regressions/adaptiveSFHLengths.log","w")
+status = subprocess.run("./Galacticus.exe testSuite/regressions/adaptiveSFHLengths.xml",stdout=log,stderr=log,shell=True)
 log.close()
 print("...done ("+str(status)+")")
 if status.returncode != 0:
     print("FAILED: model run:")
-    subprocess.run("cat outputs/regressions/adaptiveSFHLengths.log",shell=True)
+    subprocess.run("cat testSuite/outputs/regressions/adaptiveSFHLengths.log",shell=True)
     sys.exit()
 
 # Check lengths of SFHs.
-model     = h5py.File('outputs/regressions/adaptiveSFHLengths.hdf5','r')
+model     = h5py.File('testSuite/outputs/regressions/adaptiveSFHLengths.hdf5','r')
 nodes     = model['Outputs/Output137/nodeData']
 diskSFHs  = nodes['diskStarFormationHistoryMass']
 times     = diskSFHs.attrs.get('time')
