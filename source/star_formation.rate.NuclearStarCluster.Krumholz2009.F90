@@ -189,7 +189,7 @@ contains
     implicit none
     double precision               , intent(in   ) :: radiusNSC, massGasNSC
     ! Return the surface gas density in units of M☉/pc² of the NSC
-    SurfaceDensityGas = massGasNSC / (2.0d0*Pi*radiusNSC**2.0d0)
+    SurfaceDensityGas = massGasNSC / (4.0d0*Pi*radiusNSC**2.0d0)
     return
   end function SurfaceDensityGas
 
