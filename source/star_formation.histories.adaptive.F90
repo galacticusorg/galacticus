@@ -53,7 +53,7 @@
   
     This approach ensures that the number of timesteps never exceeds {\normalfont \ttfamily [countTimeStepsMaximum]}, results
     in timesteps that are small close to the output time, but increase (approximately logarithmically) for times earlier than
-    the output time, and allows simple (interpolation-free) consolidation of accumulate star formation from the previous output
+    the output time, and allows simple (interpolation-free) consolidation of accumulated star formation from the previous output
     time's timesteps to those of the current output time.
   
     Typically, the metallicity binning is arranged logarithmically in metallicity with {\normalfont \ttfamily
@@ -84,6 +84,7 @@
    contains
      final     ::                                adaptiveDestructor
      procedure :: create                      => adaptiveCreate
+     procedure :: update                      => adaptiveUpdate
      procedure :: rate                        => adaptiveRate
      procedure :: scales                      => adaptiveScales
      procedure :: times                       => adaptiveTimes
