@@ -539,6 +539,7 @@ contains
     class(  criticalOverdensityClass), intent(inout) :: self
     type   (treeNode                ), intent(inout) :: node
     integer(kind_int8               ), intent(in   ) :: uniqueID
+    !$GLC attributes unused :: node
 
     self%lastUniqueID=uniqueID
     return

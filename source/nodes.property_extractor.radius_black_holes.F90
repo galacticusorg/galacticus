@@ -74,7 +74,6 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily radiusBlackHoles} node operator class.
     !!}
-    use :: Galacticus_Nodes, only : defaultBasicComponent
     implicit none
     type (nodePropertyExtractorRadiusBlackHoles   )                        :: self
     class(blackHoleBinarySeparationGrowthRateClass), intent(in   ), target :: blackHoleBinarySeparationGrowthRate_

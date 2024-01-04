@@ -208,7 +208,6 @@ contains
          &                                                             temperatureHotHalo             , fractionHotMode         , &
          &                                                             lengthJeans                    , fractionColdMode        , &
          &                                                             efficiencyRadiative            , velocityRelative
-         &                                                             
 
     ! Get the host node.
     node          => blackHole%host()
