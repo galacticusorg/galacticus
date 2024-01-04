@@ -107,16 +107,17 @@
 
 contains
   
-  subroutine list2DMetaData(self,node,metaDataRank0,metaDataRank1)
+  subroutine list2DMetaData(self,node,time,metaDataRank0,metaDataRank1)
     !!{
     Interface for list2D property meta-data.
     !!}
     implicit none
-    class(nodePropertyExtractorList2D), intent(inout) :: self
-    type (treeNode                   ), intent(inout) :: node
-    type (doubleHash                 ), intent(inout) :: metaDataRank0
-    type (rank1DoubleHash            ), intent(inout) :: metaDataRank1
-    !$GLC attributes unused :: self, node, metaDataRank0, metaDataRank1
+    class           (nodePropertyExtractorList2D), intent(inout) :: self
+    type            (treeNode                   ), intent(inout) :: node
+    double precision                             , intent(in   ) :: time
+    type            (doubleHash                 ), intent(inout) :: metaDataRank0
+    type            (rank1DoubleHash            ), intent(inout) :: metaDataRank1
+    !$GLC attributes unused :: self, node, time, metaDataRank0, metaDataRank1
     
     return
   end subroutine list2DMetaData

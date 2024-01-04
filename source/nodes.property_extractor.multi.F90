@@ -823,7 +823,7 @@ contains
        class is (nodePropertyExtractorList2D       )
           if (elementType == elementTypeDouble ) then
              elementCount=extractor_%elementCount()
-             if (offset+1 <= iProperty .and. offset+elementCount >= iProperty) call extractor_%metaData(node                                  ,metaDataRank0,metaDataRank1)
+             if (offset+1 <= iProperty .and. offset+elementCount >= iProperty) call extractor_%metaData(node            ,time                 ,metaDataRank0,metaDataRank1)
           end if
        class is (nodePropertyExtractorMulti        )
           elementCount=extractor_%elementCount(elementType,time)
