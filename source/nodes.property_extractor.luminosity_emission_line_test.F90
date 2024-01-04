@@ -64,9 +64,9 @@
      !![
      <methods>
        <method description="Return a hashed descriptor of the object which incorporates the time and metallicity binning of the star formation history." method="luminosityHistoryHashedDescriptor"/>
-       <method description="Compute the mean luminosity of the stellar population in the given bin of the star formation history."                       method="luminosi        tyMean"         />
+       <method description="Compute the mean luminosity of the stellar population in the given bin of the star formation history."                       method="luminosityMean"         />
        <method description="Return the index of the template time to use."                                                                               method="indexTemplateTime"      />
-       <method description="Return the index of the template luminosities to use."                                                                               method="indexTemplateNode"      />
+       <method description="Return the index of the template luminosities to use."                                                                       method="indexTemplateNode"      />
      </methods>
      !!]
      final     ::                            emissionLineLuminosityDestructor
