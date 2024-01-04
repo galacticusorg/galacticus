@@ -23,7 +23,7 @@ jobs:
       - name: Retrieve and report status
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SLACK_WEBHOOK_STATUS_URL: ${{ secrets.SLACK_WEBHOOK_SLOCREPORT_URL }}
+          SLACK_WEBHOOK_SLOCREPORT_URL: ${{ secrets.SLACK_WEBHOOK_SLOCREPORT_URL }}
         run: |
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
