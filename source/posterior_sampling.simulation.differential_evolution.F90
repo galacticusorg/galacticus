@@ -418,7 +418,7 @@ contains
     integer                                                         , dimension(                    2) :: chainPair
     double precision                                                , dimension(self%parameterCount,2) :: statePair
     double precision                                                , dimension(self%parameterCount  ) :: stateVector           , stateVectorProposed          , &
-         &                                                                                                stateVectorInteractive
+         &                                                                                                stateVectorInteractive, stateVectorPerturbation
     class           (posteriorSampleStateClass                     ), allocatable                      :: stateProposed
     real                                                                                               :: timePreEvaluate       , timePostEvaluate             , &
          &                                                                                                timeEvaluate          , timeEvaluatePrevious
@@ -502,7 +502,17 @@ contains
             &                -statePair(:,2)               &
             &               )
        ! Add random perturbations to the proposal.
-       if (.not.forceAcceptance) stateVectorProposed=stateVectorProposed+self%posteriorSampleDffrntlEvltnRandomJump_%sample(self%modelParametersActive_,self%posteriorSampleState_)
+       if (.not.forceAcceptance) then
+          stateVectorPerturbation=self%posteriorSampleDffrntlEvltnRandomJump_%sample(self%modelParametersActive_,self%posteriorSampleState_)
+          ! Disable perturbations in slow parameters, except for on slow steps.
+          if (mod(self%posteriorSampleState_%count(),self%slowStepCount) /= 0) then
+             where (self%modelParametersActiveIsSlow)
+                stateVectorPerturbation=0.0d0
+             end where
+          end if
+          stateVectorProposed=+stateVectorProposed     &
+               &              +stateVectorPerturbation
+       end if
        ! If simulation is interactive, check for any interaction file.
        if (self%isInteractive) then
           ! Check if an interaction file exists.
