@@ -402,6 +402,7 @@ contains
          &                                                               massRatioIntruder        , newRadius                  , &
          &                                                               velocityBinary           , velocityEjected
     logical                                                           :: removeBinary             , removeEjected
+    !$GLC attributes unused :: timeEnd
 
     ! Get the basic component.
     basic            => node%basic    (                       )
