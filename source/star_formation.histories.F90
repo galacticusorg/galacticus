@@ -47,9 +47,10 @@ module Star_Formation_Histories
     <description>Create the star formation history object.</description>
     <type>void</type>
     <pass>yes</pass>
-    <argument>type            (treeNode), intent(inout) :: node</argument>
-    <argument>type            (history ), intent(inout) :: historyStarFormation</argument>
-    <argument>double precision          , intent(in   ) :: timeBegin</argument>
+    <argument>type            (treeNode), intent(inout)           :: node</argument>
+    <argument>type            (history ), intent(inout)           :: historyStarFormation</argument>
+    <argument>double precision          , intent(in   )           :: timeBegin</argument>
+    <argument>double precision          , intent(in   ), optional :: timeEnd</argument>
    </method>
    <method name="scales" >
     <description>Set ODE solver absolute scales for a star formation history object.</description>

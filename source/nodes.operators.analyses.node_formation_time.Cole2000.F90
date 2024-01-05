@@ -171,11 +171,13 @@ contains
     return
   end subroutine nodeFormationTimeCole2000DifferentialEvolution
 
-  subroutine reformOnInterrupt(node)
+  subroutine reformOnInterrupt(node,timeEnd)
     !!{
     Wrapper function to perform node reformation during interrupt of differential evolution.
     !!}
-    type(treeNode), intent(inout), target :: node
+    type            (treeNode), intent(inout), target   :: node
+    double precision          , intent(in   ), optional :: timeEnd
+    !$GLC attributes unused :: timeEnd
 
     call self_%reform(node)
     return

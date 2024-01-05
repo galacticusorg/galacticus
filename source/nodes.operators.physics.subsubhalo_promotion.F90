@@ -147,14 +147,16 @@ contains
     return
   end subroutine subsubhaloPromotionDifferentialEvolution
   
-  subroutine subsubhaloPromotionPromote(node)
+  subroutine subsubhaloPromotionPromote(node,timeEnd)
     !!{
     Promote a sub-sub-halo into its host's host.
     !!}
     use :: Satellite_Promotion, only : Satellite_Move_To_New_Host
     implicit none
-    type(treeNode), intent(inout), target  :: node
-
+    type            (treeNode), intent(inout), target   :: node
+    double precision          , intent(in   ), optional :: timeEnd
+    !$GLC attributes unused :: timeEnd
+    
     ! Move the sub-sub-halo into its host's host.
     call Satellite_Move_To_New_Host(node,node%parent%parent)
     return

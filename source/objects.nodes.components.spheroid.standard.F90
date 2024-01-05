@@ -1393,21 +1393,22 @@ contains
     return
   end subroutine Node_Component_Spheroid_Standard_Radius_Solver
 
-  subroutine Node_Component_Spheroid_Standard_Initializor(self)
+  subroutine Node_Component_Spheroid_Standard_Initializor(self,timeEnd)
     !!{
     Initializes a standard spheroid component.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDisk, nodeComponentSpheroidStandard, treeNode
     use :: Histories       , only : history
     implicit none
-    type            (nodeComponentSpheroidStandard)          :: self
-    type            (treeNode                     ), pointer :: node
-    class           (nodeComponentDisk            ), pointer :: disk
-    class           (nodeComponentBasic           ), pointer :: basic
-    type            (history                      )          :: historyStarFormation        , stellarPropertiesHistory      , &
-         &                                                      diskStarFormationHistory
-    logical                                                  :: createStarFormationHistory  , createStellarPropertiesHistory
-    double precision                                         :: timeBegin
+    type            (nodeComponentSpheroidStandard), intent(inout)           :: self
+    double precision                               , intent(in   ), optional :: timeEnd
+    type            (treeNode                     ), pointer                 :: node
+    class           (nodeComponentDisk            ), pointer                 :: disk
+    class           (nodeComponentBasic           ), pointer                 :: basic
+    type            (history                      )                          :: historyStarFormation        , stellarPropertiesHistory      , &
+         &                                                                      diskStarFormationHistory
+    logical                                                                  :: createStarFormationHistory  , createStellarPropertiesHistory
+    double precision                                                         :: timeBegin
 
     ! Return if already initialized.
     if (self%isInitialized()) return
@@ -1435,24 +1436,26 @@ contains
           basic    => node %basic()
           timeBegin = basic%time ()
        end if
-       call starFormationHistory_%create                 (node,historyStarFormation,timeBegin)
-       call self                 %starFormationHistorySet(     historyStarFormation          )
+       call starFormationHistory_%create                 (node,historyStarFormation,timeBegin,timeEnd)
+       call self                 %starFormationHistorySet(     historyStarFormation                  )
     end if
     ! Record that the spheroid has been initialized.
     call self%isInitializedSet(.true.)
     return
   end subroutine Node_Component_Spheroid_Standard_Initializor
 
-  subroutine Node_Component_Spheroid_Standard_Star_Formation_History_Extend(node)
+  subroutine Node_Component_Spheroid_Standard_Star_Formation_History_Extend(node,timeEnd)
     !!{
     Extend the range of a star formation history in a standard spheroid component for {\normalfont \ttfamily node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSpheroid, treeNode
     implicit none
-    type (treeNode             ), intent(inout), target  :: node
-    class(nodeComponentSpheroid)               , pointer :: spheroid
-    type (history              )                         :: historyStarFormation
-
+    type            (treeNode             ), intent(inout), target   :: node
+    double precision                       , intent(in   ), optional :: timeEnd
+    class           (nodeComponentSpheroid)               , pointer  :: spheroid
+    type            (history              )                          :: historyStarFormation
+    !$GLC attributes unused :: timeEnd
+    
     ! Get the spheroid component.
     spheroid => node%spheroid()
     ! Extend the range as necessary.
@@ -1462,16 +1465,18 @@ contains
     return
   end subroutine Node_Component_Spheroid_Standard_Star_Formation_History_Extend
 
-  subroutine Node_Component_Spheroid_Standard_Stellar_Prprts_History_Extend(node)
+  subroutine Node_Component_Spheroid_Standard_Stellar_Prprts_History_Extend(node,timeEnd)
     !!{
     Extend the range of a stellar properties history in a standard spheroid component for {\normalfont \ttfamily node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSpheroid, treeNode
     implicit none
-    type (treeNode             ), intent(inout), target  :: node
-    class(nodeComponentSpheroid)               , pointer :: spheroid
-    type (history              )                         :: stellarPropertiesHistory
-
+    type            (treeNode             ), intent(inout), target   :: node
+    double precision                       , intent(in   ), optional :: timeEnd
+    class           (nodeComponentSpheroid)               , pointer  :: spheroid
+    type            (history              )                          :: stellarPropertiesHistory
+    !$GLC attributes unused :: timeEnd
+    
     ! Get the spheroid component.
     spheroid => node%spheroid()
     ! Extend the range as necessary.

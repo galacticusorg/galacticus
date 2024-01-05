@@ -371,24 +371,29 @@ contains
     return
   end subroutine adaptiveDestructor
 
-  subroutine adaptiveCreate(self,node,historyStarFormation,timeBegin)
+  subroutine adaptiveCreate(self,node,historyStarFormation,timeBegin,timeEnd)
     !!{
     Create the history required for storing star formation history.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
-    class           (starFormationHistoryAdaptive), intent(inout) :: self
-    type            (treeNode                    ), intent(inout) :: node
-    type            (history                     ), intent(inout) :: historyStarFormation
-    double precision                              , intent(in   ) :: timeBegin
-    class           (nodeComponentBasic          ), pointer       :: basic
-    integer         (c_size_t                    )                :: indexOutput
-    double precision                                              :: timeNext
+    class           (starFormationHistoryAdaptive), intent(inout)           :: self
+    type            (treeNode                    ), intent(inout)           :: node
+    type            (history                     ), intent(inout)           :: historyStarFormation
+    double precision                              , intent(in   )           :: timeBegin
+    double precision                              , intent(in   ), optional :: timeEnd
+    class           (nodeComponentBasic          ), pointer                 :: basic
+    integer         (c_size_t                    )                          :: indexOutput
+    double precision                                                        :: timeNext
     !$GLC attributes unused :: timeBegin
 
     ! Get the time and index of the next output
-    basic    => node             %basic   (                                                )
-    timeNext =  self%outputTimes_%timeNext(timeCurrent=basic%time(),indexOutput=indexOutput)
+    if (present(timeEnd)) then
+       indexOutput=self%outputTimes_%index(timeEnd)
+    else
+       basic    => node             %basic   (                                                )
+       timeNext =  self%outputTimes_%timeNext(timeCurrent=basic%time(),indexOutput=indexOutput)
+    end if
     ! Create the appropriate history.
     call historyStarFormation%create(int(self%countMetallicities+1),size(self%intervals(indexOutput)%time))
     historyStarFormation%time=self%intervals(indexOutput)%time

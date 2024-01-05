@@ -459,7 +459,7 @@ contains
                          ! Check for interrupt.
                          if (interrupted) then
                             ! If an interrupt occurred call the specified procedure to handle it.
-                            call interruptProcedure(node)
+                            call interruptProcedure(node,timeEnd)
                             ! Something happened so the tree is not deadlocked.
                             statusDeadlock=deadlockStatusIsNotDeadlocked
                          else

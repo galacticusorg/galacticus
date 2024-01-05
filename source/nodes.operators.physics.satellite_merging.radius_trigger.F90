@@ -153,15 +153,17 @@ contains
     return
   end subroutine satelliteMergingRadiusTriggerDifferentialEvolution
 
-  subroutine mergerTrigger(node)
+  subroutine mergerTrigger(node,timeEnd)
     !!{
     Trigger a merger of the satellite by setting the time until merging to zero.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite, nodeComponentBasic, treeNode
     implicit none
-    type (treeNode              ), intent(inout), target  :: node
-    class(nodeComponentBasic    )               , pointer :: basic
-    class(nodeComponentSatellite)               , pointer :: satellite
+    type            (treeNode              ), intent(inout), target   :: node
+    double precision                        , intent(in   ), optional :: timeEnd
+    class           (nodeComponentBasic    )               , pointer  :: basic
+    class           (nodeComponentSatellite)               , pointer  :: satellite
+    !$GLC attributes unused :: timeEnd
 
     basic     => node%basic    ()
     satellite => node%satellite()

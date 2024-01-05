@@ -63,16 +63,17 @@ contains
     return
   end function nullConstructorParameters
 
-  subroutine nullCreate(self,node,historyStarFormation,timeBegin)
+  subroutine nullCreate(self,node,historyStarFormation,timeBegin,timeEnd)
     !!{
     Create the history required for storing star formation history.
     !!}
     implicit none
-    class           (starFormationHistoryNull), intent(inout) :: self
-    type            (treeNode                ), intent(inout) :: node
-    type            (history                 ), intent(inout) :: historyStarFormation
-    double precision                          , intent(in   ) :: timeBegin
-    !$GLC attributes unused :: self, node, historyStarFormation, timeBegin
+    class           (starFormationHistoryNull), intent(inout)           :: self
+    type            (treeNode                ), intent(inout)           :: node
+    type            (history                 ), intent(inout)           :: historyStarFormation
+    double precision                          , intent(in   )           :: timeBegin
+    double precision                          , intent(in   ), optional :: timeEnd
+    !$GLC attributes unused :: self, node, historyStarFormation, timeBegin, timeEnd
 
     ! Do nothing.
     return

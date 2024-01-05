@@ -377,11 +377,13 @@ contains
     return
   end subroutine positionInterpolatedNodePromote
 
-  subroutine positionInterpolatedComputeInterpolation_(node)
+  subroutine positionInterpolatedComputeInterpolation_(node,timeEnd)
     !!{
     Interrupt function to recompute interpolation.
     !!}
-    type(treeNode), intent(inout), target :: node
+    type            (treeNode), intent(inout), target   :: node
+    double precision          , intent(in   ), optional :: timeEnd
+    !$GLC attributes unused :: timeEnd
     
     call self_%computeInterpolation(node)
     return

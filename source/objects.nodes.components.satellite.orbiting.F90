@@ -365,13 +365,15 @@ contains
     return
   end subroutine Node_Component_Satellite_Orbiting_Scale_Set
 
-  subroutine Node_Component_Satellite_Orbiting_Initializor(self)
+  subroutine Node_Component_Satellite_Orbiting_Initializor(self,timeEnd)
     !!{
     Initializes an orbiting satellite component.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatelliteOrbiting
     implicit none
-    type(nodeComponentSatelliteOrbiting) :: self
+    type            (nodeComponentSatelliteOrbiting), intent(inout)           :: self
+    double precision                                , intent(in   ), optional :: timeEnd
+    !$GLC attributes unused :: timeEnd
 
     call Node_Component_Satellite_Orbiting_Create(self%hostNode)
     return
