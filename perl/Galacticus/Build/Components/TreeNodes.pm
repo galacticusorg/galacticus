@@ -319,6 +319,11 @@ sub Insert_Interrupt_Interface {
 		 type       => "treeNode",
 		 attributes => [ "target", "intent(inout)" ],
 		 variables  => [ "node" ]
+	     },
+	     {
+		 intrinsic  => "double precision",
+		 attributes => [ "intent(in   )", "optional" ],
+		 variables  => [ "timeEnd" ]
 	     }
 	    ]		
     };    

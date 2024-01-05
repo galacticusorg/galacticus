@@ -329,20 +329,22 @@ contains
     return
   end subroutine Node_Component_Black_Hole_Noncentral_Scale_Set
 
-  subroutine Node_Component_Black_Hole_Noncentral_Merge_Black_Holes(node)
+  subroutine Node_Component_Black_Hole_Noncentral_Merge_Black_Holes(node,timeEnd)
     !!{
     Merge two black holes.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBlackHole, treeNode
     implicit none
-    type            (treeNode              ), intent(inout), target  :: node
-    class           (nodeComponentBlackHole)               , pointer :: blackHole1      , blackHole2        , &
-         &                                                              blackHolePrimary, blackHoleSecondary
-    double precision                                                 :: massBlackHoleNew, spinBlackHoleNew  , &
-         &                                                              massBlackHole1  , massBlackHole2    , &
-         &                                                              velocityRecoil  , spinBlackHole1    , &
-         &                                                              spinBlackHole2
-
+    type            (treeNode              ), intent(inout), target   :: node
+    double precision                        , intent(in   ), optional :: timeEnd
+    class           (nodeComponentBlackHole)               , pointer  :: blackHole1      , blackHole2        , &
+         &                                                               blackHolePrimary, blackHoleSecondary
+    double precision                                                  :: massBlackHoleNew, spinBlackHoleNew  , &
+         &                                                               massBlackHole1  , massBlackHole2    , &
+         &                                                               velocityRecoil  , spinBlackHole1    , &
+         &                                                               spinBlackHole2
+    !$GLC attributes unused :: timeEnd
+    
     ! Get the black holes.
     blackHole1 => node%blackHole(instance=              1)
     blackHole2 => node%blackHole(instance=mergingInstance)
@@ -381,24 +383,26 @@ contains
     return
   end subroutine Node_Component_Black_Hole_Noncentral_Merge_Black_Holes
 
-  subroutine Node_Component_Black_Hole_Noncentral_Triple_Interaction(node)
+  subroutine Node_Component_Black_Hole_Noncentral_Triple_Interaction(node,timeEnd)
     !!{
     Handles triple black holes interactions, using conditions similar to those of \cite{volonteri_assembly_2003}.
     !!}
     use :: Galacticus_Nodes            , only : nodeComponentBasic             , nodeComponentBlackHole, treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    type            (treeNode              ), intent(inout), target  :: node
-    class           (nodeComponentBasic    )               , pointer :: basic
-    class           (nodeComponentBlackHole)               , pointer :: blackHoleBinary          , blackHoleCentral           , &
-         &                                                              ejectedBlackHoleComponent, newBinaryBlackHoleComponent, &
-         &                                                              tripleBlackHoleComponent
-    integer                                                          :: ejectedInstance          , newBinaryInstance
-    double precision                                                 :: bindingEnergy            , kineticEnergyChange        , &
-         &                                                              massBinary               , massEjected                , &
-         &                                                              massRatioIntruder        , newRadius                  , &
-         &                                                              velocityBinary           , velocityEjected
-    logical                                                          :: removeBinary             , removeEjected
+    type            (treeNode              ), intent(inout), target   :: node
+    double precision                        , intent(in   ), optional :: timeEnd
+    class           (nodeComponentBasic    )               , pointer  :: basic
+    class           (nodeComponentBlackHole)               , pointer  :: blackHoleBinary          , blackHoleCentral           , &
+         &                                                               ejectedBlackHoleComponent, newBinaryBlackHoleComponent, &
+         &                                                               tripleBlackHoleComponent
+    integer                                                           :: ejectedInstance          , newBinaryInstance
+    double precision                                                  :: bindingEnergy            , kineticEnergyChange        , &
+         &                                                               massBinary               , massEjected                , &
+         &                                                               massRatioIntruder        , newRadius                  , &
+         &                                                               velocityBinary           , velocityEjected
+    logical                                                           :: removeBinary             , removeEjected
+    !$GLC attributes unused :: timeEnd
 
     ! Get the basic component.
     basic            => node%basic    (                       )

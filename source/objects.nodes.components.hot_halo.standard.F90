@@ -2077,15 +2077,17 @@ contains
     return
   end subroutine Node_Component_Hot_Halo_Standard_Create
 
-  subroutine Node_Component_Hot_Halo_Standard_Initializor(self)
+  subroutine Node_Component_Hot_Halo_Standard_Initializor(self,timeEnd)
     !!{
     Initializes a standard hot halo component.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentHotHaloStandard, treeNode
     implicit none
-    type (nodeComponentHotHaloStandard)          :: self
-    type (treeNode                    ), pointer :: node
-
+    type            (nodeComponentHotHaloStandard), intent(inout)           :: self
+    double precision                              , intent(in   ), optional :: timeEnd
+    type            (treeNode                    ), pointer                 :: node
+    !$GLC attributes unused :: timeEnd
+    
     ! Return if already initialized.
     if (self%isInitialized()) return
     ! Get the hosting node.

@@ -374,15 +374,17 @@ contains
     return
   end subroutine satelliteMerger
 
-  subroutine Node_Component_Black_Hole_Simple_Create(node)
+  subroutine Node_Component_Black_Hole_Simple_Create(node,timeEnd)
     !!{
     Creates a simple black hole component for {\normalfont \ttfamily node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBlackHole, treeNode
     implicit none
-    type (treeNode              ), intent(inout), target  :: node
-    class(nodeComponentBlackHole)               , pointer :: blackHole
-
+    type            (treeNode              ), intent(inout), target   :: node
+    double precision                        , intent(in   ), optional :: timeEnd
+    class           (nodeComponentBlackHole)               , pointer  :: blackHole
+    !$GLC attributes unused :: timeEnd
+    
     ! Create the component.
     blackHole => node%blackHole(autoCreate=.true.)
     ! Set the seed mass.
