@@ -1009,10 +1009,12 @@ contains
            &                                             verbosityLevelWarn, enumerationVerbosityLevelType
       use            :: Error                   , only : Error_Report      , Warn
       use            :: Interface_GSL           , only : GSL_EBadTol       , GSL_ETol                     , GSL_ERound    , GSL_Success           , &
-           &                                             GSL_EMaxIter      , GSL_ESing
+           &                                             GSL_EMaxIter      , GSL_ESing                    , gslErrorDecode
       use            :: Numerical_Constants_Math, only : Pi
       use            :: Numerical_Integration   , only : GSL_Integ_Gauss15 , integrator
       use            :: Sorting                 , only : sort
+      use            :: String_Handling         , only : operator(//)
+      use            :: ISO_Varying_String      , only : var_str
       implicit none
       double precision                         , intent(in   ) :: time_
       logical                                  , intent(in   ) :: useTopHat
@@ -1113,7 +1115,15 @@ contains
          else if (status /= GSL_Success) then
             ! Integration failed for some other reason, report an error.
             computeLogarithmically=.false.
-            if (self%integrationFailureIsFatal) call Error_Report('integration over interval failed'//{introspection:location})
+            if (self%integrationFailureIsFatal)                                                           &
+                 & call Error_Report(                                                                     &
+                 &                   var_str       ('integration over interval failed [error number: ')// &
+                 &                                  status                                             // &
+                 &                           '; "'                                                     // &
+                 &                   gslErrorDecode(status                                            )// &
+                 &                           '"]'                                                      // &
+                 &                   {introspection:location}                                             &
+                 &                  )
          else if (integrandInterval <= 0.0d0 .and. wavenumberLower > 0.0d0) then
             ! Integration gave a zero result, and the lower limit is non-zero. This may be because the upper limit is large and
             ! the power is confined to small wavenumbers near the lower limit. This can happen, for example, if attempting to
@@ -1131,7 +1141,14 @@ contains
             if ((status == GSL_EMaxIter .or. status == GSL_ERound) .and. integrandInterval < toleranceRelative*integrand) then
                ! Maximum iterations were exceeded, but the integrand is tiny - so proceed.
             else if (status /= GSL_Success) then
-               call Error_Report('variance integral failed'//{introspection:location})
+               if (self%integrationFailureIsFatal)                                                   &
+                    & call Error_Report(var_str       ('variance integral failed [error number: ')// &
+                    &                                  status                                     // &
+                    &                           '; "'                                             // &
+                    &                   gslErrorDecode(status                                    )// &
+                    &                           '"]'                                              // &
+                    &                   {introspection:location}                                     &
+                    &                  )
             else if (integrandInterval <= 0.0d0) then
                ! The integrated power is still non-positive - check the integrand at the lower limit. If it is positive, we have a
                ! problem. Otherwise, the power in this interval seems to be actually zero, so proceed.
@@ -1141,18 +1158,20 @@ contains
                      ! check if the integrand is so small that, when multiplied by the typical step size, it underflows to
                      ! zero. If it is, this is acceptable, and no error needs to be emitted. If such underflow did not occur, then
                      ! the integral should, definitely be positive. As it is not, this is an error situation.
-                     if     (                                                                                            &
-                          &   +max(                                                                                      &
-                          &        +varianceIntegrandLogarithmic(log(wavenumberUpper)),                                  &
-                          &        +varianceIntegrandLogarithmic(log(wavenumberLower))                                   &
-                          &        )                                                                                     &
-                          &   *    (                                                                                     &
-                          &         +                            log(wavenumberUpper)                                    &
-                          &         -                            log(wavenumberLower)                                    &
-                          &        )                                                                                     &
-                          &   /10.0d0                                                                                    &
-                          &  >                                                                                           &
-                          &   + 0.0d0                                                                                    &
+                     if     (                                                                                             &
+                          &    +max(                                                                                      &
+                          &         +varianceIntegrandLogarithmic(log(wavenumberUpper)),                                  &
+                          &         +varianceIntegrandLogarithmic(log(wavenumberLower))                                   &
+                          &         )                                                                                     &
+                          &    *    (                                                                                     &
+                          &          +                            log(wavenumberUpper)                                    &
+                          &          -                            log(wavenumberLower)                                    &
+                          &         )                                                                                     &
+                          &    /10.0d0                                                                                    &
+                          &   >                                                                                           &
+                          &    + 0.0d0                                                                                    &
+                          &  .and.                                                                                        &
+                          &   self%integrationFailureIsFatal                                                              &
                           & ) call Error_Report('no power in interval integrand - unexpected'//{introspection:location})
                   else
                      ! The integrand is zero at the upper limit - try reducing the upper limit until we get a non-zero result.
