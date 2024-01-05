@@ -81,7 +81,6 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily radiativeEfficiencyBlackHoles} node operator class.
     !!}
-    use :: Galacticus_Nodes, only : defaultBasicComponent
     implicit none
     type (nodePropertyExtractorRadiativeEfficiencyBlackHoles)                        :: self
     class(accretionDisksClass                               ), intent(in   ), target :: accretionDisks_

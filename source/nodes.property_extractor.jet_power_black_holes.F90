@@ -81,7 +81,6 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily jetPowerBlackHoles} node operator class.
     !!}
-    use :: Galacticus_Nodes, only : defaultBasicComponent
     implicit none
     type (nodePropertyExtractorJetPowerBlackHoles)                        :: self
     class(accretionDisksClass                    ), intent(in   ), target :: accretionDisks_

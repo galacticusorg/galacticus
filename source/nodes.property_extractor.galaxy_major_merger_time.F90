@@ -101,6 +101,7 @@ contains
     class           (nodeComponentBasic                        )                , pointer     :: basic
     double precision                                            , dimension(:  ), allocatable :: times
     !$GLC attributes unused :: instance
+    !$GLC attributes initialized :: times
 
     basic => node %basic                    (                            )
     times =  basic%floatRank1MetaPropertyGet(self%galaxyMajorMergerTimeID)

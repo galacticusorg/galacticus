@@ -92,7 +92,7 @@ program Test_DiemerKravtsov2014_Concentration
           &        "http://www.benediktdiemer.com/wp-content/uploads/cM_WMAP7.txt",  &
           &        char(inputPath(pathTypeExec))                                  // &
           &        "testSuite/data/diemerKravtsov2014Concentration.txt"           ,  &
-          &        ioStatus                                                          &
+          &        status=ioStatus                                                   &
           &       )
      if (ioStatus /= 0 .or. .not.File_Exists(inputPath(pathTypeExec)//"testSuite/data/diemerKravtsov2014Concentration.txt")) &
           & call Error_Report('unable to retrieve reference dataset'//{introspection:location})

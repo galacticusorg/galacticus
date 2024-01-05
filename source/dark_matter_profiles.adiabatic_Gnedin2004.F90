@@ -976,8 +976,7 @@ contains
     type            (treeNode                            )               , pointer :: nodeCurrent                    , nodeHost
     class           (nodeComponentBasic                  )               , pointer :: basic
     double precision                                                               :: massBaryonicSelfTotal          , massBaryonicTotal      , &
-         &                                                                            velocityCircularSquaredGradient, velocityCircularSquared, &
-         &                                                                            
+         &                                                                            velocityCircularSquaredGradient, velocityCircularSquared
 
     ! Set module-scope pointers to node and self.
     node_ => node
