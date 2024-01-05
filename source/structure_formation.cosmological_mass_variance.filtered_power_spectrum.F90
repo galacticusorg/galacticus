@@ -1555,8 +1555,8 @@ contains
        call parameters%addParameter('wavenumberReference'    ,trim(adjustl(parameterLabel)))
        call parameters%addParameter('reference','')
        referenceParameters=parameters%subparameters('reference')
-       call self%cosmologicalMassVarianceReference          %descriptor(referenceParameters)
-       call self%powerSpectrumPrimordialTransferredReference%descriptor(referenceParameters)
+       call self%cosmologicalMassVarianceReference          %descriptorNormalizationOnly(referenceParameters)
+       call self%powerSpectrumPrimordialTransferredReference%descriptor                 (referenceParameters)
     end if
     write    (parameterLabel,'(e17.10)') self%toleranceTopHat
     call    parameters%addParameter('toleranceTopHat'       ,trim(adjustl(parameterLabel)))
