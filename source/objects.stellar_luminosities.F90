@@ -56,6 +56,17 @@ module Stellar_Luminosities_Structure
   interface operator(*)
      module procedure Stellar_Luminosities_Multiply_Switched
   end interface operator(*)
+ 
+  !![
+  <enumeration>
+    <name>frame</name>
+    <description>Frame for luminosity calculations.</description>
+    <encodeFunction>yes</encodeFunction>
+    <decodeFunction>yes</decodeFunction>
+    <entry label="rest"    />
+    <entry label="observed"/>
+  </enumeration>
+  !!]
 
   type stellarLuminosities
      !!{
@@ -63,6 +74,7 @@ module Stellar_Luminosities_Structure
      !!}
      private
      double precision, allocatable, dimension(:) :: luminosityValue
+     type            (enumerationFrameType                      )                            :: frame
    contains
      !![
      <methods>
@@ -134,7 +146,6 @@ module Stellar_Luminosities_Structure
      procedure, nopass :: name                  => Stellar_Luminosities_Name
      procedure         :: truncate              => Stellar_Luminosities_Truncate
   end type stellarLuminosities
-
   ! Arrays which hold the luminosity specifications.
   integer                                                                                        :: luminosityCount                                      , luminosityCountUnmapped
   integer                                                            , allocatable, dimension(:) :: luminosityFilterIndex                                , luminosityIndex               , &
@@ -158,7 +169,6 @@ module Stellar_Luminosities_Structure
   ! Stellar population postprocessor builder used during initialization and state restoration.
   class           (stellarPopulationSpectraPostprocessorBuilderClass), pointer                   :: stellarPopulationSpectraPostprocessorBuilder__
   !$omp threadprivate(stellarPopulationSpectraPostprocessorBuilder__)
-  
 contains
 
   !![
@@ -189,7 +199,7 @@ contains
     character       (len=10                                           )                            :: redshiftLabel
     type            (varying_string                                   )                            :: luminosityOutputOptionText
     integer         (c_size_t                                         ), allocatable, dimension(:) :: luminosityTimeIndex
-
+    type            (varying_string                                   )                            :: frame
     ! Get luminosity output option.
     !![
     <inputParameter>
@@ -997,8 +1007,8 @@ contains
              doubleProperties(doubleProperty)%name     =trim(prefix )// ':'//trim(luminosityName(i))
              doubleProperties(doubleProperty)%comment  =trim(comment)//' ['//trim(luminosityName(i))//']'
              doubleProperties(doubleProperty)%unitsInSI=unitsInSI
-             call doubleProperties(doubleProperty)%metaData%set('wavelengthEffective',luminosityWavelengthEffective(i))
-             call doubleProperties(doubleProperty)%metaData%set('vegaOffset'         ,luminosityVegaOffset         (i))
+             call doubleProperties(doubleProperty)%metaDataRank0%set('wavelengthEffective',luminosityWavelengthEffective(i))
+             call doubleProperties(doubleProperty)%metaDataRank0%set('vegaOffset'         ,luminosityVegaOffset         (i))
           end if
        end do
     end if
