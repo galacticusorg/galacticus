@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,19 +20,19 @@
 !+    Contributions to this file made by: Niusha Ahvazi
   
   !!{
-  An  intergalactic medium state decorator class which provides a fit to the metallicity evolution of the \gls{igm} reported by \cite{ucci_astraeus_2021}.
+  An  intergalactic medium state decorator class which provides a fit to the metallicity evolution of the \gls{igm} reported by \cite{ucci_astraeus_2023}.
   !!}
 
   !![
   <intergalacticMediumState name="intergalacticMediumStateMetallicityAstraeusV">
    <description>
-    An intergalactic medium state class which provides a fit to the metallicity evolution of the \gls{igm} reported by \cite{ucci_astraeus_2021}.
+    An intergalactic medium state class which provides a fit to the metallicity evolution of the \gls{igm} reported by \cite{ucci_astraeus_2023}.
    </description>
   </intergalacticMediumState>
   !!]
   type, extends(intergalacticMediumStateClass) :: intergalacticMediumStateMetallicityAstraeusV
      !!{
-     An intergalactic medium state class which provides a fit to the metallicity evolution of the \gls{igm} reported by \cite{ucci_astraeus_2021}.
+     An intergalactic medium state class which provides a fit to the metallicity evolution of the \gls{igm} reported by \cite{ucci_astraeus_2023}.
      !!}
      private
      class(intergalacticMediumStateClass), pointer :: intergalacticMediumState_ => null()

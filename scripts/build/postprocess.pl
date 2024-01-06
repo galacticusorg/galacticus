@@ -122,13 +122,14 @@ while ( my $line = <STDIN> ) {
 	    last
 		if ( $_->{'lineOriginal'} > $lineOriginal );
 	    $source     = $_->{'source'};
-	    my $lineNumber;
+	    my $lineDescriptor;
 	    if ( $source =~ m/\(\)$/ ) {
-		$lineNumber = "meta";
+		$lineDescriptor = "auto-generated code (no line number)";
 	    } else {
-		$lineNumber = $lineOriginal-$_->{'lineOriginal'}+$_->{'line'};
+		my $lineNumber = $lineOriginal-$_->{'lineOriginal'}+$_->{'line'};
+		$lineDescriptor = "line ".$lineNumber;
 	    }
-    	    $line = $source.":".$lineNumber.":".$flag."\n";
+    	    $line = $source."; ".$lineDescriptor." [preprocessed line ".$lineOriginal."]; code ".$flag."\n";
 	}
 	print $buffer
 	    if ( $buffer );

@@ -50,8 +50,10 @@ sub Parse_Declarations {
 		# Accumulate raw text.
 		if ( $isDeclaration == 1 ) {
 		    $rawDeclaration .= $rawLine;
-		    push(@declarations,$declaration)
-			if ( $declaration );
+		    if ( $declaration ) {
+			$declaration->{'line'} = $lineNumber;
+			push(@declarations,$declaration);
+		    }
 		} else {
 		    $rawCode        .= $rawLine;
 		}

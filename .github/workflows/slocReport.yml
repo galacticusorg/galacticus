@@ -1,0 +1,32 @@
+name: SLOC-Report
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '01 15 01 * *'
+jobs:
+  Report-Status:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: workflowStatus-${{ github.ref }}
+      cancel-in-progress: true
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Install tools
+        run: |
+          sudo apt -y update
+          sudo apt install -y libjson-pp-perl sloccount
+      - name: Retrieve and report status
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SLACK_WEBHOOK_SLOCREPORT_URL: ${{ secrets.SLACK_WEBHOOK_SLOCREPORT_URL }}
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
+          ./scripts/aux/slocReport.pl
+
+          

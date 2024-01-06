@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -33,7 +33,7 @@ contains
 
   subroutine Sort_Topological(countObjects,countDependencies,dependencies,order,countOrdered,status)
     !!{
-    Topological sorting function. Based on the example from \href{https://rosettacode.org/wiki/Topological_sort\#Modern_Fortran}{Rosetta Code}. Arguments are:
+    Topological sorting function. Based on the example from \href{https://www.rosettacode.org/wiki/Topological_sort\#Modern_Fortran}{Rosetta Code}. Arguments are:
     \begin{description}
      \item[{\normalfont \ttfamily countObjects}\argin] the number of objects to be sorted;
      \item[{\normalfont \ttfamily countDependencies}\argin] the number of dependencies;

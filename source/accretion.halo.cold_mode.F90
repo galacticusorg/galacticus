@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -16,6 +16,8 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+  !+ Contributions to this file made by: Sachi Weerasooriya
 
   !!{
   An implementation of accretion from the \gls{igm} onto halos using simple truncation to
@@ -399,9 +401,8 @@ contains
          &                                                           chemicalDensitiesCold
     !$omp threadprivate(chemicalDensities,chemicalDensitiesCold,chemicalDensitiesHot)
     double precision                                              :: massToDensityConversion, numberDensityHydrogen, &
-         &                                                           temperature            , temperatureHot       , &
-         &                                                           temperatureCold        , fractionCold         , &
-         &                                                           fractionHot
+         &                                                           temperatureHot         , temperatureCold      , &
+         &                                                           fractionHot            , fractionCold
 
     ! Get the basic component.
     basic                => node%basic()

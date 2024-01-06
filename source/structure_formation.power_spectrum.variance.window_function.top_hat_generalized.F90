@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a generalized top-hat power spectrum window function class \citep{brown_towards_2021}.
+  Contains a module which implements a generalized top-hat power spectrum window function class \citep{brown_towards_2022}.
   !!}
 
   use :: Cosmology_Parameters, only : cosmologyParametersClass
@@ -27,7 +27,7 @@
   <powerSpectrumWindowFunction name="powerSpectrumWindowFunctionTopHatGeneralized">
    <description>
     A generalized top-hat in real space window function for filtering of power spectra. The window function is given by
-    \citep{brown_towards_2021}:
+    \citep{brown_towards_2022}:
     \begin{equation}
      W(k) = {3 (\sin(\mu_\mathrm{g} x)-\mu_\mathrm{g} x \cos(\mu_\mathrm{g} x)) \over \mu_\mathrm{g} x^3},
     \end{equation}
@@ -74,7 +74,7 @@ contains
     <inputParameter>
       <name>mu</name>
       <source>parameters</source>
-      <description>The parameter $\mu_\mathrm{g}$ appearing in the generalized top-hat window function of \cite{brown_towards_2021}.</description>
+      <description>The parameter $\mu_\mathrm{g}$ appearing in the generalized top-hat window function of \cite{brown_towards_2022}.</description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !!]

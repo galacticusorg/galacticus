@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -269,7 +269,7 @@ contains
           angularMomentumSubresolutionFactor=+1.0d0
        else
           b                                 =+massFunctionSlopeLogarithmic                                         &
-               &                             +self%exponentMAss                                                    &
+               &                             +self%exponentMass                                                    &
                &                             -2.0d0
           angularMomentumSubresolutionFactor=+Beta_Function_Incomplete_Normalized(a,b,massRatio/(1.0d0+massRatio)) &
                &                             *Beta_Function                      (a,b                            ) &

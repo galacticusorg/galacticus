@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements the dark matter halo mass function class of \cite{2021arXiv210208958O} for non-universal
+Contains a module which implements the dark matter halo mass function class of \cite{ondaro-mallea_non-universality_2022} for non-universal
 primordial power spectra and structure growth rates.
 !!}
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
@@ -28,7 +28,7 @@ primordial power spectra and structure growth rates.
   !![
   <haloMassFunction name="haloMassFunctionOndaroMallea2021">
     <description>
-      The dark matter halo mass function class of \cite{2021arXiv210208958O} for non-universal
+      The dark matter halo mass function class of \cite{ondaro-mallea_non-universality_2022} for non-universal
       primordial power spectra and structure growth rates. The mass function is given by
       \begin{equation}
       n(M) = n^\prime(M) f_2(n_\mathrm{eff}) f_3(\alpha_\mathrm{eff}),
@@ -55,7 +55,7 @@ primordial power spectra and structure growth rates.
   !!]
   type, extends(haloMassFunctionClass) :: haloMassFunctionOndaroMallea2021
      !!{
-     The halo mass function class of \cite{2021arXiv210208958O} for non-universal
+     The halo mass function class of \cite{ondaro-mallea_non-universality_2022} for non-universal
      primordial power spectra and structure growth rates.
      !!}
      private
@@ -109,15 +109,15 @@ contains
       <name>coefficientsN</name>
       <source>parameters</source>
       <defaultValue>[-0.1178d0,-0.3389d0,0.3022d0]</defaultValue>
-      <defaultSource>\cite[][Table~3, row 4]{2021arXiv210208958O}</defaultSource>
-      <description>The coefficients, $n_{0\ldots2}$, appearing in equation~(7) of the \cite{2021arXiv210208958O} halo mass function model.</description>
+      <defaultSource>\cite[][Table~3, row 4]{ondaro-mallea_non-universality_2022}</defaultSource>
+      <description>The coefficients, $n_{0\ldots2}$, appearing in equation~(7) of the \cite{ondaro-mallea_non-universality_2022} halo mass function model.</description>
     </inputParameter>
     <inputParameter>
       <name>coefficientsA</name>
       <source>parameters</source>
       <defaultValue>[-1.0785d0,2.9700d0]</defaultValue>
-      <defaultSource>\cite[][Table~3, row 4]{2021arXiv210208958O}</defaultSource>
-      <description>The coefficients, $a_{0\ldots1}$, appearing in equation~(8) of the \cite{2021arXiv210208958O} halo mass function model.</description>
+      <defaultSource>\cite[][Table~3, row 4]{ondaro-mallea_non-universality_2022}</defaultSource>
+      <description>The coefficients, $a_{0\ldots1}$, appearing in equation~(8) of the \cite{ondaro-mallea_non-universality_2022} halo mass function model.</description>
     </inputParameter>
     !!]
     self=haloMassFunctionOndaroMallea2021(coefficientsN,coefficientsA,cosmologyParameters_,cosmologicalMassVariance_,linearGrowth_,haloMassFunction_)
@@ -211,7 +211,7 @@ contains
 
   double precision function linearGrowthFactorRoot(time)
     !!{
-    Root function used in finding the epoch at which to evaluate the growth factor for the \cite{2021arXiv210208958O} dark matter
+    Root function used in finding the epoch at which to evaluate the growth factor for the \cite{ondaro-mallea_non-universality_2022} dark matter
     halo mass function.
     !!}
     implicit none

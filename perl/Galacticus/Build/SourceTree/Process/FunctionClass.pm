@@ -927,8 +927,7 @@ CODE
 					# $allowedParametersCode .= "       if (.not.any(trim(allowedParameters) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}->[$i]."')) countNew=countNew+1\n";
 					$allowedParametersCode .= "       isNew=.true.\n";
 					$allowedParametersCode .= "       do j=1,size(allowedParameters)\n";
-					$allowedParametersCode .= "          allowedParameter=trim(allowedParameters(j))\n";
-					$allowedParametersCode .= "          if (allowedParameter == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}->[$i]."') then\n";
+					$allowedParametersCode .= "          if (allowedParameters(j) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}->[$i]."') then\n";
 					$allowedParametersCode .= "             isNew=.false.\n";
 					$allowedParametersCode .= "             exit\n";
 					$allowedParametersCode .= "          end if\n";
@@ -949,8 +948,7 @@ CODE
 					# $allowedParametersCode .= "         if (.not.any(trim(allowedParameters(1:size(allowedParameters)-countNew)) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}->[$i]."')) then\n";
 					$allowedParametersCode .= "       isNew=.true.\n";
 					$allowedParametersCode .= "       do j=1,size(allowedParameters)-countNew\n";
-					$allowedParametersCode .= "          allowedParameter=trim(allowedParameters(j))\n";
-					$allowedParametersCode .= "          if (allowedParameter == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}->[$i]."') then\n";
+					$allowedParametersCode .= "          if (allowedParameters(j) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}->[$i]."') then\n";
 					$allowedParametersCode .= "             isNew=.false.\n";
 					$allowedParametersCode .= "             exit\n";
 					$allowedParametersCode .= "          end if\n";
@@ -987,8 +985,7 @@ CODE
 					# $allowedParametersCode .= "       if (.not.any(trim(allowedParameters) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'all'}->[$i]."')) countNew=countNew+1\n";
 					$allowedParametersCode .= "       isNew=.true.\n";
 					$allowedParametersCode .= "       do j=1,size(allowedParameters)\n";
-					$allowedParametersCode .= "          allowedParameter=trim(allowedParameters(j))\n";
-					$allowedParametersCode .= "          if (allowedParameter == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'all'}->[$i]."') then\n";
+					$allowedParametersCode .= "          if (allowedParameters(j) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'all'}->[$i]."') then\n";
 					$allowedParametersCode .= "             isNew=.false.\n";
 					$allowedParametersCode .= "             exit\n";
 					$allowedParametersCode .= "          end if\n";
@@ -1008,8 +1005,7 @@ CODE
 					# $allowedParametersCode .= "         if (.not.any(trim(allowedParameters(1:size(allowedParameters)-countNew)) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'all'}->[$i]."')) then\n";
 					$allowedParametersCode .= "       isNew=.true.\n";
 					$allowedParametersCode .= "       do j=1,size(allowedParameters)-countNew\n";
-					$allowedParametersCode .= "          allowedParameter=trim(allowedParameters(j))\n";
-					$allowedParametersCode .= "          if (allowedParameter == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'all'}->[$i]."') then\n";
+					$allowedParametersCode .= "          if (allowedParameters(j) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'all'}->[$i]."') then\n";
 					$allowedParametersCode .= "             isNew=.false.\n";
 					$allowedParametersCode .= "             exit\n";
 					$allowedParametersCode .= "          end if\n";
@@ -1055,7 +1051,6 @@ CODE
 		$allowedParametersCode = "type   (varying_string), allocatable, dimension(:) :: allowedParametersTmp\n".$directive->{'name'}."DsblVldtn=".$directive->{'name'}."DsblVldtn\n".$allowedParametersCode;
 		$allowedParametersCode = "integer                                            :: countNew, j\n"                                                                              .$allowedParametersCode;
 		$allowedParametersCode = "logical                                            :: isNew\n"                                                                                    .$allowedParametersCode;
-		$allowedParametersCode = "type   (varying_string)                            :: allowedParameter\n"                                                                         .$allowedParametersCode;
 	    } else {
 		$allowedParametersCode = "!\$GLC attributes unused :: self, allowedParameters, sourceName\n".$directive->{'name'}."DsblVldtn=".$directive->{'name'}."DsblVldtn\n";
 	    }
@@ -1108,7 +1103,7 @@ CODE
 		    last
 			unless ( $node );
 		    # Handle linked lists.
-		    (my $linkedListCode, my $linkedListResetCode, my $linkedListFinalizeCode) = &deepCopyLinkedList($nonAbstractClass,$linkedListVariables,$linkedListResetVariables,$linkedListFinalizeVariables,$debugging);
+		    (my $linkedListCode, my $linkedListResetCode, my $linkedListFinalizeCode) = &deepCopyLinkedList($class,$nonAbstractClass,$linkedListVariables,$linkedListResetVariables,$linkedListFinalizeVariables,$debugging);
 		    $deepCopy->{'assignments' } .= $linkedListCode;
 		    $deepCopy->{'resetCode'   } .= $linkedListResetCode;
 		    $deepCopy->{'finalizeCode'} .= $linkedListFinalizeCode;
@@ -1300,7 +1295,7 @@ CODE
 			$node = $node->{'type'} eq "contains" ? $node->{'firstChild'} : $node->{'sibling'};
 		    }
 		    # Handle linked lists.
-		    (my $linkedListInputCode, my $linkedListOutputCode) = &stateStoreLinkedList($nonAbstractClass,$stateLinkedListVariables);
+		    (my $linkedListInputCode, my $linkedListOutputCode) = &stateStoreLinkedList($class,$nonAbstractClass,$stateLinkedListVariables);
 		    $stateStore->{'inputCode'}  .= $linkedListInputCode;
 		    $stateStore->{'outputCode'} .= $linkedListOutputCode;
 		    # Handle explicit state store functions.
@@ -1884,7 +1879,8 @@ CODE
 			    # simply look for the current name in that list.
 			    if ( grep {$_ eq lc($classNode->{'name'})} @{$codeContent->{'submodule'}->{$class->{'type'}}->{'interfaces'}} ) {
 				# Must add the interface for this function to the module.
-				my $interface =
+				my @interfaceNodes;
+				my $interfaceOpener =
 				{
 				    type       => "code" ,
 				    content    => ""     ,
@@ -1894,8 +1890,9 @@ CODE
 				    source     => "Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass()",
 				    line       => 1
 				};
-				$interface->{'content'} .= "interface\n";
-				$interface->{'content'} .= "module ".$classNode->{'opener'};
+				$interfaceOpener->{'content'} .= "interface\n";
+				$interfaceOpener->{'content'} .= "module ".$classNode->{'opener'};
+				push(@interfaceNodes,$interfaceOpener);
 				my $returnName   = $classNode->{'opener'    } =~ m/result\s*\(\s*([a-zA-Z0-9_]+)\s*\)/ ? $1 : $classNode->{'name'};
 				my $functionNode = $classNode->{'firstChild'};
 				# Walk through the function/subroutine and process declarations.
@@ -1906,7 +1903,20 @@ CODE
 					    if ( ( grep {$_ eq lc($returnName)} @{$declaration->{'variables'}}) || ( grep {$_ =~ m/intent\s*\(\s*(in|out|inout)\s*\)/i } @{$declaration->{'attributes'}} ) ) {
 						# Function result variables and any variables with "intent()" attributes must
 						# always be specified in the interface.
-						$interface->{'content'} .= &Fortran::Utils::Format_Variable_Definitions([$declaration]);
+						die('Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass: expected a "code" node as first child')
+						    unless ( $functionNode->{'firstChild'}->{'type'} eq "code" );
+						my $interfaceDeclaration =
+						{
+						    type       => "code" ,
+						    content    => ""     ,
+						    firstChild => undef(),
+						    sibling    => undef(),
+						    parent     => undef(),
+						    source     => $functionNode->{'firstChild'}->{'source'},
+						    line       => $declaration                 ->{'line'  }
+						};
+						$interfaceDeclaration->{'content'} .= &Fortran::Utils::Format_Variable_Definitions([$declaration]);
+						push(@interfaceNodes,$interfaceDeclaration);
 						# Capture any type names - these will need to be imported into the parent module.
 						if  ( defined($declaration->{'type'}) ) {
 						    # A type is defined - strip initial part before any "=" and any whitespace.
@@ -1945,7 +1955,20 @@ CODE
 						    push(@declarationsLocal,$submoduleScope)
 							if ( scalar(@{$submoduleScope->{'variables'}}) > 0 );
 						    if ( scalar(@{$moduleScope   ->{'variables'}}) > 0 ) {
-							$interface->{'content'} .= &Fortran::Utils::Format_Variable_Definitions([$moduleScope]);
+							die('Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass: expected a "code" node as first child')
+							    unless ( $functionNode->{'firstChild'}->{'type'} eq "code" );
+							my $interfaceDeclaration =
+							{
+							    type       => "code" ,
+							    content    => ""     ,
+							    firstChild => undef(),
+							    sibling    => undef(),
+							    parent     => undef(),
+							    source     => $functionNode->{'firstChild'}->{'source'},
+							    line       => $declaration                 ->{'line'  }
+							};
+							$interfaceDeclaration->{'content'} .= &Fortran::Utils::Format_Variable_Definitions([$moduleScope]);
+							push(@interfaceNodes,$interfaceDeclaration);
 							# Capture any type names - these will need to be imported into the parent module.
 						   	if  ( defined($declaration->{'type'}) ) {
 							    # A type is defined - strip initial part before any "=" and any whitespace.
@@ -1993,12 +2016,23 @@ CODE
 				    }
 				    $functionNode = $functionNode->{'sibling'};
 				}
-				$interface->{'content'} .= $classNode->{'closer'};
-				$interface->{'content'} .= "end interface\n";
-				$classNode->{'opener'} = "module procedure ".$classNode->{'name'}."\n";
-				$classNode->{'closer'} = "end procedure ".$classNode->{'name'}."\n";
+				my $interfaceCloser =
+				{
+				    type       => "code" ,
+				    content    => ""     ,
+				    firstChild => undef(),
+				    sibling    => undef(),
+				    parent     => undef(),
+				    source     => "Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass()",
+				    line       => 1
+				};
+				$interfaceCloser->{'content'} .= $classNode->{'closer'};
+				$interfaceCloser->{'content'} .= "end interface\n";
+				$classNode      ->{'opener' } = "module procedure ".$classNode->{'name'}."\n";
+				$classNode      ->{'closer' } = "end procedure "   .$classNode->{'name'}."\n";
+				push(@interfaceNodes,$interfaceCloser);
 				# Insert this new interfaces into the interface list.
-				push(@{$codeContent->{'module'}->{'interfaces'}},$interface);
+				push(@{$codeContent->{'module'}->{'interfaces'}},@interfaceNodes);
 			    }
 			}
 		    } else {
@@ -2624,14 +2658,15 @@ sub striplc {
 
 sub deepCopyLinkedList {
     # Create deep-copy instructions for linked list objects.
+    my $class                       = shift();
     my $nonAbstractClass            = shift();
     my $linkedListVariables         = shift();
     my $linkedListResetVariables    = shift();
     my $linkedListFinalizeVariables = shift();
     my $debugging                   = shift();
     return ("","","")
-	unless ( exists($nonAbstractClass->{'linkedList'}) );
-    my $linkedList = $nonAbstractClass->{'linkedList'};
+	unless ( exists($class->{'linkedList'}) );
+    my $linkedList = $class->{'linkedList'};
     # Add variables needed for linked list processing.
     push(
 	@{$linkedListVariables},
@@ -2669,8 +2704,8 @@ sub deepCopyLinkedList {
     $code::objectType      =                                            $linkedList->{'objectType'     }          ;
     $code::objectIntrinsic = exists($linkedList->{'objectIntrinsic'}) ? $linkedList->{'objectIntrinsic'} : "class";
     $code::next            =                                            $linkedList->{'next'           }          ;
-    $code::location        = &Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'});
-    $code::debugCode       = $debugging ? "if (debugReporting.and.mpiSelf\%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): [".$code::objectType."] : ".$code::object." : ')//loc(itemNew_)//' : '//loc(itemNew_%".$code::object.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'},compact => 1).",verbosityLevelSilent)\n" : "";
+    $code::location        = &Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($class->{'node'},$class->{'node'}->{'line'});
+    $code::debugCode       = $debugging ? "if (debugReporting.and.mpiSelf\%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): [".$code::objectType."] : ".$code::object." : ')//loc(itemNew_)//' : '//loc(itemNew_%".$code::object.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($class->{'node'},$class->{'node'}->{'line'},compact => 1).",verbosityLevelSilent)\n" : "";
     my $deepCopyCode = fill_in_string(<<'CODE', PACKAGE => 'code');
 destination%{$variable} => null            ()
 destination_            => null            ()
@@ -2724,11 +2759,12 @@ CODE
 
 sub stateStoreLinkedList {
     # Create state store/restore instructions for linked list objects.
+    my $class               = shift();
     my $nonAbstractClass    = shift();
     my $linkedListVariables = shift();
     return ("","","")
-	unless ( exists($nonAbstractClass->{'linkedList'}) );
-    my $linkedList = $nonAbstractClass->{'linkedList'};
+	unless ( exists($class->{'linkedList'}) );
+    my $linkedList = $class->{'linkedList'};
     # Add variables needed for linked list processing.
     push(
 	@{$linkedListVariables},

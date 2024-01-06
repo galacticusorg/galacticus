@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -33,13 +33,12 @@ module Node_Component_Spheroid_Standard
   use :: Stellar_Population_Properties   , only : stellarPopulationPropertiesClass
   implicit none
   private
-  public :: Node_Component_Spheroid_Standard_Initialize                  , Node_Component_Spheroid_Standard_Scale_Set                    , &
-       &    Node_Component_Spheroid_Standard_Radius_Solver               , Node_Component_Spheroid_Standard_Star_Formation_History_Output, &
-       &    Node_Component_Spheroid_Standard_Pre_Evolve                  , Node_Component_Spheroid_Standard_Radius_Solver_Plausibility   , &
-       &    Node_Component_Spheroid_Standard_Thread_Uninitialize         , Node_Component_Spheroid_Standard_Thread_Initialize            , &
-       &    Node_Component_Spheroid_Standard_State_Store                 , Node_Component_Spheroid_Standard_State_Retrieve               , &
-       &    Node_Component_Spheroid_Standard_Inactive                    , Node_Component_Spheroid_Standard_Post_Step                    , &
-       &    Node_Component_Spheroid_Standard_Star_Formation_History_Flush
+  public :: Node_Component_Spheroid_Standard_Initialize         , Node_Component_Spheroid_Standard_Scale_Set                 , &
+       &    Node_Component_Spheroid_Standard_Pre_Evolve         , Node_Component_Spheroid_Standard_Radius_Solver_Plausibility, &
+       &    Node_Component_Spheroid_Standard_Thread_Uninitialize, Node_Component_Spheroid_Standard_Thread_Initialize         , &
+       &    Node_Component_Spheroid_Standard_State_Store        , Node_Component_Spheroid_Standard_State_Retrieve            , &
+       &    Node_Component_Spheroid_Standard_Inactive           , Node_Component_Spheroid_Standard_Post_Step                 , &
+       &    Node_Component_Spheroid_Standard_Radius_Solver
 
   !![
   <component>
@@ -268,8 +267,8 @@ contains
     !!{
     Initializes the standard spheroid module for each thread.
     !!}
-    use :: Events_Hooks                         , only : dependencyDirectionAfter         , dependencyRegEx, openMPThreadBindingAtLevel, postEvolveEvent, &
-          &                                              satelliteMergerEvent
+    use :: Events_Hooks                         , only : dependencyDirectionAfter         , dependencyRegEx           , openMPThreadBindingAtLevel, postEvolveEvent, &
+          &                                              satelliteMergerEvent             , mergerTreeExtraOutputEvent
     use :: Error                                , only : Error_Report
     use :: Galacticus_Nodes                     , only : defaultSpheroidComponent
     use :: Input_Parameters                     , only : inputParameter                   , inputParameters
@@ -285,10 +284,11 @@ contains
 
     ! Check if this implementation is selected. If so, initialize the mass distribution.
     if (defaultSpheroidComponent%standardIsActive()) then
-       call postEvolveEvent     %attach(thread,postEvolve     ,openMPThreadBindingAtLevel,label='nodeComponentSpheroidStandard'                          )
+       call postEvolveEvent           %attach(thread,postEvolve           ,openMPThreadBindingAtLevel,label='nodeComponentSpheroidStandard'                          )
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
        dependencies(2)=dependencyRegEx(dependencyDirectionAfter,'^nodeComponentDisk')
-       call satelliteMergerEvent%attach(thread,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentSpheroidStandard',dependencies=dependencies)
+       call satelliteMergerEvent      %attach(thread,satelliteMerger      ,openMPThreadBindingAtLevel,label='nodeComponentSpheroidStandard',dependencies=dependencies)
+       call mergerTreeExtraOutputEvent%attach(thread,mergerTreeExtraOutput,openMPThreadBindingAtLevel,label='nodeComponentSpheroidStandard'                          )
        ! Find our parameters.
        subParameters=parameters%subParameters('componentSpheroid')
        !![
@@ -347,14 +347,15 @@ contains
     !!{
     Uninitializes the standard spheroid module for each thread.
     !!}
-    use :: Events_Hooks                         , only : postEvolveEvent         , satelliteMergerEvent
+    use :: Events_Hooks                         , only : postEvolveEvent         , satelliteMergerEvent, mergerTreeExtraOutputEvent
     use :: Galacticus_Nodes                     , only : defaultSpheroidComponent
     use :: Node_Component_Spheroid_Standard_Data, only : massDistributionSpheroid
     implicit none
 
     if (defaultSpheroidComponent%standardIsActive()) then
-       if (postEvolveEvent     %isAttached(thread,postEvolve     )) call postEvolveEvent     %detach(thread,postEvolve     )
-       if (satelliteMergerEvent%isAttached(thread,satelliteMerger)) call satelliteMergerEvent%detach(thread,satelliteMerger)
+       if (postEvolveEvent           %isAttached(thread,postEvolve           )) call postEvolveEvent           %detach(thread,postEvolve           )
+       if (satelliteMergerEvent      %isAttached(thread,satelliteMerger      )) call satelliteMergerEvent      %detach(thread,satelliteMerger      )
+       if (mergerTreeExtraOutputEvent%isAttached(thread,mergerTreeExtraOutput)) call mergerTreeExtraOutputEvent%detach(thread,mergerTreeExtraOutput)
        !![
        <objectDestructor name="stellarPopulationProperties_"/>
        <objectDestructor name="darkMatterHaloScale_"        />
@@ -1392,21 +1393,22 @@ contains
     return
   end subroutine Node_Component_Spheroid_Standard_Radius_Solver
 
-  subroutine Node_Component_Spheroid_Standard_Initializor(self)
+  subroutine Node_Component_Spheroid_Standard_Initializor(self,timeEnd)
     !!{
     Initializes a standard spheroid component.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDisk, nodeComponentSpheroidStandard, treeNode
     use :: Histories       , only : history
     implicit none
-    type            (nodeComponentSpheroidStandard)          :: self
-    type            (treeNode                     ), pointer :: node
-    class           (nodeComponentDisk            ), pointer :: disk
-    class           (nodeComponentBasic           ), pointer :: basic
-    type            (history                      )          :: historyStarFormation        , stellarPropertiesHistory      , &
-         &                                                      diskStarFormationHistory
-    logical                                                  :: createStarFormationHistory  , createStellarPropertiesHistory
-    double precision                                         :: timeBegin
+    type            (nodeComponentSpheroidStandard), intent(inout)           :: self
+    double precision                               , intent(in   ), optional :: timeEnd
+    type            (treeNode                     ), pointer                 :: node
+    class           (nodeComponentDisk            ), pointer                 :: disk
+    class           (nodeComponentBasic           ), pointer                 :: basic
+    type            (history                      )                          :: historyStarFormation        , stellarPropertiesHistory      , &
+         &                                                                      diskStarFormationHistory
+    logical                                                                  :: createStarFormationHistory  , createStellarPropertiesHistory
+    double precision                                                         :: timeBegin
 
     ! Return if already initialized.
     if (self%isInitialized()) return
@@ -1434,24 +1436,26 @@ contains
           basic    => node %basic()
           timeBegin = basic%time ()
        end if
-       call starFormationHistory_%create                 (node,historyStarFormation,timeBegin)
-       call self                 %starFormationHistorySet(     historyStarFormation          )
+       call starFormationHistory_%create                 (node,historyStarFormation,timeBegin,timeEnd)
+       call self                 %starFormationHistorySet(     historyStarFormation                  )
     end if
     ! Record that the spheroid has been initialized.
     call self%isInitializedSet(.true.)
     return
   end subroutine Node_Component_Spheroid_Standard_Initializor
 
-  subroutine Node_Component_Spheroid_Standard_Star_Formation_History_Extend(node)
+  subroutine Node_Component_Spheroid_Standard_Star_Formation_History_Extend(node,timeEnd)
     !!{
     Extend the range of a star formation history in a standard spheroid component for {\normalfont \ttfamily node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSpheroid, treeNode
     implicit none
-    type (treeNode             ), intent(inout), target  :: node
-    class(nodeComponentSpheroid)               , pointer :: spheroid
-    type (history              )                         :: historyStarFormation
-
+    type            (treeNode             ), intent(inout), target   :: node
+    double precision                       , intent(in   ), optional :: timeEnd
+    class           (nodeComponentSpheroid)               , pointer  :: spheroid
+    type            (history              )                          :: historyStarFormation
+    !$GLC attributes unused :: timeEnd
+    
     ! Get the spheroid component.
     spheroid => node%spheroid()
     ! Extend the range as necessary.
@@ -1461,16 +1465,18 @@ contains
     return
   end subroutine Node_Component_Spheroid_Standard_Star_Formation_History_Extend
 
-  subroutine Node_Component_Spheroid_Standard_Stellar_Prprts_History_Extend(node)
+  subroutine Node_Component_Spheroid_Standard_Stellar_Prprts_History_Extend(node,timeEnd)
     !!{
     Extend the range of a stellar properties history in a standard spheroid component for {\normalfont \ttfamily node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSpheroid, treeNode
     implicit none
-    type (treeNode             ), intent(inout), target  :: node
-    class(nodeComponentSpheroid)               , pointer :: spheroid
-    type (history              )                         :: stellarPropertiesHistory
-
+    type            (treeNode             ), intent(inout), target   :: node
+    double precision                       , intent(in   ), optional :: timeEnd
+    class           (nodeComponentSpheroid)               , pointer  :: spheroid
+    type            (history              )                          :: stellarPropertiesHistory
+    !$GLC attributes unused :: timeEnd
+    
     ! Get the spheroid component.
     spheroid => node%spheroid()
     ! Extend the range as necessary.
@@ -1480,14 +1486,9 @@ contains
     return
   end subroutine Node_Component_Spheroid_Standard_Stellar_Prprts_History_Extend
 
-  !![
-  <mergerTreeExtraOutputTask>
-   <unitName>Node_Component_Spheroid_Standard_Star_Formation_History_Output</unitName>
-  </mergerTreeExtraOutputTask>
-  !!]
-  subroutine Node_Component_Spheroid_Standard_Star_Formation_History_Output(node,iOutput,treeIndex,nodePassesFilter,treeLock)
+  subroutine mergerTreeExtraOutput(self,node,iOutput,treeIndex,nodePassesFilter,treeLock)
     !!{
-    Store the star formation history in the output file.
+    Update the star formation history after an output time is reached.
     !!}
     use            :: Galacticus_Nodes          , only : defaultSpheroidComponent, nodeComponentSpheroid, nodeComponentSpheroidStandard, treeNode
     use            :: Galactic_Structure_Options, only : componentTypeSpheroid
@@ -1496,49 +1497,29 @@ contains
     use            :: Kind_Numbers              , only : kind_int8
     use            :: Locks                     , only : ompLock
     implicit none
-    type   (treeNode             ), intent(inout), pointer :: node
+    class  (*                    ), intent(inout)          :: self
+    type   (treeNode             ), intent(inout)          :: node
     integer(c_size_t             ), intent(in   )          :: iOutput
     integer(kind=kind_int8       ), intent(in   )          :: treeIndex
     logical                       , intent(in   )          :: nodePassesFilter
     type   (ompLock              ), intent(inout)          :: treeLock
     class  (nodeComponentSpheroid)               , pointer :: spheroid
     type   (history              )                         :: historyStarFormation
+    !$GLC attributes unused :: self, treeIndex, nodePassesFilter, treeLock
 
     ! Check if we are the default method.
     if (.not.defaultSpheroidComponent%standardIsActive()) return
     ! Output the star formation history.
     spheroid             => node    %spheroid            ()
     historyStarFormation =  spheroid%starFormationHistory()
-    call starFormationHistory_%output(node,nodePassesFilter,historyStarFormation,iOutput,treeIndex,componentTypeSpheroid,treeLock)
+    call starFormationHistory_%update(node,iOutput,historyStarFormation)
     ! Update the star formation history only if a spheroid exists.
     select type (spheroid)
     class is (nodeComponentSpheroidStandard)
        call spheroid%starFormationHistorySet(historyStarFormation)
     end select
     return
-  end subroutine Node_Component_Spheroid_Standard_Star_Formation_History_Output
-
-  !![
-  <mergerTreeExtraOutputFlush>
-   <unitName>Node_Component_Spheroid_Standard_Star_Formation_History_Flush</unitName>
-  </mergerTreeExtraOutputFlush>
-  !!]
-  subroutine Node_Component_Spheroid_Standard_Star_Formation_History_Flush(treeLock)
-    !!{
-    Flush star formation history data.
-    !!}
-    use :: Galacticus_Nodes          , only : defaultSpheroidComponent
-    use :: Galactic_Structure_Options, only : componentTypeSpheroid
-    use :: Locks                     , only : ompLock
-    implicit none
-    type(ompLock), intent(inout) :: treeLock
-
-    ! Check if we are the default method.
-    if (.not.defaultSpheroidComponent%standardIsActive()) return
-    ! Flush the star formation history.
-    call starFormationHistory_%outputFlush(componentTypeSpheroid,treeLock)
-    return
-  end subroutine Node_Component_Spheroid_Standard_Star_Formation_History_Flush
+  end subroutine mergerTreeExtraOutput
 
   !![
   <stateStoreTask>

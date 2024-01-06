@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -51,6 +51,7 @@ module Chemical_Abundances_Structure
      !![
      <methods>
        <method description="Multiply a chemical abundance by a scalar." method="operator(*)" />
+       <method description="Multiply (in-place) a chemical abundance by a scalar." method="scale" />
        <method description="Divide a chemical abundance by a scalar." method="operator(/)" />
        <method description="Add two chemical abundances." method="operator(+)" />
        <method description="Subtract one chemical abundance from another." method="operator(-)" />

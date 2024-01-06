@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -523,93 +523,96 @@ contains
     integer                                                                  :: countX                     , countScaleLength        , &
          &                                                                      i                          , j                       , &
          &                                                                      k                          , countWork
-    type            (varying_string                   )                      :: fileName
-    type            (hdf5Object                       )                      :: file
-    type            (lockDescriptor                   )                      :: fileLock
     !$omp threadprivate(positionCartesian,scaleLength,integrator_,uLow,uHigh,iAxis,l,m)
     
     ! Return if acceleration is initialized.
     if (self%accelerationInitialized) return
-    ! Construct a file name for the table.
-    fileName=inputPath(pathTypeDataDynamic)// &
-         &   'galacticStructure/'          // &
-         &   self%objectType()             // &
-         &   '.hdf5'
-    call Directory_Make(char(File_Path(char(fileName))))
-    ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-    call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
-    if (File_Exists(fileName)) then
-       !$ call hdf5Access%set()
-       call file%openFile    (char(fileName      )                             )
-       call file%readDataset(      'x'            ,self%accelerationX          )
-       call file%readDataset(      'scaleLength'  ,self%accelerationScaleLength)
-       call file%readDataset(      'acceleration' ,self%accelerationVector     )
-       call file%close      (                                                  )
-       !$ call hdf5Access%unset()
-    else
-       ! Generate grid in position and scale length.
-       countX          =int(log10(          xMaximum/          xMinimum)*          xPerDecade)+1
-       countScaleLength=int(log10(scaleLengthMaximum/scaleLengthMinimum)*scaleLengthPerDecade)+1
-       allocate(self%accelerationX          (  countX                                                ))
-       allocate(self%accelerationScaleLength(                       countScaleLength                 ))
-       allocate(self%accelerationVector     (3,countX,countX,countX,countScaleLength,countScaleLength))
-       self%accelerationX          =Make_Range(          xMinimum,          xMaximum,countX          ,rangeTypeLogarithmic)
-       self%accelerationScaleLength=Make_Range(scaleLengthMinimum,scaleLengthMaximum,countScaleLength,rangeTypeLogarithmic)
-       ! Iterate over all positions and scale lengths, computing the accelerations.
-       call displayIndent("tabulating gravitational accelerations for Gaussian ellipsoids",verbosityLevelWorking)
-       countWork=0
-       do i=1,countX
-          do j=1,countX
-             !$omp parallel
-             integrator_=integrator(accelerationIntegrand,toleranceRelative=1.0d-3)
-             !$omp do schedule(dynamic)
-             do k=1,countX
-                !$omp atomic
-                countWork=countWork+1
-                call displayCounter(int(100.0d0*dble(countWork)/dble(countX**3)),i == 1 .and. j == 1 .and. k == 1,verbosityLevelWorking)
-                positionCartesian=[self%accelerationX          (i),self%accelerationX          (j),self%accelerationX(k)]
-                do l=1,countScaleLength
-                   do m=1,countScaleLength
-                      scaleLength=[self%accelerationScaleLength(l),self%accelerationScaleLength(m),1.0d0                ]
-                      uLow =0.0d0
-                      uHigh=max(maxval(self%scaleLength),maxval(abs(positionCartesian)))*uHighFactor
-                      do iAxis=1,3
-                         ! Note that the factor of ∏ᵢ₌₁³ aᵢ has been canceled with that appearing in the density normalization.
-                         self%accelerationVector(iAxis,i,j,k,l,m)=-2.0d0                         &
-                              &                                   *Pi                            &
-                              &                                   *positionCartesian(iAxis)      &
-                              &                                   *integrator_%integrate(        &
-                              &                                                          uLow  , &
-                              &                                                          uHigh   &
-                              &                                                         )
-                      end do
-                   end do
-                end do
-             end do
-             !$omp end do
-             !$omp end parallel
-          end do
-       end do
-       call displayCounterClear(       verbosityLevelWorking)
-       call displayUnindent     ("done",verbosityLevelWorking)
-       !$ call hdf5Access%set()
-       call file%openFile    (char   (fileName                    )               ,overWrite=.true.,readOnly=.false.)
-       call file%writeDataset(        self%accelerationX           ,'x'                                             )
-       call file%writeDataset(        self%accelerationScaleLength ,'scaleLength'                                   )
-       call file%writeDataset(        self%accelerationVector      ,'acceleration'                                  )
-       call file%close       (                                                                                      )
-       !$ call hdf5Access%unset()
-    end if
-    call File_Unlock(fileLock)
-    ! Compute factors needed for interpolation.
-    self%accelerationXMinimumLog               =      log(self%accelerationX          (                                1 ))
-    self%accelerationXMaximumLog               =      log(self%accelerationX          (size(self%accelerationX          )))
-    self%accelerationScaleLengthMinimumLog     =      log(self%accelerationScaleLength(                                1 ))
-    self%accelerationScaleLengthMaximumLog     =      log(self%accelerationScaleLength(size(self%accelerationScaleLength)))
-    self%accelerationXInverseInterval          =1.0d0/log(self%accelerationX          (2)/self%accelerationX          (1))
-    self%accelerationScaleLengthInverseInterval=1.0d0/log(self%accelerationScaleLength(2)/self%accelerationScaleLength(1))
-    ! Record that the acceleration table is initialized.
-    self%accelerationInitialized=.true.
+    block
+      type(varying_string) :: fileName
+      type(hdf5Object    ) :: file
+      type(lockDescriptor) :: fileLock
+      
+      ! Construct a file name for the table.
+      fileName=inputPath(pathTypeDataDynamic)// &
+           &   'galacticStructure/'          // &
+           &   self%objectType()             // &
+           &   '.hdf5'
+      call Directory_Make(char(File_Path(char(fileName))))
+      ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
+      call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
+      if (File_Exists(fileName)) then
+         !$ call hdf5Access%set()
+         call file%openFile    (char(fileName      )                             )
+         call file%readDataset(      'x'            ,self%accelerationX          )
+         call file%readDataset(      'scaleLength'  ,self%accelerationScaleLength)
+         call file%readDataset(      'acceleration' ,self%accelerationVector     )
+         call file%close      (                                                  )
+         !$ call hdf5Access%unset()
+      else
+         ! Generate grid in position and scale length.
+         countX          =int(log10(          xMaximum/          xMinimum)*          xPerDecade)+1
+         countScaleLength=int(log10(scaleLengthMaximum/scaleLengthMinimum)*scaleLengthPerDecade)+1
+         allocate(self%accelerationX          (  countX                                                ))
+         allocate(self%accelerationScaleLength(                       countScaleLength                 ))
+         allocate(self%accelerationVector     (3,countX,countX,countX,countScaleLength,countScaleLength))
+         self%accelerationX          =Make_Range(          xMinimum,          xMaximum,countX          ,rangeTypeLogarithmic)
+         self%accelerationScaleLength=Make_Range(scaleLengthMinimum,scaleLengthMaximum,countScaleLength,rangeTypeLogarithmic)
+         ! Iterate over all positions and scale lengths, computing the accelerations.
+         call displayIndent("tabulating gravitational accelerations for Gaussian ellipsoids",verbosityLevelWorking)
+         countWork=0
+         do i=1,countX
+            do j=1,countX
+               !$omp parallel
+               integrator_=integrator(accelerationIntegrand,toleranceRelative=1.0d-3)
+               !$omp do schedule(dynamic)
+               do k=1,countX
+                  !$omp atomic
+                  countWork=countWork+1
+                  call displayCounter(int(100.0d0*dble(countWork)/dble(countX**3)),i == 1 .and. j == 1 .and. k == 1,verbosityLevelWorking)
+                  positionCartesian=[self%accelerationX          (i),self%accelerationX          (j),self%accelerationX(k)]
+                  do l=1,countScaleLength
+                     do m=1,countScaleLength
+                        scaleLength=[self%accelerationScaleLength(l),self%accelerationScaleLength(m),1.0d0                ]
+                        uLow =0.0d0
+                        uHigh=max(maxval(self%scaleLength),maxval(abs(positionCartesian)))*uHighFactor
+                        do iAxis=1,3
+                           ! Note that the factor of ∏ᵢ₌₁³ aᵢ has been canceled with that appearing in the density normalization.
+                           self%accelerationVector(iAxis,i,j,k,l,m)=-2.0d0                         &
+                                &                                   *Pi                            &
+                                &                                   *positionCartesian(iAxis)      &
+                                &                                   *integrator_%integrate(        &
+                                &                                                          uLow  , &
+                                &                                                          uHigh   &
+                                &                                                         )
+                        end do
+                     end do
+                  end do
+               end do
+               !$omp end do
+               !$omp end parallel
+            end do
+         end do
+         call displayCounterClear(       verbosityLevelWorking)
+         call displayUnindent     ("done",verbosityLevelWorking)
+         !$ call hdf5Access%set()
+         call file%openFile    (char   (fileName                    )               ,overWrite=.true.,readOnly=.false.)
+         call file%writeDataset(        self%accelerationX           ,'x'                                             )
+         call file%writeDataset(        self%accelerationScaleLength ,'scaleLength'                                   )
+         call file%writeDataset(        self%accelerationVector      ,'acceleration'                                  )
+         call file%close       (                                                                                      )
+         !$ call hdf5Access%unset()
+      end if
+      call File_Unlock(fileLock)
+      ! Compute factors needed for interpolation.
+      self%accelerationXMinimumLog               =      log(self%accelerationX          (                                1 ))
+      self%accelerationXMaximumLog               =      log(self%accelerationX          (size(self%accelerationX          )))
+      self%accelerationScaleLengthMinimumLog     =      log(self%accelerationScaleLength(                                1 ))
+      self%accelerationScaleLengthMaximumLog     =      log(self%accelerationScaleLength(size(self%accelerationScaleLength)))
+      self%accelerationXInverseInterval          =1.0d0/log(self%accelerationX          (2)/self%accelerationX          (1))
+      self%accelerationScaleLengthInverseInterval=1.0d0/log(self%accelerationScaleLength(2)/self%accelerationScaleLength(1))
+      ! Record that the acceleration table is initialized.
+      self%accelerationInitialized=.true.
+    end block
     return
 
   contains

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -236,23 +236,15 @@ contains
             &                                                   )
        starFormationHistoryDisk    =disk    %starFormationHistory()
        starFormationHistorySpheroid=spheroid%starFormationHistory()
-       call self%starFormationHistory_%output                   (                                                   &
+       call self%starFormationHistory_%update                   (                                                   &
             &                                                    node                =node                        , &
-            &                                                    nodePassesFilter    =.false.                     , &
-            &                                                    historyStarFormation=starFormationHistoryDisk    , &
             &                                                    indexOutput         =i                           , &
-            &                                                    indexTree           =1_c_size_t                  , &
-            &                                                    componentType       =componentTypeDisk           , &
-            &                                                    treeLock            =treeLock                      &
+            &                                                    historyStarFormation=starFormationHistoryDisk      &
             &                                                   )
-       call self%starFormationHistory_%output                   (                                                   &
+       call self%starFormationHistory_%update                   (                                                   &
             &                                                    node                =node                        , &
-            &                                                    nodePassesFilter    =.false.                     , &
-            &                                                    historyStarFormation=starFormationHistorySpheroid, &
             &                                                    indexOutput         =i                           , &
-            &                                                    indexTree           =1_c_size_t                  , &
-            &                                                    componentType       =componentTypeSpheroid       , &
-            &                                                    treeLock            =treeLock                      &
+            &                                                    historyStarFormation=starFormationHistorySpheroid  &
             &                                                   )
        starFormationHistoryDisk    %data=1.0d0
        starFormationHistorySpheroid%data=1.0d0

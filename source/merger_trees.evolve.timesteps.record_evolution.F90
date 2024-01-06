@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -39,7 +39,7 @@ main branch galaxy.
     $t_{\mathrm{record},i} &gt; t$ this criterion is not applied. If this criterion is the limiting criterion for $\Delta t$ then the
     properties of the galaxy will be recorded at the end of the timestep.
   
-    Timesteps are logarithmically in cosmic time between {\normalfont \ttfamily [timeBegin]} and \newline {\normalfont
+    Timesteps are logarithmically spaced in cosmic time between {\normalfont \ttfamily [timeBegin]} and \newline {\normalfont
     \ttfamily [timeEnd]}, with the total number of timesteps specified by {\normalfont \ttfamily [countSteps]}.
   
     This recorded evolution will be written to the group {\normalfont \ttfamily mainProgenitorEvolution} in the \glc\ output

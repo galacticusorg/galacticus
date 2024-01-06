@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -98,7 +98,7 @@ program Benchmark_Stellar_Populations_Luminosities
        &                                                                                 sigma                                =+0.69d0                                                                                                      &
        &                                                                                )
   stellarAstrophysics_                  =stellarAstrophysicsFile                        (                                                                                                                                                   &
-       &                                                                                 fileName                            =char(inputPath(pathTypeDataStatic))//'stellarAstrophysics/Stellar_Properties_Compilation.xml'                 &
+       &                                                                                 fileName                            =char(inputPath(pathTypeDataStatic))//'stellarAstrophysics/stellarPropertiesCompilationStandard.xml'           &
        &                                                                                )
   stellarTracks_                        =stellarTracksFile                              (                                                                                                                                                   &
        &                                                                                 fileName                            =char(inputPath(pathTypeDataStatic))//'stellarAstrophysics/Stellar_Tracks_Padova.hdf5'                         &
@@ -107,7 +107,8 @@ program Benchmark_Stellar_Populations_Luminosities
        &                                                                                 stellarTracks_                      =stellarTracks_                                                                                                &
        &                                                                                )
   supernovaeTypeIa_                     =supernovaeTypeIaNagashima2005                  (                                                                                                                                                   &
-       &                                                                                 stellarAstrophysics_                =stellarAstrophysics_                                                                                          &
+       &                                                                                 stellarAstrophysics_                =stellarAstrophysics_                                                                                        , &
+       &                                                                                 initialMassFunction_                =initialMassFunction_                                                                                          &
        &                                                                                )
   supernovaePopulationIII_              =supernovaePopulationIIIHegerWoosley2002        (                                                                                                                                                   &
        &                                                                                 stellarAstrophysics_                =stellarAstrophysics_                                                                                          &

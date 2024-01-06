@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -116,15 +116,18 @@ module Root_Finder
    contains
      !![
      <methods>
-       <method description="Set the function that evaluates $f(x)$ to use in a {\normalfont \ttfamily rootFinder} object."                      method="rootFunction"          />
-       <method description="Set the functions that evaluate $f(x)$ and derivatives to use in a {\normalfont \ttfamily rootFinder} object."      method="rootFunctionDerivative"/>
-       <method description="Set the type of algorithm to use in a {\normalfont \ttfamily rootFinder} object."                                   method="type"                  />
-       <method description="Set the tolerance to use in a {\normalfont \ttfamily rootFinder} object."                                           method="tolerance"             />
-       <method description="Specify how the initial range will be expanded in a {\normalfont \ttfamily rootFinder} object to bracket the root." method="rangeExpand"           />
-       <method description="Find the root of the function given an initial guess or range."                                                     method="find"                  />
-       <method description="Return the initialization state of a {\normalfont \ttfamily rootFinder} object."                                    method="isInitialized"         />
-       <method description="Destroy the {\normalfont \ttfamily rootFinder} object."                                                             method="destroy"               />
-       <method description="Return true if the solver type is valid."                                                                           method="solverTypeIsValid"     />
+       <method description="Set the function that evaluates $f(x)$ to use in a {\normalfont \ttfamily rootFinder} object."                                          method="rootFunction"          />
+       <method description="Set the functions that evaluate $f(x)$ and derivatives to use in a {\normalfont \ttfamily rootFinder} object."                          method="rootFunctionDerivative"/>
+       <method description="Set the type of algorithm to use in a {\normalfont \ttfamily rootFinder} object."                                                       method="type"                  />
+       <method description="Set the tolerance to use in a {\normalfont \ttfamily rootFinder} object."                                                               method="tolerance"             />
+       <method description="Specify how the initial range will be expanded in a {\normalfont \ttfamily rootFinder} object to bracket the root."                     method="rangeExpand"           />
+       <method description="Wrapper function to find the root of the function given an initial guess or range."                                                     method="find"                  />
+       <method description="Wrapper function to find the root of the function given an initial guess or range plus the function value at the low end of the range." method="findWithFLower"        />
+       <method description="Wrapper function to find the root of the function given an initial guess or range plus the function value at the low end of the range." method="findWithFUpper"        />
+       <method description="Find the root of the function given an initial guess or range."                                                                         method="find_"                 />
+       <method description="Return the initialization state of a {\normalfont \ttfamily rootFinder} object."                                                        method="isInitialized"         />
+       <method description="Destroy the {\normalfont \ttfamily rootFinder} object."                                                                                 method="destroy"               />
+       <method description="Return true if the solver type is valid."                                                                                               method="solverTypeIsValid"     />
      </methods>
      !!]
      final     ::                            rootFinderDestructor
