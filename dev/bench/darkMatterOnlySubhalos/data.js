@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1703145976792,
+  "lastUpdate": 1704508900624,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "defddd0c6c83876ed0c11959fbb15f94f9aeaa16",
-          "message": "fix(style): Fix typo",
-          "timestamp": "2023-04-13T14:34:28-07:00",
-          "tree_id": "eb4177091b67b35b2b69f68a20c0a9dc252c6e43",
-          "url": "https://github.com/galacticusorg/galacticus/commit/defddd0c6c83876ed0c11959fbb15f94f9aeaa16"
-        },
-        "date": 1681431714943,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 51.47,
-            "unit": "seconds",
-            "range": 0.125849116007961
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8772,6 +8742,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 24167.8090118703,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": false,
+          "id": "f167a854c58407da4412c3812d4994c0394bdb73",
+          "message": "Merge pull request #521 from galacticusorg/fixAdaptiveSFHs\n\nFix adapative star formation history lengths and times",
+          "timestamp": "2024-01-05T23:32:53Z",
+          "tree_id": "35b78c2092837d0d11ad0cc78d912f2ed5319589",
+          "url": "https://github.com/galacticusorg/galacticus/commit/f167a854c58407da4412c3812d4994c0394bdb73"
+        },
+        "date": 1704508899329,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 43.231,
+            "unit": "seconds",
+            "range": 0.040310048374802
           }
         ]
       }
