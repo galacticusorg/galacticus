@@ -304,7 +304,7 @@ contains
     ! Create a stellar mass property extractor.
     allocate(nodePropertyExtractor_)
     !![
-    <referenceConstruct object="nodePropertyExtractor_"                           constructor="nodePropertyExtractorStarFormationRate               (galacticStructure_                                     )"/>
+    <referenceConstruct object="nodePropertyExtractor_"                           constructor="nodePropertyExtractorStarFormationRate               (starFormationRateDisks_, starFormationRateSpheroids_                                     )"/>
     !!]
     ! Prepend log10 and cosmological luminosity distance property operators.
     allocate(outputAnalysisPropertyOperatorLog10_            )
