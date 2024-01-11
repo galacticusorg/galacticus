@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -434,7 +434,7 @@ contains
     return
   end subroutine Node_Component_Satellite_Preset_Rate_Compute
 
-  subroutine Node_Component_Satellite_Preset_Orphanize(node)
+  subroutine Node_Component_Satellite_Preset_Orphanize(node,timeEnd)
     !!{
     Handle orphanization of a preset satellite component. The satellite should be moved to the branch of its target node.
     !!}
@@ -443,12 +443,14 @@ contains
     use :: ISO_Varying_String, only : operator(//)      , var_str               , varying_string
     use :: String_Handling   , only : operator(//)
     implicit none
-    type (treeNode              ), intent(inout), target  :: node
-    type (treeNode              )               , pointer :: nodeHost
-    class(nodeComponentBasic    )               , pointer :: basic    , basicHost
-    class(nodeComponentSatellite)               , pointer :: satellite
-    type (varying_string        )                         :: message
-
+    type            (treeNode              ), intent(inout), target   :: node
+    double precision                        , intent(in   ), optional :: timeEnd
+    type            (treeNode              )               , pointer  :: nodeHost
+    class           (nodeComponentBasic    )               , pointer  :: basic    , basicHost
+    class           (nodeComponentSatellite)               , pointer  :: satellite
+    type            (varying_string        )                          :: message
+    !$GLC attributes unused :: timeEnd
+    
     satellite => node    %satellite  ()
     call satellite%isOrphanSet(.true.)
     nodeHost  => node    %mergeTarget

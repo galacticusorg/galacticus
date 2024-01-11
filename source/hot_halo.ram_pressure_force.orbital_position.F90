@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -151,10 +151,6 @@ contains
     ! Get the satellite component.
     satellite            =>  node%satellite()
     ! Compute orbital position and velocity.
-
-    !! AJB HACK
-if (any(abs(satellite%position()) > 1.0d100)) write (0,*) node%index(),satellite%position()
-
     radiusOrbital        =  +Vector_Magnitude(satellite%position())
     velocityOrbital      =  +Vector_Magnitude(satellite%velocity())
     ! Find the ram pressure force at this orbital radius.

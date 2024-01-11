@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -85,7 +85,8 @@ program Test_Stellar_Populations
        &                                                            stellarTracks_                       =stellarTracks_                                                                                       &
        &                                                           )
   supernovaeTypeIa_        =supernovaeTypeIaNagashima2005          (                                                                                                                                           &
-       &                                                            stellarAstrophysics_                 =stellarAstrophysics_                                                                                 &
+       &                                                            stellarAstrophysics_                 =stellarAstrophysics_                                                                               , &
+       &                                                            initialMassFunction_                 =initialMassFunction_                                                                                 &
        &                                                           )
   supernovaePopulationIII_ =supernovaePopulationIIIHegerWoosley2002(                                                                                                                                           &
        &                                                            stellarAstrophysics_                 =stellarAstrophysics_                                                                                 &

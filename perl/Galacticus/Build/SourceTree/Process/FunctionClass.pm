@@ -1879,7 +1879,8 @@ CODE
 			    # simply look for the current name in that list.
 			    if ( grep {$_ eq lc($classNode->{'name'})} @{$codeContent->{'submodule'}->{$class->{'type'}}->{'interfaces'}} ) {
 				# Must add the interface for this function to the module.
-				my $interface =
+				my @interfaceNodes;
+				my $interfaceOpener =
 				{
 				    type       => "code" ,
 				    content    => ""     ,
@@ -1889,8 +1890,9 @@ CODE
 				    source     => "Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass()",
 				    line       => 1
 				};
-				$interface->{'content'} .= "interface\n";
-				$interface->{'content'} .= "module ".$classNode->{'opener'};
+				$interfaceOpener->{'content'} .= "interface\n";
+				$interfaceOpener->{'content'} .= "module ".$classNode->{'opener'};
+				push(@interfaceNodes,$interfaceOpener);
 				my $returnName   = $classNode->{'opener'    } =~ m/result\s*\(\s*([a-zA-Z0-9_]+)\s*\)/ ? $1 : $classNode->{'name'};
 				my $functionNode = $classNode->{'firstChild'};
 				# Walk through the function/subroutine and process declarations.
@@ -1901,7 +1903,20 @@ CODE
 					    if ( ( grep {$_ eq lc($returnName)} @{$declaration->{'variables'}}) || ( grep {$_ =~ m/intent\s*\(\s*(in|out|inout)\s*\)/i } @{$declaration->{'attributes'}} ) ) {
 						# Function result variables and any variables with "intent()" attributes must
 						# always be specified in the interface.
-						$interface->{'content'} .= &Fortran::Utils::Format_Variable_Definitions([$declaration]);
+						die('Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass: expected a "code" node as first child')
+						    unless ( $functionNode->{'firstChild'}->{'type'} eq "code" );
+						my $interfaceDeclaration =
+						{
+						    type       => "code" ,
+						    content    => ""     ,
+						    firstChild => undef(),
+						    sibling    => undef(),
+						    parent     => undef(),
+						    source     => $functionNode->{'firstChild'}->{'source'},
+						    line       => $declaration                 ->{'line'  }
+						};
+						$interfaceDeclaration->{'content'} .= &Fortran::Utils::Format_Variable_Definitions([$declaration]);
+						push(@interfaceNodes,$interfaceDeclaration);
 						# Capture any type names - these will need to be imported into the parent module.
 						if  ( defined($declaration->{'type'}) ) {
 						    # A type is defined - strip initial part before any "=" and any whitespace.
@@ -1940,7 +1955,20 @@ CODE
 						    push(@declarationsLocal,$submoduleScope)
 							if ( scalar(@{$submoduleScope->{'variables'}}) > 0 );
 						    if ( scalar(@{$moduleScope   ->{'variables'}}) > 0 ) {
-							$interface->{'content'} .= &Fortran::Utils::Format_Variable_Definitions([$moduleScope]);
+							die('Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass: expected a "code" node as first child')
+							    unless ( $functionNode->{'firstChild'}->{'type'} eq "code" );
+							my $interfaceDeclaration =
+							{
+							    type       => "code" ,
+							    content    => ""     ,
+							    firstChild => undef(),
+							    sibling    => undef(),
+							    parent     => undef(),
+							    source     => $functionNode->{'firstChild'}->{'source'},
+							    line       => $declaration                 ->{'line'  }
+							};
+							$interfaceDeclaration->{'content'} .= &Fortran::Utils::Format_Variable_Definitions([$moduleScope]);
+							push(@interfaceNodes,$interfaceDeclaration);
 							# Capture any type names - these will need to be imported into the parent module.
 						   	if  ( defined($declaration->{'type'}) ) {
 							    # A type is defined - strip initial part before any "=" and any whitespace.
@@ -1988,12 +2016,23 @@ CODE
 				    }
 				    $functionNode = $functionNode->{'sibling'};
 				}
-				$interface->{'content'} .= $classNode->{'closer'};
-				$interface->{'content'} .= "end interface\n";
-				$classNode->{'opener'} = "module procedure ".$classNode->{'name'}."\n";
-				$classNode->{'closer'} = "end procedure ".$classNode->{'name'}."\n";
+				my $interfaceCloser =
+				{
+				    type       => "code" ,
+				    content    => ""     ,
+				    firstChild => undef(),
+				    sibling    => undef(),
+				    parent     => undef(),
+				    source     => "Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass()",
+				    line       => 1
+				};
+				$interfaceCloser->{'content'} .= $classNode->{'closer'};
+				$interfaceCloser->{'content'} .= "end interface\n";
+				$classNode      ->{'opener' } = "module procedure ".$classNode->{'name'}."\n";
+				$classNode      ->{'closer' } = "end procedure "   .$classNode->{'name'}."\n";
+				push(@interfaceNodes,$interfaceCloser);
 				# Insert this new interfaces into the interface list.
-				push(@{$codeContent->{'module'}->{'interfaces'}},$interface);
+				push(@{$codeContent->{'module'}->{'interfaces'}},@interfaceNodes);
 			    }
 			}
 		    } else {

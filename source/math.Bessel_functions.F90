@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -38,7 +38,7 @@ module Bessel_Functions
   interface
      function gsl_sf_bessel_J0(x) bind(c,name='gsl_sf_bessel_J0')
        !!{
-       Template for the GSL J₀ Bessel function.
+       Template for the GSL $J_0$ Bessel function.
        !!}
        import
        real(c_double)        :: gsl_sf_bessel_J0
@@ -47,7 +47,7 @@ module Bessel_Functions
 
      function gsl_sf_bessel_J1(x) bind(c,name='gsl_sf_bessel_J1')
        !!{
-       Template for the GSL J₁ Bessel function.
+       Template for the GSL $J_1$ Bessel function.
        !!}
        import
        real(c_double)        :: gsl_sf_bessel_J1
@@ -56,7 +56,7 @@ module Bessel_Functions
      
      function gsl_sf_bessel_Jn(n,x) bind(c,name='gsl_sf_bessel_Jn')
        !!{
-       Template for the GSL Jₙ Bessel function.
+       Template for the GSL $J_\mathrm{n}$ Bessel function.
        !!}
        import
        real   (c_double)        :: gsl_sf_bessel_Jn
@@ -66,7 +66,7 @@ module Bessel_Functions
      
      function gsl_sf_bessel_zero_J0(s) bind(c,name='gsl_sf_bessel_zero_J0')
        !!{
-       Template for the GSL zeros-of-the-J₀ Bessel function.
+       Template for the GSL zeros-of-the-$J_0$ Bessel function.
        !!}
        import
        real   (c_double)        :: gsl_sf_bessel_zero_J0
@@ -75,7 +75,7 @@ module Bessel_Functions
 
      function gsl_sf_bessel_zero_J1(s) bind(c,name='gsl_sf_bessel_zero_J1')
        !!{
-       Template for the GSL zeros-of-the-J₁ Bessel function.
+       Template for the GSL zeros-of-the-$J_1$ Bessel function.
        !!}
        import
        real   (c_double)        :: gsl_sf_bessel_zero_J1
@@ -84,7 +84,7 @@ module Bessel_Functions
 
      function gsl_sf_bessel_zero_Jnu(nu,s) bind(c,name='gsl_sf_bessel_zero_Jnu')
        !!{
-       Template for the GSL zeros-of-the-Jₙ Bessel function.
+       Template for the GSL zeros-of-the-$J_\mathrm{n}$ Bessel function.
        !!}
        import
        real   (c_double)        :: gsl_sf_bessel_zero_Jnu
@@ -94,7 +94,7 @@ module Bessel_Functions
 
      function gsl_sf_bessel_I0(x) bind(c,name='gsl_sf_bessel_I0')
        !!{
-       Template for the GSL I₀ Bessel function.
+       Template for the GSL $I_0$ Bessel function.
        !!}
        import
        real(c_double)        :: gsl_sf_bessel_I0
@@ -103,7 +103,7 @@ module Bessel_Functions
 
      function gsl_sf_bessel_I1(x) bind(c,name='gsl_sf_bessel_I1')
        !!{
-       Template for the GSL I₁ Bessel function.
+       Template for the GSL $I_1$ Bessel function.
        !!}
        import
        real(c_double)        :: gsl_sf_bessel_I1
@@ -112,7 +112,7 @@ module Bessel_Functions
 
      function gsl_sf_bessel_In(n,x) bind(c,name='gsl_sf_bessel_In')
        !!{
-       Template for the GSL I₁ Bessel function.
+       Template for the GSL $I_\mathrm{n}$ Bessel function.
        !!}
        import
        real   (c_double)        :: gsl_sf_bessel_In
@@ -122,7 +122,7 @@ module Bessel_Functions
 
      function gsl_sf_bessel_Inu(nu,x) bind(c,name='gsl_sf_bessel_Inu')
        !!{
-       Template for the GSL I₁ Bessel function.
+       Template for the GSL $I_\nu$ Bessel function.
        !!}
        import
        real(c_double)        :: gsl_sf_bessel_Inu
@@ -131,7 +131,7 @@ module Bessel_Functions
 
      function gsl_sf_bessel_K0(x) bind(c,name='gsl_sf_bessel_K0')
        !!{
-       Template for the GSL K₀ Bessel function.
+       Template for the GSL $K_0$ Bessel function.
        !!}
        import
        real(c_double)        :: gsl_sf_bessel_K0
@@ -140,7 +140,7 @@ module Bessel_Functions
 
      function gsl_sf_bessel_K1(x) bind(c,name='gsl_sf_bessel_K1')
        !!{
-       Template for the GSL K₁ Bessel function.
+       Template for the GSL $K_1$ Bessel function.
        !!}
        import
        real(c_double)        :: gsl_sf_bessel_K1

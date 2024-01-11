@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -93,7 +93,7 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily starFormationHistoryMass} property extractor class.
     !!}
-    use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid
+    use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid, componentTypeAll
     use :: Error                     , only : Error_Report
     implicit none
     type (nodePropertyExtractorStarFormationHistoryMass)                        :: self
@@ -104,11 +104,13 @@ contains
     <constructorAssign variables="component, *starFormationHistory_, *outputTimes_"/>
     !!]
     
-    if     (                                                                                                    &
-         &   component /= componentTypeDisk                                                                     &
-         &  .and.                                                                                               &
-         &   component /= componentTypeSpheroid                                                                 &
-         & ) call Error_Report("only 'disk' and 'spheroid' components are supported"//{introspection:location})    
+    if     (                                                                                                            &
+         &   component /= componentTypeDisk                                                                             &
+         &  .and.                                                                                                       &
+         &   component /= componentTypeSpheroid                                                                         &
+         &  .and.                                                                                                       &
+         &   component /= componentTypeAll                                                                              &
+         & ) call Error_Report("only 'disk', 'spheroid', and 'all' components are supported"//{introspection:location})    
     return
   end function starFormationHistoryMassConstructorInternal
 
@@ -142,7 +144,7 @@ contains
     Implement a {\normalfont \ttfamily starFormationHistoryMass} property extractor.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentDisk, nodeComponentSpheroid
-    use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid
+    use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid, componentTypeAll
     use :: Histories                 , only : history
     implicit none
     double precision                                               , dimension(:,: ,: ), allocatable :: starFormationHistoryMassExtract
@@ -151,8 +153,9 @@ contains
     type            (multiCounter                                 ), intent(inout)     , optional    :: instance
     class           (nodeComponentDisk                            )                    , pointer     :: disk
     class           (nodeComponentSpheroid                        )                    , pointer     :: spheroid
-    type            (history                                      )                                  :: starFormationHistory
-    !$GLC attributes unustarFormationHistoryMass :: instance
+    type            (history                                      )                                  :: starFormationHistory        , starFormationHistoryDisk, &
+         &                                                                                              starFormationHistorySpheroid
+    !$GLC attributes unused :: instance
 
     ! Get the relevant star formation history.
     select case (self%component%ID)
@@ -162,6 +165,21 @@ contains
     case (componentTypeSpheroid%ID)
        spheroid             => node    %spheroid            ()
        starFormationHistory =  spheroid%starFormationHistory()
+    case (componentTypeAll     %ID)
+       spheroid                     => node    %spheroid            ()
+       disk                         => node    %disk                ()
+       starFormationHistoryDisk     =  disk    %starFormationHistory()
+       starFormationHistorySpheroid =  spheroid%starFormationHistory()
+       if (starFormationHistoryDisk%exists()) then
+          if (starFormationHistorySpheroid%exists()) then
+             starFormationHistory= starFormationHistoryDisk     &
+                  &               +starFormationHistorySpheroid
+          else
+             starFormationHistory=starFormationHistoryDisk
+          end if
+       else
+          starFormationHistory=starFormationHistorySpheroid
+       end if
     end select
     if (starFormationHistory%exists()) then
        allocate(starFormationHistoryMassExtract(size(starFormationHistory%data,dim=1),size(starFormationHistory%data,dim=2),1))
@@ -214,24 +232,23 @@ contains
     return
   end function starFormationHistoryMassUnitsInSI
   
-  subroutine starFormationHistoryMassMetaData(self,node,metaDataRank0,metaDataRank1)
+  subroutine starFormationHistoryMassMetaData(self,node,time,metaDataRank0,metaDataRank1)
     !!{
     Return metadata associated with the {\normalfont \ttfamily starFormationHistoryMass} properties.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
-    class  (nodePropertyExtractorStarFormationHistoryMass), intent(inout) :: self
-    type   (treeNode                                     ), intent(inout) :: node
-    type   (doubleHash                                   ), intent(inout) :: metaDataRank0
-    type   (rank1DoubleHash                              ), intent(inout) :: metaDataRank1
-    class  (nodeComponentBasic                           ), pointer       :: basic
-    integer(c_size_t                                     )                :: indexOutput
+    class           (nodePropertyExtractorStarFormationHistoryMass), intent(inout) :: self
+    type            (treeNode                                     ), intent(inout) :: node
+    double precision                                               , intent(in   ) :: time
+    type            (doubleHash                                   ), intent(inout) :: metaDataRank0
+    type            (rank1DoubleHash                              ), intent(inout) :: metaDataRank1
+    integer         (c_size_t                                     )                :: indexOutput
     !$GLC attributes unused :: metaDataRank0
 
     call    metaDataRank1%set('metallicity',self%starFormationHistory_%metallicityBoundaries(           ))
     if (self%starFormationHistory_%perOutputTabulationIsStatic()) then
-       basic       => node             %basic(                               )
-       indexOutput =  self%outputTimes_%index(basic%time(),findClosest=.true.)
+       indexOutput =  self%outputTimes_%index(time,findClosest=.true.)
        call metaDataRank1%set('time'       ,self%starFormationHistory_%times                (indexOutput))
     end if
     return
