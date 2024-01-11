@@ -1,12 +1,13 @@
 name: Test Code (Reuseable Workflow)
-
 on:
   workflow_call:
     inputs:
       executable: # The name of the test executable to be run and tested
         required: true
         type: string
-
+defaults:
+  run:
+    shell: bash
 jobs:
   Test-Code:
     runs-on: ubuntu-latest
