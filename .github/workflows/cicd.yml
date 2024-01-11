@@ -1561,111 +1561,18 @@ jobs:
   # Tests
   ## Linux
   ### Test Codes
-  Test-Nodes:
-    runs-on: ubuntu-latest
-    container: ghcr.io/galacticusorg/buildenv:latest
-    needs: Build-Executable-Linux
-    steps:
-      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
-      - run: echo "This job is now running on a ${{ runner.os }} server."
-      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
-      - name: Check out repository code
-        uses: actions/checkout@v4
-      - name: Check out repository datasets
-        uses: actions/checkout@v4      
-        with:
-          repository: galacticusorg/datasets
-          path: datasets
-      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
-      - name: "Set environmental variables"
-        run: |
-          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
-      - name: Download executables
-        uses: actions/download-artifact@v4
-        with:
-          name: test-execs
-      - name: Create test suite output directory
-        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
-      - name: Run test
-        run: |
-          cd $GALACTICUS_EXEC_PATH
-          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          chmod u=wrx ./tests.nodes.exe
-          set -o pipefail
-          ./tests.nodes.exe 2>&1 | tee test.log
-          ! grep -q FAIL test.log
-      - run: echo "This job's status is ${{ job.status }}."
-  Test-Parameters:
-    runs-on: ubuntu-latest
-    container: ghcr.io/galacticusorg/buildenv:latest
-    needs: Build-Executable-Linux
-    steps:
-      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
-      - run: echo "This job is now running on a ${{ runner.os }} server."
-      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
-      - name: Check out repository code
-        uses: actions/checkout@v4
-      - name: Check out repository datasets
-        uses: actions/checkout@v4      
-        with:
-          repository: galacticusorg/datasets
-          path: datasets
-      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
-      - name: "Set environmental variables"
-        run: |
-          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
-      - name: Download executables
-        uses: actions/download-artifact@v4
-        with:
-          name: test-execs
-      - name: Create test suite output directory
-        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
-      - name: Run test
-        run: |
-          cd $GALACTICUS_EXEC_PATH
-          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          chmod u=wrx ./tests.parameters.exe
-          set -o pipefail
-          ./tests.parameters.exe 2>&1 | tee test.log
-          ! grep -q FAIL test.log
-      - run: echo "This job's status is ${{ job.status }}."
-  Tests-Files:
-    runs-on: ubuntu-latest
-    container: ghcr.io/galacticusorg/buildenv:latest
-    needs: Build-Executable-Linux
-    steps:
-      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
-      - run: echo "This job is now running on a ${{ runner.os }} server."
-      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
-      - name: Check out repository code
-        uses: actions/checkout@v4
-      - name: Check out repository datasets
-        uses: actions/checkout@v4      
-        with:
-          repository: galacticusorg/datasets
-          path: datasets
-      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
-      - name: "Set environmental variables"
-        run: |
-          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
-      - name: Download executables
-        uses: actions/download-artifact@v4
-        with:
-          name: test-execs
-      - name: Create test suite output directory
-        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
-      - name: Run test
-        run: |
-          cd $GALACTICUS_EXEC_PATH
-          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          chmod u=wrx ./tests.files.exe
-          set -o pipefail
-          ./tests.files.exe 2>&1 | tee test.log
-          ! grep -q FAIL test.log
-      - run: echo "This job's status is ${{ job.status }}."
+  Test-Codes:
+    strategy:
+      # Ensure all jobs are run, even if some fail.
+      fail-fast: false
+      matrix:
+        executable: [ tests.nodes.exe,
+                      tests.parameters.exe,
+                      tests.files.exe ]
+    uses: ./.github/workflows/testCode.yml
+    with:
+      version: ${{ matrix.version }}
+    secrets: inherit
   Tests-IO-HDF5:
     runs-on: ubuntu-latest
     container: ghcr.io/galacticusorg/buildenv:latest
@@ -10404,9 +10311,7 @@ jobs:
              Profile-Dark-Matter-Only-Subhalos-GProf,
              Profile-Milky-Way-GProf,
              Profile-Milky-Way-SIDM-GProf,
-             Test-Nodes,
-             Test-Parameters,
-             Tests-Files,
+             Test-Codes,
              Tests-IO-HDF5,
              Tests-IO-XML,
              Tests-ODE-Solver,
