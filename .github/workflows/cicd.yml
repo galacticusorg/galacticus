@@ -1562,6 +1562,7 @@ jobs:
   ## Linux
   ### Test Codes
   Test-Codes:
+    needs: Build-Executable-Linux
     strategy:
       # Ensure all jobs are run, even if some fail.
       fail-fast: false
