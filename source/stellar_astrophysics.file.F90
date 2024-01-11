@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -72,9 +72,11 @@
      double precision                         , allocatable, dimension(:  ) :: massEjectedMassEjected           , massEjectedMass                , &
           &                                                                    massEjectedMetallicity
      double precision                         , allocatable, dimension(:  ) :: yieldMetals                      , yieldMetalsMass                , &
-          &                                                                    yieldMetalsMetallicity
+          &                                                                    yieldMetalsMetallicity           , yieldMetalsRangeMass           , &
+          &                                                                    yieldMetalsRangeMetallicity
      double precision                         , allocatable, dimension(:,:) :: yieldElement                     , yieldElementMass               , &
-          &                                                                    yieldElementMetallicity
+          &                                                                    yieldElementMetallicity          , yieldElementRangeMass          , &
+          &                                                                    yieldElementRangeMetallicity
      integer                                  , allocatable, dimension(:  ) :: atomIndexMap                     , countYieldElement
      integer                                                                :: countElement
      type            (interp2dIrregularObject)                              :: interpolationWorkspaceMassInitial, interpolationWorkspaceLifetime , &
@@ -161,10 +163,11 @@ contains
     !!{
     Read stellar astrophysics data. This is not done during object construction since it can be slow---we only perform the read if the data is actually needed.
     !!}
-    use :: Atomic_Data      , only : Atomic_Short_Label
-    use :: FoX_DOM          , only : destroy                          , node                        , extractDataContent
-    use :: Error            , only : Error_Report
-    use :: IO_XML           , only : XML_Get_First_Element_By_Tag_Name, XML_Get_Elements_By_Tag_Name, xmlNodeList       ,  XML_Parse
+    use :: Atomic_Data   , only : Atomic_Short_Label
+    use :: FoX_DOM       , only : destroy                          , node                        , extractDataContent
+    use :: Error         , only : Error_Report
+    use :: IO_XML        , only : XML_Get_First_Element_By_Tag_Name, XML_Get_Elements_By_Tag_Name, xmlNodeList       ,  XML_Parse
+    use :: File_Utilities, only : File_Name_Expand
     implicit none
     class           (stellarAstrophysicsFile), intent(inout)               :: self
     type            (node                   ), pointer                     :: doc              , datum                   , &
@@ -181,7 +184,7 @@ contains
     if (self%readDone) return
     !$omp critical (FoX_DOM_Access)
     ! Open the XML file containing stellar properties.
-    doc => XML_Parse(char(self%fileName),iostat=ioErr)
+    doc => XML_Parse(char(File_Name_Expand(char(self%fileName))),iostat=ioErr)
     if (ioErr /= 0) call Error_Report('Unable to parse stellar properties file'//{introspection:location})
     ! Check the file format version of the file.
     datum => XML_Get_First_Element_By_Tag_Name(doc,"fileFormat")
@@ -218,6 +221,10 @@ contains
     ! Find number of elements for which some yield data is available.
     self%countElement       =count (self%countYieldElement > 0)
     countYieldElementMaximum=maxval(self%countYieldElement    )
+    ! Validate.
+    if (countLifetime    <= 0) call Error_Report('star compilation provides no lifetimes'     //{introspection:location})
+    if (countMassEjected <= 0) call Error_Report('star compilation provides no ejected masses'//{introspection:location})
+    if (countYieldMetals <= 0) call Error_Report('star compilation provides no metal yields'  //{introspection:location})
     ! Create mapping of atomic index to our array space.
     mapToIndex=0
     do iElement=1,size(self%countYieldElement)
@@ -229,18 +236,22 @@ contains
        end if
     end do
     ! Allocate arrays to store stellar properties.
-    allocate(self%lifetimeLifetime          (countLifetime                             ))
-    allocate(self%lifetimeMass              (countLifetime                             ))
-    allocate(self%lifetimeMetallicity       (countLifetime                             ))
-    allocate(self%massEjectedMassEjected    (countMassEjected                          ))
-    allocate(self%massEjectedMass           (countMassEjected                          ))
-    allocate(self%massEjectedMetallicity    (countMassEjected                          ))
-    allocate(self%yieldMetals               (countYieldMetals                          ))
-    allocate(self%yieldMetalsMass           (countYieldMetals                          ))
-    allocate(self%yieldMetalsMetallicity    (countYieldMetals                          ))
-    allocate(self%yieldElement              (countYieldElementMaximum,self%countElement))
-    allocate(self%yieldElementMass          (countYieldElementMaximum,self%countElement))
-    allocate(self%yieldElementMetallicity   (countYieldElementMaximum,self%countElement))
+    allocate(self%lifetimeLifetime            (countLifetime                             ))
+    allocate(self%lifetimeMass                (countLifetime                             ))
+    allocate(self%lifetimeMetallicity         (countLifetime                             ))
+    allocate(self%massEjectedMassEjected      (countMassEjected                          ))
+    allocate(self%massEjectedMass             (countMassEjected                          ))
+    allocate(self%massEjectedMetallicity      (countMassEjected                          ))
+    allocate(self%yieldMetals                 (countYieldMetals                          ))
+    allocate(self%yieldMetalsMass             (countYieldMetals                          ))
+    allocate(self%yieldMetalsMetallicity      (countYieldMetals                          ))
+    allocate(self%yieldElement                (countYieldElementMaximum,self%countElement))
+    allocate(self%yieldElementMass            (countYieldElementMaximum,self%countElement))
+    allocate(self%yieldElementMetallicity     (countYieldElementMaximum,self%countElement))
+    allocate(self%yieldMetalsRangeMass        (2                                         ))
+    allocate(self%yieldMetalsRangeMetallicity (2                                         ))
+    allocate(self%yieldElementRangeMass       (2                       ,self%countElement))
+    allocate(self%yieldElementRangeMetallicity(2                       ,self%countElement))
     ! Loop over stars to process their properties.
     countLifetime         =0
     countMassEjected      =0
@@ -309,6 +320,15 @@ contains
     ! Destroy the document.
     call destroy(doc)
     !$omp end critical (FoX_DOM_Access)
+    ! Find ranges of each tabulated property.
+    self%yieldMetalsRangeMass       =[minval(self%yieldMetalsMass       ),maxval(self%yieldMetalsMass       )]
+    self%yieldMetalsRangeMetallicity=[minval(self%yieldMetalsMetallicity),maxval(self%yieldMetalsMetallicity)]
+    do iElement=1,size(self%countYieldElement)
+       if (self%atomIndexMap(iElement) > 0) then
+          self%yieldElementRangeMass       (:,self%atomIndexMap(iElement))=[minval(self%yieldElementMass       (1:self%countYieldElement(iElement),self%atomIndexMap(iElement))),maxval(self%yieldElementMass       (1:self%countYieldElement(iElement),self%atomIndexMap(iElement)))]
+          self%yieldElementRangeMetallicity(:,self%atomIndexMap(iElement))=[minval(self%yieldElementMetallicity(1:self%countYieldElement(iElement),self%atomIndexMap(iElement))),maxval(self%yieldElementMetallicity(1:self%countYieldElement(iElement),self%atomIndexMap(iElement)))]
+       end if
+    end do
     self%readDone=.true.
     return
   end subroutine fileRead
@@ -393,37 +413,58 @@ contains
     double precision                         , intent(in   )           :: massInitial , metallicity
     integer                                  , intent(in   ), optional :: atomIndex
     integer                                                            :: elementIndex
-
+    double precision                                                   :: metallicity_
+    
     call self%read()
     if (present(atomIndex)) then
        ! Compute the element mass yield.
        elementIndex =self%atomIndexMap(atomIndex)
-       fileMassYield=max(                                                                                                                       &
-            &            Interpolate_2D_Irregular(                                                                                              &
-            &                                           self%yieldElementMass               (1:self%countYieldElement(atomIndex),elementIndex), &
-            &                                           self%yieldElementMetallicity        (1:self%countYieldElement(atomIndex),elementIndex), &
-            &                                           self%yieldElement                   (1:self%countYieldElement(atomIndex),elementIndex), &
-            &                                                massInitial                                                                      , &
-            &                                                metallicity                                                                      , &
-            &                                           self%interpolationWorkspaceMassYield                                                  , &
-            &                                     reset=self%interpolationResetMassYield                                                        &
-            &                                    )                                                                                            , &
-            &            0.0d0                                                                                                                  &
-            &           )
+       ! Exclude initial masses outside of the available range of stars.
+       if     (                                                           &
+            &   massInitial >= self%yieldElementRangeMass(1,elementIndex) &
+            &  .and.                                                      &
+            &   massInitial <= self%yieldElementRangeMass(2,elementIndex) &
+            & ) then
+          metallicity_ =min(max(metallicity,self%yieldElementRangeMetallicity(1,elementIndex)),self%yieldElementRangeMetallicity(2,elementIndex))
+          fileMassYield=max(                                                                                                                       &
+               &            Interpolate_2D_Irregular(                                                                                              &
+               &                                           self%yieldElementMass               (1:self%countYieldElement(atomIndex),elementIndex), &
+               &                                           self%yieldElementMetallicity        (1:self%countYieldElement(atomIndex),elementIndex), &
+               &                                           self%yieldElement                   (1:self%countYieldElement(atomIndex),elementIndex), &
+               &                                                massInitial                                                                      , &
+               &                                                metallicity_                                                                     , &
+               &                                           self%interpolationWorkspaceMassYield                                                  , &
+               &                                     reset=self%interpolationResetMassYield                                                        &
+               &                                    )                                                                                            , &
+               &            0.0d0                                                                                                                  &
+               &           )
+       else
+          fileMassYield=0.0d0
+       end if
     else
        ! Compute the metal mass yield.
-       fileMassYield=max(                                                                     &
-            &            Interpolate_2D_Irregular(                                            &
-            &                                           self%yieldMetalsMass                , &
-            &                                           self%yieldMetalsMetallicity         , &
-            &                                           self%yieldMetals                    , &
-            &                                                massInitial                    , &
-            &                                                metallicity                    , &
-            &                                           self%interpolationWorkspaceMassYield, &
-            &                                     reset=self%interpolationResetMassYield      &
-            &                                    )                                          , &
-            &             0.0d0                                                               &
-            &            )
+       ! Exclude initial masses outside of the available range of stars.
+       if     (                                             &
+            &   massInitial >= self%yieldMetalsRangeMass(1) &
+            &  .and.                                        &
+            &   massInitial <= self%yieldMetalsRangeMass(2) &
+            & ) then
+          metallicity_ =min(max(metallicity,self%yieldMetalsRangeMetallicity(1)),self%yieldMetalsRangeMetallicity(2))          
+          fileMassYield=max(                                                                     &
+               &            Interpolate_2D_Irregular(                                            &
+               &                                           self%yieldMetalsMass                , &
+               &                                           self%yieldMetalsMetallicity         , &
+               &                                           self%yieldMetals                    , &
+               &                                                massInitial                    , &
+               &                                                metallicity_                   , &
+               &                                           self%interpolationWorkspaceMassYield, &
+               &                                     reset=self%interpolationResetMassYield      &
+               &                                    )                                          , &
+               &             0.0d0                                                               &
+               &            )
+       else
+          fileMassYield=0.0d0
+       end if
     end if
     return
   end function fileMassYield

@@ -178,6 +178,11 @@ sub Class_Create_By_Interrupt {
 		 variables  => [ "self" ]
 	     },
 	     {
+		 intrinsic  => "double precision",
+		 attributes => [ "intent(in   )", "optional" ],
+		 variables  => [ "timeEnd" ]
+	     },
+	     {
 		 intrinsic  => "class",
 		 type       => "nodeComponent".ucfirst($code::class->{'name'}),
 		 attributes => [ "pointer" ],
@@ -208,7 +213,7 @@ CODE
 		);
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 type is (nodeComponent{ucfirst($code::class->{'name'}).ucfirst($code::member->{'name'})})
-   call {$createFunction}({$class->{'name'}})
+   call {$createFunction}({$class->{'name'}},timeEnd)
 CODE
 	}
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -377,11 +377,13 @@ contains
     return
   end subroutine positionInterpolatedNodePromote
 
-  subroutine positionInterpolatedComputeInterpolation_(node)
+  subroutine positionInterpolatedComputeInterpolation_(node,timeEnd)
     !!{
     Interrupt function to recompute interpolation.
     !!}
-    type(treeNode), intent(inout), target :: node
+    type            (treeNode), intent(inout), target   :: node
+    double precision          , intent(in   ), optional :: timeEnd
+    !$GLC attributes unused :: timeEnd
     
     call self_%computeInterpolation(node)
     return

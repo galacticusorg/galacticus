@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -142,7 +142,7 @@ contains
     return
   end subroutine satelliteDestructionMassThresholdDifferentialEvolution
   
-  subroutine destructionTrigger(node)
+  subroutine destructionTrigger(node,timeEnd)
     !!{
     Trigger destruction of the satellite by setting the time until destruction to zero.
     !!}
@@ -150,9 +150,11 @@ contains
     use :: Display         , only : displayBlue           , displayYellow, displayGreen, displayReset
     use :: Error           , only : Error_Report
     implicit none
-    type (treeNode              ), intent(inout), target  :: node
-    class(nodeComponentSatellite)               , pointer :: satellite
-
+    type            (treeNode              ), intent(inout), target   :: node
+    double precision                        , intent(in   ), optional :: timeEnd
+    class           (nodeComponentSatellite)               , pointer  :: satellite
+    !$GLC attributes unused :: timeEnd
+    
     satellite => node%satellite()
     if (satellite%boundMass() < self_%massDestroy(node)) then
        if (satellite%destructionTime() >= 0.0d0)                                                                                                                                                                               &

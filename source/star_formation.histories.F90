@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -47,9 +47,10 @@ module Star_Formation_Histories
     <description>Create the star formation history object.</description>
     <type>void</type>
     <pass>yes</pass>
-    <argument>type            (treeNode), intent(inout) :: node</argument>
-    <argument>type            (history ), intent(inout) :: historyStarFormation</argument>
-    <argument>double precision          , intent(in   ) :: timeBegin</argument>
+    <argument>type            (treeNode), intent(inout)           :: node</argument>
+    <argument>type            (history ), intent(inout)           :: historyStarFormation</argument>
+    <argument>double precision          , intent(in   )           :: timeBegin</argument>
+    <argument>double precision          , intent(in   ), optional :: timeEnd</argument>
    </method>
    <method name="scales" >
     <description>Set ODE solver absolute scales for a star formation history object.</description>

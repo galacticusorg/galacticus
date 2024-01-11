@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -477,7 +477,7 @@ contains
           doubleArray =extractor_%extract       (node,time,instance)
           do i=1,+extractor_%elementCount(                  time)
              if (     allocated(self%doubleProperty (doubleProperty +i)%scalar))                          deallocate(self%doubleProperty (doubleProperty +i)%scalar)
-             if (     allocated(self%doubleProperty (doubleProperty +i)%rank1 )) then
+             if (     allocated(self%doubleProperty (doubleProperty +i)%rank1 )) then 
                 if (size(self%doubleProperty (doubleProperty +i)%rank1,dim=1) /= size(doubleArray,dim=1)) deallocate(self%doubleProperty (doubleProperty +i)%rank1 )
              end if
              if (.not.allocated(self%doubleProperty (doubleProperty +i)%rank1)) allocate(self%doubleProperty (doubleProperty +i)%rank1(size(doubleArray,dim=1),self%doubleBufferSize))
@@ -513,7 +513,11 @@ contains
              if (     allocated(self%doubleProperty (doubleProperty +i)%rank1VarLen))                          deallocate(self%doubleProperty (doubleProperty +i)%rank1VarLen)
              if (.not.allocated(self%doubleProperty (doubleProperty +i)%rank2VarLen)) allocate(self%doubleProperty (doubleProperty +i)%rank2VarLen(self%doubleBufferSize))
              if (associated(self%doubleProperty (doubleProperty +i)%rank2VarLen (self%doubleBufferCount )%row)) then
-                if (size(self%doubleProperty (doubleProperty +i)%rank2VarLen (self%doubleBufferCount )%row) /= size(doubleArray2D,dim=1)) deallocate(self%doubleProperty (doubleProperty +i)%rank2VarLen (self%doubleBufferCount )%row)
+                if     (                                                                                                                            &
+                     &   size(self%doubleProperty (doubleProperty +i)%rank2VarLen (self%doubleBufferCount )%row,dim=1) /= size(doubleArray2D,dim=1) &
+                     &  .or.                                                                                                                        &
+                     &   size(self%doubleProperty (doubleProperty +i)%rank2VarLen (self%doubleBufferCount )%row,dim=2) /= size(doubleArray2D,dim=2) &
+                     & ) deallocate(self%doubleProperty (doubleProperty +i)%rank2VarLen (self%doubleBufferCount )%row)
              end if
              if (.not.associated(self%doubleProperty (doubleProperty +i)%rank2VarLen (self%doubleBufferCount )%row)) then
                 allocate(self%doubleProperty (doubleProperty +i)%rank2VarLen (self%doubleBufferCount )%row(size(doubleArray2D,dim=1),size(doubleArray2D,dim=2)))
@@ -573,7 +577,11 @@ contains
                 if (.not.allocated(self%doubleProperty(doubleProperty +i)%rank2VarLen)) allocate(self%doubleProperty (doubleProperty +i)%rank2VarLen(self%doubleBufferSize))
                 if (associated(self%doubleProperty (doubleProperty +i)%rank2VarLen (self%doubleBufferCount )%row)) then
                    shape_=doubleProperties(i)%shape()
-                   if (size(self%doubleProperty (doubleProperty +i)%rank2VarLen (self%doubleBufferCount )%row) /= shape_(1)) deallocate(self%doubleProperty (doubleProperty +i)%rank2VarLen (self%doubleBufferCount )%row)
+                   if     (                                                                                                            &
+                        &   size(self%doubleProperty (doubleProperty +i)%rank2VarLen (self%doubleBufferCount )%row,dim=1) /= shape_(1) &
+                        &  .or.                                                                                                        &
+                        &   size(self%doubleProperty (doubleProperty +i)%rank2VarLen (self%doubleBufferCount )%row,dim=2) /= shape_(2) &
+                        & ) deallocate(self%doubleProperty (doubleProperty +i)%rank2VarLen (self%doubleBufferCount )%row)
                    deallocate(shape_)
                 end if
                 if (.not.associated(self%doubleProperty (doubleProperty +i)%rank2VarLen (self%doubleBufferCount )%row)) then
@@ -828,28 +836,52 @@ contains
     !!{
     Extend the size of the double buffer.
     !!}
+    use :: IO_HDF5, only : hdf5VarDouble , hdf5VarDouble2D
     implicit none
     class           (mergerTreeOutputterStandard), intent(inout)                 :: self
     double precision                             , allocatable  , dimension(:  ) :: scalarTemporary
     double precision                             , allocatable  , dimension(:,:) :: rank1Temporary
-    integer                                                                      :: i
+    type            (hdf5VarDouble              ), allocatable  , dimension(:  ) :: rank1VarLenTemporary
+    type            (hdf5VarDouble2D            ), allocatable  , dimension(:  ) :: rank2VarLenTemporary
+    integer                                                                      :: i                   , j
 
     do i=1,size(self%doubleProperty)
-       if (allocated(self%doubleProperty(i)%scalar)) then
-          call move_alloc(self%doubleProperty(i)%scalar,scalarTemporary)
-          allocate(self%doubleProperty(i)%scalar(                           self%doubleBufferSize+standardBufferSizeIncrement))
-          self%doubleProperty(i)%scalar(  1:self%doubleBufferSize)=scalarTemporary
+       if (allocated(self%doubleProperty(i)%scalar    )) then
+          call move_alloc(self%doubleProperty(i)%scalar    ,scalarTemporary)
+          allocate(self%doubleProperty(i)%scalar    (                           self%doubleBufferSize+standardBufferSizeIncrement))
+          self%doubleProperty(i)%scalar    (  1:self%doubleBufferSize)=scalarTemporary
           deallocate(scalarTemporary)
        end if
-       if (allocated(self%doubleProperty(i)%rank1 )) then
-          call move_alloc(self%doubleProperty(i)%rank1 ,rank1Temporary )
-          allocate(self%doubleProperty(i)%rank1 (size(rank1Temporary,dim=1),self%doubleBufferSize+standardBufferSizeIncrement))
-          self%doubleProperty(i)%rank1 (:,1:self%doubleBufferSize)=rank1Temporary
+       if (allocated(self%doubleProperty(i)%rank1     )) then
+          call move_alloc(self%doubleProperty(i)%rank1     ,rank1Temporary )
+          allocate(self%doubleProperty(i)%rank1     (size(rank1Temporary,dim=1),self%doubleBufferSize+standardBufferSizeIncrement))
+          self%doubleProperty(i)%rank1     (:,1:self%doubleBufferSize)=rank1Temporary
           deallocate(rank1Temporary )
+       end if
+       if (allocated(self%doubleProperty(i)%rank1VarLen)) then
+          call move_alloc(self%doubleProperty(i)%rank1VarLen,rank1VarLenTemporary)
+          allocate(self%doubleProperty(i)%rank1VarLen(                           self%doubleBufferSize+standardBufferSizeIncrement))
+          self%doubleProperty(i)%rank1VarLen(  1:self%doubleBufferSize)=rank1VarLenTemporary
+          ! Nullify row pointers in the temporary array to avoid the associated data being destroyed when our temporary array is
+          ! deallocated.
+          do j=1,size(rank1VarLenTemporary)
+             rank1VarLenTemporary(j)%row => null()
+          end do
+          deallocate(rank1VarLenTemporary)
+       end if
+       if (allocated(self%doubleProperty(i)%rank2VarLen)) then
+          call move_alloc(self%doubleProperty(i)%rank2VarLen,rank2VarLenTemporary)
+          allocate(self%doubleProperty(i)%rank2VarLen(                           self%doubleBufferSize+standardBufferSizeIncrement))
+          self%doubleProperty(i)%rank2VarLen(  1:self%doubleBufferSize)=rank2VarLenTemporary
+          ! Nullify row pointers in the temporary array to avoid the associated data being destroyed when our temporary array is
+          ! deallocated.
+          do j=1,size(rank2VarLenTemporary)
+             rank2VarLenTemporary(j)%row => null()
+          end do
+          deallocate(rank2VarLenTemporary)
        end if
     end do
     self%doubleBufferSize=self%doubleBufferSize+standardBufferSizeIncrement
-
     return
   end subroutine standardExtendDoubleBuffer
 
@@ -974,7 +1006,7 @@ contains
        self%doubleProperty (doubleProperty +1                                                                 )%name      =extractor_%name        (                       )
        self%doubleProperty (doubleProperty +1                                                                 )%comment   =extractor_%description (                       )
        self%doubleProperty (doubleProperty +1                                                                 )%unitsInSI =extractor_%unitsInSI   (                       )
-       call    extractor_%metaData(node  ,self%doubleProperty (doubleProperty +1)%metaDataRank0,self%doubleProperty (doubleProperty +1)%metaDataRank1)
+       call    extractor_%metaData(node      ,self%doubleProperty (doubleProperty +1)%metaDataRank0,self%doubleProperty (doubleProperty +1)%metaDataRank1)
        doubleProperty =doubleProperty +1
     class is (nodePropertyExtractorTuple        )
        ! Tuple property extractor - get the names, descriptions, and units.
@@ -984,7 +1016,7 @@ contains
        self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                   time))%comment   =descriptionsTmp
        self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                   time))%unitsInSI =extractor_%unitsInSI   (                   time)
        do i=1,extractor_%elementCount(                   time)
-          call extractor_%metaData(node,i,self%doubleProperty (doubleProperty +i)%metaDataRank0,self%doubleProperty (doubleProperty +i)%metaDataRank1)
+          call extractor_%metaData(node,i     ,self%doubleProperty (doubleProperty +i)%metaDataRank0,self%doubleProperty (doubleProperty +i)%metaDataRank1)
        end do
        doubleProperty =doubleProperty +extractor_%elementCount(time)
        deallocate(namesTmp       )
@@ -1002,7 +1034,7 @@ contains
           call extractor_%columnDescriptions(self%doubleProperty(doubleProperty+i)%rank1Descriptors,self%doubleProperty(doubleProperty+i)%rank1DescriptorValues,self%doubleProperty(doubleProperty+i)%rank1DescriptorComment,self%doubleProperty(doubleProperty+i)%rank1DescriptorUnitsInSI,time)
        end do
        do i=1,extractor_%elementCount(                   time)
-          call extractor_%metaData(node,i,self%doubleProperty (doubleProperty +i)%metaDataRank0,self%doubleProperty (doubleProperty +1)%metaDataRank1)
+          call extractor_%metaData(node,i     ,self%doubleProperty (doubleProperty +i)%metaDataRank0,self%doubleProperty (doubleProperty +1)%metaDataRank1)
        end do
        doubleProperty =doubleProperty +extractor_%elementCount(time)
        deallocate(namesTmp       )
@@ -1014,7 +1046,7 @@ contains
        self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                       ))%name      =namesTmp
        self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                       ))%comment   =descriptionsTmp
        self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                       ))%unitsInSI =extractor_%unitsInSI  (                       )
-       call    extractor_%metaData(node  ,self%doubleProperty (doubleProperty +1)%metaDataRank0,self%doubleProperty (doubleProperty +1)%metaDataRank1)
+       call    extractor_%metaData(node            ,self%doubleProperty (doubleProperty +1)%metaDataRank0,self%doubleProperty (doubleProperty +1)%metaDataRank1)
        doubleProperty =doubleProperty +1
     class is (nodePropertyExtractorList2D       )
        ! 2D list property extractor - get the name, description, and units.
@@ -1023,14 +1055,14 @@ contains
        self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                       ))%name      =namesTmp
        self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                       ))%comment   =descriptionsTmp
        self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                       ))%unitsInSI =extractor_%unitsInSI  (                       )
-       call    extractor_%metaData(node  ,self%doubleProperty (doubleProperty +1)%metaDataRank0,self%doubleProperty (doubleProperty +1)%metaDataRank1)
+       call    extractor_%metaData(node  ,time,self%doubleProperty (doubleProperty +1)%metaDataRank0,self%doubleProperty (doubleProperty +1)%metaDataRank1)
        doubleProperty =doubleProperty +1
     class is (nodePropertyExtractorIntegerScalar)
        ! Integer scalar property extractor - get the name, description, and units.
        self%integerProperty(integerProperty+1                                                                 )%name     =extractor_%name        (                       )
        self%integerProperty(integerProperty+1                                                                 )%comment  =extractor_%description (                       )
        self%integerProperty(integerProperty+1                                                                 )%unitsInSI=extractor_%unitsInSI   (                       )
-       call    extractor_%metaData(node  ,self%integerProperty(integerProperty+1)%metaDataRank0,self%integerProperty(integerProperty+1)%metaDataRank1)
+       call    extractor_%metaData(node       ,self%integerProperty(integerProperty+1)%metaDataRank0,self%integerProperty(integerProperty+1)%metaDataRank1)
        integerProperty=integerProperty+1
     class is (nodePropertyExtractorIntegerTuple )
        ! Integer tuple property extractor - get the names, descriptions, and units.
@@ -1040,7 +1072,7 @@ contains
        self%integerProperty(integerProperty+1:integerProperty+extractor_%elementCount(                   time))%comment  =descriptionsTmp
        self%integerProperty(integerProperty+1:integerProperty+extractor_%elementCount(                   time))%unitsInSI=extractor_%unitsInSI   (                   time)
        do i=1,extractor_%elementCount(                   time)
-          call extractor_%metaData(node,i,self%integerProperty(integerProperty+i)%metaDataRank0,self%integerProperty(integerProperty+1)%metaDataRank1)
+          call extractor_%metaData(node,i     ,self%integerProperty(integerProperty+i)%metaDataRank0,self%integerProperty(integerProperty+1)%metaDataRank1)
        end do
        integerProperty=integerProperty+extractor_%elementCount(time)
        deallocate(namesTmp       )

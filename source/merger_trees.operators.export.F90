@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -302,9 +302,7 @@ contains
        end if
        if (self%snapshotsRequired) call mergerTrees%setProperty(propertyTypeSnapshot,nodeSnapshot)
        ! Write the tree to file.
-       !$omp critical (Merger_Tree_Write)
        call mergerTrees%export(char(self%outputFileName),self%exportFormat,hdfChunkSize,hdfCompressionLevel,append=.true.)
-       !$omp end critical (Merger_Tree_Write)
        ! Deallocate arrays.
        deallocate(treeIndex      )
        deallocate(treeWeight     )
