@@ -1571,7 +1571,7 @@ jobs:
                       tests.files.exe ]
     uses: ./.github/workflows/testCode.yml
     with:
-      version: ${{ matrix.version }}
+      executable: ${{ matrix.executable }}
     secrets: inherit
   Tests-IO-HDF5:
     runs-on: ubuntu-latest
