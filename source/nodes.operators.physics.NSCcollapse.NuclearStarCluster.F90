@@ -20,6 +20,9 @@
   !!{
   Implements a node operator class that handle the collapse of nuclear star clusters into a black hole.
   !!}
+
+  use :: Galactic_Structure, only : galacticStructureClass
+
   !![
   <nodeOperator name="nodeOperatorNSCCollapse">
    <description>
@@ -34,10 +37,11 @@
      A node operator class that handle the collapse of nuclear star clusters into a black hole.
      !!}
      private
-     double precision                          :: massSingleStar        , radiusSingleStar          , &
-         &                                        massEfficiency        , radiusEfficiency          , &
-         &                                        massThreshold
-     integer                                   :: stellarMassFormedNSCID, timeStellarMassFormedNSCID     
+     class  (galacticStructureClass  ), pointer :: galacticStructure_         => null()
+     double precision                           :: massSingleStar        , radiusSingleStar          , &
+         &                                         massEfficiency        , radiusEfficiency          , &
+         &                                         massThreshold
+     integer                                    :: stellarMassFormedNSCID, timeStellarMassFormedNSCID     
 
    contains
      final     ::                          NSCCollapseDestructor 
@@ -63,8 +67,9 @@ contains
     implicit none
     type (nodeOperatorNSCCollapse  )                :: self
     type (inputParameters          ), intent(inout) :: parameters
-    double precision                                :: massSingleStar, radiusSingleStar, &
-       &                                               massEfficiency, radiusEfficiency, &
+    class(galacticStructureClass   ), pointer       :: galacticStructure_
+    double precision                                :: massSingleStar    , radiusSingleStar, &
+       &                                               massEfficiency    , radiusEfficiency, &
        &                                               massThreshold
 
     !![
@@ -98,21 +103,24 @@ contains
       <description>Specifies the minimum stellar mass to apply the operator</description>
       <source>parameters</source>
     </inputParameter>
+    <objectBuilder class="galacticStructure"         name="galacticStructure_"         source="parameters"/>
     !!]
-    self=nodeOperatorNSCCollapse(massSingleStar, radiusSingleStar, massEfficiency, radiusEfficiency, massThreshold)
+    self=nodeOperatorNSCCollapse(massSingleStar, radiusSingleStar, massEfficiency, radiusEfficiency, massThreshold, galacticStructure_)
 
     !![
     <inputParametersValidate source="parameters"/>
+    <objectDestructor name="galacticStructure_" />
     !!]
     return
   end function NSCCollapseConstructorParameters
   
-  function NSCCollapseConstructorInternal(massSingleStar, radiusSingleStar, massEfficiency, radiusEfficiency, massThreshold) result(self)
+  function NSCCollapseConstructorInternal(massSingleStar, radiusSingleStar, massEfficiency, radiusEfficiency, massThreshold, galacticStructure_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily NSCCollapse} node operator class.
     !!}
     implicit none
     type            (nodeOperatorNSCCollapse)                        :: self
+    class           (galacticStructureClass ), intent(in   ), target :: galacticStructure_
     double precision                         , intent(in   )         :: massSingleStar
     double precision                         , intent(in   )         :: radiusSingleStar
     double precision                         , intent(in   )         :: massEfficiency
@@ -120,7 +128,7 @@ contains
     double precision                         , intent(in   )         :: massThreshold
 
     !![
-    <constructorAssign variables="massSingleStar, radiusSingleStar, massEfficiency, radiusEfficiency, massThreshold"/>
+    <constructorAssign variables="massSingleStar, radiusSingleStar, massEfficiency, radiusEfficiency, massThreshold, *galacticStructure_"/>
     !!]
     !![
     <addMetaProperty   component="NSC" name="agesStellarMassFormed"     id="self%stellarMassFormedNSCID"     isEvolvable="yes" isCreator="no" />
@@ -135,6 +143,9 @@ contains
     !!} 
     implicit none
     type(nodeOperatorNSCCollapse), intent(inout) :: self
+    !![
+    <objectDestructor name="self%galacticStructure_"/>
+    !!]
     return
   end subroutine NSCCollapseDestructor
 
@@ -144,6 +155,7 @@ contains
       !!}
     use :: Galacticus_Nodes                , only : interruptTask                  , nodeComponentNSC, nodeComponentNSCStandard, &
                                                 &   propertyInactive               , treeNode        , nodeComponentBasic
+    use :: Galactic_Structure_Options      , only : componentTypeNSC               , massTypeStellar
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus, parsec          , megaParsec              , &
         &                                           gigaYear
@@ -162,7 +174,6 @@ contains
         &                                                     massFormedSeedNSC, massTimeStellarNSC, &
         &                                                     ageNSC           , time
     double precision                                       :: velocity        = 100.0d0              !km s¯¹
-    !Usar Numerical_Constants_Astronomical para cambiar unidades
     double precision                                       :: sun_rad_to_pc   = 2.2567d-8   
 
     ! Return immediately if inactive variables are requested.
@@ -171,7 +182,12 @@ contains
     ! Get the nuclear star cluster component.
     NSC         => node%NSC  ()
     radiusNSC   =  self%radiusEfficiency*1.0d6*NSC%radius     () !pc
-    velocityNSC =                              NSC%velocity   () !km s¯¹
+    velocityNSC =  self%galacticStructure_%velocityRotation   (                                 &
+         &                                                     node                           , &
+         &                                                     radiusNSC                      , &
+         &                                                     componentType=componentTypeNSC , &
+         &                                                     massType     =massTypeStellar    &
+         &                                                                  )
 
     ! Detect nuclear star cluster component type.
     select type (NSC)
@@ -216,9 +232,9 @@ contains
             call NSC%massSeedSet   ( massFormedSeedNSC)
             interrupt=.true.
             functionInterrupt => BlackHoleStandardCreate
+            call Collapse_Output   (node, radiusNSC, velocityNSC, NSC%massStellar(), massCriticalNSC, ageNSC, massFormedSeedNSC)
             call NSC%massStellarset(                                                        NSC%massStellar()-massFormedSeedNSC)
             call NSC%CollapseSet   (                                                                                     .true.)
-            call Collapse_Output   (node, radiusNSC, velocityNSC, NSC%massStellar(), massCriticalNSC, ageNSC, massFormedSeedNSC)
             return
           end if 
     end select
