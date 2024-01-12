@@ -6574,7 +6574,6 @@ jobs:
              Test-Codes-Debugging,
              Test-Memory-Leaks,
              Test-Memory-Leaks-MPI,
-             Test-MPI-Radiative-Transfer-Atomic-Matter-State-Solver,
              Test-Cosmology-01,
              Test-Cosmology-02,
              Test-Mass-Conservation-Simple,
