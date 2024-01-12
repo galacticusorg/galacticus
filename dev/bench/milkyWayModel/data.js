@@ -1,36 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1704508909841,
+  "lastUpdate": 1705037112275,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@obs.carnegiescience.edu"
-          },
-          "committer": {
-            "name": "GitHub",
-            "username": "web-flow",
-            "email": "noreply@github.com"
-          },
-          "id": "00e8626cfc7b7c5273a28fef3e5316063c4d249c",
-          "message": "fix: Add `--allow-run-as-root` for `valgrind`",
-          "timestamp": "2023-04-16T23:48:34Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/00e8626cfc7b7c5273a28fef3e5316063c4d249c"
-        },
-        "date": 1681699213475,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 207.323,
-            "unit": "seconds",
-            "range": 0.208360504892514
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10692,6 +10664,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 13.7430169956265,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": false,
+          "id": "33690072eff234ab616b7d59e781d60d84799539",
+          "message": "Merge pull request #527 from galacticusorg/featMagnitudes\n\nAdd `nodePropertyExtractor`s to output absolute and apparent magnitudes",
+          "timestamp": "2024-01-11T21:37:54Z",
+          "tree_id": "5b3c95ad0d45637f63ad1becb71b4464b50c4532",
+          "url": "https://github.com/galacticusorg/galacticus/commit/33690072eff234ab616b7d59e781d60d84799539"
+        },
+        "date": 1705037111090,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 164.91,
+            "unit": "seconds",
+            "range": 0.159974998046446
           }
         ]
       }
