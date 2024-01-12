@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -823,7 +823,7 @@ contains
        class is (nodePropertyExtractorList2D       )
           if (elementType == elementTypeDouble ) then
              elementCount=extractor_%elementCount()
-             if (offset+1 <= iProperty .and. offset+elementCount >= iProperty) call extractor_%metaData(node                                  ,metaDataRank0,metaDataRank1)
+             if (offset+1 <= iProperty .and. offset+elementCount >= iProperty) call extractor_%metaData(node            ,time                 ,metaDataRank0,metaDataRank1)
           end if
        class is (nodePropertyExtractorMulti        )
           elementCount=extractor_%elementCount(elementType,time)

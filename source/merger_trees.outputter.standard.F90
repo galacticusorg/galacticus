@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -1006,7 +1006,7 @@ contains
        self%doubleProperty (doubleProperty +1                                                                 )%name      =extractor_%name        (                       )
        self%doubleProperty (doubleProperty +1                                                                 )%comment   =extractor_%description (                       )
        self%doubleProperty (doubleProperty +1                                                                 )%unitsInSI =extractor_%unitsInSI   (                       )
-       call    extractor_%metaData(node  ,self%doubleProperty (doubleProperty +1)%metaDataRank0,self%doubleProperty (doubleProperty +1)%metaDataRank1)
+       call    extractor_%metaData(node      ,self%doubleProperty (doubleProperty +1)%metaDataRank0,self%doubleProperty (doubleProperty +1)%metaDataRank1)
        doubleProperty =doubleProperty +1
     class is (nodePropertyExtractorTuple        )
        ! Tuple property extractor - get the names, descriptions, and units.
@@ -1016,7 +1016,7 @@ contains
        self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                   time))%comment   =descriptionsTmp
        self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                   time))%unitsInSI =extractor_%unitsInSI   (                   time)
        do i=1,extractor_%elementCount(                   time)
-          call extractor_%metaData(node,i,self%doubleProperty (doubleProperty +i)%metaDataRank0,self%doubleProperty (doubleProperty +i)%metaDataRank1)
+          call extractor_%metaData(node,i     ,self%doubleProperty (doubleProperty +i)%metaDataRank0,self%doubleProperty (doubleProperty +i)%metaDataRank1)
        end do
        doubleProperty =doubleProperty +extractor_%elementCount(time)
        deallocate(namesTmp       )
@@ -1034,7 +1034,7 @@ contains
           call extractor_%columnDescriptions(self%doubleProperty(doubleProperty+i)%rank1Descriptors,self%doubleProperty(doubleProperty+i)%rank1DescriptorValues,self%doubleProperty(doubleProperty+i)%rank1DescriptorComment,self%doubleProperty(doubleProperty+i)%rank1DescriptorUnitsInSI,time)
        end do
        do i=1,extractor_%elementCount(                   time)
-          call extractor_%metaData(node,i,self%doubleProperty (doubleProperty +i)%metaDataRank0,self%doubleProperty (doubleProperty +1)%metaDataRank1)
+          call extractor_%metaData(node,i     ,self%doubleProperty (doubleProperty +i)%metaDataRank0,self%doubleProperty (doubleProperty +1)%metaDataRank1)
        end do
        doubleProperty =doubleProperty +extractor_%elementCount(time)
        deallocate(namesTmp       )
@@ -1046,7 +1046,7 @@ contains
        self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                       ))%name      =namesTmp
        self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                       ))%comment   =descriptionsTmp
        self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                       ))%unitsInSI =extractor_%unitsInSI  (                       )
-       call    extractor_%metaData(node  ,self%doubleProperty (doubleProperty +1)%metaDataRank0,self%doubleProperty (doubleProperty +1)%metaDataRank1)
+       call    extractor_%metaData(node            ,self%doubleProperty (doubleProperty +1)%metaDataRank0,self%doubleProperty (doubleProperty +1)%metaDataRank1)
        doubleProperty =doubleProperty +1
     class is (nodePropertyExtractorList2D       )
        ! 2D list property extractor - get the name, description, and units.
@@ -1055,14 +1055,14 @@ contains
        self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                       ))%name      =namesTmp
        self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                       ))%comment   =descriptionsTmp
        self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                       ))%unitsInSI =extractor_%unitsInSI  (                       )
-       call    extractor_%metaData(node  ,self%doubleProperty (doubleProperty +1)%metaDataRank0,self%doubleProperty (doubleProperty +1)%metaDataRank1)
+       call    extractor_%metaData(node  ,time,self%doubleProperty (doubleProperty +1)%metaDataRank0,self%doubleProperty (doubleProperty +1)%metaDataRank1)
        doubleProperty =doubleProperty +1
     class is (nodePropertyExtractorIntegerScalar)
        ! Integer scalar property extractor - get the name, description, and units.
        self%integerProperty(integerProperty+1                                                                 )%name     =extractor_%name        (                       )
        self%integerProperty(integerProperty+1                                                                 )%comment  =extractor_%description (                       )
        self%integerProperty(integerProperty+1                                                                 )%unitsInSI=extractor_%unitsInSI   (                       )
-       call    extractor_%metaData(node  ,self%integerProperty(integerProperty+1)%metaDataRank0,self%integerProperty(integerProperty+1)%metaDataRank1)
+       call    extractor_%metaData(node       ,self%integerProperty(integerProperty+1)%metaDataRank0,self%integerProperty(integerProperty+1)%metaDataRank1)
        integerProperty=integerProperty+1
     class is (nodePropertyExtractorIntegerTuple )
        ! Integer tuple property extractor - get the names, descriptions, and units.
@@ -1072,7 +1072,7 @@ contains
        self%integerProperty(integerProperty+1:integerProperty+extractor_%elementCount(                   time))%comment  =descriptionsTmp
        self%integerProperty(integerProperty+1:integerProperty+extractor_%elementCount(                   time))%unitsInSI=extractor_%unitsInSI   (                   time)
        do i=1,extractor_%elementCount(                   time)
-          call extractor_%metaData(node,i,self%integerProperty(integerProperty+i)%metaDataRank0,self%integerProperty(integerProperty+1)%metaDataRank1)
+          call extractor_%metaData(node,i     ,self%integerProperty(integerProperty+i)%metaDataRank0,self%integerProperty(integerProperty+1)%metaDataRank1)
        end do
        integerProperty=integerProperty+extractor_%elementCount(time)
        deallocate(namesTmp       )

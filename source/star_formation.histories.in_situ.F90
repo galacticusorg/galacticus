@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -156,24 +156,26 @@ contains
     return
   end subroutine inSituDestructor
 
-  subroutine inSituCreate(self,node,historyStarFormation,timeBegin)
+  subroutine inSituCreate(self,node,historyStarFormation,timeBegin,timeEnd)
     !!{
     Create the history required for storing star formation history.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
-    class           (starFormationHistoryInSitu), intent(inout) :: self
-    type            (treeNode                  ), intent(inout) :: node
-    type            (history                   ), intent(inout) :: historyStarFormation
-    double precision                            , intent(in   ) :: timeBegin
-    class           (nodeComponentBasic        ), pointer       :: basic
-    double precision                                            :: timeBeginActual     , timeEnd
-
+    class           (starFormationHistoryInSitu), intent(inout)           :: self
+    type            (treeNode                  ), intent(inout)           :: node
+    type            (history                   ), intent(inout)           :: historyStarFormation
+    double precision                            , intent(in   )           :: timeBegin
+    double precision                            , intent(in   ), optional :: timeEnd
+    class           (nodeComponentBasic        ), pointer                 :: basic
+    double precision                                                      :: timeBeginActual     , timeEnd_
+    !$GLC attributes unused :: timeEnd
+    
     ! Find the start and end times for this history.
     basic           =>               node %basic()
     timeBeginActual =  min(timeBegin,basic%time ())
-    timeEnd         =  self%outputTimes_%timeNext(timeBegin)
-    call self%make(historyStarFormation,timeBeginActual,timeEnd)
+    timeEnd_        =  self%outputTimes_%timeNext(timeBegin)
+    call self%make(historyStarFormation,timeBeginActual,timeEnd_)
     return
   end subroutine inSituCreate
 

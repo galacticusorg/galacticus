@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -93,7 +93,8 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily starFormationHistoryMass} property extractor class.
     !!}
-    use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid, componentTypeNSC
+    use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid, componentTypeNSC, &
+      &                                       componentTypeAll
     use :: Error                     , only : Error_Report
     implicit none
     type (nodePropertyExtractorStarFormationHistoryMass)                        :: self
@@ -110,7 +111,9 @@ contains
          &   component /= componentTypeSpheroid                                                                 &
          &  .and.                                                                                               &
          &   component /= componentTypeNSC                                                                      &
-         & ) call Error_Report("only 'disk' and 'spheroid' components are supported"//{introspection:location})    
+         &  .and.                                                                                               &
+         &   component /= componentTypeAll                                                                      &
+         & ) call Error_Report("only 'disk', 'spheroid', 'NSC' and 'all' components are supported"//{introspection:location})    
     return
   end function starFormationHistoryMassConstructorInternal
 
@@ -144,18 +147,20 @@ contains
     Implement a {\normalfont \ttfamily starFormationHistoryMass} property extractor.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentDisk, nodeComponentSpheroid, nodeComponentNSC
-    use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid, componentTypeNSC
+    use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid, componentTypeNSC, &
+     &                                        componentTypeAll
     use :: Histories                 , only : history
     implicit none
-    double precision                                               , dimension(:,: ,: ), allocatable :: starFormationHistoryMassExtract
+    double precision                                               , dimension(:,:,:  ), allocatable :: starFormationHistoryMassExtract
     class           (nodePropertyExtractorStarFormationHistoryMass), intent(inout)                   :: self
     type            (treeNode                                     ), intent(inout)                   :: node
     type            (multiCounter                                 ), intent(inout)     , optional    :: instance
     class           (nodeComponentDisk                            )                    , pointer     :: disk
     class           (nodeComponentSpheroid                        )                    , pointer     :: spheroid
     class           (nodeComponentNSC                             )                    , pointer     :: NSC
-    type            (history                                      )                                  :: starFormationHistory
-    !$GLC attributes unustarFormationHistoryMass :: instance
+    type            (history                                      )                                  :: starFormationHistory        , starFormationHistoryDisk, &
+         &                                                                                              starFormationHistorySpheroid, starFormationHistoryNSC
+    !$GLC attributes unused :: instance
 
     ! Get the relevant star formation history.
     select case (self%component%ID)
@@ -168,13 +173,45 @@ contains
     case (componentTypeNSC     %ID)
        NSC                  => node    %NSC                 ()
        starFormationHistory =  NSC     %starFormationHistory()
+    case (componentTypeAll     %ID)
+       spheroid                     => node    %spheroid            ()
+       disk                         => node    %disk                ()
+       NSC                          => node    %NSC                 ()
+       starFormationHistoryDisk     =  disk    %starFormationHistory()
+       starFormationHistorySpheroid =  spheroid%starFormationHistory()
+       starFormationHistoryNSC      =  NSC     %starFormationHistory()
+       if      (     starFormationHistoryDisk%exists()) then
+          if      (     starFormationHistorySpheroid%exists() .and.      starFormationHistoryNSC%exists() ) then
+             starFormationHistory= starFormationHistoryDisk     &
+                  &               +starFormationHistorySpheroid &
+                  &               +starFormationHistoryNSC
+
+          else if (.not.starFormationHistorySpheroid%exists() .and.      starFormationHistoryNSC%exists() ) then
+             starFormationHistory= starFormationHistoryDisk     &
+                  &               +starFormationHistoryNSC
+          else if (     starFormationHistorySpheroid%exists() .and. .not.starFormationHistoryNSC%exists() ) then
+             starFormationHistory= starFormationHistoryDisk     &
+                  &               +starFormationHistorySpheroid
+          else 
+             starFormationHistory= starFormationHistoryDisk
+          end if
+       else if (.not.starFormationHistoryDisk%exists()) then
+          if      (     starFormationHistorySpheroid%exists() .and.      starFormationHistoryNSC%exists() ) then
+             starFormationHistory= starFormationHistorySpheroid &
+                  &               +starFormationHistoryNSC
+          else if (.not.starFormationHistorySpheroid%exists() .and.      starFormationHistoryNSC%exists() ) then
+             starFormationHistory= starFormationHistoryNSC
+          else if (     starFormationHistorySpheroid%exists() .and. .not.starFormationHistoryNSC%exists() ) then
+             starFormationHistory= starFormationHistorySpheroid
+          end if
+       end if
     end select
     
     if (starFormationHistory%exists()) then
        allocate(starFormationHistoryMassExtract(size(starFormationHistory%data,dim=1),size(starFormationHistory%data,dim=2),1))
        starFormationHistoryMassExtract(:,:,1)=starFormationHistory%data
     else
-       allocate(starFormationHistoryMassExtract(0                                    ,0                                    ,1))
+       allocate(starFormationHistoryMassExtract(0                               ,0                                       ,1))
     end if
     return
   end function starFormationHistoryMassExtract
@@ -221,24 +258,23 @@ contains
     return
   end function starFormationHistoryMassUnitsInSI
   
-  subroutine starFormationHistoryMassMetaData(self,node,metaDataRank0,metaDataRank1)
+  subroutine starFormationHistoryMassMetaData(self,node,time,metaDataRank0,metaDataRank1)
     !!{
     Return metadata associated with the {\normalfont \ttfamily starFormationHistoryMass} properties.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
-    class  (nodePropertyExtractorStarFormationHistoryMass), intent(inout) :: self
-    type   (treeNode                                     ), intent(inout) :: node
-    type   (doubleHash                                   ), intent(inout) :: metaDataRank0
-    type   (rank1DoubleHash                              ), intent(inout) :: metaDataRank1
-    class  (nodeComponentBasic                           ), pointer       :: basic
-    integer(c_size_t                                     )                :: indexOutput
+    class           (nodePropertyExtractorStarFormationHistoryMass), intent(inout) :: self
+    type            (treeNode                                     ), intent(inout) :: node
+    double precision                                               , intent(in   ) :: time
+    type            (doubleHash                                   ), intent(inout) :: metaDataRank0
+    type            (rank1DoubleHash                              ), intent(inout) :: metaDataRank1
+    integer         (c_size_t                                     )                :: indexOutput
     !$GLC attributes unused :: metaDataRank0
 
     call    metaDataRank1%set('metallicity',self%starFormationHistory_%metallicityBoundaries(           ))
     if (self%starFormationHistory_%perOutputTabulationIsStatic()) then
-       basic       => node             %basic(                               )
-       indexOutput =  self%outputTimes_%index(basic%time(),findClosest=.true.)
+       indexOutput =  self%outputTimes_%index(time,findClosest=.true.)
        call metaDataRank1%set('time'       ,self%starFormationHistory_%times                (indexOutput))
     end if
     return

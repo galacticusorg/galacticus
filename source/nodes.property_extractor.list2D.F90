@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -107,16 +107,17 @@
 
 contains
   
-  subroutine list2DMetaData(self,node,metaDataRank0,metaDataRank1)
+  subroutine list2DMetaData(self,node,time,metaDataRank0,metaDataRank1)
     !!{
     Interface for list2D property meta-data.
     !!}
     implicit none
-    class(nodePropertyExtractorList2D), intent(inout) :: self
-    type (treeNode                   ), intent(inout) :: node
-    type (doubleHash                 ), intent(inout) :: metaDataRank0
-    type (rank1DoubleHash            ), intent(inout) :: metaDataRank1
-    !$GLC attributes unused :: self, node, metaDataRank0, metaDataRank1
+    class           (nodePropertyExtractorList2D), intent(inout) :: self
+    type            (treeNode                   ), intent(inout) :: node
+    double precision                             , intent(in   ) :: time
+    type            (doubleHash                 ), intent(inout) :: metaDataRank0
+    type            (rank1DoubleHash            ), intent(inout) :: metaDataRank1
+    !$GLC attributes unused :: self, node, time, metaDataRank0, metaDataRank1
     
     return
   end subroutine list2DMetaData

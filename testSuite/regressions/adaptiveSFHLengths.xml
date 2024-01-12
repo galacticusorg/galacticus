@@ -97,7 +97,7 @@
     <treeCount value="1"/>
   </mergerTreeBuildMasses>
   <mergerTreeMassResolution value="fixed">
-    <massResolution value="1.0e10"/>
+    <massResolution value="1.0e7"/>
   </mergerTreeMassResolution>
   
   <mergerTreeOperator value="sequence">
@@ -477,8 +477,16 @@
   <diskLuminositiesStellarInactive value="true"/>
   <spheroidLuminositiesStellarInactive value="true"/>
 
-  <nodePropertyExtractor value="starFormationHistory">
-    <component value="disk"/>
+  <nodePropertyExtractor value="multi">
+    <nodePropertyExtractor value="starFormationHistory">
+      <component value="disk"/>
+    </nodePropertyExtractor>
+    <nodePropertyExtractor value="starFormationHistory">
+      <component value="spheroid"/>
+    </nodePropertyExtractor>
+    <nodePropertyExtractor value="starFormationHistory">
+      <component value="all"/>
+    </nodePropertyExtractor>
   </nodePropertyExtractor>
 
   <elementsToTrack value="Fe"/>

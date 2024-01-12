@@ -166,7 +166,7 @@ contains
     return
   end subroutine GasMassRateNSCDifferentialEvolution
 
-  subroutine NSCCreate(node)
+  subroutine NSCCreate(node,timeEnd)
   !!{
     Creates the nuclear star cluster via interrupt.
   !!}
@@ -174,8 +174,9 @@ contains
           &                         propertyInactive, treeNode
     implicit none
     type (treeNode        ), intent(inout), target  :: node
+    double precision       , intent(in   ), optional:: timeEnd
     class(nodeComponentNSC),                pointer :: NSC
-
+    !$GLC attributes unused :: timeEnd
     NSC => node%NSC(autoCreate=.true.)
     return 
   end subroutine NSCCreate

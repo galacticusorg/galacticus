@@ -225,15 +225,17 @@ contains
     return
   end subroutine NSCCollapseDifferentialEvolution
 
-  subroutine BlackHoleStandardCreate(node)
+  subroutine BlackHoleStandardCreate(node,timeEnd)
     !!{
     Creates a black hole component for {\normalfont \ttfamily node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBlackHole, treeNode, nodeComponentNSC, nodeComponentNSCStandard
     implicit none
-    type (treeNode              ), intent(inout), target  :: node
-    class(nodeComponentBlackHole)               , pointer :: blackHole
-    class(nodeComponentNSC      )               , pointer :: NSC
+    type (treeNode              ), intent(inout), target   :: node
+    double precision             , intent(in   ), optional :: timeEnd
+    class(nodeComponentBlackHole)               , pointer  :: blackHole
+    class(nodeComponentNSC      )               , pointer  :: NSC
+    !$GLC attributes unused :: timeEnd
 
     NSC       => node%NSC      (                 )
     ! Create the black hole.

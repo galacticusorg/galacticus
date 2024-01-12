@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -189,21 +189,39 @@ contains
     !!{
     Returns the index of the output given the corresponding time.
     !!}
-    use :: Arrays_Search       , only : searchArray  , searchArrayClosest
+    use :: Arrays_Search       , only : searchArray   , searchArrayClosest
+    use :: Display             , only : displayMessage, displayIndent     , displayUnindent
     use :: Error               , only : Error_Report
-    use :: Numerical_Comparison, only : Values_Differ
+    use :: Numerical_Comparison, only : Values_Differ , Values_Agree
     implicit none
     integer         (c_size_t       )                          :: listIndex
     class           (outputTimesList), intent(inout)           :: self
     double precision                 , intent(in   )           :: time
     logical                          , intent(in   ), optional :: findClosest
+    character       (len=16         )                          :: label
 
     if (present(findClosest).and.findClosest) then
        listIndex=searchArrayClosest(self%times,time)
     else
-       listIndex=searchArray            (self%times,time)
-       if (Values_Differ(time,self%times(listIndex),relTol=1.0d-6)) &
-            & call Error_Report('time does not correspond to an output'//{introspection:location})
+       listIndex=searchArray       (self%times,time)
+       if (Values_Differ(time,self%times(listIndex),relTol=1.0d-6)) then
+          ! Check for a match at the final time - because we use an array search function above the index of the final output is never returned.
+          if (Values_Agree(time,self%times(size(self%times)),relTol=1.0d-6)) then
+             listIndex=size(self%times)
+          else
+             call displayIndent('Output time matching:')
+             write (label,'(f16.12)') time
+             call displayMessage('Target time: '//label//' Gyr')
+             call displayIndent('Available times:')
+             do listIndex=1,size(self%times)
+                write (label,'(f16.12)') self%times(listIndex)
+                call displayMessage(label//' Gyr')
+             end do
+             call displayUnindent('')
+             call displayUnindent('')
+             call Error_Report('time does not correspond to an output'//{introspection:location})
+          end if
+       end if
     end if
     return
   end function listIndex

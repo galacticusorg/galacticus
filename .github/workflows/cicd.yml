@@ -81,6 +81,9 @@ jobs:
           set +o pipefail
           chmod u=wrx ./scripts/build/buildProfiler.pl
           ./scripts/build/buildProfiler.pl build.log buildProfile.html --durationMinimum 20
+          ! grep -n Error: build.log
+          ! grep -n Warning: build.log
+          ! grep -v 'is up to date' build.log | grep -n -C 5 make:
       - name: Upload Galacticus executable
         uses: actions/upload-artifact@v4
         with:
@@ -125,8 +128,8 @@ jobs:
           set -o pipefail
           make -j2 Galacticus.exe 2>&1 | tee build.log
           set +o pipefail
-          ! grep -n -C 5 Error: build.log
-          ! grep -n -C 5 Warning: build.log
+          ! grep -n Error: build.log
+          ! grep -n Warning: build.log
           ! grep -v 'is up to date' build.log | grep -n -C 5 make:
       - name: Upload Galacticus executable
         uses: actions/upload-artifact@v4

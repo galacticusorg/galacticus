@@ -21,21 +21,47 @@ if status.returncode != 0:
     sys.exit()
 
 # Check lengths of SFHs.
-model     = h5py.File('testSuite/outputs/regressions/adaptiveSFHLengths.hdf5','r')
-nodes     = model['Outputs/Output137/nodeData']
-diskSFHs  = nodes['diskStarFormationHistoryMass']
-times     = diskSFHs.attrs.get('time')
-lengthSFH = -1
-for sfh in diskSFHs[:]:
-    if sfh[0].size > 0:
-        if sfh[0].size != len(times):
-            print("FAILED: SFH and time lengths differ")
+model        = h5py.File('testSuite/outputs/regressions/adaptiveSFHLengths.hdf5','r')
+outputs      = model['Outputs']
+timeStep     = 0.1
+for outputName, output in model['Outputs'].items():
+    time         = output.attrs.get('outputTime')
+    nodes        = output['nodeData']
+    diskSFHs     = nodes['diskStarFormationHistoryMass']
+    spheroidSFHs = nodes['spheroidStarFormationHistoryMass']
+    times        = diskSFHs.attrs.get('time')
+    if outputName != "Ouptut1":
+        if times[-1]-time > timeStep:
+            print("FAILED: SFH times inconsistent with output time")
             sys.exit()
-        if lengthSFH == -1:
-            lengthSFH = sfh[0].size
-        elif lengthSFH != sfh[0].size:
-            print("FAILED: SFH lengths differ")
-            sys.exit()
-
+    lengthSFH    = -1
+    for i in range(diskSFHs.size):
+        diskSFH     = diskSFHs    [i]
+        spheroidSFH = spheroidSFHs[i]
+        if diskSFH.size > 0:
+            if diskSFH[0].size > 0:
+                if diskSFH[0].size != len(times):
+                    print("FAILED: diskSFH and time lengths differ")
+                    sys.exit()
+                if lengthSFH == -1:
+                    lengthSFH = diskSFH[0].size
+                elif lengthSFH != diskSFH[0].size:
+                    print("FAILED: disk SFH lengths differ")
+                    sys.exit()
+        if spheroidSFH.size > 0:
+            if spheroidSFH[0].size > 0:
+                if spheroidSFH[0].size != len(times):
+                    print("FAILED: spheroidSFH and time lengths differ")
+                    sys.exit()
+                if lengthSFH == -1:
+                    lengthSFH = spheroidSFH[0].size
+                elif lengthSFH != spheroidSFH[0].size:
+                    print("FAILED: spheroid SFH lengths differ")
+                    sys.exit()
+        if diskSFH.size > 0 and spheroidSFH.size > 0:
+            if diskSFH[0].size != spheroidSFH[0].size:
+                print("FAILED: disk and spheroid SFH lengths differ")
+                sys.exit()
+                    
 # Lengths all agreed - success.
 print("success: SFH lengths match")
