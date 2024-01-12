@@ -21,7 +21,7 @@ defaults:
     shell: bash
 jobs:
   Test-Code-Linux:
-    if: ${{ ! startsWith( format('{0}',inputs.runner), 'ubuntu') }}
+    if: ${{ startsWith( format('{0}',inputs.runner), 'ubuntu') }}
     runs-on: ${{ inputs.runner }}
     container: ghcr.io/galacticusorg/buildenv:latest
     steps:
@@ -60,7 +60,7 @@ jobs:
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Test-Code-MacOS:
-    if: ${{ ! startsWith( format('{0}',inputs.runner), 'macos') }}
+    if: ${{ startsWith( format('{0}',inputs.runner), 'macos') }}
     runs-on: ${{ inputs.runner }}
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
