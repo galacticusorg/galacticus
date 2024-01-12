@@ -12,6 +12,14 @@ on:
       executable: # The name of the test executable to be run and tested
         required: true
         type: string
+      expectFail: # Set to zero if FAIL is not expected, 1 if FAIL is expected
+        required: false
+        default: 0
+        type: number
+      expectCrash: # Set to zero if code crash is not expected, 1 if code crash is expected
+        required: false
+        default: 0
+        type: number
       mpi: # Set to 0/1 to indicate if the executable should be run without/with MPI
         required: false
         default: 0
@@ -53,11 +61,23 @@ jobs:
           chmod u=wrx ./${{ inputs.executable }}
           set -o pipefail
           if [ ${{ inputs.mpi }} == 1 ]; then
-           mpirun -np 2 --allow-run-as-root ./${{ inputs.executable }} 2>&1 | tee test.log
+           if [ ${{ inputs.expectCrash }} == 1 ]; then
+            ! mpirun -np 2 --allow-run-as-root ./${{ inputs.executable }} 2>&1 | tee test.log
+           else
+            mpirun -np 2 --allow-run-as-root ./${{ inputs.executable }} 2>&1 | tee test.log
+           fi
           else
-           ./${{ inputs.executable }} 2>&1 | tee test.log
+           if [ ${{ inputs.expectCrash }} == 1 ]; then
+            ! ./${{ inputs.executable }} 2>&1 | tee test.log
+           else
+            ./${{ inputs.executable }} 2>&1 | tee test.log
+           fi
           fi
-          ! grep -q FAIL test.log
+          if [ ${{ inputs.expectFail }} == 1 ]; then
+           grep -q FAIL test.log
+          else
+           ! grep -q FAIL test.log
+          fi
       - run: echo "This job's status is ${{ job.status }}."
   Test-Code-MacOS:
     if: ${{ startsWith( format('{0}',inputs.runner), 'macos') }}
@@ -91,9 +111,21 @@ jobs:
           chmod u=wrx ./${{ inputs.executable }}
           set -o pipefail
           if [ ${{ inputs.mpi }} == 1 ]; then
-           mpirun -np 2 --allow-run-as-root ./${{ inputs.executable }} 2>&1 | tee test.log
+           if [ ${{ inputs.expectCrash }} == 1 ]; then
+            ! mpirun -np 2 --allow-run-as-root ./${{ inputs.executable }} 2>&1 | tee test.log
+           else
+            mpirun -np 2 --allow-run-as-root ./${{ inputs.executable }} 2>&1 | tee test.log
+           fi
           else
-           ./${{ inputs.executable }} 2>&1 | tee test.log
+           if [ ${{ inputs.expectCrash }} == 1 ]; then
+            ! ./${{ inputs.executable }} 2>&1 | tee test.log
+           else
+            ./${{ inputs.executable }} 2>&1 | tee test.log
+           fi
           fi
-          ! grep -q FAIL test.log
+          if [ ${{ inputs.expectFail }} == 1 ]; then
+           grep -q FAIL test.log
+          else
+           ! grep -q FAIL test.log
+          fi
       - run: echo "This job's status is ${{ job.status }}."

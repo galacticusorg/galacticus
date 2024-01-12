@@ -1669,8 +1669,6 @@ jobs:
                       tests.initial_mass_functions.exe,
                       tests.stellar_populations.exe,
                       tests.stellar_populations.luminosities.exe,
-                      tests.crash.exe,
-                      tests.fail.exe,
                       tests.excursion_sets.exe,
                       tests.merger_tree_branching.exe,
                       tests.event_hooks.exe,
@@ -1683,6 +1681,24 @@ jobs:
     with:
       executable: ${{ matrix.executable }}
       artifact: test-execs
+    secrets: inherit
+  ### Test Crash
+  Test-Crash:
+    needs: Build-Executable-Linux
+    uses: ./.github/workflows/testCode.yml
+    with:
+      executable: tests.crash.exe
+      artifact: test-execs
+      expectCrash: 1
+    secrets: inherit
+  ### Test Fail
+  Test-Fail:
+    needs: Build-Executable-Linux
+    uses: ./.github/workflows/testCode.yml
+    with:
+      executable: tests.fail.exe
+      artifact: test-execs
+      expectFail: 1
     secrets: inherit
   ### MPI Test Codes
   Test-Codes-MPI:
@@ -6570,6 +6586,8 @@ jobs:
              Profile-Milky-Way-GProf,
              Profile-Milky-Way-SIDM-GProf,
              Test-Codes,
+             Test-Crash,
+             Test-Fail,
              Test-Codes-MPI,
              Test-Codes-Debugging,
              Test-Memory-Leaks,
