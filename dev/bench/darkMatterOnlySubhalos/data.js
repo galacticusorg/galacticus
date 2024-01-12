@@ -1,45 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1705037108347,
+  "lastUpdate": 1705037116200,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@obs.carnegiescience.edu"
-          },
-          "committer": {
-            "name": "GitHub",
-            "username": "web-flow",
-            "email": "noreply@github.com"
-          },
-          "id": "00e8626cfc7b7c5273a28fef3e5316063c4d249c",
-          "message": "fix: Add `--allow-run-as-root` for `valgrind`",
-          "timestamp": "2023-04-16T23:48:34Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/00e8626cfc7b7c5273a28fef3e5316063c4d249c"
-        },
-        "date": 1681699219006,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 57.3275525628901,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 25.8647158159627,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 24145.1797388743,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8774,6 +8737,45 @@ window.BENCHMARK_DATA = {
             "value": 42.248,
             "unit": "seconds",
             "range": 0.0644484289952022
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": false,
+          "id": "33690072eff234ab616b7d59e781d60d84799539",
+          "message": "Merge pull request #527 from galacticusorg/featMagnitudes\n\nAdd `nodePropertyExtractor`s to output absolute and apparent magnitudes",
+          "timestamp": "2024-01-11T21:37:54Z",
+          "tree_id": "5b3c95ad0d45637f63ad1becb71b4464b50c4532",
+          "url": "https://github.com/galacticusorg/galacticus/commit/33690072eff234ab616b7d59e781d60d84799539"
+        },
+        "date": 1705037115020,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 58.5946207352462,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 26.1763665565697,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 23958.5193682761,
+            "unit": "-logℒ"
           }
         ]
       }
