@@ -20,6 +20,10 @@ on:
       file: # The name of the test file to be run and tested
         required: true
         type: string
+      options: # Options to pass to the script command line
+        required: false
+        default: ''
+        type: string
       runPath: # The path from which to run the test
         required: false
         default: .
@@ -90,6 +94,10 @@ jobs:
           mkdir -p testSuite/outputs/regressions
           set -o pipefail
           if [[ ${{ inputs.file }} =~ \.xml$ ]]; then
+           if [ ! -z "${{ inputs.options }}" ]; then
+            echo Options can not be set for XML files
+            false
+           fi
            if [ ${{ inputs.mpi }} == 1 ]; then
             mpirun -np  ${{ inputs.processesPerNode }} --allow-run-as-root ./Galacticus.exe ${{ inputs.file }} 2>&1 | tee test.log
            else
@@ -98,7 +106,7 @@ jobs:
           elif [[ ${{ inputs.file }} =~ \.pl$ ]]; then
            cd ${{ inputs.runPath }}
            chmod u=wrx ./${{ inputs.file }}
-           ./${{ inputs.file }} 2>&1 | tee test.log
+           ./${{ inputs.file }} ${{ inputs.options }} 2>&1 | tee test.log
           elif [[ ${{ inputs.file }} =~ \.py$ ]]; then
            if [[ ${{ inputs.runner }} =~ ^macos ]]; then
             echo Python tests not supported on MacOS
@@ -108,7 +116,7 @@ jobs:
            apt -y install python3-numpy python3-h5py
            cd ${{ inputs.runPath }}
            chmod u=wrx ./${{ inputs.file }}
-           ./${{ inputs.file }} 2>&1 | tee test.log
+           ./${{ inputs.file }} ${{ inputs.options }} 2>&1 | tee test.log
           else
            echo Unrecognized file extension
            false
