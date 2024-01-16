@@ -6,6 +6,10 @@ on:
         required: false
         default: ubuntu-latest
         type: string
+      fetchDepth: # The depth to fetch in the repo
+        required: false
+        default: 1
+        type: number
       artifact: # The name of the artifact to download to retrieve the executable
         required: true
         type: string
@@ -42,6 +46,8 @@ jobs:
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: ${{ inputs.fetchDepth }}
       - name: Check out repository analysis-perl
         uses: actions/checkout@v4
         with:

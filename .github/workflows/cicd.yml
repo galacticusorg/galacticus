@@ -2312,7 +2312,6 @@ jobs:
                 test-output.pl,
                 test-output-tree-contiguousity.pl,
                 test-parameter-validation.pl,
-                test-parameter-migration.pl,
                 test-perl-modules.pl,
                 test-reproducibility.pl,
                 test-splitForests.pl,
@@ -2327,6 +2326,20 @@ jobs:
                 test-haloTriaxiality.pl ]
     uses: ./.github/workflows/testModel.yml
     with:
+      file: ${{ matrix.file }}
+      artifact: galacticus-exec
+      runPath: ./testSuite
+    secrets: inherit
+  Miscellaneous-Deep:
+    needs: Build-Executable-Linux
+    strategy:
+      # Ensure all jobs are run, even if some fail.
+      fail-fast: false
+      matrix:
+        file: [ test-parameter-migration.pl ]
+    uses: ./.github/workflows/testModel.yml
+    with:
+      fetchDepth: 0
       file: ${{ matrix.file }}
       artifact: galacticus-exec
       runPath: ./testSuite
@@ -4215,6 +4228,7 @@ jobs:
              Test-Model-Integration-02,
              Miscellaneous,
              Miscellaneous-Cached,
+             Miscellaneous-Deep,
              Miscellaneous-Models,
              Test-Outputs-01,
              Test-Outputs-02,
