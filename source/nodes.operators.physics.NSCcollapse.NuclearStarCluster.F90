@@ -184,7 +184,7 @@ contains
     radiusNSC   =  self%radiusEfficiency*1.0d6*NSC%radius     () !pc
     velocityNSC =  self%galacticStructure_%velocityRotation   (                                 &
          &                                                     node                           , &
-         &                                                     radiusNSC                      , &
+         &                                                     radiusNSC*1.0d-6               , &
          &                                                     componentType=componentTypeNSC , &
          &                                                     massType     =massTypeStellar    &
          &                                                                  )
