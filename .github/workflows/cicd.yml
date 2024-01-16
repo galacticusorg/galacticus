@@ -1729,82 +1729,20 @@ jobs:
       artifact: test-execs-debugging
     secrets: inherit
   ### Cosmology
-  Test-Cosmology-01:
-    runs-on: ubuntu-latest
-    container: ghcr.io/galacticusorg/buildenv:latest
+  Cosmology:
     needs: Build-Executable-Linux
-    steps:
-      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
-      - run: echo "This job is now running on a ${{ runner.os }} server."
-      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
-      - name: Check out repository code
-        uses: actions/checkout@v4
-      - name: Check out repository datasets
-        uses: actions/checkout@v4      
-        with:
-          repository: galacticusorg/datasets
-          path: datasets
-      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
-      - name: "Set environmental variables"
-        run: |
-          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
-      - name: Download executables
-        uses: actions/download-artifact@v4
-        with:
-          name: galacticus-exec
-      - name: Create test suite output directory
-        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
-      - name: Run test
-        run: |
-          cd $GALACTICUS_EXEC_PATH
-          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          chmod u=wrx ./Galacticus.exe
-          cd testSuite
-          chmod u=wrx ./test-cosmology.pl
-          set -o pipefail
-          ./test-cosmology.pl --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 1:2 2>&1 | tee test.log
-          grep -v -q "BEGIN failed" test.log
-          ! grep -q FAIL test.log
-      - run: echo "This job's status is ${{ job.status }}."
-  Test-Cosmology-02:
-    runs-on: ubuntu-latest
-    container: ghcr.io/galacticusorg/buildenv:latest
-    needs: Build-Executable-Linux
-    steps:
-      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
-      - run: echo "This job is now running on a ${{ runner.os }} server."
-      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
-      - name: Check out repository code
-        uses: actions/checkout@v4
-      - name: Check out repository datasets
-        uses: actions/checkout@v4      
-        with:
-          repository: galacticusorg/datasets
-          path: datasets
-      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
-      - name: "Set environmental variables"
-        run: |
-          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
-      - name: Download executables
-        uses: actions/download-artifact@v4
-        with:
-          name: galacticus-exec
-      - name: Create test suite output directory
-        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
-      - name: Run test
-        run: |
-          cd $GALACTICUS_EXEC_PATH
-          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          chmod u=wrx ./Galacticus.exe
-          cd testSuite
-          chmod u=wrx ./test-cosmology.pl
-          set -o pipefail
-          ./test-cosmology.pl --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 2:2 2>&1 | tee test.log
-          grep -v -q "BEGIN failed" test.log
-          ! grep -q FAIL test.log
-      - run: echo "This job's status is ${{ job.status }}."
+    strategy:
+      # Ensure all jobs are run, even if some fail.
+      fail-fast: false
+      matrix:
+        instance: [ "1:2", "2:2" ]
+    uses: ./.github/workflows/testModel.yml
+    with:
+      file: test-cosmology.pl
+      artifact: galacticus-exec
+      runPath: ./testSuite
+      options: "--launchMethod local --threadMaximum 1 --ompThreads 2 --instance ${{ matrix.instance }}"
+    secrets: inherit
   ### Mass Conservation
   Test-Mass-Conservation-Simple:
     runs-on: ubuntu-latest
@@ -4213,8 +4151,7 @@ jobs:
              Test-Codes-Debugging,
              Test-Memory-Leaks,
              Test-Memory-Leaks-MPI,
-             Test-Cosmology-01,
-             Test-Cosmology-02,
+             Cosmology,
              Test-Mass-Conservation-Simple,
              Test-Mass-Conservation-Standard,
              Test-Mass-Conservation-Cold-Mode,
