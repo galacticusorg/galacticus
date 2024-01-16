@@ -25,7 +25,8 @@
   use :: Cosmological_Density_Field     , only : cosmologicalMassVarianceClass   , criticalOverdensityClass
   use :: Correlation_Functions_Two_Point, only : correlationFunctionTwoPointClass
   use :: Dark_Matter_Halo_Biases        , only : darkMatterHaloBiasClass
-
+  use :: Linear_Growth                  , only : linearGrowthClass
+  
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOAccretionFlowCorrelationFunction">
     <description>
@@ -39,13 +40,15 @@
      2-halo correlation function.
      !!}
      private
-     class(darkMatterProfileDMOClass       ), pointer :: darkMatterProfileDMO_        => null()
-     class(cosmologyFunctionsClass         ), pointer :: cosmologyFunctions_          => null()
-     class(criticalOverdensityClass        ), pointer :: criticalOverdensity_         => null()
-     class(cosmologicalMassVarianceClass   ), pointer :: cosmologicalMassVariance_    => null()
-     class(correlationFunctionTwoPointClass), pointer :: correlationFunctionTwoPoint_ => null()
-     class(darkMatterHaloBiasClass         ), pointer :: darkMatterHaloBias_          => null()
-   contains
+     class           (darkMatterProfileDMOClass       ), pointer :: darkMatterProfileDMO_        => null()
+     class           (cosmologyFunctionsClass         ), pointer :: cosmologyFunctions_          => null()
+     class           (criticalOverdensityClass        ), pointer :: criticalOverdensity_         => null()
+     class           (cosmologicalMassVarianceClass   ), pointer :: cosmologicalMassVariance_    => null()
+     class           (correlationFunctionTwoPointClass), pointer :: correlationFunctionTwoPoint_ => null()
+     class           (darkMatterHaloBiasClass         ), pointer :: darkMatterHaloBias_          => null()
+     class           (linearGrowthClass               ), pointer :: linearGrowth_                => null()
+     double precision                                            :: scaleFactorVelocity
+    contains
      final     ::        accretionFlowCorrelationFunctionDestructor
      procedure :: get => accretionFlowCorrelationFunctionGet
   end type darkMatterProfileDMOAccretionFlowCorrelationFunction
@@ -66,24 +69,35 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type (darkMatterProfileDMOAccretionFlowCorrelationFunction)                :: self
-    type (inputParameters                                     ), intent(inout) :: parameters
-    class(darkMatterProfileDMOClass                           ), pointer       :: darkMatterProfileDMO_
-    class(cosmologyFunctionsClass                             ), pointer       :: cosmologyFunctions_
-    class(criticalOverdensityClass                            ), pointer       :: criticalOverdensity_
-    class(cosmologicalMassVarianceClass                       ), pointer       :: cosmologicalMassVariance_
-    class(correlationFunctionTwoPointClass                    ), pointer       :: correlationFunctionTwoPoint_
-    class(darkMatterHaloBiasClass                             ), pointer       :: darkMatterHaloBias_
-
+    type            (darkMatterProfileDMOAccretionFlowCorrelationFunction)                :: self
+    type            (inputParameters                                     ), intent(inout) :: parameters
+    class           (darkMatterProfileDMOClass                           ), pointer       :: darkMatterProfileDMO_
+    class           (cosmologyFunctionsClass                             ), pointer       :: cosmologyFunctions_
+    class           (criticalOverdensityClass                            ), pointer       :: criticalOverdensity_
+    class           (cosmologicalMassVarianceClass                       ), pointer       :: cosmologicalMassVariance_
+    class           (correlationFunctionTwoPointClass                    ), pointer       :: correlationFunctionTwoPoint_
+    class           (darkMatterHaloBiasClass                             ), pointer       :: darkMatterHaloBias_
+    class           (darkMatterHaloScaleClass                            ), pointer       :: darkMatterHaloScale_
+    class           (linearGrowthClass                                   ), pointer       :: linearGrowth_
+    double precision :: scaleFactorVelocity
+    
     !![
+    <inputParameter>
+      <name>scaleFactorVelocity</name>
+      <source>parameters</source>
+      <defaultValue>1.0d0</defaultValue>
+      <description>A scale factor to be applied to inflow velocities.</description>
+    </inputParameter>
     <objectBuilder class="cosmologyFunctions"          name="cosmologyFunctions_"          source="parameters"/>
     <objectBuilder class="criticalOverdensity"         name="criticalOverdensity_"         source="parameters"/>
     <objectBuilder class="cosmologicalMassVariance"    name="cosmologicalMassVariance_"    source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO"        name="darkMatterProfileDMO_"        source="parameters"/>
     <objectBuilder class="correlationFunctionTwoPoint" name="correlationFunctionTwoPoint_" source="parameters"/>
     <objectBuilder class="darkMatterHaloBias"          name="darkMatterHaloBias_"          source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale"         name="darkMatterHaloScale_"         source="parameters"/>
+    <objectBuilder class="linearGrowth"                name="linearGrowth_"                source="parameters"/>
     !!]
-    self=darkMatterProfileDMOAccretionFlowCorrelationFunction(cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,darkMatterHaloBias_,correlationFunctionTwoPoint_,darkMatterProfileDMO_)
+    self=darkMatterProfileDMOAccretionFlowCorrelationFunction(scaleFactorVelocity,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,darkMatterHaloBias_,correlationFunctionTwoPoint_,darkMatterProfileDMO_,darkMatterHaloScale_,linearGrowth_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"         />
@@ -92,24 +106,29 @@ contains
     <objectDestructor name="correlationFunctionTwoPoint_"/>
     <objectDestructor name="darkMatterHaloBias_"         />
     <objectDestructor name="darkMatterProfileDMO_"       />
+    <objectDestructor name="darkMatterHaloScale_"        />
+    <objectDestructor name="linearGrowth_"               />
     !!]
     return
   end function accretionFlowCorrelationFunctionConstructorParameters
 
-  function accretionFlowCorrelationFunctionConstructorInternal(cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,darkMatterHaloBias_,correlationFunctionTwoPoint_,darkMatterProfileDMO_) result(self)
+  function accretionFlowCorrelationFunctionConstructorInternal(scaleFactorVelocity,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,darkMatterHaloBias_,correlationFunctionTwoPoint_,darkMatterProfileDMO_,darkMatterHaloScale_,linearGrowth_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily accretionFlowCorrelationFunction} dark matter profile class.
     !!}
     implicit none
-    type (darkMatterProfileDMOAccretionFlowCorrelationFunction)                        :: self
-    class(darkMatterProfileDMOClass                           ), intent(in   ), target :: darkMatterProfileDMO_
-    class(cosmologyFunctionsClass                             ), intent(in   ), target :: cosmologyFunctions_
-    class(criticalOverdensityClass                            ), intent(in   ), target :: criticalOverdensity_
-    class(cosmologicalMassVarianceClass                       ), intent(in   ), target :: cosmologicalMassVariance_
-    class(correlationFunctionTwoPointClass                    ), intent(in   ), target :: correlationFunctionTwoPoint_
-    class(darkMatterHaloBiasClass                             ), intent(in   ), target :: darkMatterHaloBias_
+    type            (darkMatterProfileDMOAccretionFlowCorrelationFunction)                        :: self
+    class           (darkMatterProfileDMOClass                           ), intent(in   ), target :: darkMatterProfileDMO_
+    class           (cosmologyFunctionsClass                             ), intent(in   ), target :: cosmologyFunctions_
+    class           (criticalOverdensityClass                            ), intent(in   ), target :: criticalOverdensity_
+    class           (cosmologicalMassVarianceClass                       ), intent(in   ), target :: cosmologicalMassVariance_
+    class           (correlationFunctionTwoPointClass                    ), intent(in   ), target :: correlationFunctionTwoPoint_
+    class           (darkMatterHaloBiasClass                             ), intent(in   ), target :: darkMatterHaloBias_
+    class           (darkMatterHaloScaleClass                            ), intent(in   ), target :: darkMatterHaloScale_
+    class           (linearGrowthClass                                   ), intent(in   ), target :: linearGrowth_
+    double precision, intent(in   ) :: scaleFactorVelocity
     !![
-    <constructorAssign variables="*cosmologyFunctions_, *criticalOverdensity_, *cosmologicalMassVariance_, *darkMatterHaloBias_, *correlationFunctionTwoPoint_, *darkMatterProfileDMO_"/>
+    <constructorAssign variables="scaleFactorVelocity, *cosmologyFunctions_, *criticalOverdensity_, *cosmologicalMassVariance_, *darkMatterHaloBias_, *correlationFunctionTwoPoint_, *darkMatterProfileDMO_, *darkMatterHaloScale_, *linearGrowth_"/>
     !!]
 
     return
@@ -129,6 +148,7 @@ contains
     <objectDestructor name="self%darkMatterProfileDMO_"       />
     <objectDestructor name="self%correlationFunctionTwoPoint_"/>
     <objectDestructor name="self%darkMatterHaloBias_"         />
+    <objectDestructor name="self%linearGrowth_"               />
     !!]
     return
   end subroutine accretionFlowCorrelationFunctionDestructor
@@ -139,26 +159,27 @@ contains
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentBasic
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo      , massTypeDark                          , weightByMass
-    use :: Mass_Distributions        , only : massDistributionSpherical  , massDistributionSphericalAccretionFlow, massDistributionCorrelationFunction, kinematicsDistributionCollisionless, &
+    use :: Mass_Distributions        , only : massDistributionSpherical  , massDistributionSphericalAccretionFlow, massDistributionCorrelationFunction, kinematicsDistributionLam2013, &
          &                                    nonAnalyticSolversNumerical
     use :: Numerical_Ranges          , only : Make_Range                 , rangeTypeLogarithmic
     implicit none
     class           (massDistributionClass                               ), pointer                     :: massDistribution_
-    class           (massDistributionClass                               ), pointer                     :: massDistributionAccretionFlow_       , massDistributionVirialized_
-    type            (kinematicsDistributionCollisionless                 ), pointer                     :: kinematicsDistribution_
+    class           (massDistributionClass                               ), pointer                     :: massDistributionAccretionFlow_          , massDistributionVirialized_
+    type            (kinematicsDistributionLam2013                       ), pointer                     :: kinematicsDistribution_
     class           (darkMatterProfileDMOAccretionFlowCorrelationFunction), intent(inout)               :: self
     type            (treeNode                                            ), intent(inout)               :: node
     type            (enumerationWeightByType                             ), intent(in   ), optional     :: weightBy
     integer                                                               , intent(in   ), optional     :: weightIndex
     class           (nodeComponentBasic                                  ), pointer                     :: basic
-    double precision                                                      , allocatable  , dimension(:) :: radius                               , correlationFunction
-    integer                                                               , parameter                   :: countRadiiPerDecade           =10
-    double precision                                                      , parameter                   :: factorRadiusMinimum           =10.0d0, factorRadiusMaximum=10.0d0
-    integer                                                                                             :: countRadii                           , i
-    double precision                                                                                    :: time                                 , mass                      , &
-         &                                                                                                 radiusMinimum                        , radiusMaximum             , &
-         &                                                                                                 densityMean                          , radius200Mean             , &
-         &                                                                                                 peakHeight                           , radiusTransition
+    double precision                                                      , allocatable  , dimension(:) :: radius                                  , correlationFunction               , &
+         &                                                                                                 correlationFunctionVolumeAveraged
+    integer                                                               , parameter                   :: countRadiiPerDecade              =10
+    double precision                                                      , parameter                   :: factorRadiusMinimum              =10.0d0, factorRadiusMaximum        =10.0d0
+    integer                                                                                             :: countRadii                              , i
+    double precision                                                                                    :: time                                    , mass                              , &
+         &                                                                                                 radiusMinimum                           , radiusMaximum                     , &
+         &                                                                                                 densityMean                             , radius200Mean                     , &
+         &                                                                                                 peakHeight                              , radiusTransition
     !![
     <optionalArgument name="weightBy" defaultsTo="weightByMass" />
     !!]
@@ -199,12 +220,15 @@ contains
              radiusMinimum=radius200Mean/factorRadiusMinimum
              radiusMaximum=radius200Mean*factorRadiusMaximum
              countRadii   =int(log10(radiusMaximum/radiusMinimum)*countRadiiPerDecade)+1
-             allocate(radius             (countRadii))
-             allocate(correlationFunction(countRadii))
+             allocate(radius                           (countRadii))
+             allocate(correlationFunction              (countRadii))
+             allocate(correlationFunctionVolumeAveraged(countRadii))
              radius=Make_Range(radiusMinimum,radiusMaximum,countRadii,rangeTypeLogarithmic)
              do i=1,countRadii
-                correlationFunction(i)=+self%correlationFunctionTwoPoint_%correlation(     radius(i),time) &
-                     &                 *self%darkMatterHaloBias_         %bias       (node,radius(i)     )
+                correlationFunction              (i)=+self%correlationFunctionTwoPoint_%correlation              (     radius(i),time) &
+                     &                               *self%darkMatterHaloBias_         %bias                     (node,radius(i)     )
+                correlationFunctionVolumeAveraged(i)=+self%correlationFunctionTwoPoint_%correlationVolumeAveraged(     radius(i),time) &
+                     &                               *self%darkMatterHaloBias_         %bias                     (node,radius(i)     )
              end do
              !![
              <referenceConstruct object="massDistributionAccretionFlow_">
@@ -242,7 +266,17 @@ contains
     !![
     <referenceConstruct object="kinematicsDistribution_">
       <constructor>
-        kinematicsDistributionCollisionless()
+        kinematicsDistributionLam2013( &amp;
+	  &amp;                       massVirial                       =                          mass                                                     , &amp;
+	  &amp;                       radiusVirial                     =self%darkMatterHaloScale_%radiusVirial                        (node=node          ), &amp;
+	  &amp;                       time                             =                          time                                                     , &amp;
+	  &amp;                       overdensityCritical              =self%criticalOverdensity_%value                               (time=time,mass=mass), &amp;
+	  &amp;                       rateLinearGrowth                 =self%linearGrowth_       %logarithmicDerivativeExpansionFactor(time=time          ), &amp;
+	  &amp;                       scaleFactorVelocity              =self%scaleFactorVelocity                                                           , &amp;
+	  &amp;                       radius                           =                          radius                                                   , &amp;
+	  &amp;                       correlationFunctionVolumeAveraged=                          correlationFunctionVolumeAveraged                        , &amp;
+	  &amp;                       cosmologyFunctions_              =self%cosmologyFunctions_                                                             &amp;
+          &amp;                      )
       </constructor>
     </referenceConstruct>
     !!]

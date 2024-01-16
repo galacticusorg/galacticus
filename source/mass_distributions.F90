@@ -561,6 +561,17 @@ module Mass_Distributions
       kinematicsDistributionTemperatureGradientLogarithmic=0.0d0
     </code>
    </method>
+   <method name="velocityRadial" >
+    <description>Return the mean radial velocity at the given coordinate.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>class(coordinate           ), intent(in   ) :: coordinates              </argument>
+    <argument>class(massDistributionClass), intent(inout) :: massDistributionEmbedding</argument>
+    <code>
+      !$GLC attributes unused :: self, coordinates, massDistributionEmbedding
+      kinematicsDistributionVelocityRadial=0.0d0
+    </code>
+   </method>
    <method name="velocityDispersion1D" >
     <description>Return the 1D velocity dispersion at the given coordinate.</description>
     <type>double precision</type>
