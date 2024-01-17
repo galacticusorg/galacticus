@@ -1561,7 +1561,7 @@ jobs:
   # Tests
   ## Linux
   ### Test Codes
-  Test-Codes:
+  Codes:
     needs: Build-Executable-Linux
     strategy:
       # Ensure all jobs are run, even if some fail.
@@ -1683,7 +1683,7 @@ jobs:
       artifact: test-execs
     secrets: inherit
   ### Test Crash
-  Test-Crash:
+  Crash:
     needs: Build-Executable-Linux
     uses: ./.github/workflows/testCode.yml
     with:
@@ -1692,7 +1692,7 @@ jobs:
       expectCrash: 1
     secrets: inherit
   ### Test Fail
-  Test-Fail:
+  Fail:
     needs: Build-Executable-Linux
     uses: ./.github/workflows/testCode.yml
     with:
@@ -1701,7 +1701,7 @@ jobs:
       expectFail: 1
     secrets: inherit
   ### MPI Test Codes
-  Test-Codes-MPI:
+  Codes-MPI:
     needs: Build-Executables-MPI-Linux
     strategy:
       # Ensure all jobs are run, even if some fail.
@@ -1716,7 +1716,7 @@ jobs:
       mpi: 1
     secrets: inherit
   ### Debugging Test Codes
-  Test-Codes-Debugging:
+  Codes-Debugging:
     needs: Build-Executables-Debugging-Linux
     strategy:
       # Ensure all jobs are run, even if some fail.
@@ -1744,135 +1744,20 @@ jobs:
       options: "--launchMethod local --threadMaximum 1 --ompThreads 2 --instance ${{ matrix.instance }}"
     secrets: inherit
   ### Mass Conservation
-  Test-Mass-Conservation-Simple:
-    runs-on: ubuntu-latest
-    container: ghcr.io/galacticusorg/buildenv:latest
+  Mass-Conservation:
     needs: Build-Executable-Linux
-    steps:
-      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
-      - run: echo "This job is now running on a ${{ runner.os }} server."
-      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
-      - name: Check out repository code
-        uses: actions/checkout@v4
-      - name: Check out repository analysis-perl
-        uses: actions/checkout@v4
-        with:
-          repository: galacticusorg/analysis-perl
-          path: analysis-perl
-      - name: Check out repository datasets
-        uses: actions/checkout@v4
-        with:
-          repository: galacticusorg/datasets
-          path: datasets
-      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
-      - name: "Set environmental variables"
-        run: |
-          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
-          echo "GALACTICUS_ANALYSIS_PERL_PATH=$GITHUB_WORKSPACE/analysis-perl" >> $GITHUB_ENV
-      - name: Download executables
-        uses: actions/download-artifact@v4
-        with:
-          name: galacticus-exec
-      - name: Create test suite output directory
-        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
-      - name: Run test
-        run: |
-          cd $GALACTICUS_EXEC_PATH
-          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          chmod u=wrx ./Galacticus.exe
-          cd testSuite
-          chmod u=wrx ./test-mass-conservation-simple.pl
-          set -o pipefail
-          ./test-mass-conservation-simple.pl --launchMethod local --threadMaximum 1 --ompThreads 2 2>&1 | tee test.log
-          ! grep -q FAIL test.log
-      - run: echo "This job's status is ${{ job.status }}."
-  Test-Mass-Conservation-Standard:
-    runs-on: ubuntu-latest
-    container: ghcr.io/galacticusorg/buildenv:latest
-    needs: Build-Executable-Linux
-    steps:
-      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
-      - run: echo "This job is now running on a ${{ runner.os }} server."
-      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
-      - name: Check out repository code
-        uses: actions/checkout@v4
-      - name: Check out repository analysis-perl
-        uses: actions/checkout@v4
-        with:
-          repository: galacticusorg/analysis-perl
-          path: analysis-perl
-      - name: Check out repository datasets
-        uses: actions/checkout@v4
-        with:
-          repository: galacticusorg/datasets
-          path: datasets
-      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
-      - name: "Set environmental variables"
-        run: |
-          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
-          echo "GALACTICUS_ANALYSIS_PERL_PATH=$GITHUB_WORKSPACE/analysis-perl" >> $GITHUB_ENV
-      - name: Download executables
-        uses: actions/download-artifact@v4
-        with:
-          name: galacticus-exec
-      - name: Create test suite output directory
-        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
-      - name: Run test
-        run: |
-          cd $GALACTICUS_EXEC_PATH
-          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          chmod u=wrx ./Galacticus.exe
-          cd testSuite
-          chmod u=wrx ./test-mass-conservation-standard.pl
-          set -o pipefail
-          ./test-mass-conservation-standard.pl --launchMethod local --threadMaximum 1 --ompThreads 2 2>&1 | tee test.log
-          ! grep -q FAIL test.log
-      - run: echo "This job's status is ${{ job.status }}."
-  Test-Mass-Conservation-Cold-Mode:
-    runs-on: ubuntu-latest
-    container: ghcr.io/galacticusorg/buildenv:latest
-    needs: Build-Executable-Linux
-    steps:
-      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
-      - run: echo "This job is now running on a ${{ runner.os }} server."
-      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
-      - name: Check out repository code
-        uses: actions/checkout@v4
-      - name: Check out repository analysis-perl
-        uses: actions/checkout@v4
-        with:
-          repository: galacticusorg/analysis-perl
-          path: analysis-perl
-      - name: Check out repository datasets
-        uses: actions/checkout@v4
-        with:
-          repository: galacticusorg/datasets
-          path: datasets
-      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
-      - name: "Set environmental variables"
-        run: |
-          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
-          echo "GALACTICUS_ANALYSIS_PERL_PATH=$GITHUB_WORKSPACE/analysis-perl" >> $GITHUB_ENV
-      - name: Download executables
-        uses: actions/download-artifact@v4
-        with:
-          name: galacticus-exec
-      - name: Create test suite output directory
-        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
-      - name: Run test
-        run: |
-          cd $GALACTICUS_EXEC_PATH
-          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          chmod u=wrx ./Galacticus.exe
-          cd testSuite
-          chmod u=wrx ./test-mass-conservation-coldMode.pl
-          set -o pipefail
-          ./test-mass-conservation-coldMode.pl --launchMethod local --threadMaximum 1 --ompThreads 2  2>&1 | tee test.log
-          ! grep -q FAIL test.log
-      - run: echo "This job's status is ${{ job.status }}."
+    strategy:
+      # Ensure all jobs are run, even if some fail.
+      fail-fast: false
+      matrix:
+        file: [ "test-mass-conservation-simple.pl", "test-mass-conservation-standard.pl", "test-mass-conservation-coldMode.pl" ]
+    uses: ./.github/workflows/testModel.yml
+    with:
+      file: ${{ matrix.file }}
+      artifact: galacticus-exec
+      runPath: ./testSuite
+      options: "--launchMethod local --threadMaximum 1 --ompThreads 2"
+    secrets: inherit
   ### Merger Trees
   Merger-Tree-Builder:
     needs: Build-Executable-Linux
@@ -1888,91 +1773,15 @@ jobs:
       runPath: ./testSuite
       options: "--launchMethod local --threadMaximum 1 --ompThreads 2 --instance ${{ matrix.instance }}"
     secrets: inherit
-  Test-Merger-Tree-Builder-Parallel:
-    runs-on: ubuntu-latest
-    container: ghcr.io/galacticusorg/buildenv:latest
+  Merger-Tree-Write:
     needs: Build-Executable-Linux
-    steps:
-      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
-      - run: echo "This job is now running on a ${{ runner.os }} server."
-      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
-      - name: Check out repository code
-        uses: actions/checkout@v4
-      - name: Check out repository analysis-perl
-        uses: actions/checkout@v4
-        with:
-          repository: galacticusorg/analysis-perl
-          path: analysis-perl
-      - name: Check out repository datasets
-        uses: actions/checkout@v4
-        with:
-          repository: galacticusorg/datasets
-          path: datasets
-      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
-      - name: "Set environmental variables"
-        run: |
-          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
-      - name: Download executables
-        uses: actions/download-artifact@v4
-        with:
-          name: galacticus-exec
-      - name: Create test suite output directory
-        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
-      - name: Run test
-        run: |
-          cd $GALACTICUS_EXEC_PATH
-          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          chmod u=wrx ./Galacticus.exe
-          cd testSuite
-          chmod u=wrx ./test-parallelTreeBuild.pl
-          set -o pipefail
-          ./test-parallelTreeBuild.pl 2>&1 | tee test.log
-          grep -v -q FAIL test.log
-      - run: echo "This job's status is ${{ job.status }}."
-  Test-Merger-Tree-Write:
-    runs-on: ubuntu-latest
-    container: ghcr.io/galacticusorg/buildenv:latest
-    needs: Build-Executable-Linux
-    steps:
-      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
-      - run: echo "This job is now running on a ${{ runner.os }} server."
-      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
-      - name: Check out repository code
-        uses: actions/checkout@v4
-      - name: Check out repository analysis-perl
-        uses: actions/checkout@v4
-        with:
-          repository: galacticusorg/analysis-perl
-          path: analysis-perl
-      - name: Check out repository datasets
-        uses: actions/checkout@v4
-        with:
-          repository: galacticusorg/datasets
-          path: datasets
-      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
-      - name: "Set environmental variables"
-        run: |
-          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
-          echo "GALACTICUS_ANALYSIS_PERL_PATH=$GITHUB_WORKSPACE/analysis-perl" >> $GITHUB_ENV
-      - name: Download executables
-        uses: actions/download-artifact@v4
-        with:
-          name: galacticus-exec
-      - name: Create test suite output directory
-        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
-      - name: Run test
-        run: |
-          cd $GALACTICUS_EXEC_PATH
-          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          chmod u=wrx ./Galacticus.exe
-          cd testSuite
-          chmod u=wrx ./test-merger-tree-write.pl
-          set -o pipefail
-          ./test-merger-tree-write.pl --launchMethod local --threadMaximum 1 --ompThreads 2 2>&1 | tee test.log
-          grep -v -q FAIL test.log
-      - run: echo "This job's status is ${{ job.status }}."
+    uses: ./.github/workflows/testModel.yml
+    with:
+      file: test-merger-tree-write.pl
+      artifact: galacticus-exec
+      runPath: ./testSuite
+      options: "--launchMethod local --threadMaximum 1 --ompThreads 2"
+    secrets: inherit
   ## Model Integration
   Model-Integration:
     needs: Build-Executable-Linux
@@ -2031,7 +1840,8 @@ jobs:
                 test-galacticStructureStateDeallocateBug.pl,
                 test-inactiveNumerics.pl,
                 test-impulsiveHeating.pl,
-                test-haloTriaxiality.pl ]
+                test-haloTriaxiality.pl,
+                test-parallelTreeBuild.pl ]
     uses: ./.github/workflows/testModel.yml
     with:
       file: ${{ matrix.file }}
@@ -2160,116 +1970,33 @@ jobs:
       options: "--launchMethod local --threadMaximum 1 --ompThreads 1 --instance ${{ matrix.instance }}"
     secrets: inherit
   ### MPI Misc Models
-  Test-MPI-State-Restore:
-    runs-on: ubuntu-latest
-    container: ghcr.io/galacticusorg/buildenv:latest
+  MPI-State-Restore:
     needs: Build-Executables-MPI-Linux
-    steps:
-      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
-      - run: echo "This job is now running on a ${{ runner.os }} server."
-      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
-      - name: Check out repository code
-        uses: actions/checkout@v4
-      - name: Check out repository datasets
-        uses: actions/checkout@v4      
-        with:
-          repository: galacticusorg/datasets
-          path: datasets
-      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
-      - name: "Set environmental variables"
-        run: |
-          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
-      - name: Download executables
-        uses: actions/download-artifact@v4
-        with:
-          name: galacticus-exec-MPI
-      - name: Create test suite output directory
-        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
-      - name: Run test
-        run: |
-          cd $GALACTICUS_EXEC_PATH
-          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          chmod u=wrx ./Galacticus.exe
-          cd testSuite
-          chmod u=wrx ./test-stateRestore_MPI.pl
-          set -o pipefail
-          ./test-stateRestore_MPI.pl --processesPerNode 8 --allow-run-as-root yes 2>&1 | tee test.log
-          ! grep -q FAIL test.log
-      - run: echo "This job's status is ${{ job.status }}."
-  Test-MPI-Radiative-Transfer-Stromgren-Sphere:
-    runs-on: ubuntu-latest
-    container: ghcr.io/galacticusorg/buildenv:latest
+    uses: ./.github/workflows/testModel.yml
+    with:
+      file: test-stateRestore_MPI.pl
+      artifact: galacticus-exec-MPI
+      runPath: ./testSuite
+      options: --processesPerNode 8 --allow-run-as-root yes
+    secrets: inherit
+  MPI-Radiative-Transfer-Stromgren-Sphere:
     needs: Build-Executables-MPI-Linux
-    steps:
-      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
-      - run: echo "This job is now running on a ${{ runner.os }} server."
-      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
-      - name: Check out repository code
-        uses: actions/checkout@v4
-      - name: Check out repository datasets
-        uses: actions/checkout@v4      
-        with:
-          repository: galacticusorg/datasets
-          path: datasets
-      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
-      - name: "Set environmental variables"
-        run: |
-          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
-      - name: Download executables
-        uses: actions/download-artifact@v4
-        with:
-          name: galacticus-exec-MPI
-      - name: Create test suite output directory
-        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
-      - name: Run test
-        run: |
-          cd $GALACTICUS_EXEC_PATH
-          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          chmod u=wrx ./Galacticus.exe
-          cd testSuite
-          chmod u=wrx ./test-radiativeTransfer-StromgrenSphere_MPI.pl
-          set -o pipefail
-          ./test-radiativeTransfer-StromgrenSphere_MPI.pl --processesPerNode 2 --allow-run-as-root yes 2>&1 | tee test.log
-          ! grep -q FAIL test.log
-      - run: echo "This job's status is ${{ job.status }}."
-  Test-MPI-MCMC:
-    runs-on: ubuntu-latest
-    container: ghcr.io/galacticusorg/buildenv:latest
+    uses: ./.github/workflows/testModel.yml
+    with:
+      file: test-radiativeTransfer-StromgrenSphere_MPI.pl
+      artifact: galacticus-exec-MPI
+      runPath: ./testSuite
+      options: --processesPerNode 2 --allow-run-as-root yes
+    secrets: inherit
+  MPI-MCMC:
     needs: Build-Executables-MPI-Linux
-    steps:
-      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
-      - run: echo "This job is now running on a ${{ runner.os }} server."
-      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
-      - name: Check out repository code
-        uses: actions/checkout@v4
-      - name: Check out repository datasets
-        uses: actions/checkout@v4      
-        with:
-          repository: galacticusorg/datasets
-          path: datasets
-      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
-      - name: "Set environmental variables"
-        run: |
-          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
-      - name: Download executables
-        uses: actions/download-artifact@v4
-        with:
-          name: galacticus-exec-MPI
-      - name: Create test suite output directory
-        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
-      - name: Run test
-        run: |
-          cd $GALACTICUS_EXEC_PATH
-          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          chmod u=wrx ./Galacticus.exe
-          export OMP_NUM_THREADS=1
-          set -o pipefail
-          mpirun --allow-run-as-root -np 4 ./Galacticus.exe parameters/tutorials/mcmcConfig.xml 2>&1 | tee test.log
-          ! grep -q FAIL test.log
-      - run: echo "This job's status is ${{ job.status }}."
+    uses: ./.github/workflows/testModel.yml
+    with:
+      file: parameters/tutorials/mcmcConfig.xml
+      artifact: galacticus-exec-MPI
+      mpi: 1
+      processesPerNode: 4
+    secrets: inherit
   ### MPI Methods  
   Methods-MPI:
     needs: Build-Executables-MPI-Linux
@@ -2286,91 +2013,29 @@ jobs:
       options: "--launchMethod local --threadMaximum 1 --ompThreads 2 --instance ${{ matrix.instance }}"
     secrets: inherit
   ### Memory leaks (non-MPI)
-  Test-Memory-Leaks:
-    runs-on: ubuntu-latest
-    container: ghcr.io/galacticusorg/buildenv:latest
+  Memory-Leaks:
     needs: Build-Executable-Linux-Non-Static
-    steps:
-      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
-      - run: echo "This job is now running on a ${{ runner.os }} server."
-      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
-      - name: Check out repository code
-        uses: actions/checkout@v4
-      - name: Check out repository datasets
-        uses: actions/checkout@v4      
-        with:
-          repository: galacticusorg/datasets
-          path: datasets
-      - run: echo "The $githubrepository repository has been cloned to the runner."
-      - name: "Set environmental variables"
-        run: |
-          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
-      - name: Download executables
-        uses: actions/download-artifact@v4
-        with:
-          name: galacticus-exec-non-static
-      - name: Install valgrind
-        run: |
-          apt -y update && apt -y upgrade
-          apt -y install valgrind
-      - name: Create test suite output directory
-        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
-      - name: Run test
-        run: |
-          cd $GALACTICUS_EXEC_PATH
-          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          chmod u=wrx ./Galacticus.exe
-          cd testSuite
-          chmod u=wrx ./test-memory-leaks.pl
-          set -o pipefail
-          ./test-memory-leaks.pl --mpi 0 2>&1 | tee test.log
-          ! grep -q FAIL test.log
-      - run: echo "This job's status is ${{ job.status }}."
+    uses: ./.github/workflows/testModel.yml
+    with:
+      install: valgrind
+      file: test-memory-leaks.pl
+      artifact: galacticus-exec-non-static
+      runPath: ./testSuite
+      options: --mpi 0
+    secrets: inherit
   ### Memory leaks (MPI)
-  Test-Memory-Leaks-MPI:
-    runs-on: ubuntu-latest
-    container: ghcr.io/galacticusorg/buildenv:latest
+  Memory-Leaks-MPI:
     needs: Build-Executables-MPI-Linux
-    steps:
-      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
-      - run: echo "This job is now running on a ${{ runner.os }} server."
-      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
-      - name: Check out repository code
-        uses: actions/checkout@v4
-      - name: Check out repository datasets
-        uses: actions/checkout@v4      
-        with:
-          repository: galacticusorg/datasets
-          path: datasets
-      - run: echo "The $githubrepository repository has been cloned to the runner."
-      - name: "Set environmental variables"
-        run: |
-          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
-      - name: Download executables
-        uses: actions/download-artifact@v4
-        with:
-          name: galacticus-exec-MPI
-      - name: Install valgrind
-        run: |
-          apt -y update && apt -y upgrade
-          apt -y install valgrind
-      - name: Create test suite output directory
-        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
-      - name: Run test
-        run: |
-          cd $GALACTICUS_EXEC_PATH
-          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          chmod u=wrx ./Galacticus.exe
-          cd testSuite
-          chmod u=wrx ./test-memory-leaks.pl
-          set -o pipefail
-          ./test-memory-leaks.pl --mpi 1 2>&1 | tee test.log
-          ! grep -q FAIL test.log
-      - run: echo "This job's status is ${{ job.status }}."
+    uses: ./.github/workflows/testModel.yml
+    with:
+      install: valgrind
+      file: test-memory-leaks.pl
+      artifact: galacticus-exec-MPI
+      runPath: ./testSuite
+      options: --mpi 1
+    secrets: inherit
   ## Python Interface
-  Test-Python-Interface:
+  Python-Interface:
     runs-on: ubuntu-latest
     container: ghcr.io/galacticusorg/buildenv:latest
     needs: Build-Library-Linux
@@ -2400,7 +2065,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   ## MacOS
   ### Test Codes
-  Test-Codes-MacOS:
+  Codes-MacOS:
     needs: Build-Executable-MacOS
     strategy:
       # Ensure all jobs are run, even if some fail.
@@ -2414,7 +2079,7 @@ jobs:
       artifact: test-execs-MacOS
     secrets: inherit
   ### Test Python Interface
-  Test-Python-Interface-MacOS:
+  Python-Interface-MacOS:
     runs-on: macos-11
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -2772,20 +2437,16 @@ jobs:
              Profile-Dark-Matter-Only-Subhalos-GProf,
              Profile-Milky-Way-GProf,
              Profile-Milky-Way-SIDM-GProf,
-             Test-Codes,
-             Test-Crash,
-             Test-Fail,
-             Test-Codes-MPI,
-             Test-Codes-Debugging,
-             Test-Memory-Leaks,
-             Test-Memory-Leaks-MPI,
+             Codes,
+             Crash,
+             Fail,
+             Codes-MPI,
+             Codes-Debugging,
+             Memory-Leaks,
+             Memory-Leaks-MPI,
              Cosmology,
-             Test-Mass-Conservation-Simple,
-             Test-Mass-Conservation-Standard,
-             Test-Mass-Conservation-Cold-Mode,
+             Mass-Conservation,
              Merger-Tree-Builder,
-             Test-Merger-Tree-Builder-Parallel,
-             Test-Merger-Tree-Write,
              Model-Integration,
              Miscellaneous,
              Miscellaneous-Cached,
@@ -2796,12 +2457,12 @@ jobs:
              Regressions-Cached,
              Methods,
              Methods-MPI,
-             Test-MPI-State-Restore,
-             Test-MPI-Radiative-Transfer-Stromgren-Sphere,
-             Test-MPI-MCMC,
-             Test-Python-Interface,
-             Test-Codes-MacOS,
-             Test-Python-Interface-MacOS,
+             MPI-State-Restore,
+             MPI-Radiative-Transfer-Stromgren-Sphere,
+             MPI-MCMC,
+             Python-Interface,
+             Codes-MacOS,
+             Python-Interface-MacOS,
              Validate ]
     steps:
       - name: Check out repository code
