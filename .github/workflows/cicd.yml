@@ -2447,6 +2447,7 @@ jobs:
              Cosmology,
              Mass-Conservation,
              Merger-Tree-Builder,
+             Merger-Tree-Write,
              Model-Integration,
              Miscellaneous,
              Miscellaneous-Cached,
