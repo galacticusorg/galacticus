@@ -1874,7 +1874,7 @@ jobs:
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   ### Merger Trees
-  Merger-Tree-Bulder:
+  Merger-Tree-Builder:
     needs: Build-Executable-Linux
     strategy:
       # Ensure all jobs are run, even if some fail.
