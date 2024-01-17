@@ -36,6 +36,9 @@ on:
         required: false
         default: 2
         type: number
+      install: # Specify packages to install
+        required: false
+        type: string
 defaults:
   run:
     shell: bash
@@ -80,6 +83,11 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.artifact }}
+      - name: Install packages
+        if: inputs.install != ''
+        run: |
+          apt -y update && apt -y upgrade
+          apt -y install ${{ inputs.install }}
       - name: Mark time for cache accesses
         if: ${{ format('{0}',inputs.cacheData) == '1' }}
         run: |
