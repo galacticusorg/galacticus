@@ -263,6 +263,7 @@ contains
           if (allocated(snapshotInterpolator)) deallocate(snapshotInterpolator)
           allocate(snapshotInterpolator)
           snapshotInterpolator=interpolator(snapshotTime(1:snapshotCount))
+          deallocate(snapshotTime)
        else
           snapshotCount=0
        end if
@@ -310,6 +311,7 @@ contains
        deallocate(descendantIndex)
        deallocate(nodeMass       )
        deallocate(nodeRedshift   )
+       if (self%snapshotsRequired                       ) deallocate(nodeSnapshot)
        if (defaultPositionComponent%positionIsGettable()) deallocate(nodePosition)
        if (defaultPositionComponent%velocityIsGettable()) deallocate(nodeVelocity)
        ! Move to the next tree.
