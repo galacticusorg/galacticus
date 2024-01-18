@@ -77,7 +77,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           export BUILDPATH=./work/build
           set -o pipefail
-          make GALACTICUS_BUILD_OPTION=compileprof -j2 all 2>&1 | tee build.log
+          make GALACTICUS_BUILD_OPTION=compileprof -j4 all 2>&1 | tee build.log
           set +o pipefail
           chmod u=wrx ./scripts/build/buildProfiler.pl
           ./scripts/build/buildProfiler.pl build.log buildProfile.html --durationMinimum 20
@@ -126,7 +126,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           export BUILDPATH=./work/build
           set -o pipefail
-          make -j2 Galacticus.exe 2>&1 | tee build.log
+          make -j4 Galacticus.exe 2>&1 | tee build.log
           set +o pipefail
           ! grep -n Error: build.log
           ! grep -n Warning: build.log
@@ -159,7 +159,7 @@ jobs:
           export GALACTICUS_FCFLAGS="$GALACTICUS_FCFLAGS -pg"
           export GALACTICUS_CFLAGS="$GALACTICUS_CFLAGS -pg"
           export GALACTICUS_CPPFLAGS="$GALACTICUS_CPPFLAGS -pg"
-          make -j2 Galacticus.exe
+          make -j4 Galacticus.exe
       - name: Upload executables
         uses: actions/upload-artifact@v4
         with:
@@ -185,7 +185,7 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          make -j2 GALACTICUS_BUILD_OPTION=MPI Galacticus.exe tests.MPI.exe tests.radiative_transfer.atomic_matter.state_solver.exe
+          make -j4 GALACTICUS_BUILD_OPTION=MPI Galacticus.exe tests.MPI.exe tests.radiative_transfer.atomic_matter.state_solver.exe
       - name: Upload Galacticus executable
         uses: actions/upload-artifact@v4
         with:
@@ -217,7 +217,7 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          make -j2 Galacticus.exe tests.debugging.exe
+          make -j4 Galacticus.exe tests.debugging.exe
       - name: Upload test code executables
         uses: actions/upload-artifact@v4
         with:
@@ -242,7 +242,7 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          make -j2 GALACTICUS_BUILD_OPTION=lib libgalacticus.so
+          make -j4 GALACTICUS_BUILD_OPTION=lib libgalacticus.so
       - name: Package the code
         run: |
           cd $GALACTICUS_EXEC_PATH
