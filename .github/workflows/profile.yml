@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/galacticusorg/buildenv:latest
-      options: ${{ format('{0}',inputs.profiler) == 'perf') && '--privileged' || '' }}
+      options: ${{ format('{0}',inputs.profiler) == 'perf' && '--privileged' || '' }}
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
@@ -52,11 +52,11 @@ jobs:
       - name: Download executables
         uses: actions/download-artifact@v4
         with:
-          name: ${{ format('{0}',inputs.profiler) == 'perf') && 'galacticus-exec' || 'galacticus-exec-instrumented' }}
+          name: ${{ format('{0}',inputs.profiler) == 'perf' && 'galacticus-exec' || 'galacticus-exec-instrumented' }}
       - name: Install packages
         run: |
           apt -y update && apt -y upgrade
-          apt -y install ${{ format('{0}',inputs.profiler) == 'perf') && 'linux-tools-$(uname -r) linux-tools-generic' || '' }} bzip2
+          apt -y install ${{ format('{0}',inputs.profiler) == 'perf' && 'linux-tools-$(uname -r) linux-tools-generic' || '' }} bzip2
       - name: Mark time for cache accesses
         if: ${{ format('{0}',inputs.cacheData) == '1' }}
         run: |
@@ -99,6 +99,6 @@ jobs:
       - name: Upload profile
         uses: actions/upload-artifact@v4
         with:
-          name: perf-${{ inputs.name }}${{ format('{0}',inputs.profiler) == 'perf') && '' || '-gprof }}
-          path: ./testSuite/outputs/${{ inputs.name }}.${{ format('{0}',inputs.profiler) == 'perf') && 'perf.bz2' || 'gprof.bz2' }}
+          name: perf-${{ inputs.name }}${{ format('{0}',inputs.profiler) == 'perf' && '' || '-gprof }}
+          path: ./testSuite/outputs/${{ inputs.name }}.${{ format('{0}',inputs.profiler) == 'perf' && 'perf.bz2' || 'gprof.bz2' }}
       - run: echo "This job's status is ${{ job.status }}."
