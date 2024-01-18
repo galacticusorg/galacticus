@@ -1,36 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1705037120121,
+  "lastUpdate": 1705552403504,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@obs.carnegiescience.edu"
-          },
-          "committer": {
-            "name": "GitHub",
-            "username": "web-flow",
-            "email": "noreply@github.com"
-          },
-          "id": "96daacc6391e2035fee11e4c21c405fac90746dd",
-          "message": "fix: Handle malformed XML\n\nSometimes the XML produced by `valgrind` running under MPI can be malformed. Handle such cases by ignoring them.",
-          "timestamp": "2023-04-17T05:07:44Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/96daacc6391e2035fee11e4c21c405fac90746dd"
-        },
-        "date": 1681718297669,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 146.768,
-            "unit": "seconds",
-            "range": 0.181833990223515
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10696,6 +10668,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 4.0703176705196,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "a34f4337ce846a73c1c3923bbda018546425c129",
+          "message": "fix: Ensure variables are deallocated before potential re-allocation",
+          "timestamp": "2024-01-17T14:52:00-08:00",
+          "tree_id": "5af2d75c2b5c804f4ee9b071e88a3640ed350e30",
+          "url": "https://github.com/galacticusorg/galacticus/commit/a34f4337ce846a73c1c3923bbda018546425c129"
+        },
+        "date": 1705552402730,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 166.493,
+            "unit": "seconds",
+            "range": 0.300599567530987
           }
         ]
       }
