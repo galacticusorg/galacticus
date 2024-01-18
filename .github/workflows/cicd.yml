@@ -991,374 +991,54 @@ jobs:
     secrets: inherit
   # Profiling
   Profile-Dark-Matter-Only-Subhalos:
-    runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/galacticusorg/buildenv:latest
-      options: --privileged
     needs: Build-Executable-Linux
-    steps:
-      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
-      - run: echo "This job is now running on a ${{ runner.os }} server."
-      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
-      - name: Check out repository code
-        uses: actions/checkout@v4
-      - name: Check out repository datasets
-        uses: actions/checkout@v4      
-        with:
-          repository: galacticusorg/datasets
-          path: datasets
-      - run: echo "The $githubrepository repository has been cloned to the runner."
-      - name: "Set environmental variables"
-        run: |
-          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
-      - name: Download executables
-        uses: actions/download-artifact@v4
-        with:
-          name: galacticus-exec
-      - name: Install tools
-        run: |
-          apt -y update && apt -y upgrade && apt autoremove
-          apt install -y linux-tools-$(uname -r) linux-tools-generic bzip2
-      - name: Create test suite output directory
-        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
-      - name: Run benchmark
-        run: |
-          cd $GALACTICUS_EXEC_PATH
-          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          chmod u=wrx ./Galacticus.exe
-          ./Galacticus.exe ./testSuite/parameters/benchmark_darkMatterOnlySubHalos.xml  
-          perf record -g -e cycles --call-graph dwarf -F 500 -o ./testSuite/outputs/darkMatterOnlySubhalos.perf.data ./Galacticus.exe ./testSuite/parameters/benchmark_darkMatterOnlySubHalos.xml
-          perf script -i ./testSuite/outputs/darkMatterOnlySubhalos.perf.data > ./testSuite/outputs/darkMatterOnlySubhalos.perf
-          du -sh ./testSuite/outputs/darkMatterOnlySubhalos.perf
-          bzip2 ./testSuite/outputs/darkMatterOnlySubhalos.perf
-      - name: Upload results
-        uses: actions/upload-artifact@v4
-        with:
-          name: perf-darkMatterOnlySubhalos
-          path: './testSuite/outputs/darkMatterOnlySubhalos.perf.bz2'
+    uses: ./.github/workflows/profile.yml
+    with:
+      profiler: perf
+      cacheData: 0
+      name: darkMatterOnlySubHalos
+      frequency: 500
+    secrets: inherit
   Profile-Milky-Way-Model:
-    runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/galacticusorg/buildenv:latest
-      options: --privileged
     needs: Build-Executable-Linux
-    steps:
-      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
-      - run: echo "This job is now running on a ${{ runner.os }} server."
-      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
-      - name: Check out repository code
-        uses: actions/checkout@v4
-      - name: Check out repository datasets
-        uses: actions/checkout@v4      
-        with:
-          repository: galacticusorg/datasets
-          path: datasets
-      - run: echo "The $githubrepository repository has been cloned to the runner."
-      - name: Cache dynamically-generated datasets
-        uses: actions/cache@v3
-        with:
-          path: ${{ github.workspace }}/datasets/dynamic
-          key: benchmarks-milkyWay-${{ github.run_id }}
-          restore-keys: |
-            benchmarks-milkyWay
-      - name: "Set environmental variables"
-        run: |
-          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
-      - name: Download executables
-        uses: actions/download-artifact@v4
-        with:
-          name: galacticus-exec
-      - name: Install tools
-        run: |
-          apt -y update && apt -y upgrade && apt autoremove
-          apt install -y linux-tools-$(uname -r) linux-tools-generic bzip2
-      - name: Create test suite output directory
-        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
-      - name: Mark time for cache accesses
-        run: |
-          echo mark > mark.time
-      - name: Run benchmark
-        run: |
-          cd $GALACTICUS_EXEC_PATH
-          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          chmod u=wrx ./Galacticus.exe
-          ./Galacticus.exe ./testSuite/parameters/benchmark_milkyWay.xml  
-          perf record -g -e cycles --call-graph dwarf -F 100 -o ./testSuite/outputs/milkyWay.perf.data ./Galacticus.exe ./testSuite/parameters/benchmark_milkyWay.xml
-          perf script -i ./testSuite/outputs/milkyWay.perf.data > ./testSuite/outputs/milkyWay.perf
-          du -sh ./testSuite/outputs/milkyWay.perf
-          bzip2 ./testSuite/outputs/milkyWay.perf
-      - name: "Clean datasets"
-        run: |
-          echo Removing outdated dynamically-generated datasets
-          echo Retaining:
-          classVersion=`awk '{if ($1 == "class:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          cambVersion=`awk '{if ($1 == "camb:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          fspsVersion=`awk '{if ($1 == "fsps:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          cloudyVersion=`awk '{if ($1 == "cloudy:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/AxionCAMB -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion} \) -prune -o -type f -anewer mark.time -print
-          find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/AxionCAMB -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion} \) -prune -o -type f -not -anewer mark.time -print0 | xargs --no-run-if-empty -0 rm
-      - name: Upload results
-        uses: actions/upload-artifact@v4
-        with:
-          name: perf-milkyWay
-          path: './testSuite/outputs/milkyWay.perf.bz2'
+    uses: ./.github/workflows/profile.yml
+    with:
+      profiler: perf
+      cacheData: 1
+      name: milkyWay
+      frequency: 100
+    secrets: inherit
   Profile-Milky-Way-SIDM-Model:
-    runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/galacticusorg/buildenv:latest
-      options: --privileged
     needs: Build-Executable-Linux
-    steps:
-      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
-      - run: echo "This job is now running on a ${{ runner.os }} server."
-      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
-      - name: Check out repository code
-        uses: actions/checkout@v4
-      - name: Check out repository datasets
-        uses: actions/checkout@v4      
-        with:
-          repository: galacticusorg/datasets
-          path: datasets
-      - run: echo "The $githubrepository repository has been cloned to the runner."
-      - name: Cache dynamically-generated datasets
-        uses: actions/cache@v3
-        with:
-          path: ${{ github.workspace }}/datasets/dynamic
-          key: benchmarks-SIDM-milkyWay-${{ github.run_id }}
-          restore-keys: |
-            benchmarks-SIDM-milkyWay
-      - name: "Set environmental variables"
-        run: |
-          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
-      - name: Download executables
-        uses: actions/download-artifact@v4
-        with:
-          name: galacticus-exec
-      - name: Install tools
-        run: |
-          apt -y update && apt -y upgrade && apt autoremove
-          apt install -y linux-tools-$(uname -r) linux-tools-generic bzip2
-      - name: Create test suite output directory
-        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
-      - name: Mark time for cache accesses
-        run: |
-          echo mark > mark.time
-      - name: Run benchmark
-        run: |
-          cd $GALACTICUS_EXEC_PATH
-          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          chmod u=wrx ./Galacticus.exe
-          ./Galacticus.exe ./testSuite/parameters/benchmark_milkyWay_SIDM.xml  
-          perf record -g -e cycles --call-graph dwarf -F 100 -o ./testSuite/outputs/milkyWay_SIDM.perf.data ./Galacticus.exe ./testSuite/parameters/benchmark_milkyWay_SIDM.xml
-          perf script -i ./testSuite/outputs/milkyWay_SIDM.perf.data > ./testSuite/outputs/milkyWay_SIDM.perf
-          du -sh ./testSuite/outputs/milkyWay_SIDM.perf
-          bzip2 ./testSuite/outputs/milkyWay_SIDM.perf
-      - name: "Clean datasets"
-        run: |
-          echo Removing outdated dynamically-generated datasets
-          echo Retaining:
-          classVersion=`awk '{if ($1 == "class:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          cambVersion=`awk '{if ($1 == "camb:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          fspsVersion=`awk '{if ($1 == "fsps:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          cloudyVersion=`awk '{if ($1 == "cloudy:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/AxionCAMB -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion} \) -prune -o -type f -anewer mark.time -print
-          find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/AxionCAMB -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion} \) -prune -o -type f -not -anewer mark.time -print0 | xargs --no-run-if-empty -0 rm
-      - name: Upload results
-        uses: actions/upload-artifact@v4
-        with:
-          name: perf-milkyWay-SIDM
-          path: './testSuite/outputs/milkyWay_SIDM.perf.bz2'
+    uses: ./.github/workflows/profile.yml
+    with:
+      profiler: perf
+      cacheData: 1
+      name: milkyWay_SIDM
+      frequency: 100
+    secrets: inherit
   Profile-Dark-Matter-Only-Subhalos-GProf:
-    runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/galacticusorg/buildenv:latest
-      options: --privileged
     needs: Build-Executables-Instrumented-Linux
-    steps:
-      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
-      - run: echo "This job is now running on a ${{ runner.os }} server."
-      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
-      - name: Check out repository code
-        uses: actions/checkout@v4
-      - name: Check out repository datasets
-        uses: actions/checkout@v4      
-        with:
-          repository: galacticusorg/datasets
-          path: datasets
-      - run: echo "The $githubrepository repository has been cloned to the runner."
-      - name: "Set environmental variables"
-        run: |
-          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
-      - name: Download executables
-        uses: actions/download-artifact@v4
-        with:
-          name: galacticus-exec-instrumented
-      - name: Install tools
-        run: |
-          apt -y update && apt -y upgrade
-          apt install -y bzip2
-      - name: Create test suite output directory
-        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
-      - name: Run benchmark
-        run: |
-          cd $GALACTICUS_EXEC_PATH
-          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          chmod u=wrx ./Galacticus.exe
-          ./Galacticus.exe ./testSuite/parameters/benchmark_darkMatterOnlySubHalos.xml  
-          rm gmon.out
-          ./Galacticus.exe ./testSuite/parameters/benchmark_darkMatterOnlySubHalos.xml
-          gprof ./Galacticus.exe gmon.out > ./testSuite/outputs/darkMatterOnlySubhalos.gprof
-          du -sh ./testSuite/outputs/darkMatterOnlySubhalos.gprof
-          bzip2 ./testSuite/outputs/darkMatterOnlySubhalos.gprof
-      - name: Upload results
-        uses: actions/upload-artifact@v4
-        with:
-          name: perf-darkMatterOnlySubhalos-gprof
-          path: './testSuite/outputs/darkMatterOnlySubhalos.gprof.bz2'
+    uses: ./.github/workflows/profile.yml
+    with:
+      profiler: gprof
+      cacheData: 0
+      name: darkMatterOnlySubHalos
+    secrets: inherit
   Profile-Milky-Way-GProf:
-    runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/galacticusorg/buildenv:latest
-      options: --privileged
     needs: Build-Executables-Instrumented-Linux
-    steps:
-      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
-      - run: echo "This job is now running on a ${{ runner.os }} server."
-      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
-      - name: Check out repository code
-        uses: actions/checkout@v4
-      - name: Check out repository datasets
-        uses: actions/checkout@v4      
-        with:
-          repository: galacticusorg/datasets
-          path: datasets
-      - run: echo "The $githubrepository repository has been cloned to the runner."
-      - name: Cache dynamically-generated datasets
-        uses: actions/cache@v3
-        with:
-          path: ${{ github.workspace }}/datasets/dynamic
-          key: benchmarks-milkyWay-${{ github.run_id }}
-          restore-keys: |
-            benchmarks-milkyWay
-      - name: "Set environmental variables"
-        run: |
-          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
-      - name: Download executables
-        uses: actions/download-artifact@v4
-        with:
-          name: galacticus-exec-instrumented
-      - name: Install tools
-        run: |
-          apt -y update && apt -y upgrade
-          apt install -y bzip2
-      - name: Create test suite output directory
-        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs 
-      - name: Mark time for cache accesses
-        run: |
-          echo mark > mark.time
-      - name: Run benchmark
-        run: |
-          cd $GALACTICUS_EXEC_PATH
-          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          chmod u=wrx ./Galacticus.exe
-          ./Galacticus.exe ./testSuite/parameters/benchmark_milkyWay.xml  
-          rm gmon.out
-          ./Galacticus.exe ./testSuite/parameters/benchmark_milkyWay.xml
-          gprof ./Galacticus.exe gmon.out > ./testSuite/outputs/milkyWay.gprof
-          du -sh ./testSuite/outputs/milkyWay.gprof
-          bzip2 ./testSuite/outputs/milkyWay.gprof
-      - name: "Clean datasets"
-        run: |
-          echo Removing outdated dynamically-generated datasets
-          echo Retaining:
-          classVersion=`awk '{if ($1 == "class:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          cambVersion=`awk '{if ($1 == "camb:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          fspsVersion=`awk '{if ($1 == "fsps:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          cloudyVersion=`awk '{if ($1 == "cloudy:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/AxionCAMB -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion} \) -prune -o -type f -anewer mark.time -print
-          find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/AxionCAMB -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion} \) -prune -o -type f -not -anewer mark.time -print0 | xargs --no-run-if-empty -0 rm
-      - name: Upload results
-        uses: actions/upload-artifact@v4
-        with:
-          name: perf-milkyWay-gprof
-          path: './testSuite/outputs/milkyWay.gprof.bz2'
+    uses: ./.github/workflows/profile.yml
+    with:
+      profiler: gprof
+      cacheData: 1
+      name: milkyWay
   Profile-Milky-Way-SIDM-GProf:
-    runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/galacticusorg/buildenv:latest
-      options: --privileged
     needs: Build-Executables-Instrumented-Linux
-    steps:
-      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
-      - run: echo "This job is now running on a ${{ runner.os }} server."
-      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
-      - name: Check out repository code
-        uses: actions/checkout@v4
-      - name: Check out repository datasets
-        uses: actions/checkout@v4      
-        with:
-          repository: galacticusorg/datasets
-          path: datasets
-      - run: echo "The $githubrepository repository has been cloned to the runner."
-      - name: Cache dynamically-generated datasets
-        uses: actions/cache@v3
-        with:
-          path: ${{ github.workspace }}/datasets/dynamic
-          key: benchmarks-SIDM-milkyWay-${{ github.run_id }}
-          restore-keys: |
-            benchmarks-SIDM-milkyWay
-      - name: "Set environmental variables"
-        run: |
-          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
-      - name: Download executables
-        uses: actions/download-artifact@v4
-        with:
-          name: galacticus-exec-instrumented
-      - name: Install tools
-        run: |
-          apt -y update && apt -y upgrade
-          apt install -y bzip2
-      - name: Create test suite output directory
-        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
-      - name: Mark time for cache accesses
-        run: |
-          echo mark > mark.time
-      - name: Run benchmark
-        run: |
-          cd $GALACTICUS_EXEC_PATH
-          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          chmod u=wrx ./Galacticus.exe
-          ./Galacticus.exe ./testSuite/parameters/benchmark_milkyWay_SIDM.xml  
-          rm gmon.out
-          ./Galacticus.exe ./testSuite/parameters/benchmark_milkyWay_SIDM.xml
-          gprof ./Galacticus.exe gmon.out > ./testSuite/outputs/milkyWay_SIDM.gprof
-          du -sh ./testSuite/outputs/milkyWay_SIDM.gprof
-          bzip2 ./testSuite/outputs/milkyWay_SIDM.gprof
-      - name: "Clean datasets"
-        run: |
-          echo Removing outdated dynamically-generated datasets
-          echo Retaining:
-          classVersion=`awk '{if ($1 == "class:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          cambVersion=`awk '{if ($1 == "camb:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          fspsVersion=`awk '{if ($1 == "fsps:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          cloudyVersion=`awk '{if ($1 == "cloudy:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/AxionCAMB -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion} \) -prune -o -type f -anewer mark.time -print
-          find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/AxionCAMB -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion} \) -prune -o -type f -not -anewer mark.time -print0 | xargs --no-run-if-empty -0 rm
-      - name: Upload results
-        uses: actions/upload-artifact@v4
-        with:
-          name: perf-milkyWay-SIDM-gprof
-          path: './testSuite/outputs/milkyWay_SIDM.gprof.bz2'
+    uses: ./.github/workflows/profile.yml
+    with:
+      profiler: gprof
+      cacheData: 1
+      name: milkyWay_SIDM
   # Validation
   Validate-Dark-Matter-Only-Subhalos:
     needs: Build-Executable-Linux
@@ -2344,10 +2024,10 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: perf-milkyWay
-      - name: Download artifacts (perf-milkyWay-SIDM)
+      - name: Download artifacts (perf-milkyWay_SIDM)
         uses: actions/download-artifact@v4
         with:
-          name: perf-milkyWay-SIDM
+          name: perf-milkyWay_SIDM
       - name: Download artifacts (perf-darkMatterOnlySubhalos-gprof)
         uses: actions/download-artifact@v4
         with:
@@ -2356,10 +2036,10 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: perf-milkyWay-gprof
-      - name: Download artifacts (perf-milkyWay-SIDM-gprof)
+      - name: Download artifacts (perf-milkyWay_SIDM-gprof)
         uses: actions/download-artifact@v4
         with:
-          name: perf-milkyWay-SIDM-gprof
+          name: perf-milkyWay_SIDM-gprof
       - name: Upload assets to release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
