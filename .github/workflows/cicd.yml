@@ -1741,7 +1741,7 @@ jobs:
       file: test-cosmology.pl
       artifact: galacticus-exec
       runPath: ./testSuite
-      options: "--launchMethod local --threadMaximum 1 --ompThreads 2 --instance ${{ matrix.instance }}"
+      options: "--launchMethod local --threadMaximum 1 --ompThreads 4 --instance ${{ matrix.instance }}"
     secrets: inherit
   ### Mass Conservation
   Mass-Conservation:
@@ -1756,7 +1756,7 @@ jobs:
       file: ${{ matrix.file }}
       artifact: galacticus-exec
       runPath: ./testSuite
-      options: "--launchMethod local --threadMaximum 1 --ompThreads 2"
+      options: "--launchMethod local --threadMaximum 1 --ompThreads 4"
     secrets: inherit
   ### Merger Trees
   Merger-Tree-Builder:
@@ -1771,7 +1771,7 @@ jobs:
       file: test-merger-tree-builder.pl
       artifact: galacticus-exec
       runPath: ./testSuite
-      options: "--launchMethod local --threadMaximum 1 --ompThreads 2 --instance ${{ matrix.instance }}"
+      options: "--launchMethod local --threadMaximum 1 --ompThreads 4 --instance ${{ matrix.instance }}"
     secrets: inherit
   Merger-Tree-Write:
     needs: Build-Executable-Linux
@@ -1780,7 +1780,7 @@ jobs:
       file: test-merger-tree-write.pl
       artifact: galacticus-exec
       runPath: ./testSuite
-      options: "--launchMethod local --threadMaximum 1 --ompThreads 2"
+      options: "--launchMethod local --threadMaximum 1 --ompThreads 4"
     secrets: inherit
   ## Model Integration
   Model-Integration:
@@ -1795,7 +1795,7 @@ jobs:
       file: test-model-integration.pl
       artifact: galacticus-exec
       runPath: ./testSuite
-      options: "--launchMethod local --threadMaximum 1 --ompThreads 2 --instance ${{ matrix.instance }}"
+      options: "--launchMethod local --threadMaximum 1 --ompThreads 4 --instance ${{ matrix.instance }}"
     secrets: inherit
   ## Misc Models
   Miscellaneous:
@@ -1901,7 +1901,7 @@ jobs:
       file: test-outputs.pl
       artifact: galacticus-exec
       runPath: ./testSuite
-      options: "--launchMethod local --threadMaximum 1 --ompThreads 2 --instance ${{ matrix.instance }}"
+      options: "--launchMethod local --threadMaximum 1 --ompThreads 4 --instance ${{ matrix.instance }}"
     secrets: inherit
   ### Regressions
   Regressions:
@@ -1961,13 +1961,13 @@ jobs:
       # Ensure all jobs are run, even if some fail.
       fail-fast: false
       matrix:
-        instance: [ "1:2", "2:2" ]
+        instance: [ "1:20", "2:20", "3:20", "4:20", "5:20", "6:20", "7:20", "8:20", "9:20", "10:20", "11:20", "12:20", "13:20", "14:20", "15:20", "16:20", "17:20", "18:20", "19:20", "20:20" ]
     uses: ./.github/workflows/testModel.yml
     with:
-      file: test-methods_MPI.pl
+      file: test-methods.pl
       artifact: galacticus-exec
       runPath: ./testSuite
-      options: "--launchMethod local --threadMaximum 1 --ompThreads 1 --instance ${{ matrix.instance }}"
+      options: "--launchMethod local --threadMaximum 1 --ompThreads 4 --instance ${{ matrix.instance }}"
     secrets: inherit
   ### MPI Misc Models
   MPI-State-Restore:
@@ -1986,7 +1986,7 @@ jobs:
       file: test-radiativeTransfer-StromgrenSphere_MPI.pl
       artifact: galacticus-exec-MPI
       runPath: ./testSuite
-      options: --processesPerNode 2 --allow-run-as-root yes
+      options: --processesPerNode 4 --allow-run-as-root yes
     secrets: inherit
   MPI-MCMC:
     needs: Build-Executables-MPI-Linux
