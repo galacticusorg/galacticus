@@ -74,7 +74,7 @@ jobs:
            perf script -i ./testSuite/outputs/${{ inputs.name }}.perf.data > ./testSuite/outputs/${{ inputs.name }}.perf
            du -sh ./testSuite/outputs/${{ inputs.name }}.perf
            bzip2 ./testSuite/outputs/${{ inputs.name }}.perf
-          elsif [[ ${{ inputs.profiler }} == 'gprof' ]]; then
+          elif [[ ${{ inputs.profiler }} == 'gprof' ]]; then
            rm gmon.out
            ./Galacticus.exe ./testSuite/parameters/benchmark_${{ inputs.name }}.xml
            gprof ./Galacticus.exe gmon.out > ./testSuite/outputs/${{ inputs.name }}.gprof
