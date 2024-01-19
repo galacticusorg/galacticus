@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/galacticusorg/buildenv:latest
-      options: ${{ format('{0}',inputs.profiler) == 'perf' && '--privileged' || '' }}
+      options: --privileged
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
