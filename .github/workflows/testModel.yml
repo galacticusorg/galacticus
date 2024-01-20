@@ -1,0 +1,157 @@
+name: Test Model (Reuseable Workflow)
+on:
+  workflow_call:
+    inputs:
+      runner: # The name of the runner on which to run the test
+        required: false
+        default: ubuntu-latest
+        type: string
+      fetchDepth: # The depth to fetch in the repo
+        required: false
+        default: 1
+        type: number
+      artifact: # The name of the artifact to download to retrieve the executable
+        required: true
+        type: string
+      cacheData: # Set to 0/1 to disable/enable caching of dynamically-generated datasets
+        required: false
+        default: 0
+        type: number
+      file: # The name of the test file to be run and tested
+        required: true
+        type: string
+      options: # Options to pass to the script command line
+        required: false
+        default: ''
+        type: string
+      runPath: # The path from which to run the test
+        required: false
+        default: .
+        type: string
+      uploadFile: # The name of a file to upload as an artifact
+        required: false
+        type: string
+      uploadName: # The name of the artifact to upload the file as
+        required: false
+        type: string
+      mpi: # Set to 0/1 to indicate if the executable should be run without/with MPI
+        required: false
+        default: 0
+        type: string
+      processesPerNode: # Specify the number of processes per node for MPI tests
+        required: false
+        default: 2
+        type: number
+      install: # Specify packages to install
+        required: false
+        type: string
+defaults:
+  run:
+    shell: bash
+jobs:
+  Test-Model:
+    runs-on: ${{ inputs.runner }}
+    container:
+      image: ${{ startsWith( format('{0}',inputs.runner), 'ubuntu') && 'ghcr.io/galacticusorg/buildenv:latest' || '' }}
+    steps:
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
+      - name: Check out repository code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: ${{ inputs.fetchDepth }}
+      - name: Check out repository analysis-perl
+        uses: actions/checkout@v4
+        with:
+          repository: galacticusorg/analysis-perl
+          path: analysis-perl
+      - name: Check out repository datasets
+        uses: actions/checkout@v4      
+        with:
+          repository: galacticusorg/datasets
+          path: datasets
+      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
+      - name: Cache dynamically-generated datasets
+        if: ${{ format('{0}',inputs.cacheData) == '1' }}
+        uses: actions/cache@v3
+        with:
+          path: ${{ github.workspace }}/datasets/dynamic
+          key: ${{ hashFiles(format('{0}',inputs.file)) }}-${{ github.run_id }}
+          restore-keys: |
+            ${{ hashFiles(format('{0}',inputs.file)) }}
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_ANALYSIS_PERL_PATH=$GITHUB_WORKSPACE/analysis-perl" >> $GITHUB_ENV
+      - name: Download executables
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.artifact }}
+      - name: Install packages
+        if: inputs.install != ''
+        run: |
+          apt -y update && apt -y upgrade
+          apt -y install ${{ inputs.install }}
+      - name: Mark time for cache accesses
+        if: ${{ format('{0}',inputs.cacheData) == '1' }}
+        run: |
+          echo mark > mark.time
+      - name: Create test suite output directory
+        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
+      - name: Run test
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
+          chmod u=wrx ./Galacticus.exe
+          mkdir -p testSuite/outputs/regressions
+          set -o pipefail
+          if [[ ${{ inputs.file }} =~ \.xml$ ]]; then
+           if [ ! -z "${{ inputs.options }}" ]; then
+            echo Options can not be set for XML files
+            false
+           fi
+           if [ ${{ inputs.mpi }} == 1 ]; then
+            mpirun -np  ${{ inputs.processesPerNode }} --allow-run-as-root ./Galacticus.exe ${{ inputs.file }} 2>&1 | tee test.log
+           else
+            ./Galacticus.exe ${{ inputs.file }} 2>&1 | tee test.log
+           fi
+          elif [[ ${{ inputs.file }} =~ \.pl$ ]]; then
+           cd ${{ inputs.runPath }}
+           chmod u=wrx ./${{ inputs.file }}
+           ./${{ inputs.file }} ${{ inputs.options }} 2>&1 | tee test.log
+          elif [[ ${{ inputs.file }} =~ \.py$ ]]; then
+           if [[ ${{ inputs.runner }} =~ ^macos ]]; then
+            echo Python tests not supported on MacOS
+            false
+           fi
+           apt -y update && apt -y upgrade
+           apt -y install python3-numpy python3-h5py
+           cd ${{ inputs.runPath }}
+           chmod u=wrx ./${{ inputs.file }}
+           ./${{ inputs.file }} ${{ inputs.options }} 2>&1 | tee test.log
+          else
+           echo Unrecognized file extension
+           false
+          fi
+          ! grep -q FAIL test.log
+      - name: "Clean datasets"
+        if: ${{ format('{0}',inputs.cacheData) == '1' }}
+        run: |
+          echo Removing outdated dynamically-generated datasets
+          echo Retaining:
+          classVersion=`awk '{if ($1 == "class:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          cambVersion=`awk '{if ($1 == "camb:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          fspsVersion=`awk '{if ($1 == "fsps:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          cloudyVersion=`awk '{if ($1 == "cloudy:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/AxionCAMB -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion} \) -prune -o -type f -anewer mark.time -print
+          find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/AxionCAMB -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion} \) -prune -o -type f -not -anewer mark.time -print0 | xargs --no-run-if-empty -0 rm
+      - name: Upload result
+        if: inputs.uploadName != '' && inputs.uploadFile != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.uploadName }}
+          path: ${{ inputs.uploadFile }}
+      - run: echo "This job's status is ${{ job.status }}."
