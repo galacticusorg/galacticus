@@ -1577,10 +1577,10 @@ jobs:
         run: |
           gh release upload bleeding-edge ./Galacticus_MacOS.exe ./libgalacticusMacOS.zip ./toolsMacOS.zip ./debugSymbolsMacOS.zip --clobber
           rm ./Galacticus_MacOS.exe ./libgalacticusMacOS.zip ./toolsMacOS.zip ./debugSymbolsMacOS.zip
-      - name: Download artifacts (perf-darkMatterOnlySubhalos)
+      - name: Download artifacts (perf-darkMatterOnlySubHalos)
         uses: actions/download-artifact@v4
         with:
-          name: perf-darkMatterOnlySubhalos
+          name: perf-darkMatterOnlySubHalos
       - name: Download artifacts (perf-milkyWay)
         uses: actions/download-artifact@v4
         with:
@@ -1589,10 +1589,10 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: perf-milkyWay_SIDM
-      - name: Download artifacts (perf-darkMatterOnlySubhalos-gprof)
+      - name: Download artifacts (perf-darkMatterOnlySubHalos-gprof)
         uses: actions/download-artifact@v4
         with:
-          name: perf-darkMatterOnlySubhalos-gprof
+          name: perf-darkMatterOnlySubHalos-gprof
       - name: Download artifacts (perf-milkyWay-gprof)
         uses: actions/download-artifact@v4
         with:
@@ -1605,8 +1605,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload bleeding-edge ./darkMatterOnlySubhalos.perf.bz2 ./milkyWay.perf.bz2 ./milkyWay_SIDM.perf.bz2 ./darkMatterOnlySubhalos.gprof.bz2 ./milkyWay.gprof.bz2 ./milkyWay_SIDM.gprof.bz2 --clobber
-          rm ./darkMatterOnlySubhalos.perf.bz2 ./milkyWay.perf.bz2 ./milkyWay_SIDM.perf.bz2 ./darkMatterOnlySubhalos.gprof.bz2 ./milkyWay.gprof.bz2 ./milkyWay_SIDM.gprof.bz2
+          gh release upload bleeding-edge ./darkMatterOnlySubHalos.perf.bz2 ./milkyWay.perf.bz2 ./milkyWay_SIDM.perf.bz2 ./darkMatterOnlySubHalos.gprof.bz2 ./milkyWay.gprof.bz2 ./milkyWay_SIDM.gprof.bz2 --clobber
+          rm ./darkMatterOnlySubHalos.perf.bz2 ./milkyWay.perf.bz2 ./milkyWay_SIDM.perf.bz2 ./darkMatterOnlySubHalos.gprof.bz2 ./milkyWay.gprof.bz2 ./milkyWay_SIDM.gprof.bz2
   Update-Release-Tag:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master'
