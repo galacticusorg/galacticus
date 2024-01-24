@@ -262,6 +262,12 @@ sub Tree_Node_Finalization {
     $function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
 ! Destroy all components.
 {join(" ",map {"call self%".$_."Destroy()\n"} @{$build->{'componentClassListActive'}})}
+! Destroy any formation node.
+if (associated(self%formationNode)) then
+   call self%formationNode%destroy()
+   deallocate(self%formationNode)
+   nullify(self%formationNode)
+end if
 ! Remove any events attached to the node, along with their paired event in other nodes.
 thisEvent => self%event
 do while (associated(thisEvent))
