@@ -1060,10 +1060,9 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <componentBlackHole value="standard">
-    <efficiencyWindScalesWithEfficiencyRadiative value="false"/>
-    <efficiencyWindScalesWithEfficiencyRadiative value="true"/>
-  </componentBlackHole>
-
+      <efficiencyWindScalesWithEfficiencyRadiative value="false"/>
+      <efficiencyWindScalesWithEfficiencyRadiative value="true"/>
+    </componentBlackHole>
   </parameters>
 
   <!-- Hot halo ram pressure forces -->
@@ -2474,4 +2473,48 @@
     </nodeOperator>
   </parameters>
   
+  <!-- Output time options -->
+  <parameters>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <outputTimes value="list">
+      <redshifts value="0.0 0.2 0.4"/>
+    </outputTimes>
+    <outputTimes value="uniformSpacingInTime">
+      <timeMinimum value=" 1.0"/>
+      <timeMaximum value="13.0"/>
+      <countTimes  value=" 4  "/>
+    </outputTimes>
+    <outputTimes value="uniformSpacingInTime">
+      <timeMinimum     value="1.0"/>
+      <redshiftMinimum value="0.1"/>
+      <countTimes      value="4  "/>
+    </outputTimes>
+    <outputTimes value="uniformSpacingInTime">
+      <redshiftMaximum value=" 4.0"/>
+      <timeMaximum     value="13.0"/>
+      <countTimes      value=" 4  "/>
+    </outputTimes>
+    <outputTimes value="uniformSpacingInTime">
+      <redshiftMinimum value="0.1"/>
+      <redshiftMaximum value="4.0"/>
+      <countTimes      value="4  "/>
+    </outputTimes>
+    <outputTimes value="uniformSpacingInRedshift">
+      <redshiftMinimum value="0.1"/>
+      <redshiftMaximum value="4.0"/>
+      <countRedshifts  value="4  "/>
+    </outputTimes>
+    <outputTimes value="logarithmicSpacingInRedshift">
+      <redshiftMinimum value="0.1"/>
+      <redshiftMaximum value="4.0"/>
+      <countRedshifts  value="4  "/>
+    </outputTimes>
+    <outputTimes value="logarithmicSpacingInCriticalOverdensity">
+      <redshiftMinimum value="0.1"/>
+      <redshiftMaximum value="4.0"/>
+      <countRedshifts  value="4  "/>
+    </outputTimes>
+  </parameters>
+
 </parameterGrid>
