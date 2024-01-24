@@ -758,17 +758,19 @@ contains
     use :: Abundances_Structure            , only : zeroAbundances
     use :: Error                           , only : Error_Report
     use :: Galacticus_Nodes                , only : nodeComponentDisk      , nodeComponentDiskVerySimple, nodeComponentSpheroid           , treeNode
+    use :: Histories                       , only : history
     use :: Satellite_Merging_Mass_Movements, only : destinationMergerDisk  , destinationMergerSpheroid  , enumerationDestinationMergerType
     use :: Stellar_Luminosities_Structure  , only : zeroStellarLuminosities
     implicit none
-    class  (*                              ), intent(inout) :: self
-    type   (treeNode                       ), intent(inout) :: node
-    type   (treeNode                       ), pointer       :: nodeHost
-    class  (nodeComponentDisk              ), pointer       :: diskHost               , disk
-    class  (nodeComponentSpheroid          ), pointer       :: spheroidHost
-    type  (enumerationDestinationMergerType)                :: destinationGasSatellite, destinationGasHost       , &
-         &                                                     destinationStarsHost   , destinationStarsSatellite
-    logical                                                 :: mergerIsMajor
+    class  (*                               ), intent(inout) :: self
+    type   (treeNode                        ), intent(inout) :: node
+    type   (treeNode                        ), pointer       :: nodeHost
+    class  (nodeComponentDisk               ), pointer       :: diskHost               , disk
+    class  (nodeComponentSpheroid           ), pointer       :: spheroidHost
+    type   (enumerationDestinationMergerType)                :: destinationGasSatellite, destinationGasHost       , &
+         &                                                      destinationStarsHost   , destinationStarsSatellite
+    type   (history                         )                :: historyHost            , historyNode
+    logical                                                  :: mergerIsMajor
     !$GLC attributes unused :: self
 
     ! Check that the disk is of the verySimple class.
@@ -833,7 +835,14 @@ contains
                &                                    diskHost    %luminositiesStellar() &
                &                                   +disk        %luminositiesStellar() &
                &                                  )
-       case (destinationMergerSpheroid%ID)
+          ! Also add stellar properties histories.
+          historyNode=disk    %stellarPropertiesHistory()
+          historyHost=diskHost%stellarPropertiesHistory()
+          call historyHost%interpolatedIncrement      (historyNode)
+          call historyNode%reset                      (           )
+          call diskHost   %stellarPropertiesHistorySet(historyHost)
+          call disk       %stellarPropertiesHistorySet(historyNode)
+        case (destinationMergerSpheroid%ID)
           call spheroidHost%massStellarSet        (                                    &
                &                                    spheroidHost%  massStellar      () &
                &                                   +disk        %  massStellar      () &
@@ -846,6 +855,13 @@ contains
                &                                    spheroidHost%luminositiesStellar() &
                &                                   +disk        %luminositiesStellar() &
                &                                  )
+          ! Also add stellar properties histories.
+          historyNode=disk    %stellarPropertiesHistory()
+          historyHost=spheroidHost%stellarPropertiesHistory()
+          call historyHost %interpolatedIncrement      (historyNode)
+          call historyNode %reset                      (           )
+          call spheroidHost%stellarPropertiesHistorySet(historyHost)
+          call disk        %stellarPropertiesHistorySet(historyNode)
        case default
           call Error_Report(                                    &
                &            'unrecognized movesTo descriptor'// &

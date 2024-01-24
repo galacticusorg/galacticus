@@ -15,7 +15,7 @@ system("mkdir -p outputs");
 system("export OMP_NUM_THREADS=1; cd ..; ./Galacticus.exe testSuite/parameters/parallelTreeBuildSerial.xml");
 die("FAILED: failed to run serial model")
     unless ( $? == 0 );
-system("export OMP_NUM_THREADS=2; cd ..; ./Galacticus.exe testSuite/parameters/parallelTreeBuildParallel.xml");
+system("export OMP_NUM_THREADS=4; cd ..; ./Galacticus.exe testSuite/parameters/parallelTreeBuildParallel.xml");
 die("FAILED: failed to run parallel model")
     unless ( $? == 0 );
 
@@ -33,5 +33,11 @@ my $selection       = which($data->{'parallelTreeBuildSerial'}->{'conditionalMas
 my $errorNormalized = abs($data->{'parallelTreeBuildParallel'}->{'conditionalMassFunction'}->flat()->($selection)-$data->{'parallelTreeBuildSerial'}->{'conditionalMassFunction'}->flat()->($selection))/$data->{'parallelTreeBuildSerial'}->{'conditionalMassFunctionError'}->flat()->($selection);
 my $status          = any($errorNormalized > 3.0) ? "FAIL" : "SUCCESS";
 print $status.": parallel tree build\n";
+if ( $status eq "FAIL" ) {
+    print "Conditional mass function:\n";
+    print "\t  Serial build: ".$data->{'parallelTreeBuildSerial'  }->{'conditionalMassFunction'     }->flat()->($selection)."\n";
+    print "\tParallel build: ".$data->{'parallelTreeBuildParallel'}->{'conditionalMassFunction'     }->flat()->($selection)."\n";
+    print "\t   Uncertainty: ".$data->{'parallelTreeBuildSerial'  }->{'conditionalMassFunctionError'}->flat()->($selection)."\n";
+}
 
 exit;

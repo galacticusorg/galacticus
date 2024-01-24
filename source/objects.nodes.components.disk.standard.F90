@@ -472,6 +472,7 @@ contains
     use :: Error                         , only : Error_Report
     use :: Galacticus_Nodes              , only : defaultDiskComponent, nodeComponentDisk  , nodeComponentDiskStandard, nodeComponentSpin, &
           &                                       treeNode            , nodeComponentBasic
+    use :: Histories                     , only : history
     use :: Interface_GSL                 , only : GSL_Success         , GSL_Continue
     use :: ISO_Varying_String            , only : assignment(=)       , operator(//)       , varying_string
     use :: Stellar_Luminosities_Structure, only : abs                 , stellarLuminosities
@@ -491,7 +492,9 @@ contains
     !$omp threadprivate(message)
     type            (stellarLuminosities), save                   :: luminositiesStellar
     !$omp threadprivate(luminositiesStellar)
-
+    type            (history            ), save                   :: historyStellar
+    !$omp threadprivate(historyStellar)
+    
     ! Return immediately if this class is not in use.
     if (.not.defaultDiskComponent%standardIsActive()) return
     ! Get the disk component.
@@ -540,6 +543,12 @@ contains
              specificAngularMomentum=0.0d0
              call disk%        massStellarSet(                  0.0d0)
              call disk%  abundancesStellarSet(         zeroAbundances)
+             historyStellar=disk%starFormationHistory    ()
+             call historyStellar%reset()
+             call disk         %starFormationHistorySet     (historyStellar)
+             historyStellar=disk%stellarPropertiesHistory()
+             call historyStellar%reset()
+             call disk          %stellarPropertiesHistorySet(historyStellar)
              ! We need to reset the stellar luminosities to zero. We can't simply use the "zeroStellarLuminosities" instance since
              ! our luminosities may have been truncated. If we were to use "zeroStellarLuminosities" then the number of stellar
              ! luminosities associated with the disk would change - but we are in the middle of differential evolution here and we
@@ -602,10 +611,16 @@ contains
              specificAngularMomentum=disk%angularMomentum()/massDisk
              if (specificAngularMomentum < 0.0d0) specificAngularMomentum=disk%radius()*disk%velocity()
           end if
-          ! Reset the stellar, abundances and angular momentum of the disk.
+          ! Reset the stellar mass, abundances and angular momentum of the disk.
           call disk%      massStellarSet(                                 0.0d0)
           call disk%abundancesStellarSet(                        zeroAbundances)
           call disk%  angularMomentumSet(specificAngularMomentum*disk%massGas())
+          historyStellar=disk%starFormationHistory    ()
+          call historyStellar%reset()
+          call disk         %starFormationHistorySet     (historyStellar)
+          historyStellar=disk%stellarPropertiesHistory()
+          call historyStellar%reset()
+          call disk          %stellarPropertiesHistorySet(historyStellar)
           ! Indicate that ODE evolution should continue after this state change.
           if (status == GSL_Success) status=GSL_Continue
        end if
