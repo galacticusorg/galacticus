@@ -1717,6 +1717,7 @@ CODE
 	    $modulePostContains->{'content'} .= "      Return a pointer to a newly created {\\normalfont \\ttfamily ".$directive->{'name'}."} object as specified by the provided parameters.\n";
 	    $modulePostContains->{'content'} .= "      !!}\n";
 	    $modulePostContains->{'content'} .= "      use :: Input_Parameters  , only : inputParameter         , inputParameters\n";
+	    $modulePostContains->{'content'} .= "      use :: Locks  , only : ompLock\n";
 	    $modulePostContains->{'content'} .= "      use :: Error  , only : Error_Report\n";
 	    $modulePostContains->{'content'} .= "      use :: ISO_Varying_String, only : varying_string         , char           , trim, operator(//), operator(==), assignment(=)\n";
 	    $modulePostContains->{'content'} .= "      implicit none\n";
@@ -1725,8 +1726,12 @@ CODE
 	    $modulePostContains->{'content'} .= "      integer                   , intent(in   ), optional :: copyInstance\n";
 	    $modulePostContains->{'content'} .= "      character(len=*          ), intent(in   ), optional :: parameterName\n";
 	    $modulePostContains->{'content'} .= "      type     (inputParameters)                          :: subParameters\n";
-	    $modulePostContains->{'content'} .= "      type     (inputParameter ), pointer                 :: parameterNode\n"
-                if ( exists($directive->{'default'}) );
+	    if ( exists($directive->{'default'}) ) {
+		$modulePostContains->{'content'} .= "      type     (inputParameter ), pointer                 :: parameterNode\n";
+		$modulePostContains->{'content'} .= "      type     (ompLock        ), save                    :: addLock\n";
+		$modulePostContains->{'content'} .= "      logical                   , save                    :: addLockInitialized=.false.\n";
+		$modulePostContains->{'content'} .= "      logical                                             :: needLock\n";
+	    }
 	    $modulePostContains->{'content'} .= "      type     (varying_string )                          :: message      , instanceName, parameterName_\n";
 	    $modulePostContains->{'content'} .= "      integer                                             :: copyInstance_\n\n";
 	    $modulePostContains->{'content'} .= "      if (present(parameterName)) then\n";
@@ -1741,6 +1746,18 @@ CODE
 	    $modulePostContains->{'content'} .= "      end if\n";
             if ( exists($directive->{'default'}) ) {
                 (my $class) = grep {$_->{'name'} eq $directive->{'name'}.ucfirst($directive->{'default'})} @nonAbstractClasses;
+		if ( exists($directive->{'default'}) ) {
+		    $modulePostContains->{'content'} .= "      if (.not.addLockInitialized) then\n";
+		    $modulePostContains->{'content'} .= "      !\$omp critical (addLockInitialize".ucfirst($directive->{'default'}).")\n";
+		    $modulePostContains->{'content'} .= "          if (.not.addLockInitialized) then\n";
+		    $modulePostContains->{'content'} .= "          addLockInitialized=.true.\n";
+		    $modulePostContains->{'content'} .= "          addLock=ompLock()\n";
+		    $modulePostContains->{'content'} .= "      end if\n";
+		    $modulePostContains->{'content'} .= "      !\$omp end critical (addLockInitialize".ucfirst($directive->{'default'}).")\n";
+		    $modulePostContains->{'content'} .= "      end if\n";
+		    $modulePostContains->{'content'} .= "      needLock=.not.addLock%ownedByThread()\n";
+		    $modulePostContains->{'content'} .= "      if (needLock) call addLock%set()\n";
+		}
 	        $modulePostContains->{'content'} .= "      if (parameterName_ == '".$directive->{'name'}."' .and. copyInstance_ == 1 .and. .not.parameters%isPresent(char(parameterName_))) then\n";
 	        $modulePostContains->{'content'} .= "        call parameters%addParameter('".$directive->{'name'}."','".$directive->{'default'}."')\n";
 	        $modulePostContains->{'content'} .= "        parameterNode => parameters%node('".$directive->{'name'}."',requireValue=.true.)\n";
@@ -1776,6 +1793,7 @@ CODE
 		    $modulePostContains->{'content'} .= "                 self%recursiveSelf => ".$directive->{'name'}."DefaultBuildObject\n";
 		    $modulePostContains->{'content'} .= "              end select\n";
 		    $modulePostContains->{'content'} .= "           end select\n";
+		    $modulePostContains->{'content'} .= "           if (needLock) call addLock%unset()\n";
 		    $modulePostContains->{'content'} .= "           return\n";
 		    $modulePostContains->{'content'} .= "        end if\n";
                 }
@@ -1819,9 +1837,11 @@ CODE
 	    }
 	    $modulePostContains->{'content'} .= "         call Error_Report(message//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
             $modulePostContains->{'content'} .= "      end select\n";
-            $modulePostContains->{'content'} .= "      end if\n"
-                if ( exists($directive->{'default'}) );
- 	    $modulePostContains->{'content'} .= "      return\n";
+	    if ( exists($directive->{'default'}) ) {
+		$modulePostContains->{'content'} .= "      end if\n";
+		$modulePostContains->{'content'} .= "      if (needLock) call addLock%unset()\n";
+	    }
+	    $modulePostContains->{'content'} .= "      return\n";
 	    $modulePostContains->{'content'} .= "   end function ".$directive->{'name'}."CnstrctrPrmtrs\n\n";
 
 	    # Insert class code. Each class goes into its own submodule, so we build this code inside a separate part of the code
