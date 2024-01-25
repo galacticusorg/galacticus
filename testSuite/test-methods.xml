@@ -2513,7 +2513,7 @@
     <outputTimes value="logarithmicSpacingInCriticalOverdensity">
       <redshiftMinimum value="0.1"/>
       <redshiftMaximum value="4.0"/>
-      <countRedshifts  value="4  "/>
+      <countTimes      value="4  "/>
     </outputTimes>
   </parameters>
 
