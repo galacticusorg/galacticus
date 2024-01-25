@@ -309,7 +309,7 @@ contains
        ! Iterate over wavenumber.
        !$ call OMP_Init_Lock(lockBaryons   )
        !$ call OMP_Init_Lock(lockDarkMatter)
-       !$omp parallel private(i,j,wavenumberLogarithmic,growthFactorDerivativeDarkMatter,growthFactorDerivativeBaryons,timeNow,growthFactorODEVariables,solver,linearGrowthFactorPresent)
+       !$omp parallel private(i,j,wavenumberLogarithmic,growthFactorDerivativeDarkMatter,growthFactorDerivativeBaryons,timeNow,growthFactorODEVariables,solver)
        allocate(cosmologyFunctions_      ,mold=self%cosmologyFunctions_      )
        allocate(intergalacticMediumState_,mold=self%intergalacticMediumState_)
        !$omp critical(linearGrowthBaryonsDrkMttrDeepCopy)
@@ -352,12 +352,14 @@ contains
        <objectDestructor name="cosmologyFunctions_"      />
        <objectDestructor name="intergalacticMediumState_"/>
        !!]
-       !$omp do
+       !$omp barrier
+       !$omp single
        ! Get present day growth factor at every wavenumber.
        do j=1,countWavenumbers
           linearGrowthFactorPresent(j)=self%growthFactor%interpolate(timePresent,self%growthFactor%y(j))
        end do
-       !$omp end do
+       !$omp end single
+       !$omp barrier
        !$omp do
        do j=1,countWavenumbers
           ! Normalize to growth factor of unity at present day.
