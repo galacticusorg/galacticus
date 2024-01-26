@@ -66,7 +66,6 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily collisionless} kinematic distribution class.
     !!}
-    use :: Input_Parameters, only : inputParameters
     implicit none
     type(kinematicsDistributionCollisionless) :: self
 
