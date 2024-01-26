@@ -1124,7 +1124,7 @@ contains
                if (varianceIntegrand(wavenumberLower) > 0.0d0) then
                   if (varianceIntegrand(wavenumberUpper) > 0.0d0) then
                      ! The integrand is non-zero at the upper limit also - we expect a non-zero integrand in this case. As we
-                     ! didn't get one, this is a problem.
+                     ! did not get one, this is a problem.
                      call Error_Report('no power in interval integrand - unexpected'//{introspection:location})
                   else
                      ! The integrand is zero at the upper limit - try reducing the upper limit until we get a non-zero result.
@@ -1235,7 +1235,7 @@ contains
 
   subroutine filteredPowerInterpolantsTime(self,time,i,h)
     !!{
-    Compute interoplants in time.
+    Compute interpolants in time.
     !!}
     use :: Error, only : Error_Report
     implicit none
