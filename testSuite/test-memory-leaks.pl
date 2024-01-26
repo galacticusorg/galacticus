@@ -22,9 +22,13 @@ my %options =
 # Models to check.
 my @models =
     (
+     # {
+     # 	 label      => "quickTest",
+     # 	 parameters => "parameters/quickTest.xml"
+     # },
      {
-	 label      => "quickTest",
-	 parameters => "parameters/quickTest.xml"
+	 label      => "formationHalos",
+	 parameters => "testSuite/parameters/memoryLeakFormationHalos.xml"
      },
      {
 	 label      => "MCMC",
