@@ -1309,13 +1309,15 @@ contains
           call self%scanForMergers                                                   (nodes,nodeList,historyCountMaximum)
           ! If a split forest was used, but all trees from it have now been processed, remove the split forest data as we no
           ! longer need it at this point.
-          if (returnSplitForest .and. self%splitForestNextTree == size(self%splitForestTreeStart)) then
-             deallocate(self%splitForestTreeSize )
-             deallocate(self%splitForestTreeStart)
-             deallocate(self%splitForestPushTo   )
-             deallocate(self%splitForestPullFrom )
-             deallocate(self%splitForestPushType )
-             deallocate(self%splitForestMapIndex )
+          if (returnSplitForest) then
+             if (self%splitForestNextTree == size(self%splitForestTreeStart)) then
+                deallocate(self%splitForestTreeSize )
+                deallocate(self%splitForestTreeStart)
+                deallocate(self%splitForestPushTo   )
+                deallocate(self%splitForestPullFrom )
+                deallocate(self%splitForestPushType )
+                deallocate(self%splitForestMapIndex )
+             end if
           end if
           ! Release the lock on split forest data if necessary as we're finished using it. This allows other threads to begin
           ! using the split forest data.
