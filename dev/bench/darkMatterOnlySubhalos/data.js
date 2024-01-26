@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1706260193818,
+  "lastUpdate": 1706260200116,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "7f0f10f4c016f8cf0333daf81a4c784b78121df6",
-          "message": "fix: Add `libdl` option in linker",
-          "timestamp": "2023-04-26T05:24:18Z",
-          "tree_id": "9b88298dff920d4e7fa11b7080540d83216f4f94",
-          "url": "https://github.com/galacticusorg/galacticus/commit/7f0f10f4c016f8cf0333daf81a4c784b78121df6"
-        },
-        "date": 1682505955226,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 57.3275525628901,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 25.8647158159627,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 24145.1797388743,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8776,6 +8737,45 @@ window.BENCHMARK_DATA = {
             "value": 43.575,
             "unit": "seconds",
             "range": 0.0808486239830178
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "426d47542279966670f16b52132911ffe1777496",
+          "message": "Merge pull request #535 from galacticusorg/featFormationHalos\n\nAdd a `stellarFeedbackOutflows` class that uses the formation halo properties",
+          "timestamp": "2024-01-26T06:09:08Z",
+          "tree_id": "f93b656986590f5805ea143b9bfe76e911ec9ff4",
+          "url": "https://github.com/galacticusorg/galacticus/commit/426d47542279966670f16b52132911ffe1777496"
+        },
+        "date": 1706260199398,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 58.2676114491058,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 26.2791658368427,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 24167.8090118703,
+            "unit": "-logℒ"
           }
         ]
       }
