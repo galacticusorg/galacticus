@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1706291829145,
+  "lastUpdate": 1706334498012,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "6790efb69d319a54319aedee5e34836118291824",
-          "message": "fix: Set a tree volume weight (of `1.0`) in the `mergerTreeConstructorFullySpecified` class",
-          "timestamp": "2023-04-27T16:05:58Z",
-          "tree_id": "61c50f26e43f6942e9e0bca0b35035c58e4a047b",
-          "url": "https://github.com/galacticusorg/galacticus/commit/6790efb69d319a54319aedee5e34836118291824"
-        },
-        "date": 1682622196638,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 67.898,
-            "unit": "seconds",
-            "range": 0.411921837245655
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8780,6 +8750,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 23958.5193682761,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "74c5285047ac77fa4398d9fe601da30c6427f868",
+          "message": "Merge pull request #544 from galacticusorg/featPowerSpectrumNormalization\n\nAdd functionality to normalize the power spectrum via the $A_\\mathrm{s}$ parameter",
+          "timestamp": "2024-01-27T02:45:59Z",
+          "tree_id": "70c701f7ffed6f95139fc6eda794733aff851317",
+          "url": "https://github.com/galacticusorg/galacticus/commit/74c5285047ac77fa4398d9fe601da30c6427f868"
+        },
+        "date": 1706334495728,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 42.941,
+            "unit": "seconds",
+            "range": 0.063426335223842
           }
         ]
       }
