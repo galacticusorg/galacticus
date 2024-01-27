@@ -30,7 +30,7 @@
      Type used to store luminosity templates for emission lines.
      !!}
      private
-     integer         (c_size_t)                                :: countlines=-1_c_size_t
+     integer         (c_size_t)                                :: countLines=-1_c_size_t
      double precision          , allocatable, dimension(:,:,:) :: emissionLineLuminosity
   end type emissionLineLuminosityTemplate
 
@@ -50,9 +50,9 @@
      class           (hiiRegionLuminosityFunctionClass          ), pointer                   :: hiiRegionLuminosityFunction_           => null()
      type            (enumerationComponentTypeType              )                            :: component
      integer                                                                                 :: countWavelengths, countLines
-      type            (varying_string                    ), allocatable, dimension(:          ) :: lineNames, names_, descriptions_
-    double precision                                            , allocatable, dimension(:) :: metallicityBoundaries, metallicities, ages
-    double precision                                            , allocatable, dimension(:,:,:) :: luminositiesReduced
+     type            (varying_string                    ), allocatable, dimension(:          ) :: lineNames, names_, descriptions_
+     double precision                                            , allocatable, dimension(:) :: metallicityBoundaries, metallicities, ages
+     double precision                                            , allocatable, dimension(:,:,:) :: luminositiesReduced
      type            (emissionLineLuminosityTemplate            ), allocatable, dimension(:) :: templates
      double precision                                                                        :: metallicityPopulationMinimum, metallicityPopulationMaximum, &
                                                                           &                     agePopulationMaximum, resolution, factorWavelength,   toleranceRelative
@@ -90,7 +90,7 @@ contains
 
   function emissionLineLuminosityConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily sed} property extractor class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily emission line luminosity} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode
@@ -174,14 +174,14 @@ contains
     
     ! Read the table of emission line luminosities.
     !$ call hdf5Access%set()
-    call emissionLinesFile%openFile(char(inputPath(pathTypeDataStatic))//"hiiRegions/emissionLines.hdf5",readOnly=.true.)
+    call emissionLinesFile%openFile(char(inputPath(pathTypeDataStatic))//"hiiRegions/cloudyTable.hdf5",readOnly=.true.)
     lines=emissionLinesFile%openGroup('lines')
     do i=1,size(lineNames)
        if (.not.lines%hasDataset(char(self%lineNames(i)))) call Error_Report('line "'//char(self%lineNames(i))//'" not found'//{introspection:location})
     end do
     call emissionLinesFile%readDataset('metallicity'                  ,self%metallicities                 )
     call emissionLinesFile%readDataset('age'                          ,self%ages                         )
-    call emissionLinesFile%readDataset('ionizingFluxHydrogen'         ,ionizingFluxHydrogen        )
+    call emissionLinesFile%readDataset('ionizingLuminosityHydrogen'   ,ionizingFluxHydrogen        )
     self%metallicityPopulationMinimum=minval(self%metallicities)
     self%metallicityPopulationMaximum=maxval(self%metallicities)
     
@@ -211,7 +211,7 @@ contains
     call lines            %close      (                                                                 )
     call emissionLinesFile%close      (                                                                 )
     !$ call hdf5Access%unset()
-   
+    
     ! Calculate emission line luminosity for some age and metallicity
     deltaIonizingFluxHydrogen=ionizingFluxHydrogen(2)/ionizingFluxHydrogen(1)
         do i=1,size(ionizingFluxHydrogen)
@@ -229,10 +229,14 @@ contains
        end do
 
        ! Construct name and description.
+       allocate(self%names_(size(lineNames)))
+       allocate(self%descriptions_(size(lineNames)))
+
        do i=1,size(lineNames)
           self%names_       (i)="luminosityEmissionLine:"//lineNames(i)
           self%descriptions_(i)="Luminosity of the "     //lineNames(i)//" emission line [ergs/s]"
        end do
+       self%countLines=size(lineNames)
        return    
   end function emissionLineLuminosityConstructorInternal
 
@@ -260,6 +264,7 @@ contains
     !$GLC attributes unused :: self, time
 
     emissionLineLuminosityElementCount=self%countLines
+    write (0,*) "emissionLineLuminosityElementCount",emissionLineLuminosityElementCount
     return
   end function emissionLineLuminosityElementCount
 
@@ -619,6 +624,7 @@ contains
                  & *interpolateFactorMetallicity(iMetallicity)
          end do
       end do
+      !STOP "emissionLineLuminosityIntegrandTime -- WORKING"
       return
     end function emissionLineLuminosityIntegrandTime
     
