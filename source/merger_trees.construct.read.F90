@@ -133,10 +133,15 @@
       forest (with multiple root-nodes) in the merger tree file. \glc\ will process this \gls{forest} of trees simultaneously,
       allowing to nodes to move between their branches.
     \item It is acceptable for a subhalo to later become an isolated halo (as can happen due to three-body interactions; see
-      \citealt{sales_cosmic_2007}). If {\normalfont \ttfamily [allowSubhaloPromotions]}$=${\normalfont \ttfamily true}
-      then such cases will be handled correctly (i.e. the subhalo will be promoted back to being an isolated halo). If {\normalfont
-        \ttfamily [allowSubhaloPromotions]}$=${\normalfont \ttfamily false} then subhalos are not permitted to become
-      isolated halos. In this case, the following logic will be applied to remove all such cases from the tree:\\
+      \citealt{sales_cosmic_2007}). If {\normalfont \ttfamily [allowSubhaloPromotions]}$=${\normalfont \ttfamily true} then such
+      cases will be handled correctly (i.e. the subhalo will be promoted back to being an isolated halo). If the parameter
+      {\normalfont \ttfamily [alwaysPromoteMostMassive]}$=${\normalfont \ttfamily true} then the most massive progenitor is treated
+      as the primary progenitor, even if that progenitor is a subhalo. Alternatively, if {\normalfont \ttfamily
+      [alwaysPromoteMostMassive]}$=${\normalfont \ttfamily false} then a most massive progenitor that is a subhalo is only treated
+      as the primary progneitor \emph{if} no isolated progenitors exist (otherwise, the most massive of the isolated progenitors
+      is treated as the primary progenitor). If {\normalfont \ttfamily [allowSubhaloPromotions]}$=${\normalfont \ttfamily false}
+      then subhalos are not permitted to become isolated halos. In this case, the following logic will be applied to remove all
+      such cases from the tree:\\
     
       \noindent\hspace{ 5mm} $\rightarrow$ \parbox[t]{150mm}{For any branch in a tree which at some point is a subhalo:}\\
     
