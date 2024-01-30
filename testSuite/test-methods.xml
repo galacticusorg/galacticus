@@ -320,6 +320,9 @@
 	  <nodeOperator value="positionOrphans" iterable="no"/>
 	</nodeOperator>
       </componentPosition>
+      <allowSubhaloPromotions value="true"/>
+      <alwaysPromoteMostMassive value="false"/>
+      <alwaysPromoteMostMassive value="true"/>
       <presetSubhaloMasses value="false"/>
       <presetSubhaloIndices value="false"/>
       <treeIndexToRootNodeIndex value="true"/>

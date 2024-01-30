@@ -898,6 +898,7 @@ jobs:
                 test-reproducibility.pl,
                 test-splitForests.pl,
                 test-star-formation-histories-adaptive.py,
+                test-mostMassiveProgenitorIsSubhalo.py,
                 test-stateRestore.pl,
                 test-checkpointing.pl,
                 test-stellar-mass-weighted-ages.pl,
