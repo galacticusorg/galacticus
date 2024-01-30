@@ -138,7 +138,7 @@
       {\normalfont \ttfamily [alwaysPromoteMostMassive]}$=${\normalfont \ttfamily true} then the most massive progenitor is treated
       as the primary progenitor, even if that progenitor is a subhalo. Alternatively, if {\normalfont \ttfamily
       [alwaysPromoteMostMassive]}$=${\normalfont \ttfamily false} then a most massive progenitor that is a subhalo is only treated
-      as the primary progneitor \emph{if} no isolated progenitors exist (otherwise, the most massive of the isolated progenitors
+      as the primary progenitor \emph{if} no isolated progenitors exist (otherwise, the most massive of the isolated progenitors
       is treated as the primary progenitor). If {\normalfont \ttfamily [allowSubhaloPromotions]}$=${\normalfont \ttfamily false}
       then subhalos are not permitted to become isolated halos. In this case, the following logic will be applied to remove all
       such cases from the tree:\\
