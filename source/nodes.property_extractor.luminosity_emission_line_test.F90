@@ -161,7 +161,7 @@ contains
     type     (hdf5Object              )                :: emissionLinesFile, lines
     integer :: i
     !![
-    <constructorAssign variables="lineNames, component, *starFormationHistory_, *outputTimes_,*hiiRegionLuminosityFunction_"/>
+    <constructorAssign variables="lineNames, component, toleranceRelative, *starFormationHistory_, *outputTimes_,*hiiRegionLuminosityFunction_"/>
     !!]
     
     if     (                                                                                                               &
