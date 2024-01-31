@@ -272,20 +272,20 @@ contains
       spin => node%spin()
       select case (self%radiusFixed%ID)
       case (radiusFixedVirial    %ID)
-         velocity          =  +self             %darkMatterHaloScale_  %velocityVirial                   (node                                           )
-         radius            =  +self             %darkMatterHaloScale_  %radiusVirial                (     node                                           ) &
-              &               *self                                    %factor                                                                             &
-              &               *spin                                    %angularMomentum             (                                                    ) &
-              &               /Dark_Matter_Halo_Angular_Momentum_Scale                              (     node         ,     self %darkMatterProfileDMO_ )
+         velocity          =  +self             %darkMatterHaloScale_  %velocityVirial                   (node                                                                      )
+         radius            =  +self             %darkMatterHaloScale_  %radiusVirial                (     node                                                                      ) &
+              &               *self                                    %factor                                                                                                        &
+              &               *spin                                    %angularMomentum             (                                                                               ) &
+              &               /Dark_Matter_Halo_Angular_Momentum_Scale                              (     node         ,     self %darkMatterHaloScale_  ,self%darkMatterProfileDMO_)
       case (radiusFixedTurnaround%ID)
-         massDistribution_ =>  self             %darkMatterProfileDMO_ %get                         (     node                                           )
-         basic             =>  node                                    %basic                       (                                                    )
-         velocity          =  +massDistribution_                       %velocityRotationCurveMaximum(                                                    )
-         radius            =  +self             %darkMatterHaloScale_  %radiusVirial                (     node                                           ) &
-              &               *self             %virialDensityContrast_%turnAroundOverVirialRadii   (mass=basic%mass(),time=basic%timeLastIsolated     ()) &
-              &               *self                                    %factor                                                                             &
-              &               *spin                                    %angularMomentum             (                                                    ) &
-              &               /Dark_Matter_Halo_Angular_Momentum_Scale                              (     node        ,     self %darkMatterProfileDMO_  )
+         massDistribution_ =>  self             %darkMatterProfileDMO_ %get                         (     node                                                                      )
+         basic             =>  node                                    %basic                       (                                                                               )
+         velocity          =  +massDistribution_                       %velocityRotationCurveMaximum(                                                                               )
+         radius            =  +self             %darkMatterHaloScale_  %radiusVirial                (     node                                                                      ) &
+              &               *self             %virialDensityContrast_%turnAroundOverVirialRadii   (mass=basic%mass(),time=basic%timeLastIsolated     ()                           ) &
+              &               *self                                    %factor                                                                                                        &
+              &               *spin                                    %angularMomentum             (                                                                               ) &
+              &               /Dark_Matter_Halo_Angular_Momentum_Scale                              (     node        ,     self %darkMatterHaloScale_  ,self%darkMatterProfileDMO_ )
          !![
 	 <objectDestructor name="massDistribution_"/>
          !!]

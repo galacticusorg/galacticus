@@ -298,6 +298,7 @@ contains
           distributionLogNormal=haloSpinDistributionLogNormal  (                                         &
                &                                                stateVector(1)                         , &
                &                                                stateVector(2)                         , &
+               &                                                self%darkMatterHaloScale_              , &
                &                                                self%darkMatterProfileDMO_               &
                &                                               )
           distributionNbody    =haloSpinDistributionNbodyErrors(                                         &
@@ -327,6 +328,7 @@ contains
           distributionBett2007=haloSpinDistributionBett2007    (                                         &
                &                                                stateVector(1)                         , &
                &                                                stateVector(2)                         , &
+               &                                                self%darkMatterHaloScale_              , &
                &                                                self%darkMatterProfileDMO_               &
                &                                               )
           distributionNbody    =haloSpinDistributionNbodyErrors(                                         &
@@ -378,7 +380,7 @@ contains
       implicit none
       double precision, intent(in   ) :: spinPrime
 
-      call nodeSpin%angularMomentumSet(spinPrime*Dark_Matter_Halo_Angular_Momentum_Scale(node,self%darkMatterProfileDMO_))
+      call nodeSpin%angularMomentumSet(spinPrime*Dark_Matter_Halo_Angular_Momentum_Scale(node,self%darkMatterHaloScale_,self%darkMatterProfileDMO_))
       spinDistributionIntegrate=distributionNbody%distributionAveraged(node,self%massHaloMinimum)
       return
     end function spinDistributionIntegrate

@@ -161,7 +161,7 @@ contains
        basicProgenitor       =>  nodeProgenitor                      %basic (                         )
        spinProgenitor        =>  nodeProgenitor                      %spin  (autoCreate=.true.        )
        angularMomentumScalar =  +self          %haloSpinDistribution_%sample(           nodeProgenitor)             &
-            &                   *Dark_Matter_Halo_Angular_Momentum_Scale(nodeProgenitor,self%darkMatterProfileDMO_)
+            &                   *Dark_Matter_Halo_Angular_Momentum_Scale(nodeProgenitor,self%darkMatterHaloScale_,self%darkMatterProfileDMO_)
        call spinProgenitor%angularMomentumSet(angularMomentumScalar)
        ! Compute the initial angular momentum vector. We choose this to be aligned along the x-axis. As we only care about the
        ! magnitude of the angular momentum any choice of initial vector direction is equivalent.

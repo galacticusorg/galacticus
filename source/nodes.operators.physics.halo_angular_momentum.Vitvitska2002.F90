@@ -209,7 +209,7 @@ contains
     if (.not.associated(node%firstChild)) then
        theta               =acos(2.0d0   *node%hostTree%randomNumberGenerator_%uniformSample()-1.0d0)
        phi                 =     2.0d0*Pi*node%hostTree%randomNumberGenerator_%uniformSample()
-       angularMomentumValue=self%haloSpinDistribution_%sample(node)*Dark_Matter_Halo_Angular_Momentum_Scale(node,self%darkMatterProfileDMO_)
+       angularMomentumValue=self%haloSpinDistribution_%sample(node)*Dark_Matter_Halo_Angular_Momentum_Scale(node,self%darkMatterHaloScale_,self%darkMatterProfileDMO_)
        angularMomentumTotal=angularMomentumValue*[sin(theta)*cos(phi),sin(theta)*sin(phi),cos(theta)]
     else
        nodeChild      =>  node  %firstChild

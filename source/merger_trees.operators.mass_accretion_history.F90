@@ -24,6 +24,7 @@
 
   use :: Cosmology_Functions     , only : cosmologyFunctionsClass
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+  use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
   use :: IO_HDF5                 , only : hdf5Object
 
   !![
@@ -50,6 +51,7 @@
      type   (varying_string           )          :: outputGroupName
      class  (cosmologyFunctionsClass  ), pointer :: cosmologyFunctions_   => null()
      class  (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
+     class  (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_  => null()
      logical                                     :: includeSpin                    , includeSpinVector
    contains
      final     ::                        massAccretionHistoryDestructor
@@ -73,12 +75,13 @@ contains
     parameter set as input.
     !!}
     implicit none
-    type (mergerTreeOperatorMassAccretionHistory)                :: self
-    type (inputParameters                       ), intent(inout) :: parameters
-    type (varying_string                        )                :: outputGroupName
-    class(darkMatterProfileDMOClass             ), pointer       :: darkMatterProfileDMO_
-    class(cosmologyFunctionsClass               ), pointer       :: cosmologyFunctions_
-    logical                                                      :: includeSpin          , includeSpinVector
+    type   (mergerTreeOperatorMassAccretionHistory)                :: self
+    type   (inputParameters                       ), intent(inout) :: parameters
+    type   (varying_string                        )                :: outputGroupName
+    class  (darkMatterProfileDMOClass             ), pointer       :: darkMatterProfileDMO_
+    class  (cosmologyFunctionsClass               ), pointer       :: cosmologyFunctions_
+    class  (darkMatterHaloScaleClass              ), pointer       :: darkMatterHaloScale_
+    logical                                                        :: includeSpin          , includeSpinVector
 
     !![
     <inputParameter>
@@ -101,17 +104,19 @@ contains
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
     !!]
-    self=mergerTreeOperatorMassAccretionHistory(char(outputGroupName),includeSpin,includeSpinVector,cosmologyFunctions_,darkMatterProfileDMO_)
+    self=mergerTreeOperatorMassAccretionHistory(char(outputGroupName),includeSpin,includeSpinVector,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterProfileDMO_"/>
     <objectDestructor name="cosmologyFunctions_"  />
+    <objectDestructor name="darkMatterHaloScale_" />
     !!]
     return
   end function massAccretionHistoryConstructorParameters
 
-  function massAccretionHistoryConstructorInternal(outputGroupName,includeSpin,includeSpinVector,cosmologyFunctions_,darkMatterProfileDMO_) result(self)
+  function massAccretionHistoryConstructorInternal(outputGroupName,includeSpin,includeSpinVector,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
     !!{
     Internal constructor for the mass accretion history merger tree operator class.
     !!}
@@ -123,8 +128,9 @@ contains
     logical                                          , intent(in   )         :: includeSpin          , includeSpinVector
     class    (cosmologyFunctionsClass               ), intent(in   ), target :: cosmologyFunctions_
     class    (darkMatterProfileDMOClass             ), intent(in   ), target :: darkMatterProfileDMO_
+    class    (darkMatterHaloScaleClass              ), intent(in   ), target :: darkMatterHaloScale_
     !![
-    <constructorAssign variables="outputGroupName, includeSpin, includeSpinVector, *cosmologyFunctions_, *darkMatterProfileDMO_"/>
+    <constructorAssign variables="outputGroupName, includeSpin, includeSpinVector, *cosmologyFunctions_, *darkMatterHaloScale_, *darkMatterProfileDMO_"/>
     !!]
 
     if (self%includeSpin      .and..not.defaultSpinComponent%angularMomentumIsGettable      ())                 &
@@ -160,6 +166,7 @@ contains
     !![
     <objectDestructor name="self%cosmologyFunctions_"  />
     <objectDestructor name="self%darkMatterProfileDMO_"/>
+    <objectDestructor name="self%darkMatterHaloScale_" />
     !!]
     return
   end subroutine massAccretionHistoryDestructor
@@ -226,10 +233,10 @@ contains
           nodeTime                                  (accretionHistoryCount  ) =                                            basic%time                 (                 )
           nodeMass                                  (accretionHistoryCount  ) =                                            basic%mass                 (                 )
           nodeExpansionFactor                       (accretionHistoryCount  ) =   self%cosmologyFunctions_%expansionFactor(basic%time                 (                 ))
-          if (self%includeSpin      ) nodeSpin      (accretionHistoryCount  ) =                                            spin %angularMomentum      (                 ) &
-               &                                                                 /Dark_Matter_Halo_Angular_Momentum_Scale(node,self%darkMatterProfileDMO_)
-          if (self%includeSpinVector) nodeSpinVector(accretionHistoryCount,:) =                                            spin %angularMomentumVector(                 ) &
-               &                                                                 /Dark_Matter_Halo_Angular_Momentum_Scale(node,self%darkMatterProfileDMO_)
+          if (self%includeSpin      ) nodeSpin      (accretionHistoryCount  ) =                                            spin %angularMomentum      (                 )            &
+               &                                                                 /Dark_Matter_Halo_Angular_Momentum_Scale(node,self%darkMatterHaloScale_,self%darkMatterProfileDMO_)
+          if (self%includeSpinVector) nodeSpinVector(accretionHistoryCount,:) =                                            spin %angularMomentumVector(                 )            &
+               &                                                                 /Dark_Matter_Halo_Angular_Momentum_Scale(node,self%darkMatterHaloScale_,self%darkMatterProfileDMO_)
           node                                                                =>                                           node %firstChild
        end do
        ! Create the output group if necessary.

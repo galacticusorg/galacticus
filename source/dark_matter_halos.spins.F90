@@ -64,7 +64,7 @@ contains
     return
   end subroutine assertPropertiesGettable
 
-  double precision function Dark_Matter_Halo_Angular_Momentum_Scale(node,darkMatterProfileDMO_,darkMatterHaloScale_,useBullockDefinition) result(angularMomentumScale)
+  double precision function Dark_Matter_Halo_Angular_Momentum_Scale(node,darkMatterHaloScale_,darkMatterProfileDMO_,useBullockDefinition) result(angularMomentumScale)
     !!{
     Returns the characteristic angular momentum scale of {\normalfont \ttfamily node} (as used in spin definitions) based on its mass, and energy.
     !!}
@@ -76,8 +76,8 @@ contains
     use :: Mass_Distributions              , only : massDistributionClass
     implicit none
     type   (treeNode                 ), intent(inout)           :: node
+    class  (darkMatterHaloScaleClass ), intent(inout)           :: darkMatterHaloScale_
     class  (darkMatterProfileDMOClass), intent(inout), optional :: darkMatterProfileDMO_
-    class  (darkMatterHaloScaleClass ), intent(inout), optional :: darkMatterHaloScale_
     logical                           , intent(in   ), optional :: useBullockDefinition
     class  (nodeComponentBasic       ), pointer                 :: basic
     class  (massDistributionClass    ), pointer                 :: massDistribution_
@@ -90,7 +90,6 @@ contains
     if (useBullockDefinition_) then
        ! Use the halo angular momentum scale used in the Bullock et al. (2001; http://adsabs.harvard.edu/abs/2001ApJ...555..240B)
        ! definition of halo spin.
-       if (.not.present(darkMatterHaloScale_ )) call Error_Report('"darkMatterHaloScale_" must be supplied' //{introspection:location})
        angularMomentumScale=+sqrt(2.0d0)                               &
             &               *basic               %mass          (    ) &
             &               *darkMatterHaloScale_%velocityVirial(node) &

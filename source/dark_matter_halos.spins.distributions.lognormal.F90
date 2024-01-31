@@ -22,7 +22,8 @@
   log-normal distribution.
   !!}
 
-  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMO, darkMatterProfileDMOClass
+  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+  use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
 
   !![
   <haloSpinDistribution name="haloSpinDistributionLogNormal">
@@ -39,6 +40,7 @@
      !!}
      private
      class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
+     class           (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_  => null()
      double precision                                     :: median                         , sigma
    contains
      final     ::                  logNormalDestructor
@@ -67,6 +69,7 @@ contains
     type            (haloSpinDistributionLogNormal)                :: self
     type            (inputParameters              ), intent(inout) :: parameters
     class           (darkMatterProfileDMOClass    ), pointer       :: darkMatterProfileDMO_
+    class           (darkMatterHaloScaleClass     ), pointer       :: darkMatterHaloScale_
     double precision                                               :: median               , sigma
 
     ! Check and read parameters.
@@ -88,16 +91,18 @@ contains
       <description>The width of a log-normal spin distribution.</description>
     </inputParameter>
     <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
     !!]
-    self=haloSpinDistributionLogNormal(median,sigma,darkMatterProfileDMO_)
+    self=haloSpinDistributionLogNormal(median,sigma,darkMatterHaloScale_,darkMatterProfileDMO_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterProfileDMO_"/>
+    <objectDestructor name="darkMatterHaloScale_" />
     !!]
     return
   end function logNormalConstructorParameters
 
-  function logNormalConstructorInternal(median,sigma,darkMatterProfileDMO_) result(self)
+  function logNormalConstructorInternal(median,sigma,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily logNormal} dark matter halo spin
     distribution class.
@@ -106,8 +111,9 @@ contains
     type            (haloSpinDistributionLogNormal)                        :: self
     double precision                               , intent(in   )         :: median               , sigma
     class           (darkMatterProfileDMOClass    ), intent(in   ), target :: darkMatterProfileDMO_
+    class           (darkMatterHaloScaleClass     ), intent(in   ), target :: darkMatterHaloScale_
     !![
-    <constructorAssign variables="median, sigma, *darkMatterProfileDMO_"/>
+    <constructorAssign variables="median, sigma, *darkMatterHaloScale_, *darkMatterProfileDMO_"/>
     !!]
 
     return
@@ -123,6 +129,7 @@ contains
 
     !![
     <objectDestructor name="self%darkMatterProfileDMO_"/>
+    <objectDestructor name="self%darkMatterHaloScale_" />
     !!]
     return
   end subroutine lognormalDestructor
@@ -160,8 +167,8 @@ contains
     double precision                                               :: spin_
 
     spin                  =>  node%spin           ()
-    spin_                 =  +spin%angularMomentum()                                                  &
-         &                  /Dark_Matter_Halo_Angular_Momentum_Scale(node,self%darkMatterProfileDMO_)
+    spin_                 =  +spin%angularMomentum()                                                                            &
+         &                  /Dark_Matter_Halo_Angular_Momentum_Scale(node,self%darkMatterHaloScale_,self%darkMatterProfileDMO_)
     logNormalDistribution =  +exp(               &
          &                        -(             &
          &                          +log(spin_)  &

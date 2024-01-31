@@ -22,8 +22,9 @@
   \cite{bett_spin_2007}.
   !!}
 
-  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMO, darkMatterProfileDMOClass
-  use :: Tables                  , only : table1D             , table1DLogarithmicLinear
+  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+  use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
+  use :: Tables                  , only : table1D                  , table1DLogarithmicLinear
 
   !![
   <haloSpinDistribution name="haloSpinDistributionBett2007">
@@ -40,6 +41,7 @@
      !!}
      private
      class           (darkMatterProfileDMOClass), pointer     :: darkMatterProfileDMO_ => null()
+     class           (darkMatterHaloScaleClass ), pointer     :: darkMatterHaloScale_  => null()
      double precision                                         :: alpha                          , lambda0, &
           &                                                      normalization
      type            (table1DLogarithmicLinear )              :: distributionTable
@@ -77,6 +79,7 @@ contains
     type            (haloSpinDistributionBett2007)                :: self
     type            (inputParameters             ), intent(inout) :: parameters
     class           (darkMatterProfileDMOClass   ), pointer       :: darkMatterProfileDMO_
+    class           (darkMatterHaloScaleClass    ), pointer       :: darkMatterHaloScale_
     double precision                                              :: lambda0              , alpha
 
     ! Check and read parameters.
@@ -96,16 +99,18 @@ contains
       <description>The parameter $\alpha$ in the halo spin distribution of \cite{bett_spin_2007}.</description>
     </inputParameter>
     <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
     !!]
-    self=haloSpinDistributionBett2007(lambda0,alpha,darkMatterProfileDMO_)
+    self=haloSpinDistributionBett2007(lambda0,alpha,darkMatterHaloScale_,darkMatterProfileDMO_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterProfileDMO_"/>
+    <objectDestructor name="darkMatterHaloScale_" />
     !!]
     return
   end function bett2007ConstructorParameters
 
-  function bett2007ConstructorInternal(lambda0,alpha,darkMatterProfileDMO_) result(self)
+  function bett2007ConstructorInternal(lambda0,alpha,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily bett2007} dark matter halo spin
     distribution class.
@@ -116,10 +121,11 @@ contains
     type            (haloSpinDistributionBett2007)                        :: self
     double precision                              , intent(in   )         :: lambda0              , alpha
     class           (darkMatterProfileDMOClass   ), intent(in   ), target :: darkMatterProfileDMO_
+    class           (darkMatterHaloScaleClass    ), intent(in   ), target :: darkMatterHaloScale_
     double precision                                                      :: spinDimensionless    , tableMaximum
     integer                                                               :: iSpin
     !![
-    <constructorAssign variables="alpha, lambda0, *darkMatterProfileDMO_"/>
+    <constructorAssign variables="alpha, lambda0, *darkMatterHaloScale_, *darkMatterProfileDMO_"/>
     !!]
     
     ! Compute the normalization.
@@ -168,6 +174,7 @@ contains
 
     !![
     <objectDestructor name="self%darkMatterProfileDMO_"/>
+    <objectDestructor name="self%darkMatterHaloScale_" />
     !!]
     call                                          self%distributionTable  %destroy()
     if (allocated(self%distributionInverse)) call self%distributionInverse%destroy()
@@ -207,8 +214,8 @@ contains
     double precision                                              :: spin_
 
     spin                 =>  node%spin           ()
-    spin_                =  +spin%angularMomentum()                                                   &
-         &                  /Dark_Matter_Halo_Angular_Momentum_Scale(node,self%darkMatterProfileDMO_)
+    spin_                =  +spin%angularMomentum()                                                                             &
+         &                  /Dark_Matter_Halo_Angular_Momentum_Scale(node,self%darkMatterHaloScale_,self%darkMatterProfileDMO_)
     bett2007Distribution =  +self%normalization         &
          &                  *(                          &
          &                    +spin_                    &
