@@ -135,6 +135,7 @@
      </methods>
      !!]
      final     ::                                      adiabaticGnedin2004Destructor
+     procedure :: get                               => adiabaticGnedin2004Get
      procedure :: autoHook                          => adiabaticGnedin2004AutoHook
      procedure :: calculationReset                  => adiabaticGnedin2004CalculationReset
      procedure :: density                           => adiabaticGnedin2004Density
