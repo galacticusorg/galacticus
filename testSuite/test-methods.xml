@@ -320,6 +320,9 @@
 	  <nodeOperator value="positionOrphans" iterable="no"/>
 	</nodeOperator>
       </componentPosition>
+      <allowSubhaloPromotions value="true"/>
+      <alwaysPromoteMostMassive value="false"/>
+      <alwaysPromoteMostMassive value="true"/>
       <presetSubhaloMasses value="false"/>
       <presetSubhaloIndices value="false"/>
       <treeIndexToRootNodeIndex value="true"/>
@@ -1287,6 +1290,18 @@
     </powerSpectrumWindowFunction>
   </parameters>
 
+  <!-- Power spectrum normalization methods -->
+  <parameters>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <cosmologicalMassVariance value="filteredPower">
+      <sigma_8 value="0.807"/>
+    </cosmologicalMassVariance>
+    <cosmologicalMassVariance value="filteredPower">
+      <normalizationScalar value="2.092e-9"/>
+    </cosmologicalMassVariance>
+  </parameters>
+
   <!-- Dark energy cosmology -->
   <parameters>
     <formatVersion>2</formatVersion>
@@ -1297,9 +1312,9 @@
     </cosmologyFunctions>
     <criticalOverdensity value="sphericalCollapseClsnlssMttrDrkEnrgy"/>
     <virialDensityContrast value="sphericalCollapseClsnlssMttrDrkEnrgy">
-  <energyFixedAt value="turnaround"/>
-  </virialDensityContrast>
-    </parameters>
+      <energyFixedAt value="turnaround"/>
+    </virialDensityContrast>
+  </parameters>
 
   <!-- Intergalactic medium state and internal background calculation -->
   <parameters>

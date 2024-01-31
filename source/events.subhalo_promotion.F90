@@ -72,12 +72,15 @@ contains
     call node%removeFromMergee()
     ! Reset the merging and destruction times of the satellite component to ensure no merging or destruction can occur (now that
     ! this node is no longer a satellite).
-    satellite => node%satellite()
-    if (.not.attributesInitialized) then
-       timeOfMergingIsSettable  =satellite%  timeOfMergingIsSettable()
-       destructionTimeIsSettable=satellite%destructionTimeIsSettable()
-       attributesInitialized    =.true.
-    end if
+    select type (satellite)
+    type is (nodeComponentSatellite)
+       satellite => node%satellite()
+       if (.not.attributesInitialized) then
+          timeOfMergingIsSettable  =satellite%  timeOfMergingIsSettable()
+          destructionTimeIsSettable=satellite%destructionTimeIsSettable()
+          attributesInitialized    =.true.
+       end if
+    end select
     if (  timeOfMergingIsSettable) call satellite%timeOfMergingSet  (huge( 0.0d0))
     if (destructionTimeIsSettable) call satellite%destructionTimeSet(     -1.0d0 )
     ! Make node the primary progenitor of the target node.
