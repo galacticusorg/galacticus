@@ -1,0 +1,104 @@
+name: Profile Model (Reuseable Workflow)
+on:
+  workflow_call:
+    inputs:
+      profiler: # The name of the profiler (gprof or perf) to use
+        required: true
+        type: string
+      cacheData: # Set to 0/1 to disable/enable caching of dynamically-generated datasets
+        required: false
+        default: 0
+        type: number
+      name: # The name of the model file to be profiled
+        required: true
+        type: string
+      frequency: # The frequency with which to sample (perf only)
+        required: false
+        default: 100
+        type: number
+defaults:
+  run:
+    shell: bash
+jobs:
+  Profile-Model:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/galacticusorg/buildenv:latest
+      options: --privileged
+    steps:
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: Check out repository datasets
+        uses: actions/checkout@v4      
+        with:
+          repository: galacticusorg/datasets
+          path: datasets
+      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
+      - name: Cache dynamically-generated datasets
+        if: ${{ format('{0}',inputs.cacheData) == '1' }}
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/datasets/dynamic
+          key: ${{ hashFiles(format('{0}',inputs.file)) }}-${{ github.run_id }}
+          restore-keys: |
+            profile-${{ hashFiles(format('{0}',inputs.name)) }}
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+      - name: Download executables
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ format('{0}',inputs.profiler) == 'perf' && 'galacticus-exec' || 'galacticus-exec-instrumented' }}
+      - name: Install packages
+        run: |
+          apt -y update && apt -y upgrade
+          apt -y install ${{ format('{0}',inputs.profiler) == 'perf' && 'linux-tools-$(uname -r) linux-tools-generic' || '' }} bzip2
+      - name: Mark time for cache accesses
+        if: ${{ format('{0}',inputs.cacheData) == '1' }}
+        run: |
+          echo mark > mark.time
+      - name: Create test suite output directory
+        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
+      - name: Profile
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
+          chmod u=wrx ./Galacticus.exe
+          ./Galacticus.exe ./testSuite/parameters/benchmark_${{ inputs.name }}.xml
+          if [[ ${{ inputs.profiler }} == 'perf' ]]; then
+           perf record -g -e cycles --call-graph dwarf -F ${{ inputs.frequency }} -o ./testSuite/outputs/${{ inputs.name }}.perf.data ./Galacticus.exe ./testSuite/parameters/benchmark_${{ inputs.name }}.xml
+           perf script -i ./testSuite/outputs/${{ inputs.name }}.perf.data > ./testSuite/outputs/${{ inputs.name }}.perf
+           du -sh ./testSuite/outputs/${{ inputs.name }}.perf
+           bzip2 ./testSuite/outputs/${{ inputs.name }}.perf
+          elif [[ ${{ inputs.profiler }} == 'gprof' ]]; then
+           rm gmon.out
+           ./Galacticus.exe ./testSuite/parameters/benchmark_${{ inputs.name }}.xml
+           gprof ./Galacticus.exe gmon.out > ./testSuite/outputs/${{ inputs.name }}.gprof
+           du -sh ./testSuite/outputs/${{ inputs.name }}.gprof
+           bzip2 ./testSuite/outputs/${{ inputs.name }}.gprof
+          else
+           echo Unknown profiler: ${{ inputs.profiler }}
+           false
+          fi
+      - name: "Clean datasets"
+        if: ${{ format('{0}',inputs.cacheData) == '1' }}
+        run: |
+          echo Removing outdated dynamically-generated datasets
+          echo Retaining:
+          classVersion=`awk '{if ($1 == "class:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          cambVersion=`awk '{if ($1 == "camb:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          fspsVersion=`awk '{if ($1 == "fsps:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          cloudyVersion=`awk '{if ($1 == "cloudy:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/AxionCAMB -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion} \) -prune -o -type f -anewer mark.time -print
+          find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/AxionCAMB -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion} \) -prune -o -type f -not -anewer mark.time -print0 | xargs --no-run-if-empty -0 rm
+      - name: Upload profile
+        uses: actions/upload-artifact@v4
+        with:
+          name: perf-${{ inputs.name }}${{ format('{0}',inputs.profiler) == 'gprof' && '-gprof' || '' }}
+          path: ./testSuite/outputs/${{ inputs.name }}.${{ format('{0}',inputs.profiler) == 'perf' && 'perf.bz2' || 'gprof.bz2' }}
+      - run: echo "This job's status is ${{ job.status }}."

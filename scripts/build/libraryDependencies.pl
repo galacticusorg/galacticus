@@ -64,6 +64,9 @@ push(@{$dependencies{'hdf5'}},"dl")
 my $pthreadIncluded = grep {$_ eq "-lpthread"} @compilerOptions;
 # Initialize a hash of required libraries.
 my %libraries;
+# Verify that BUILDPATH is set.
+die('libraryDependencies.pl: "BUILDPATH" environment variable is not set')
+    unless ( exists($ENV{'BUILDPATH'}) );
 # Open the file of dependencies for the executable.
 (my $mainDependencyFileName = $ENV{'BUILDPATH'}."/".$executable) =~ s/\.(exe|o)$/\.d/;
 die("libraryDependencies.pl: dependency file is missing")

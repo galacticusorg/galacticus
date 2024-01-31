@@ -123,11 +123,17 @@ contains
     <objectBuilder class="linearGrowth"                name="linearGrowth_"                source="parameters"/>
     <objectBuilder class="transferFunction"            name="transferFunction_"            source="parameters"/>
     <objectBuilder class="powerSpectrum"               name="powerSpectrum_"               source="parameters"/>
-    <objectBuilder class="powerSpectrumNonlinear"      name="powerSpectrumNonlinear_"      source="parameters"/>
     <objectBuilder class="powerSpectrumWindowFunction" name="powerSpectrumWindowFunction_" source="parameters"/>
     <objectBuilder class="cosmologicalMassVariance"    name="cosmologicalMassVariance_"    source="parameters"/>
     <objectBuilder class="outputTimes"                 name="outputTimes_"                 source="parameters"/>
     !!]
+    if (includeNonLinear) then
+       !![
+       <objectBuilder class="powerSpectrumNonlinear"   name="powerSpectrumNonlinear_"      source="parameters"/>
+       !!]
+    else
+       powerSpectrumNonlinear_ => null()
+    end if
     self=taskPowerSpectra(                               &
          &                 wavenumberMinimum           , &
          &                 wavenumberMaximum           , &
