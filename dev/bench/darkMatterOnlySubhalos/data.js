@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1706838429233,
+  "lastUpdate": 1706849544049,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "b3e73beaca12b4a769d59ce6d66bc022013bae30",
-          "message": "fix: Merge branch 'master' of github.com:galacticusorg/galacticus",
-          "timestamp": "2023-05-05T14:11:29Z",
-          "tree_id": "ba226965ee134069f86b3f7928eb5c74008630ad",
-          "url": "https://github.com/galacticusorg/galacticus/commit/b3e73beaca12b4a769d59ce6d66bc022013bae30"
-        },
-        "date": 1683306929571,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 49.615,
-            "unit": "seconds",
-            "range": 0.0456344168359849
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8780,6 +8750,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 23958.5193682761,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "cf5713b6826e52c776078beb867990d97e1d28b7",
+          "message": "Merge pull request #547 from galacticusorg/fixStaticBuilds\n\nFix static builds of FSPS and CLASS",
+          "timestamp": "2024-02-02T01:51:47Z",
+          "tree_id": "75079517fe7039af285f228acf638968855e1059",
+          "url": "https://github.com/galacticusorg/galacticus/commit/cf5713b6826e52c776078beb867990d97e1d28b7"
+        },
+        "date": 1706849541761,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 42.991,
+            "unit": "seconds",
+            "range": 0.0338954274202041
           }
         ]
       }
