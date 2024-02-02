@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1706838432414,
+  "lastUpdate": 1706849548192,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "b3e73beaca12b4a769d59ce6d66bc022013bae30",
-          "message": "fix: Merge branch 'master' of github.com:galacticusorg/galacticus",
-          "timestamp": "2023-05-05T14:11:29Z",
-          "tree_id": "ba226965ee134069f86b3f7928eb5c74008630ad",
-          "url": "https://github.com/galacticusorg/galacticus/commit/b3e73beaca12b4a769d59ce6d66bc022013bae30"
-        },
-        "date": 1683306934234,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 310.196,
-            "unit": "seconds",
-            "range": 0.591158523576856
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10700,6 +10670,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 8.61735255527312,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "cf5713b6826e52c776078beb867990d97e1d28b7",
+          "message": "Merge pull request #547 from galacticusorg/fixStaticBuilds\n\nFix static builds of FSPS and CLASS",
+          "timestamp": "2024-02-02T01:51:47Z",
+          "tree_id": "75079517fe7039af285f228acf638968855e1059",
+          "url": "https://github.com/galacticusorg/galacticus/commit/cf5713b6826e52c776078beb867990d97e1d28b7"
+        },
+        "date": 1706849546862,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 168.954,
+            "unit": "seconds",
+            "range": 0.242215606433206
           }
         ]
       }
