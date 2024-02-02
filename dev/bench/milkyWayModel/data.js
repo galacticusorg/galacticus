@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1706604157993,
+  "lastUpdate": 1706838426451,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "f833d28846fc288fd519bef8d6977b5163d1af11",
-          "message": "fix: Avoid attempts to get `git` revision information in Cloudy builds\n\nAs we build Cloudy within the Galacticus `datasets` repo seeking the `git` revision will erroneously get the revision of the `datasets` repo, which can break the build.",
-          "timestamp": "2023-05-04T14:48:48-07:00",
-          "tree_id": "79e85e410b340d691849451589862e74af5c83c1",
-          "url": "https://github.com/galacticusorg/galacticus/commit/f833d28846fc288fd519bef8d6977b5163d1af11"
-        },
-        "date": 1683266471541,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 221.373,
-            "unit": "seconds",
-            "range": 0.185876571949277
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10700,6 +10670,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 8.59422789325731,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "970b8cf5439ec2ea0b846c9c8faa9735e170e6e9",
+          "message": "fix: Ensure a host tree is set for unresolved halos in the `darkMatterProfileScaleRadiusJohnson2021` class\n\nThis is needed to allow access to random number generators attached to trees (for example, by a concentration class that wants to include some random scatter).",
+          "timestamp": "2024-02-01T14:40:47-08:00",
+          "tree_id": "eb4984ebdba10a91844d9e70bf96a10cc9d8ef6f",
+          "url": "https://github.com/galacticusorg/galacticus/commit/970b8cf5439ec2ea0b846c9c8faa9735e170e6e9"
+        },
+        "date": 1706838425686,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 200.129,
+            "unit": "seconds",
+            "range": 0.492754401300353
           }
         ]
       }
