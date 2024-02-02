@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1706838423205,
+  "lastUpdate": 1706838429233,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "f833d28846fc288fd519bef8d6977b5163d1af11",
-          "message": "fix: Avoid attempts to get `git` revision information in Cloudy builds\n\nAs we build Cloudy within the Galacticus `datasets` repo seeking the `git` revision will erroneously get the revision of the `datasets` repo, which can break the build.",
-          "timestamp": "2023-05-04T14:48:48-07:00",
-          "tree_id": "79e85e410b340d691849451589862e74af5c83c1",
-          "url": "https://github.com/galacticusorg/galacticus/commit/f833d28846fc288fd519bef8d6977b5163d1af11"
-        },
-        "date": 1683266476301,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 57.397560243055,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 25.8403056003349,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 25153.545938522,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8780,6 +8741,45 @@ window.BENCHMARK_DATA = {
             "value": 42.604,
             "unit": "seconds",
             "range": 0.0951125648898196
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "970b8cf5439ec2ea0b846c9c8faa9735e170e6e9",
+          "message": "fix: Ensure a host tree is set for unresolved halos in the `darkMatterProfileScaleRadiusJohnson2021` class\n\nThis is needed to allow access to random number generators attached to trees (for example, by a concentration class that wants to include some random scatter).",
+          "timestamp": "2024-02-01T14:40:47-08:00",
+          "tree_id": "eb4984ebdba10a91844d9e70bf96a10cc9d8ef6f",
+          "url": "https://github.com/galacticusorg/galacticus/commit/970b8cf5439ec2ea0b846c9c8faa9735e170e6e9"
+        },
+        "date": 1706838428538,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 58.5946207352462,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 26.1763665565697,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 23958.5193682761,
+            "unit": "-logℒ"
           }
         ]
       }
