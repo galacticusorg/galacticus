@@ -18,12 +18,12 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which provides a class that implements the distribution of luminosity function.
+Contains a module which provides a class that implements HII region luminosity functions.
 !!}
 
 module hii_Region_Luminosity_Functions
   !!{
-  Provides a class that implements HII region luminosity function.
+  Provides a class that implements HII region luminosity functions.
   !!}
 
   private
@@ -32,12 +32,16 @@ module hii_Region_Luminosity_Functions
   <functionClass>
    <name>hiiRegionLuminosityFunction</name>
    <descriptiveName>HII region emission line luminosity function.</descriptiveName>
-   <description>
-    Class providing models of luminosity function for emission line.
-   </description>
+   <description>Class providing models of luminosity function for emission line.</description>
    <default>powerLaw</default>
-   <method name="cumulativeLuminosity" >
-    <description>Returns the cumulative no of galaxies per Mpc^3 based on power law method. </description>
+   <method name="cumulativeDistributionFunction">
+    <description>Returns the cumulative distribution of the HII region luminosity function between a minimum and maximum $Q_\mathrm{H}$.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>double precision, intent(in   ) :: rateHydrogenIonizingPhotonsMinimum, rateHydrogenIonizingPhotonsMaximum</argument>
+   </method>
+   <method name="cumulativeLuminosity">
+    <description>Returns the cumulative luminosity from the HII region luminosity function between a minimum and maximum $Q_\mathrm{H}$.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: rateHydrogenIonizingPhotonsMinimum, rateHydrogenIonizingPhotonsMaximum</argument>

@@ -215,33 +215,37 @@ contains
     call emissionLinesFile%close      (                                                                 )
     !$ call hdf5Access%unset()
     
-    self%ionizingLuminosityHydrogenMean=(10.0d0**47.999999999999993)*21.2595395395d0  
+    
     ! Calculate emission line luminosity for some age and metallicity
     deltaIonizingFluxHydrogen=ionizingFluxHydrogen(2)/ionizingFluxHydrogen(1)
-        do i=1,size(ionizingFluxHydrogen)
-           rateHydrogenIonizingPhotonsMinimum=ionizingFluxHydrogen(i)/sqrt(deltaIonizingFluxHydrogen) 
-           rateHydrogenIonizingPhotonsMaximum=ionizingFluxHydrogen(i)*sqrt(deltaIonizingFluxHydrogen)
-           ! luminosity at metallicity and age
-          self%luminositiesReduced=+self%luminositiesReduced                             &
-                     &             +self%hiiRegionLuminosityFunction_%cumulativeLuminosity(rateHydrogenIonizingPhotonsMinimum,rateHydrogenIonizingPhotonsMaximum) &  
-                     &             *luminosities(             &
-                     &                                      :,           &
-                     &                                      :,           &
-                     &                                      i,           &
-                     &                                      :           &
-                     &                                     )
-       end do
-
-       ! Construct name and description.
-       allocate(self%names_(size(lineNames)))
-       allocate(self%descriptions_(size(lineNames)))
-
-       do i=1,size(lineNames)
-          self%names_       (i)="luminosityEmissionLine:"//lineNames(i)
-          self%descriptions_(i)="Luminosity of the "     //lineNames(i)//" emission line [ergs/s]"
-       end do
-       self%countLines=size(lineNames)
-       return    
+    do i=1,size(ionizingFluxHydrogen)
+       rateHydrogenIonizingPhotonsMinimum=ionizingFluxHydrogen(i)/sqrt(deltaIonizingFluxHydrogen) 
+       rateHydrogenIonizingPhotonsMaximum=ionizingFluxHydrogen(i)*sqrt(deltaIonizingFluxHydrogen)
+       ! luminosity at metallicity and age
+       self%luminositiesReduced=+self%luminositiesReduced                             &
+            &             +self%hiiRegionLuminosityFunction_%cumulativeDistributionFunction(rateHydrogenIonizingPhotonsMinimum,rateHydrogenIonizingPhotonsMaximum) &  
+            &             *luminosities(             &
+            &                                      :,           &
+            &                                      :,           &
+            &                                      i,           &
+            &                                      :           &
+            &                                     )
+    end do
+    rateHydrogenIonizingPhotonsMinimum =+ionizingFluxHydrogen(                        1 )/sqrt(deltaIonizingFluxHydrogen) 
+    rateHydrogenIonizingPhotonsMaximum =+ionizingFluxHydrogen(size(ionizingFluxHydrogen))*sqrt(deltaIonizingFluxHydrogen)
+    self%luminositiesReduced           =+self%luminositiesReduced                                                                                                                &
+         &                              /self%hiiRegionLuminosityFunction_%cumulativeDistributionFunction(rateHydrogenIonizingPhotonsMinimum,rateHydrogenIonizingPhotonsMaximum)
+    self%ionizingLuminosityHydrogenMean=+self%hiiRegionLuminosityFunction_%cumulativeLuminosity          (rateHydrogenIonizingPhotonsMinimum,rateHydrogenIonizingPhotonsMaximum)
+    ! Construct name and description.
+    allocate(self%names_(size(lineNames)))
+    allocate(self%descriptions_(size(lineNames)))
+    
+    do i=1,size(lineNames)
+       self%names_       (i)="luminosityEmissionLine:"//lineNames(i)
+       self%descriptions_(i)="Luminosity of the "     //lineNames(i)//" emission line [ergs/s]"
+    end do
+    self%countLines=size(lineNames)
+    return    
   end function emissionLineLuminosityConstructorInternal
 
   subroutine emissionLineLuminosityDestructor(self)
@@ -569,6 +573,7 @@ contains
           emissionLineLuminosityMean(iLine,iTime,iMetallicity)=+integratorTime       %integrate(timeMinimum       ,timeMaximum       ) &
                &                                            /                               (timeMaximum       -timeMinimum       )
        end if
+
     end do
     !$omp end do
     !$omp master

@@ -18,30 +18,33 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Implementation of a power law luminosity function which scales with a given exponent.
+  Implementation of a power law luminosity function for HII regions.
   !!}
+
   !![
   <hiiRegionLuminosityFunction name="hiiRegionLuminosityFunctionPowerLaw">
    <description>
-    A luminosity function class in which the luminosity scales with given exponent.
+    An HII region luminosity function class in which the luminosity function is given by:
     \begin{equation}
-     \phi(Q_H) = Q_H^{-\alpha+1} / (1-\alpha),
+     \phi(Q_H) \propto \left\{ \begin{array}{ll}  Q_\mathrm{H}^{-\alpha} &amp; \hbox{ if } Q_\mathrm{H,min} &lt; Q_\mathrm{H} &lt; Q_\mathrm{H,max} \\ 0 &amp; \hbox{ otherwise} \end{array} \right. ,
     \end{equation}
-    
-   Where $\alpha$ is the exponent and $Q_H$ is the rate of photon production rate.
+    Where $Q_H$ is the rate of photon production rate, $Q_\mathrm{H,min}=${\normalfont \ttfamily
+    [rateHydrogenIonizingPhotonsMinimum]} and $Q_\mathrm{H,max}=${\normalfont \ttfamily [rateHydrogenIonizingPhotonsMaximum]} and
+    the minimum and maximum HII region luminosities respectively, and $\alpha=${\normalfont \ttfamily [exponent]}.
    </description>
   </hiiRegionLuminosityFunction>
   !!]
   type, extends(hiiRegionLuminosityFunctionClass) :: hiiRegionLuminosityFunctionPowerLaw
      !!{
-     Implementation of a luminosity function that scales to a power law
+     Implementation of a power law HII region luminosity function.
      !!}
      private
-     double precision :: rateHydrogenIonizingPhotonsMinimum , &
-          &              rateHydrogenIonizingPhotonsMaximum, exponent
+     double precision :: rateHydrogenIonizingPhotonsMinimum, rateHydrogenIonizingPhotonsMaximum, &
+          &              exponent                          , normalization
      
    contains
-     procedure :: cumulativeLuminosity => powerLawCumulativeLuminosity
+     procedure :: cumulativeDistributionFunction => powerLawCumulativeDistributionFunction
+     procedure :: cumulativeLuminosity           => powerLawCumulativeLuminosity
   end type hiiRegionLuminosityFunctionPowerLaw
 
   interface hiiRegionLuminosityFunctionPowerLaw
@@ -63,12 +66,27 @@ contains
     implicit none
     type            (hiiRegionLuminosityFunctionPowerLaw)                :: self
     type            (inputParameters                    ), intent(inout) :: parameters
-    double precision                                                     :: rateHydrogenIonizingPhotonsMinimum,rateHydrogenIonizingPhotonsMaximum,exponent
+    double precision                                                     :: rateHydrogenIonizingPhotonsMinimum, rateHydrogenIonizingPhotonsMaximum, &
+         &                                                                  exponent
     !![
     <inputParameter>
       <name>exponent</name>
-      <defaultValue>1.80d0</defaultValue>
-      <description> Exponent of the differential luminosity function. </description>
+      <defaultValue>1.73d0</defaultValue>
+      <defaultSource>\citep{santoro_phangs-muse_2022}</defaultSource>
+      <description>Exponent of the differential luminosity function.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>rateHydrogenIonizingPhotonsMinimum</name>
+      <defaultValue>1.0d48</defaultValue>
+      <defaultSource>(\citealt{santoro_phangs-muse_2022}; approximate)</defaultSource>
+      <description>Minimum luminosity of HII regions.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>rateHydrogenIonizingPhotonsMaximum</name>
+      <defaultValue>huge(0.0d0)</defaultValue>
+      <description>Maximum luminosity of HII regions.</description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -85,37 +103,65 @@ contains
     !!}
     
     implicit none
-    type            (hiiRegionLuminosityFunctionPowerLaw)               :: self
-    double precision                                     , intent(in   ) :: rateHydrogenIonizingPhotonsMinimum, &
-         &                                                                  rateHydrogenIonizingPhotonsMaximum,exponent
+    type            (hiiRegionLuminosityFunctionPowerLaw)                :: self
+    double precision                                     , intent(in   ) :: rateHydrogenIonizingPhotonsMinimum, rateHydrogenIonizingPhotonsMaximum, &
+         &                                                                  exponent
     !![
     <constructorAssign variables=" rateHydrogenIonizingPhotonsMinimum, rateHydrogenIonizingPhotonsMaximum, exponent"/>
     !!]
-    !! Assign values to the object's components
-    self%rateHydrogenIonizingPhotonsMinimum = rateHydrogenIonizingPhotonsMinimum
-    self%rateHydrogenIonizingPhotonsMaximum = rateHydrogenIonizingPhotonsMaximum
-    self%exponent = exponent
-    
-    
+
+    self%normalization=+(                                                                &
+         &               +self%rateHydrogenIonizingPhotonsMaximum**(1.0d0-self%exponent) &
+         &               -self%rateHydrogenIonizingPhotonsMinimum**(1.0d0-self%exponent) &
+         &              )                                                                &
+         &             /                                           (1.0d0-self%exponent)
     return
   end function powerLawCumulativeLuminosityConstructorInternal
 
-  double precision function powerLawCumulativeLuminosity(self,rateHydrogenIonizingPhotonsMinimum, rateHydrogenIonizingPhotonsMaximum) result(luminosityFunctionIntegrated)
+  double precision function powerLawCumulativeDistributionFunction(self,rateHydrogenIonizingPhotonsMinimum, rateHydrogenIonizingPhotonsMaximum) result(luminosityFunctionIntegrated)
     !!{
-    Returns the number of galaxies per QH based on the power law 
-    \begin{equation}
-    \Phi(Q_{max})-\Phi(Q_{min}) = (Q_{max}**(1-\alpha) - Q_{min}**(1-\alpha)) / (1-\alpha)},
-    \end{equation}
+    Returns the fraction of HII regions in the given range of luminosity.
     !!}
-
     implicit none
-    class  (hiiRegionLuminosityFunctionPowerLaw), intent(inout) :: self
-    double precision, intent(in   ) :: rateHydrogenIonizingPhotonsMinimum, rateHydrogenIonizingPhotonsMaximum
+    class           (hiiRegionLuminosityFunctionPowerLaw), intent(inout) :: self
+    double precision                                     , intent(in   ) :: rateHydrogenIonizingPhotonsMinimum , rateHydrogenIonizingPhotonsMaximum
+    double precision                                                     :: rateHydrogenIonizingPhotonsMinimum_, rateHydrogenIonizingPhotonsMaximum_
     
-    ! Compute the unnormalized cumulative number of HII regions
-    luminosityFunctionIntegrated  = (rateHydrogenIonizingPhotonsMaximum**(1.0d0-self%exponent)        &
-       &     - rateHydrogenIonizingPhotonsMinimum**(-self%exponent+1.0d0))                            &
-       &     / (1.0d0-self%exponent)
+    rateHydrogenIonizingPhotonsMinimum_=max(rateHydrogenIonizingPhotonsMinimum,self%rateHydrogenIonizingPhotonsMinimum)
+    rateHydrogenIonizingPhotonsMaximum_=min(rateHydrogenIonizingPhotonsMaximum,self%rateHydrogenIonizingPhotonsMaximum)
+    if (rateHydrogenIonizingPhotonsMaximum_ > rateHydrogenIonizingPhotonsMinimum_) then
+       luminosityFunctionIntegrated=+(                                                            &
+            &                         +rateHydrogenIonizingPhotonsMaximum_**(1.0d0-self%exponent) & 
+            &                         -rateHydrogenIonizingPhotonsMinimum_**(1.0d0-self%exponent) &
+            &                        )                                                            &
+            &                       /                                       (1.0d0-self%exponent) &
+            &                       /self%normalization
+    else
+       luminosityFunctionIntegrated=+0.0d0
+    end if
+    return
+  end function powerLawCumulativeDistributionFunction
+
+  double precision function powerLawCumulativeLuminosity(self,rateHydrogenIonizingPhotonsMinimum, rateHydrogenIonizingPhotonsMaximum) result(luminosity)
+    !!{
+    Returns the total luminosity, $Q_\mathrm{H}$ of HII regions in the given range of luminosity.
+    !!}
+    implicit none
+    class           (hiiRegionLuminosityFunctionPowerLaw), intent(inout) :: self
+    double precision                                     , intent(in   ) :: rateHydrogenIonizingPhotonsMinimum , rateHydrogenIonizingPhotonsMaximum
+    double precision                                                     :: rateHydrogenIonizingPhotonsMinimum_, rateHydrogenIonizingPhotonsMaximum_
     
+    rateHydrogenIonizingPhotonsMinimum_=max(rateHydrogenIonizingPhotonsMinimum,self%rateHydrogenIonizingPhotonsMinimum)
+    rateHydrogenIonizingPhotonsMaximum_=min(rateHydrogenIonizingPhotonsMaximum,self%rateHydrogenIonizingPhotonsMaximum)
+    if (rateHydrogenIonizingPhotonsMaximum_ > rateHydrogenIonizingPhotonsMinimum_) then
+       luminosity=+(                                                            &
+            &       +rateHydrogenIonizingPhotonsMaximum_**(2.0d0-self%exponent) & 
+            &       -rateHydrogenIonizingPhotonsMinimum_**(2.0d0-self%exponent) &
+            &      )                                                            &
+            &     /                                       (2.0d0-self%exponent) &
+            &     /self%normalization
+    else
+       luminosity=+0.0d0
+    end if
     return
   end function powerLawCumulativeLuminosity
