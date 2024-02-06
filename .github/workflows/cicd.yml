@@ -362,6 +362,12 @@ jobs:
           forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
           fspsVersion=`awk '{if ($1 == "fsps:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
           cloudyVersion=`awk '{if ($1 == "cloudy:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          # Check that executables were statically linked
+          ! ldd dynamic/CAMB-${cambVersion}/fortran/camb
+          ! ldd dynamic/AxionCAMB/camb
+          ! ldd dynamic/class_public-${classVersion}/class
+          ! ldd dynamic/RecFast/recfast.exe
+          ! ldd dynamic/fsps-${fspsVersion}/src/autosps.exe
           tar cfj tools.tar.bz2 \
             dynamic/CAMB-${cambVersion}/fortran/camb \
             dynamic/AxionCAMB/camb \
@@ -1359,7 +1365,7 @@ jobs:
           tool: 'customSmallerIsBetter'
           output-file-path: benchmark_darkMatterOnlySubhalos.json
           summary-always: false
-          comment-on-alert: true
+          comment-on-alert: ${{ github.triggering_actor == 'dependabot[bot]' && 'false' || 'true' }}
           alert-comment-cc-users: '@abensonca'
           github-token: ${{ secrets.GITHUB_TOKEN }}
           auto-push: false
@@ -1386,7 +1392,7 @@ jobs:
           tool: 'customSmallerIsBetter'
           output-file-path: benchmark_milkyWay.json
           summary-always: false
-          comment-on-alert: true
+          comment-on-alert: ${{ github.triggering_actor == 'dependabot[bot]' && 'false' || 'true' }}
           alert-comment-cc-users: '@abensonca'
           github-token: ${{ secrets.GITHUB_TOKEN }}
           auto-push: false
@@ -1413,7 +1419,7 @@ jobs:
           tool: 'customSmallerIsBetter'
           output-file-path: validate_darkMatterOnlySubhalos.json
           summary-always: false
-          comment-on-alert: true
+          comment-on-alert: ${{ github.triggering_actor == 'dependabot[bot]' && 'false' || 'true' }}
           alert-comment-cc-users: '@abensonca'
           github-token: ${{ secrets.GITHUB_TOKEN }}
           auto-push: false
@@ -1440,7 +1446,7 @@ jobs:
           tool: 'customSmallerIsBetter'
           output-file-path: validate_milkyWayModel.json
           summary-always: false
-          comment-on-alert: true
+          comment-on-alert: ${{ github.triggering_actor == 'dependabot[bot]' && 'false' || 'true' }}
           alert-comment-cc-users: '@abensonca'
           github-token: ${{ secrets.GITHUB_TOKEN }}
           auto-push: false

@@ -393,25 +393,28 @@ contains
     type            (treeNode                    ), intent(inout) :: node
     class           (nodeComponentHotHalo        ), pointer       :: hotHalo
     double precision                                              :: fractionFiltered, fractionAccreted, &
-         &                                                           growthRate
+         &                                                           growthRate      , massHotTotal
 
     ! Check if node differs from previous one for which we performed calculations.
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     if (.not.self%rateCorrectionComputed) then
-       hotHalo                   =>  node                     %hotHalo           (    )
-       growthRate                =  +self                     %rateAdjust               &
-            &                       /self%darkMatterHaloScale_%timescaleDynamical(node)
-       fractionFiltered          =  +self                     %filteredFraction  (node)
-       fractionAccreted          =  +  hotHalo                %          mass    (    ) &
-            &                       /(                                                  &
-            &                         +hotHalo                %          mass    (    ) &
-            &                         +hotHalo                %unaccretedMass    (    ) &
-            &                        )
-       self%rateCorrectionStored =  +(                                                  &
-            &                         +fractionAccreted                                 &
-            &                         -fractionFiltered                                 &
-            &                        )                                                  &
-            &                       *growthRate
+       hotHalo                      =>    node                     %hotHalo               (    )
+       massHotTotal                 =  +  hotHalo                  %          mass        (    ) &
+            &                          +  hotHalo                  %unaccretedMass        (    )
+       if (massHotTotal == 0.0d0) then
+          self%rateCorrectionStored=   +0.0d0
+       else
+          growthRate                =  +  self                     %rateAdjust                   &
+               &                       /  self%darkMatterHaloScale_%timescaleDynamical    (node)
+          fractionFiltered          =  +  self                     %filteredFraction      (node)
+          fractionAccreted          =  +  hotHalo                  %          mass        (    ) &
+               &                       /                                      massHotTotal
+          self%rateCorrectionStored =  +(                                                        &
+               &                         +fractionAccreted                                       &
+               &                         -fractionFiltered                                       &
+               &                        )                                                        &
+               &                       *growthRate
+       end if
        self%rateCorrectionComputed=.true.
     end if
     rateCorrection=self%rateCorrectionStored

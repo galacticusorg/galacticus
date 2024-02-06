@@ -266,13 +266,14 @@ contains
        ! equal to the total unresolved mass scaled by some correction factor (to account for the fact that the unresolved
        ! accretion will not in fact be in a single halo).
        if (massUnresolved > 0.0d0) then
-          nodeUnresolved              => treeNode                                                      (                         )
-          basicUnresolved             => nodeUnresolved                              %basic            (autoCreate=.true.        )
-          darkMatterProfileUnresolved => nodeUnresolved                              %darkMatterProfile(autoCreate=.true.        )
+          nodeUnresolved                       => treeNode                                                      (                         )
+          nodeUnresolved             %hostTree => node                                        %hostTree
+          basicUnresolved                      => nodeUnresolved                              %basic            (autoCreate=.true.        )
+          darkMatterProfileUnresolved          => nodeUnresolved                              %darkMatterProfile(autoCreate=.true.        )
           call basicUnresolved            %massSet            (min(massResolution   ,massUnresolved       ))
           call basicUnresolved            %timeSet            (    basicChild%time()                       )
           call basicUnresolved            %timeLastIsolatedSet(    basicChild%time()                       )
-          radiusScaleUnresolved       =  self          %darkMatterProfileScaleRadius_%radius           (           nodeUnresolved)
+          radiusScaleUnresolved                =  self          %darkMatterProfileScaleRadius_%radius           (           nodeUnresolved)
           call darkMatterProfileUnresolved%scaleSet           (                      radiusScaleUnresolved )
           ! Compute a correction factor to the orbital energy which takes into account the mass dependence of the 1/(1+m/M)ᵅ
           ! term that is applied to the orbital energy. Averaging this over a power-law mass function gives the result
