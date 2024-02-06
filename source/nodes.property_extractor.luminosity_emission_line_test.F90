@@ -53,9 +53,10 @@
      type            (varying_string                    ), allocatable, dimension(:          ) :: lineNames, names_, descriptions_
      double precision                                            , allocatable, dimension(:) :: metallicityBoundaries, metallicities, ages
      double precision                                            , allocatable, dimension(:,:,:) :: luminositiesReduced
+     double precision                                            , allocatable, dimension(:,:) ::ionizingLuminosityHydrogenNormalized
      type            (emissionLineLuminosityTemplate            ), allocatable, dimension(:) :: templates
      double precision                                                                        :: metallicityPopulationMinimum, metallicityPopulationMaximum, &
-                                                                          &                     agePopulationMaximum, resolution, factorWavelength,   toleranceRelative
+                                                                          &                     agePopulationMaximum, resolution, factorWavelength,   toleranceRelative, ionizingLuminosityHydrogenMean
      logical                                                                                 :: useluminosityTemplates
    contains
      !![
@@ -157,6 +158,7 @@ contains
     double precision                                            , intent(in   )               :: toleranceRelative    
     double precision                                            ,                             :: deltaIonizingFluxHydrogen, rateHydrogenIonizingPhotonsMinimum, rateHydrogenIonizingPhotonsMaximum 
     double precision                                            , allocatable  , dimension(:) :: ionizingFluxHydrogen
+    double precision                                            , allocatable  , dimension(:,:) :: ionizingLuminosityHydrogenNormalized
     double precision                                            , allocatable  , dimension(:,:,:,:) :: luminosities
     type     (hdf5Object              )                :: emissionLinesFile, lines
     integer :: i
@@ -182,6 +184,7 @@ contains
     call emissionLinesFile%readDataset('metallicity'                  ,self%metallicities                 )
     call emissionLinesFile%readDataset('age'                          ,self%ages                         )
     call emissionLinesFile%readDataset('ionizingLuminosityHydrogen'   ,ionizingFluxHydrogen        )
+    call emissionLinesFile%readDataset('ionizingLuminosityHydrogenNormalized', self%ionizingLuminosityHydrogenNormalized )
     self%metallicityPopulationMinimum=minval(self%metallicities)
     self%metallicityPopulationMaximum=maxval(self%metallicities)
     
@@ -212,6 +215,7 @@ contains
     call emissionLinesFile%close      (                                                                 )
     !$ call hdf5Access%unset()
     
+    self%ionizingLuminosityHydrogenMean=(10.0d0**47.999999999999993)*21.2595395395d0  
     ! Calculate emission line luminosity for some age and metallicity
     deltaIonizingFluxHydrogen=ionizingFluxHydrogen(2)/ionizingFluxHydrogen(1)
         do i=1,size(ionizingFluxHydrogen)
@@ -264,7 +268,7 @@ contains
     !$GLC attributes unused :: self, time
 
     emissionLineLuminosityElementCount=self%countLines
-    write (0,*) "emissionLineLuminosityElementCount",emissionLineLuminosityElementCount
+    !write (0,*) "emissionLineLuminosityElementCount",emissionLineLuminosityElementCount
     return
   end function emissionLineLuminosityElementCount
 
@@ -313,6 +317,7 @@ contains
     end if    
     do iLines=1,size(emissionLineLuminosityExtract,dim=1)
       emissionLineLuminosityExtract(iLines)=sum(luminosityTemplate_(iLines,:,:)*starFormationHistory%data(:,:))
+      write (0,*) "emissionLineLuminosityExtract(iLines)",emissionLineLuminosityExtract(iLines)
     end do
     return
   end function emissionLineLuminosityExtract
@@ -618,10 +623,15 @@ contains
       emissionLineLuminosityIntegrandTime=0.0d0
       do iTime=0,1
          do iMetallicity=0,1
-            emissionLineLuminosityIntegrandTime=+emissionLineLuminosityIntegrandTime &
+           emissionLineLuminosityIntegrandTime=+emissionLineLuminosityIntegrandTime &
                  & +self%luminositiesReduced(interpolateIndexTime(iTime),interpolateIndexMetallicity(iMetallicity),iLine)&
+                 & *self%ionizingLuminosityHydrogenNormalized(interpolateIndexTime(iTime),interpolateIndexMetallicity(iMetallicity)) &
+                 & /self%ionizingLuminosityHydrogenMean &
                  & *interpolateFactorTime(iTime) &
                  & *interpolateFactorMetallicity(iMetallicity)
+                 !write (0,*) "luminosityHMean", self%ionizingLuminosityHydrogenMean
+                 !write (0,*) "luminosityReduced",self%luminositiesReduced(interpolateIndexTime(iTime),interpolateIndexMetallicity(iMetallicity),iLine)
+                 !write (0,*) "luminosityHNormalized",self%ionizingLuminosityHydrogenNormalized(interpolateIndexTime(iTime),interpolateIndexMetallicity(iMetallicity))
          end do
       end do
       !STOP "emissionLineLuminosityIntegrandTime -- WORKING"
