@@ -221,7 +221,7 @@ contains
     !!}
     use :: Cosmology_Parameters   , only : cosmologyParametersSimple
     use :: Display                , only : displayMessage
-    use :: File_Utilities         , only : File_Name_Expand
+    use :: File_Utilities         , only : File_Name_Expand                , File_Exists
     use :: Error                  , only : Error_Report
     use :: HDF5_Access            , only : hdf5Access
     use :: IO_HDF5                , only : hdf5Object
@@ -242,6 +242,8 @@ contains
     type            (hdf5Object                            )                              :: fileObject             , parametersObject
     type            (varying_string                        )                              :: limitTypeVar
 
+    ! Check that the file exists.
+    if (.not.File_Exists(File_Name_Expand(char(fileName)))) call Error_Report("file '"//char(fileName)//"' does not exist"//{introspection:location})
     ! Open and read the HDF5 data file.
     !$ call hdf5Access%set()
     call fileObject%openFile(char(File_Name_Expand(char(fileName))),readOnly=.true.)
