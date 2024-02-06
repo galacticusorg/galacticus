@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1706849555926,
+  "lastUpdate": 1707261304345,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "6e8872ed1bb5b58cb9a6098a21bb2d3513d0b906",
-          "message": "Merge pull request #409 from galacticusorg/preInfallOrbit\n\nAdd support for tidal evolution of halos pre-infall",
-          "timestamp": "2023-05-05T23:35:50Z",
-          "tree_id": "2f7f7c98dfce6d9e7b3f427368ab6b04e53848aa",
-          "url": "https://github.com/galacticusorg/galacticus/commit/6e8872ed1bb5b58cb9a6098a21bb2d3513d0b906"
-        },
-        "date": 1683340045109,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 225.929,
-            "unit": "seconds",
-            "range": 0.533931549920959
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10700,6 +10670,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 14.000613786469,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": false,
+          "id": "b8d767f0c5dbece37ae2b52ace6d337d81f359ab",
+          "message": "feat: Provide a more useful error message for missing power spectra files",
+          "timestamp": "2024-02-06T08:18:17-08:00",
+          "tree_id": "3ae7e1270216c6e85d40e63e4b51e2fe61e8f594",
+          "url": "https://github.com/galacticusorg/galacticus/commit/b8d767f0c5dbece37ae2b52ace6d337d81f359ab"
+        },
+        "date": 1707261303539,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 154.724,
+            "unit": "seconds",
+            "range": 0.209962853858555
           }
         ]
       }
