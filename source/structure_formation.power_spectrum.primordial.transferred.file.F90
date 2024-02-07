@@ -228,6 +228,8 @@ contains
     use :: Numerical_Comparison   , only : Values_Differ
     use :: Numerical_Interpolation, only : GSL_Interp_cSpline
     use :: Table_Labels           , only : enumerationExtrapolationTypeType, enumerationExtrapolationTypeEncode
+    use :: ISO_Varying_String     , only : var_str                         , operator(//)
+    use :: String_Handling        , only : operator(//)
     implicit none
     class           (powerSpectrumPrimordialTransferredFile), intent(inout)               :: self
     type            (varying_string                        ), intent(in   )               :: fileName
@@ -249,7 +251,7 @@ contains
     call fileObject%openFile(char(File_Name_Expand(char(fileName))),readOnly=.true.)
     ! Check that the file has the correct format version number.
     call fileObject%readAttribute('fileFormat',versionNumber,allowPseudoScalar=.true.)
-    if (versionNumber /= fileFormatVersionCurrent) call Error_Report('file has the incorrect version number'//{introspection:location})
+    if (versionNumber /= fileFormatVersionCurrent) call Error_Report(var_str('file has the incorrect format version number (expected fileFormat=1, found fileFormat=')//versionNumber//')'//{introspection:location})
     ! Check that parameters match if any are present.
     parametersObject=fileObject%openGroup('parameters')
     allocate(cosmologyParametersSimple :: cosmologyParametersFile)

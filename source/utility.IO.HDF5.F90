@@ -2364,11 +2364,11 @@ contains
              call attributeObject%readAttributeStatic(attributeValue=pseudoScalarValue)
              attributeValue=pseudoScalarValue(1)
           else
-             call Error_Report("attribute must be an integer scalar or pseudo-scalar"//{introspection:location})
+             call Error_Report("attribute '"//attributeObject%objectName//"' must be an integer scalar or pseudo-scalar"//{introspection:location})
           end if
        end if
     else
-       call Error_Report("attribute must be an integer scalar"//{introspection:location})
+       call       Error_Report("attribute '"//attributeObject%objectName//"' must be an integer scalar"                 //{introspection:location})
     end if
 
     ! Close the attribute unless this was an attribute object.
@@ -2686,11 +2686,11 @@ contains
              call attributeObject%readAttributeStatic(attributeValue=pseudoScalarValue)
              attributeValue=pseudoScalarValue(1)
           else
-             call Error_Report("attribute must be a long integer scalar or pseudo-scalar"//{introspection:location})
+             call Error_Report("attribute '"//attributeObject%objectName//"' must be a long integer scalar or pseudo-scalar"//{introspection:location})
           end if
        end if
     else
-       call Error_Report("attribute must be a long integer scalar"//{introspection:location})
+       call       Error_Report("attribute '"//attributeObject%objectName//"' must be a long integer scalar"                 //{introspection:location})
     end if
 
     ! Close the attribute unless this was an attribute object.
@@ -3015,13 +3015,13 @@ contains
              call attributeObject%readAttributeStatic(attributeValue=pseudoScalarValue)
              attributeValue=pseudoScalarValue(1)
           else
-             call Error_Report("attribute must be a double scalar or pseudo-scalar"//{introspection:location})
+             call Error_Report("attribute '"//attributeObject%objectName//"' must be a double scalar or pseudo-scalar"//{introspection:location})
           end if
        else
-          call Error_Report("attribute must be a double scalar or pseudo-scalar"//{introspection:location})
+          call    Error_Report("attribute '"//attributeObject%objectName//"' must be a double scalar or pseudo-scalar"//{introspection:location})
        end if
     else
-       call Error_Report("attribute must be a double scalar"//{introspection:location})
+       call       Error_Report("attribute '"//attributeObject%objectName//"' must be a double scalar"                 //{introspection:location})
     end if
 
     ! Close the attribute unless this was an attribute object.
@@ -3342,11 +3342,11 @@ contains
              call attributeObject%readAttributeStatic(attributeValue=pseudoScalarValue)
              attributeValue=pseudoScalarValue(1)
           else
-             call Error_Report("attribute must be a character scalar or pseudo-scalar"//{introspection:location})
+             call Error_Report("attribute '"//attributeObject%objectName//"' must be a character scalar or pseudo-scalar"//{introspection:location})
           end if
        end if
     else
-       call Error_Report("attribute must be an character scalar"//{introspection:location})
+       call       Error_Report("attribute '"//attributeObject%objectName//"' must be an character scalar"                //{introspection:location})
     end if
 
     ! Close the datatype.
