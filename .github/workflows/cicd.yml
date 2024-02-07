@@ -641,7 +641,6 @@ jobs:
         executable: [ tests.nodes.exe,
                       tests.parameters.exe,
                       tests.files.exe,
-                      tests.IO.HDF5.exe,
                       tests.IO.XML.exe,
                       tests.ODE_solver.exe,
                       tests.random.exe,
@@ -752,6 +751,15 @@ jobs:
     with:
       executable: ${{ matrix.executable }}
       artifact: test-execs
+    secrets: inherit
+  ### Test HDF5 IO
+  IO-HDF5:
+    needs: Build-Executable-Linux
+    uses: ./.github/workflows/testCode.yml
+    with:
+      executable: tests.IO.HDF5.exe
+      artifact: test-execs
+      requirePython: 1
     secrets: inherit
   ### Test Crash
   Crash:
