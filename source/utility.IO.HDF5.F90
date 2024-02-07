@@ -364,6 +364,13 @@ module IO_HDF5
        import
        integer(kind=hid_t) :: H5T_C_S1_Get
      end function H5T_C_S1_Get
+     function H5T_Variable_Get() bind(c,name='H5T_Variable_Get')
+       !!{
+       Template for a C function that returns the {\normalfont \ttfamily H5T\_C\_S1} datatype ID.
+       !!}
+       import
+       integer(kind=size_t) :: H5T_Variable_Get
+     end function H5T_Variable_Get
      function H5Awrite(attr_id,mem_type_id,buf) bind(c, name='H5Awrite')
        !!{
        Template for the HDF5 C API attribute write function.
@@ -3236,10 +3243,15 @@ contains
     !!{
     Open and read an character scalar attribute in {\normalfont \ttfamily self}.
     !!}
-    use :: Error             , only : Error_Report
-    use :: HDF5              , only : HID_T        , HSIZE_T                    , h5aget_space_f, h5aread_f, &
-          &                           h5sclose_f   , h5sget_simple_extent_dims_f, h5tclose_f
-    use :: ISO_Varying_String, only : assignment(=), operator(//)               , trim
+    use, intrinsic :: ISO_C_Binding     , only : c_loc, c_ptr, c_null_char,c_f_pointer
+    use            :: Error             , only : Error_Report
+    use            :: HDF5              , only : HID_T              , HSIZE_T                    , h5aget_space_f , h5aread_f , &
+         &                                       h5sclose_f         , h5sget_simple_extent_dims_f, h5tclose_f     , h5tcopy_f , &
+         &                                       h5tset_cset_f      , h5t_cset_utf8_f            , h5tset_size_f  , h5t_string, &
+         &                                       H5T_Str_NullTerm_f , H5T_C_S1                   , h5tset_strpad_f
+    use            :: ISO_Varying_String, only : assignment(=)      , operator(//)               , trim
+
+    use            :: String_Handling   , only : String_C_to_Fortran
     implicit none
     character(len=*                  )              , intent(  out)           :: attributeValue
     class    (hdf5Object             )              , intent(inout)           :: self
@@ -3247,14 +3259,16 @@ contains
     logical                                         , intent(in   ), optional :: allowPseudoScalar
     integer  (kind=HSIZE_T           ), dimension(1)                          :: attributeDimensions       , attributeMaximumDimensions
     character(len=len(attributeValue)), dimension(1)                          :: pseudoScalarValue
-    integer  (kind=HID_T             )                                        :: attributeDataspaceID
+    integer  (kind=HID_T             )                                        :: attributeDataspaceID      , stringType
     integer  (kind=HID_T             )                                        :: dataTypeID             (6)
     integer                                                                   :: errorCode
     type     (hdf5Object             )                                        :: attributeObject
     type     (varying_string         )                                        :: attributeNameActual       , message
-    logical                                                                   :: allowPseudoScalarActual   , matches
-
-
+    logical                                                                   :: allowPseudoScalarActual   , matches                   , &
+         &                                                                       isH5TString
+    type     (c_ptr                  )              , target                  :: stringBuffer
+    character(c_char                 ), dimension(:), pointer                 :: stringBuffer_   
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -3309,7 +3323,8 @@ contains
     end if
 
     ! Check that the object is a scalar character.
-    call attributeObject%assertAttributeType(dataTypeID,0,matches)
+    call attributeObject%assertAttributeType (dataTypeID ,0,matches    )
+    call attributeObject%assertAttributeType([H5T_String],0,isH5TString)
     if (matches) then
        ! Read the attribute.
        call h5aread_f(attributeObject%objectID,dataTypeID(1),attributeValue,attributeDimensions&
@@ -3318,6 +3333,29 @@ contains
           message="unable to read attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
           call Error_Report(message//{introspection:location})
        end if
+    else if (isH5TString) then
+       ! Attribute is an H5T_String (i.e. a variable length string, as is written by h5py for example). These can be read using
+       ! the special datatype size "H5T_Variable" (which is available only in the C API, so we get it via a C function).
+       !
+       ! First, construct a suitable datatype.
+       call H5Tcopy_f(H5T_C_S1, stringType, errorCode)
+       if (errorCode /= 0) call Error_Report('unable to copy datatype'       //{introspection:location})
+       call H5Tset_cset_f  (stringType,H5T_CSET_UTF8_F   ,errorCode)
+       if (errorCode /= 0) call Error_Report('unable to set character set'   //{introspection:location})
+       call H5Tset_size_f  (stringType,h5t_variable_get(),errorCode)            
+       if (errorCode /= 0) call Error_Report('unable to set datatype size'   //{introspection:location})
+       call h5tset_strpad_f(stringType,H5T_STR_NULLTERM_F,errorCode)
+       if (errorCode /= 0) call Error_Report('unable to set datatype padding'//{introspection:location})
+       ! Read the attribute.
+       errorCode=H5Aread(attributeObject%objectID,stringType,c_loc(stringBuffer))
+       if (errorCode /= 0) then
+          message="unable to read attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
+          call Error_Report(message//{introspection:location})
+       end if
+       ! Extract the attribute from the buffer.
+       call c_f_pointer(stringBuffer,stringBuffer_,shape=[33])
+       attributeValue=String_C_to_Fortran(stringBuffer_)
+       deallocate(stringBuffer_)
     else if (allowPseudoScalarActual) then
        ! Attribute is not a scalar. Check if it is a pseudo-scalar.
        call attributeObject%assertAttributeType(dataTypeID,1,matches)
@@ -3342,11 +3380,11 @@ contains
              call attributeObject%readAttributeStatic(attributeValue=pseudoScalarValue)
              attributeValue=pseudoScalarValue(1)
           else
-             call Error_Report("attribute '"//attributeObject%objectName//"' must be a character scalar or pseudo-scalar"//{introspection:location})
+             call Error_Report("attribute must be a character scalar, pseudo-scalar, or variable-length string"//{introspection:location})
           end if
        end if
     else
-       call       Error_Report("attribute '"//attributeObject%objectName//"' must be an character scalar"                //{introspection:location})
+       call       Error_Report("attribute must be a character scalar, or variable-length string"               //{introspection:location})
     end if
 
     ! Close the datatype.

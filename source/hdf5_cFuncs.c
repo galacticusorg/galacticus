@@ -2,7 +2,7 @@
 
 #include "H5Tpublic.h"
 
-/* Return an ID for the basic C character string type */
+/* Call the H5close() function to completely shut down HDF5 */
 void H5Close_C(void)
 {
   herr_t error;  
