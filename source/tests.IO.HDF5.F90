@@ -27,6 +27,7 @@ program Tests_IO_HDF5
        &                            hdf5VarDouble2D
   use :: ISO_Varying_String, only : assignment(=)      , trim                  , varying_string
   use :: Kind_Numbers      , only : kind_int8
+  use :: System_Command    , only : System_Command_Do
   use :: Unit_Tests        , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type            (hdf5Object     ), target                                 :: datasetObject                  , fileObject           , &
@@ -865,6 +866,16 @@ program Tests_IO_HDF5
 
   ! Test identifying HDF5 file.
   call Assert("test if file is HDF5",IO_HDF5_Is_HDF5('testSuite/outputs/test.IO.HDF5.hdf5'),.true.)
+
+  ! Test of h5py compatibility.
+  call Unit_Tests_Begin_Group("h5py compatibility")
+  call System_Command_Do("./testSuite/scripts/generate_h5py.py")
+  call fileObject%openFile     ("testSuite/outputs/h5py.hdf5",overWrite=.false.             ,objectsOverwritable=.false.)
+  call fileObject%readAttribute("stringAttribute"            ,          characterValueReread                            )
+  call fileObject%close        (                                                                                        )
+  call fileObject%destroy      (                                                                                        )
+  call Assert("read h5py string attribute",characterValueReread,"this is a variable length string")
+  call Unit_Tests_End_Group()
 
   ! End unit tests.
   call Unit_Tests_End_Group()

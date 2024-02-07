@@ -24,6 +24,10 @@ on:
         required: false
         default: 0
         type: string
+      requirePython: # Set to 0/1 to indicate if Python tools are required
+        required: false
+        default: 0
+        type: number
 defaults:
   run:
     shell: bash
@@ -52,6 +56,11 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.artifact }}
+      - name: Install tools
+        if: ${{ format('{0}',inputs.requirePython) == '1' }}
+        run: |
+          apt -y update && apt -y upgrade
+          apt -y install python3-numpy python3-h5py
       - name: Create test suite output directory
         run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
       - name: Run test
