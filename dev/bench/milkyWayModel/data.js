@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1707282924138,
+  "lastUpdate": 1707360462348,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "775ba693fe53c6b5354263997e74dde82922ef39",
-          "message": "fix(style): Formatting only",
-          "timestamp": "2023-05-09T15:06:04-07:00",
-          "tree_id": "5f258ee3915762da41eaccbb433b3037fd47ff6e",
-          "url": "https://github.com/galacticusorg/galacticus/commit/775ba693fe53c6b5354263997e74dde82922ef39"
-        },
-        "date": 1683683134994,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 299.417,
-            "unit": "seconds",
-            "range": 1.82795352785531
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10700,6 +10670,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 13.9852144208426,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d0c330dce5fc9b6d455e455762c7e42167e50ac0",
+          "message": "Merge pull request #553 from galacticusorg/fixHDF5VarLenStringRead\n\nAllow reading of variable length string types from HDF5 attributes",
+          "timestamp": "2024-02-07T23:44:39Z",
+          "tree_id": "e2ad3ae35eb6b1173f6eb7ebd44473d103daff08",
+          "url": "https://github.com/galacticusorg/galacticus/commit/d0c330dce5fc9b6d455e455762c7e42167e50ac0"
+        },
+        "date": 1707360461370,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 156.741,
+            "unit": "seconds",
+            "range": 0.099754197904666
           }
         ]
       }
