@@ -27,100 +27,104 @@
   
   !![
   <powerSpectrumPrimordialTransferred name="powerSpectrumPrimordialTransferredFile">
-   <description>Implements a file transferred primordial power spectrum.</description>
+    <description>
+      A transferred primordial spectrum class which reads the power spectrum from file and interpolates in it. The HDF5 file
+      containing the data should have the following structure:
+       \begin{verbatim}
+       HDF5 "powerSpectrum.hdf5" {
+       GROUP "/" {
+          ATTRIBUTE "description" {
+             DATATYPE  H5T_STRING {
+                STRSIZE 71;
+                STRPAD H5T_STR_NULLTERM;
+                CSET H5T_CSET_ASCII;
+                CTYPE H5T_C_S1;
+             }
+             DATASPACE  SCALAR
+          }
+          ATTRIBUTE "fileFormat" {
+             DATATYPE  H5T_STD_I32LE
+             DATASPACE  SCALAR
+          }
+          ATTRIBUTE "extrapolationWavenumber" {
+             DATATYPE  H5T_STRING {
+                STRSIZE 11;
+                STRPAD H5T_STR_NULLTERM;
+                CSET H5T_CSET_ASCII;
+                CTYPE H5T_C_S1;
+             }
+             DATASPACE  SCALAR
+          }
+          ATTRIBUTE "extrapolationRedshift" {
+             DATATYPE  H5T_STRING {
+                STRSIZE 11;
+                STRPAD H5T_STR_NULLTERM;
+                CSET H5T_CSET_ASCII;
+                CTYPE H5T_C_S1;
+             }
+             DATASPACE  SCALAR
+          }
+          GROUP "parameters" {
+             ATTRIBUTE "HubbleConstant" {
+                DATATYPE  H5T_STRING {
+                   STRSIZE 4;
+                   STRPAD H5T_STR_NULLTERM;
+                   CSET H5T_CSET_ASCII;
+                   CTYPE H5T_C_S1;
+                }
+                DATASPACE  SCALAR
+             }
+             ATTRIBUTE "OmegaBaryon" {
+                DATATYPE  H5T_STRING {
+                   STRSIZE 6;
+                   STRPAD H5T_STR_NULLTERM;
+                   CSET H5T_CSET_ASCII;
+                   CTYPE H5T_C_S1;
+                }
+                DATASPACE  SCALAR
+             }
+             ATTRIBUTE "OmegaDarkEnergy" {
+                DATATYPE  H5T_STRING {
+                   STRSIZE 5;
+                   STRPAD H5T_STR_NULLTERM;
+                   CSET H5T_CSET_ASCII;
+                   CTYPE H5T_C_S1;
+                }
+                DATASPACE  SCALAR
+             }
+             ATTRIBUTE "OmegaMatter" {
+                DATATYPE  H5T_STRING {
+                   STRSIZE 5;
+                   STRPAD H5T_STR_NULLTERM;
+                   CSET H5T_CSET_ASCII;
+                   CTYPE H5T_C_S1;
+                }
+                DATASPACE  SCALAR
+             }
+          }
+          DATASET "wavenumber" {
+             DATATYPE  H5T_IEEE_F64LE
+             DATASPACE  SIMPLE { ( 1000 ) / ( 1000 ) }
+          }
+          DATASET "redshift" {
+             DATATYPE  H5T_IEEE_F64LE
+             DATASPACE  SIMPLE { ( 1000 ) / ( 1000 ) }
+          }
+          DATASET "power" {
+             DATATYPE  H5T_IEEE_F64LE
+             DATASPACE  SIMPLE { ( 1000 ) / ( 1000 ), ( 1000 ) / ( 1000 ) }
+          }
+       }
+       }
+       \end{verbatim}
+      The `power` dataset should tabulate the transferred power spectrum as a function of $(k,z)$ where $k$ is wavenumber and $z$
+      is redshift.
+   </description>
   </powerSpectrumPrimordialTransferred>
   !!]
   type, extends(powerSpectrumPrimordialTransferredClass) :: powerSpectrumPrimordialTransferredFile
      !!{
-     A transferred primordial spectrum class which reads the power spectrum from file and interpolates in it. The HDF5 file
-     containing the data should have the following structure:
-       \begin{verbatim}
-  HDF5 "powerSpectrum.hdf5" {
-  GROUP "/" {
-     ATTRIBUTE "description" {
-        DATATYPE  H5T_STRING {
-           STRSIZE 71;
-           STRPAD H5T_STR_NULLTERM;
-           CSET H5T_CSET_ASCII;
-           CTYPE H5T_C_S1;
-        }
-        DATASPACE  SCALAR
-     }
-     ATTRIBUTE "fileFormat" {
-        DATATYPE  H5T_STD_I32LE
-        DATASPACE  SCALAR
-     }
-     ATTRIBUTE "extrapolationWavenumber" {
-        DATATYPE  H5T_STRING {
-           STRSIZE 11;
-           STRPAD H5T_STR_NULLTERM;
-           CSET H5T_CSET_ASCII;
-           CTYPE H5T_C_S1;
-        }
-        DATASPACE  SCALAR
-     }
-     ATTRIBUTE "extrapolationRedshift" {
-        DATATYPE  H5T_STRING {
-           STRSIZE 11;
-           STRPAD H5T_STR_NULLTERM;
-           CSET H5T_CSET_ASCII;
-           CTYPE H5T_C_S1;
-        }
-        DATASPACE  SCALAR
-     }
-     GROUP "parameters" {
-        ATTRIBUTE "HubbleConstant" {
-           DATATYPE  H5T_STRING {
-              STRSIZE 4;
-              STRPAD H5T_STR_NULLTERM;
-              CSET H5T_CSET_ASCII;
-              CTYPE H5T_C_S1;
-           }
-           DATASPACE  SCALAR
-        }
-        ATTRIBUTE "OmegaBaryon" {
-           DATATYPE  H5T_STRING {
-              STRSIZE 6;
-              STRPAD H5T_STR_NULLTERM;
-              CSET H5T_CSET_ASCII;
-              CTYPE H5T_C_S1;
-           }
-           DATASPACE  SCALAR
-        }
-        ATTRIBUTE "OmegaDarkEnergy" {
-           DATATYPE  H5T_STRING {
-              STRSIZE 5;
-              STRPAD H5T_STR_NULLTERM;
-              CSET H5T_CSET_ASCII;
-              CTYPE H5T_C_S1;
-           }
-           DATASPACE  SCALAR
-        }
-        ATTRIBUTE "OmegaMatter" {
-           DATATYPE  H5T_STRING {
-              STRSIZE 5;
-              STRPAD H5T_STR_NULLTERM;
-              CSET H5T_CSET_ASCII;
-              CTYPE H5T_C_S1;
-           }
-           DATASPACE  SCALAR
-        }
-     }
-     DATASET "wavenumber" {
-        DATATYPE  H5T_IEEE_F64LE
-        DATASPACE  SIMPLE { ( 1000 ) / ( 1000 ) }
-     }
-     DATASET "redshift" {
-        DATATYPE  H5T_IEEE_F64LE
-        DATASPACE  SIMPLE { ( 1000 ) / ( 1000 ) }
-     }
-     DATASET power" {
-        DATATYPE  H5T_IEEE_F64LE
-        DATASPACE  SIMPLE { ( 1000 ) / ( 1000 ), ( 1000 ) / ( 1000 ) }
-     }
-  }
-  }
-  \end{verbatim}
+     Implements a file transferred primordial power spectrum.
      !!}
      private
      class           (cosmologyParametersClass), pointer                     :: cosmologyParameters_   => null()
@@ -277,14 +281,14 @@ contains
     deallocate(cosmologyParametersFile)
     call parametersObject%close()
     ! Get extrapolation methods.
-    call fileObject%readAttribute('extrapolationWavenumber' ,limitTypeVar)
-    extrapolateWavenumber =enumerationExtrapolationTypeEncode(char(limitTypeVar),includesPrefix=.false.)
-    call fileObject%readAttribute('extrapolationRedshift' ,limitTypeVar)
-    extrapolateRedshift =enumerationExtrapolationTypeEncode(char(limitTypeVar),includesPrefix=.false.)
+    call fileObject%readAttribute('extrapolationWavenumber',limitTypeVar)
+    extrapolateWavenumber=enumerationExtrapolationTypeEncode(char(limitTypeVar),includesPrefix=.false.)
+    call fileObject%readAttribute('extrapolationRedshift'  ,limitTypeVar)
+    extrapolateRedshift  =enumerationExtrapolationTypeEncode(char(limitTypeVar),includesPrefix=.false.)
     ! Read the power spectrum from file.
-    call fileObject     %readDataset('wavenumber'                                   ,wavenumber)
-    call fileObject     %readDataset('redshift'                                     ,redshift  )
-    call fileObject     %readDataset('power'                                        ,power     )
+    call fileObject%readDataset('wavenumber',wavenumber)
+    call fileObject%readDataset('redshift'  ,redshift  )
+    call fileObject%readDataset('power'     ,power     )
     ! Close the file.
     call fileObject%close()
     !$ call hdf5Access%unset()
