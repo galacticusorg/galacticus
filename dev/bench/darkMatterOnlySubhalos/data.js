@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1707504869406,
+  "lastUpdate": 1707504876951,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "b2b82e792403bd7f38c2a3097b550c1e5e6d3963",
-          "message": "feat: Add more informative labels in stellar mass function analysis classes",
-          "timestamp": "2023-05-12T21:09:16Z",
-          "tree_id": "a23e58cfc53d109b497605c0e5efeb3d54738a99",
-          "url": "https://github.com/galacticusorg/galacticus/commit/b2b82e792403bd7f38c2a3097b550c1e5e6d3963"
-        },
-        "date": 1683935964087,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 57.4991777473382,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 26.0216488557544,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 24211.0957851519,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8784,6 +8745,45 @@ window.BENCHMARK_DATA = {
             "value": 43.478,
             "unit": "seconds",
             "range": 0.0362712006975722
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "ed1160a3906155fe885404761ec066763ace0832",
+          "message": "fix: Fix bug in tablulation of times for the `powerSpectrumPrimordialTransferredFile` class\n\nA missing index caused all times in the array to be identical, breaking interpolation.\n\nAlso makes warnings about mismatched cosmological parameters follow new conventions (i.e. magenta \"WARNING:\" included at the start of the message).",
+          "timestamp": "2024-02-09T07:52:01-08:00",
+          "tree_id": "464b9e14277cbe56ad0b333d2cafb7fa7390de98",
+          "url": "https://github.com/galacticusorg/galacticus/commit/ed1160a3906155fe885404761ec066763ace0832"
+        },
+        "date": 1707504875741,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 58.2887665707803,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 26.1695237958791,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 24041.6777179836,
+            "unit": "-logℒ"
           }
         ]
       }
