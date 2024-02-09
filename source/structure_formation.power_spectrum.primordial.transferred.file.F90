@@ -224,7 +224,7 @@ contains
     Read a tabulated power spectrum from file.
     !!}
     use :: Cosmology_Parameters   , only : cosmologyParametersSimple
-    use :: Display                , only : displayMessage
+    use :: Display                , only : displayMessage                  , displayMagenta, displayReset
     use :: File_Utilities         , only : File_Name_Expand                , File_Exists
     use :: Error                  , only : Error_Report
     use :: HDF5_Access            , only : hdf5Access
@@ -268,15 +268,15 @@ contains
        call parametersObject%readAttribute('temperatureCMB' ,temperatureCMB )
        cosmologyParametersFile=cosmologyParametersSimple(OmegaMatter,OmegaBaryon,OmegaDarkEnergy,temperatureCMB,HubbleConstant)
        if (Values_Differ(cosmologyParametersFile%OmegaBaryon    (),self%cosmologyParameters_%OmegaBaryon    (),absTol=1.0d-3)) &
-            & call displayMessage('OmegaBaryon from transfer function file does not match internal value'    )
+            & call displayMessage(displayMagenta()//"WARNING:"//displayReset()//' OmegaBaryon from transfer function file does not match internal value'    )
        if (Values_Differ(cosmologyParametersFile%OmegaMatter    (),self%cosmologyParameters_%OmegaMatter    (),absTol=1.0d-3)) &
-            & call displayMessage('OmegaMatter from transfer function file does not match internal value'    )
+            & call displayMessage(displayMagenta()//"WARNING:"//displayReset()//' OmegaMatter from transfer function file does not match internal value'    )
        if (Values_Differ(cosmologyParametersFile%OmegaDarkEnergy(),self%cosmologyParameters_%OmegaDarkEnergy(),absTol=1.0d-3)) &
-            & call displayMessage('OmegaDarkEnergy from transfer function file does not match internal value')
+            & call displayMessage(displayMagenta()//"WARNING:"//displayReset()//' OmegaDarkEnergy from transfer function file does not match internal value')
        if (Values_Differ(cosmologyParametersFile%HubbleConstant (),self%cosmologyParameters_%HubbleConstant (),relTol=1.0d-3)) &
-            & call displayMessage('HubbleConstant from transfer function file does not match internal value' )
+            & call displayMessage(displayMagenta()//"WARNING:"//displayReset()//' HubbleConstant from transfer function file does not match internal value' )
        if (Values_Differ(cosmologyParametersFile%temperatureCMB (),self%cosmologyParameters_%temperatureCMB (),relTol=1.0d-3)) &
-            & call displayMessage('temperatureCMB from transfer function file does not match internal value' )
+            & call displayMessage(displayMagenta()//"WARNING:"//displayReset()//' temperatureCMB from transfer function file does not match internal value' )
     end select
     deallocate(cosmologyParametersFile)
     call parametersObject%close()
@@ -299,7 +299,7 @@ contains
     self%wavenumberLogarithmic=log(wavenumber)
     self%powerLogarithmic     =log(power     )
     do i=1,size(redshift)
-       self%timeLogarithmic=log(self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(redshift(i))))
+       self%timeLogarithmic(i)=log(self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(redshift(i))))
     end do
     self%interpolatorWavenumber=interpolator(self%wavenumberLogarithmic,extrapolationType=extrapolateWavenumber)
     self%interpolatorTime      =interpolator(self%timeLogarithmic      ,extrapolationType=extrapolateRedshift  )
