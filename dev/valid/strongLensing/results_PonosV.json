@@ -1,0 +1,23 @@
+window.PONOSV_DATA = {
+   "commit" : {
+      "timestamp" : "Mon, 5 Feb 2024 21:47:20 +0000",
+      "url" : "https://github.com/galacticusorg/galacticus/commit/b445fd9bfd65946a8f47275ff76457fa6dd26209",
+      "id" : "b445fd9bfd65946a8f47275ff76457fa6dd26209",
+      "author" : {
+         "email" : "abenson@carnegiescience.edu",
+         "name" : "Andrew Benson"
+      },
+      "message" : "fix: Avoid floating point overflow for halos with no hot gas"
+   },
+    "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
+    "slope" : {
+      "target" : 0.85,
+      "model" : 0.988553207399589
+   },
+   "repoUrl" : "https://github.com/galacticusorg/galacticus",
+   "surfaceDensity" : {
+      "target" : 0.006,
+      "percentageBelow" : 12.5,
+      "percentageAbove" : 87.5
+   }
+}

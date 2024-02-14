@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes" />
+    <style>
+      html {
+        font-family: BlinkMacSystemFont,-apple-system,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,"Fira Sans","Droid Sans","Helvetica Neue",Helvetica,Arial,sans-serif;
+        -webkit-font-smoothing: antialiased;
+        background-color: #fff;
+        font-size: 16px;
+      }
+      body {
+        color: #4a4a4a;
+        margin: 8px;
+        font-size: 1em;
+        font-weight: 400;
+      }
+      header {
+        margin-bottom: 8px;
+        display: flex;
+        flex-direction: column;
+      }
+      main {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+      }
+      a {
+        color: #3273dc;
+        cursor: pointer;
+        text-decoration: none;
+      }
+      a:hover {
+        color: #000;
+      }
+      button {
+        color: #fff;
+        background-color: #3298dc;
+        border-color: transparent;
+        cursor: pointer;
+        text-align: center;
+      }
+      button:hover {
+        background-color: #2793da;
+        flex: none;
+      }
+      .spacer {
+        flex: auto;
+      }
+      .small {
+        font-size: 0.75rem;
+      }
+      {      
+      .header-label {
+        margin-right: 4px;
+      }
+      .benchmark-set {
+        margin: 8px 0;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+      }
+      .benchmark-title {
+        font-size: 3rem;
+        font-weight: 600;
+        word-break: break-word;
+        text-align: center;
+      }
+      .benchmark-graphs {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-around;
+        align-items: center;
+        flex-wrap: wrap;
+        width: 100%;
+      }
+      .benchmark-chart {
+        max-width: 1000px;
+      }
+    </style>
+    <title>Validation</title>
+  </head>
+
+  <body>
+    <header id="header">
+      <div class="header-item">
+        <strong class="header-label">Last Update:</strong>
+        <span id="last-update"></span>
+      </div>
+      <div class="header-item">
+        <strong class="header-label">Repository:</strong>
+        <a id="repository-link" rel="noopener"></a>
+      </div>
+      <div class="header-item">
+        <strong class="header-label">Commit:</strong>
+        <a id="commit-link" rel="noopener"></a>
+      </div>
+      <div class="header-item">
+        <strong class="header-label">Parameter File:</strong>
+        <a id="parameter-link" rel="noopener"></a>
+      </div>
+    </header>
+    <main id="main">
+      <div>This page contains a collection of results used to validate the behavior of <a href="https://github.com/galacticusorg/galacticus">Galacticus</a> in calculations relevant to strong lensing measurements.</div>
+
+      <h1>PonosV N-body Simulation Projected Subhalo Mass Function</h1>
+      <div>
+      PonosV is a dark matter only N-body simulation run by <a href="https://ui.adsabs.harvard.edu/abs/2016ApJ...824..144F">Fiacconi et al. (2016)</a>, simulating a halo with a virial mass of \(1.2\times10^{13}\mathrm{M}_\odot\) at \(z=0\) using <a href="https://ui.adsabs.harvard.edu/abs/2013ApJS..208...19H">WMAP cosmological parameters</a>. <a href="https://ui.adsabs.harvard.edu/abs/2016ApJ...824..144F">Fiacconi et al. (2016)</a> measure the projected mass function of subhalos at \(z=0.7\) at a radius of \(0.02 R_\mathrm{vir}\), and fit to a functional form:
+$$
+\frac{\mathrm{d}^2n}{\mathrm{d}\log M_\mathrm{sub} \mathrm{d}A} = \Sigma_\mathrm{sub} \left( \frac{M_\mathrm{sub}}{m_0} \right)^{-\alpha},
+$$
+      where \(M_\mathrm{sub}\) is the bound mass of the subhalo, and \(m_0 = 10^8\mathrm{M}_\odot\) is a pivot mass. To compare to this, several realizations of a mass-matched halo are run using <a href="https://github.com/galacticusorg/galacticus">Galacticus</a>. From these, the normalization, \(\Sigma_\mathrm{sub}\), and slope, \(\alpha\), are measured at \(z=0.7\) around the radius \(0.02 R_\mathrm{vir}\), and in the range \(10^8 < M_\mathrm{sub}/\mathrm{M}_\odot < 10^9\). Below, we report the mean value of \(\alpha\) over all realizations, along with the percentage of realizations which result in \(\Sigma_\mathrm{sub}\) above/below the value reported by <a href="https://ui.adsabs.harvard.edu/abs/2016ApJ...824..144F">Fiacconi et al. (2016)</a> for PonosV. There is substantial realization-to-realization scatter in \(\alpha\), so we consider a model with \(|\alpha-\alpha_\mathrm{PonosV}| < 0.2\) to be acceptable. There is also significant scatter in \(\Sigma_\mathrm{sub}\) - a model is considered successful if no less than 5% of realizations lie above/below the value measured in PonosV.<p>
+      </div>
+
+      <div class="header-item">
+	<strong>&Sigma;<sub>sub</sub> (% of realizations above/below PonosV [<span id="ponosv-normalization-target"></span> kpc<sup>-2</sup>]):</strong> <span id="ponosv-normalization"></span>
+      </div>
+      <div class="header-item">
+	<strong>&alpha; (Galacticus/PonosV):</strong> <span id="ponosv-slope"></span>
+      </div>
+    </main>
+    <script type="text/javascript"
+	    src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <script src="results_PonosV.json"></script>
+    <script id="main-script">
+      'use strict';
+      (function() {
+        // Colors from https://github.com/github/linguist/blob/master/lib/linguist/languages.yml
+        const toolColors = {
+          cargo: '#dea584',
+          go: '#00add8',
+          benchmarkjs: '#f1e05a',
+          benchmarkluau: '#000080',
+          pytest: '#3572a5',
+          googlecpp: '#f34b7d',
+          catch2: '#f34b7d',
+          julia: '#a270ba',
+          benchmarkdotnet: '#178600',
+          customBiggerIsBetter: '#38ff38',
+          customSmallerIsBetter: '#ff3838',
+          _: '#333333'
+        };
+
+        function init() {
+
+          const data = window.PONOSV_DATA;
+
+          // Render header
+          document.getElementById('last-update').textContent = new Date(data.commit.timestamp).toString();
+          const repoLink = document.getElementById('repository-link');
+          repoLink.href = data.repoUrl;
+          repoLink.textContent = data.repoUrl;
+          const commitLink = document.getElementById('commit-link');
+          commitLink.href = data.commit.url;
+          commitLink.textContent = data.commit.id;
+          const parameterLink = document.getElementById('parameter-link');
+          parameterLink.href = data.repoUrl+'/blob/'+data.commit.id+'/'+data.parameterFile;
+          parameterLink.textContent = data.parameterFile;
+
+          const ponosVSlope = document.getElementById('ponosv-slope');
+          ponosVSlope.textContent = data.slope.model.toFixed(2)+" / "+data.slope.target.toFixed(2);
+
+          const ponosVNormalizationTarget = document.getElementById('ponosv-normalization-target');
+          ponosVNormalizationTarget.textContent = data.surfaceDensity.target.toFixed(3);
+
+          const ponosVNormalization = document.getElementById('ponosv-normalization');
+          ponosVNormalization.textContent = data.surfaceDensity.percentageAbove.toFixed(1)+" / "+data.surfaceDensity.percentageBelow.toFixed(1);
+        }
+
+        init(); // Start
+      })();
+    </script>
+  </body>
+</html>

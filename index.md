@@ -12,8 +12,9 @@ Here you can find:
 * Benchmark and validation metrics for:
     * [Dark matter-only subhalos](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalos/)
     * [Milky Way model](https://galacticusorg.github.io/galacticus/dev/bench/milkyWayModel/)
-* Validation plots for:
+* Validation plots and data for:
     * [Dark matter-only subhalos](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalos/)
     * [Milky Way model](https://galacticusorg.github.io/galacticus/dev/valid/milkyWayModel/)
+    * [Strong lensing measurements](https://galacticusorg.github.io/galacticus/dev/valid/strongLensing/)
 * Meta metrics
     * [Build profile](https://galacticusorg.github.io/galacticus/dev/bench/meta/buildProfile)
