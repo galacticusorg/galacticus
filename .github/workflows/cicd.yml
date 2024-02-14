@@ -629,6 +629,17 @@ jobs:
       uploadFile: ./testSuite/outputs/*.json
       uploadName: validation-milkyWayModel
     secrets: inherit
+  Validate-PonosV:
+    needs: Build-Executable-Linux
+    uses: ./.github/workflows/testModel.yml
+    with:
+      file: validate-PonosV.pl
+      artifact: galacticus-exec
+      runPath: ./testSuite
+      cacheData: 0
+      uploadFile: ./testSuite/outputs/*.json
+      uploadName: validation-PonosV
+    secrets: inherit
   # Tests
   ## Linux
   ### Test Codes
@@ -1338,7 +1349,7 @@ jobs:
   # Validate, deploy and update
   Validate:
     runs-on: ubuntu-latest
-    needs: [ Benchmark-Dark-Matter-Only-Subhalos, Benchmark-Milky-Way-Model, Validate-Dark-Matter-Only-Subhalos, Validate-Milky-Way-Model ]
+    needs: [ Benchmark-Dark-Matter-Only-Subhalos, Benchmark-Milky-Way-Model, Validate-Dark-Matter-Only-Subhalos, Validate-Milky-Way-Model, Validate-PonosV ]
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
@@ -1362,6 +1373,10 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: validation-milkyWayModel
+      - name: Download artifacts (validation-PonosV)
+        uses: actions/download-artifact@v4
+        with:
+          name: validation-PonosV
       - name: Download artifacts (build-profile)
         uses: actions/download-artifact@v4
         with:
@@ -1479,9 +1494,10 @@ jobs:
           git checkout gh-pages
           mv results_darkMatterOnlySubhalos.json dev/valid/darkMatterOnlySubhalos/results.json
           mv results_milkyWayModel.json          dev/valid/milkyWayModel/results.json
+          mv results_PonosV.json                 dev/valid/strongLensing/results_PonosV.json
           git config --local user.email "github@users.noreply.github.com"
           git config --local user.name "github-action-validate"
-          git add dev/valid/darkMatterOnlySubhalos/results.json dev/valid/milkyWayModel/results.json
+          git add dev/valid/darkMatterOnlySubhalos/results.json dev/valid/milkyWayModel/results.json dev/valid/strongLensing/results_PonosV.json
           git commit -m "Update validation results"
           git push --set-upstream origin gh-pages
           git checkout -
