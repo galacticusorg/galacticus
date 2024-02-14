@@ -45,6 +45,10 @@ on:
       install: # Specify packages to install
         required: false
         type: string
+      needsIRATE: # Set to 0/1 to indicate if the IRATE package should be installed
+        required: false
+        default: 0
+        type: string
 defaults:
   run:
     shell: bash
@@ -94,6 +98,23 @@ jobs:
         run: |
           apt -y update && apt -y upgrade
           apt -y install ${{ inputs.install }}
+      - name: Install IRATE prerequisites
+        if: ${{ format('{0}',inputs.needsIRATE) == '1' }}
+        run: |
+          apt -y update && apt -y upgrade
+          apt -y install python-numpy python-h5py cython
+      - name: Check out repository IRATE
+        if: ${{ format('{0}',inputs.needsIRATE) == '1' }}
+        uses: actions/checkout@v4      
+        with:
+          repository: galacticusorg/irate-format
+          path: irate-format
+      - name: Install IRATE
+        if: ${{ format('{0}',inputs.needsIRATE) == '1' }}
+        run: |
+          cd irate-format
+          python setup.py install
+          cd -
       - name: Mark time for cache accesses
         if: ${{ format('{0}',inputs.cacheData) == '1' }}
         run: |
