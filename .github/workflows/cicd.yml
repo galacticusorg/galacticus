@@ -871,6 +871,7 @@ jobs:
       artifact: galacticus-exec
       runPath: ./testSuite
       options: "--launchMethod local --threadMaximum 1 --ompThreads 4"
+      needsIRATE: 1
     secrets: inherit
   ## Model Integration
   Model-Integration:
@@ -898,7 +899,6 @@ jobs:
                 test-bar-instability.pl,
                 test-transfer-functions-axion.pl,
                 test-mass-definitions.pl,
-                test-Bolshoi-tree-builder.pl,
                 test-branchlessTrees.pl,
                 test-branchSubsampling.pl,
                 test-CGM-mass-cooled.pl,
@@ -915,7 +915,6 @@ jobs:
                 test-noninstantaneous-recycling.pl,
                 test-satellite-distance-minimum.pl,
                 test-treeFilterLabels.pl,
-                test-Millennium-tree-builder.pl,
                 test-output.pl,
                 test-output-tree-contiguousity.pl,
                 test-parameter-validation.pl,
@@ -938,6 +937,21 @@ jobs:
       file: ${{ matrix.file }}
       artifact: galacticus-exec
       runPath: ./testSuite
+    secrets: inherit
+  Miscellaneous-IRATE:
+    needs: Build-Executable-Linux
+    strategy:
+      # Ensure all jobs are run, even if some fail.
+      fail-fast: false
+      matrix:
+        file: [ test-Bolshoi-tree-builder.pl,
+                test-Millennium-tree-builder.pl ]
+    uses: ./.github/workflows/testModel.yml
+    with:
+      file: ${{ matrix.file }}
+      artifact: galacticus-exec
+      runPath: ./testSuite
+      needsIRATE: 1
     secrets: inherit
   Miscellaneous-Deep:
     needs: Build-Executable-Linux
@@ -1547,6 +1561,7 @@ jobs:
              Model-Integration,
              Miscellaneous,
              Miscellaneous-Cached,
+             Miscellaneous-IRATE,
              Miscellaneous-Deep,
              Miscellaneous-Models,
              Outputs,
