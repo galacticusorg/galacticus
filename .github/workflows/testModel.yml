@@ -102,7 +102,11 @@ jobs:
         if: ${{ format('{0}',inputs.needsIRATE) == '1' }}
         run: |
           apt -y update && apt -y upgrade
-          apt -y install python-numpy python-h5py cython
+          apt -y install python2-minimal hdf5 curl 
+          curl https://bootstrap.pypa.io/pip/2.7/get-pip.py --output get-pip.py
+          python2 get-pip.py
+          pip2 install numpy h5py
+          pip2 install Cython --install-option="--no-cython-compile"
       - name: Check out repository IRATE
         if: ${{ format('{0}',inputs.needsIRATE) == '1' }}
         uses: actions/checkout@v4      
@@ -113,7 +117,7 @@ jobs:
         if: ${{ format('{0}',inputs.needsIRATE) == '1' }}
         run: |
           cd irate-format
-          python setup.py install
+          python2 setup.py install
           cd -
       - name: Mark time for cache accesses
         if: ${{ format('{0}',inputs.cacheData) == '1' }}
