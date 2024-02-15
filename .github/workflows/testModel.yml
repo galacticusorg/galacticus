@@ -98,26 +98,24 @@ jobs:
         run: |
           apt -y update && apt -y upgrade
           apt -y install ${{ inputs.install }}
-      - name: Install IRATE prerequisites
+      - name: Install IRATE
         if: ${{ format('{0}',inputs.needsIRATE) == '1' }}
         run: |
           apt -y update && apt -y upgrade
-          apt -y install python2-minimal hdf5 curl 
+          apt -y install python2-minimal python2-dev python-setuptools libhdf5-dev curl libntirpc-dev
           curl https://bootstrap.pypa.io/pip/2.7/get-pip.py --output get-pip.py
           python2 get-pip.py
           pip2 install numpy h5py
           pip2 install Cython --install-option="--no-cython-compile"
-      - name: Check out repository IRATE
-        if: ${{ format('{0}',inputs.needsIRATE) == '1' }}
-        uses: actions/checkout@v4      
-        with:
-          repository: galacticusorg/irate-format
-          path: irate-format
-      - name: Install IRATE
-        if: ${{ format('{0}',inputs.needsIRATE) == '1' }}
-        run: |
+          eval `ssh-agent -s`
+          ssh-add - <<< '${{ secrets.IRATE_DEPLOY_PRIVATE_KEY }}'
+          mkdir -p ~/.ssh
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+          git clone git@github.com:galacticusorg/irate-format.git
           cd irate-format
-          python2 setup.py install
+          # For some reason install fails on the first attempt - so try twice.
+          CFLAGS=-I/usr/include/ntirpc/ python2 setup.py install || true
+          CFLAGS=-I/usr/include/ntirpc/ python2 setup.py install
           cd -
       - name: Mark time for cache accesses
         if: ${{ format('{0}',inputs.cacheData) == '1' }}
