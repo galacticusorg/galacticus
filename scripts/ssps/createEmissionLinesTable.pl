@@ -480,7 +480,7 @@ for(my $iAge=0;$iAge<$ionizingLuminosityPerMass->dim(0);++$iAge) {
 &{$Galacticus::Launch::Hooks::moduleHooks{$queueManager->{'manager'}}->{'jobArrayLaunch'}}(\%options,@jobs);
 
 # Validate results.
-&validateResults($ages,$logMetallicities,$logHydrogenLuminosities,$lineData);
+&validateResults($ages,$logMetallicities,$logHydrogenLuminosities,$ionizingLuminosityPerMass,$lineData);
 
 # Write the line data to file.
 my $tableFile = new PDL::IO::HDF5(">cloudyTable.hdf5");
@@ -722,10 +722,11 @@ sub adjustAbundanceHelium {
 
 sub validateResults {
     # Validate the results of the Cloudy calculations.
-    my $ages                    = shift();
-    my $logMetallicities        = shift();
-    my $logHydrogenLuminosities = shift();
-    my $lineData                = shift();
+    my $ages                      = shift();
+    my $logMetallicities          = shift();
+    my $logHydrogenLuminosities   = shift();
+    my $ionizingLuminosityPerMass = shift();
+    my $lineData                  = shift();
     
     # Validate the ratio L_Hα/Qₕ. From Osterbrock & Ferland (2006; https://ui.adsabs.harvard.edu/abs/2006agna.book.....O) we
     # expect:
@@ -748,10 +749,29 @@ sub validateResults {
     my $ratioMaximum = $ratio->($selectAge,$selectMetallicity,:)->flat()->($selection)->maximum();
     # Report.
     my $ratioTarget = pdl 1.37e-12;
-    print "Validation: ratio L_Hα/Q\n";
+    print "Validation: ratio L_Hα/Qₕ\n";
     print "   Expected: ".$ratioTarget."\n";
     print "   Found range: ".sprintf("%8.3e",$ratioMinimum)." to ".sprintf("%8.3e",$ratioMaximum)."\n\n";
 
+    # Validate the ionizing photon luminosity per star formation rate. Compute the ratio of star formation rate to ionizing
+    # luminosity. This assumes a constant star formation rate of φ=1 M☉/yr. The ratio is then:
+    #
+    #    (SFR/M☉ yr¯¹)/(Qₕ/photons s¯¹) = φ / ∫₀᪲ φ Qₕ(t) dt
+    #
+    # a value of 7.4 x 10¯⁵⁴ is expected for a Kroupa IMF (Osterbrock & Ferland, 2006;
+    # https://ui.adsabs.harvard.edu/abs/2006agna.book.....O). For a Chabrier IMF a lower value of around 4.7 x 10¯⁵⁴ is expected.
+    my $ageStep       =  $ages   ->copy();
+    $ageStep->(0:-2) .= +$ages   ->(1:-1)
+	                -$ages   ->(0:-2);
+    $ageStep->((-1)) .=  $ageStep->((-2));
+    my $giga          = pdl 1.0e9;
+    my $starFormtionRateToIonizingLuminosity = 1.0/sum($ionizingLuminosityPerMass->(:,(0))*$ageStep*$giga);
+    # Report.
+    print "Validation: ratio SFR/Qₕ\n";
+    print "   Expected (Kroupa IMF): 7.54e-54\n";
+    print "   Expected (Chabrier IMF): 4.74e-54\n";
+    print "   Found: ".$starFormtionRateToIonizingLuminosity."\n";
+    
     # Validate model success.
     my $selectSuccess       = which($lineData->{'status'} == 0);
     my $selectDisaster      = which($lineData->{'status'} == 1);
