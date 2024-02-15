@@ -21,8 +21,6 @@
   A dark matter halo profile heating class which accounts for heating from tidal shocking.
   !!}
 
-  use :: Kind_Numbers, only : kind_int8
-
   !![
   <darkMatterProfileHeating name="darkMatterProfileHeatingTidal">
    <description>
@@ -48,26 +46,10 @@
      A dark matter profile heating class which accounts for heating due to tidal shocking.
      !!}
      private
-     double precision            :: specificEnergyOverRadiusSquared_, specificEnergyOverRadiusSquaredParent_, &
-          &                         correlationVelocityRadius       , coefficientSecondOrder0               , &
-          &                         coefficientSecondOrder1         , coefficientSecondOrder2
-     integer         (kind_int8) :: lastUniqueID                    , parentUniqueID
-  contains
-     !![
-     <methods>
-       <method description="Reset memoized calculations."                             method="calculationReset"               />
-       <method description="Compute $Q = E / r^2$."                                   method="specificEnergyOverRadiusSquared"/>
-       <method description="Compute the first and second order energy perturbations." method="specificEnergyTerms"            />
-     </methods>
-     !!]
-     final     ::                                    tidalDestructor
-     procedure :: autoHook                        => tidalAutoHook
-     procedure :: calculationReset                => tidalCalculationReset
-     procedure :: specificEnergy                  => tidalSpecificEnergy
-     procedure :: specificEnergyGradient          => tidalSpecificEnergyGradient
-     procedure :: specificEnergyIsEverywhereZero  => tidalSpecificEnergyIsEverywhereZero
-     procedure :: specificEnergyOverRadiusSquared => tidalSpecificEnergyOverRadiusSquared
-     procedure :: specificEnergyTerms             => tidalSpecificEnergyTerms
+     double precision :: correlationVelocityRadius, coefficientSecondOrder0, &
+          &              coefficientSecondOrder1  , coefficientSecondOrder2
+   contains
+     procedure :: get => tidalGet
   end type darkMatterProfileHeatingTidal
 
   interface darkMatterProfileHeatingTidal
@@ -136,205 +118,45 @@ contains
     <constructorAssign variables="coefficientSecondOrder0, coefficientSecondOrder1, coefficientSecondOrder2, correlationVelocityRadius"/>
     !!]
     
-    self%specificEnergyOverRadiusSquared_      =-1.0d0
-    self%specificEnergyOverRadiusSquaredParent_=-1.0d0
-    self%lastUniqueID                          =-1_kind_int8
-    self%parentUniqueID                        =-1_kind_int8
     return
   end function tidalConstructorInternal
 
-  subroutine tidalAutoHook(self)
+  function tidalGet(self,node) result(massDistributionHeating_)
     !!{
-    Attach to the calculation reset event.
+    Return the dark matter mass distribution heating for the given {\normalfont \ttfamily node}.
     !!}
-    use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
+    use :: Galacticus_Nodes  , only : nodeComponentSatellite
+    use :: Mass_Distributions, only : massDistributionHeatingTidal
     implicit none
-    class(darkMatterProfileHeatingTidal), intent(inout) :: self
-
-    call calculationResetEvent%attach(self,tidalCalculationReset,openMPThreadBindingAllLevels,label='darkMatterProfileHeatingTidal')
-    return
-  end subroutine tidalAutoHook
-
-  subroutine tidalCalculationReset(self,node,uniqueID)
-    !!{
-    Reset the stored tidal radii.
-    !!}
-    use :: Kind_Numbers, only : kind_int8
-    implicit none
-    class  (darkMatterProfileHeatingTidal), intent(inout) :: self
-    type   (treeNode                     ), intent(inout) :: node
-    integer(kind_int8                    ), intent(in   ) :: uniqueID
-
-    self   %specificEnergyOverRadiusSquared_      =-1.0d0
-    self   %specificEnergyOverRadiusSquaredParent_=-1.0d0
-    self   %lastUniqueID                          =            uniqueID
-    if (associated(node%parent)) then
-       self%parentUniqueID                        =node%parent%uniqueID()
-    else
-       self%parentUniqueID                        =-1_kind_int8
-    end if
-    return
-  end subroutine tidalCalculationReset
-
-  subroutine tidalDestructor(self)
-    !!{
-    Destructor for the {\normalfont \ttfamily tidal} dark matter profile heating class.
-    !!}
-    use :: Events_Hooks, only : calculationResetEvent
-    implicit none
-    type(darkMatterProfileHeatingTidal), intent(inout) :: self
-
-    if (calculationResetEvent%isAttached(self,tidalCalculationReset)) call calculationResetEvent%detach(self,tidalCalculationReset)
-    return
-  end subroutine tidalDestructor
-
-  double precision function tidalSpecificEnergy(self,node,radius,darkMatterProfileDMO_)
-    !!{
-    Returns the specific energy of heating in the given {\normalfont \ttfamily node}.
-    !!}
-    implicit none
+    class           (massDistributionHeatingClass ), pointer       :: massDistributionHeating_
     class           (darkMatterProfileHeatingTidal), intent(inout) :: self
     type            (treeNode                     ), intent(inout) :: node
-    double precision                               , intent(in   ) :: radius
-    class           (darkMatterProfileDMOClass    ), intent(inout) :: darkMatterProfileDMO_
-    double precision                                               :: energyPerturbationFirstOrder, energyPerturbationSecondOrder
-
-    call self%specificEnergyTerms(node,radius,energyPerturbationFirstOrder,energyPerturbationSecondOrder,darkMatterProfileDMO_)
-    tidalSpecificEnergy=+energyPerturbationFirstOrder  &
-         &              +energyPerturbationSecondOrder
+    class           (nodeComponentSatellite       ), pointer       :: satellite
+    double precision                                               :: heatSpecificNormalized
+ 
+    ! Create the mass distribution.
+    allocate(massDistributionHeatingTidal :: massDistributionHeating_)
+    select type(massDistributionHeating_)
+    type is (massDistributionHeatingTidal)
+       satellite              =>      node     %satellite             ()
+       heatSpecificNormalized =  max(                                     &
+            &                        +0.0d0                             , &
+            &                        +satellite%tidalHeatingNormalized()  &
+            &                       )
+       !![
+       <referenceConstruct object="massDistributionHeating_">
+	 <constructor>
+           massDistributionHeatingTidal(                                                          &amp;
+            &amp;                       heatSpecificNormalized   =heatSpecificNormalized        , &amp;
+            &amp;                       coefficientSecondOrder0  =self%coefficientSecondOrder0  , &amp;
+            &amp;                       coefficientSecondOrder1  =self%coefficientSecondOrder1  , &amp;
+            &amp;                       coefficientSecondOrder2  =self%coefficientSecondOrder2  , &amp;
+            &amp;                       correlationVelocityRadius=self%correlationVelocityRadius  &amp;
+            &amp;                      )
+	 </constructor>
+       </referenceConstruct>
+       !!]
+    end select
     return
-  end function tidalSpecificEnergy
+  end function tidalGet
 
-  double precision function tidalSpecificEnergyGradient(self,node,radius,darkMatterProfileDMO_)
-    !!{
-    Returns the gradient of the specific energy of heating in the given {\normalfont \ttfamily node}.
-    !!}
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
-    implicit none
-    class           (darkMatterProfileHeatingTidal), intent(inout) :: self
-    type            (treeNode                     ), intent(inout) :: node
-    double precision                               , intent(in   ) :: radius
-    class           (darkMatterProfileDMOClass    ), intent(inout) :: darkMatterProfileDMO_
-    double precision                                               :: energyPerturbationFirstOrder, energyPerturbationSecondOrder
-
-    
-    if (radius > 0.0d0) then
-       call self%specificEnergyTerms(node,radius,energyPerturbationFirstOrder,energyPerturbationSecondOrder,darkMatterProfileDMO_)
-       if (energyPerturbationSecondOrder > 0.0d0) then
-          tidalSpecificEnergyGradient=+(                                                                                                &
-               &                        +energyPerturbationFirstOrder *  2.0d0                                                          & !   dlog[r²    ]/dlog(r) term
-               &                        +energyPerturbationSecondOrder*(                                                                &
-               &                                                        -0.5d0                                                          & ! ⎧ dlog[σ_r(r)]/dlog[r] term
-               &                                                        *darkMatterProfileDMO_%densityLogSlope         (node,radius)    & ! ⎥
-               &                                                        -0.5d0                                                          & ! ⎥ Assumes the Jeans equation in
-               &                                                        *gravitationalConstantGalacticus                                & ! ⎥ spherical symmetry with anisotropy
-               &                                                        *darkMatterProfileDMO_%enclosedMass            (node,radius)    & ! ⎥ parameter β=0. Would be better to
-               &                                                        /                                                    radius     & ! ⎥ have this provided by the
-               &                                                        /darkMatterProfileDMO_%radialVelocityDispersion(node,radius)**2 & ! ⎩ darkMatterProfileDMO class.
-               &                                                        +1.0d0                                                          & !   dlog[r     ]/dlog(r) term
-               &                                                       )                                                                &
-               &                       )                                                                                                &
-               &                      /radius
-       else
-          tidalSpecificEnergyGradient=+  energyPerturbationFirstOrder *  2.0d0                                                          & !   dlog[r²    ]/dlog(r) term
-               &                      /radius
-       end if
-    else
-       tidalSpecificEnergyGradient=+0.0d0
-    end if
-    return
-  end function tidalSpecificEnergyGradient
-
-  subroutine tidalSpecificEnergyTerms(self,node,radius,energyPerturbationFirstOrder,energyPerturbationSecondOrder,darkMatterProfileDMO_)
-    !!{
-    Compute the first and second order perturbations to the energy.
-    !!}
-    implicit none
-    class           (darkMatterProfileHeatingTidal), intent(inout) :: self
-    type            (treeNode                     ), intent(inout) :: node
-    double precision                               , intent(in   ) :: radius
-    double precision                               , intent(  out) :: energyPerturbationFirstOrder, energyPerturbationSecondOrder
-    class           (darkMatterProfileDMOClass    ), intent(inout) :: darkMatterProfileDMO_
-    double precision                                               :: coefficientSecondOrder, densityLogSlope
-
-    energyPerturbationFirstOrder=+self%specificEnergyOverRadiusSquared(node)    &
-         &                       *radius                                    **2
-    if     (                                       &
-         &   self%coefficientSecondOrder0 /= 0.0d0 &
-         &  .or.                                   &
-         &   self%coefficientSecondOrder1 /= 0.0d0 &
-         &  .or.                                   &
-         &   self%coefficientSecondOrder2 /= 0.0d0 &
-         & ) then
-       ! Compute the coefficient for the second order term.
-       densityLogSlope       =+darkMatterProfileDMO_%densityLogSlope(node,radius)
-       coefficientSecondOrder=+self%coefficientSecondOrder0                    &
-            &                 +self%coefficientSecondOrder1*densityLogSlope    &
-            &                 +self%coefficientSecondOrder2*densityLogSlope**2
-       ! Compute the second order energy perturbation.
-       energyPerturbationSecondOrder=+sqrt(2.0d0)                                                 &
-            &                        *coefficientSecondOrder                                      &
-            &                        *(                                                           &
-            &                          +1.0d0                                                     &
-            &                          +self%correlationVelocityRadius                            &
-            &                         )                                                           &
-            &                        *sqrt(energyPerturbationFirstOrder)                          &
-            &                        *darkMatterProfileDMO_%radialVelocityDispersion(node,radius)
-    else
-       energyPerturbationSecondOrder=+0.0d0
-    end if
-    return
-  end subroutine tidalSpecificEnergyTerms
-
-  logical function tidalSpecificEnergyIsEverywhereZero(self,node,darkMatterProfileDMO_)
-    !!{
-    Returns true if the specific energy is everywhere zero in the given {\normalfont \ttfamily node}.
-    !!}
-    implicit none
-    class(darkMatterProfileHeatingTidal), intent(inout) :: self
-    type (treeNode                     ), intent(inout) :: node
-    class(darkMatterProfileDMOClass    ), intent(inout) :: darkMatterProfileDMO_
-    !$GLC attributes unused :: darkMatterProfileDMO_
-
-    tidalSpecificEnergyIsEverywhereZero=self%specificEnergyOverRadiusSquared(node) <= 0.0d0
-    return
-  end function tidalSpecificEnergyIsEverywhereZero
-
-  double precision function tidalSpecificEnergyOverRadiusSquared(self,node)
-    !!{
-    Compute $Q = E / r^2$.
-    !!}
-    use :: Galacticus_Nodes, only : nodeComponentSatellite, treeNode
-    implicit none
-    class  (darkMatterProfileHeatingTidal), intent(inout) :: self
-    type   (treeNode                     ), intent(inout) :: node
-    class  (nodeComponentSatellite       ), pointer       :: satellite
-    integer(kind_int8                    )                :: uniqueID
-
-    uniqueID=node%uniqueID()
-    if     (                                 &
-         &   uniqueID /= self%parentUniqueID &
-         &  .and.                            &
-         &   uniqueID /= self%lastUniqueID   &
-         & ) call self%calculationReset(node,uniqueID)
-    if (uniqueID == self%parentUniqueID) then
-       if (self%specificEnergyOverRadiusSquaredParent_ < 0.0d0) then
-          satellite                                   =>      node     %satellite             ()
-          self%specificEnergyOverRadiusSquaredParent_ =  max(                                     &
-               &                                             +0.0d0                             , &
-               &                                             +satellite%tidalHeatingNormalized()  &
-               &                                            )
-       end if
-       tidalSpecificEnergyOverRadiusSquared=self%specificEnergyOverRadiusSquaredParent_
-    else
-       if (self%specificEnergyOverRadiusSquared_       < 0.0d0) then
-          satellite                                   =>      node     %satellite             ()
-          self%specificEnergyOverRadiusSquared_       =  max(                                     &
-               &                                             +0.0d0                             , &
-               &                                             +satellite%tidalHeatingNormalized()  &
-               &                                            )
-       end if
-       tidalSpecificEnergyOverRadiusSquared=self%specificEnergyOverRadiusSquared_
-    end if
-    return
-  end function tidalSpecificEnergyOverRadiusSquared

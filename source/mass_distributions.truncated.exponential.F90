@@ -158,7 +158,7 @@ contains
          &                     /self%radiusTruncateDecay                                                                   &
          &                     +self%massDistribution_%densityGradientRadial(                                              &
          &                                                                               coordinatesTruncateMinimum      , &
-         &                                                                   logarithmic=.true.&
+         &                                                                   logarithmic=.true.                            &
          &                                                                  )
     self%dimensionless        = self%massDistribution_%isDimensionless      (                                              &
          &                                                                  )

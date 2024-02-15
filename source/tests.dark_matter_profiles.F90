@@ -39,7 +39,8 @@ program Test_Dark_Matter_Profiles
   use :: Events_Hooks                    , only : eventsHooksInitialize
   use :: Functions_Global_Utilities      , only : Functions_Global_Set
   use :: Display                         , only : displayVerbositySet                                           , verbosityLevelStandard
-  use :: Mass_Distributions              , only : massDistributionClass                                         , massDistributionSpherical           , kinematicsDistributionClass          , nonAnalyticSolversNumerical
+  use :: Mass_Distributions              , only : massDistributionClass                                         , massDistributionSpherical           , kinematicsDistributionClass          , nonAnalyticSolversNumerical   , &
+       &                                          massDistributionSphericalSIDM
   use :: Galacticus_Nodes                , only : nodeClassHierarchyFinalize                                    , nodeClassHierarchyInitialize        , nodeComponentBasic                   , nodeComponentDarkMatterProfile, &
           &                                       treeNode                                                      , nodeComponentSpheroid
   use :: Numerical_Constants_Math        , only : Pi
@@ -241,7 +242,6 @@ program Test_Dark_Matter_Profiles
      &amp;                               resolutionIsComoving                =.false.                    , &amp;
      &amp;                               nonAnalyticSolver                   =nonAnalyticSolversNumerical, &amp;
      &amp;                               darkMatterProfileDMO_               =darkMatterProfileDMONFW_   , &amp;
-     &amp;                               darkMatterHaloScale_                =darkMatterHaloScale_       , &amp;
      &amp;                               cosmologyFunctions_                 =cosmologyFunctions_          &amp;
      &amp;                              )
    </constructor>
@@ -1377,11 +1377,17 @@ program Test_Dark_Matter_Profiles
   call Unit_Tests_End_Group       ()
   ! Test finite resolution NFW profile.
   call Unit_Tests_Begin_Group('Finite resolution NFW profile')
+  massDistribution_ => darkMatterProfileDMOFiniteResolution_%get         (node)
+  radiusVirial      =  darkMatterHaloScale_                 %radiusVirial(node)
   do i=1,7
-     mass   (i)=darkMatterProfileDMOFiniteResolution_%enclosedMass(node,      radiusScale*radius(i))
-     density(i)=darkMatterProfileDMOFiniteResolution_%density     (node,      radiusScale*radius(i))*radiusScale**3
-     fourier(i)=darkMatterProfileDMOFiniteResolution_%kSpace      (node,1.0d0/radiusScale/radius(i))
+     coordinates=[radiusScale*radius(i),0.0d0,0.0d0]
+     mass   (i)=massDistribution_%massEnclosedBySphere(radius     =      radiusScale*radius(i)                         )
+     density(i)=massDistribution_%density             (coordinates=      coordinates                                   )*radiusScale**3
+     fourier(i)=massDistribution_%fourierTransform    (wavenumber =1.0d0/radiusScale/radius(i),radiusOuter=radiusVirial)
   end do
+  !![
+  <objectDestructor name="massDistribution_"/>
+  !!]
   call Assert(                        &
        &      'enclosed mass'       , &
        &      mass                  , &
@@ -1508,8 +1514,7 @@ program Test_Dark_Matter_Profiles
      &amp;                                             nonAnalyticSolver                   =nonAnalyticSolversNumerical                      , &amp;
      &amp;                                             cosmologyParameters_                =cosmologyParametersPippin_                       , &amp;
      &amp;                                             darkMatterHaloScale_                =darkMatterHaloScalePippin_                       , &amp;
-     &amp;                                             darkMatterProfileDMO_               =darkMatterProfileDMONFWPippin_                   , &amp;
-     &amp;                                             galacticStructure_                  =galacticStructureStandard_                         &amp;
+     &amp;                                             darkMatterProfileDMO_               =darkMatterProfileDMONFWPippin_                     &amp;
      &amp;                                            )
    </constructor>
   </referenceConstruct>
@@ -1517,7 +1522,6 @@ program Test_Dark_Matter_Profiles
    <constructor>
     darkMatterProfileDMOSIDMIsothermal                (                                                                                        &amp;
      &amp;                                             darkMatterProfileDMO_               =darkMatterProfileDMONFWPippin_                   , &amp;
-     &amp;                                             darkMatterHaloScale_                =darkMatterHaloScalePippin_                       , &amp;
      &amp;                                             darkMatterParticle_                 =darkMatterParticleSelfInteractingDarkMatterJiang_  &amp;
      &amp;                                            )
    </constructor>
@@ -1526,9 +1530,7 @@ program Test_Dark_Matter_Profiles
    <constructor>
     darkMatterProfileSIDMIsothermal                   (                                                                                        &amp;
      &amp;                                             darkMatterProfile_                  =darkMatterProfileAdiabaticPippin_                , &amp;
-     &amp;                                             darkMatterHaloScale_                =darkMatterHaloScalePippin_                       , &amp;
-     &amp;                                             darkMatterParticle_                 =darkMatterParticleSelfInteractingDarkMatterJiang_, &amp;
-     &amp;                                             galacticStructure_                  =galacticStructureStandard_                         &amp;
+     &amp;                                             darkMatterParticle_                 =darkMatterParticleSelfInteractingDarkMatterJiang_  &amp;
      &amp;                                            )
    </constructor>
   </referenceConstruct>
@@ -1544,17 +1546,22 @@ program Test_Dark_Matter_Profiles
   radiusScale=+darkMatterHaloScalePippin_%radiusVirial(nodePippin) &
        &      /concentrationPippin                                          
   call dmProfile%scaleSet(radiusScale)
+  massDistribution_ => darkMatterProfileDMOSIDMCoreNFW_%get(nodePippin)
   do i=1,7
-     mass   (i)=darkMatterProfileDMOSIDMCoreNFW_%enclosedMass(nodePippin,radiusScale*radius(i))
-     density(i)=darkMatterProfileDMOSIDMCoreNFW_%density     (nodePippin,radiusScale*radius(i))
+     coordinates   =[radiusScale*radius(i),0.0d0,0.0d0]
+     mass       (i)=massDistribution_%massEnclosedBySphere(radiusScale*radius(i))
+     density    (i)=massDistribution_%density             (coordinates          )
   end do
   ! Interaction radius estimated from Figure 2 of Jiang et al. (2022).
-  call Assert(                                                                &
-       &      'interaction radius'                                          , &
-       &      darkMatterProfileDMOSIDMCoreNFW_%radiusInteraction(nodePippin), &
-       &      2.337664390096387d-3                                          , &
-       &      relTol=1.0d-2                                                   &
-       &     )
+  select type (massDistribution_)
+  class is (massDistributionSphericalSIDM)
+     call Assert(                                       &
+          &      'interaction radius'                 , &
+          &      massDistribution_%radiusInteraction(), &
+          &      2.337664390096387d-3                 , &
+          &      relTol=1.0d-2                          &
+          &     )
+  end select
   ! Mass and density computed using Mathematica.
   call Assert(                        &
        &      'enclosed mass'       , &
@@ -1585,6 +1592,9 @@ program Test_Dark_Matter_Profiles
        &      relTol=1.0d-2           &
        &     )
   call Unit_Tests_End_Group       ()
+  !![
+  <objectDestructor name="massDistribution_"/>
+  !!]
   ! Test isothermal self-interacting dark matter profile.
   call Unit_Tests_Begin_Group('Isothermal self-interacting dark matter profile')
   !! Set properties to match the example halo generated by Fangzhou Jiang (private communication).
@@ -1596,26 +1606,36 @@ program Test_Dark_Matter_Profiles
   radiusScale=+darkMatterHaloScalePippin_%radiusVirial(nodeJiang) &
        &      /concentrationJiang                                          
   call dmProfile%scaleSet(radiusScale)
+  massDistribution_       => darkMatterProfileDMOSIDMIsothermal_%get                   (nodeJiang)
+  kinematicsDistribution_ => massDistribution_                  %kinematicsDistribution(         )
   !! Target values were provided by Fangzhou Jiang (private communication).
-  call Assert(                                                                                      &
-       &      'interaction radius'                                                                , &
-       &      darkMatterProfileDMOSIDMIsothermal_%radiusInteraction       (nodeJiang             ), &
-       &      6.9732d-3                                                                           , &
-       &      relTol=1.0d-2                                                                         &
-       &     )
-  call Assert(                                                                                      &
-       &      'central density'                                                                   , &
-       &      darkMatterProfileDMOSIDMIsothermal_%density                 (nodeJiang,radius=0.0d0), &
-       &      4.1168d16                                                                           , &
-       &      relTol=1.0d-1                                                                         &
-       &     )
-  call Assert(                                                                                      &
-       &      'central velocity dispersion'                                                       , &
-       &      darkMatterProfileDMOSIDMIsothermal_%radialVelocityDispersion(nodeJiang,radius=0.0d0), &
-       &      54.9811d0                                                                           , &
-       &      relTol=1.0d-2                                                                         &
-       &     )
+  select type (massDistribution_)
+  class is (massDistributionSphericalSIDM)
+     coordinates=[0.0d0,0.0d0,0.0d0]
+     call Assert(                                                                             &
+          &      'interaction radius'                                                       , &
+          &      massDistribution_      %radiusInteraction   (                             ), &
+          &      6.9732d-3                                                                  , &
+          &      relTol=1.0d-2                                                                &
+          &     )
+     call Assert(                                                                             &
+          &      'central density'                                                          , &
+          &      massDistribution_      %density             (coordinates                  ), &
+          &      4.1168d16                                                                  , &
+          &      relTol=1.0d-1                                                                &
+          &     )
+     call Assert(                                                                             &
+          &      'central velocity dispersion'                                              , &
+          &      kinematicsDistribution_%velocityDispersion1D(coordinates,massDistribution_), &
+          &      54.9811d0                                                                  , &
+          &      relTol=1.0d-2                                                                &
+          &     )
+  end select
   call Unit_Tests_End_Group       ()
+  !![
+  <objectDestructor name="massDistribution_"      />
+  <objectDestructor name="kinematicsDistribution_"/>
+  !!]
   ! Test isothermal self-interacting dark matter profile with adiabatic contraction.
   call Unit_Tests_Begin_Group('Isothermal self-interacting dark matter profile (with adiabatic contraction)')
   !! Set properties to match the example halo generated by Fangzhou Jiang (private communication).
@@ -1627,52 +1647,72 @@ program Test_Dark_Matter_Profiles
   radiusScale=+darkMatterHaloScalePippin_%radiusVirial(nodeJiang) &
        &      /concentrationJiang                                          
   call dmProfile%scaleSet(radiusScale)
-  !! Target values were provided by Fangzhou Jiang (private communication).
-  call Assert(                                                                                   &
-       &      'interaction radius'                                                             , &
-       &      darkMatterProfileSIDMIsothermal_%radiusInteraction       (nodeJiang             ), &
-       &      6.9732d-3                                                                        , &
-       &      relTol=1.0d-2                                                                      &
-       &     )
-  call Assert(                                                                                   &
-       &      'central density'                                                                , &
-       &      darkMatterProfileSIDMIsothermal_%density                 (nodeJiang,radius=0.0d0), &
-       &      4.1168d16                                                                        , &
-       &      relTol=1.0d-1                                                                      &
-       &     )
-  call Assert(                                                                                   &
-       &      'central velocity dispersion'                                                    , &
-       &      darkMatterProfileSIDMIsothermal_%radialVelocityDispersion(nodeJiang,radius=0.0d0), &
-       &      54.9811d0                                                                        , &
-       &      relTol=1.0d-2                                                                      &
-       &     )
+  massDistribution_       => darkMatterProfileSIDMIsothermal_%get                   (nodeJiang)
+  kinematicsDistribution_ => massDistribution_               %kinematicsDistribution(         )
+   !! Target values were provided by Fangzhou Jiang (private communication).
+  select type (massDistribution_)
+  class is (massDistributionSphericalSIDM)
+     coordinates=[0.0d0,0.0d0,0.0d0]
+     call Assert(                                                                             &
+          &      'interaction radius'                                                       , &
+          &      massDistribution_      %radiusInteraction   (                             ), &
+          &      6.9732d-3                                                                  , &
+          &      relTol=1.0d-2                                                                &
+          &     )
+     call Assert(                                                                             &
+          &      'central density'                                                          , &
+          &      massDistribution_      %density             (coordinates                  ), &
+          &      4.1168d16                                                                  , &
+          &      relTol=1.0d-1                                                                &
+          &     )
+     call Assert(                                                                             &
+          &      'central velocity dispersion'                                              , &
+          &      kinematicsDistribution_%velocityDispersion1D(coordinates,massDistribution_), &
+          &      54.9811d0                                                                  , &
+          &      relTol=1.0d-2                                                                &
+          &     )
+  end select
   call Unit_Tests_End_Group       ()
+  !![
+  <objectDestructor name="massDistribution_"      />
+  <objectDestructor name="kinematicsDistribution_"/>
+  !!]
   !! Insert a spheroid.
   call Unit_Tests_Begin_Group('With baryons case')
   spheroid      => nodeJiang%spheroid            (autoCreate=.true.)
   call spheroid%massStellarSet(fractionMassBaryonicJiang  *                           massVirialJiang                                                )
   call spheroid%     radiusSet(fractionRadiusHalfMassJiang*darkMatterHaloScalePippin_%radiusVirial   (nodeJiang)/radiusHalfMassDimensionlessHernquist)
   call Calculations_Reset(nodeJiang)
+  massDistribution_       => darkMatterProfileDMOSIDMIsothermal_%get                   (nodeJiang)
+  kinematicsDistribution_ => massDistribution_                  %kinematicsDistribution(         )
   !! Target values were measured from Figure A1 of Jiang et al. (2022).
-  call Assert(                                                                                   &
-       &      'interaction radius'                                                             , &
-       &      darkMatterProfileSIDMIsothermal_%radiusInteraction       (nodeJiang             ), &
-       &      6.9732d-3                                                                        , &
-       &      relTol=1.0d-2                                                                      &
-       &     )
-  call Assert(                                                                                   &
-       &      'central density'                                                                , &
-       &      darkMatterProfileSIDMIsothermal_%density                 (nodeJiang,radius=0.0d0), &
-       &      2.534d17                                                                         , &
-       &      relTol=2.0d-1                                                                      &
-       &     )
-  call Assert(                                                                                   &
-       &      'central velocity dispersion'                                                    , &
-       &      darkMatterProfileSIDMIsothermal_%radialVelocityDispersion(nodeJiang,radius=0.0d0), &
-       &      59.139d0                                                                         , &
-       &      relTol=5.0d-2                                                                      &
-       &     )
+  select type (massDistribution_)
+  class is (massDistributionSphericalSIDM)
+     coordinates=[0.0d0,0.0d0,0.0d0]
+     call Assert(                                                                             &
+          &      'interaction radius'                                                       , &
+          &      massDistribution_      %radiusInteraction   (                             ), &
+          &      6.9732d-3                                                                  , &
+          &      relTol=1.0d-2                                                                &
+          &     )
+     call Assert(                                                                             &
+          &      'central density'                                                          , &
+          &      massDistribution_      %density             (coordinates                  ), &
+          &      2.534d17                                                                   , &
+          &      relTol=2.0d-1                                                                &
+          &     )
+     call Assert(                                                                             &
+          &      'central velocity dispersion'                                              , &
+          &      kinematicsDistribution_%velocityDispersion1D(coordinates,massDistribution_), &
+          &      59.139d0                                                                   , &
+          &      relTol=5.0d-2                                                                &
+          &     )
+  end select
   call Unit_Tests_End_Group()
+ !![
+  <objectDestructor name="massDistribution_"      />
+  <objectDestructor name="kinematicsDistribution_"/>
+  !!]
   call Unit_Tests_End_Group()
   ! End unit tests.
   call Unit_Tests_End_Group()

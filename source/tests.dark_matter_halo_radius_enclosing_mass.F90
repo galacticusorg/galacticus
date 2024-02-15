@@ -33,7 +33,7 @@ program Test_Dark_Matter_Halo_Radius_Enclosing_Mass
   use :: Virial_Density_Contrast   , only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
   use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMOBurkert                                   , darkMatterProfileDMOClass               , darkMatterProfileDMOHeated                        , darkMatterProfileDMONFW       , &
           &                                 darkMatterProfileDMOTruncated                                 , darkMatterProfileDMOTruncatedExponential, darkMatterProfileHeatingTidal
-  use :: Mass_Distributions        , only : nonAnalyticSolversFallThrough
+  use :: Mass_Distributions        , only : nonAnalyticSolversFallThrough                                 , massDistributionClass
   use :: Display                   , only : displayVerbositySet                                           , verbosityLevelStandard
   use :: Events_Hooks              , only : eventsHooksInitialize
   use :: Functions_Global_Utilities, only : Functions_Global_Set
@@ -49,6 +49,7 @@ program Test_Dark_Matter_Halo_Radius_Enclosing_Mass
   class           (nodeComponentBasic                                            ), pointer      :: basic
   class           (nodeComponentSatellite                                        ), pointer      :: satellite
   class           (nodeComponentDarkMatterProfile                                ), pointer      :: dmProfile
+  class           (massDistributionClass                                         ), pointer      :: massDistribution_
   class           (darkMatterProfileDMOClass                                     ), pointer      :: darkMatterProfileDMO_
   type            (darkMatterProfileDMONFW                                       ), target       :: darkMatterProfileDMONFW_
   type            (darkMatterProfileDMOBurkert                                   ), target       :: darkMatterProfileDMOBurkert_
@@ -66,8 +67,7 @@ program Test_Dark_Matter_Halo_Radius_Enclosing_Mass
   double precision                                                                , parameter    :: radiusFractionalTruncateMinimum          = 2.00d+00, radiusFractionalTruncateMaximum=8.0d0
   double precision                                                                , parameter    :: time                                     =13.80d+00
   double precision                                                                , parameter    :: massVirial                               = 1.00d+10, concentration                  =8.0d0
-  double precision                                                                               :: radiusFractionalDecay                    = 0.06d+00, alpha                          =1.0d0 , &
-       &                                                                                            beta                                     = 3.00d+00, gamma                          =1.0d0
+  double precision                                                                               :: radiusFractionalDecay                    = 0.06d+00
   double precision                                                                , parameter    :: heatingSpecific                          = 1.00d+06
   double precision                                                                , parameter    :: coefficientSecondOrder                   = 0.00d+00
   double precision                                                                , parameter    :: correlationVelocityRadius                =-1.00d+00
@@ -137,10 +137,10 @@ program Test_Dark_Matter_Halo_Radius_Enclosing_Mass
   darkMatterProfileDMOBurkert_              =  darkMatterProfileDMOBurkert             (                                                                                                                                   darkMatterHaloScale_ )
   darkMatterProfileDMOTruncated_            =  darkMatterProfileDMOTruncated           (radiusFractionalTruncateMinimum     ,radiusFractionalTruncateMaximum,                                                                                     &
        &                                                                                nonAnalyticSolversFallThrough       ,                                                                    darkMatterProfileDMONFW_ ,darkMatterHaloScale_ )
-  darkMatterProfileDMOTruncatedExponential_ =  darkMatterProfileDMOTruncatedExponential(radiusFractionalDecay               ,alpha                          ,beta                               ,gamma                    ,                       &
+  darkMatterProfileDMOTruncatedExponential_ =  darkMatterProfileDMOTruncatedExponential(radiusFractionalDecay               ,                                                                                                                     &
        &                                                                                nonAnalyticSolversFallThrough       ,                                                                    darkMatterProfileDMONFW_ ,darkMatterHaloScale_ )
   darkMatterProfileHeatingTidal_            =  darkMatterProfileHeatingTidal           (coefficientSecondOrder              ,coefficientSecondOrder         ,coefficientSecondOrder             ,correlationVelocityRadius                      )
-  darkMatterProfileDMOHeated_               =  darkMatterProfileDMOHeated              (nonAnalyticSolversFallThrough       ,velocityDispersionApproximate  ,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,darkMatterProfileDMONFW_ ,darkMatterHaloScale_,  &
+  darkMatterProfileDMOHeated_               =  darkMatterProfileDMOHeated              (nonAnalyticSolversFallThrough       ,velocityDispersionApproximate  ,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,darkMatterProfileDMONFW_,  &
        &                                                                                darkMatterProfileHeatingTidal_                                                                                                                          )
   ! Set up the node.
   basic     => node%basic                 (autoCreate=.true.)
@@ -181,11 +181,15 @@ program Test_Dark_Matter_Halo_Radius_Enclosing_Mass
      case default
         call Error_Report('unknown profile'//{introspection:location})
      end select
+     massDistribution_ => darkMatterProfileDMO_%get(node)
      do j=1,7
-        mass      (j)=darkMatterProfileDMO_%enclosedMass       (node, radius(j))
-        radiusRoot(j)=darkMatterProfileDMO_%radiusEnclosingMass(node, mass  (j))
+        mass      (j)=massDistribution_%massEnclosedBySphere(radius(j))
+        radiusRoot(j)=massDistribution_%radiusEnclosingMass (mass  (j))
         if (limitToVirialRadius .and. radiusOverVirialRadius(j) > 1.0d0) radiusRoot(j)=radius(j)
      end do
+     !![
+     <objectDestructor name="massDistribution_"/>
+     !!]
      call Assert('radius enclosing a given mass',radius,radiusRoot,relTol=toleranceRelative)
      call Unit_Tests_End_Group()
   end do

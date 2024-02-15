@@ -25,7 +25,7 @@
   use :: Cosmological_Density_Field               , only : cosmologicalMassVarianceClass          , criticalOverdensityClass
   use :: Spherical_Collapse_Solvers               , only : sphericalCollapseSolverClass
   use :: Dark_Matter_Halo_Mass_Accretion_Histories, only : darkMatterHaloMassAccretionHistoryClass
-  
+  use :: Dark_Matter_Halo_Scales                  , only : darkMatterHaloScaleClass  
   
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOAccretionFlowShi2016">
@@ -40,6 +40,7 @@
      2-halo correlation function.
      !!}
      private
+     class           (darkMatterHaloScaleClass               ), pointer :: darkMatterHaloScale_                => null()
      class           (darkMatterProfileDMOClass              ), pointer :: darkMatterProfileDMO_               => null()
      class           (cosmologyFunctionsClass                ), pointer :: cosmologyFunctions_                 => null()
      class           (criticalOverdensityClass               ), pointer :: criticalOverdensity_                => null()

@@ -155,7 +155,7 @@ contains
     if (radius > 0.0d0) then
        call self%specificEnergyTerms(radius,massDistribution_,energyPerturbationFirstOrder,energyPerturbationSecondOrder)
        if (energyPerturbationSecondOrder > 0.0d0) then
-       coordinates=[radius,0.0d0,0.0d0]
+          coordinates=[radius,0.0d0,0.0d0]
           energySpecificGradient=+(                                                                                                                                              &
                &                   +energyPerturbationFirstOrder *  2.0d0                                                                                                        & !   dlog[r²    ]/dlog(r) term
                &                   +energyPerturbationSecondOrder*(                                                                                                              &

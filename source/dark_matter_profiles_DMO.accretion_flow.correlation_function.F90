@@ -25,6 +25,7 @@
   use :: Cosmological_Density_Field     , only : cosmologicalMassVarianceClass   , criticalOverdensityClass
   use :: Correlation_Functions_Two_Point, only : correlationFunctionTwoPointClass
   use :: Dark_Matter_Halo_Biases        , only : darkMatterHaloBiasClass
+  use :: Dark_Matter_Halo_Scales        , only : darkMatterHaloScaleClass
   use :: Linear_Growth                  , only : linearGrowthClass
   
   !![
@@ -40,6 +41,7 @@
      2-halo correlation function.
      !!}
      private
+     class           (darkMatterHaloScaleClass        ), pointer :: darkMatterHaloScale_         => null()
      class           (darkMatterProfileDMOClass       ), pointer :: darkMatterProfileDMO_        => null()
      class           (cosmologyFunctionsClass         ), pointer :: cosmologyFunctions_          => null()
      class           (criticalOverdensityClass        ), pointer :: criticalOverdensity_         => null()

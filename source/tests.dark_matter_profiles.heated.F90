@@ -38,7 +38,7 @@ program Test_Dark_Matter_Profiles_Heated
   \end{eqnarray}
   where $y=r_\mathrm{i}/r_\mathrm{h}$.  
   !!}
-  use :: Coordinates                     , only : coordinateSpherical                                              , assignment(=)
+  use :: Coordinates                     , only : coordinateSpherical
   use :: Cosmology_Parameters            , only : cosmologyParametersSimple
   use :: Cosmology_Functions             , only : cosmologyFunctionsMatterLambda
   use :: Dark_Matter_Particles           , only : darkMatterParticleSelfInteractingDarkMatter                      , darkMatterParticleCDM
@@ -50,12 +50,12 @@ program Test_Dark_Matter_Profiles_Heated
   use :: Events_Hooks                    , only : eventsHooksInitialize
   use :: Galacticus_Nodes                , only : nodeClassHierarchyFinalize                                       , nodeClassHierarchyInitialize       , nodeComponentBasic             , nodeComponentSatellite      , &
        &                                          treeNode
-  use :: ISO_Varying_String              , only : assignment(=)                                                    , varying_string
+  use :: ISO_Varying_String              , only : varying_string
   use :: Input_Parameters                , only : inputParameters
   use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
   use :: Numerical_Constants_Math        , only : Pi
   use :: Mass_Distributions              , only : massDistributionSphericalHeated                                  , massDistributionClass              , massDistributionSpherical      , massDistributionHeatingTidal, &
-       &                                          nonAnalyticSolversNumerical                                      , kinematicsDistributionHeated       ,                                                                &
+       &                                          nonAnalyticSolversNumerical                                      , kinematicsDistributionHeated       , massDistributionSphericalHeatedMonotonic, kinematicsDistributionCollisionless, kinematicsDistributionClass, &
        &                                          nonAnalyticSolversFallThroughDMO => nonAnalyticSolversFallThrough                                                                                                    , &
        &                                          nonAnalyticSolversNumericalDMO   => nonAnalyticSolversNumerical
   use :: Unit_Tests                      , only : Assert                                                           , Unit_Tests_Begin_Group             , Unit_Tests_End_Group           , Unit_Tests_Finish
@@ -86,11 +86,12 @@ program Test_Dark_Matter_Profiles_Heated
   type            (darkMatterProfileHeatingTidal                                 )               :: darkMatterProfileHeatingTidal_
   type            (darkMatterParticleCDM                                         )               :: darkMatterParticleCDM_
   type            (darkMatterParticleSelfInteractingDarkMatter                   )               :: darkMatterParticleSelfInteractingDarkMatter_
-  type            (massDistributionSphericalHeated                               )               :: massDistributionSphericalHeated_
-  type            (kinematicsDistributionHeated                                  )               :: kinematicsDistributionHeated_
+  class           (massDistributionSpherical                                     ), pointer      :: massDistributionSphericalHeated_
+  class           (kinematicsDistributionClass                                   ), pointer      :: kinematicsDistributionHeated_
   type            (massDistributionHeatingTidal                                  )               :: massDistributionHeatingTidal_
   class           (massDistributionClass                                         ), pointer      :: massDistributionIsothermal_
-  type            (coordinateSpherical                                           )               :: coordinates, coordinatesHeated, coordinatesInitial
+  type            (coordinateSpherical                                           )               :: coordinates                                                     , coordinatesHeated    , &
+       &                                                                                            coordinatesInitial
   double precision                                                                               :: radiusVirial                                                    , radiusHeated         , &
        &                                                                                            density                                                         , densityAnalytic      , &
        &                                                                                            radiusInitial                                                   , radiusInitialAnalytic, &
@@ -163,10 +164,10 @@ program Test_Dark_Matter_Profiles_Heated
    </constructor>
   </referenceConstruct>
   !!]
-  darkMatterProfileHeatingTidal_      =darkMatterProfileHeatingTidal      (coefficientSecondOrder       ,coefficientSecondOrder       ,coefficientSecondOrder                                                                                   ,correlationVelocityRadius                                                          )
-  darkMatterProfileDMOIsothermal_     =darkMatterProfileDMOIsothermal     (                                                                                                                                                                                                      darkMatterHaloScale_                               )
-  darkMatterProfileDMOHeated_         =darkMatterProfileDMOHeated         (nonAnalyticSolversNumericalDMO  ,velocityDispersionApproximate,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum                           ,darkMatterProfileDMOIsothermal_,darkMatterHaloScale_,darkMatterProfileHeatingTidal_)
-  darkMatterProfileDMOHeatedMonotonic_=darkMatterProfileDMOHeatedMonotonic(nonAnalyticSolversNumericalDMO                              ,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,toleranceRelativePotential,darkMatterProfileDMOIsothermal_,darkMatterHaloScale_,darkMatterProfileHeatingTidal_)
+  darkMatterProfileHeatingTidal_      =darkMatterProfileHeatingTidal      (coefficientSecondOrder        ,coefficientSecondOrder       ,coefficientSecondOrder                                                        ,correlationVelocityRadius                                                                                     )
+  darkMatterProfileDMOIsothermal_     =darkMatterProfileDMOIsothermal     (                                                                                                                                                                                                       darkMatterHaloScale_                               )
+  darkMatterProfileDMOHeated_         =darkMatterProfileDMOHeated         (nonAnalyticSolversNumericalDMO,velocityDispersionApproximate,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum                           ,darkMatterProfileDMOIsothermal_                     ,darkMatterProfileHeatingTidal_)
+  darkMatterProfileDMOHeatedMonotonic_=darkMatterProfileDMOHeatedMonotonic(nonAnalyticSolversNumericalDMO,                                                                                                                                        darkMatterProfileDMOIsothermal_,darkMatterHaloScale_,darkMatterProfileHeatingTidal_)
   ! Set up the node.
   basic     => node%basic    (autoCreate=.true.)
   satellite => node%satellite(autoCreate=.true.)
@@ -175,13 +176,8 @@ program Test_Dark_Matter_Profiles_Heated
   call basic    %timeLastIsolatedSet      (time           )
   call satellite%tidalHeatingNormalizedSet(heatingSpecific)
   ! Get the associated mass distribution.
-  massDistributionIsothermal_ => darkMatterProfileDMOIsothermal_%get(node)
-  select type (massDistributionIsothermal_)
-  class is (massDistributionSpherical)
-     massDistributionHeatingTidal_   =massDistributionHeatingTidal   (heatingSpecific,coefficientSecondOrder,coefficientSecondOrder,coefficientSecondOrder,correlationVelocityRadius)
-     massDistributionSphericalHeated_=massDistributionSphericalHeated(nonAnalyticSolversNumerical,massDistributionIsothermal_,massDistributionHeatingTidal_)
-     kinematicsDistributionHeated_   =kinematicsDistributionHeated   (nonAnalyticSolversNumerical,velocityDispersionApproximate,toleranceRelativeVelocityDispersion=1.0d-3,toleranceRelativeVelocityDispersionMaximum=1.0d-3)
-  end select
+  massDistributionIsothermal_   => darkMatterProfileDMOIsothermal_%get(node                                                                                                          )
+  massDistributionHeatingTidal_ =  massDistributionHeatingTidal       (heatingSpecific,coefficientSecondOrder,coefficientSecondOrder,coefficientSecondOrder,correlationVelocityRadius)
   ! Compute the characteristic radius for heating.
   radiusVirial=darkMatterHaloScale_%radiusVirial(node)
   radiusHeated=sqrt(gravitationalConstantGalacticus*massVirial/2.0d0/heatingSpecific/radiusVirial)
@@ -193,11 +189,45 @@ program Test_Dark_Matter_Profiles_Heated
         profileName                               =  "no shell crossing"
         toleranceRelative                         =  1.0d-6
         toleranceRelativeVelocityDispersionAssert =  1.0d-2
+        select type (massDistributionIsothermal_)
+        class is (massDistributionSpherical)
+           allocate(massDistributionSphericalHeated         :: massDistributionSphericalHeated_)
+           allocate(kinematicsDistributionHeated            :: kinematicsDistributionHeated_   )
+           select type (massDistributionSphericalHeated_)
+           type is (massDistributionSphericalHeated         )
+              !![
+	      <referenceConstruct object="massDistributionSphericalHeated_" constructor="massDistributionSphericalHeated(nonAnalyticSolversNumerical,massDistributionIsothermal_,massDistributionHeatingTidal_)"/>
+	      !!]
+           end select
+           select type (kinematicsDistributionHeated_)
+           type is (kinematicsDistributionHeated            )
+              !![
+              <referenceConstruct object="kinematicsDistributionHeated_"    constructor="kinematicsDistributionHeated   (nonAnalyticSolversNumerical,velocityDispersionApproximate,toleranceRelativeVelocityDispersion=1.0d-3,toleranceRelativeVelocityDispersionMaximum=1.0d-3)"/>
+	      !!]
+           end select
+        end select
      case (2)
         darkMatterProfileDMO_                     => darkMatterProfileDMOHeatedMonotonic_
         profileName                               =  "monotonic perturbation"
         toleranceRelative                         =  7.0d-2
         toleranceRelativeVelocityDispersionAssert =  1.0d-1
+        select type (massDistributionIsothermal_)
+        class is (massDistributionSpherical)
+           allocate(massDistributionSphericalHeatedMonotonic :: massDistributionSphericalHeated_)
+           allocate(kinematicsDistributionCollisionless      :: kinematicsDistributionHeated_   )
+           select type (massDistributionSphericalHeated_)
+           type is (massDistributionSphericalHeatedMonotonic)
+              !![
+              <referenceConstruct object="massDistributionSphericalHeated_" constructor="massDistributionSphericalHeatedMonotonic(radiusVirial,nonAnalyticSolversNumerical,massDistributionIsothermal_,massDistributionHeatingTidal_)"/>
+	      !!]
+           end select
+           select type (kinematicsDistributionHeated_)
+           type is (kinematicsDistributionCollisionless)
+              !![
+              <referenceConstruct object="kinematicsDistributionHeated_"   constructor="kinematicsDistributionCollisionless     (                                                                                                  )"/>
+	      !!]
+           end select
+        end select
      end select
      call Unit_Tests_Begin_Group("Heated dark matter profiles ("//trim(profileName)//")")
      ! Compute initial radius, enclosed mass, and density for a variety of radii and compare to the analytic solutions.
@@ -206,18 +236,15 @@ program Test_Dark_Matter_Profiles_Heated
         radius               =+radiusVirial              &
              &                *radiusVirialFractional(i)
         coordinates          = [radius,0.0d0,0.0d0]
-        select type (darkMatterProfileDMO_)
-        class is (darkMatterProfileDMOHeated)
-           radiusInitial     =+darkMatterProfileDMO_           %radiusInitial       (node,radius     )
+        select type (massDistributionSphericalHeated_)
+        class is (massDistributionSphericalHeated)
+           radiusInitial     =+massDistributionSphericalHeated_%radiusInitial           (radius                                      )
         class default
            radiusInitial     =-huge(0.0d0)
         end select
-        massEnclosed         =+darkMatterProfileDMO_           %enclosedMass            (node,radius                                      )
-        massEnclosed_        =+massDistributionSphericalHeated_%massEnclosedBySphere    (     radius                                      )
-        density              =+darkMatterProfileDMO_           %density                 (node,radius                                      )
-        density_             =+massDistributionSphericalHeated_%density                 (     coordinates                                 )
-        velocityDispersion   =+darkMatterProfileDMO_           %radialVelocityDispersion(node,radius                                      )
-        velocityDispersion_  =+kinematicsDistributionHeated_   %velocityDispersion1D    (     coordinates,massDistributionSphericalHeated_)
+        massEnclosed_        =+massDistributionSphericalHeated_%massEnclosedBySphere    (radius                                      )
+        density_             =+massDistributionSphericalHeated_%density                 (coordinates                                 )
+        velocityDispersion_  =+kinematicsDistributionHeated_   %velocityDispersion1D    (coordinates,massDistributionSphericalHeated_)
         radiusInitialAnalytic=+sqrt(                            &
              &                      +  radiusHeated         **4 &
              &                      /4.0d0                      &
@@ -275,6 +302,10 @@ program Test_Dark_Matter_Profiles_Heated
         call    Assert('r='//trim(radiusLabel)//'rᵥ; velocity dispersion',velocityDispersion ,velocityDispersionAnalytic,relTol=toleranceRelativeVelocityDispersionAssert)
      end do
      call Unit_Tests_End_Group()
+     !![
+     <objectDestructor name="massDistributionSphericalHeated_"/>
+     <objectDestructor name="kinematicsDistributionHeated_"   />
+     !!]
   end do
   call nodeClassHierarchyFinalize()
   call Unit_Tests_Finish         ()

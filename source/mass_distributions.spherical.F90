@@ -80,6 +80,7 @@
      procedure :: tidalTensor                         => sphericalTidalTensor
      procedure :: positionSample                      => sphericalPositionSample
      procedure :: rotationCurve                       => sphericalRotationCurve
+     procedure :: rotationCurveNumerical              => sphericalRotationCurve
      procedure :: rotationCurveGradient               => sphericalRotationCurveGradient
      procedure :: radiusHalfMass                      => sphericalRadiusHalfMass
   end type massDistributionSpherical

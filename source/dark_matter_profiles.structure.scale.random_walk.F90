@@ -70,11 +70,11 @@
   end interface darkMatterProfileScaleRadiusRandomWalk
 
   ! Sub-module-scope variables used in root finding.
-  double precision                                                  :: energyTarget_
+  double precision                                                  :: energyTarget_     , radiusVirial_
   class           (darkMatterProfileScaleRadiusRandomWalk), pointer :: self_
   class           (nodeComponentDarkMatterProfile        ), pointer :: darkMatterProfile_
   type            (treeNode                              ), pointer :: node_
-  !$omp threadprivate(energyTarget_,self_,node_,darkMatterProfile_)
+  !$omp threadprivate(energyTarget_,self_,node_,darkMatterProfile_,radiusVirial_)
 
 contains
   
@@ -162,18 +162,16 @@ contains
     type            (rootFinder                            )                         :: finder
     double precision                                                                 :: energyPerturbation    , radiusScaleOriginal   , &
          &                                                                              energyScaleChild      , energyScale           , &
-         &                                                                              radiusVirial          , radiusVirialChild
+         &                                                                              radiusVirialChild
 
     ! Set the scale radius to that given by the lower level scale radius class.
     radiusScale=self%darkMatterProfileScaleRadius_%radius(node)
     ! For nodes with a child, evaluate the perturbation to this radius.
     if (associated(node%firstChild)) then
-       massDistribution_      =>  self                  %darkMatterProfileDMO_%get              (node                                    )
-       massDistributionChild_ =>  self                  %darkMatterProfileDMO_%get              (node%firstChild                         )
        basic                  =>  node                                        %basic            (                                        )
        basicChild             =>  node                  %firstChild           %basic            (                                        )
        darkMatterProfileChild =>  node                  %firstChild           %darkMatterProfile(                                        )
-       radiusVirial           =   self                  %darkMatterHaloScale_ %radiusVirial     (node                                    )
+       radiusVirial_          =   self                  %darkMatterHaloScale_ %radiusVirial     (node                                    )
        radiusVirialChild      =   self                  %darkMatterHaloScale_ %radiusVirial     (node%firstChild                         )
        energyScale            =  +gravitationalConstantGalacticus                                                                             &
             &                    *basic                                       %mass             (                                        )**2 &
@@ -181,11 +179,19 @@ contains
        energyScaleChild       =  +gravitationalConstantGalacticus                                                                             &
             &                    *basicChild                                  %mass             (                                        )**2 &
             &                    /radiusVirialChild       
+       massDistributionChild_ =>  self                  %darkMatterProfileDMO_%get              (node%firstChild                         )
        energyPerturbation     =  +massDistributionChild_                      %energy           (radiusVirialChild,massDistributionChild_)
+       !![
+       <objectDestructor name="massDistributionChild_"/>
+       !!]
        radiusScaleOriginal    =  +darkMatterProfileChild                      %scale            (                                        )
        call darkMatterProfileChild%scaleSet(self%darkMatterProfileScaleRadius_%radius           (node%firstChild                         ))
+       massDistributionChild_ =>  self                  %darkMatterProfileDMO_%get              (node%firstChild                         )
        energyPerturbation     =  +energyPerturbation                                                                                          &
             &                    -massDistributionChild_                      %energy           (radiusVirialChild,massDistributionChild_)
+       !![
+       <objectDestructor name="massDistributionChild_"/>
+       !!]
        call darkMatterProfileChild%scaleSet(                                   radiusScaleOriginal                                        )
        if (energyScale > energyScaleChild) then
           energyPerturbation =+energyPerturbation                                          &
@@ -211,16 +217,16 @@ contains
             &           )
        self_               =>  self
        node_               =>  node
-       darkMatterProfile_  =>  node                        %darkMatterProfile (autoCreate=.true.                    )
-       radiusScaleOriginal =   darkMatterProfile_          %scale             (                                     )
+       darkMatterProfile_  =>  node                                   %darkMatterProfile (autoCreate=.true.                    )
+       radiusScaleOriginal =   darkMatterProfile_                     %scale             (                                     )
        call darkMatterProfile_%scaleSet(radiusScale        )
-       energyTarget_       =  +massDistribution_%energy            (radiusVirial,massDistribution_) &
-            &                 +                  energyPerturbation
-       radiusScale         =   finder           %find              (rootGuess =darkMatterProfile_%scale())
+       massDistribution_   =>  self             %darkMatterProfileDMO_%get               (node                                 )
+       energyTarget_       =  +massDistribution_                      %energy            (radiusVirial_,massDistribution_      ) &
+            &                 +                                        energyPerturbation
+       radiusScale         =   finder                                 %find              (rootGuess =darkMatterProfile_%scale())
        call darkMatterProfile_%scaleSet(radiusScaleOriginal)
        !![
        <objectDestructor name="massDistribution_"     />
-       <objectDestructor name="massDistributionChild_"/>
        !!]
     end if
     return
@@ -230,11 +236,17 @@ contains
     !!{
     Root function used in finding the scale radius corresponding to a given halo energy.
     !!}
+    use :: Mass_Distributions, only : massDistributionClass
     implicit none
-    double precision, intent(in   ) :: radiusScale
+    double precision                       , intent(in   ) :: radiusScale
+    class           (massDistributionClass), pointer       :: massDistribution_
 
     call darkMatterProfile_%scaleSet(radiusScale)
-    energyRoot=+self_%darkMatterProfileDMO_%energy       (node_) &
-         &     -                            energyTarget_
+    massDistribution_ =>  self_            %darkMatterProfileDMO_%get          (node_                          ) 
+    energyRoot        =  +massDistribution_                      %energy       (radiusVirial_,massDistribution_) &
+         &               -                                        energyTarget_
+    !![
+    <objectDestructor name="massDistribution_"/>
+    !!]
     return
   end function energyRoot
