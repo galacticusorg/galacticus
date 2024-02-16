@@ -1244,10 +1244,6 @@ contains
             timeFreeFallIntegrand=+0.0d0
          end if
       end if
-
-
-if (i==46) write (400,*) radius,radiusStart,(radiusStart-radius)/radiusStart,potentialDifference,timeFreeFallIntegrand
-
       return
     end function timeFreeFallIntegrand
     
