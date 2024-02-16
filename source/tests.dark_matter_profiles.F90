@@ -283,11 +283,13 @@ program Test_Dark_Matter_Profiles
         fourier                                   (i)=massDistribution_      %fourierTransform                 (radiusVirial,1.0d0                                       /radiusScale   /radius      (i)                      )
         radialVelocityDispersion                  (i)=kinematicsDistribution_%velocityDispersion1D             (                                                                         coordinates        ,massDistribution_)
      end do
-     radiusVelocityMaximum   =massDistribution_%radiusRotationCurveMaximum  (                     )
-     velocityMaximum         =massDistribution_%velocityRotationCurveMaximum(                     )
-     velocityMaximumIndirect =massDistribution_%rotationCurve               (radiusVelocityMaximum)
-     energyPotential         =massDistribution_%energyPotential             (radiusVirial         )
-     energyPotentialNumerical=massDistribution_%energyPotentialNumerical    (radiusVirial         )
+     radiusVelocityMaximum   =massDistribution_%radiusRotationCurveMaximum  (                                       )
+     velocityMaximum         =massDistribution_%velocityRotationCurveMaximum(                                       )
+     velocityMaximumIndirect =massDistribution_%rotationCurve               (radiusVelocityMaximum                  )
+     energyPotential         =massDistribution_%energyPotential             (radiusVirial                           )
+     energyPotentialNumerical=massDistribution_%energyPotentialNumerical    (radiusVirial                           )
+     energyKinetic           =massDistribution_%energyKinetic               (radiusVirial         ,massDistribution_)
+     energyKineticNumerical  =massDistribution_%energyKineticNumerical      (radiusVirial         ,massDistribution_)
   end select
   !![
   <objectDestructor name="massDistribution_"            />
@@ -444,11 +446,13 @@ program Test_Dark_Matter_Profiles
         fourier                                   (i)=massDistribution_      %fourierTransform                 (radiusVirial,1.0d0                                       /radiusScale   /radius      (i)                      )
         radialVelocityDispersion                  (i)=kinematicsDistribution_%velocityDispersion1D             (                                                                         coordinates        ,massDistribution_)
      end do
-     radiusVelocityMaximum   =massDistribution_%radiusRotationCurveMaximum  (                     )
-     velocityMaximum         =massDistribution_%velocityRotationCurveMaximum(                     )
-     velocityMaximumIndirect =massDistribution_%rotationCurve               (radiusVelocityMaximum)
-     energyPotential         =massDistribution_%energyPotential             (radiusVirial         )
-     energyPotentialNumerical=massDistribution_%energyPotentialNumerical    (radiusVirial         )
+     radiusVelocityMaximum   =massDistribution_%radiusRotationCurveMaximum  (                                       )
+     velocityMaximum         =massDistribution_%velocityRotationCurveMaximum(                                       )
+     velocityMaximumIndirect =massDistribution_%rotationCurve               (radiusVelocityMaximum                  )
+     energyPotential         =massDistribution_%energyPotential             (radiusVirial                           )
+     energyPotentialNumerical=massDistribution_%energyPotentialNumerical    (radiusVirial                           )
+     energyKinetic           =massDistribution_%energyKinetic               (radiusVirial         ,massDistribution_)
+     energyKineticNumerical  =massDistribution_%energyKineticNumerical      (radiusVirial         ,massDistribution_)
   end select
   !![
   <objectDestructor name="massDistribution_"            />
@@ -605,11 +609,13 @@ program Test_Dark_Matter_Profiles
         fourier                                   (i)=massDistribution_      %fourierTransform                 (radiusVirial,1.0d0                                       /radiusScale   /radius      (i)                      )
         radialVelocityDispersion                  (i)=kinematicsDistribution_%velocityDispersion1D             (                                                                         coordinates        ,massDistribution_)
      end do
-     radiusVelocityMaximum   =massDistribution_%radiusRotationCurveMaximum  (                     )
-     velocityMaximum         =massDistribution_%velocityRotationCurveMaximum(                     )
-     velocityMaximumIndirect =massDistribution_%rotationCurve               (radiusVelocityMaximum)
-     energyPotential         =massDistribution_%energyPotential             (radiusVirial         )
-     energyPotentialNumerical=massDistribution_%energyPotentialNumerical    (radiusVirial         )
+     radiusVelocityMaximum   =massDistribution_%radiusRotationCurveMaximum  (                                       )
+     velocityMaximum         =massDistribution_%velocityRotationCurveMaximum(                                       )
+     velocityMaximumIndirect =massDistribution_%rotationCurve               (radiusVelocityMaximum                  )
+     energyPotential         =massDistribution_%energyPotential             (radiusVirial                           )
+     energyPotentialNumerical=massDistribution_%energyPotentialNumerical    (radiusVirial                           )
+     energyKinetic           =massDistribution_%energyKinetic               (radiusVirial         ,massDistribution_)
+     energyKineticNumerical  =massDistribution_%energyKineticNumerical      (radiusVirial         ,massDistribution_)
   end select
   !![
   <objectDestructor name="massDistribution_"            />
@@ -722,13 +728,13 @@ program Test_Dark_Matter_Profiles
        &      'radial velocity dispersion', &
        &      radialVelocityDispersion    , &
        &      [                             &
-       &5.347095696836751d-1,&
-       &       6.083588653620841d-1,&
-       &       6.691204678148943d-1,&
-       &       7.007128495278605d-1,&
-       &       6.909164992407667d-1,&
-       &       6.403334146398749d-1,&
-       &       5.617664344971543d-1&
+       &       5.347095696836751d-1       , &
+       &       6.083588653620841d-1       , &
+       &       6.691204678148943d-1       , &
+       &       7.007128495278605d-1       , &
+       &       6.909164992407667d-1       , &
+       &       6.403334146398749d-1       , &
+       &       5.617664344971543d-1         &
        &      ]                           , &
        &      relTol=1.0d-6                 &
        &     )
@@ -766,11 +772,13 @@ program Test_Dark_Matter_Profiles
         fourier                                   (i)=massDistribution_      %fourierTransform                 (radiusVirial,1.0d0                                       /radiusScale   /radius      (i)                      )
         radialVelocityDispersion                  (i)=kinematicsDistribution_%velocityDispersion1D             (                                                                         coordinates        ,massDistribution_)
      end do
-     radiusVelocityMaximum   =massDistribution_%radiusRotationCurveMaximum  (                     )
-     velocityMaximum         =massDistribution_%velocityRotationCurveMaximum(                     )
-     velocityMaximumIndirect =massDistribution_%rotationCurve               (radiusVelocityMaximum)
-     energyPotential         =massDistribution_%energyPotential             (radiusVirial         )
-     energyPotentialNumerical=massDistribution_%energyPotentialNumerical    (radiusVirial         )
+     radiusVelocityMaximum   =massDistribution_%radiusRotationCurveMaximum  (                                       )
+     velocityMaximum         =massDistribution_%velocityRotationCurveMaximum(                                       )
+     velocityMaximumIndirect =massDistribution_%rotationCurve               (radiusVelocityMaximum                  )
+     energyPotential         =massDistribution_%energyPotential             (radiusVirial                           )
+     energyPotentialNumerical=massDistribution_%energyPotentialNumerical    (radiusVirial                           )
+     energyKinetic           =massDistribution_%energyKinetic               (radiusVirial         ,massDistribution_)
+     energyKineticNumerical  =massDistribution_%energyKineticNumerical      (radiusVirial         ,massDistribution_)
   end select
   !![
   <objectDestructor name="massDistribution_"            />
@@ -927,12 +935,14 @@ program Test_Dark_Matter_Profiles
         fourier                                   (i)=massDistribution_      %fourierTransform                 (radiusVirial,1.0d0                                       /radiusScale   /radius      (i)                      )
         radialVelocityDispersion                  (i)=kinematicsDistribution_%velocityDispersion1D             (                                                                         coordinates        ,massDistribution_)
      end do
-     radiusVelocityMaximum   =massDistribution_%radiusRotationCurveMaximum  (                     )
-     velocityMaximum         =massDistribution_%velocityRotationCurveMaximum(                     )
-     velocityMaximumIndirect =massDistribution_%rotationCurve               (radiusVelocityMaximum)
-     energyPotential         =massDistribution_%energyPotential             (radiusVirial         )
-     energyPotentialNumerical=massDistribution_%energyPotentialNumerical    (radiusVirial         )
-  end select
+     radiusVelocityMaximum   =massDistribution_%radiusRotationCurveMaximum  (                                       )
+     velocityMaximum         =massDistribution_%velocityRotationCurveMaximum(                                       )
+     velocityMaximumIndirect =massDistribution_%rotationCurve               (radiusVelocityMaximum                  )
+     energyPotential         =massDistribution_%energyPotential             (radiusVirial                           )
+     energyPotentialNumerical=massDistribution_%energyPotentialNumerical    (radiusVirial                           )
+     energyKinetic           =massDistribution_%energyKinetic               (radiusVirial         ,massDistribution_)
+     energyKineticNumerical  =massDistribution_%energyKineticNumerical      (radiusVirial         ,massDistribution_)
+   end select
   !![
   <objectDestructor name="massDistribution_"            />
   <objectDestructor name="kinematicsDistribution_"      />
