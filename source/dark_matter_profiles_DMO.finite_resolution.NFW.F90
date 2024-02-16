@@ -182,7 +182,6 @@ contains
            &amp;                                       )
 	 </constructor>
        </referenceConstruct>
-       <objectDestructor name="massDistribution_"/>
        !!]
     end select
     allocate(kinematicsDistribution_)

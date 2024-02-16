@@ -191,7 +191,6 @@ contains
               &amp;                               )
 	    </constructor>
 	  </referenceConstruct>
-	  <objectDestructor name="massDistribution_"/>
           !!]
        class default
           call Error_Report('expected a spherical mass distribution'//{introspection:location})
