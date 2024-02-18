@@ -21,9 +21,27 @@ runs:
     - name: Install MacPorts
       shell: bash
       run: |
-        curl -L https://github.com/macports/macports-base/releases/download/v2.7.1/MacPorts-2.7.1-11-BigSur.pkg --output MacPorts-2.7.1-11-BigSur.pkg
-        sudo installer -pkg ./MacPorts-2.7.1-11-BigSur.pkg -target /
-        rm ./MacPorts-2.7.1-11-BigSur.pkg
+        os_ver=${1-:$(sw_vers -productVersion)}
+        IFS='.' read -r -a ver <<< "$os_ver"
+        if [[ "${ver[0]}" -eq 11 ]]; then
+           macportsversion=2.7.1
+           macportsbase=2.7.1-11-BigSur
+        elif [[ "${ver[0]}" -eq 12 ]]; then
+           macportsversion=2.9.1
+           macportsbase=2.9.1-12-Monterey
+        elif [[ "${ver[0]}" -eq 13 ]]; then
+           macportsversion=2.9.1
+           macportsbase=2.9.1-13-Ventura
+        elif [[ "${ver[0]}" -eq 14 ]]; then
+           macportsversion=2.9.1
+           macportsbase=2.9.1-14-Sonoma
+        else
+           echo Unknown MacOS version: ${os_ver}
+           exit 1
+        fi
+        curl -L https://github.com/macports/macports-base/releases/download/v{macportsversion}/MacPorts-${macportsbase}.pkg --output MacPorts-${macportsbase}.pkg
+        sudo installer -pkg ./MacPorts-${macportsbase}.pkg -target /
+        rm ./MacPorts-${macportsbase}.pkg
     - name: Install guile
       shell: bash
       run: sudo port install guile18
