@@ -392,7 +392,7 @@ jobs:
   ## MacOS
   ### Static executable
   Build-Executable-MacOS:
-    runs-on: macos-11
+    runs-on: macos-12
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
@@ -426,9 +426,39 @@ jobs:
         with:
           name: galacticus-debug-MacOS
           path: 'debugSymbolsMacOS.zip'
+  ### Apple Silicon build  
+  Build-Executable-MacOS-M1:
+    runs-on: macos-14
+    steps:
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
+      - name: Set up build environment
+        uses: ./.github/actions/buildMacOS
+      - name: Build Galacticus
+        run: |
+          set -o pipefail
+          make -j3 Galacticus.exe 2>&1 | tee build.log
+          ./scripts/build/staticRelinker.pl `grep '\-o Galacticus.exe' build.log`
+          dsymutil -o Galacticus.exe.dSYM Galacticus.exe
+          zip -r debugSymbolsMacOS-M1.zip Galacticus.exe.dSYM
+          mv Galacticus.exe Galacticus_MacOS-M1.exe
+      - name: Upload Galacticus executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: galacticus-exec-MacOS-M1
+          path: 'Galacticus_MacOS-M1.exe'
+      - name: Upload Galacticus debug symbols
+        uses: actions/upload-artifact@v4
+        with:
+          name: galacticus-debug-MacOS-M1
+          path: 'debugSymbolsMacOS-M1.zip'
   ## Library
   Build-Library-MacOS:
-    runs-on: macos-11
+    runs-on: macos-12
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
@@ -460,7 +490,7 @@ jobs:
           path: 'libgalacticusMacOS.zip'
   ### Tools
   Build-Tools-MacOS:
-    runs-on: macos-11
+    runs-on: macos-12
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
@@ -1179,13 +1209,13 @@ jobs:
         executable: [ tests.hashes.cryptographic.exe ]
     uses: ./.github/workflows/testCode.yml
     with:
-      runner: macos-11
+      runner: macos-12
       executable: ${{ matrix.executable }}
       artifact: test-execs-MacOS
     secrets: inherit
   ### Test Python Interface
   Python-Interface-MacOS:
-    runs-on: macos-11
+    runs-on: macos-12
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
@@ -1539,6 +1569,7 @@ jobs:
              Build-Documentation-Linux,
              Build-Tools,
              Build-Executable-MacOS,
+             Build-Executable-MacOS-M1,
              Build-Library-MacOS,
              Build-Tools-MacOS,
              Profile-Dark-Matter-Only-Subhalos,
@@ -1609,6 +1640,14 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: galacticus-debug-MacOS
+      - name: Download artifacts (executable-macos-m1)
+        uses: actions/download-artifact@v4
+        with:
+          name: galacticus-exec-MacOS-M1
+      - name: Download artifacts (debug-macos-m1)
+        uses: actions/download-artifact@v4
+        with:
+          name: galacticus-debug-MacOS-M1
       - name: Download artifacts (library-macos)
         uses: actions/download-artifact@v4
         with:
@@ -1621,7 +1660,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload bleeding-edge ./Galacticus_MacOS.exe ./libgalacticusMacOS.zip ./toolsMacOS.zip ./debugSymbolsMacOS.zip --clobber
+          gh release upload bleeding-edge ./Galacticus_MacOS.exe ./Galacticus_MacOS-M1.exe ./libgalacticusMacOS.zip ./toolsMacOS.zip ./debugSymbolsMacOS.zip ./debugSymbolsMacOS-M1.zip --clobber
           rm ./Galacticus_MacOS.exe ./libgalacticusMacOS.zip ./toolsMacOS.zip ./debugSymbolsMacOS.zip
       - name: Download artifacts (perf-darkMatterOnlySubHalos)
         uses: actions/download-artifact@v4
