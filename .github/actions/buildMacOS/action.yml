@@ -39,7 +39,7 @@ runs:
            echo Unknown MacOS version: ${os_ver}
            exit 1
         fi
-        curl -L https://github.com/macports/macports-base/releases/download/v{macportsversion}/MacPorts-${macportsbase}.pkg --output MacPorts-${macportsbase}.pkg
+        curl -L https://github.com/macports/macports-base/releases/download/v${macportsversion}/MacPorts-${macportsbase}.pkg --output MacPorts-${macportsbase}.pkg
         sudo installer -pkg ./MacPorts-${macportsbase}.pkg -target /
         rm ./MacPorts-${macportsbase}.pkg
     - name: Install guile
