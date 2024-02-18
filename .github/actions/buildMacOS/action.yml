@@ -123,9 +123,9 @@ runs:
         cd ann_1.1.2
         sed -E -i~ s/"C\+\+ = g\+\+"/"C\+\+ = g\+\+\-11"/ Make-config
         make macosx-g++
-        cp bin/* /usr/local/bin/.
-        cp lib/* /usr/local/lib/.
-        cp -R include/* /usr/local/include/.
+        sudo cp bin/* /usr/local/bin/.
+        sudo cp lib/* /usr/local/lib/.
+        sudo cp -R include/* /usr/local/include/.
     - name: Install IO::Socket::SSL
       shell: bash
       run: |
