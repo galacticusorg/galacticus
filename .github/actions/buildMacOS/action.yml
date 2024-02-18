@@ -21,7 +21,7 @@ runs:
     - name: Install MacPorts
       shell: bash
       run: |
-        os_ver=${1-:$(sw_vers -productVersion)}
+        os_ver=$(sw_vers -productVersion)
         IFS='.' read -r -a ver <<< "$os_ver"
         if [[ "${ver[0]}" -eq 11 ]]; then
            macportsversion=2.7.1
