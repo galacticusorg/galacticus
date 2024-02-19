@@ -25,7 +25,7 @@ program Tests_IO_HDF5
   use :: HDF5              , only : HSIZE_T
   use :: IO_HDF5           , only : IO_HDF5_Is_HDF5    , hdf5Object            , hdf5VarDouble       , hdf5VarInteger8  , &
        &                            hdf5VarDouble2D
-  use :: ISO_Varying_String, only : assignment(=)      , trim                  , varying_string
+  use :: ISO_Varying_String, only : assignment(=)      , trim                  , varying_string      , var_str
   use :: Kind_Numbers      , only : kind_int8
   use :: System_Command    , only : System_Command_Do
   use :: Unit_Tests        , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
@@ -871,10 +871,12 @@ program Tests_IO_HDF5
   call Unit_Tests_Begin_Group("h5py compatibility")
   call System_Command_Do("./testSuite/scripts/generate_h5py.py")
   call fileObject%openFile     ("testSuite/outputs/h5py.hdf5",overWrite=.false.             ,objectsOverwritable=.false.)
+  call fileObject%readAttribute("stringAttribute"            ,          varStringValueReread                            )
   call fileObject%readAttribute("stringAttribute"            ,          characterValueReread                            )
   call fileObject%close        (                                                                                        )
   call fileObject%destroy      (                                                                                        )
-  call Assert("read h5py string attribute",characterValueReread,"this is a variable length string")
+  call Assert("read h5py string attribute (character)",characterValueReread,"this is a variable length string")
+  call Assert("read h5py string attribute (varying_string)",varStringValueReread,var_str("this is a variable length string"))
   call Unit_Tests_End_Group()
 
   ! End unit tests.

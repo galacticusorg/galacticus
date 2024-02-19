@@ -3243,7 +3243,7 @@ contains
     !!{
     Open and read an character scalar attribute in {\normalfont \ttfamily self}.
     !!}
-    use, intrinsic :: ISO_C_Binding     , only : c_loc, c_ptr, c_null_char,c_f_pointer
+    use, intrinsic :: ISO_C_Binding     , only : c_loc, c_ptr, c_null_char, c_f_pointer
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : HID_T              , HSIZE_T                    , h5aget_space_f , h5aread_f , &
          &                                       h5sclose_f         , h5sget_simple_extent_dims_f, h5tclose_f     , h5tcopy_f , &
@@ -3353,7 +3353,7 @@ contains
           call Error_Report(message//{introspection:location})
        end if
        ! Extract the attribute from the buffer.
-       call c_f_pointer(stringBuffer,stringBuffer_,shape=[33])
+       call c_f_pointer(stringBuffer,stringBuffer_,shape=[len(attributeValue)])
        attributeValue=String_C_to_Fortran(stringBuffer_)
        deallocate(stringBuffer_)
     else if (allowPseudoScalarActual) then
@@ -3642,18 +3642,21 @@ contains
     Open and read an varying string scalar attribute in {\normalfont \ttfamily self}.
     !!}
     use :: Error             , only : Error_Report
-    use :: HDF5              , only : HID_T        , h5aget_type_f, h5tclose_f, h5tget_size_f
-    use :: ISO_Varying_String, only : assignment(=), operator(//) , trim
+    use :: HDF5              , only : HID_T        , h5aget_type_f, h5tclose_f, h5tget_size_f, &
+         &                            H5T_String
+    use :: ISO_Varying_String, only : assignment(=), operator(//) , trim      , len_trim
     implicit none
     type     (varying_string), intent(  out)           :: attributeValue
     class    (hdf5Object    ), intent(inout)           :: self
     character(len=*         ), intent(in   ), optional :: attributeName
     logical                  , intent(in   ), optional :: allowPseudoScalar
+    integer  (kind=SIZE_T   )                          :: dataTypeSizeMaximum=65536
     integer  (kind=HID_T    )                          :: dataTypeID
-    integer  (kind=SIZE_T   )                          :: dataTypeSize
+    integer  (kind=SIZE_T   )                          :: dataTypeSize             , lengthPrevious
     integer                                            :: errorCode
+    logical                                            :: isH5TString
     type     (hdf5Object    )                          :: attributeObject
-    type     (varying_string)                          :: attributeNameActual, message
+    type     (varying_string)                          :: attributeNameActual      , message
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
@@ -3719,8 +3722,27 @@ contains
        call Error_Report(message//{introspection:location})
     end if
 
+    ! Check for a variable length string.
+    call attributeObject%assertAttributeType([H5T_String],0,isH5TString)
+
     ! Call wrapper routine that will do the remainder of the read.
-    call IO_HDF5_Read_Attribute_VarString_Scalar_Do_Read(self,attributeName,attributeValue,dataTypeSize,allowPseudoScalar)
+    if (isH5TString) then
+       lengthPrevious=-1
+       dataTypeSize  = 1
+       do while (dataTypeSize < dataTypeSizeMaximum)
+          dataTypeSize=dataTypeSize*2
+          call IO_HDF5_Read_Attribute_VarString_Scalar_Do_Read(self,attributeName,attributeValue,dataTypeSize,allowPseudoScalar)
+          if (len_trim(attributeValue) == lengthPrevious) then
+             exit
+          else
+             lengthPrevious=len_trim(attributeValue)
+          end if
+       end do
+       if (len_trim(attributeValue) /= lengthPrevious) call Error_Report('variable length HDF5 string is too long'//{introspection:location})
+attributeValue=trim(attributeValue)
+    else
+       call IO_HDF5_Read_Attribute_VarString_Scalar_Do_Read(self,attributeName,attributeValue,dataTypeSize,allowPseudoScalar)
+    end if
 
     ! Close the attribute unless this was an attribute object.
     if (self%hdf5ObjectType /= hdf5ObjectTypeAttribute) call attributeObject%close()
