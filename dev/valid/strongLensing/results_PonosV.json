@@ -1,23 +1,23 @@
 window.PONOSV_DATA = {
-   "surfaceDensity" : {
-      "percentageAbove" : 93.75,
-      "target" : 0.006,
-      "percentageBelow" : 6.25
-   },
-   "commit" : {
-      "message" : "Merge pull request #555 from galacticusorg/validatePonosV",
-      "url" : "https://github.com/galacticusorg/galacticus/commit/ec4a80d5bb4fa2fe1060bb01f2ac021e1eba8ce5",
-      "author" : {
-         "name" : "Andrew Benson",
-         "email" : "abensonca@gmail.com"
-      },
-      "timestamp" : "Wed, 14 Feb 2024 21:50:31 +0000",
-      "id" : "ec4a80d5bb4fa2fe1060bb01f2ac021e1eba8ce5"
-   },
    "repoUrl" : "https://github.com/galacticusorg/galacticus",
+   "commit" : {
+      "author" : {
+         "email" : "abensonca@gmail.com",
+         "name" : "Andrew Benson"
+      },
+      "url" : "https://github.com/galacticusorg/galacticus/commit/5c3ea4a16d359eba4474d28f20d054c8be983b0e",
+      "message" : "Merge pull request #558 from galacticusorg/fixVarStringToVarString",
+      "timestamp" : "Mon, 19 Feb 2024 22:29:35 +0000",
+      "id" : "5c3ea4a16d359eba4474d28f20d054c8be983b0e"
+   },
    "slope" : {
-      "model" : 0.881028964972323,
+      "model" : 0.907355558190215,
       "target" : 0.85
    },
-   "parameterFile" : "testSuite/parameters/validate_PonosV.xml"
+   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
+   "surfaceDensity" : {
+      "target" : 0.006,
+      "percentageBelow" : 6.25,
+      "percentageAbove" : 93.75
+   }
 }
