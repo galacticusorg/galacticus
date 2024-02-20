@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1707960187354,
+  "lastUpdate": 1708392859837,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "f5b5769ec7ef9569ff31488ea2ec20fee5bb27b5",
-          "message": "fix: Initialize physically plausibility state\n\nAvoids warnings about use of uninitialized data.",
-          "timestamp": "2023-05-22T16:22:29-07:00",
-          "tree_id": "4d7b190aa8de61c3fba50eda1c934af25fcedad0",
-          "url": "https://github.com/galacticusorg/galacticus/commit/f5b5769ec7ef9569ff31488ea2ec20fee5bb27b5"
-        },
-        "date": 1684807916686,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 51.91,
-            "unit": "seconds",
-            "range": 0.172435495185903
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8784,6 +8754,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 23958.5193682761,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5c3ea4a16d359eba4474d28f20d054c8be983b0e",
+          "message": "Merge pull request #558 from galacticusorg/fixVarStringToVarString\n\nAllow read of an HDF5 variable length string to a `varying_string` object",
+          "timestamp": "2024-02-19T22:29:35Z",
+          "tree_id": "d2c78a681995907b0f6f65163637e969a64aade3",
+          "url": "https://github.com/galacticusorg/galacticus/commit/5c3ea4a16d359eba4474d28f20d054c8be983b0e"
+        },
+        "date": 1708392858496,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 42.365,
+            "unit": "seconds",
+            "range": 0.0645019379554737
           }
         ]
       }
