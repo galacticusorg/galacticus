@@ -131,7 +131,8 @@ runs:
       shell: bash
       run: |
         if [[ "${OS_VER}" -ge 14 ]]; then
-           # For OS version 14 and above specify the exact OpenSSL to use.
+           # For OS version 14 and above install OpenSSL and specify the exact version to use.
+           sudo port install openssl
            export OPENSSL_PREFIX=/opt/local/lib/openssl@1.1
         fi
         curl -L https://cpan.metacpan.org/authors/id/C/CH/CHRISN/Net-SSLeay-1.90.tar.gz --output Net-SSLeay-1.90.tar.gz
@@ -174,11 +175,11 @@ runs:
         sudo perl -MCPAN -e 'install Alien::Base::Wrapper'
         sudo perl -MCPAN -e 'force("install","Alien::Libxml2")'
         sudo perl -MCPAN -e 'install XML::LibXML::SAX'
+        sudo perl -MCPAN -e 'install XML::LibXML::SAX::Parser'
         if [[ "${OS_VER}" -ge 12 ]]; then
            # For OS versions 12 and above we need to ensure that the ParserDetails.ini is set up.
-           perl -MXML::SAX -e "XML::SAX->add_parser('XML::SAX::PurePerl')->save_parsers()" || true
-           perl -MXML::SAX -e "XML::SAX->add_parser('XML::LibXML::SAX::Parser')->save_parsers()"
-           perl -MXML::SAX -e "XML::SAX->add_parser('XML::LibXML::SAX')->save_parsers()" 
+           sudo perl -MXML::SAX -e "XML::SAX->add_parser('XML::SAX::PurePerl')->save_parsers()" || true
+           sudo perl -MXML::SAX -e "XML::SAX->add_parser('XML::LibXML::SAX')->save_parsers()" 
         fi
         sudo perl -MCPAN -e 'force("install","XML::SAX::ParserFactory")'
         sudo perl -MCPAN -e 'force("install","XML::Validator::Schema")'
