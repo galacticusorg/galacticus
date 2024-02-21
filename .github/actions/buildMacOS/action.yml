@@ -133,6 +133,8 @@ runs:
         if [[ "${OS_VER}" -ge 14 ]]; then
            # For OS version 14 and above install OpenSSL and specify the exact version to use.
            sudo port install openssl11
+           echo PORT CONTENT
+           port contents openssl11
            export OPENSSL_PREFIX=/opt/local/lib/openssl@1.1
         fi
         curl -L https://cpan.metacpan.org/authors/id/C/CH/CHRISN/Net-SSLeay-1.90.tar.gz --output Net-SSLeay-1.90.tar.gz
