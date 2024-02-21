@@ -1224,6 +1224,10 @@ jobs:
         uses: actions/checkout@v4
       - name: Set up build environment
         uses: ./.github/actions/buildMacOS
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "PYTHONPATH=$GITHUB_WORKSPACE/galacticus/python" >> $GITHUB_ENV
       - name: Install Python
         run: |
           sudo port install python27 
