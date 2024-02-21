@@ -1244,7 +1244,7 @@ jobs:
           mv libgalacticus.so galacticus/lib/
       - name: Test interface
         run: |
-          python2 testSuite/test-Python-interface.py
+          python27 testSuite/test-Python-interface.py
       - run: echo "This job's status is ${{ job.status }}."
   # Validate, deploy and update
   Validate:
