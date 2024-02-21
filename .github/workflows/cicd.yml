@@ -1227,6 +1227,8 @@ jobs:
       - name: Install Python
         run: |
           sudo port install python27 
+          sudo port select --set python python27
+          sudo port select --set python2 python27
       - name: Build Galacticus
         run: |
           export GALACTICUS_EXEC_PATH=`pwd`
@@ -1244,7 +1246,7 @@ jobs:
           mv libgalacticus.so galacticus/lib/
       - name: Test interface
         run: |
-          python27 testSuite/test-Python-interface.py
+          python2 testSuite/test-Python-interface.py
       - run: echo "This job's status is ${{ job.status }}."
   # Validate, deploy and update
   Validate:
