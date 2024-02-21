@@ -9,6 +9,7 @@ use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use Data::Dumper;
 use XML::Simple;
 use LaTeX::Encode;
+use List::Util qw(max);
 use List::ExtraUtils;
 use Galacticus::Build::SourceTree::Process::SourceIntrospection;
 
@@ -175,8 +176,9 @@ sub Process_Enumerations {
 		$function .= "    !!{\n";
 		$function .= "    Encode a {\\normalfont \\ttfamily ".$node->{'directive'}->{'name'}."} enumeration from a string, returning the appropriate identifier.\n";
 		$function .= "    !!}\n";
-		$function .= "    use :: Error, only : Error_Report\n"
+		$function .= "    use :: Error             , only : Error_Report\n"
 		    unless ( $onError );
+		$function .= "    use :: ISO_Varying_String, only : var_str     , operator(//)\n";
 		$function .= "    implicit none\n\n";
 		$function .= "    type   (enumeration".$node->{'directive'}->{'name'}."Type) :: ".$encodeFunctionName."Char\n";
 		$function .= "    character(len=*), intent(in   )           :: name\n";
@@ -207,7 +209,7 @@ sub Process_Enumerations {
 			$function .= "      ".$encodeFunctionName."Char=enumeration".$node->{'directive'}->{'name'}."Type(".$onError.")\n";
 		    } else {
 			$function .= "      ".$encodeFunctionName."Char=enumeration".$node->{'directive'}->{'name'}."Type(-1)\n";
-			$function .= "      call Error_Report('unrecognized enumeration member ['//trim(name)//']'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
+			$function .= "      call Error_Report(var_str('unrecognized enumeration member [')//trim(name)//']'//enumeration".ucfirst($node->{'directive'}->{'name'})."Describe()//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
 		    }
 		    $function .= "      end select\n";
 		}
@@ -301,6 +303,38 @@ sub Process_Enumerations {
 		&Galacticus::Build::SourceTree::InsertPreContains($node->{'parent'},\@interfaceNodes);
 		# Set the visibility.
 		&Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},$decodeFunctionName,$visibility);
+	    }
+	    # Create description function.
+	    {
+	    	my $functionName = "enumeration".ucfirst($node->{'directive'}->{'name'})."Describe";
+		my $validatorFunction;
+		$validatorFunction .= "\n";
+		$validatorFunction .= "  ! Auto-generated enumeration function\n";
+		$validatorFunction .= "  function ".$functionName."() result(description)\n";
+		$validatorFunction .= "    !!{\n";
+		$validatorFunction .= "    Return a description of a {\\normalfont \\ttfamily ".$node->{'directive'}->{'name'}."} enumeration value.\n";
+		$validatorFunction .= "    !!}\n";
+		$validatorFunction .= "    use :: ISO_Varying_String, only : varying_string, var_str, operator(//)\n";
+		$validatorFunction .= "    implicit none\n";
+		$validatorFunction .= "    type(varying_string) :: description\n\n";
+		$validatorFunction .= "    description=var_str(char(10))//\"Enumeration '".$node->{'directive'}->{'name'}."' has the following members:\"\n";
+		my @entries       = &List::ExtraUtils::as_array($node->{'directive'}->{'entry'});
+		my $lengthMaximum = max map {length($_)} @entries;
+		for(my $i=0;$i<scalar(@entries);++$i) {
+		    my $entry     = $entries[$i];
+		    my $separator = $i == scalar(@entries)-1 ? "." : ";";
+		    $validatorFunction .= "    description=description//char(10)//\"   ".(" " x ($lengthMaximum-length($entry->{'label'}))).$entry->{'label'}.(exists($entry->{'description'}) ? ": ".$entry->{'description'}.$separator : "")."\"\n";
+		}
+		$validatorFunction .= "    \n";
+		$validatorFunction .= "    return\n";
+		$validatorFunction .= "  end function ".$functionName."\n";
+		$validatorFunction .= "  ! End auto-generated enumeration function\n";
+		# Insert into the module.
+		my $validatorTree = &Galacticus::Build::SourceTree::ParseCode($validatorFunction,"Galacticus::Build::SourceTree::Process::Enumeration()");
+		my @validatorNodes = &Galacticus::Build::SourceTree::Children($validatorTree);
+		&Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},\@validatorNodes);
+		# Set the visibility.
+		&Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},$functionName,$visibility);
 	    }
 	    # Create documentation.
 	    system("mkdir -p doc/enumerations/definitions");
