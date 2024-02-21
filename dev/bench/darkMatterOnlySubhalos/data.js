@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1708498529176,
+  "lastUpdate": 1708498536447,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "4bc073b416fd78a2c5511eeeb53e37e9c28f4bc3",
-          "message": "feat: Expand range of memory reporting\n\nPreviously the largest suffix supported was GB, which lead to failure to format reported memory usage on larger memory machines. Now supports up to YB.",
-          "timestamp": "2023-05-23T07:56:50-07:00",
-          "tree_id": "8094ff323ea9aba6616cc4d8150ae0bf20fbd868",
-          "url": "https://github.com/galacticusorg/galacticus/commit/4bc073b416fd78a2c5511eeeb53e37e9c28f4bc3"
-        },
-        "date": 1684864499884,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 57.4646519971992,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 25.77177881396,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 25496.6894737413,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8784,6 +8745,45 @@ window.BENCHMARK_DATA = {
             "value": 42.282,
             "unit": "seconds",
             "range": 0.0222620753744243
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f81750a3a21fe16e9847484b47d33825b7bc153f",
+          "message": "Merge pull request #559 from galacticusorg/fixDeprecatePowerLaw\n\nDeprecate the (non-implemented) `powerLaw` extrapolation method for tables",
+          "timestamp": "2024-02-21T03:38:39Z",
+          "tree_id": "73a6a36c1e5bc1950812ffa01c625abeaa5a2d71",
+          "url": "https://github.com/galacticusorg/galacticus/commit/f81750a3a21fe16e9847484b47d33825b7bc153f"
+        },
+        "date": 1708498535451,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 58.5946207352462,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 26.1763665565697,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 23958.5193682761,
+            "unit": "-logℒ"
           }
         ]
       }
