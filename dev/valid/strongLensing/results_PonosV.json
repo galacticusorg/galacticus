@@ -1,23 +1,23 @@
 window.PONOSV_DATA = {
-   "repoUrl" : "https://github.com/galacticusorg/galacticus",
+   "surfaceDensity" : {
+      "percentageAbove" : 93.75,
+      "target" : 0.006,
+      "percentageBelow" : 6.25
+   },
+   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
+   "slope" : {
+      "target" : 0.85,
+      "model" : 0.907355558190215
+   },
    "commit" : {
+      "url" : "https://github.com/galacticusorg/galacticus/commit/f81750a3a21fe16e9847484b47d33825b7bc153f",
+      "message" : "Merge pull request #559 from galacticusorg/fixDeprecatePowerLaw",
+      "timestamp" : "Wed, 21 Feb 2024 03:38:39 +0000",
+      "id" : "f81750a3a21fe16e9847484b47d33825b7bc153f",
       "author" : {
          "email" : "abensonca@gmail.com",
          "name" : "Andrew Benson"
-      },
-      "url" : "https://github.com/galacticusorg/galacticus/commit/5c3ea4a16d359eba4474d28f20d054c8be983b0e",
-      "message" : "Merge pull request #558 from galacticusorg/fixVarStringToVarString",
-      "timestamp" : "Mon, 19 Feb 2024 22:29:35 +0000",
-      "id" : "5c3ea4a16d359eba4474d28f20d054c8be983b0e"
+      }
    },
-   "slope" : {
-      "model" : 0.907355558190215,
-      "target" : 0.85
-   },
-   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
-   "surfaceDensity" : {
-      "target" : 0.006,
-      "percentageBelow" : 6.25,
-      "percentageAbove" : 93.75
-   }
+   "repoUrl" : "https://github.com/galacticusorg/galacticus"
 }
