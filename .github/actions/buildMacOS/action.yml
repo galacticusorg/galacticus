@@ -133,9 +133,7 @@ runs:
         if [[ "${OS_VER}" -ge 14 ]]; then
            # For OS version 14 and above install OpenSSL and specify the exact version to use.
            sudo port install openssl11
-           echo PORT CONTENT
-           port contents openssl11
-           export OPENSSL_PREFIX=/opt/local/lib/openssl@1.1
+           export OPENSSL_PREFIX=/opt/local/libexec/openssl11
         fi
         curl -L https://cpan.metacpan.org/authors/id/C/CH/CHRISN/Net-SSLeay-1.90.tar.gz --output Net-SSLeay-1.90.tar.gz
         tar xvfz Net-SSLeay-1.90.tar.gz
@@ -172,9 +170,9 @@ runs:
         sudo perl -MCPAN -e 'force("install","Term::ANSIColor")'
         sudo perl -MCPAN -e 'force("install","Text::Table")'
         sudo perl -MCPAN -e 'force("install","ExtUtils::ParseXS")'
-        sudo perl -MCPAN -e 'install Path::Tiny'
-        sudo perl -MCPAN -e 'install PkgConfig'
-        sudo perl -MCPAN -e 'install Alien::Base::Wrapper'
+        sudo perl -MCPAN -e 'force("install","Path::Tiny")'
+        sudo perl -MCPAN -e 'force("install","PkgConfig")'
+        sudo perl -MCPAN -e 'force("install","Alien::Base::Wrapper")'
         sudo perl -MCPAN -e 'force("install","Alien::Libxml2")'
         sudo perl -MCPAN -e 'force("install","XML::LibXML::SAX")'
         sudo perl -MCPAN -e 'force("install","XML::LibXML::SAX::Parser")'
@@ -199,5 +197,5 @@ runs:
         sudo perl -MCPAN -e 'force("install","Clone")'
         sudo perl -MCPAN -e 'force("install","IO::Scalar")'
         sudo perl -MCPAN -e 'force("install","Regexp::Common")'
-        sudo perl -MCPAN -e 'install LaTeX::Encode'
-        sudo perl -MCPAN -e 'install Sub::Identify'
+        sudo perl -MCPAN -e 'force("install","LaTeX::Encode")'
+        sudo perl -MCPAN -e 'force("install","Sub::Identify")'
