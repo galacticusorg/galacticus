@@ -37,7 +37,6 @@ module Table_Labels
    <entry label="fix"        />
    <entry label="abort"      />
    <entry label="zero"       />
-   <entry label="powerLaw"   />
   </enumeration>
   !!]
 
