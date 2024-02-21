@@ -1224,6 +1224,9 @@ jobs:
         uses: actions/checkout@v4
       - name: Set up build environment
         uses: ./.github/actions/buildMacOS
+      - name: Install Python
+        run: |
+          sudo port install python27 
       - name: Build Galacticus
         run: |
           export GALACTICUS_EXEC_PATH=`pwd`
