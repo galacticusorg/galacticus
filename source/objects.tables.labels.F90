@@ -33,10 +33,10 @@ module Table_Labels
    <name>extrapolationType</name>
    <description>Used to specify the type of extrapolation to use when interpolating in tables.</description>
    <encodeFunction>yes</encodeFunction>
-   <entry label="extrapolate"/>
-   <entry label="fix"        />
-   <entry label="abort"      />
-   <entry label="zero"       />
+   <entry label="extrapolate" description="Extrapolate beyond the range of the tabulated data"/>
+   <entry label="fix"         description="Fix the value to that at the last tabulated point" />
+   <entry label="abort"       description="Abort if extrapolation would be required"          />
+   <entry label="zero"        description="Return zero beyond the range of the tabulated data"/>
   </enumeration>
   !!]
 
