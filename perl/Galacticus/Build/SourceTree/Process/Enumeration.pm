@@ -307,31 +307,45 @@ sub Process_Enumerations {
 	    # Create description function.
 	    {
 	    	my $functionName = "enumeration".ucfirst($node->{'directive'}->{'name'})."Describe";
-		my $validatorFunction;
-		$validatorFunction .= "\n";
-		$validatorFunction .= "  ! Auto-generated enumeration function\n";
-		$validatorFunction .= "  function ".$functionName."() result(description)\n";
-		$validatorFunction .= "    !!{\n";
-		$validatorFunction .= "    Return a description of a {\\normalfont \\ttfamily ".$node->{'directive'}->{'name'}."} enumeration value.\n";
-		$validatorFunction .= "    !!}\n";
-		$validatorFunction .= "    use :: ISO_Varying_String, only : varying_string, var_str, operator(//)\n";
-		$validatorFunction .= "    implicit none\n";
-		$validatorFunction .= "    type(varying_string) :: description\n\n";
-		$validatorFunction .= "    description=var_str(char(10))//\"Enumeration '".$node->{'directive'}->{'name'}."' has the following members:\"\n";
+		my $descriptorFunction;
+		$descriptorFunction .= "\n";
+		$descriptorFunction .= "  ! Auto-generated enumeration function\n";
+		$descriptorFunction .= "  function ".$functionName."() result(description)\n";
+		$descriptorFunction .= "    !!{\n";
+		$descriptorFunction .= "    Return a description of a {\\normalfont \\ttfamily ".$node->{'directive'}->{'name'}."} enumeration value.\n";
+		$descriptorFunction .= "    !!}\n";
+		$descriptorFunction .= "    use :: ISO_Varying_String, only : varying_string, var_str, operator(//)\n";
+		$descriptorFunction .= "    implicit none\n";
+		$descriptorFunction .= "    type(varying_string) :: description\n\n";
+		my $description      = "    description=var_str(char(10))//\"Enumeration '".$node->{'directive'}->{'name'}."' has the following members:\"\n";
 		my @entries       = &List::ExtraUtils::as_array($node->{'directive'}->{'entry'});
 		my $lengthMaximum = max map {length($_)} @entries;
 		for(my $i=0;$i<scalar(@entries);++$i) {
 		    my $entry     = $entries[$i];
 		    my $separator = $i == scalar(@entries)-1 ? "." : ";";
-		    $validatorFunction .= "    description=description//char(10)//\"   ".(" " x ($lengthMaximum-length($entry->{'label'}))).$entry->{'label'}.(exists($entry->{'description'}) ? ": ".$entry->{'description'}.$separator : "")."\"\n";
+		    $description .= "    description=description//char(10)//\"   ".(" " x ($lengthMaximum-length($entry->{'label'}))).$entry->{'label'}.(exists($entry->{'description'}) ? ": ".$entry->{'description'}.$separator : "")."\"\n";
 		}
-		$validatorFunction .= "    \n";
-		$validatorFunction .= "    return\n";
-		$validatorFunction .= "  end function ".$functionName."\n";
-		$validatorFunction .= "  ! End auto-generated enumeration function\n";
+		$descriptorFunction .= "    \n";
+		$descriptorFunction .= "    return\n";
+		$descriptorFunction .= "  end function ".$functionName."\n";
+		$descriptorFunction .= "  ! End auto-generated enumeration function\n";
 		# Insert into the module.
-		my $validatorTree = &Galacticus::Build::SourceTree::ParseCode($validatorFunction,"Galacticus::Build::SourceTree::Process::Enumeration()");
+		my $validatorTree = &Galacticus::Build::SourceTree::ParseCode($descriptorFunction,"Galacticus::Build::SourceTree::Process::Enumeration()", instrument => 0);
 		my @validatorNodes = &Galacticus::Build::SourceTree::Children($validatorTree);
+		my $newNode = $validatorNodes[0];
+		while ( $newNode->{'type'} ne "function" ) {
+		    $newNode = $newNode->{'sibling'};
+		}
+		$newNode = $newNode->{'firstChild'};
+		while ( defined($newNode->{'sibling'}) ) {
+		    $newNode = $newNode->{'sibling'};
+		}
+		my $describeNode =
+		{
+		    type => "code",
+		    content => $description
+		};
+		&Galacticus::Build::SourceTree::InsertAfterNode($newNode,[$describeNode]);
 		&Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},\@validatorNodes);
 		# Set the visibility.
 		&Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},$functionName,$visibility);
