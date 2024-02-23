@@ -1,36 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1708498539834,
+  "lastUpdate": 1708716763151,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "committer": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "id": "9a5a5b484917ceaa6b3080ddebc0fd97d62efeb1",
-          "message": "fix: Reduce code duplication in `mergerTreeEvolver` class",
-          "timestamp": "2023-05-23T20:39:32Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/9a5a5b484917ceaa6b3080ddebc0fd97d62efeb1"
-        },
-        "date": 1684886380770,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 202.226,
-            "unit": "seconds",
-            "range": 0.187409711596133
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10704,6 +10676,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 8.60569780010348,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2347f1be84d73ea4f54355a8032e19069005df36",
+          "message": "Merge pull request #566 from galacticusorg/fixVelocityOrbitalOutput\n\nMake orbital velocities relative to the eventual host halo when tracking pre-infall orbits",
+          "timestamp": "2024-02-23T16:27:57Z",
+          "tree_id": "e99409d613819615520400e14ac22da29f68ea4f",
+          "url": "https://github.com/galacticusorg/galacticus/commit/2347f1be84d73ea4f54355a8032e19069005df36"
+        },
+        "date": 1708716762268,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 142.058,
+            "unit": "seconds",
+            "range": 0.152287885268986
           }
         ]
       }
