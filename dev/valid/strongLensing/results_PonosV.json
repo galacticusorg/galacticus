@@ -1,23 +1,23 @@
 window.PONOSV_DATA = {
-   "surfaceDensity" : {
-      "percentageAbove" : 93.75,
-      "target" : 0.006,
-      "percentageBelow" : 6.25
-   },
+   "repoUrl" : "https://github.com/galacticusorg/galacticus",
    "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
    "slope" : {
       "target" : 0.85,
-      "model" : 0.907355558190215
+      "model" : 0.812535760901338
+   },
+   "surfaceDensity" : {
+      "target" : 0.006,
+      "percentageAbove" : 81.25,
+      "percentageBelow" : 18.75
    },
    "commit" : {
-      "url" : "https://github.com/galacticusorg/galacticus/commit/f81750a3a21fe16e9847484b47d33825b7bc153f",
-      "message" : "Merge pull request #559 from galacticusorg/fixDeprecatePowerLaw",
-      "timestamp" : "Wed, 21 Feb 2024 03:38:39 +0000",
-      "id" : "f81750a3a21fe16e9847484b47d33825b7bc153f",
       "author" : {
          "email" : "abensonca@gmail.com",
          "name" : "Andrew Benson"
-      }
-   },
-   "repoUrl" : "https://github.com/galacticusorg/galacticus"
+      },
+      "url" : "https://github.com/galacticusorg/galacticus/commit/2347f1be84d73ea4f54355a8032e19069005df36",
+      "timestamp" : "Fri, 23 Feb 2024 16:27:57 +0000",
+      "id" : "2347f1be84d73ea4f54355a8032e19069005df36",
+      "message" : "Merge pull request #566 from galacticusorg/fixVelocityOrbitalOutput"
+   }
 }
