@@ -223,23 +223,26 @@ contains
     !!{
     Read a tabulated power spectrum from file.
     !!}
-    use :: Cosmology_Parameters   , only : cosmologyParametersSimple
-    use :: Display                , only : displayMessage                  , displayMagenta, displayReset
-    use :: File_Utilities         , only : File_Name_Expand                , File_Exists
-    use :: Error                  , only : Error_Report
-    use :: HDF5_Access            , only : hdf5Access
-    use :: IO_HDF5                , only : hdf5Object
-    use :: Numerical_Comparison   , only : Values_Differ
-    use :: Numerical_Interpolation, only : GSL_Interp_cSpline
-    use :: Table_Labels           , only : enumerationExtrapolationTypeType, enumerationExtrapolationTypeEncode
-    use :: ISO_Varying_String     , only : var_str                         , operator(//)
-    use :: String_Handling        , only : operator(//)
+    use, intrinsic :: ISO_C_Binding          , only : c_size_t
+    use            :: Cosmology_Parameters   , only : cosmologyParametersSimple
+    use            :: Display                , only : displayMessage                  , displayMagenta, displayReset
+    use            :: File_Utilities         , only : File_Name_Expand                , File_Exists
+    use            :: Error                  , only : Error_Report
+    use            :: HDF5_Access            , only : hdf5Access
+    use            :: IO_HDF5                , only : hdf5Object
+    use            :: Numerical_Comparison   , only : Values_Differ
+    use            :: Numerical_Interpolation, only : GSL_Interp_cSpline
+    use            :: Table_Labels           , only : enumerationExtrapolationTypeType, enumerationExtrapolationTypeEncode
+    use            :: ISO_Varying_String     , only : var_str                         , operator(//)
+    use            :: Sorting                , only : sortIndex
+    use            :: String_Handling        , only : operator(//)
     implicit none
     class           (powerSpectrumPrimordialTransferredFile), intent(inout)               :: self
     type            (varying_string                        ), intent(in   )               :: fileName
     class           (cosmologyParametersClass              ), pointer                     :: cosmologyParametersFile
     double precision                                        , dimension(:  ), allocatable :: wavenumber             , redshift
     double precision                                        , dimension(:,:), allocatable :: power
+    integer         (c_size_t                              ), dimension(:  ), allocatable :: order
     double precision                                                                      :: HubbleConstant         , OmegaBaryon        , &
          &                                                                                   OmegaMatter            , OmegaDarkEnergy    , &
          &                                                                                   temperatureCMB
@@ -292,14 +295,15 @@ contains
     ! Close the file.
     call fileObject%close()
     !$ call hdf5Access%unset()
-    ! Construct the tabulated power spectrum and interpolators.
+    ! Construct the tabulated power spectrum and interpolators. Note that the tabulated power must be in order of increasing time, so sort on redshift and index in reverse.
+    order=sortIndex(redshift)
     allocate(self%wavenumberLogarithmic(size(wavenumber)               ))
     allocate(self%      timeLogarithmic(                 size(redshift)))
     allocate(self%     powerLogarithmic(size(wavenumber),size(redshift)))
     self%wavenumberLogarithmic=log(wavenumber)
-    self%powerLogarithmic     =log(power     )
     do i=1,size(redshift)
-       self%timeLogarithmic(i)=log(self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(redshift(i))))
+       self%timeLogarithmic (  i)=log(self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(redshift(  order(size(redshift)+1-i)))))
+       self%powerLogarithmic(:,i)=log(                                                                                            power(:,order(size(redshift)+1-i))  )
     end do
     self%interpolatorWavenumber=interpolator(self%wavenumberLogarithmic,extrapolationType=extrapolateWavenumber)
     self%interpolatorTime      =interpolator(self%timeLogarithmic      ,extrapolationType=extrapolateRedshift  )
