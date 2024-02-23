@@ -1,45 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1708716759697,
+  "lastUpdate": 1708716766901,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "committer": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "id": "9a5a5b484917ceaa6b3080ddebc0fd97d62efeb1",
-          "message": "fix: Reduce code duplication in `mergerTreeEvolver` class",
-          "timestamp": "2023-05-23T20:39:32Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/9a5a5b484917ceaa6b3080ddebc0fd97d62efeb1"
-        },
-        "date": 1684886385327,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 57.4991777473382,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 26.0216488557544,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 24211.0957851519,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8786,6 +8749,45 @@ window.BENCHMARK_DATA = {
             "value": 43.016,
             "unit": "seconds",
             "range": 0.102373824779164
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2347f1be84d73ea4f54355a8032e19069005df36",
+          "message": "Merge pull request #566 from galacticusorg/fixVelocityOrbitalOutput\n\nMake orbital velocities relative to the eventual host halo when tracking pre-infall orbits",
+          "timestamp": "2024-02-23T16:27:57Z",
+          "tree_id": "e99409d613819615520400e14ac22da29f68ea4f",
+          "url": "https://github.com/galacticusorg/galacticus/commit/2347f1be84d73ea4f54355a8032e19069005df36"
+        },
+        "date": 1708716765775,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 58.2915069955029,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 26.1797920561843,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 23917.6920299257,
+            "unit": "-logℒ"
           }
         ]
       }
