@@ -947,6 +947,7 @@ jobs:
                 test-treeFilterLabels.pl,
                 test-output.pl,
                 test-output-tree-contiguousity.pl,
+                test-outputSelector.pl,
                 test-parameter-validation.pl,
                 test-perl-modules.pl,
                 test-reproducibility.pl,
