@@ -402,11 +402,28 @@ contains
     !!{
     Return the transfer function at the given wavenumber.
     !!}
+    use :: Error             , only : errorStatusOutOfRange               , errorStatusSuccess, Error_Report
+    use :: Table_Labels      , only : enumerationExtrapolationTypeDescribe
+    use :: ISO_Varying_String, only : var_str
     implicit none
     class           (transferFunctionFile), intent(inout) :: self
     double precision                      , intent(in   ) :: wavenumber
+    integer                                               :: status
 
-    fileValue=exp(self%transfer%interpolate(log(wavenumber)))
+    fileValue=exp(self%transfer%interpolate(log(wavenumber),status=status))
+    select case (status)
+    case (errorStatusSuccess)
+       ! Success - nothing to do.
+    case (errorStatusOutOfRange)
+       call Error_Report(                                                                                                                                                                   &
+            &            var_str('wavenumber is outside tabulated range:')                                                                                                     //char(10)// &
+            &            'an extrapolation option "abort" was chosen - either extend the range of your tabulated transfer function or choose a different interpolation method:'          // &
+            &            enumerationExtrapolationTypeDescribe()                                                                                                                          // &
+            &            {introspection:location}                                                                                                                                           &
+            &            )
+    case default
+       call Error_Report('transfer function interpolation failed for unknown reason'//{introspection:location})
+    end select
     if (self%transferFunctionReferenceAvailable)                           &
          & fileValue=+                               fileValue             &
          &           *self%transferFunctionReference%    value(wavenumber)
@@ -417,15 +434,31 @@ contains
     !!{
     Return the logarithmic derivative of the transfer function at the given wavenumber.
     !!}
+    use :: Error             , only : errorStatusOutOfRange               , errorStatusSuccess, Error_Report
+    use :: Table_Labels      , only : enumerationExtrapolationTypeDescribe
+    use :: ISO_Varying_String, only : var_str
     implicit none
     class           (transferFunctionFile), intent(inout) :: self
     double precision                      , intent(in   ) :: wavenumber
-    
-    fileLogarithmicDerivative=+self%transfer%interpolateGradient(log(wavenumber))
+    integer                                               :: status
+
+    fileLogarithmicDerivative=+self%transfer%interpolateGradient(log(wavenumber),status=status)
+    select case (status)
+    case (errorStatusSuccess)
+       ! Success - nothing to do.
+    case (errorStatusOutOfRange)
+       call Error_Report(                                                                                                                                                                   &
+            &            var_str('wavenumber is outside tabulated range:')                                                                                                     //char(10)// &
+            &            'an extrapolation option "abort" was chosen - either extend the range of your tabulated transfer function or choose a different interpolation method:'          // &
+            &            enumerationExtrapolationTypeDescribe()                                                                                                                          // &
+            &            {introspection:location}                                                                                                                                           &
+            &            )
+    case default
+       call Error_Report('transfer function interpolation failed for unknown reason'//{introspection:location})
+    end select
     if (self%transferFunctionReferenceAvailable) &
          & fileLogarithmicDerivative=+                               fileLogarithmicDerivative             &
          &                           +self%transferFunctionReference%    logarithmicDerivative(wavenumber)
-
     return
   end function fileLogarithmicDerivative
   
